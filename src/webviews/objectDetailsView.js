@@ -322,15 +322,8 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             `<div class="error">${object.error}</div>` : 
             `<form id="settingsForm">
                 ${Object.entries(settings)
-                    .filter(([key]) => key !== 'error')
+                    .filter(([key]) => key !== 'error' && key !== 'namespaceName')
                     .map(([key, value]) => {
-                        if (key === 'namespaceName') {
-                            return `<div class="form-row">
-                                <label for="${key}">${formatLabel(key)}:</label>
-                                <input type="text" id="${key}" name="${key}" value="${value || ''}" readonly>
-                            </div>`;
-                        }
-                        
                         if (typeof value === 'boolean') {
                             return `<div class="form-row">
                                 <label for="${key}">${formatLabel(key)}:</label>

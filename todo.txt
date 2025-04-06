@@ -1,10 +1,11 @@
 Agent todo items...
 
+
+
 1. In the object details tabs, dont show the namespace name setting. 
 It is not necessary to show the namespace name in the object details tabs.
   
-2. we're currnlty showing a section 'Optional Boolean Properties'.  
-a separate section is not necessary. show the properties together in alphabetical order
+2. boolean settings should be shown as a toggle switch.
 
 3. In the object details tabs, show all setting controls in alphabetical order. 
 It is not necessary to note which are optional.
@@ -12,13 +13,6 @@ It is not necessary to note which are optional.
 4. In the object details tabs, if the schema has a description for 
 a property\setting, show the description when the user hovers over it.
  
-5. on the object details page properties tab, show the 'add propery' 
-button on the top right of the tab.  DO this on both views.  
-the list view and the grid view.  The button should be in the same place on both views. 
-
 6. On the object details page properties tab, the user is not
-allowed to change the prop name on either view.
-
-question, can i add another accordian seciton to my left sidebar view? 
-7. I want to add a 'Reports' one that list all report items in one place.  In the json, reports are under objects.
+allowed to change the prop name
 
