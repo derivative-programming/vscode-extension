@@ -27,5 +27,8 @@ Always be careful and create accurate code.
 
 11. read-only controls should have a differnt background to indicate its read-only
  
+12. drop down controls do not need a placeholder 'Select ...' options.
+
+13. for all commands i send to you, log them in a file /copilot-command-history.txt
 
 

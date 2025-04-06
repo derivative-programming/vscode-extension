@@ -2,15 +2,16 @@ Agent todo items...
 
 
  
-  
-2. boolean settings should be shown as a toggle switch.
+- in table view show columns in alphabetical order, but 'name' should be first
 
-3. In the object details tabs, show all setting controls in alphabetical order. 
-It is not necessary to note which are optional.
 
-4. In the object details tabs, if the schema has a description for 
+- In the object details tabs, if the schema has a description for 
 a property\setting, show the description when the user hovers over it.
- 
-6. On the object details page properties tab, the user is not
-allowed to change the prop name
+
+
+- properties tab on list view and table view the 'add property' button
+should be on the same line as the two 'view' buttons, but right justified.
+
+- properties tab list view should show no controls to the right of the list view if
+no item in the list control is selected. 
 

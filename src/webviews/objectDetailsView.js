@@ -341,10 +341,21 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             color: var(--vscode-input-foreground);
         }
 
+        /* Consistent input and select styling */
+        input[type="text"], select {
+            padding: 5px;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border-radius: 2px;
+            min-height: 24px;
+        }
+
         /* Read-only controls styling */
         input[readonly], select[disabled] {
             background-color: var(--vscode-input-disabledBackground, #e9e9e9);
             color: var(--vscode-input-disabledForeground, #999);
+            opacity: 0.8;
         }
 
         /* Checkbox styling */
@@ -363,6 +374,31 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             padding: 8px;
             text-align: left;
             border-bottom: 1px solid var(--vscode-editorGroup-border);
+        }
+
+        /* Improve table cell alignment and spacing */
+        td input[type="text"], td select {
+            width: 85%;
+            min-height: 24px;
+            vertical-align: middle;
+            display: inline-block;
+        }
+
+        /* Control with checkbox container */
+        .control-with-checkbox {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .control-with-checkbox input[type="text"],
+        .control-with-checkbox select {
+            flex: 1;
+        }
+
+        .control-with-checkbox input[type="checkbox"] {
+            margin-left: 5px;
+            flex: 0 0 auto;
         }
 
         th {
@@ -464,28 +500,36 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                                     <input type="hidden" name="name" value="${prop.name || ''}">
                                 </td>
                                 <td>
-                                    <select name="sqlServerDBDataType" ${!prop.hasOwnProperty('sqlServerDBDataType') ? 'disabled' : ''}>
-                                        <option value="nvarchar" ${prop.sqlServerDBDataType === 'nvarchar' ? 'selected' : ''}>nvarchar</option>
-                                        <option value="int" ${prop.sqlServerDBDataType === 'int' ? 'selected' : ''}>int</option>
-                                        <option value="bit" ${prop.sqlServerDBDataType === 'bit' ? 'selected' : ''}>bit</option>
-                                        <option value="datetime" ${prop.sqlServerDBDataType === 'datetime' ? 'selected' : ''}>datetime</option>
-                                    </select>
-                                    <input type="checkbox" class="prop-checkbox" data-prop="sqlServerDBDataType" data-index="${index}" ${prop.hasOwnProperty('sqlServerDBDataType') ? 'checked' : ''} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
+                                    <div class="control-with-checkbox">
+                                        <select name="sqlServerDBDataType" ${!prop.hasOwnProperty('sqlServerDBDataType') ? 'disabled' : ''}>
+                                            <option value="nvarchar" ${prop.sqlServerDBDataType === 'nvarchar' ? 'selected' : ''}>nvarchar</option>
+                                            <option value="int" ${prop.sqlServerDBDataType === 'int' ? 'selected' : ''}>int</option>
+                                            <option value="bit" ${prop.sqlServerDBDataType === 'bit' ? 'selected' : ''}>bit</option>
+                                            <option value="datetime" ${prop.sqlServerDBDataType === 'datetime' ? 'selected' : ''}>datetime</option>
+                                        </select>
+                                        <input type="checkbox" class="prop-checkbox" data-prop="sqlServerDBDataType" data-index="${index}" ${prop.hasOwnProperty('sqlServerDBDataType') ? 'checked' : ''} title="Toggle property existence">
+                                    </div>
                                 </td>
                                 <td>
-                                    <input type="text" name="sqlServerDBDataTypeSize" value="${prop.sqlServerDBDataTypeSize || ''}" ${!prop.hasOwnProperty('sqlServerDBDataTypeSize') ? 'readonly' : ''}>
-                                    <input type="checkbox" class="prop-checkbox" data-prop="sqlServerDBDataTypeSize" data-index="${index}" ${prop.hasOwnProperty('sqlServerDBDataTypeSize') ? 'checked' : ''} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
+                                    <div class="control-with-checkbox">
+                                        <input type="text" name="sqlServerDBDataTypeSize" value="${prop.sqlServerDBDataTypeSize || ''}" ${!prop.hasOwnProperty('sqlServerDBDataTypeSize') ? 'readonly' : ''}>
+                                        <input type="checkbox" class="prop-checkbox" data-prop="sqlServerDBDataTypeSize" data-index="${index}" ${prop.hasOwnProperty('sqlServerDBDataTypeSize') ? 'checked' : ''} title="Toggle property existence">
+                                    </div>
                                 </td>
                                 <td>
-                                    <select name="isFK" ${!prop.hasOwnProperty('isFK') ? 'disabled' : ''}>
-                                        <option value="true" ${prop.isFK === 'true' ? 'selected' : ''}>Yes</option>
-                                        <option value="false" ${prop.isFK === 'false' ? 'selected' : ''}>No</option>
-                                    </select>
-                                    <input type="checkbox" class="prop-checkbox" data-prop="isFK" data-index="${index}" ${prop.hasOwnProperty('isFK') ? 'checked' : ''} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
+                                    <div class="control-with-checkbox">
+                                        <select name="isFK" ${!prop.hasOwnProperty('isFK') ? 'disabled' : ''}>
+                                            <option value="true" ${prop.isFK === 'true' ? 'selected' : ''}>Yes</option>
+                                            <option value="false" ${prop.isFK === 'false' ? 'selected' : ''}>No</option>
+                                        </select>
+                                        <input type="checkbox" class="prop-checkbox" data-prop="isFK" data-index="${index}" ${prop.hasOwnProperty('isFK') ? 'checked' : ''} title="Toggle property existence">
+                                    </div>
                                 </td>
                                 <td>
-                                    <input type="text" name="fKObjectName" value="${prop.fKObjectName || ''}" ${!prop.hasOwnProperty('fKObjectName') ? 'readonly' : ''}>
-                                    <input type="checkbox" class="prop-checkbox" data-prop="fKObjectName" data-index="${index}" ${prop.hasOwnProperty('fKObjectName') ? 'checked' : ''} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
+                                    <div class="control-with-checkbox">
+                                        <input type="text" name="fKObjectName" value="${prop.fKObjectName || ''}" ${!prop.hasOwnProperty('fKObjectName') ? 'readonly' : ''}>
+                                        <input type="checkbox" class="prop-checkbox" data-prop="fKObjectName" data-index="${index}" ${prop.hasOwnProperty('fKObjectName') ? 'checked' : ''} title="Toggle property existence">
+                                    </div>
                                 </td>
                             </tr>
                         `).join('')}
@@ -608,7 +652,33 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         const firstIcon = document.querySelector('.view-icons .icon');
                         if (firstIcon) firstIcon.click();
                     }
+
+                    // Apply consistent styling to all selects and inputs
+                    applyConsistentStyling();
                 });
+
+                // Helper function to apply consistent styling to all inputs and selects
+                function applyConsistentStyling() {
+                    // Style all select elements consistently
+                    document.querySelectorAll('select').forEach(select => {
+                        if (select.disabled) {
+                            select.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                            select.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                            select.style.opacity = '0.8';
+                        } else {
+                            select.style.backgroundColor = 'var(--vscode-input-background)';
+                            select.style.color = 'var(--vscode-input-foreground)';
+                            select.style.opacity = '1';
+                        }
+                    });
+
+                    // Style all readonly inputs consistently
+                    document.querySelectorAll('input[readonly]').forEach(input => {
+                        input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                        input.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                        input.style.opacity = '0.8';
+                    });
+                }
 
                 // List item selection
                 const propsList = document.getElementById('propsList');
@@ -655,9 +725,11 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         if (!checkbox.checked) {
                             input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
                             input.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                            input.style.opacity = '0.8';
                         } else {
-                            input.style.backgroundColor = '';
-                            input.style.color = '';
+                            input.style.backgroundColor = 'var(--vscode-input-background)';
+                            input.style.color = 'var(--vscode-input-foreground)';
+                            input.style.opacity = '1';
                         }
                     };
 
@@ -715,11 +787,21 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         inputField.readOnly = !checkbox.checked;
                     }
                     
-                    // Apply initial styling
-                    if (!checkbox.checked) {
-                        inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
-                        inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
-                    }
+                    // Apply consistent styling for disabled/readonly state
+                    const updateInputStyle = () => {
+                        if (!checkbox.checked) {
+                            inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                            inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                            inputField.style.opacity = '0.8';
+                        } else {
+                            inputField.style.backgroundColor = 'var(--vscode-input-background)';
+                            inputField.style.color = 'var(--vscode-input-foreground)';
+                            inputField.style.opacity = '1';
+                        }
+                    };
+                    
+                    // Apply initial style
+                    updateInputStyle();
                     
                     // Add event listener to toggle readOnly/disabled state
                     checkbox.addEventListener('change', () => {
@@ -728,14 +810,7 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         } else {
                             inputField.readOnly = !checkbox.checked;
                         }
-                        
-                        if (checkbox.checked) {
-                            inputField.style.backgroundColor = '';
-                            inputField.style.color = '';
-                        } else {
-                            inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
-                            inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
-                        }
+                        updateInputStyle();
                     });
                 });
                 
@@ -746,27 +821,30 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     const row = document.querySelector('tr[data-index="' + rowIndex + '"]');
                     const inputField = row.querySelector('[name="' + propName + '"]');
                     
+                    // Apply consistent styling for disabled/readonly state
+                    const updateInputStyle = () => {
+                        if (!checkbox.checked) {
+                            inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                            inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                            inputField.style.opacity = '0.8';
+                        } else {
+                            inputField.style.backgroundColor = 'var(--vscode-input-background)';
+                            inputField.style.color = 'var(--vscode-input-foreground)';
+                            inputField.style.opacity = '1';
+                        }
+                    };
+                    
+                    // Apply initial style
+                    updateInputStyle();
+                    
                     // Add event listener to toggle readOnly/disabled state
                     checkbox.addEventListener('change', () => {
                         if (inputField.tagName === 'INPUT') {
                             inputField.readOnly = !checkbox.checked;
-                            if (!checkbox.checked) {
-                                inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
-                                inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
-                            } else {
-                                inputField.style.backgroundColor = '';
-                                inputField.style.color = '';
-                            }
                         } else if (inputField.tagName === 'SELECT') {
                             inputField.disabled = !checkbox.checked;
-                            if (!checkbox.checked) {
-                                inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
-                                inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
-                            } else {
-                                inputField.style.backgroundColor = '';
-                                inputField.style.color = '';
-                            }
                         }
+                        updateInputStyle();
                     });
                 });
 
@@ -803,6 +881,12 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     tableRows.forEach(row => {
                         const index = row.getAttribute('data-index');
                         const prop = {};
+                        
+                        // Get the name property first
+                        const nameInput = row.querySelector('[name="name"]');
+                        if (nameInput) {
+                            prop.name = nameInput.value;
+                        }
                         
                         // Only include properties with checked checkboxes
                         row.querySelectorAll('.prop-checkbox').forEach(checkbox => {
