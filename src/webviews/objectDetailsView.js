@@ -542,23 +542,48 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                 });
 
-                // View switching
-                document.querySelectorAll('.view-icons .icon').forEach(icon => {
-                    icon.addEventListener('click', () => {
-                        const view = icon.getAttribute('data-view');
-
-                        // Update active icon
-                        document.querySelectorAll('.view-icons .icon').forEach(i => i.classList.remove('active'));
-                        icon.classList.add('active');
-
-                        // Update visible view content
-                        document.querySelectorAll('.view-content').forEach(content => {
-                            content.classList.remove('active');
-                            if (content.id === view + 'View') {
-                                content.classList.add('active');
-                            }
-                        });
+                // View switching - using event delegation for better reliability
+                document.querySelector('.view-icons').addEventListener('click', (event) => {
+                    // Check if the clicked element is an icon or a child of an icon
+                    const iconElement = event.target.closest('.icon');
+                    if (!iconElement) return;
+                    
+                    const view = iconElement.getAttribute('data-view');
+                    console.log('Switching to view:', view);
+                    
+                    // Update active state of icons
+                    document.querySelectorAll('.view-icons .icon').forEach(icon => {
+                        icon.classList.remove('active');
                     });
+                    iconElement.classList.add('active');
+                    
+                    // Hide all views
+                    document.querySelectorAll('.view-content').forEach(content => {
+                        content.style.display = 'none';
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show selected view
+                    const viewElement = document.getElementById(view + 'View');
+                    if (viewElement) {
+                        viewElement.style.display = 'block';
+                        viewElement.classList.add('active');
+                        console.log('Activated view:', view + 'View');
+                    } else {
+                        console.error('View not found:', view + 'View');
+                    }
+                });
+
+                // Set initial view on page load
+                window.addEventListener('DOMContentLoaded', () => {
+                    const defaultView = document.querySelector('.view-icons .icon.active');
+                    if (defaultView) {
+                        defaultView.click();
+                    } else {
+                        // Fallback to first icon if no active icon found
+                        const firstIcon = document.querySelector('.view-icons .icon');
+                        if (firstIcon) firstIcon.click();
+                    }
                 });
 
                 // List item selection
