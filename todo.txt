@@ -1,24 +1,20 @@
 Agent todo items...
 
 
- 
-- in table view show columns in alphabetical order, but 'name' should be first
-
 
 - In the object details tabs, if the schema has a description for 
 a property\setting, show the description when the user hovers over it.
-
-- allow horizontal scroll on the table view, if the table is too wide for the screen.
-
-- The table view has some columns that contain dropdowns.
-  These columns should be wide enough to show the full text of each item
-  and display its checkbox and no wider
  
-- remove the 'delete' buttons. 
-
 - implement 'add property' 
 
 - implement save    
     - table view
     - list view
     - object details view
+
+- in object details tab remove 'object Document' and 'object button'
+ 
+- the list view should show items in the list box in the same order as in the json file.
+
+- the table view should show items in the list box in the same order as in the json file.
+
