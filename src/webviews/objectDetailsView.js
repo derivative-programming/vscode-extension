@@ -594,11 +594,25 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     const selectedIndex = event.target.value;
                     const prop = ${JSON.stringify(props)}[selectedIndex];
 
+                    // Update form fields with property values
                     document.getElementById('propName').value = prop.name || '';
                     document.getElementById('propDataType').value = prop.sqlServerDBDataType || '';
                     document.getElementById('propSize').value = prop.sqlServerDBDataTypeSize || '';
                     document.getElementById('propIsFK').value = prop.isFK || '';
                     document.getElementById('propFKObject').value = prop.fKObjectName || '';
+                    
+                    // Set checkbox states based on property existence
+                    document.getElementById('propNameEditable').checked = prop.hasOwnProperty('name');
+                    document.getElementById('propDataTypeEditable').checked = prop.hasOwnProperty('sqlServerDBDataType');
+                    document.getElementById('propSizeEditable').checked = prop.hasOwnProperty('sqlServerDBDataTypeSize');
+                    document.getElementById('propIsFKEditable').checked = prop.hasOwnProperty('isFK');
+                    document.getElementById('propFKObjectEditable').checked = prop.hasOwnProperty('fKObjectName');
+                    
+                    // Trigger the change event on checkboxes to update read-only state
+                    document.querySelectorAll('#propDetailsForm input[type="checkbox"]').forEach(checkbox => {
+                        const event = new Event('change');
+                        checkbox.dispatchEvent(event);
+                    });
                 });
 
                 const toggleEditable = (checkboxId, inputId) => {
