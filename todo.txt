@@ -1,7 +1,5 @@
 Agent todo items...
 
-
-
 - In the object details tabs, if the schema has a description for 
 a property\setting, show the description when the user hovers over it.
  
@@ -11,10 +9,4 @@ a property\setting, show the description when the user hovers over it.
     - table view
     - list view
     - object details view
-
-- in object details tab remove 'object Document' and 'object button'
  
-- the list view should show items in the list box in the same order as in the json file.
-
-- the table view should show items in the list box in the same order as in the json file.
-

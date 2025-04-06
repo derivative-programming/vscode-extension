@@ -218,7 +218,14 @@ function getObjectDetailsContent(object, propertyDescriptions) {
     delete object.objectWorkflow;
 
     const settingsHtml = Object.entries(objectSchemaProps)
-        .filter(([key, desc]) => desc.type !== 'array' && key !== 'name')
+        .filter(([key, desc]) => {
+            // Exclude 'objectDocument' and 'objectButton' properties
+            if (key === 'objectDocument' || key === 'objectButton') {
+                return false;
+            }
+            // Keep other non-array properties that are not 'name'
+            return desc.type !== 'array' && key !== 'name';
+        })
         .sort((a, b) => a[0].localeCompare(b[0])) // Sort alphabetically by property name
         .map(([key, desc]) => {
             // Check if property has enum values
@@ -329,7 +336,7 @@ function getObjectDetailsContent(object, propertyDescriptions) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" width="device-width, initial-scale=1.0">
     <title>Object Details: ${object.name}</title>
     <style>
         body {
