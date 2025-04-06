@@ -214,12 +214,34 @@ function getObjectDetailsContent(object, propertyDescriptions) {
     delete object.objectWorkflow;
 
     const settingsHtml = Object.entries(objectSchemaProps)
-        .filter(([_, desc]) => desc.type !== 'array')
-        .map(([key]) => {
+        .filter(([key, desc]) => desc.type !== 'array' && key !== 'name')
+        .sort((a, b) => a[0].localeCompare(b[0])) // Sort alphabetically by property name
+        .map(([key, desc]) => {
+            // Check if property has enum values
+            const hasEnum = desc.enum && Array.isArray(desc.enum);
+            
+            // Get description for tooltip
+            const tooltip = desc.description ? `title="${desc.description}"` : '';
+            
+            // Generate appropriate input field based on whether it has enum values
+            let inputField = '';
+            if (hasEnum) {
+                // Generate select dropdown for enum values
+                inputField = `<select id="${key}" name="${key}" ${tooltip} ${!object.hasOwnProperty(key) ? 'disabled' : ''}>
+                    <option value="">Select ${formatLabel(key)}</option>
+                    ${desc.enum.map(option => 
+                        `<option value="${option}" ${object[key] === option ? 'selected' : ''}>${option}</option>`
+                    ).join('')}
+                </select>`;
+            } else {
+                // Generate text input for non-enum values
+                inputField = `<input type="text" id="${key}" name="${key}" value="${object[key] || ''}" ${tooltip} ${!object.hasOwnProperty(key) ? 'readonly' : ''}>`;
+            }
+            
             return `<div class="form-row">
-                <label for="${key}">${formatLabel(key)}:</label>
-                <input type="text" id="${key}" name="${key}" value="${object[key] || ''}" ${!object.hasOwnProperty(key) ? 'readonly' : ''}>
-                <input type="checkbox" class="setting-checkbox" data-prop="${key}" ${object.hasOwnProperty(key) ? 'checked' : ''} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
+                <label for="${key}" ${tooltip}>${formatLabel(key)}:</label>
+                ${inputField}
+                <input type="checkbox" class="setting-checkbox" data-prop="${key}" data-is-enum="${hasEnum}" ${object.hasOwnProperty(key) ? 'checked' : ''} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
             </div>`;
         }).join('');
 
@@ -439,8 +461,8 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         ${props.map((prop, index) => `
                             <tr data-index="${index}">
                                 <td>
-                                    <input type="text" name="name" value="${prop.name || ''}" ${!prop.hasOwnProperty('name') ? 'readonly' : ''}>
-                                    <input type="checkbox" class="prop-checkbox" data-prop="name" data-index="${index}" ${prop.hasOwnProperty('name') ? 'checked' : ''} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
+                                    <span class="prop-name">${prop.name || 'Unnamed Property'}</span>
+                                    <input type="hidden" name="name" value="${prop.name || ''}">
                                 </td>
                                 <td>
                                     <select name="sqlServerDBDataType" ${!prop.hasOwnProperty('sqlServerDBDataType') ? 'disabled' : ''}>
@@ -490,11 +512,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             <div class="details-container">
                 <form id="propDetailsForm">
                     <div class="form-row">
-                        <label for="propName">Name:</label>
-                        <input type="text" id="propName" name="name" value="" readonly>
-                        <input type="checkbox" id="propNameEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
-                    </div>
-                    <div class="form-row">
                         <label for="propDataType">Data Type:</label>
                         <select id="propDataType" name="sqlServerDBDataType" disabled>
                             <option value="">Select type</option>
@@ -506,9 +523,9 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         <input type="checkbox" id="propDataTypeEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
                     </div>
                     <div class="form-row">
-                        <label for="propSize">Size:</label>
-                        <input type="text" id="propSize" name="sqlServerDBDataTypeSize" value="" readonly>
-                        <input type="checkbox" id="propSizeEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
+                        <label for="propFKObject">FK Object:</label>
+                        <input type="text" id="propFKObject" name="fKObjectName" value="" readonly>
+                        <input type="checkbox" id="propFKObjectEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
                     </div>
                     <div class="form-row">
                         <label for="propIsFK">Is FK:</label>
@@ -520,9 +537,9 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         <input type="checkbox" id="propIsFKEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
                     </div>
                     <div class="form-row">
-                        <label for="propFKObject">FK Object:</label>
-                        <input type="text" id="propFKObject" name="fKObjectName" value="" readonly>
-                        <input type="checkbox" id="propFKObjectEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
+                        <label for="propSize">Size:</label>
+                        <input type="text" id="propSize" name="sqlServerDBDataTypeSize" value="" readonly>
+                        <input type="checkbox" id="propSizeEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
                     </div>
                     <div class="actions">
                         <button id="savePropDetails">Save Property</button>
@@ -607,14 +624,12 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     const prop = ${JSON.stringify(props)}[selectedIndex];
 
                     // Update form fields with property values
-                    document.getElementById('propName').value = prop.name || '';
                     document.getElementById('propDataType').value = prop.sqlServerDBDataType || '';
                     document.getElementById('propSize').value = prop.sqlServerDBDataTypeSize || '';
                     document.getElementById('propIsFK').value = prop.isFK || '';
                     document.getElementById('propFKObject').value = prop.fKObjectName || '';
                     
                     // Set checkbox states based on property existence
-                    document.getElementById('propNameEditable').checked = prop.hasOwnProperty('name');
                     document.getElementById('propDataTypeEditable').checked = prop.hasOwnProperty('sqlServerDBDataType');
                     document.getElementById('propSizeEditable').checked = prop.hasOwnProperty('sqlServerDBDataTypeSize');
                     document.getElementById('propIsFKEditable').checked = prop.hasOwnProperty('isFK');
@@ -637,7 +652,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                 };
 
-                toggleEditable('propNameEditable', 'propName');
                 toggleEditable('propDataTypeEditable', 'propDataType');
                 toggleEditable('propSizeEditable', 'propSize');
                 toggleEditable('propIsFKEditable', 'propIsFK');
