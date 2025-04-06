@@ -38,15 +38,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const ajv_1 = __importDefault(require("ajv"));
-// We'll import the objectDetailsView module dynamically in the activate function
-// to ensure we have access to the extension context
-let objectDetailsView;
+const objectDetailsView = __importStar(require("./webviews/objectDetailsView")); // Import objectDetailsView
 // TreeDataProvider for managing JSON structure
 class JsonTreeDataProvider {
     appDNAFilePath;
@@ -197,45 +193,20 @@ function activate(context) {
     const appDNAFilePath = workspaceFolder ? path.join(workspaceFolder, 'app-dna.json') : null;
     // Set initial context based on file existence
     updateFileExistsContext(appDNAFilePath);
-    // Enhanced module loading for objectDetailsView
+    // Load the objectDetailsView module safely
     try {
-        const modulePaths = [
-            path.join(context.extensionPath, 'dist', 'webviews', 'objectDetailsView.js'),
-            path.join(context.extensionPath, 'src', 'webviews', 'objectDetailsView.js')
-        ];
-        for (const modulePath of modulePaths) {
-            try {
-                console.log(`Trying to load module from: ${modulePath}`);
-                objectDetailsView = require(modulePath);
-                console.log('Successfully loaded objectDetailsView module');
-                if (objectDetailsView && typeof objectDetailsView.showObjectDetails === 'function') {
-                    console.log('showObjectDetails function is available');
-                    break;
-                }
-                else {
-                    console.warn('Module loaded but showObjectDetails function is missing');
-                }
-            }
-            catch (error) {
-                console.error(`Failed to load from ${modulePath}:`, error);
-            }
-        }
-        if (!objectDetailsView || typeof objectDetailsView.showObjectDetails !== 'function') {
-            console.error('Could not find objectDetailsView module in any location');
-            objectDetailsView = {
-                showObjectDetails: (item, appDNAPath) => {
-                    vscode.window.showInformationMessage(`Details for ${item.label} (fallback implementation)`);
-                }
-            };
-        }
+        console.log('objectDetailsView loaded successfully');
     }
-    catch (error) {
-        console.error('Failed to load objectDetailsView module:', error);
+    catch (err) {
+        console.error('Failed to load objectDetailsView module:', err);
+        // Create a fallback implementation
+        objectDetailsView = {
+            showObjectDetails: (item, appDNAPath) => {
+                vscode.window.showInformationMessage(`Details for ${item.label} (fallback implementation)`);
+            }
+        };
     }
     // The TreeDataProvider creates a tree view with id "appdna"
-    // When the app-dna.json file exists, the tree's root contains:
-    //   new JsonTreeItem('Data Objects', vscode.TreeItemCollapsibleState.Collapsed, 'dataObjects')
-    // Otherwise, the view is empty.
     const jsonTreeDataProvider = new JsonTreeDataProvider(appDNAFilePath);
     const treeView = vscode.window.createTreeView('appdna', { treeDataProvider: jsonTreeDataProvider });
     context.subscriptions.push(treeView);
@@ -609,18 +580,6 @@ function showObjectDetails(item, appDNAPath) {
     const appDNAFilePath = workspaceFolder ? path.join(workspaceFolder, 'app-dna.json') : null;
     if (!appDNAFilePath) {
         vscode.window.showErrorMessage('AppDNA file not found. Cannot show object details.');
-        return;
-    }
-    // More detailed error if objectDetailsView is not available
-    if (!objectDetailsView) {
-        vscode.window.showErrorMessage('Object details view module could not be loaded. Check console for details.');
-        console.error('objectDetailsView is not loaded');
-        return;
-    }
-    if (typeof objectDetailsView.showObjectDetails !== 'function') {
-        vscode.window.showErrorMessage('Object details view is not properly exported. Check extension setup.');
-        console.error('objectDetailsView is loaded but showObjectDetails function is missing');
-        console.error('Available exports:', Object.keys(objectDetailsView));
         return;
     }
     // Use the objectDetailsView implementation

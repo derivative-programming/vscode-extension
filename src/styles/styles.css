@@ -30,3 +30,9 @@
   position: relative;
   cursor: help;
 }
+
+/* Styles for read-only controls */
+input[readonly], select[disabled] {
+  background-color: var(--vscode-input-disabledBackground);
+  color: var(--vscode-input-disabledForeground);
+}

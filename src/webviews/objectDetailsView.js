@@ -300,6 +300,34 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             flex-direction: column;
         }
         
+        .view-icons {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .icon {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 1px solid var(--vscode-panel-border);
+            background-color: var(--vscode-tab-inactiveBackground);
+            color: var(--vscode-tab-inactiveForeground);
+            margin-right: 4px;
+            border-radius: 3px;
+        }
+        
+        .icon.active {
+            background-color: var(--vscode-tab-activeBackground);
+            color: var(--vscode-tab-activeForeground);
+        }
+        
+        .view-content {
+            display: none;
+        }
+        
+        .view-content.active {
+            display: block;
+        }
+        
         input, select, textarea {
             padding: var(--input-padding-vertical) var(--input-padding-horizontal);
             margin: var(--input-margin-vertical) var(--input-margin-horizontal);
@@ -350,6 +378,34 @@ function getObjectDetailsContent(object, propertyDescriptions) {
         .form-row input, .form-row select {
             flex: 1;
         }
+        
+        .list-container {
+            width: 30%;
+            float: left;
+        }
+        
+        .details-container {
+            width: 70%;
+            float: left;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        ul li {
+            padding: 8px;
+            cursor: pointer;
+            border: 1px solid var(--vscode-panel-border);
+            margin-bottom: 4px;
+            background-color: var(--vscode-tab-inactiveBackground);
+            color: var(--vscode-tab-inactiveForeground);
+        }
+        
+        ul li:hover {
+            background-color: var(--vscode-tab-hoverBackground);
+        }
     </style>
 </head>
 <body>
@@ -374,168 +430,205 @@ function getObjectDetailsContent(object, propertyDescriptions) {
     </div>
     
     <div id="props" class="tab-content">
-        ${object.error ? 
-            `<div class="error">${object.error}</div>` : 
-            `<table id="propsTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Data Type</th>
-                        <th>Size</th>
-                        <th>Is FK</th>
-                        <th>FK Object</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${props.map((prop, index) => `
-                        <tr data-index="${index}">
-                            <td><input type="text" name="name" value="${prop.name || ''}"></td>
-                            <td>
-                                <select name="sqlServerDBDataType">
-                                    <option value="" ${!prop.sqlServerDBDataType ? 'selected' : ''}>Select type</option>
-                                    <option value="nvarchar" ${prop.sqlServerDBDataType === 'nvarchar' ? 'selected' : ''}>nvarchar</option>
-                                    <option value="int" ${prop.sqlServerDBDataType === 'int' ? 'selected' : ''}>int</option>
-                                    <option value="bit" ${prop.sqlServerDBDataType === 'bit' ? 'selected' : ''}>bit</option>
-                                    <option value="datetime" ${prop.sqlServerDBDataType === 'datetime' ? 'selected' : ''}>datetime</option>
-                                </select>
-                            </td>
-                            <td><input type="text" name="sqlServerDBDataTypeSize" value="${prop.sqlServerDBDataTypeSize || ''}"></td>
-                            <td>
-                                <select name="isFK">
-                                    <option value="">Select</option>
-                                    <option value="true" ${prop.isFK === 'true' ? 'selected' : ''}>Yes</option>
-                                    <option value="false" ${prop.isFK === 'false' ? 'selected' : ''}>No</option>
-                                </select>
-                            </td>
-                            <td><input type="text" name="fKObjectName" value="${prop.fKObjectName || ''}"></td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-            
-            <button id="addProp">Add Property</button>
-            
-            <div class="actions">
-                <button id="saveProps">Save Properties</button>
-            </div>`
-        }
-    </div>
+        <div class="view-icons">
+            <span class="icon table-icon active" data-view="table">Table View</span>
+            <span class="icon list-icon" data-view="list">List View</span>
+        </div>
 
-    <script>
-        (function() {
-            const vscode = acquireVsCodeApi();
-            
-            // Tab switching
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabId = tab.getAttribute('data-tab');
-                    
-                    // Update active tab
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    // Update visible tab content
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.remove('active');
-                        if (content.id === tabId) {
-                            content.classList.add('active');
-                        }
-                    });
-                });
-            });
-            
-            // Save settings
-            document.getElementById('saveSettings')?.addEventListener('click', () => {
-                const form = document.getElementById('settingsForm');
-                if (!form) return;
+        <div id="tableView" class="view-content active">
+            ${object.error ? 
+                `<div class="error">${object.error}</div>` : 
+                `<table id="propsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Data Type</th>
+                            <th>Size</th>
+                            <th>Is FK</th>
+                            <th>FK Object</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${props.map((prop, index) => `
+                            <tr data-index="${index}">
+                                <td><input type="text" name="name" value="${prop.name || ''}"></td>
+                                <td>
+                                    <select name="sqlServerDBDataType">
+                                        <option value="" ${!prop.sqlServerDBDataType ? 'selected' : ''}>Select type</option>
+                                        <option value="nvarchar" ${prop.sqlServerDBDataType === 'nvarchar' ? 'selected' : ''}>nvarchar</option>
+                                        <option value="int" ${prop.sqlServerDBDataType === 'int' ? 'selected' : ''}>int</option>
+                                        <option value="bit" ${prop.sqlServerDBDataType === 'bit' ? 'selected' : ''}>bit</option>
+                                        <option value="datetime" ${prop.sqlServerDBDataType === 'datetime' ? 'selected' : ''}>datetime</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" name="sqlServerDBDataTypeSize" value="${prop.sqlServerDBDataTypeSize || ''}"></td>
+                                <td>
+                                    <select name="isFK">
+                                        <option value="">Select</option>
+                                        <option value="true" ${prop.isFK === 'true' ? 'selected' : ''}>Yes</option>
+                                        <option value="false" ${prop.isFK === 'false' ? 'selected' : ''}>No</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" name="fKObjectName" value="${prop.fKObjectName || ''}"></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
                 
-                const formData = new FormData(form);
-                const settings = {};
+                <button id="addProp">Add Property</button>
                 
-                for (const [key, value] of formData.entries()) {
-                    // Convert "true"/"false" strings to booleans
-                    if (value === 'true') {
-                        settings[key] = true;
-                    } else if (value === 'false') {
-                        settings[key] = false;
-                    } else {
-                        settings[key] = value;
-                    }
-                }
-                
-                vscode.postMessage({
-                    command: 'save',
-                    data: settings
-                });
-            });
-            
-            // Add property
-            document.getElementById('addProp')?.addEventListener('click', () => {
-                const tbody = document.querySelector('#propsTable tbody');
-                if (!tbody) return;
-                
-                const newRow = document.createElement('tr');
-                const rowIndex = tbody.children.length;
-                newRow.dataset.index = rowIndex;
-                
-                newRow.innerHTML = \`
-                    <td><input type="text" name="name" value=""></td>
-                    <td>
-                        <select name="sqlServerDBDataType">
-                            <option value="" selected>Select type</option>
+                <div class="actions">
+                    <button id="saveProps">Save Properties</button>
+                </div>`
+            }
+        </div>
+
+        <div id="listView" class="view-content">
+            <div class="list-container">
+                <select id="propsList" size="10">
+                    ${props.map((prop, index) => `<option value="${index}">${prop.name || 'Unnamed Property'}</option>`).join('')}
+                </select>
+            </div>
+            <div class="details-container">
+                <form id="propDetailsForm">
+                    <div class="form-row">
+                        <label for="propName">Name:</label>
+                        <input type="text" id="propName" name="name" value="" readonly>
+                        <input type="checkbox" id="propNameEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
+                    </div>
+                    <div class="form-row">
+                        <label for="propDataType">Data Type:</label>
+                        <select id="propDataType" name="sqlServerDBDataType" disabled>
+                            <option value="">Select type</option>
                             <option value="nvarchar">nvarchar</option>
                             <option value="int">int</option>
                             <option value="bit">bit</option>
                             <option value="datetime">datetime</option>
                         </select>
-                    </td>
-                    <td><input type="text" name="sqlServerDBDataTypeSize" value=""></td>
-                    <td>
-                        <select name="isFK">
-                            <option value="" selected>Select</option>
+                        <input type="checkbox" id="propDataTypeEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
+                    </div>
+                    <div class="form-row">
+                        <label for="propSize">Size:</label>
+                        <input type="text" id="propSize" name="sqlServerDBDataTypeSize" value="" readonly>
+                        <input type="checkbox" id="propSizeEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
+                    </div>
+                    <div class="form-row">
+                        <label for="propIsFK">Is FK:</label>
+                        <select id="propIsFK" name="isFK" disabled>
+                            <option value="">Select</option>
                             <option value="true">Yes</option>
                             <option value="false">No</option>
                         </select>
-                    </td>
-                    <td><input type="text" name="fKObjectName" value=""></td>
-                \`;
-                
-                tbody.appendChild(newRow);
-            });
-            
-            // Save properties
-            document.getElementById('saveProps')?.addEventListener('click', () => {
-                const table = document.getElementById('propsTable');
-                if (!table) return;
-                
-                const rows = table.querySelectorAll('tbody tr');
-                const props = [];
-                
-                rows.forEach(row => {
-                    const prop = {};
-                    
-                    prop.name = row.querySelector('input[name="name"]')?.value || '';
-                    prop.sqlServerDBDataType = row.querySelector('select[name="sqlServerDBDataType"]')?.value || null;
-                    prop.sqlServerDBDataTypeSize = row.querySelector('input[name="sqlServerDBDataTypeSize"]')?.value || null;
-                    prop.isFK = row.querySelector('select[name="isFK"]')?.value || null;
-                    prop.fKObjectName = row.querySelector('input[name="fKObjectName"]')?.value || null;
-                    
-                    // Only include properties with a name
-                    if (prop.name) {
-                        props.push(prop);
-                    }
+                        <input type="checkbox" id="propIsFKEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
+                    </div>
+                    <div class="form-row">
+                        <label for="propFKObject">FK Object:</label>
+                        <input type="text" id="propFKObject" name="fKObjectName" value="" readonly>
+                        <input type="checkbox" id="propFKObjectEditable" title="Enable editing" style="margin-left: 5px; transform: scale(0.8);">
+                    </div>
+                    <div class="actions">
+                        <button id="savePropDetails">Save Property</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            (function() {
+                const vscode = acquireVsCodeApi();
+
+                // Tab switching
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const tabId = tab.getAttribute('data-tab');
+
+                        // Update active tab
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+
+                        // Update visible tab content
+                        document.querySelectorAll('.tab-content').forEach(content => {
+                            content.classList.remove('active');
+                            if (content.id === tabId) {
+                                content.classList.add('active');
+                            }
+                        });
+                    });
                 });
-                
-                vscode.postMessage({
-                    command: 'save',
-                    data: {
-                        name: "${object.name}",
-                        prop: props
-                    }
+
+                // View switching
+                document.querySelectorAll('.view-icons .icon').forEach(icon => {
+                    icon.addEventListener('click', () => {
+                        const view = icon.getAttribute('data-view');
+
+                        // Update active icon
+                        document.querySelectorAll('.view-icons .icon').forEach(i => i.classList.remove('active'));
+                        icon.classList.add('active');
+
+                        // Update visible view content
+                        document.querySelectorAll('.view-content').forEach(content => {
+                            content.classList.remove('active');
+                            if (content.id === view + 'View') {
+                                content.classList.add('active');
+                            }
+                        });
+                    });
                 });
-            });
-        })();
-    </script>
+
+                // List item selection
+                const propsList = document.getElementById('propsList');
+                const propDetailsForm = document.getElementById('propDetailsForm');
+
+                propsList.addEventListener('change', (event) => {
+                    const selectedIndex = event.target.value;
+                    const prop = ${JSON.stringify(props)}[selectedIndex];
+
+                    document.getElementById('propName').value = prop.name || '';
+                    document.getElementById('propDataType').value = prop.sqlServerDBDataType || '';
+                    document.getElementById('propSize').value = prop.sqlServerDBDataTypeSize || '';
+                    document.getElementById('propIsFK').value = prop.isFK || '';
+                    document.getElementById('propFKObject').value = prop.fKObjectName || '';
+                });
+
+                const toggleEditable = (checkboxId, inputId) => {
+                    const checkbox = document.getElementById(checkboxId);
+                    const input = document.getElementById(inputId);
+
+                    checkbox.addEventListener('change', () => {
+                        input.readOnly = !checkbox.checked;
+                        input.disabled = !checkbox.checked;
+                    });
+                };
+
+                toggleEditable('propNameEditable', 'propName');
+                toggleEditable('propDataTypeEditable', 'propDataType');
+                toggleEditable('propSizeEditable', 'propSize');
+                toggleEditable('propIsFKEditable', 'propIsFK');
+                toggleEditable('propFKObjectEditable', 'propFKObject');
+
+                // Save property details
+                document.getElementById('savePropDetails')?.addEventListener('click', () => {
+                    const form = document.getElementById('propDetailsForm');
+                    if (!form) return;
+
+                    const formData = new FormData(form);
+                    const propDetails = {};
+
+                    for (const [key, value] of formData.entries()) {
+                        propDetails[key] = value;
+                    }
+
+                    vscode.postMessage({
+                        command: 'save',
+                        data: {
+                            name: "${object.name}",
+                            prop: propDetails
+                        }
+                    });
+                });
+            })();
+        </script>
+    </div>
 </body>
 </html>`;
 }
