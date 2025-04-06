@@ -1,0 +1,120 @@
+{
+  "name": "appdna",
+  "displayName": "AppDNA",
+  "description": "code generator",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.98.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "appdnaContainer",
+          "title": "AppDNA",
+          "icon": "$(rocket)"
+        }
+      ]
+    },
+    "views": {
+      "appdnaContainer": [
+        {
+          "id": "appdna",
+          "name": "AppDNA"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "appdna.addFile",
+          "when": "view == appdna && !appDnaFileExists",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "appdna.addObject",
+          "when": "viewItem == dataObjects",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AppDNA",
+      "properties": {
+        "appDNA.modelServiceUrl": {
+          "type": "string",
+          "default": "https://modelservicesapi.derivative-programming.com",
+          "description": "URL for the external model generation service"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "appdna.addFile",
+        "title": "Add File",
+        "icon": "$(add)"
+      },
+      {
+        "command": "appdna.addObject",
+        "title": "Add Object",
+        "icon": "$(add)"
+      },
+      {
+        "command": "appdna.generateCode",
+        "title": "Generate Code",
+        "icon": "$(code)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "appdna.addObject",
+        "key": "ctrl+a o"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/copy-webpack-plugin": "^10.1.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.17.30",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
+    "@types/vscode": "^1.99.0",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "copy-webpack-plugin": "^13.0.0",
+    "eslint": "^9.23.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.2",
+    "webpack": "^5.85.0",
+    "webpack-cli": "^5.1.1"
+  },
+  "dependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/plugin-transform-react-jsx": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "ajv": "^6.12.6",
+    "babel-loader": "^9.1.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}

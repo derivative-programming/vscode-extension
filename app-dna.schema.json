@@ -1,0 +1,1903 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "type": "object",
+  "properties": {
+    "root": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of Root space like 'ND'"
+        },
+        "appName": {
+          "type": "string",
+          "description": "Primary Application Name"
+        },
+        "companyLegalName": {
+          "type": "string",
+          "description": "Legal Name of Company"
+        },
+        "companyDomain": {
+          "type": "string",
+          "description": "Domain owned by company (ex. google.com)"
+        },
+        "projectName": {
+          "type": "string",
+          "description": "Name of Project"
+        },
+        "projectCode": {
+          "type": "string",
+          "description": "Guid of Project"
+        },
+        "projectVersionNumber": {
+          "type": "string",
+          "description": "Version Number of Project"
+        },
+        "databaseName": {
+          "type": "string",
+          "description": "Name of database"
+        },
+        "isDatabaseAuditColumnsCreated": {
+          "type": "string",
+          "description": "This will create columns to log the UTC datetime and userid of the record add or the last record update"
+        },
+        "isInternalObjectApiCreated": {
+          "type": "string",
+          "description": "This will create an object api for internal use"
+        },
+        "isBasicAuthenticationIncluded": {
+          "type": "string",
+          "description": ""
+        },
+        "databaseTableNamePrefix": {
+          "type": "string",
+          "description": "Any default prefix which required to add with table name set here, default its blank"
+        },
+        "suppressUsingDatabaseDeclarationInScripts": {
+          "type": "string",
+          "enum": [ "true", "false" ],
+          "description": "Default its false, Use for decide having Use [DBName] in intial of each script file or not"
+        },
+        "suppressFillObjLookupTableScripts": {
+          "type": "string",
+          "enum": [ "true", "false" ],
+          "description": "Prevents creation of some sql scripts in case when project doesn't have tables"
+        },
+        "isValidationMissesLogged": {
+          "type": "string",
+          "enum": [ "true", "false" ],
+          "description": "Use to decide either validations failure need to write in logs or not"
+        },
+        "namespace": {
+          "type": "array",
+          "description": "Array of all namespace objects",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of root namespace"
+              },
+              "isDynaFlowAvailable": {
+                "type": "string",
+                "enum": [ "true", "false" ],
+                "description": "Default value is false"
+              },
+              "isModelFeatureConfigUserDBVeiwer": {
+                "type": "string",
+                "enum": [ "true", "false" ]
+              },
+              "isModelFeatureConfigUserDBEditor": {
+                "type": "string",
+                "enum": [ "true", "false" ]
+              },
+              "favoriteListContextObjectName": {
+                "type": "string"
+              },
+              "favoriteListDestinationTargetName": {
+                "type": "string"
+              },
+
+              "scheduleListContextObjectName": {
+                "type": "string"
+              },
+              "scheduleListDestinationTargetName": {
+                "type": "string"
+              },
+              "modelFeature": {
+                "type": "array",
+                "description": "Array of model features",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "Objects that modify the model automatically",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Name of model feature"
+                    },
+                    "version": {
+                      "type": "string",
+                      "description": "Version of model feature"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Description of model feature"
+                    },
+                    "isCompleted": {
+                      "type": "string",
+                      "description": "Is processing compelted?",
+                      "enum": [ "true", "false" ]
+                    }
+                  }
+                }
+              },
+              "lexicon": {
+                "type": "array",
+                "description": "Array of Lexicon items",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "Item that defines the lexicon of the namespace",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Name of item"
+                    },
+                    "internalTextValue": {
+                      "type": "string",
+                      "description": "Internal calculated text that is best guess for dispaly text"
+                    },
+                    "displayTextValue": {
+                      "type": "string",
+                      "description": "Override calculated display text"
+                    }
+                  }
+                }
+              },
+              "userStory": {
+                "type": "array",
+                "description": "Array of user story items",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "Item that defines a user story in the namespace",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Name of item"
+                    },
+                    "storyNumber": {
+                      "type": "string",
+                      "description": ""
+                    },
+                    "storyText": {
+                      "type": "string",
+                      "description": ""
+                    },
+                    "isIgnored": {
+                      "type": "string",
+                      "enum": [ "true", "false" ],
+                      "description": "will be ignored by the code generator array loop"
+                    },
+                    "isStoryProcessed": {
+                      "type": "string",
+                      "enum": [ "true", "false" ],
+                      "description": ""
+                    }
+                  }
+                }
+              },
+              "object": {
+                "type": "array",
+                "items": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Name of object like Tac, Country, EmailMarketingPlatform etc..."
+                    },
+                    "codeDescription": {
+                      "type": "string",
+                      "description": "Description of object and purpose"
+                    },
+                    "isLookup": {
+                      "type": "string",
+                      "enum": [ "true", "false" ],
+                      "description": "Determines generation of functionality i.e. lookup by ID"
+                    },
+                    "parentObjectName": {
+                      "type": "string",
+                      "description": "In the object heriarchy, who is its parent. An object cannot have more than one parent."
+                    },
+                    "modelPkg": {
+                      "type": "array",
+                      "description": "Array of model packages",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "Objects that modify the model automatically",
+                        "properties": {
+                          "isImported": {
+                            "type": "string",
+                            "description": "Has the package been imported into the model already?",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isSubscriptionAllowed": {
+                            "type": "string",
+                            "description": "Is a subscription to the model package allowed?",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isSubscribed": {
+                            "type": "string",
+                            "description": "Are changes to the model package in the future automatically imported",
+                            "enum": [ "true", "false" ]
+                          },
+                          "role": {
+                            "type": "string",
+                            "description": "Role that uses the package pages"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "pkgType": {
+                            "type": "string",
+                            "description": "Preddefined type of model packages",
+                            "enum": [ "NA", "defaultLookupProps", "detail", "detail_delete", "detail_update", "list", "list_add", "list_add_then_details", "list_bulkupload", "list_delete", "list_update" ]
+                          }
+                        }
+                      }
+                    },
+                    "lookupItem": {
+                      "type": "array",
+                      "description": "Array of items in a lookup object",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "Item in a lookup object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Internal name of lookup item."
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "description": ""
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": ""
+                          },
+                          "isActive": {
+                            "type": "string",
+                            "description": "",
+                            "enum": [ "true", "false" ]
+                          },
+                          "customIntProp1Value": {
+                            "type": "string",
+                            "description": ""
+                          }
+                        }
+                      }
+                    },
+                    "childObject": {
+                      "type": "array",
+                      "description": "Array of child objects to generate",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "Objects generates necessary cs file",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "prop": {
+                      "type": "array",
+                      "description": "Array of Specified elements like: name, sqlserverDataType, sqlServerDBDataTypeSize, isFK",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "Objects generates necessary cs file",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "sqlServerDBDataType": {
+                            "type": "string",
+                            "description": "Type of field in database",
+                            "enum": [ "nvarchar", "bit", "datetime", "int", "uniqueidentifier", "money", "bigint", "float", "decimal", "date", "varchar", "text" ]
+                          },
+                          "sqlServerDBDataTypeSize": {
+                            "type": "string",
+                            "description": "(Size of nvarchar) . 100 by default for nvarchar"
+                          },
+                          "isFK": {
+                            "type": "string",
+                            "description": "(Defines if the prop is a foreign key; if true provide additional prop \"fkObjectName\" to specify FK entity)",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isFKNonLookupIncludedInXMLFunction": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isFKConstraintSuppressed": {
+                            "type": "string",
+                            "description": "Do not add a constraint on th database. Some fk ID properties will not always have a value set.",
+                            "enum": [ "true", "false" ]
+                          },
+                          "fKObjectName": {
+                            "type": "string",
+                            "description": "Name of lookup i.e. foreign key object target, Like Flavor, Customer etc..."
+                          },
+                          "fKObjectPropertyName": {
+                            "type": "string",
+                            "description": "Name of lookup property i.e. foregin key field name"
+                          },
+                          "isFKLookup": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Defines if param is a lookup key"
+                          },
+                          "labelText": {
+                            "type": "string",
+                            "description": "Label text usually use to specify text of label where checkbox or some related label text need to be place"
+                          },
+                          "codeDescription": {
+                            "type": "string"
+                          },
+                          "defaultValue": {
+                            "type": "string"
+                          },
+                          "isNotPublishedToSubscriptions": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ],
+                            "description": "If true, the prop will not be sent to any prop subscribers."
+                          },
+                          "isEncrypted": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isQueryByAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "If true, the db column will be indexed, and a query by function will be created"
+                          },
+                          "forceDBColumnIndex": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          }
+                        }
+                      }
+
+                    },
+
+                    "propSubscription": {
+                      "type": "array",
+                      "description": "Array of subscribers to this objects props",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "",
+                        "properties": {
+                          "destinationContextObjectName": {
+                            "type": "string",
+                            "description": "The name of the object that owns the destinationTargetName"
+                          },
+                          "destinationTargetName": {
+                            "type": "string",
+                            "description": "Destination objwf or report that is the subscriber"
+                          },
+                          "isIgnored": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "will be ignored by the code generator array loop"
+                          }
+                        }
+                      }
+                    },
+
+                    "calculatedProp": {
+                      "type": "array",
+                      "description": "Array of Calculated elements like: name, calculatedCSharpDataType, calculatedSqlServerDefaultValue, isFK",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Name of calculated field"
+                          },
+                          "sqlServerDBDataType": {
+                            "type": "string",
+                            "description": "Type of field in database",
+                            "enum": [ "nvarchar", "bit", "datetime", "int", "uniqueidentifier", "money", "bigint", "float", "decimal", "date", "varchar", "text" ]
+                          },
+                          "sqlServerDBDataTypeSize": {
+                            "type": "string",
+                            "description": "(Size of nvarchar) . 100 by default for nvarchar"
+                          },
+                          "codeDescription": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+
+
+                    "report": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Name of report file that codegenerator needs to create for this object"
+                          },
+                          "titleText": {
+                            "type": "string",
+                            "description": "Page title"
+                          },
+                          "introText": {
+                            "type": "string",
+                            "description": "Page subtitle"
+                          },
+                          "isCachingAllowed": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Are the report results allowed to be cached?"
+                          },
+                          "isButtonDropDownAllowed": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Are dropdown display of buttons allowed, instead of display of individual buttons. for grid viz."
+                          },
+                          "isCustomSqlUsed": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Is custom sql stored proc used for the report?"
+                          },
+                          "ratingLevelColumnName": {
+                            "type": "string",
+                            "description": "Rating Level Column Name Override  Calculated Default to RatingLevel."
+                          },
+                          "targetChildObject": {
+                            "type": "string",
+                            "description": "Child object of the owner object that is displayed on the report"
+                          },
+                          "isRatingLevelChangingRowBackgroundColor": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "A column can return rating levels of Unknown,Excellent,Good,Fair, or Poor. They can change the color of the row automatically to normal,green, light green, yellow,red."
+                          },
+                          "cacheExpirationInMinutes": {
+                            "type": "string",
+                            "description": "Number of minutes till the report result cache expires"
+                          },
+                          "isPagingAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Determins whether to show paging or not"
+                          },
+                          "isFilterSectionHidden": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Determins to show filter or not"
+                          },
+                          "isFilterSectionCollapsable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Determines if expand/collapse button is shown at top right corner"
+                          },
+                          "isBreadcrumbSectionHidden": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": ""
+                          },
+                          "isRefreshButtonHidden": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": ""
+                          },
+                          "isExportButtonsHidden": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": ""
+                          },
+                          "isSchedulingAllowed": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": ""
+                          },
+                          "isFavoriteCreationAllowed": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": ""
+                          },
+
+                          "isAutoRefresh": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": ""
+                          },
+                          "isAutoRefreshVisible": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": ""
+                          },
+                          "isAutoRefreshFrequencyVisible": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": ""
+                          },
+                          "isAutoRefreshDegraded": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": ""
+                          },
+                          "autoRefreshFrequencyInMinutes": {
+                            "type": "string",
+                            "description": ""
+                          },
+
+                          "initObjectWorkflowName": {
+                            "type": "string"
+                          },
+                          "layoutName": {
+                            "type": "string"
+                          },
+                          "badgeCountPropertyName": {
+                            "type": "string"
+                          },
+                          "codeDescription": {
+                            "type": "string"
+                          },
+                          "defaultOrderByColumnName": {
+                            "type": "string"
+                          },
+                          "defaultOrderByDescending": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isHeaderLabelsVisible": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "isHeaderVisible": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isReportDetailLabelColumnVisible": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          
+                          "noRowsReturnedText": {
+                            "type": "string",
+                            "description": "No Results Found"
+                          },
+                          "isAuthorizationRequired": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "roleRequired": {
+                            "type": "string"
+                          },
+                          "isPage": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "formIntroText": {
+                            "type": "string"
+                          },
+                          "isIgnoredInDocumentation": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "defaultPageSize": {
+                            "type": "string"
+                          },
+                          "isPageUserSettingsDistinctForApp": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isFilterPersistant": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isAzureBlobStorageUsed": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ],
+                            "description": "Is the data source an azure storage blob? If so, use its data provider"
+                          },
+                          "isAzureTableUsed": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ],
+                            "description": "Is the data source an azure storage table? If so, use its data provider"
+                          },
+                          "azureTableNameOverride": {
+                            "type": "string"
+                          },
+                          "azureTablePrimaryKeyColumn": {
+                            "type": "string",
+                            "description": "What column is used for the azure storage table rowkey value?"
+                          },
+                          "isAzureTablePrimaryKeyColumnDateTime": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ],
+                            "description": "Is the column a datetime? If so, it affects the format of the rowkey value."
+                          },
+                          "visualizationType": {
+                            "type": "string",
+                            "enum": [ "Grid", "FlowChart", "LineChart", "GantChart", "PieChart", "BarChart", "Tree", "Cards", "DetailTwoColumn", "DetailThreeColumn", "FolderWithDetail" ]
+                          },
+                          "visualizationGridGroupByColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationGridGroupByInfoTextColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationPieChartSliceValueColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationPieChartSliceDescriptionColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationLineChartUTCDateTimeColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationLineChartValueColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationLineChartDescriptionColumnName": {
+                            "type": "string"
+                          },
+                          "isVisualizationLineChartGridHorizLineHidden": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "isVisualizationLineChartGridVerticalLineHidden": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "isVisualizationLineChartLegendHidden": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "isVisualizationLineChartStairLines": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "visualizationLineChartGridVerticalMaxValue": {
+                            "type": "string"
+                          },
+                          "visualizationLineChartGridVerticalMinValue": {
+                            "type": "string"
+                          },
+                          "visualizationLineChartGridVerticalStepValue": {
+                            "type": "string"
+                          },
+                          "isVisualizationLineChartVerticalLabelsHidden": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "visualizationLineChartGridVerticalTitle": {
+                            "type": "string"
+                          },
+                          "visualizationLineChartGridHorizTitle": {
+                            "type": "string"
+                          },
+                          "visualizationLineChartGridVerticalMaxValLabel": {
+                            "type": "string"
+                          },
+                          "visualizationLineChartGridVerticalMinValLabel": {
+                            "type": "string"
+                          },
+                          "isVisualizationLineChartGridVerticalMaxDynamic": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "visualizationFlowChartSourceNodeCodeColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationFlowChartSourceNodeDescriptionColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationFlowChartSourceNodeColorColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationFlowChartFlowDescriptionColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationFlowChartDestinationNodeCodeColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationCardViewTitleColumn": {
+                            "type": "string"
+                          },
+                          "visualizationCardViewDescriptionColumn": {
+                            "type": "string"
+                          },
+                          "visualizationCardViewIsImageAvailable": {
+                            "type": "string"
+                          },
+                          "visualizationCardViewImageColumn": {
+                            "type": "string"
+                          },
+                          "visualizationCardViewGroupByColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationCardViewGroupByInfoTextColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationFolderIDColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationFolderNameColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationFolderParentIDColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationFolderIsFolderColumnName": {
+                            "type": "string"
+                          },
+                          "visualizationFolderIsDragDropAllowed": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "visualizationFolderDragDropEventContextObjectName": {
+                            "type": "string"
+                          },
+                          "visualizationFolderDragDropEventTargetName": {
+                            "type": "string"
+                          },
+                          "isBasicHeaderAutomaticallyAdded": {
+                            "type": "string"
+                          },
+                          "filteringSqlLogic": {
+                            "type": "string"
+                          },
+
+                          "reportButton": {
+                            "type": "array",
+                            "description": "Array of buttons display on reports",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "buttonType": {
+                                  "type": "string",
+                                  "enum": [ "add", "back", "other", "multiSelectProcessing", "breadcrumb" ],
+                                  "description": "back button is top left, add button is top right, Other button is in top right. multiSelectProcessing button is above reprot list to process ismulitiselectcolumn=true column"
+                                },
+                                "isVisible": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Determine need to visible or not"
+                                },
+                                "isEnabled": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Is user allowed to click button?"
+                                },
+                                "isButtonCallToAction": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Show button as call to action"
+                                },
+                                "isIgnored": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "will be ignored by the code generator array loop"
+                                },
+                                "conditionalVisiblePropertyName": {
+                                  "type": "string",
+                                  "description": "If button is conditional depedant on third field"
+                                },
+                                "isButtonBadgeVisible": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "buttonBadgePropertyName": {
+                                  "type": "string",
+                                  "description": "init property containing data to be displayed in button badge"
+                                },
+                                "buttonTypeDisplayOrder": {
+                                  "type": "string",
+                                  "description": "display order of button of same type"
+                                },
+                                "buttonText": {
+                                  "type": "string",
+                                  "description": "Text display on button like 'Add A Flavor'"
+                                },
+                                "buttonName": {
+                                  "type": "string",
+                                  "description": "Optional name of button. Neccesary for multiple multiselect buttons"
+                                },
+                                "destinationContextObjectName": {
+                                  "type": "string",
+                                  "description": "The name of the object that owns the destinationTargetName"
+                                },
+                                "destinationTargetName": {
+                                  "type": "string",
+                                  "description": "Destination defined by user role. Means objwf or report that the user should be sent to"
+                                },
+                                "accessKey": { "type": "string" },
+                                "isAccessKeyAvailable": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": ""
+                                }
+                              }
+                            }
+
+                          },
+                          "reportParam": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Name of field, use to creates field in Farm -> ManualWeb -> Pages -> Report -> LandPlantList.cshtml.cs"
+                                },
+                                "sqlServerDBDataType": {
+                                  "type": "string",
+                                  "description": "Type of field in database",
+                                  "enum": [ "nvarchar", "bit", "datetime", "int", "uniqueidentifier", "money", "bigint", "float", "decimal", "date", "varchar", "text" ]
+                                },
+                                "sqlServerDBDataTypeSize": {
+                                  "type": "string",
+                                  "description": "(Size of nvarchar) . 100 by default for nvarchar"
+                                },
+                                "fKObjectName": {
+                                  "type": "string",
+                                  "description": "Name of lookup i.e. foreign key object target"
+                                },
+                                "isFK": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": ""
+                                },
+                                "isFKLookup": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Defines if param is a lookup key"
+                                },
+                                "isFKListInactiveIncluded": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": ""
+                                },
+                                "isFKList": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Defines if dropdown list should be shown"
+                                },
+                                "fKListOrderBy": {
+                                  "type": "string",
+                                  "enum": [ "NameDesc", "NameAsc", "DisplayOrderDesc", "DisplayOrderAsc" ]
+                                },
+                                "isFKListSearchable": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "labelText": {
+                                  "type": "string"
+                                },
+                                "targetColumnName": {
+                                  "type": "string",
+                                  "description": "Which column does this filter primarily apply to?"
+                                },
+                                "codeDescription": {
+                                  "type": "string"
+                                },
+                                "isUnknownLookupAllowed": {
+                                  "type": "string",
+                                  "enum": [ "", "true", "false" ]
+                                },
+                                "defaultValue": {
+                                  "type": "string"
+                                },
+                                "isVisible": {
+                                  "type": "string",
+                                  "enum": [ "", "true", "false" ]
+                                }
+                              }
+                            }
+                          },
+                          "reportColumn": {
+                            "type": "array",
+                            "description": "Defines elements in a column in a report page, including simple text or flow buttons",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Reference/display name, should match db field name"
+                                },
+                                "minWidth": {
+                                  "type": "string",
+                                  "description": ""
+                                },
+                                "maxWidth": {
+                                  "type": "string",
+                                  "description": ""
+                                },
+                                "sourceLookupObjImplementationObjName": {
+                                  "type": "string",
+                                  "description": "If the sources object name is a lookup, this is the name of the object that is implementing the lookup.  example would be Customer for source object state on customer.stateid "
+                                },
+                                "sourceObjectName": {
+                                  "type": "string",
+                                  "description": ""
+                                },
+                                "sourcePropertyName": {
+                                  "type": "string",
+                                  "description": ""
+                                },
+                                "dateTimeDisplayFormat": {
+                                  "type": "string",
+                                  "description": "default to MM/dd/yyyy hh:mm:ss tt"
+                                },
+                                "infoToolTipText": {
+                                  "type": "string",
+                                  "description": "Display a blue i with hover text next to the column name"
+                                },
+                                "sqlServerDBDataType": {
+                                  "type": "string",
+                                  "description": "Type of field in database",
+                                  "enum": [ "nvarchar", "bit", "datetime", "int", "uniqueidentifier", "money", "bigint", "float", "decimal", "date", "varchar", "text" ]
+                                },
+                                "sqlServerDBDataTypeSize": {
+                                  "type": "string",
+                                  "description": "(Size of nvarchar) . 100 by default for nvarchar"
+                                },
+                                "isButton": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Spedify column is button column or just text column"
+                                },
+                                "isButtonCallToAction": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Show button as call to action"
+                                },
+                                "isHtml": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "item returns html"
+                                },
+                                "isColumnSumMetricAvailable": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isSummaryDisplayed": {
+                                  "type": "string",
+                                  "enum": [ "", "true", "false" ],
+                                  "description": "Display a vaue in summary row?"
+                                },
+                                "isConditionallyDisplayed": {
+                                  "type": "string",
+                                  "enum": [ "", "true", "false" ],
+                                  "description": "The column may or may not be displayed, depending on anohter columns value."
+                                },
+                                "isFilterAvailable": {
+                                  "type": "string",
+                                  "enum": [ "", "true", "false" ],
+                                  "description": "The column should have a filter control."
+                                },
+                                "conditionalSqlLogic": {
+                                  "type": "string",
+                                  "description": "if logic evaluates to true, the bit column will be true"
+                                },
+                                "isUnixEpochDateTime": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Is this long data tye coumn really a unix epoch datetime? If so, should be displayed as a datetime"
+                                },
+                                "buttonText": {
+                                  "type": "string",
+                                  "description": "Text of button, only applicable if column isButton column = true"
+                                },
+                                "destinationContextObjectName": {
+                                  "type": "string",
+                                  "description": "The name of the object that owns the destinationTargetName"
+                                },
+                                "destinationTargetName": {
+                                  "type": "string",
+                                  "description": "objwf or report that the user should be sent to"
+                                },
+                                "isNavURL": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Determine if its a column with a link"
+                                },
+                                "NavURLLinkText": {
+                                  "type": "string",
+                                  "description": "Text display for navigation link column"
+                                },
+                                "isButtonClickedOnRowClick": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Row click should also trigger button click or not"
+                                },
+                                "isMultiSelectColumn": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": ""
+                                },
+                                "isForcedIntoExport": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": ""
+                                },
+                                "isButtonAsyncObjWF": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isAsyncObjWFResultFileStreamedOut": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Async obj wf result file should be sreamed out"
+                                },
+                                "asyncObjWFResultFilePathParamName": {
+                                  "type": "string"
+                                },
+                                "isJoinedToLeftColumn": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isJoinedToRightColumn": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "codeDescription": {
+                                  "type": "string"
+                                },
+                                "isVisible": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Is visible column in UI"
+                                },
+                                "headerText": {
+                                  "type": "string",
+                                  "description": "Column header text or column title"
+                                },
+                                "conditionalVisiblePropertyName": {
+                                  "type": "string"
+                                },
+                                "buttonBadgeCountPropertyName": {
+                                  "type": "string"
+                                },
+                                "isFormFooter": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isImageURL": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isEncrypted": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isIgnored": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "will be ignored by the code generator array loop"
+                                },
+                                "buttonAccessKey": { "type": "string" },
+                                "isButtonAccessKeyAvailable": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": ""
+                                }
+                              }
+                            }
+
+                          }
+                        }
+                      }
+
+                    },
+                    "objectWorkflow": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Workflow ID, unique for each workflow element"
+                          },
+                          "titleText": {
+                            "type": "string",
+                            "description": "Title on workflow page"
+                          },
+                          "initObjectWorkflowName": {
+                            "type": "string",
+                            "description": "Workflow name \"Like UpdateFlavorInitObjWF (Used for Flows .cs file names)\""
+                          },
+                          "isInitObjWFSubscribedToParams": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Are the init obj wf output vars auto generated by the params of this one?"
+                          },
+                          "isExposedInBusinessObject": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Defines access to business logic functionality"
+                          },
+                          "isObjectDelete": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Is this deleting the owner object?"
+                          },
+                          "layoutName": {
+                            "type": "string"
+                          },
+                          "introText": {
+                            "type": "string"
+                          },
+                          "formTitleText": {
+                            "type": "string"
+                          },
+                          "formIntroText": {
+                            "type": "string"
+                          },
+                          "formFooterText": {
+                            "type": "string"
+                          },
+                          "formFooterImageURL": {
+                            "type": "string"
+                          },
+                          "codeDescription": { "type": "string" },
+                          "isAutoSubmit": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isHeaderVisible": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isPage": {
+                            "type": "string",
+                            "enum": [ "", "true", "false" ]
+                          },
+                          "isAuthorizationRequired": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isLoginPage": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isLogoutPage": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isImpersonationPage": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "roleRequired": { "type": "string" },
+                          "isCaptchaVisible": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isCreditCardEntryUsed": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "headerImageURL": {
+                            "type": "string"
+                          },
+                          "footerImageURL": { "type": "string" },
+                          "isDynaFlow": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isDynaFlowTask": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isCustomPageViewUsed": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isIgnoredInDocumentation": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "targetChildObject": {
+                            "type": "string",
+                            "description": "Child object of the owner object that is being added"
+                          },
+                          "isCustomLogicOverwritten": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "objectWorkflowParam": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Object workflow parameter name"
+                                },
+                                "sqlServerDBDataType": {
+                                  "type": "string",
+                                  "description": "Type of field in database",
+                                  "enum": [ "nvarchar", "bit", "datetime", "int", "uniqueidentifier", "money", "bigint", "float", "decimal", "date", "varchar", "text" ]
+                                },
+                                "infoToolTipText": {
+                                  "type": "string",
+                                  "description": "Display a blue i with hover text next to the param label"
+                                },
+                                "sqlServerDBDataTypeSize": {
+                                  "type": "string",
+                                  "description": "(Size of nvarchar) . 100 by default for nvarchar"
+                                },
+                                "labelText": {
+                                  "type": "string"
+                                },
+                                "codeDescription": {
+                                  "type": "string"
+                                },
+                                "defaultValue": {
+                                  "type": "string"
+                                },
+                                "isVisible": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isRequired": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "requiredErrorText": { "type": "string" },
+                                "isSecured": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isFK": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "fKObjectName": { "type": "string" },
+                                "fKObjectQueryName": { "type": "string" },
+                                "isFKLookup": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isFKList": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isFKListInactiveIncluded": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isFKListUnknownOptionRemoved": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "fKListOrderBy": {
+                                  "type": "string",
+                                  "enum": [ "NameDesc", "NameAsc", "DisplayOrderDesc", "DisplayOrderAsc" ]
+                                },
+                                "isFKListOptionRecommended": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isFKListSearchable": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "FKListRecommendedOption": { "type": "string" },
+                                "isRadioButtonList": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isFileUpload": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isCreditCardEntry": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isTimeZoneDetermined": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isAutoCompleteAddressSource": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Implements typical google address auto complete"
+                                },
+                                "autoCompleteAddressSourceName": {
+                                  "type": "string",
+                                  "description": "This should be a typical address field with typical address line, city, state, or zip label. Source would have isAutoCompleteAddressSource set to true. "
+                                },
+                                "autoCompleteAddressTargetType": {
+                                  "type": "string",
+                                  "enum": [ "AddressLine1", "AddressLine2", "City", "StateAbbrev", "Zip", "Country", "Latitude", "Longitude" ]
+                                },
+                                "detailsText": { "type": "string" },
+                                "validationRuleRegExMatchRequired": { "type": "string" },
+                                "validationRuleRegExMatchRequiredErrorText": { "type": "string" },
+                                "isIgnored": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "will be ignored by the code generator array loop"
+                                },
+                                "sourceObjectName": {
+                                  "type": "string",
+                                  "description": ""
+                                },
+                                "sourcePropertyName": {
+                                  "type": "string",
+                                  "description": ""
+                                }
+                              }
+                            }
+                          },
+                          "objectWorkflowOutputVar": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "name": { "type": "string" },
+                                "sqlServerDBDataType": {
+                                  "type": "string",
+                                  "description": "Type of field in database",
+                                  "enum": [ "nvarchar", "bit", "datetime", "int", "uniqueidentifier", "money", "bigint", "float", "decimal", "date", "varchar", "text" ]
+                                },
+                                "sqlServerDBDataTypeSize": {
+                                  "type": "string",
+                                  "description": "(Size of nvarchar) . 100 by default for nvarchar"
+                                },
+                                "labelText": { "type": "string" },
+                                "buttonText": { "type": "string" },
+                                "buttonNavURL": { "type": "string" },
+                                "isLabelVisible": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "defaultValue": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isLink": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isAutoRedirectURL": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "buttonObjectWFName": { "type": "string" },
+                                "conditionalVisiblePropertyName": { "type": "string" },
+                                "isVisible": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isFK": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "fKObjectName": { "type": "string" },
+                                "isFKLookup": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isHeaderText": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "isIgnored": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "will be ignored by the code generator array loop"
+                                },
+                                "sourceObjectName": {
+                                  "type": "string",
+                                  "description": ""
+                                },
+                                "sourcePropertyName": {
+                                  "type": "string",
+                                  "description": ""
+                                }
+                              }
+                            }
+                          },
+                          "objectWorkflowButton": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "buttonType": { "type": "string" },
+                                "buttonText": { "type": "string" },
+                                "isVisible": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                },
+                                "conditionalVisiblePropertyName": { "type": "string" },
+                                "destinationContextObjectName": { "type": "string" },
+                                "destinationTargetName": { "type": "string" },
+                                "introText": {
+                                  "type": "string"
+                                },
+                                "isButtonCallToAction": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": "Show button as call to action"
+                                },
+                                "accessKey": { "type": "string" },
+                                "isAccessKeyAvailable": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ],
+                                  "description": ""
+                                }
+                              }
+                            }
+
+                          },
+                          "dynaFlowTask": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "name": { "type": "string" },
+                                "description": { "type": "string" },
+                                "contextObjectName": { "type": "string" },
+                                "isDynaFlowRequest": {
+                                  "type": "string",
+                                  "enum": [ "true", "false" ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+
+                    },
+                    "fetch": {
+                      "type": "array",
+                      "description": "Array of Calculated elements like: name, calculatedCSharpDataType, calculatedSqlServerDefaultValue, isFK",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "byPropName": {
+                            "type": "string"
+                          },
+                          "byObjectName": {
+                            "type": "string"
+                          },
+                          "byObjectNamespaceName": {
+                            "type": "string"
+                          },
+                          "includeInByObjectNameXMLFunction": {
+                            "type": "string"
+                          }
+                        }
+                      }
+
+                    },
+                    "query": {
+                      "type": "array",
+                      "description": "Array of Calculated elements like: name, calculatedCSharpDataType, calculatedSqlServerDefaultValue, isFK",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "storedProcName": {
+                            "type": "string"
+                          },
+                          "isCustomSqlUsed": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Is custom sql stored proc used for the report?"
+                          },
+                          "queryParam": {
+                            "type": "array",
+                            "description": "",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "description": "",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "storedProcParamName": {
+                                  "type": "string"
+                                },
+                                "sqlServerDBDataType": {
+                                  "type": "string",
+                                  "enum": [ "nvarchar", "bit", "datetime", "int", "uniqueidentifier", "money", "bigint", "float", "decimal", "date", "varchar", "text" ]
+                                },
+                                "sqlServerDBDataTypeSize": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+
+                          }
+                        }
+                      }
+
+                    },
+                    "objectDocument": {
+                      "type": "object"
+                    },
+                    "intersectionObj": {
+                      "type": "array",
+                      "description": "These are tables that are not in its parent child tree, but relevant as intersection to another tree branch",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "pairedObj": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "objectButton": {
+                      "type": "object"
+                    },
+                    "isFullResearchDatabaseViewAllowed": {
+                      "type": "string",
+                      "enum": [ "true", "false" ],
+                      "description": "If true, also create a 'Detail' view that inculdes its data and all ancestor object heirarcy data."
+                    },
+                    "isNotImplemented": {
+                      "type": "string",
+                      "enum": [ "true", "false" ],
+                      "description": "If true, many items will not be generated. Its just for a sketch of an object."
+                    },
+                    
+                    "isSoftDeleteUsed": {
+                      "type": "string",
+                      "enum": [ "true", "false" ]
+                    },
+                    "cacheAllRecs": {
+                      "type": "string",
+                      "enum": [ "true", "false" ]
+                    },
+                    "cacheIndividualRecs": {
+                      "type": "string",
+                      "enum": [ "true", "false" ]
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+
+              },
+              "apiSite": {
+                "type": "array",
+                "items": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Name of object like Flavor etc..."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "API Document Title"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "API Document Description"
+                    },
+                    "versionNumber": {
+                      "type": "string",
+                      "description": "API Version Number"
+                    },
+                    "isPublic": {
+                      "type": "string",
+                      "enum": [ "true", "false" ],
+                      "description": "Is an api key required in the header on each request?"
+                    },
+                    "isSiteLoggingEnabled": {
+                      "type": "string",
+                      "enum": [ "true", "false" ]
+                    },
+                    "apiLogReportName": {
+                      "type": "string",
+                      "description": "report used for api logging. Lazy write required."
+                    },
+                    "apiEnvironment": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Environment of API like Development, Production etc.."
+                          },
+                          "url": {
+                            "type": "string",
+                            "description": "API URL"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Environment Description"
+                          }
+                        }
+                      }
+                    },
+                    "apiEndPoint": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "API End Point Name"
+                          },
+                          "isAPIAuthorizationRequired": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isGetAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isGetContextCodeAParam": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "GetContextCodeParamName": {
+                            "type": "string",
+                            "description": "API End Point Name"
+                          },
+                          "isGetWithIdAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isGetToCsvAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isGetInitAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isPostAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isPostWithIdAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isPostWithIdResultFileStreamedOutAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isPublic": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "Is an api key required in the header on each endpoint request?"
+                          },
+                          "isLazyPost": {
+                            "type": "string",
+                            "description": "All posts are processed asyncronously later. All responses return a success. Authorization is checked during processing.",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isPutAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isDeleteAvailable": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "pluralName": {
+                            "type": "string",
+                            "description": "API End Point Name in plural form"
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "API End Point Description"
+                          },
+                          "apiContextTargetName": {
+                            "type": "string",
+                            "description": "Report Name"
+                          },
+                          "apiCodeParamName": {
+                            "type": "string",
+                            "description": "Code Parameter Name"
+                          },
+                          "apiContextObjectName": {
+                            "type": "string",
+                            "description": "The name of the object."
+                          },
+                          "apiPostContextObjectName": {
+                            "type": "string",
+                            "description": "The name of the object."
+                          },
+                          "apiGetInitContextTargetName": {
+                            "type": "string",
+                            "description": "The name of the object init workflow."
+                          },
+                          "apiGetInitContextObjectName": {
+                            "type": "string",
+                            "description": "The name of the object for GetInit Method."
+                          },
+                          "apiPostContextTargetName": {
+                            "type": "string",
+                            "description": "The name of the object workflow."
+                          },
+                          "apiPostWithIdResultFilePathParamName": {
+                            "type": "string",
+                            "description": "The name of the object workflow."
+                          },
+                          "apiPutContextObjectName": {
+                            "type": "string",
+                            "description": "The name of the object for Put Method."
+                          },
+                          "apiPutContextTargetName": {
+                            "type": "string",
+                            "description": "The name of the object workflow for Put Method."
+                          },
+                          "apiDeleteContextObjectName": {
+                            "type": "string",
+                            "description": "The name of the object for Delete Method."
+                          },
+                          "apiDeleteContextTargetName": {
+                            "type": "string",
+                            "description": "The name of the object workflow for Delete Method."
+                          },
+                          "isEndPointLoggingEnabled": {
+                            "type": "string",
+                            "enum": [ "true", "false" ]
+                          },
+                          "isIgnored": {
+                            "type": "string",
+                            "enum": [ "true", "false" ],
+                            "description": "will be ignored by the code generator array loop"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+        "navButton": {
+          "type": "array",
+          "description": "Array of app navigation options",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "buttonType": {
+                "type": "string",
+                "enum": [ "primary", "secondary" ],
+                "description": ""
+              },
+              "isVisible": {
+                "type": "string",
+                "enum": [ "true", "false" ],
+                "description": "Determine need to visible or not"
+              },
+              "isEnabled": {
+                "type": "string",
+                "enum": [ "true", "false" ],
+                "description": "Is user allowed to click button?"
+              },
+              "isButtonCallToAction": {
+                "type": "string",
+                "enum": [ "true", "false" ],
+                "description": "Show button as call to action"
+              },
+              "conditionalVisiblePropertyName": {
+                "type": "string",
+                "description": "If button is conditional depedant on third field"
+              },
+              "buttonText": {
+                "type": "string",
+                "description": "Text display on button like 'Add A Flavor'"
+              },
+              "buttonName": {
+                "type": "string",
+                "description": "Optional name of button. Neccesary for multiple multiselect buttons"
+              },
+              "destinationContextObjectName": {
+                "type": "string",
+                "description": "The name of the object that owns the destinationTargetName"
+              },
+              "destinationTargetName": {
+                "type": "string",
+                "description": "Destination defined by user role. Means objwf or report that the user should be sent to"
+              },
+              "roleRequired": {
+                "type": "string",
+                "description": "Role required to see the navigation option"
+              }
+            }
+          }
+        },
+        "templateSet": {
+          "type": "array",
+          "description": "Template sets selected to render in fabrication",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Internal name of the template set"
+              },
+              "title": {
+                "type": "string",
+                "description": "External title of the template set"
+              },
+              "version": {
+                "type": "string",
+                "description": "Display version of the selected template set"
+              },
+              "isDisabled": {
+                "type": "string",
+                "enum": [ "true", "false" ],
+                "description": "Allows for template set to be skipped in fabrication phase"
+              }
+            }
+          }
+        }
+      },
+      "required": [ 
+        "name",
+        "databaseName",
+        "namespace"
+      ]
+    }
+  },
+  "required": [
+    "root"
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "root": {
+    "name": "YourAppName",
+    "appName": "YourAppName",
+    "companyLegalName": "Your Company",
+    "companyDomain": "yourcompany.com",
+    "databaseName": "YourDatabaseName",
+    "projectName": "Your Project",
+    "projectCode": "123456",
+    "projectVersionNumber": "1.0",
+    "isDatabaseAuditColumnsCreated": "true",
+    "isInternalObjectApiCreated": "true",
+    "isBasicAuthenticationIncluded": "true",
+    "databaseTableNamePrefix": "",
+    "suppressUsingDatabaseDeclarationInScripts": "false",
+    "suppressFillObjLookupTableScripts": "false",
+    "isValidationMissesLogged": "true",
+    "namespace": [
+      {
+        "name": "Core",
+        "isDynaFlowAvailable": "false",
+        "isModelFeatureConfigUserDBVeiwer": "false",
+        "isModelFeatureConfigUserDBEditor": "false",
+        "object": [
+          {
+            "name": "Pac",
+            "codeDescription": "Primary App Config.",
+            "isLookup": "true",
+            "prop": [
+              {
+                "name": "Description",
+                "codeDescription": "Pac Description",
+                "sqlServerDBDataType": "nvarchar",
+                "sqlServerDBDataTypeSize": "500",
+                "isFK": "false",
+                "isEncrypted": "false",
+                "forceDBColumnIndex": "false",
+                "isFKLookup": "false",
+                "isNotPublishedToSubscriptions": "false",
+                "fKObjectName": "",
+                "fKObjectPropertyName": "",
+                "isQueryByAvailable": "false",
+                "labelText": "Description"
+              },
+              {
+                "name": "DisplayOrder",
+                "codeDescription": "Pac Display Order",
+                "sqlServerDBDataType": "int",
+                "isFK": "false",
+                "isEncrypted": "false",
+                "forceDBColumnIndex": "false",
+                "isFKLookup": "false",
+                "isNotPublishedToSubscriptions": "false",
+                "fKObjectName": "",
+                "fKObjectPropertyName": "",
+                "isQueryByAvailable": "false",
+                "labelText": "Display Order"
+              },
+              {
+                "name": "IsActive",
+                "codeDescription": "Pac Is Active",
+                "sqlServerDBDataType": "bit",
+                "isFK": "false",
+                "isEncrypted": "false",
+                "forceDBColumnIndex": "false",
+                "isFKLookup": "false",
+                "isNotPublishedToSubscriptions": "false",
+                "fKObjectName": "",
+                "fKObjectPropertyName": "",
+                "isQueryByAvailable": "false",
+                "labelText": "Is Active"
+              },
+              {
+                "name": "LookupEnumName",
+                "codeDescription": "Pac Lookup Enum Name",
+                "sqlServerDBDataType": "nvarchar",
+                "sqlServerDBDataTypeSize": "50",
+                "isFK": "false",
+                "isEncrypted": "false",
+                "forceDBColumnIndex": "false",
+                "isFKLookup": "false",
+                "isNotPublishedToSubscriptions": "false",
+                "fKObjectName": "",
+                "fKObjectPropertyName": "",
+                "isQueryByAvailable": "false",
+                "labelText": "Lookup Enum Name"
+              },
+              {
+                "name": "Name",
+                "codeDescription": "Pac Name",
+                "sqlServerDBDataType": "nvarchar",
+                "sqlServerDBDataTypeSize": "100",
+                "isFK": "false",
+                "isEncrypted": "false",
+                "forceDBColumnIndex": "false",
+                "isFKLookup": "false",
+                "isNotPublishedToSubscriptions": "false",
+                "fKObjectName": "",
+                "fKObjectPropertyName": "",
+                "isQueryByAvailable": "false",
+                "labelText": "Name"
+              }
+            ],
+            "propSubscription": [],
+            "fetch": [],
+            "query": [],
+            "modelPkg": [],
+            "lookupItem": [
+              {
+                "name": "Unknown",
+                "displayName": "Unknown",
+                "description": "Default unknown value",
+                "isActive": "true"
+              }
+            ],
+            "report": [],
+            "isSoftDeleteUsed": "false",
+            "cacheAllRecs": "false",
+            "cacheIndividualRecs": "false"
+          }
+        ]
+      }
+    ]
+  }
+}

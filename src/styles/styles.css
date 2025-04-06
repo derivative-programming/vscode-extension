@@ -1,0 +1,32 @@
+/* Style for properties container with header and aligned add button */
+.properties-container {
+  width: 100%;
+  position: relative;
+}
+
+.properties-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.add-property-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Ensure consistent positioning in both list and grid views */
+.properties-list,
+.properties-grid {
+  width: 100%;
+  position: relative;
+  padding-top: 10px;
+}
+
+/* Add tooltip styling */
+[title] {
+  position: relative;
+  cursor: help;
+}
