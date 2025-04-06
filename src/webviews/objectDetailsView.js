@@ -233,178 +233,164 @@ function getObjectDetailsContent(object, propertyDescriptions) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Object Details: ${object.name}</title>
     <style>
-        :root {
-            --container-padding: 20px;
-            --input-padding-vertical: 6px;
-            --input-padding-horizontal: 8px;
-            --input-margin-vertical: 4px;
-            --input-margin-horizontal: 0;
-        }
-
-        body, html {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: var(--vscode-font-family);
-            background-color: var(--vscode-editor-background);
-            color: var(--vscode-foreground);
-        }
-
         body {
-            display: flex;
-            flex-direction: column;
-            padding: var(--container-padding);
+            font-family: var(--vscode-font-family);
+            color: var(--vscode-editor-foreground);
+            background-color: var(--vscode-editor-background);
+            padding: 15px;
+            margin: 0;
         }
-        
-        h1 {
-            margin-top: 0;
-            border-bottom: 1px solid var(--vscode-panel-border);
-            padding-bottom: 10px;
-        }
-        
+
+        /* Tabs styling */
         .tabs {
             display: flex;
+            justify-content: flex-start; /* Left-justified tabs */
+            border-bottom: 1px solid var(--vscode-editorGroup-border);
             margin-bottom: 10px;
         }
-        
+
         .tab {
-            padding: 8px 16px;
+            padding: 10px 15px;
             cursor: pointer;
-            border: 1px solid var(--vscode-panel-border);
+            border: 1px solid transparent;
             border-bottom: none;
             background-color: var(--vscode-tab-inactiveBackground);
             color: var(--vscode-tab-inactiveForeground);
-            margin-right: 4px;
-            border-top-left-radius: 3px;
-            border-top-right-radius: 3px;
         }
-        
+
         .tab.active {
             background-color: var(--vscode-tab-activeBackground);
             color: var(--vscode-tab-activeForeground);
-            border-bottom: 1px solid var(--vscode-tab-activeBackground);
-            position: relative;
-            top: 1px;
+            border-color: var(--vscode-editorGroup-border);
         }
-        
+
+        /* Tab content styling */
         .tab-content {
             display: none;
-            padding: 20px;
-            border: 1px solid var(--vscode-panel-border);
-            flex-grow: 1;
-            overflow: auto;
+            padding: 15px;
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            border: 1px solid var(--vscode-editorGroup-border);
         }
-        
+
         .tab-content.active {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .view-icons {
-            display: flex;
-            margin-bottom: 10px;
-        }
-        
-        .icon {
-            padding: 8px 16px;
-            cursor: pointer;
-            border: 1px solid var(--vscode-panel-border);
-            background-color: var(--vscode-tab-inactiveBackground);
-            color: var(--vscode-tab-inactiveForeground);
-            margin-right: 4px;
-            border-radius: 3px;
-        }
-        
-        .icon.active {
-            background-color: var(--vscode-tab-activeBackground);
-            color: var(--vscode-tab-activeForeground);
-        }
-        
-        .view-content {
-            display: none;
-        }
-        
-        .view-content.active {
             display: block;
         }
-        
-        input, select, textarea {
-            padding: var(--input-padding-vertical) var(--input-padding-horizontal);
-            margin: var(--input-margin-vertical) var(--input-margin-horizontal);
+
+        /* View icons styling */
+        .view-icons {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .icon {
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+
+        .icon.active {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+
+        /* Form row styling */
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .form-row label {
+            flex: 0 0 150px;
+            font-weight: bold;
+        }
+
+        .form-row input[type="text"],
+        .form-row select {
+            flex: 1;
+            padding: 5px;
             border: 1px solid var(--vscode-input-border);
             background-color: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
         }
-        
-        button {
-            padding: var(--input-padding-vertical) var(--input-padding-horizontal);
-            margin: var(--input-margin-vertical) var(--input-margin-horizontal);
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            border: none;
-            cursor: pointer;
+
+        /* Read-only controls styling */
+        input[readonly], select[disabled] {
+            background-color: var(--vscode-input-disabledBackground, #e9e9e9);
+            color: var(--vscode-input-disabledForeground, #999);
         }
-        
-        button:hover {
-            background-color: var(--vscode-button-hoverBackground);
+
+        /* Checkbox styling */
+        input[type="checkbox"] {
+            margin-left: 5px;
+            transform: scale(0.8);
         }
-        
+
+        /* Table styling */
         table {
-            border-collapse: collapse;
             width: 100%;
-            margin-bottom: 20px;
+            border-collapse: collapse;
         }
-        
+
         th, td {
             padding: 8px;
             text-align: left;
-            border-bottom: 1px solid var(--vscode-panel-border);
+            border-bottom: 1px solid var(--vscode-editorGroup-border);
         }
-        
+
         th {
-            background-color: var(--vscode-editor-inactiveSelectionBackground);
+            background-color: var(--vscode-editor-lineHighlightBackground);
         }
-        
-        .form-row {
-            display: flex;
-            margin-bottom: 10px;
+
+        /* Button styling */
+        button {
+            padding: 6px 14px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
         }
-        
-        .form-row label {
-            width: 150px;
-            padding-right: 10px;
+
+        button:hover {
+            background-color: var(--vscode-button-hoverBackground);
         }
-        
-        .form-row input, .form-row select {
-            flex: 1;
-        }
-        
+
+        /* List and details container */
         .list-container {
             width: 30%;
             float: left;
+            padding-right: 15px;
         }
-        
+
         .details-container {
-            width: 70%;
+            width: 65%;
             float: left;
         }
-        
-        ul {
-            list-style-type: none;
-            padding: 0;
+
+        #propsList {
+            width: 100%;
+            height: 300px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
         }
-        
-        ul li {
-            padding: 8px;
-            cursor: pointer;
-            border: 1px solid var(--vscode-panel-border);
-            margin-bottom: 4px;
-            background-color: var(--vscode-tab-inactiveBackground);
-            color: var(--vscode-tab-inactiveForeground);
+
+        .actions {
+            margin-top: 15px;
+            text-align: right;
         }
-        
-        ul li:hover {
-            background-color: var(--vscode-tab-hoverBackground);
+
+        /* Clear fix */
+        .view-content:after {
+            content: "";
+            display: table;
+            clear: both;
         }
     </style>
 </head>
