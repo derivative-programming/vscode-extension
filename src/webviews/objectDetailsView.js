@@ -645,11 +645,32 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 const toggleEditable = (checkboxId, inputId) => {
                     const checkbox = document.getElementById(checkboxId);
                     const input = document.getElementById(inputId);
+                    
+                    if (!checkbox || !input) return;
 
-                    checkbox.addEventListener('change', () => {
-                        input.readOnly = !checkbox.checked;
-                        input.disabled = !checkbox.checked;
-                    });
+                    // Apply styling based on current checkbox state
+                    const updateInputStyle = () => {
+                        if (input.tagName === 'INPUT') {
+                            input.readOnly = !checkbox.checked;
+                        } else if (input.tagName === 'SELECT') {
+                            input.disabled = !checkbox.checked;
+                        }
+                        
+                        // Apply consistent styling
+                        if (!checkbox.checked) {
+                            input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                            input.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                        } else {
+                            input.style.backgroundColor = '';
+                            input.style.color = '';
+                        }
+                    };
+
+                    // Set initial state
+                    updateInputStyle();
+
+                    // Add event listener
+                    checkbox.addEventListener('change', updateInputStyle);
                 };
 
                 toggleEditable('propDataTypeEditable', 'propDataType');
@@ -681,14 +702,38 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 // Initialize settings form checkboxes
                 document.querySelectorAll('.setting-checkbox').forEach(checkbox => {
                     const propName = checkbox.getAttribute('data-prop');
-                    const inputField = document.querySelector('input[name="' + propName + '"]');
+                    const isEnum = checkbox.getAttribute('data-is-enum') === 'true';
+                    let inputField;
                     
-                    // Set initial state
-                    inputField.readOnly = !checkbox.checked;
+                    if (isEnum) {
+                        inputField = document.querySelector('select[name="' + propName + '"]');
+                    } else {
+                        inputField = document.querySelector('input[name="' + propName + '"]');
+                    }
                     
-                    // Add event listener to toggle readOnly state
-                    checkbox.addEventListener('change', () => {
+                    if (!inputField) return;
+                    
+                    // Set initial state - apply correct input type handling
+                    if (isEnum) {
+                        inputField.disabled = !checkbox.checked;
+                    } else {
                         inputField.readOnly = !checkbox.checked;
+                    }
+                    
+                    // Apply initial styling
+                    if (!checkbox.checked) {
+                        inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                        inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                    }
+                    
+                    // Add event listener to toggle readOnly/disabled state
+                    checkbox.addEventListener('change', () => {
+                        if (isEnum) {
+                            inputField.disabled = !checkbox.checked;
+                        } else {
+                            inputField.readOnly = !checkbox.checked;
+                        }
+                        
                         if (checkbox.checked) {
                             inputField.style.backgroundColor = '';
                             inputField.style.color = '';
@@ -697,12 +742,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                             inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
                         }
                     });
-                    
-                    // Apply initial styling
-                    if (inputField.readOnly) {
-                        inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
-                        inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
-                    }
                 });
                 
                 // Initialize table view checkboxes
