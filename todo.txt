@@ -1,9 +1,7 @@
 Agent todo items...
 
 
-
-1. In the object details tabs, dont show the namespace name setting. 
-It is not necessary to show the namespace name in the object details tabs.
+ 
   
 2. boolean settings should be shown as a toggle switch.
 

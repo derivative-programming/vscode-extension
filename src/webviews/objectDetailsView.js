@@ -7,6 +7,27 @@ const path = require('path');
 const activePanels = new Map();
 
 /**
+ * Loads and parses the JSON schema
+ * @returns {Object} The parsed schema object
+ */
+function loadSchema() {
+    console.log('[loadSchema] __dirname:', __dirname);
+    // First try parent folder app-dna.schema.json
+    const primarySchemaPath = path.join(__dirname, '..', 'app-dna.schema.json');
+    if (!fs.existsSync(primarySchemaPath)) {
+        console.log('[loadSchema] Not found at:', primarySchemaPath);
+        // Fallback to local folder
+        const fallbackPath = path.join(__dirname, 'app-dna.schema.json');
+        if (!fs.existsSync(fallbackPath)) {
+            console.log('[loadSchema] Not found at:', fallbackPath, 'Returning empty schema.');
+            return {};
+        }
+        return JSON.parse(fs.readFileSync(fallbackPath, 'utf-8')) || {};
+    }
+    return JSON.parse(fs.readFileSync(primarySchemaPath, 'utf-8')) || {};
+}
+
+/**
  * Opens a webview panel displaying details for a data object
  * @param {Object} item The tree item representing the data object
  * @param {string} appDNAFilePath Path to the app-dna.json file
@@ -174,14 +195,36 @@ function saveObjectData(data, appDNAFilePath) {
  * @returns {string} HTML content
  */
 function getObjectDetailsContent(object, propertyDescriptions) {
-    // Extract settings and props
-    const settings = { ...object };
+    const schema = loadSchema();
+    console.log('[getObjectDetailsContent] Full schema:\n', JSON.stringify(schema, null, 2));
+
+    let objectSchemaProps = schema.properties?.root?.properties?.namespace?.items?.properties?.object?.items?.properties || {};
+    console.log('[getObjectDetailsContent] Attempting standard path. Keys:', Object.keys(objectSchemaProps));
+
+    if (!Object.keys(objectSchemaProps).length) {
+        objectSchemaProps = schema.definitions?.Object?.properties || {};
+        console.log('[getObjectDetailsContent] Using fallback path: schema.definitions.Object.properties. Keys:', Object.keys(objectSchemaProps));
+    }
+    
     const props = object.prop || [];
     
     // Remove complex properties from settings
-    delete settings.prop;
-    delete settings.report;
-    delete settings.objectWorkflow;
+    delete object.prop;
+    delete object.report;
+    delete object.objectWorkflow;
+
+    const settingsHtml = Object.entries(objectSchemaProps)
+        .filter(([_, desc]) => desc.type !== 'array')
+        .map(([key]) => {
+            return `<div class="form-row">
+                <label for="${key}">${formatLabel(key)}:</label>
+                <input type="text" id="${key}" name="${key}" value="${object[key] || ''}">
+            </div>`;
+        }).join('');
+
+    if (!settingsHtml.trim()) {
+        return `<h1>${object.name}</h1><div>No schema properties found for this object.</div>`;
+    }
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -321,27 +364,7 @@ function getObjectDetailsContent(object, propertyDescriptions) {
         ${object.error ? 
             `<div class="error">${object.error}</div>` : 
             `<form id="settingsForm">
-                ${Object.entries(settings)
-                    .filter(([key]) => key !== 'error' && key !== 'namespaceName')
-                    .map(([key, value]) => {
-                        if (typeof value === 'boolean') {
-                            return `<div class="form-row">
-                                <label for="${key}">${formatLabel(key)}:</label>
-                                <select id="${key}" name="${key}">
-                                    <option value="true" ${value === true ? 'selected' : ''}>True</option>
-                                    <option value="false" ${value === false ? 'selected' : ''}>False</option>
-                                </select>
-                            </div>`;
-                        } else if (Array.isArray(value)) {
-                            return ''; // Skip arrays for simplicity
-                        } else {
-                            return `<div class="form-row">
-                                <label for="${key}">${formatLabel(key)}:</label>
-                                <input type="text" id="${key}" name="${key}" value="${value || ''}">
-                            </div>`;
-                        }
-                    }).join('')
-                }
+                ${settingsHtml}
             </form>
             
             <div class="actions">
