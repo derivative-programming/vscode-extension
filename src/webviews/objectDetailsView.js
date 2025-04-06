@@ -550,7 +550,7 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     ${props.map((prop, index) => `<option value="${index}">${prop.name || 'Unnamed Property'}</option>`).join('')}
                 </select>
             </div>
-            <div class="details-container">
+            <div id="propertyDetailsContainer" class="details-container" style="display: none;">
                 <form id="propDetailsForm">
                     <div class="form-row">
                         <label for="propDataType">Data Type:</label>
@@ -683,10 +683,14 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 // List item selection
                 const propsList = document.getElementById('propsList');
                 const propDetailsForm = document.getElementById('propDetailsForm');
+                const propertyDetailsContainer = document.getElementById('propertyDetailsContainer');
 
                 propsList.addEventListener('change', (event) => {
                     const selectedIndex = event.target.value;
                     const prop = ${JSON.stringify(props)}[selectedIndex];
+
+                    // Show property details container when an item is selected
+                    propertyDetailsContainer.style.display = 'block';
 
                     // Update form fields with property values
                     document.getElementById('propDataType').value = prop.sqlServerDBDataType || '';
@@ -707,13 +711,60 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                 });
 
+                // Add additional listener to check if no item is selected
+                propsList.addEventListener('click', (event) => {
+                    if (!propsList.value) {
+                        propertyDetailsContainer.style.display = 'none';
+                    }
+                });
+
+                // Initialize list view state - hide details if nothing is selected initially
+                window.addEventListener('DOMContentLoaded', () => {
+                    const defaultView = document.querySelector('.view-icons .icon.active');
+                    if (defaultView) {
+                        defaultView.click();
+                    } else {
+                        const firstIcon = document.querySelector('.view-icons .icon');
+                        if (firstIcon) firstIcon.click();
+                    }
+
+                    applyConsistentStyling();
+
+                    // Ensure property details are hidden if nothing selected
+                    if (propsList && (!propsList.value || propsList.value === "")) {
+                        if (propertyDetailsContainer) {
+                            propertyDetailsContainer.style.display = 'none';
+                        }
+                    }
+                });
+
+                // Helper function to apply consistent styling to all inputs and selects
+                function applyConsistentStyling() {
+                    document.querySelectorAll('select').forEach(select => {
+                        if (select.disabled) {
+                            select.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                            select.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                            select.style.opacity = '0.8';
+                        } else {
+                            select.style.backgroundColor = 'var(--vscode-input-background)';
+                            select.style.color = 'var(--vscode-input-foreground)';
+                            select.style.opacity = '1';
+                        }
+                    });
+
+                    document.querySelectorAll('input[readonly]').forEach(input => {
+                        input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                        input.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                        input.style.opacity = '0.8';
+                    });
+                }
+
                 const toggleEditable = (checkboxId, inputId) => {
                     const checkbox = document.getElementById(checkboxId);
                     const input = document.getElementById(inputId);
                     
                     if (!checkbox || !input) return;
 
-                    // Apply styling based on current checkbox state
                     const updateInputStyle = () => {
                         if (input.tagName === 'INPUT') {
                             input.readOnly = !checkbox.checked;
@@ -721,7 +772,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                             input.disabled = !checkbox.checked;
                         }
                         
-                        // Apply consistent styling
                         if (!checkbox.checked) {
                             input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
                             input.style.color = 'var(--vscode-input-disabledForeground, #999)';
@@ -733,10 +783,8 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         }
                     };
 
-                    // Set initial state
                     updateInputStyle();
 
-                    // Add event listener
                     checkbox.addEventListener('change', updateInputStyle);
                 };
 
@@ -745,7 +793,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 toggleEditable('propIsFKEditable', 'propIsFK');
                 toggleEditable('propFKObjectEditable', 'propFKObject');
 
-                // Save property details
                 document.getElementById('savePropDetails')?.addEventListener('click', () => {
                     const form = document.getElementById('propDetailsForm');
                     if (!form) return;
@@ -766,7 +813,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                 });
 
-                // Initialize settings form checkboxes
                 document.querySelectorAll('.setting-checkbox').forEach(checkbox => {
                     const propName = checkbox.getAttribute('data-prop');
                     const isEnum = checkbox.getAttribute('data-is-enum') === 'true';
@@ -780,14 +826,12 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     
                     if (!inputField) return;
                     
-                    // Set initial state - apply correct input type handling
                     if (isEnum) {
                         inputField.disabled = !checkbox.checked;
                     } else {
                         inputField.readOnly = !checkbox.checked;
                     }
                     
-                    // Apply consistent styling for disabled/readonly state
                     const updateInputStyle = () => {
                         if (!checkbox.checked) {
                             inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
@@ -800,10 +844,8 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         }
                     };
                     
-                    // Apply initial style
                     updateInputStyle();
                     
-                    // Add event listener to toggle readOnly/disabled state
                     checkbox.addEventListener('change', () => {
                         if (isEnum) {
                             inputField.disabled = !checkbox.checked;
@@ -814,14 +856,12 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                 });
                 
-                // Initialize table view checkboxes
                 document.querySelectorAll('.prop-checkbox').forEach(checkbox => {
                     const propName = checkbox.getAttribute('data-prop');
                     const rowIndex = checkbox.getAttribute('data-index');
                     const row = document.querySelector('tr[data-index="' + rowIndex + '"]');
                     const inputField = row.querySelector('[name="' + propName + '"]');
                     
-                    // Apply consistent styling for disabled/readonly state
                     const updateInputStyle = () => {
                         if (!checkbox.checked) {
                             inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
@@ -834,10 +874,8 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         }
                     };
                     
-                    // Apply initial style
                     updateInputStyle();
                     
-                    // Add event listener to toggle readOnly/disabled state
                     checkbox.addEventListener('change', () => {
                         if (inputField.tagName === 'INPUT') {
                             inputField.readOnly = !checkbox.checked;
@@ -848,7 +886,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                 });
 
-                // Handle saving settings
                 document.getElementById('saveSettings')?.addEventListener('click', () => {
                     const form = document.getElementById('settingsForm');
                     if (!form) return;
@@ -856,7 +893,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     const formData = new FormData(form);
                     const settings = {};
                     
-                    // Only include properties with checked checkboxes
                     document.querySelectorAll('.setting-checkbox').forEach(checkbox => {
                         const propName = checkbox.getAttribute('data-prop');
                         if (checkbox.checked) {
@@ -873,7 +909,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                 });
                 
-                // Handle saving properties table
                 document.getElementById('saveProps')?.addEventListener('click', () => {
                     const tableRows = document.querySelectorAll('#propsTable tbody tr');
                     const props = [];
@@ -882,13 +917,11 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         const index = row.getAttribute('data-index');
                         const prop = {};
                         
-                        // Get the name property first
                         const nameInput = row.querySelector('[name="name"]');
                         if (nameInput) {
                             prop.name = nameInput.value;
                         }
                         
-                        // Only include properties with checked checkboxes
                         row.querySelectorAll('.prop-checkbox').forEach(checkbox => {
                             const propName = checkbox.getAttribute('data-prop');
                             if (checkbox.checked) {
@@ -923,7 +956,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
  * @returns {string} The formatted label
  */
 function formatLabel(key) {
-    // Insert a space before all uppercase letters and capitalize the first letter
     return key
         .replace(/([A-Z])/g, ' $1')
         .replace(/^./, str => str.toUpperCase());
