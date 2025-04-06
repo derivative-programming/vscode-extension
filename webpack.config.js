@@ -3,7 +3,6 @@
 'use strict';
 
 const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -11,16 +10,15 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 /** @type WebpackConfig */
 const extensionConfig = {
   target: 'node', // VS Code extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
-	mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
+  mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
 
   entry: {
-    extension: './src/extension.ts',
-    'webviews/objectDetailsView': './src/webviews/objectDetailsView.js'
+    extension: ['./src/extension.ts'] // Include objectDetailsView in the extension entry
   },
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
     path: path.resolve(__dirname, 'dist'),
-    filename: '[name].js',
+    filename: '[name].js', // Output each entry point as a separate file
     libraryTarget: 'commonjs2'
   },
   externals: {
@@ -70,27 +68,7 @@ const extensionConfig = {
     ]
   },
   plugins: [
-    new CopyWebpackPlugin({
-      patterns: [
-        { 
-          from: 'src/webviews', 
-          to: 'webviews',
-          globOptions: {
-            ignore: ['**/*.ts'] // Don't copy TypeScript files
-          }
-        },
-        {
-          from: 'app-dna.schema.json',
-          to: '.',
-          noErrorOnMissing: true
-        },
-        {
-          from: 'app-dna.new.json',
-          to: '.',
-          noErrorOnMissing: true
-        }
-      ]
-    })
+    // Remove CopyWebpackPlugin as it's no longer needed
   ],
   devtool: 'nosources-source-map',
   infrastructureLogging: {

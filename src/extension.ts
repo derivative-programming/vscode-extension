@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import Ajv from 'ajv';
+import * as objectDetailsView from './webviews/objectDetailsView'; // Import objectDetailsView
 
 // Define interfaces for type safety
 interface NamespaceObject {
@@ -208,11 +209,7 @@ export function activate(context: vscode.ExtensionContext) {
     updateFileExistsContext(appDNAFilePath);
     
     // Load the objectDetailsView module safely
-    let objectDetailsView: any;
     try {
-        const objectDetailsViewPath = path.join(context.extensionPath, 'dist', 'webviews', 'objectDetailsView.js');
-        console.log('Loading objectDetailsView from:', objectDetailsViewPath);
-        objectDetailsView = require(objectDetailsViewPath);
         console.log('objectDetailsView loaded successfully');
     } catch (err) {
         console.error('Failed to load objectDetailsView module:', err);
