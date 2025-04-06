@@ -228,7 +228,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             if (hasEnum) {
                 // Generate select dropdown for enum values
                 inputField = `<select id="${key}" name="${key}" ${tooltip} ${!object.hasOwnProperty(key) ? 'disabled' : ''}>
-                    <option value="">Select ${formatLabel(key)}</option>
                     ${desc.enum.map(option => 
                         `<option value="${option}" ${object[key] === option ? 'selected' : ''}>${option}</option>`
                     ).join('')}
@@ -466,7 +465,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                                 </td>
                                 <td>
                                     <select name="sqlServerDBDataType" ${!prop.hasOwnProperty('sqlServerDBDataType') ? 'disabled' : ''}>
-                                        <option value="" ${!prop.sqlServerDBDataType ? 'selected' : ''}>Select type</option>
                                         <option value="nvarchar" ${prop.sqlServerDBDataType === 'nvarchar' ? 'selected' : ''}>nvarchar</option>
                                         <option value="int" ${prop.sqlServerDBDataType === 'int' ? 'selected' : ''}>int</option>
                                         <option value="bit" ${prop.sqlServerDBDataType === 'bit' ? 'selected' : ''}>bit</option>
@@ -480,7 +478,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                                 </td>
                                 <td>
                                     <select name="isFK" ${!prop.hasOwnProperty('isFK') ? 'disabled' : ''}>
-                                        <option value="">Select</option>
                                         <option value="true" ${prop.isFK === 'true' ? 'selected' : ''}>Yes</option>
                                         <option value="false" ${prop.isFK === 'false' ? 'selected' : ''}>No</option>
                                     </select>
@@ -514,7 +511,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     <div class="form-row">
                         <label for="propDataType">Data Type:</label>
                         <select id="propDataType" name="sqlServerDBDataType" disabled>
-                            <option value="">Select type</option>
                             <option value="nvarchar">nvarchar</option>
                             <option value="int">int</option>
                             <option value="bit">bit</option>
@@ -530,7 +526,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     <div class="form-row">
                         <label for="propIsFK">Is FK:</label>
                         <select id="propIsFK" name="isFK" disabled>
-                            <option value="">Select</option>
                             <option value="true">Yes</option>
                             <option value="false">No</option>
                         </select>
