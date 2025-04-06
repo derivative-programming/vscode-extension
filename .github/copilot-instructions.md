@@ -33,6 +33,9 @@ Always be careful and create accurate code.
 
 14. I like comments in the code
 
+15. delete operations are not given to the user.  A user will be able to set an item's property 'is ignored' (or similar) to true to have it ignored.  The user will not be able to delete the item from the json file.  The user will be able to set the property back to false to have it included again.
+
+16. empty lines in a code file is ok.
 
 
 

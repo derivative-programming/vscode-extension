@@ -8,10 +8,17 @@ Agent todo items...
 - In the object details tabs, if the schema has a description for 
 a property\setting, show the description when the user hovers over it.
 
+- allow horizontal scroll on the table view, if the table is too wide for the screen.
 
-- properties tab on list view and table view the 'add property' button
-should be on the same line as the two 'view' buttons, but right justified.
+- The table view has some columns that contain dropdowns.
+  These columns should be wide enough to show the full text of each item
+  and display its checkbox and no wider
+ 
+- remove the 'delete' buttons. 
 
-- properties tab list view should show no controls to the right of the list view if
-no item in the list control is selected. 
+- implement 'add property' 
 
+- implement save    
+    - table view
+    - list view
+    - object details view

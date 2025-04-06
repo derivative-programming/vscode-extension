@@ -302,8 +302,14 @@ function getObjectDetailsContent(object, propertyDescriptions) {
         /* View icons styling */
         .view-icons {
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
             margin-bottom: 10px;
+            width: 100%;
+        }
+        
+        .view-icons-left {
+            display: flex;
+            justify-content: flex-start;
         }
 
         .icon {
@@ -318,6 +324,10 @@ function getObjectDetailsContent(object, propertyDescriptions) {
         .icon.active {
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
+        }
+
+        .add-prop-button {
+            margin-left: auto;
         }
 
         /* Form row styling */
@@ -475,8 +485,11 @@ function getObjectDetailsContent(object, propertyDescriptions) {
     
     <div id="props" class="tab-content">
         <div class="view-icons">
-            <span class="icon table-icon active" data-view="table">Table View</span>
-            <span class="icon list-icon" data-view="list">List View</span>
+            <div class="view-icons-left">
+                <span class="icon table-icon active" data-view="table">Table View</span>
+                <span class="icon list-icon" data-view="list">List View</span>
+            </div>
+            <button id="addProp" class="add-prop-button">Add Property</button>
         </div>
 
         <div id="tableView" class="view-content active">
@@ -536,8 +549,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     </tbody>
                 </table>
                 
-                <button id="addProp">Add Property</button>
-                
                 <div class="actions">
                     <button id="saveProps">Save Properties</button>
                 </div>`
@@ -595,11 +606,9 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 document.querySelectorAll('.tab').forEach(tab => {
                     tab.addEventListener('click', () => {
                         const tabId = tab.getAttribute('data-tab');
-
                         // Update active tab
                         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                         tab.classList.add('active');
-
                         // Update visible tab content
                         document.querySelectorAll('.tab-content').forEach(content => {
                             content.classList.remove('active');
@@ -615,7 +624,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     // Check if the clicked element is an icon or a child of an icon
                     const iconElement = event.target.closest('.icon');
                     if (!iconElement) return;
-                    
                     const view = iconElement.getAttribute('data-view');
                     console.log('Switching to view:', view);
                     
@@ -632,7 +640,7 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                     
                     // Show selected view
-                    const viewElement = document.getElementById(view + 'View');
+                    const viewElement = document.getElementById(view + 'View'); 
                     if (viewElement) {
                         viewElement.style.display = 'block';
                         viewElement.classList.add('active');
@@ -684,7 +692,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 const propsList = document.getElementById('propsList');
                 const propDetailsForm = document.getElementById('propDetailsForm');
                 const propertyDetailsContainer = document.getElementById('propertyDetailsContainer');
-
                 propsList.addEventListener('change', (event) => {
                     const selectedIndex = event.target.value;
                     const prop = ${JSON.stringify(props)}[selectedIndex];
@@ -762,7 +769,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 const toggleEditable = (checkboxId, inputId) => {
                     const checkbox = document.getElementById(checkboxId);
                     const input = document.getElementById(inputId);
-                    
                     if (!checkbox || !input) return;
 
                     const updateInputStyle = () => {
@@ -771,9 +777,8 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                         } else if (input.tagName === 'SELECT') {
                             input.disabled = !checkbox.checked;
                         }
-                        
                         if (!checkbox.checked) {
-                            input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                            input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';  
                             input.style.color = 'var(--vscode-input-disabledForeground, #999)';
                             input.style.opacity = '0.8';
                         } else {
@@ -787,7 +792,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
 
                     checkbox.addEventListener('change', updateInputStyle);
                 };
-
                 toggleEditable('propDataTypeEditable', 'propDataType');
                 toggleEditable('propSizeEditable', 'propSize');
                 toggleEditable('propIsFKEditable', 'propIsFK');
@@ -796,14 +800,11 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 document.getElementById('savePropDetails')?.addEventListener('click', () => {
                     const form = document.getElementById('propDetailsForm');
                     if (!form) return;
-
                     const formData = new FormData(form);
                     const propDetails = {};
-
                     for (const [key, value] of formData.entries()) {
                         propDetails[key] = value;
                     }
-
                     vscode.postMessage({
                         command: 'save',
                         data: {
@@ -817,13 +818,11 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     const propName = checkbox.getAttribute('data-prop');
                     const isEnum = checkbox.getAttribute('data-is-enum') === 'true';
                     let inputField;
-                    
                     if (isEnum) {
                         inputField = document.querySelector('select[name="' + propName + '"]');
                     } else {
                         inputField = document.querySelector('input[name="' + propName + '"]');
                     }
-                    
                     if (!inputField) return;
                     
                     if (isEnum) {
@@ -861,7 +860,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     const rowIndex = checkbox.getAttribute('data-index');
                     const row = document.querySelector('tr[data-index="' + rowIndex + '"]');
                     const inputField = row.querySelector('[name="' + propName + '"]');
-                    
                     const updateInputStyle = () => {
                         if (!checkbox.checked) {
                             inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
@@ -889,17 +887,14 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 document.getElementById('saveSettings')?.addEventListener('click', () => {
                     const form = document.getElementById('settingsForm');
                     if (!form) return;
-                    
                     const formData = new FormData(form);
                     const settings = {};
-                    
                     document.querySelectorAll('.setting-checkbox').forEach(checkbox => {
                         const propName = checkbox.getAttribute('data-prop');
                         if (checkbox.checked) {
                             settings[propName] = formData.get(propName);
                         }
                     });
-                    
                     vscode.postMessage({
                         command: 'save',
                         data: {
@@ -912,16 +907,13 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                 document.getElementById('saveProps')?.addEventListener('click', () => {
                     const tableRows = document.querySelectorAll('#propsTable tbody tr');
                     const props = [];
-                    
                     tableRows.forEach(row => {
                         const index = row.getAttribute('data-index');
                         const prop = {};
-                        
                         const nameInput = row.querySelector('[name="name"]');
                         if (nameInput) {
                             prop.name = nameInput.value;
                         }
-                        
                         row.querySelectorAll('.prop-checkbox').forEach(checkbox => {
                             const propName = checkbox.getAttribute('data-prop');
                             if (checkbox.checked) {
@@ -934,7 +926,6 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                             props.push(prop);
                         }
                     });
-                    
                     vscode.postMessage({
                         command: 'save',
                         data: {
