@@ -1,0 +1,1 @@
+April 9, 2025: Updated the behavior of checkboxes in the Settings tab and Properties tab table view to match the Details page properties tab list view. Ensured consistent toggle functionality for editable/read-only states.

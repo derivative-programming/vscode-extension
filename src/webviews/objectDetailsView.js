@@ -740,10 +740,88 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                 }
 
-                // List item selection
-                const propsList = document.getElementById('propsList');
-                const propDetailsForm = document.getElementById('propDetailsForm');
-                const propertyDetailsContainer = document.getElementById('propertyDetailsContainer');
+                // Initialize toggleEditable function for better checkbox behavior
+                function initializeToggleEditableBehavior() {
+                    // Process each checkbox in the Settings tab to correctly toggle its corresponding control
+                    document.querySelectorAll(".setting-checkbox").forEach(checkbox => {
+                        const propName = checkbox.getAttribute("data-prop");
+                        const inputElement = document.getElementById(propName);
+                        
+                        if (inputElement) {
+                            // Initial state setup
+                            if (inputElement.tagName === "INPUT") {
+                                inputElement.readOnly = !checkbox.checked;
+                            } else if (inputElement.tagName === "SELECT") {
+                                inputElement.disabled = !checkbox.checked;
+                            }
+                            
+                            // Style based on checkbox state
+                            updateInputStyle(inputElement, checkbox.checked);
+                            
+                            // Add event listener for checkbox state changes
+                            checkbox.addEventListener("change", function() {
+                                if (inputElement.tagName === "INPUT") {
+                                    inputElement.readOnly = !this.checked;
+                                } else if (inputElement.tagName === "SELECT") {
+                                    inputElement.disabled = !this.checked;
+                                }
+                                updateInputStyle(inputElement, this.checked);
+                            });
+                        }
+                    });
+                    
+                    // Process each checkbox in the Properties tab table view
+                    // Using parent-child relationship to find the related input in the same table cell
+                    document.querySelectorAll(".prop-checkbox").forEach(checkbox => {
+                        // Find the closest table cell (td) containing this checkbox
+                        const tableCell = checkbox.closest("td");
+                        if (!tableCell) return;
+                        
+                        // Find the input or select element within this same table cell
+                        const inputElement = tableCell.querySelector("input[type='text'], select");
+                        if (!inputElement) return;
+                        
+                        // Initial state setup
+                        if (inputElement.tagName === "INPUT") {
+                            inputElement.readOnly = !checkbox.checked;
+                        } else if (inputElement.tagName === "SELECT") {
+                            inputElement.disabled = !checkbox.checked;
+                        }
+                        
+                        // Style based on checkbox state
+                        updateInputStyle(inputElement, checkbox.checked);
+                        
+                        // Add event listener for checkbox state changes
+                        checkbox.addEventListener("change", function() {
+                            if (inputElement.tagName === "INPUT") {
+                                inputElement.readOnly = !this.checked;
+                            } else if (inputElement.tagName === "SELECT") {
+                                inputElement.disabled = !this.checked;
+                            }
+                            updateInputStyle(inputElement, this.checked);
+                        });
+                    });
+                }
+                
+                // Helper function to update input styles based on checkbox state
+                function updateInputStyle(inputElement, isChecked) {
+                    if (!isChecked) {
+                        inputElement.style.backgroundColor = "var(--vscode-input-disabledBackground, #e9e9e9)";
+                        inputElement.style.color = "var(--vscode-input-disabledForeground, #999)";
+                        inputElement.style.opacity = "0.8";
+                    } else {
+                        inputElement.style.backgroundColor = "var(--vscode-input-background)";
+                        inputElement.style.color = "var(--vscode-input-foreground)";
+                        inputElement.style.opacity = "1";
+                    }
+                }
+                
+                // Call the function when DOM is fully loaded
+                window.addEventListener("DOMContentLoaded", function() {
+                    // Initialize the behavior for all checkboxes
+                    initializeToggleEditableBehavior();
+                });
+
                 propsList.addEventListener('change', (event) => {
                     const selectedIndex = event.target.value;
                     const prop = props[selectedIndex];
@@ -814,6 +892,7 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                     });
                 });
 
+                // Update the toggleEditable function to ensure consistent behavior across all tabs and views
                 const toggleEditable = (checkboxId, inputId) => {
                     const checkbox = document.getElementById(checkboxId);
                     const input = document.getElementById(inputId);
@@ -826,7 +905,7 @@ function getObjectDetailsContent(object, propertyDescriptions) {
                             input.disabled = !checkbox.checked;
                         }
                         if (!checkbox.checked) {
-                            input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';  
+                            input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
                             input.style.color = 'var(--vscode-input-disabledForeground, #999)';
                             input.style.opacity = '0.8';
                         } else {
@@ -840,6 +919,35 @@ function getObjectDetailsContent(object, propertyDescriptions) {
 
                     checkbox.addEventListener('change', updateInputStyle);
                 };
+
+                // Apply the toggleEditable function to checkboxes in the Settings tab
+                const settingsCheckboxes = document.querySelectorAll('.setting-checkbox');
+                settingsCheckboxes.forEach(checkbox => {
+                    const inputId = checkbox.getAttribute('data-prop');
+                    toggleEditable(checkbox.id, inputId);
+                });
+
+                // Apply the toggleEditable function to checkboxes in the Properties tab table view
+                const tableCheckboxes = document.querySelectorAll('.prop-checkbox');
+                tableCheckboxes.forEach(checkbox => {
+                    const inputId = checkbox.getAttribute('data-prop');
+                    toggleEditable(checkbox.id, inputId);
+                });
+
+                // Ensure consistent behavior for checkboxes in Settings and Properties tabs
+                window.addEventListener("DOMContentLoaded", () => {
+                    // Apply toggleEditable to Settings tab checkboxes
+                    document.querySelectorAll(".setting-checkbox").forEach(checkbox => {
+                        const inputId = checkbox.getAttribute("data-prop");
+                        toggleEditable(checkbox.id, inputId);
+                    });
+
+                    // Apply toggleEditable to Properties tab table view checkboxes
+                    document.querySelectorAll(".prop-checkbox").forEach(checkbox => {
+                        const inputId = checkbox.getAttribute("data-prop");
+                        toggleEditable(checkbox.id, inputId);
+                    });
+                });
 
                 document.getElementById('savePropDetails')?.addEventListener('click', (event) => {
                     event.preventDefault();
