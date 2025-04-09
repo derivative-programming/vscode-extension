@@ -230,6 +230,9 @@ function getObjectDetailsContent(object, propertyDescriptions) {
         .map(([key, desc]) => {
             // Check if property has enum values
             const hasEnum = desc.enum && Array.isArray(desc.enum);
+            // Check if it's a boolean enum (containing only true/false values)
+            const isBooleanEnum = hasEnum && desc.enum.length === 2 && 
+                desc.enum.every(val => val === true || val === false || val === "true" || val === "false");
             
             // Get description for tooltip
             const tooltip = desc.description ? `title="${desc.description}"` : '';
@@ -237,11 +240,16 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             // Generate appropriate input field based on whether it has enum values
             let inputField = '';
             if (hasEnum) {
-                // Generate select dropdown for enum values
+                // Generate select dropdown for enum values - Always show options, but disable if property doesn't exist
                 inputField = `<select id="${key}" name="${key}" ${tooltip} ${!object.hasOwnProperty(key) ? 'disabled' : ''}>
-                    ${!object.hasOwnProperty(key) ? '' : desc.enum.map(option => 
-                        `<option value="${option}" ${object[key] === option ? 'selected' : ''}>${option}</option>`
-                    ).join('')}
+                    ${desc.enum.map(option => {
+                        // If it's a boolean enum and the property doesn't exist or is null, default to 'false'
+                        const isSelected = isBooleanEnum && !object.hasOwnProperty(key) ? 
+                            (option === false || option === "false") : 
+                            object[key] === option;
+                        
+                        return `<option value="${option}" ${isSelected ? 'selected' : ''}>${option}</option>`;
+                    }).join('')}
                 </select>`;
             } else {
                 // Generate text input for non-enum values
@@ -274,6 +282,10 @@ function getObjectDetailsContent(object, propertyDescriptions) {
         const cells = propColumns.map(propKey => {
             const propSchema = propItemsSchema[propKey] || {};
             const hasEnum = propSchema.enum && Array.isArray(propSchema.enum);
+            // Check if it's a boolean enum (containing only true/false values)
+            const isBooleanEnum = hasEnum && propSchema.enum.length === 2 && 
+                propSchema.enum.every(val => val === true || val === false || val === "true" || val === "false");
+            
             const tooltip = propSchema.description ? `title="${propSchema.description}"` : '';
             
             // Special handling for the name column
@@ -286,10 +298,16 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             
             let inputField = '';
             if (hasEnum) {
+                // Always show all options in the dropdown but disable it if property doesn't exist
                 inputField = `<select name="${propKey}" ${tooltip} ${!prop.hasOwnProperty(propKey) ? 'disabled' : ''}>
-                    ${prop.hasOwnProperty(propKey) ? propSchema.enum.map(option => 
-                        `<option value="${option}" ${prop[propKey] === option ? 'selected' : ''}>${option}</option>`
-                    ).join('') : ''}
+                    ${propSchema.enum.map(option => {
+                        // If it's a boolean enum and the property doesn't exist or is null, default to 'false'
+                        const isSelected = isBooleanEnum && !prop.hasOwnProperty(propKey) ? 
+                            (option === false || option === "false") : 
+                            prop[propKey] === option;
+                        
+                        return `<option value="${option}" ${isSelected ? 'selected' : ''}>${option}</option>`;
+                    }).join('')}
                 </select>`;
             } else {
                 inputField = `<input type="text" name="${propKey}" value="${prop[propKey] || ''}" ${tooltip} ${!prop.hasOwnProperty(propKey) ? 'readonly' : ''}>`;
@@ -310,16 +328,24 @@ function getObjectDetailsContent(object, propertyDescriptions) {
     const listViewFields = propColumns.filter(key => key !== 'name').map(propKey => {
         const propSchema = propItemsSchema[propKey] || {};
         const hasEnum = propSchema.enum && Array.isArray(propSchema.enum);
+        // Check if it's a boolean enum (containing only true/false values)
+        const isBooleanEnum = hasEnum && propSchema.enum.length === 2 && 
+            propSchema.enum.every(val => val === true || val === false || val === "true" || val === "false");
+            
         const tooltip = propSchema.description ? `title="${propSchema.description}"` : '';
         
         const fieldId = `prop${propKey}`;
         
         let inputField = '';
         if (hasEnum) {
+            // Always display all enum options even when disabled
             inputField = `<select id="${fieldId}" name="${propKey}" ${tooltip} disabled>
-                ${propSchema.enum.map(option => 
-                    `<option value="${option}">${option}</option>`
-                ).join('')}
+                ${propSchema.enum.map(option => {
+                    // Default to 'false' for boolean enums
+                    const isSelected = isBooleanEnum ? (option === false || option === "false") : false;
+                    
+                    return `<option value="${option}" ${isSelected ? 'selected' : ''}>${option}</option>`;
+                }).join('')}
             </select>`;
         } else {
             inputField = `<input type="text" id="${fieldId}" name="${propKey}" value="" ${tooltip} readonly>`;
