@@ -239,7 +239,7 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             if (hasEnum) {
                 // Generate select dropdown for enum values
                 inputField = `<select id="${key}" name="${key}" ${tooltip} ${!object.hasOwnProperty(key) ? 'disabled' : ''}>
-                    ${desc.enum.map(option => 
+                    ${!object.hasOwnProperty(key) ? '' : desc.enum.map(option => 
                         `<option value="${option}" ${object[key] === option ? 'selected' : ''}>${option}</option>`
                     ).join('')}
                 </select>`;
@@ -287,9 +287,9 @@ function getObjectDetailsContent(object, propertyDescriptions) {
             let inputField = '';
             if (hasEnum) {
                 inputField = `<select name="${propKey}" ${tooltip} ${!prop.hasOwnProperty(propKey) ? 'disabled' : ''}>
-                    ${propSchema.enum.map(option => 
+                    ${prop.hasOwnProperty(propKey) ? propSchema.enum.map(option => 
                         `<option value="${option}" ${prop[propKey] === option ? 'selected' : ''}>${option}</option>`
-                    ).join('')}
+                    ).join('') : ''}
                 </select>`;
             } else {
                 inputField = `<input type="text" name="${propKey}" value="${prop[propKey] || ''}" ${tooltip} ${!prop.hasOwnProperty(propKey) ? 'readonly' : ''}>`;

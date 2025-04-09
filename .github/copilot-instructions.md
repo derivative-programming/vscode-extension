@@ -37,5 +37,8 @@ Always be careful and create accurate code.
 
 16. empty lines in a code file is ok.
 
+17. I prefer using double quotes over single quotes, and single quotes over a backtick in JavaScript.
 
+18. In JavaScript I prefer to use regular string concatenation over using template literals that only span a few lines. Backticks will be avoided except for rare cases where multi-line templates are significantly clearer
 
+19. I prefer to not build template literals inside large template literals. create the smaller ones separately.
