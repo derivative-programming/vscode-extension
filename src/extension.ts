@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import Ajv from 'ajv';
 import * as objectDetailsView from './webviews/objectDetailsView'; // Import objectDetailsView
+import { setExtensionContext } from './utils/extensionContext'; // Import the context utility
 
 // Define interfaces for type safety
 interface NamespaceObject {
@@ -201,6 +202,9 @@ function updateFileExistsContext(appDNAFilePath: string | null) {
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "AppDNA" is now active!');
+    
+    // Set the extension context for use throughout the extension
+    setExtensionContext(context);
 
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     const appDNAFilePath = workspaceFolder ? path.join(workspaceFolder, 'app-dna.json') : null;
