@@ -94,7 +94,8 @@ function getDetailViewStyles() {
         }
 
         .form-row input[type="text"],
-        .form-row select {
+        .form-row select,
+        .form-row textarea {
             flex: 1;
             padding: 5px;
             border: 1px solid var(--vscode-input-border);
@@ -103,7 +104,7 @@ function getDetailViewStyles() {
         }
 
         /* Consistent input and select styling */
-        input[type="text"], select {
+        input[type="text"], select, textarea {
             padding: 5px;
             border: 1px solid var(--vscode-input-border);
             background-color: var(--vscode-input-background);
@@ -233,6 +234,86 @@ function getDetailViewStyles() {
             background-color: var(--vscode-input-disabledBackground, #e9e9e9);
             color: var(--vscode-input-disabledForeground, #999);
             opacity: 0.8;
+        }
+
+        /* Modal Dialog Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            border: 1px solid var(--vscode-editorGroup-border);
+            border-radius: 4px;
+            padding: 20px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .validation-error {
+            color: var(--vscode-errorForeground, #f44336);
+            font-size: 12px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            min-height: 16px;
+        }
+
+        /* Tabs within modal */
+        .modal .tabs {
+            border-bottom: 1px solid var(--vscode-editorGroup-border);
+            margin-bottom: 15px;
+        }
+
+        .modal .tab {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        /* Form elements in modal */
+        .modal .form-row {
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .modal .form-row label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .modal .form-row input[type="text"],
+        .modal .form-row textarea {
+            width: 100%;
+            display: block;
+        }
+
+        .modal .form-row textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal button {
+            margin-top: 10px;
         }
     `;
 }
