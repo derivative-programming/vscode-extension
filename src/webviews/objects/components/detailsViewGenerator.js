@@ -176,9 +176,13 @@ function generatePropsTableContent(props, propItemsSchema) {
     propColumns.unshift("name");
 
     // Generate table headers
-    const tableHeaders = propColumns.map(key => 
-        `<th>${formatLabel(key)}</th>`
-    ).join("");
+    const tableHeaders = propColumns.map(key => {
+        // Get the property schema to check for description
+        const propSchema = propItemsSchema[key] || {};
+        // Add tooltip attribute if description exists
+        const tooltip = propSchema.description ? `title="${propSchema.description}"` : "";
+        return `<th ${tooltip}>${formatLabel(key)}</th>`;
+    }).join("");
 
     // Generate table rows for all properties
     const tableRows = props.map((prop, index) => {
