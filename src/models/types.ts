@@ -1,0 +1,72 @@
+// Define interfaces for type safety
+import * as vscode from 'vscode';
+
+/**
+ * Represents an object within a namespace
+ */
+export interface NamespaceObject {
+    name: string;
+    parentObjectName?: string;
+    properties?: Property[];
+    [key: string]: any; // Allow for additional properties
+}
+
+/**
+ * Represents a namespace containing objects
+ */
+export interface Namespace {
+    name: string;
+    object: NamespaceObject[];
+}
+
+/**
+ * Represents a property of an object
+ */
+export interface Property {
+    name: string;
+    type: string;
+    value?: any;
+}
+
+/**
+ * Root structure of the AppDNA file
+ */
+export interface AppDNARoot {
+    namespace: Namespace[];
+    object?: any[]; // Legacy support
+    lookupItem?: any[]; // Legacy support
+}
+
+/**
+ * Main data structure of the AppDNA file
+ */
+export interface AppDNAData {
+    root: AppDNARoot;
+}
+
+/**
+ * Type for representing changes in the tree data
+ */
+export type TreeDataChange = JsonTreeItem | undefined | void;
+
+/**
+ * Tree item class for representing JSON data in the tree view
+ */
+export class JsonTreeItem extends vscode.TreeItem {
+    constructor(
+        public readonly label: string,
+        public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+        public readonly contextValue?: string
+    ) {
+        super(label, collapsibleState);
+        this.contextValue = contextValue;
+        // If the item represents a data object, attach a command to show details.
+        if (contextValue === 'dataObjectItem') {
+            this.command = {
+                title: 'Show Details',
+                command: 'appdna.showDetails',
+                arguments: [this]
+            };
+        }
+    }
+}

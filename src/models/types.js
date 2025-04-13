@@ -33,40 +33,31 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setExtensionContext = setExtensionContext;
-exports.getExtensionContext = getExtensionContext;
-exports.getExtensionResourcePath = getExtensionResourcePath;
-const path = __importStar(require("path"));
+exports.JsonTreeItem = void 0;
+// Define interfaces for type safety
+const vscode = __importStar(require("vscode"));
 /**
- * Global variable to store extension context for use across the extension
+ * Tree item class for representing JSON data in the tree view
  */
-let extensionContext;
-/**
- * Sets the extension context for access throughout the extension
- * @param context VS Code extension context
- */
-function setExtensionContext(context) {
-    extensionContext = context;
-}
-/**
- * Gets the extension context
- * @returns The VS Code extension context
- */
-function getExtensionContext() {
-    if (!extensionContext) {
-        throw new Error("Extension context not initialized");
+class JsonTreeItem extends vscode.TreeItem {
+    label;
+    collapsibleState;
+    contextValue;
+    constructor(label, collapsibleState, contextValue) {
+        super(label, collapsibleState);
+        this.label = label;
+        this.collapsibleState = collapsibleState;
+        this.contextValue = contextValue;
+        this.contextValue = contextValue;
+        // If the item represents a data object, attach a command to show details.
+        if (contextValue === 'dataObjectItem') {
+            this.command = {
+                title: 'Show Details',
+                command: 'appdna.showDetails',
+                arguments: [this]
+            };
+        }
     }
-    return extensionContext;
 }
-/**
- * Gets the absolute path to a resource in the extension
- * @param relativePath Relative path to the resource within the extension
- * @returns The absolute path to the resource
- */
-function getExtensionResourcePath(relativePath) {
-    if (!extensionContext) {
-        throw new Error("Extension context not initialized");
-    }
-    return path.join(extensionContext.extensionPath, relativePath);
-}
-//# sourceMappingURL=extensionContext.js.map
+exports.JsonTreeItem = JsonTreeItem;
+//# sourceMappingURL=types.js.map

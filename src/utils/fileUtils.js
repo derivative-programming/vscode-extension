@@ -33,40 +33,17 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setExtensionContext = setExtensionContext;
-exports.getExtensionContext = getExtensionContext;
-exports.getExtensionResourcePath = getExtensionResourcePath;
-const path = __importStar(require("path"));
+exports.updateFileExistsContext = updateFileExistsContext;
+const vscode = __importStar(require("vscode"));
+const fs = __importStar(require("fs"));
 /**
- * Global variable to store extension context for use across the extension
+ * Updates the file existence context to reflect whether the app-dna.json file exists
+ * @param appDNAFilePath Path to the app-dna.json file
+ * @returns Boolean indicating if the file exists
  */
-let extensionContext;
-/**
- * Sets the extension context for access throughout the extension
- * @param context VS Code extension context
- */
-function setExtensionContext(context) {
-    extensionContext = context;
+function updateFileExistsContext(appDNAFilePath) {
+    const fileExists = appDNAFilePath && fs.existsSync(appDNAFilePath);
+    vscode.commands.executeCommand('setContext', 'appDnaFileExists', fileExists);
+    return fileExists;
 }
-/**
- * Gets the extension context
- * @returns The VS Code extension context
- */
-function getExtensionContext() {
-    if (!extensionContext) {
-        throw new Error("Extension context not initialized");
-    }
-    return extensionContext;
-}
-/**
- * Gets the absolute path to a resource in the extension
- * @param relativePath Relative path to the resource within the extension
- * @returns The absolute path to the resource
- */
-function getExtensionResourcePath(relativePath) {
-    if (!extensionContext) {
-        throw new Error("Extension context not initialized");
-    }
-    return path.join(extensionContext.extensionPath, relativePath);
-}
-//# sourceMappingURL=extensionContext.js.map
+//# sourceMappingURL=fileUtils.js.map
