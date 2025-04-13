@@ -1,9 +1,4 @@
 Agent todo items...
-
-- In the object details tabs, if the schema has a description for 
-a property\setting, show the description when the user hovers over it. 
-    - table view
-on the object details page on the properties tab in the list view when you hover over the label it shows the description of the property. I need to do the same on the table view on the table column header text
  
  
 - implement 'add property' 

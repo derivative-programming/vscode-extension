@@ -73,6 +73,17 @@ function getPropertyManagementFunctions() {
         
         // Initialize checkbox behavior for the new row
         initializeCheckboxBehaviorForRow(row);
+        
+        // Update the properties counter in the tab label
+        updatePropertiesCounter();
+    }
+    
+    // Function to update the properties counter in the tab label
+    function updatePropertiesCounter() {
+        const propsTab = document.querySelector('.tab[data-tab="props"]');
+        if (propsTab) {
+            propsTab.textContent = "Properties (" + props.length + ")";
+        }
     }
     
     // Initialize checkbox behavior for a table row
