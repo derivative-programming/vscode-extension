@@ -3,7 +3,7 @@
  */
 
 export interface PropSubscriptionSchema {
-    destinationContextObjectName: string;
-    destinationTargetName: string;
-    isIgnored: string;
+    destinationContextObjectName?: string;
+    destinationTargetName?: string;
+    isIgnored?: string;
 }

@@ -5,5 +5,5 @@
 import { RootSchema } from './root.interface';
 
 export interface AppDnaSchema {
-    root: RootSchema;
+    root?: RootSchema;
 }

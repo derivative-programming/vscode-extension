@@ -3,9 +3,9 @@
  */
 
 export interface UserStorySchema {
-    name: string;
-    storyNumber: string;
-    storyText: string;
-    isIgnored: string;
-    isStoryProcessed: string;
+    name?: string;
+    storyNumber?: string;
+    storyText?: string;
+    isIgnored?: string;
+    isStoryProcessed?: string;
 }

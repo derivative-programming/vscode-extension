@@ -7,13 +7,13 @@ import type { ApiEnvironmentSchema } from "./apiEnvironment.interface";
 import type { ApiEndPointSchema } from "./apiEndPoint.interface";
 
 export interface ApiSiteSchema {
-    name: string;
-    title: string;
-    description: string;
-    versionNumber: string;
-    isPublic: string;
-    isSiteLoggingEnabled: string;
-    apiLogReportName: string;
-    apiEnvironment: ApiEnvironmentSchema[];
-    apiEndPoint: ApiEndPointSchema[];
+    name?: string;
+    title?: string;
+    description?: string;
+    versionNumber?: string;
+    isPublic?: string;
+    isSiteLoggingEnabled?: string;
+    apiLogReportName?: string;
+    apiEnvironment?: ApiEnvironmentSchema[];
+    apiEndPoint?: ApiEndPointSchema[];
 }

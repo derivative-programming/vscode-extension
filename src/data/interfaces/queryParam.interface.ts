@@ -3,13 +3,13 @@
  */
 
 export interface QueryParamSchema {
-    name: string;
-    sqlServerDBDataType: string;
-    sqlServerDBDataTypeSize: string;
-    isFK: string;
-    fKObjectName: string;
-    isFKLookup: string;
-    defaultValue: string;
-    codeDescription: string;
-    isIgnored: string;
+    name?: string;
+    sqlServerDBDataType?: string;
+    sqlServerDBDataTypeSize?: string;
+    isFK?: string;
+    fKObjectName?: string;
+    isFKLookup?: string;
+    defaultValue?: string;
+    codeDescription?: string;
+    isIgnored?: string;
 }

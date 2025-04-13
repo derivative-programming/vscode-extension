@@ -3,9 +3,9 @@
  */
 
 export interface FetchSchema {
-    name: string;
-    byPropName: string;
-    byObjectName: string;
-    byObjectNamespaceName: string;
-    includeInByObjectNameXMLFunction: string;
+    name?: string;
+    byPropName?: string;
+    byObjectName?: string;
+    byObjectNamespaceName?: string;
+    includeInByObjectNameXMLFunction?: string;
 }

@@ -9,17 +9,17 @@ import { ObjectSchema } from './object.interface';
 import { ApiSiteSchema } from './apiSite.interface';
 
 export interface NamespaceSchema {
-    name: string;
-    isDynaFlowAvailable: string;
-    isModelFeatureConfigUserDBVeiwer: string;
-    isModelFeatureConfigUserDBEditor: string;
-    favoriteListContextObjectName: string;
-    favoriteListDestinationTargetName: string;
-    scheduleListContextObjectName: string;
-    scheduleListDestinationTargetName: string;
-    modelFeature: ModelFeatureSchema[];
-    lexicon: LexiconItemSchema[];
-    userStory: UserStorySchema[];
-    object: ObjectSchema[];
-    apiSite: ApiSiteSchema[];
+    name?: string;
+    isDynaFlowAvailable?: string;
+    isModelFeatureConfigUserDBVeiwer?: string;
+    isModelFeatureConfigUserDBEditor?: string;
+    favoriteListContextObjectName?: string;
+    favoriteListDestinationTargetName?: string;
+    scheduleListContextObjectName?: string;
+    scheduleListDestinationTargetName?: string;
+    modelFeature?: ModelFeatureSchema[];
+    lexicon?: LexiconItemSchema[];
+    userStory?: UserStorySchema[];
+    object?: ObjectSchema[];
+    apiSite?: ApiSiteSchema[];
 }

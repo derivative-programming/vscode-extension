@@ -10,15 +10,11 @@ export class ObjectWorkflowButtonModel implements ObjectWorkflowButtonSchema {
     isEnabled: string;
     isButtonCallToAction: string;
     conditionalVisiblePropertyName: string;
-    isButtonBadgeVisible: string;
-    buttonBadgePropertyName: string;
-    buttonTypeDisplayOrder: string;
     buttonText: string;
     buttonName: string;
     destinationContextObjectName: string;
     destinationTargetName: string;
     accessKey: string;
-    isAccessKeyAvailable: string;
     isIgnored: string;
 
     constructor(data?: Partial<ObjectWorkflowButtonSchema>) {
@@ -32,7 +28,6 @@ export class ObjectWorkflowButtonModel implements ObjectWorkflowButtonSchema {
         this.destinationContextObjectName = data?.destinationContextObjectName || "";
         this.destinationTargetName = data?.destinationTargetName || "";
         this.accessKey = data?.accessKey || "";
-        this.isAccessKeyAvailable = data?.isAccessKeyAvailable || "false";
         this.isIgnored = data?.isIgnored || "false";
     }
 
@@ -60,15 +55,11 @@ export class ObjectWorkflowButtonModel implements ObjectWorkflowButtonSchema {
             isEnabled: this.isEnabled,
             isButtonCallToAction: this.isButtonCallToAction,
             conditionalVisiblePropertyName: this.conditionalVisiblePropertyName,
-            isButtonBadgeVisible: this.isButtonBadgeVisible,
-            buttonBadgePropertyName: this.buttonBadgePropertyName,
-            buttonTypeDisplayOrder: this.buttonTypeDisplayOrder,
             buttonText: this.buttonText,
             buttonName: this.buttonName,
             destinationContextObjectName: this.destinationContextObjectName,
             destinationTargetName: this.destinationTargetName,
             accessKey: this.accessKey,
-            isAccessKeyAvailable: this.isAccessKeyAvailable,
             isIgnored: this.isIgnored
         };
     }

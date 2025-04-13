@@ -3,7 +3,7 @@
  */
 
 export interface LexiconItemSchema {
-    name: string;
-    internalTextValue: string;
-    displayTextValue: string;
+    name?: string;
+    internalTextValue?: string;
+    displayTextValue?: string;
 }

@@ -3,8 +3,8 @@
  */
 
 export interface CalculatedPropSchema {
-    name: string;
-    sqlServerDBDataType: string;
-    sqlServerDBDataTypeSize: string;
-    codeDescription: string;
+    name?: string;
+    sqlServerDBDataType?: string;
+    sqlServerDBDataTypeSize?: string;
+    codeDescription?: string;
 }

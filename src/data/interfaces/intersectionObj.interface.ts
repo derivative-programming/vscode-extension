@@ -3,6 +3,6 @@
  */
 
 export interface IntersectionObjSchema {
-    name: string;
-    pairedObj: string;
+    name?: string;
+    pairedObj?: string;
 }

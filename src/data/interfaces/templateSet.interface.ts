@@ -3,8 +3,8 @@
  */
 
 export interface TemplateSetSchema {
-    name: string;
-    title: string;
-    version: string;
-    isDisabled: string;
+    name?: string;
+    title?: string;
+    version?: string;
+    isDisabled?: string;
 }

@@ -3,7 +3,7 @@
  */
 
 export interface ApiEnvironmentSchema {
-    name: string;
-    url: string;
-    description: string;
+    name?: string;
+    url?: string;
+    description?: string;
 }

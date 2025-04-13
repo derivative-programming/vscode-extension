@@ -3,5 +3,5 @@
  */
 
 export interface ChildObjectSchema {
-    name: string;
+    name?: string;
 }

@@ -3,8 +3,8 @@
  */
 
 export interface ModelFeatureSchema {
-    name: string;
-    version: string;
-    description: string;
-    isCompleted: string;
+    name?: string;
+    version?: string;
+    description?: string;
+    isCompleted?: string;
 }

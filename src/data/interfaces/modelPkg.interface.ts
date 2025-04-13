@@ -3,10 +3,10 @@
  */
 
 export interface ModelPkgSchema {
-    isImported: string;
-    isSubscriptionAllowed: string;
-    isSubscribed: string;
-    role: string;
-    name: string;
-    pkgType: string;
+    isImported?: string;
+    isSubscriptionAllowed?: string;
+    isSubscribed?: string;
+    role?: string;
+    name?: string;
+    pkgType?: string;
 }

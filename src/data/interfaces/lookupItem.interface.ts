@@ -3,9 +3,9 @@
  */
 
 export interface LookupItemSchema {
-    name: string;
-    displayName: string;
-    description: string;
-    isActive: string;
-    customIntProp1Value: string;
+    name?: string;
+    displayName?: string;
+    description?: string;
+    isActive?: string;
+    customIntProp1Value?: string;
 }
