@@ -40,13 +40,15 @@ const jsonEditor_1 = require("../webviews/jsonEditor");
 const objectCommands_1 = require("./objectCommands");
 const projectCommands_1 = require("./projectCommands");
 const objectDetailsView = __importStar(require("../webviews/objectDetailsView"));
+const modelExplorerView_1 = require("../webviews/modelExplorerView");
 /**
  * Registers all commands for the AppDNA extension
  * @param context Extension context
  * @param jsonTreeDataProvider The tree data provider
  * @param appDNAFilePath Path to the app-dna.json file
+ * @param modelService The model service instance
  */
-function registerCommands(context, jsonTreeDataProvider, appDNAFilePath) {
+function registerCommands(context, jsonTreeDataProvider, appDNAFilePath, modelService) {
     // Register refresh command
     const refreshCommand = vscode.commands.registerCommand('appdna.refresh', () => {
         jsonTreeDataProvider.refresh();
@@ -59,15 +61,15 @@ function registerCommands(context, jsonTreeDataProvider, appDNAFilePath) {
     context.subscriptions.push(editCommand);
     // Register add file command
     context.subscriptions.push(vscode.commands.registerCommand('appdna.addFile', async () => {
-        await (0, objectCommands_1.addFileCommand)(context, appDNAFilePath, jsonTreeDataProvider);
+        await (0, objectCommands_1.addFileCommand)(context, appDNAFilePath, jsonTreeDataProvider, modelService);
     }));
     // Register add object command
     context.subscriptions.push(vscode.commands.registerCommand('appdna.addObject', async () => {
-        await (0, objectCommands_1.addObjectCommand)(appDNAFilePath, jsonTreeDataProvider);
+        await (0, objectCommands_1.addObjectCommand)(appDNAFilePath, jsonTreeDataProvider, modelService);
     }));
     // Register remove object command
     context.subscriptions.push(vscode.commands.registerCommand('appdna.removeObject', async (node) => {
-        await (0, objectCommands_1.removeObjectCommand)(node, appDNAFilePath, jsonTreeDataProvider);
+        await (0, objectCommands_1.removeObjectCommand)(node, appDNAFilePath, jsonTreeDataProvider, modelService);
     }));
     // Register new project command
     context.subscriptions.push(vscode.commands.registerCommand('appdna.newProject', async () => {
@@ -83,7 +85,7 @@ function registerCommands(context, jsonTreeDataProvider, appDNAFilePath) {
     }));
     // Register generate code command
     context.subscriptions.push(vscode.commands.registerCommand('appdna.generateCode', async () => {
-        await (0, objectCommands_1.generateCodeCommand)(appDNAFilePath);
+        await (0, objectCommands_1.generateCodeCommand)(appDNAFilePath, modelService);
     }));
     // Register show details command
     context.subscriptions.push(vscode.commands.registerCommand('appdna.showDetails', (node) => {
@@ -96,6 +98,24 @@ function registerCommands(context, jsonTreeDataProvider, appDNAFilePath) {
         }
         // Use the objectDetailsView implementation
         objectDetailsView.showObjectDetails(node, appDNAPath);
+    }));
+    // Register list all objects command
+    context.subscriptions.push(vscode.commands.registerCommand('appdna.listAllObjects', async () => {
+        if (!modelService.isFileLoaded()) {
+            vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+            return;
+        }
+        // Open the model explorer webview for objects
+        (0, modelExplorerView_1.openModelExplorer)(context, modelService, 'objects');
+    }));
+    // Register list all reports command
+    context.subscriptions.push(vscode.commands.registerCommand('appdna.listAllReports', async () => {
+        if (!modelService.isFileLoaded()) {
+            vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+            return;
+        }
+        // Open the model explorer webview for reports
+        (0, modelExplorerView_1.openModelExplorer)(context, modelService, 'reports');
     }));
 }
 //# sourceMappingURL=registerCommands.js.map

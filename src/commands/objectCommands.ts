@@ -4,18 +4,41 @@ import * as path from 'path';
 import { JsonTreeItem } from '../models/types';
 import { validateAgainstSchema } from '../utils/schemaValidator';
 import { generateObjectCode } from '../generators/codeGenerator';
+import { ModelService } from '../services/modelService';
 
 /**
  * Command handler for adding an object to the AppDNA JSON
  * @param appDNAFilePath Path to the app-dna.json file
  * @param jsonTreeDataProvider The tree data provider
+ * @param modelService Optional ModelService instance
  */
-export async function addObjectCommand(appDNAFilePath: string | null, jsonTreeDataProvider: any): Promise<void> {
+export async function addObjectCommand(
+    appDNAFilePath: string | null, 
+    jsonTreeDataProvider: any,
+    modelService?: ModelService
+): Promise<void> {
     if (!appDNAFilePath || !fs.existsSync(appDNAFilePath)) {
         vscode.window.showErrorMessage('AppDNA file not found. Please create the file first.');
         return;
     }
+    
     try {
+        // Get model service if not provided
+        if (!modelService) {
+            modelService = ModelService.getInstance();
+        }
+        
+        // Ensure model is loaded
+        if (!modelService.isFileLoaded()) {
+            await modelService.loadFile(appDNAFilePath);
+        }
+        
+        // Get the current model
+        const model = modelService.getCurrentModel();
+        if (!model) {
+            throw new Error("Failed to get current model");
+        }
+        
         // Prompt for new object name
         const objectName = await vscode.window.showInputBox({
             placeHolder: 'Enter object name',
@@ -24,20 +47,18 @@ export async function addObjectCommand(appDNAFilePath: string | null, jsonTreeDa
         });
         if (!objectName) { return; }
         
-        // Read the existing file content
-        const fileContent = fs.readFileSync(appDNAFilePath, 'utf-8');
-        const jsonData = JSON.parse(fileContent);
-
         // Ensure root exists
-        if (!jsonData.root) {
-            jsonData.root = {};
+        if (!model.namespace) {
+            model.namespace = [];
         }
-        // Ensure namespace exists as an array; if missing, create a default namespace
-        if (!Array.isArray(jsonData.root.namespace) || jsonData.root.namespace.length === 0) {
-            jsonData.root.namespace = [{ name: "Default", object: [] }];
+        
+        // If no namespaces exist, create a default namespace
+        if (model.namespace.length === 0) {
+            model.namespace.push({ name: "Default", object: [] });
         }
+        
         // Ensure each namespace has an "object" array
-        jsonData.root.namespace.forEach((ns: any) => {
+        model.namespace.forEach((ns: any) => {
             if (!ns.object) {
                 ns.object = [];
             }
@@ -45,13 +66,16 @@ export async function addObjectCommand(appDNAFilePath: string | null, jsonTreeDa
 
         // Build list of existing objects from all namespaces
         const parentCandidates: { label: string; nsIndex: number }[] = [];
-        jsonData.root.namespace.forEach((ns: any, nsIndex: number) => {
-            ns.object.forEach((obj: any) => {
-                if (obj.name) {
-                    parentCandidates.push({ label: `${obj.name} (in ${ns.name})`, nsIndex });
-                }
-            });
+        model.namespace.forEach((ns: any, nsIndex: number) => {
+            if (ns.object) {
+                ns.object.forEach((obj: any) => {
+                    if (obj.name) {
+                        parentCandidates.push({ label: `${obj.name} (in ${ns.name})`, nsIndex });
+                    }
+                });
+            }
         });
+        
         // Remove the "None" option and use parentCandidates directly
         const parentOptions = parentCandidates;
         const selectedParent = await vscode.window.showQuickPick<{ label: string; nsIndex: number }>(
@@ -65,11 +89,11 @@ export async function addObjectCommand(appDNAFilePath: string | null, jsonTreeDa
         } else {
             // No parent selected: if only one namespace exists, choose it;
             // otherwise, prompt user to choose a namespace.
-            if (jsonData.root.namespace.length === 1) {
+            if (model.namespace.length === 1) {
                 targetNsIndex = 0;
             } else {
                 const nsSelection = await vscode.window.showQuickPick<{ label: string; nsIndex: number }>(
-                    jsonData.root.namespace.map((ns: any, index: number) => ({ label: ns.name || `Namespace ${index+1}`, nsIndex: index })),
+                    model.namespace.map((ns: any, index: number) => ({ label: ns.name || `Namespace ${index+1}`, nsIndex: index })),
                     { placeHolder: 'Select the target namespace to add the object' }
                 );
                 targetNsIndex = nsSelection ? nsSelection.nsIndex : 0;
@@ -81,13 +105,11 @@ export async function addObjectCommand(appDNAFilePath: string | null, jsonTreeDa
         newObject.parentObjectName = (selectedParent && selectedParent.nsIndex !== -1) ? selectedParent.label.split(' (in ')[0] : "";
         
         // Add the new object into the chosen namespace's object array
-        jsonData.root.namespace[targetNsIndex].object.push(newObject);
+        model.namespace[targetNsIndex].object.push(newObject);
         
-        // Write the updated content back to the file
-        await vscode.workspace.fs.writeFile(
-            vscode.Uri.file(appDNAFilePath),
-            Buffer.from(JSON.stringify(jsonData, null, 2), 'utf-8')
-        );
+        // Save the updated model
+        await modelService.saveToFile(model);
+        
         vscode.window.showInformationMessage(`Added new object: ${objectName}`);
         jsonTreeDataProvider.refresh();
     } catch (error) {
@@ -101,8 +123,14 @@ export async function addObjectCommand(appDNAFilePath: string | null, jsonTreeDa
  * @param node The tree item representing the object to remove
  * @param appDNAFilePath Path to the app-dna.json file
  * @param jsonTreeDataProvider The tree data provider
+ * @param modelService Optional ModelService instance
  */
-export async function removeObjectCommand(node: JsonTreeItem, appDNAFilePath: string | null, jsonTreeDataProvider: any): Promise<void> {
+export async function removeObjectCommand(
+    node: JsonTreeItem, 
+    appDNAFilePath: string | null, 
+    jsonTreeDataProvider: any,
+    modelService?: ModelService
+): Promise<void> {
     if (!appDNAFilePath || !fs.existsSync(appDNAFilePath)) {
         vscode.window.showErrorMessage('AppDNA file not found.');
         return;
@@ -120,15 +148,27 @@ export async function removeObjectCommand(node: JsonTreeItem, appDNAFilePath: st
     }
 
     try {
-        // Read the current file content
-        const fileContent = fs.readFileSync(appDNAFilePath, 'utf-8');
-        const jsonData = JSON.parse(fileContent);
-
+        // Get model service if not provided
+        if (!modelService) {
+            modelService = ModelService.getInstance();
+        }
+        
+        // Ensure model is loaded
+        if (!modelService.isFileLoaded()) {
+            await modelService.loadFile(appDNAFilePath);
+        }
+        
+        // Get the current model
+        const model = modelService.getCurrentModel();
+        if (!model) {
+            throw new Error("Failed to get current model");
+        }
+        
         let objectRemoved = false;
 
         // Look through each namespace to find and remove the object
-        if (jsonData.root.namespace) {
-            for (const ns of jsonData.root.namespace) {
+        if (model.namespace) {
+            for (const ns of model.namespace) {
                 if (!ns.object) {
                     continue;
                 }
@@ -144,11 +184,9 @@ export async function removeObjectCommand(node: JsonTreeItem, appDNAFilePath: st
         }
 
         if (objectRemoved) {
-            // Write the updated content back to the file
-            await vscode.workspace.fs.writeFile(
-                vscode.Uri.file(appDNAFilePath),
-                Buffer.from(JSON.stringify(jsonData, null, 2), 'utf-8')
-            );
+            // Save the updated model
+            await modelService.saveToFile(model);
+            
             vscode.window.showInformationMessage(`Removed object: ${node.label}`);
             jsonTreeDataProvider.refresh();
         } else {
@@ -165,14 +203,25 @@ export async function removeObjectCommand(node: JsonTreeItem, appDNAFilePath: st
  * @param context Extension context
  * @param appDNAFilePath Path to the app-dna.json file
  * @param jsonTreeDataProvider The tree data provider
+ * @param modelService Optional ModelService instance
  */
-export async function addFileCommand(context: vscode.ExtensionContext, appDNAFilePath: string | null, jsonTreeDataProvider: any): Promise<void> {
+export async function addFileCommand(
+    context: vscode.ExtensionContext, 
+    appDNAFilePath: string | null, 
+    jsonTreeDataProvider: any,
+    modelService?: ModelService
+): Promise<void> {
     if (!appDNAFilePath) {
         vscode.window.showErrorMessage('Workspace folder not found. Cannot create JSON file.');
         return;
     }
 
     try {
+        // Get model service if not provided
+        if (!modelService) {
+            modelService = ModelService.getInstance();
+        }
+        
         // Get the workspace folder
         const workspaceFolder = path.dirname(appDNAFilePath);
         
@@ -215,6 +264,9 @@ export async function addFileCommand(context: vscode.ExtensionContext, appDNAFil
         await vscode.workspace.fs.writeFile(vscode.Uri.file(appDNAFilePath), Buffer.from(defaultContent, 'utf-8'));
         vscode.window.showInformationMessage('New AppDNA file created.');
         
+        // Load the model from the newly created file
+        await modelService.loadFile(appDNAFilePath);
+        
         // Refresh the tree view to display the empty 'Data Objects' node
         jsonTreeDataProvider.refresh();
     } catch (error) {
@@ -226,17 +278,33 @@ export async function addFileCommand(context: vscode.ExtensionContext, appDNAFil
 /**
  * Command handler for generating code
  * @param appDNAFilePath Path to the app-dna.json file
+ * @param modelService Optional ModelService instance
  */
-export async function generateCodeCommand(appDNAFilePath: string | null): Promise<void> {
+export async function generateCodeCommand(
+    appDNAFilePath: string | null,
+    modelService?: ModelService
+): Promise<void> {
     if (!appDNAFilePath || !fs.existsSync(appDNAFilePath)) {
         vscode.window.showErrorMessage('AppDNA file not found. Please create the file first.');
         return;
     }
     
     try {
-        // Read the current file content
-        const fileContent = fs.readFileSync(appDNAFilePath, 'utf-8');
-        const jsonData = JSON.parse(fileContent);
+        // Get model service if not provided
+        if (!modelService) {
+            modelService = ModelService.getInstance();
+        }
+        
+        // Ensure model is loaded
+        if (!modelService.isFileLoaded()) {
+            await modelService.loadFile(appDNAFilePath);
+        }
+        
+        // Get the current model
+        const model = modelService.getCurrentModel();
+        if (!model) {
+            throw new Error("Failed to get current model");
+        }
         
         // Ask user for output folder
         const folderUri = await vscode.window.showOpenDialog({
@@ -260,11 +328,11 @@ export async function generateCodeCommand(appDNAFilePath: string | null): Promis
         }, async (progress) => {
             
             // Process each namespace in the data
-            if (jsonData.root.namespace) {
-                for (let i = 0; i < jsonData.root.namespace.length; i++) {
-                    const namespace = jsonData.root.namespace[i];
+            if (model.namespace) {
+                for (let i = 0; i < model.namespace.length; i++) {
+                    const namespace = model.namespace[i];
                     progress.report({ 
-                        increment: (i / jsonData.root.namespace.length) * 100, 
+                        increment: (i / model.namespace.length) * 100, 
                         message: `Processing namespace ${namespace.name}` 
                     });
                     

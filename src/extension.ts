@@ -6,6 +6,7 @@ import { updateFileExistsContext } from './utils/fileUtils';
 import { JsonTreeDataProvider } from './providers/jsonTreeDataProvider';
 import { registerCommands } from './commands/registerCommands';
 import * as objectDetailsView from './webviews/objectDetailsView';
+import { ModelService } from './services/modelService';
 
 /**
  * Activates the extension
@@ -32,8 +33,17 @@ export function activate(context: vscode.ExtensionContext) {
         // Create a fallback implementation in case of error
     }
 
-    // Create the tree data provider and tree view
-    const jsonTreeDataProvider = new JsonTreeDataProvider(appDNAFilePath);
+    // Initialize ModelService
+    const modelService = ModelService.getInstance();
+    // Load model if app-dna.json exists
+    if (appDNAFilePath && fs.existsSync(appDNAFilePath)) {
+        modelService.loadFile(appDNAFilePath).catch(err => {
+            console.error("Failed to load model:", err);
+        });
+    }
+
+    // Create the tree data provider (now with ModelService) and tree view
+    const jsonTreeDataProvider = new JsonTreeDataProvider(appDNAFilePath, modelService);
     const treeView = vscode.window.createTreeView('appdna', { treeDataProvider: jsonTreeDataProvider });
     
     context.subscriptions.push(treeView);
@@ -48,6 +58,12 @@ export function activate(context: vscode.ExtensionContext) {
         fileWatcher.onDidCreate(() => {
             console.log('app-dna.json file was created');
             updateFileExistsContext(appDNAFilePath);
+            // Load the model when file is created
+            if (appDNAFilePath) {
+                modelService.loadFile(appDNAFilePath).catch(err => {
+                    console.error("Failed to load model:", err);
+                });
+            }
             jsonTreeDataProvider.refresh();
         });
         
@@ -55,12 +71,20 @@ export function activate(context: vscode.ExtensionContext) {
         fileWatcher.onDidDelete(() => {
             console.log('app-dna.json file was deleted');
             updateFileExistsContext(appDNAFilePath);
+            // Clear the model cache when file is deleted
+            modelService.clearCache();
             jsonTreeDataProvider.refresh();
         });
         
         // Watch for file changes
         fileWatcher.onDidChange(() => {
             console.log('app-dna.json file was changed');
+            // Reload the model when file changes
+            if (appDNAFilePath) {
+                modelService.loadFile(appDNAFilePath).catch(err => {
+                    console.error("Failed to load model:", err);
+                });
+            }
             jsonTreeDataProvider.refresh();
         });
         
@@ -69,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // Register all commands
-    registerCommands(context, jsonTreeDataProvider, appDNAFilePath);
+    registerCommands(context, jsonTreeDataProvider, appDNAFilePath, modelService);
 }
 
 /**
@@ -77,4 +101,6 @@ export function activate(context: vscode.ExtensionContext) {
  */
 export function deactivate() {
     console.log('Extension deactivated.');
+    // Clear model service cache on deactivation
+    ModelService.getInstance().clearCache();
 }

@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setExtensionContext = setExtensionContext;
 exports.getExtensionContext = getExtensionContext;
 exports.getExtensionResourcePath = getExtensionResourcePath;
+const vscode = __importStar(require("vscode"));
 const path = __importStar(require("path"));
 /**
  * Global variable to store extension context for use across the extension
@@ -65,7 +66,13 @@ function getExtensionContext() {
  */
 function getExtensionResourcePath(relativePath) {
     if (!extensionContext) {
-        throw new Error("Extension context not initialized");
+        console.warn("Extension context not initialized, trying to fall back to workspace folders");
+        // Fallback to workspace folder if extension context is not available
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders && workspaceFolders.length > 0) {
+            return path.join(workspaceFolders[0].uri.fsPath, relativePath);
+        }
+        throw new Error("Extension context not initialized and no workspace folders found");
     }
     return path.join(extensionContext.extensionPath, relativePath);
 }

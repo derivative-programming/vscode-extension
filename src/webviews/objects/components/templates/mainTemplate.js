@@ -35,11 +35,7 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
             `<div class="error">${object.error}</div>` : 
             `<form id="settingsForm">
                 ${settingsHtml}
-            </form>
-            
-            <div class="actions">
-                <button id="saveSettings">Save Settings</button>
-            </div>`
+            </form>`
         }
     </div>
     
@@ -66,10 +62,6 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
                             ${tableRows}
                         </tbody>
                     </table>
-                </div>
-                
-                <div class="actions">
-                    <button id="saveProps">Save Properties</button>
                 </div>`
             }
         </div>
@@ -83,9 +75,6 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
             <div id="propertyDetailsContainer" class="details-container" style="display: none;">
                 <form id="propDetailsForm">
                     ${listViewFields}
-                    <div class="actions">
-                        <button id="savePropDetails">Save Property</button>
-                    </div>
                 </form>
             </div>
         </div>

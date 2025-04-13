@@ -70,6 +70,16 @@
         "command": "appdna.generateCode",
         "title": "Generate Code",
         "icon": "$(code)"
+      },
+      {
+        "command": "appdna.listAllObjects",
+        "title": "List All Objects",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "appdna.listAllReports",
+        "title": "List All Reports", 
+        "icon": "$(table)"
       }
     ],
     "keybindings": [

@@ -2,7 +2,31 @@
 const fs = require("fs");
 const path = require("path");
 const vscode = require("vscode");
-const { getExtensionResourcePath } = require("../../../utils/extensionContext");
+
+/**
+ * Gets a resource path using either the extension context or the workspace folders
+ * @param {string} relativePath The relative path to the resource
+ * @returns {string|null} The absolute path to the resource or null if not found
+ */
+function getResourcePath(relativePath) {
+    // Attempt to load from the extension context provider
+    try {
+        const { getExtensionResourcePath } = require("../../../utils/extensionContext");
+        if (typeof getExtensionResourcePath === "function") {
+            return getExtensionResourcePath(relativePath);
+        }
+    } catch (error) {
+        console.warn("[getResourcePath] Could not load extensionContext utility:", error.message);
+    }
+
+    // Try to find from workspace folders
+    if (vscode.workspace && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+        return path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, relativePath);
+    }
+
+    // Try relative paths from current file
+    return path.join(__dirname, "..", "..", "..", "..", relativePath);
+}
 
 /**
  * Loads and parses the JSON schema
@@ -14,8 +38,8 @@ function loadSchema() {
     
     // Try to find the schema in multiple locations to handle different environments
     const possibleSchemaPaths = [
-        // Get path from extension context provider (most reliable)
-        getExtensionResourcePath("app-dna.schema.json"),
+        // Get path from resource path helper
+        getResourcePath("app-dna.schema.json"),
         
         // Extension root - for development environment
         path.join(__dirname, "..", "..", "..", "..", "app-dna.schema.json"),

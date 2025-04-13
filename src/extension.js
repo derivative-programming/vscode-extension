@@ -36,11 +36,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
+const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const extensionContext_1 = require("./utils/extensionContext");
 const fileUtils_1 = require("./utils/fileUtils");
 const jsonTreeDataProvider_1 = require("./providers/jsonTreeDataProvider");
 const registerCommands_1 = require("./commands/registerCommands");
+const modelService_1 = require("./services/modelService");
 /**
  * Activates the extension
  * @param context The extension context
@@ -62,8 +64,16 @@ function activate(context) {
         console.error('Failed to load objectDetailsView module:', err);
         // Create a fallback implementation in case of error
     }
-    // Create the tree data provider and tree view
-    const jsonTreeDataProvider = new jsonTreeDataProvider_1.JsonTreeDataProvider(appDNAFilePath);
+    // Initialize ModelService
+    const modelService = modelService_1.ModelService.getInstance();
+    // Load model if app-dna.json exists
+    if (appDNAFilePath && fs.existsSync(appDNAFilePath)) {
+        modelService.loadFile(appDNAFilePath).catch(err => {
+            console.error("Failed to load model:", err);
+        });
+    }
+    // Create the tree data provider (now with ModelService) and tree view
+    const jsonTreeDataProvider = new jsonTreeDataProvider_1.JsonTreeDataProvider(appDNAFilePath, modelService);
     const treeView = vscode.window.createTreeView('appdna', { treeDataProvider: jsonTreeDataProvider });
     context.subscriptions.push(treeView);
     // Set up file system watcher for the app-dna.json file
@@ -73,29 +83,45 @@ function activate(context) {
         fileWatcher.onDidCreate(() => {
             console.log('app-dna.json file was created');
             (0, fileUtils_1.updateFileExistsContext)(appDNAFilePath);
+            // Load the model when file is created
+            if (appDNAFilePath) {
+                modelService.loadFile(appDNAFilePath).catch(err => {
+                    console.error("Failed to load model:", err);
+                });
+            }
             jsonTreeDataProvider.refresh();
         });
         // Watch for file deletion
         fileWatcher.onDidDelete(() => {
             console.log('app-dna.json file was deleted');
             (0, fileUtils_1.updateFileExistsContext)(appDNAFilePath);
+            // Clear the model cache when file is deleted
+            modelService.clearCache();
             jsonTreeDataProvider.refresh();
         });
         // Watch for file changes
         fileWatcher.onDidChange(() => {
             console.log('app-dna.json file was changed');
+            // Reload the model when file changes
+            if (appDNAFilePath) {
+                modelService.loadFile(appDNAFilePath).catch(err => {
+                    console.error("Failed to load model:", err);
+                });
+            }
             jsonTreeDataProvider.refresh();
         });
         // Make sure to dispose of the watcher when the extension is deactivated
         context.subscriptions.push(fileWatcher);
     }
     // Register all commands
-    (0, registerCommands_1.registerCommands)(context, jsonTreeDataProvider, appDNAFilePath);
+    (0, registerCommands_1.registerCommands)(context, jsonTreeDataProvider, appDNAFilePath, modelService);
 }
 /**
  * Called when the extension is deactivated
  */
 function deactivate() {
     console.log('Extension deactivated.');
+    // Clear model service cache on deactivation
+    modelService_1.ModelService.getInstance().clearCache();
 }
 //# sourceMappingURL=extension.js.map

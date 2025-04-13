@@ -32,16 +32,37 @@ export class SchemaLoader {
         }
         
         try {
+            // Try multiple paths to find the schema file
+            const possiblePaths: string[] = [];
+            
+            // First try workspace folders
             const workspaceFolders = vscode.workspace.workspaceFolders;
-            if (!workspaceFolders) {
-                throw new Error("No workspace folder found");
+            if (workspaceFolders && workspaceFolders.length > 0) {
+                possiblePaths.push(path.join(workspaceFolders[0].uri.fsPath, "app-dna.schema.json"));
             }
             
-            const schemaPath = path.join(workspaceFolders[0].uri.fsPath, "app-dna.schema.json");
-            const schemaContent = fs.readFileSync(schemaPath, "utf8");
-            this.schemaCache = JSON.parse(schemaContent) as AppDnaSchema;
+            // Then try extension paths if vscode extension context is available
+            try {
+                const extensionContextModule = require("../../utils/extensionContext");
+                if (typeof extensionContextModule.getExtensionResourcePath === "function") {
+                    possiblePaths.push(extensionContextModule.getExtensionResourcePath("app-dna.schema.json"));
+                }
+            } catch (e) {
+                console.log("Could not get extension context, will skip extension path", e);
+            }
             
-            return this.schemaCache;
+            // Try each path
+            for (const schemaPath of possiblePaths) {
+                console.log("Trying to load schema from:", schemaPath);
+                if (fs.existsSync(schemaPath)) {
+                    console.log("Loading schema from:", schemaPath);
+                    const schemaContent = fs.readFileSync(schemaPath, "utf8");
+                    this.schemaCache = JSON.parse(schemaContent) as AppDnaSchema;
+                    return this.schemaCache;
+                }
+            }
+            
+            throw new Error("Could not find app-dna.schema.json in any of the expected locations: " + possiblePaths.join(", "));
         } catch (error) {
             console.error("Error loading schema:", error);
             throw error;
