@@ -107,14 +107,36 @@ function saveObjectData(data, appDNAFilePath) {
 }
 
 /**
- * Formats a property key into a readable label
+ * Formats a property key into a readable label.
+ * Keeps consecutive capital letters together as acronyms.
+ * Examples:
+ *   "AppDNA" -> "App DNA"
+ *   "AppDNATest" -> "App DNA Test"
+ *   "AppDNATest123" -> "App DNA Test 123"
+ *   "DNAApp" -> "DNA App"
+ *   "FKObject" -> "FK Object"
+ *   "FKObjectName" -> "FK Object Name"
  * @param {string} key The property key to format
  * @returns {string} The formatted label
  */
 function formatLabel(key) {
-    return key
-        .replace(/([A-Z])/g, " $1")
-        .replace(/^./, str => str.toUpperCase());
+    if (!key) return "";
+
+    // Use regex for a more robust approach to handle various cases including acronyms
+    let result = key
+        // Insert space before a capital letter followed by a lowercase letter (e.g., AppDna -> App Dna)
+        .replace(/([A-Z])([a-z])/g, " $1$2")
+        // Insert space before a capital letter that is preceded by a lowercase letter or digit (e.g., appDNA -> app DNA, test1DNA -> test1 DNA)
+        .replace(/([a-z\d])([A-Z])/g, "$1 $2")
+        // Insert space before a sequence of capital letters followed by a lowercase letter (handles acronym followed by word, e.g. DNAApp -> DNA App)
+        .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+        // Add space between letter and digit: TestA1 -> Test A 1
+        .replace(/([A-Za-z])(\d)/g, "$1 $2");
+
+    // Capitalize the first letter and trim whitespace
+    result = result.charAt(0).toUpperCase() + result.slice(1).trim();
+
+    return result;
 }
 
 module.exports = {

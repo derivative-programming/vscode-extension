@@ -43,3 +43,5 @@ Always be careful and create accurate code.
 
 19. I prefer to not build template literals inside large template literals. create the smaller ones separately.
 
+20. when converting pascal or camel to human readable text with spaces, capital letters that are together should be kep together.  for example, 
+"DNAApp" -> "DNA App", "AppDNA" should be converted to "App DNA" and not "App D N A".  "AppDNATest" should be converted to "App DNA Test" and not "App D N A Test".  "AppDNATest123" should be converted to "App DNA Test 123" and not "App D N A Test 123".
