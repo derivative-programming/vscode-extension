@@ -114,6 +114,7 @@
     "@babel/preset-env": "^7.22.5",
     "ajv": "^6.12.6",
     "babel-loader": "^9.1.2",
+    "jsonschema": "^1.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   }
