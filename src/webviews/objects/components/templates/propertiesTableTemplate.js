@@ -7,6 +7,9 @@
  * @returns {Object} Object containing tableHeaders and tableRows HTML
  */
 function getPropertiesTableTemplate(props, propItemsSchema) {
+    // Ensure props is always an array, even if undefined
+    const safeProps = Array.isArray(props) ? props : [];
+    
     // Create header columns for all prop item properties and sort them alphabetically
     // Make sure 'name' is always the first column
     const propColumns = Object.keys(propItemsSchema).filter(key => key !== "name").sort();
@@ -18,7 +21,7 @@ function getPropertiesTableTemplate(props, propItemsSchema) {
     ).join("");
 
     // Generate table rows for all properties
-    const tableRows = props.map((prop, index) => {
+    const tableRows = safeProps.map((prop, index) => {
         const cells = propColumns.map(propKey => {
             const propSchema = propItemsSchema[propKey] || {};
             const hasEnum = propSchema.enum && Array.isArray(propSchema.enum);

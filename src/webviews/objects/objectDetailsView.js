@@ -44,7 +44,17 @@ function showObjectDetails(item, appDNAFilePath) {
     });
     
     // Get the full object data
-    const objectData = getObjectData(item.label, appDNAFilePath);
+    let objectData = getObjectData(item.label, appDNAFilePath);
+    
+    // Ensure the object has essential properties to avoid errors
+    if (!objectData) {
+        objectData = { name: item.label };
+    }
+    
+    // Initialize the prop array if it doesn't exist
+    if (!objectData.prop) {
+        objectData.prop = [];
+    }
     
     // Get schema for generating the HTML
     const schema = loadSchema();

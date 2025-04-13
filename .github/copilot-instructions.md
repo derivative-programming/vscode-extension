@@ -29,7 +29,7 @@ Always be careful and create accurate code.
  
 12. drop down controls do not need a placeholder 'Select ...' options.
 
-13. for all commands i send to you, log them in a file /copilot-command-history.txt
+13. for all commands i send to you, log them in a text file... /copilot-command-history.txt
 
 14. I like comments in the code
 
