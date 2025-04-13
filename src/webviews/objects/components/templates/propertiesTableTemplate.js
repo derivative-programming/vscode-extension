@@ -33,6 +33,9 @@ function getPropertiesTableTemplate(props, propItemsSchema) {
             
             const tooltip = propSchema.description ? `title="${propSchema.description}"` : "";
             
+            // Check if the property exists and is not null or undefined
+            const propertyExists = prop.hasOwnProperty(propKey) && prop[propKey] !== null && prop[propKey] !== undefined;
+            
             // Special handling for the name column
             if (propKey === "name") {
                 return `<td>
@@ -43,11 +46,11 @@ function getPropertiesTableTemplate(props, propItemsSchema) {
             
             let inputField = "";
             if (hasEnum) {
-                // Always show all options in the dropdown but disable it if property doesn't exist
-                inputField = `<select name="${propKey}" ${tooltip} ${!prop.hasOwnProperty(propKey) ? "disabled" : ""}>
+                // Always show all options in the dropdown but disable it if property doesn't exist or is null/undefined
+                inputField = `<select name="${propKey}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
                     ${propSchema.enum.map(option => {
-                        // If it's a boolean enum and the property doesn't exist or is null, default to 'false'
-                        const isSelected = isBooleanEnum && !prop.hasOwnProperty(propKey) ? 
+                        // If it's a boolean enum and the property doesn't exist or is null/undefined, default to 'false'
+                        const isSelected = isBooleanEnum && !propertyExists ? 
                             (option === false || option === "false") : 
                             prop[propKey] === option;
                         
@@ -55,13 +58,17 @@ function getPropertiesTableTemplate(props, propItemsSchema) {
                     }).join("")}
                 </select>`;
             } else {
-                inputField = `<input type="text" name="${propKey}" value="${prop[propKey] || ""}" ${tooltip} ${!prop.hasOwnProperty(propKey) ? "readonly" : ""}>`;
+                inputField = `<input type="text" name="${propKey}" value="${propertyExists ? prop[propKey] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
+            
+            // If the property exists, add a data attribute to indicate it was originally checked
+            // and disable the checkbox to prevent unchecking
+            const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
             
             return `<td>
                 <div class="control-with-checkbox">
                     ${inputField}
-                    <input type="checkbox" class="prop-checkbox" data-prop="${propKey}" data-index="${index}" ${prop.hasOwnProperty(propKey) ? "checked" : ""} title="Toggle property existence">
+                    <input type="checkbox" class="prop-checkbox" data-prop="${propKey}" data-index="${index}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} title="Toggle property existence">
                 </div>
             </td>`;
         }).join("");

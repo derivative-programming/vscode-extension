@@ -140,12 +140,35 @@ function getPropertyManagementFunctions() {
                         inputElement.disabled = !this.checked;
                     }
                     updateInputStyle(inputElement, this.checked);
+                    
+                    // Disable the checkbox if it's checked to prevent unchecking
+                    if (this.checked) {
+                        this.disabled = true;
+                        this.setAttribute("data-originally-checked", "true");
+                        
+                        // If the checkbox is checked, ensure we have a valid value
+                        if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === "")) {
+                            // For select elements with no value, select the first option
+                            if (inputElement.options.length > 0) {
+                                inputElement.value = inputElement.options[0].value;
+                            }
+                        }
+                        
+                        // Send update message to the extension
+                        vscode.postMessage({
+                            command: "updateSettings",
+                            data: {
+                                property: propName,
+                                exists: true,
+                                value: inputElement.value
+                            }
+                        });
+                    }
                 });
             }
         });
         
         // Process each checkbox in the Properties tab table view
-        // Using parent-child relationship to find the related input in the same table cell
         document.querySelectorAll(".prop-checkbox").forEach(checkbox => {
             // Find the closest table cell (td) containing this checkbox
             const tableCell = checkbox.closest("td");
@@ -173,6 +196,20 @@ function getPropertyManagementFunctions() {
                     inputElement.disabled = !this.checked;
                 }
                 updateInputStyle(inputElement, this.checked);
+                
+                // Disable the checkbox if it's checked to prevent unchecking
+                if (this.checked) {
+                    this.disabled = true;
+                    this.setAttribute("data-originally-checked", "true");
+                    
+                    // If the checkbox is checked, ensure we have a valid value
+                    if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === "")) {
+                        // For select elements with no value, select the first option
+                        if (inputElement.options.length > 0) {
+                            inputElement.value = inputElement.options[0].value;
+                        }
+                    }
+                }
             });
         });
     }

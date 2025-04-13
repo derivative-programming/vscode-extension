@@ -98,6 +98,15 @@ function showObjectDetails(item, modelService) {
                         console.warn("Cannot update model directly: ModelService not available or object reference not found");
                     }
                     return;
+                    
+                case "updateSettings":
+                    if (modelService && objectReference) {
+                        // Update settings properties directly on the object
+                        updateSettingsDirectly(message.data, objectReference, modelService);
+                    } else {
+                        console.warn("Cannot update settings: ModelService not available or object reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -122,6 +131,35 @@ function updateModelDirectly(data, objectReference, modelService) {
         }
     } catch (error) {
         console.error("Error updating model directly:", error);
+    }
+}
+
+/**
+ * Updates settings properties directly on the object in the ModelService instance
+ * @param {Object} data The data containing property update information
+ * @param {Object} objectReference Direct reference to the object in the model
+ * @param {Object} modelService The ModelService instance 
+ */
+function updateSettingsDirectly(data, objectReference, modelService) {
+    try {
+        // Extract property information from the data
+        const { property, exists, value } = data;
+        
+        if (property) {
+            if (exists) {
+                // Add or update the property
+                objectReference[property] = value;
+            } else {
+                // Remove the property
+                delete objectReference[property];
+            }
+            
+            // No need to call saveToFile as we're directly modifying the model instance
+            // Just refresh the tree view to reflect any visible changes
+            vscode.commands.executeCommand("appdna.refresh");
+        }
+    } catch (error) {
+        console.error("Error updating settings directly:", error);
     }
 }
 

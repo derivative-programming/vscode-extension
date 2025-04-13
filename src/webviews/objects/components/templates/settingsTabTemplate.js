@@ -27,14 +27,17 @@ function getSettingsTabTemplate(object, objectSchemaProps) {
             // Get description for tooltip
             const tooltip = desc.description ? `title="${desc.description}"` : "";
             
+            // Check if the property exists and is not null or undefined
+            const propertyExists = object.hasOwnProperty(key) && object[key] !== null && object[key] !== undefined;
+            
             // Generate appropriate input field based on whether it has enum values
             let inputField = "";
             if (hasEnum) {
-                // Generate select dropdown for enum values - Always show options, but disable if property doesn't exist
-                inputField = `<select id="${key}" name="${key}" ${tooltip} ${!object.hasOwnProperty(key) ? "disabled" : ""}>
+                // Generate select dropdown for enum values - Always show options, but disable if property doesn't exist or is null/undefined
+                inputField = `<select id="${key}" name="${key}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
                     ${desc.enum.map(option => {
-                        // If it's a boolean enum and the property doesn't exist or is null, default to 'false'
-                        const isSelected = isBooleanEnum && !object.hasOwnProperty(key) ? 
+                        // If it's a boolean enum and the property doesn't exist or is null/undefined, default to 'false'
+                        const isSelected = isBooleanEnum && !propertyExists ? 
                             (option === false || option === "false") : 
                             object[key] === option;
                         
@@ -43,13 +46,17 @@ function getSettingsTabTemplate(object, objectSchemaProps) {
                 </select>`;
             } else {
                 // Generate text input for non-enum values
-                inputField = `<input type="text" id="${key}" name="${key}" value="${object[key] || ""}" ${tooltip} ${!object.hasOwnProperty(key) ? "readonly" : ""}>`;
+                inputField = `<input type="text" id="${key}" name="${key}" value="${propertyExists ? object[key] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
+            
+            // If the property exists, add a data attribute to indicate it was originally checked
+            // This will help prevent unchecking properties that already exist
+            const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
             
             return `<div class="form-row">
                 <label for="${key}" ${tooltip}>${formatLabel(key)}:</label>
                 ${inputField}
-                <input type="checkbox" class="setting-checkbox" data-prop="${key}" data-is-enum="${hasEnum}" ${object.hasOwnProperty(key) ? "checked" : ""} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
+                <input type="checkbox" class="setting-checkbox" data-prop="${key}" data-is-enum="${hasEnum}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
             </div>`;
         }).join("");
 }

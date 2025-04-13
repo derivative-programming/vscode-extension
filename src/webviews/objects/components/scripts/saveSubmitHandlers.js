@@ -23,15 +23,27 @@ function getSaveSubmitHandlers() {
             const checkbox = document.getElementById(fieldId + 'Editable');
             
             if (field && checkbox) {
+                // Check if property exists and is not null or undefined
+                const propertyExists = prop.hasOwnProperty(propKey) && prop[propKey] !== null && prop[propKey] !== undefined;
+                
                 if (field.tagName === 'SELECT') {
-                    field.value = prop[propKey] || '';
-                    field.disabled = !prop.hasOwnProperty(propKey);
+                    field.value = propertyExists ? prop[propKey] : '';
+                    field.disabled = !propertyExists;
                 } else {
-                    field.value = prop[propKey] || '';
-                    field.readOnly = !prop.hasOwnProperty(propKey);
+                    field.value = propertyExists ? prop[propKey] : '';
+                    field.readOnly = !propertyExists;
                 }
                 
-                checkbox.checked = prop.hasOwnProperty(propKey);
+                checkbox.checked = propertyExists;
+                
+                // If the property exists, disable the checkbox to prevent unchecking
+                if (propertyExists) {
+                    checkbox.disabled = true;
+                    checkbox.setAttribute('data-originally-checked', 'true');
+                } else {
+                    checkbox.disabled = false;
+                    checkbox.removeAttribute('data-originally-checked');
+                }
                 
                 if (!checkbox.checked) {
                     field.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
@@ -97,6 +109,29 @@ function getSaveSubmitHandlers() {
                             field.style.backgroundColor = 'var(--vscode-input-background)';
                             field.style.color = 'var(--vscode-input-foreground)';
                             field.style.opacity = '1';
+                            
+                            // Set default value for the field if it's currently empty
+                            if (!field.value && field.tagName === 'SELECT') {
+                                // For select elements, set to first option
+                                if (field.options.length > 0) {
+                                    field.value = field.options[0].value;
+                                }
+                            }
+                            
+                            // Update model with property added
+                            const selectedIndex = propsList.value;
+                            if (selectedIndex !== null && selectedIndex !== undefined) {
+                                const prop = props[selectedIndex];
+                                prop[propKey] = field.value;
+                                
+                                vscode.postMessage({
+                                    command: "updateModel",
+                                    data: {
+                                        name: objectName,
+                                        props: props
+                                    }
+                                });
+                            }
                         } else {
                             field.readOnly = true;
                             field.disabled = true;
@@ -147,6 +182,14 @@ function getSaveSubmitHandlers() {
                                 input.style.backgroundColor = 'var(--vscode-input-background)';
                                 input.style.color = 'var(--vscode-input-foreground)';
                                 input.style.opacity = '1';
+                                
+                                // Set default value for the field if it's currently empty
+                                if (!input.value && input.tagName === 'SELECT') {
+                                    // For select elements, set to first option
+                                    if (input.options.length > 0) {
+                                        input.value = input.options[0].value;
+                                    }
+                                }
                                 
                                 // Update model with property added
                                 props[index][propKey] = input.value;

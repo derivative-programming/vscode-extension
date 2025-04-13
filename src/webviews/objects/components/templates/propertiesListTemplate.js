@@ -23,6 +23,8 @@ function getPropertiesListTemplate(propItemsSchema) {
         
         const fieldId = `prop${propKey}`;
         
+        // Note: The detailed property values will be populated by client-side JavaScript
+        // when a property is selected from the list, so we set default values here
         let inputField = "";
         if (hasEnum) {
             // Always display all enum options even when disabled
@@ -38,6 +40,7 @@ function getPropertiesListTemplate(propItemsSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${propKey}" value="" ${tooltip} readonly>`;
         }
         
+        // Note: We'll dynamically set the disabled attribute for checked checkboxes in the JavaScript
         return `<div class="form-row">
             <label for="${fieldId}" ${tooltip}>${formatLabel(propKey)}:</label>
             ${inputField}
