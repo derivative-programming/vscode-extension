@@ -7,14 +7,14 @@ import { NavButtonSchema } from './navButton.interface';
 import { TemplateSetSchema } from './templateSet.interface';
 
 export interface RootSchema {
-    name?: string;
+    name: string; // Changed: Removed '?' as 'name' is required
     appName?: string;
     companyLegalName?: string;
     companyDomain?: string;
     projectName?: string;
     projectCode?: string;
     projectVersionNumber?: string;
-    databaseName?: string;
+    databaseName: string; // Changed: Removed '?' as 'databaseName' is required
     isDatabaseAuditColumnsCreated?: string;
     isInternalObjectApiCreated?: string;
     isBasicAuthenticationIncluded?: string;
@@ -22,7 +22,7 @@ export interface RootSchema {
     suppressUsingDatabaseDeclarationInScripts?: string;
     suppressFillObjLookupTableScripts?: string;
     isValidationMissesLogged?: string;
-    namespace?: NamespaceSchema[];
+    namespace?: NamespaceSchema[]; // Note: 'namespace' array itself is required, but the interface handles the array type.
     navButton?: NavButtonSchema[];
     templateSet?: TemplateSetSchema[];
 }

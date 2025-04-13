@@ -15,7 +15,7 @@ import { QuerySchema } from './query.interface';
 import { IntersectionObjSchema } from './intersectionObj.interface';
 
 export interface ObjectSchema {
-    name?: string;
+    name: string;
     codeDescription?: string;
     isLookup?: string;
     parentObjectName?: string;

@@ -7,7 +7,7 @@ import type { ApiEnvironmentSchema } from "./apiEnvironment.interface";
 import type { ApiEndPointSchema } from "./apiEndPoint.interface";
 
 export interface ApiSiteSchema {
-    name?: string;
+    name: string; // Changed: Removed '?' as 'name' is required
     title?: string;
     description?: string;
     versionNumber?: string;
