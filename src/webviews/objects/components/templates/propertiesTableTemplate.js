@@ -15,10 +15,12 @@ function getPropertiesTableTemplate(props, propItemsSchema) {
     const propColumns = Object.keys(propItemsSchema).filter(key => key !== "name").sort();
     propColumns.unshift("name");
 
-    // Generate table headers
-    const tableHeaders = propColumns.map(key => 
-        `<th>${formatLabel(key)}</th>`
-    ).join("");
+    // Generate table headers with tooltips based on schema descriptions
+    const tableHeaders = propColumns.map(key => {
+        const propSchema = propItemsSchema[key] || {};
+        const tooltip = propSchema.description ? ` title="${propSchema.description}"` : "";
+        return `<th${tooltip}>${formatLabel(key)}</th>`;
+    }).join("");
 
     // Generate table rows for all properties
     const tableRows = safeProps.map((prop, index) => {
