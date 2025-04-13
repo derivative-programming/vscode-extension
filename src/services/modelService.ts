@@ -6,8 +6,10 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import { ModelDataProvider } from "../data/models/modelLoader";
+import { ModelDataProvider } from "../data/models/ModelDataProvider";
 import { RootModel } from "../data/models/rootModel";
+import { ObjectSchema } from "../data/interfaces";
+import { ReportSchema } from "../data/interfaces/report.interface";
 
 /**
  * Service responsible for loading, validating, and saving App DNA model data
@@ -196,6 +198,51 @@ export class ModelService {
      */
     public getCurrentModel(): RootModel | null {
         return this.dataProvider.getRootModel();
+    }
+
+    /**
+     * Get all objects from all namespaces in the model
+     * @returns Array containing references to the actual object instances from all namespaces or empty array if no model is loaded
+     */
+    public getAllObjects(): ObjectSchema[] {
+        const rootModel = this.getCurrentModel();
+        if (!rootModel || !rootModel.namespace) {
+            return [];
+        }
+
+        // Flatten the arrays of objects from all namespaces
+        const allObjects: ObjectSchema[] = [];
+        
+        for (const namespace of rootModel.namespace) {
+            if (namespace.object && Array.isArray(namespace.object)) {
+                allObjects.push(...namespace.object);
+            }
+        }
+        
+        return allObjects;
+    }
+
+    /**
+     * Get all reports from all objects in the model
+     * @returns Array containing references to the actual report instances from all objects or empty array if no model is loaded
+     */
+    public getAllReports(): ReportSchema[] {
+        // Get all objects from all namespaces
+        const allObjects = this.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            return [];
+        }
+
+        // Flatten the arrays of reports from all objects
+        const allReports: ReportSchema[] = [];
+        
+        for (const object of allObjects) {
+            if (object.report && Array.isArray(object.report)) {
+                allReports.push(...object.report);
+            }
+        }
+        
+        return allReports;
     }
 
     /**
