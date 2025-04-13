@@ -5,12 +5,13 @@
 import { IntersectionObjSchema } from "../interfaces";
 
 export class IntersectionObjModel implements IntersectionObjSchema {
-    name: string;
-    pairedObj: string;
+    name?: string;
+    pairedObj?: string;
 
     constructor(data?: Partial<IntersectionObjSchema>) {
-        this.name = data?.name || "";
-        this.pairedObj = data?.pairedObj || "";
+        // Optional properties are only assigned if they exist in data
+        if (data?.name !== undefined) { this.name = data.name; }
+        if (data?.pairedObj !== undefined) { this.pairedObj = data.pairedObj; }
     }
 
     /**
@@ -28,12 +29,15 @@ export class IntersectionObjModel implements IntersectionObjSchema {
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            name: this.name,
-            pairedObj: this.pairedObj
-        };
+        const json: any = {};
+        
+        // Add optional properties only if they are defined
+        if (this.name !== undefined) { json.name = this.name; }
+        if (this.pairedObj !== undefined) { json.pairedObj = this.pairedObj; }
+        
+        return json;
     }
 }

@@ -5,18 +5,19 @@
 import { FetchSchema } from "../interfaces";
 
 export class FetchModel implements FetchSchema {
-    name: string;
-    byPropName: string;
-    byObjectName: string;
-    byObjectNamespaceName: string;
-    includeInByObjectNameXMLFunction: string;
+    name?: string;
+    byPropName?: string;
+    byObjectName?: string;
+    byObjectNamespaceName?: string;
+    includeInByObjectNameXMLFunction?: string;
 
     constructor(data?: Partial<FetchSchema>) {
-        this.name = data?.name || "";
-        this.byPropName = data?.byPropName || "";
-        this.byObjectName = data?.byObjectName || "";
-        this.byObjectNamespaceName = data?.byObjectNamespaceName || "";
-        this.includeInByObjectNameXMLFunction = data?.includeInByObjectNameXMLFunction || "false";
+        // Optional properties are only assigned if they exist in data
+        if (data?.name !== undefined) { this.name = data.name; }
+        if (data?.byPropName !== undefined) { this.byPropName = data.byPropName; }
+        if (data?.byObjectName !== undefined) { this.byObjectName = data.byObjectName; }
+        if (data?.byObjectNamespaceName !== undefined) { this.byObjectNamespaceName = data.byObjectNamespaceName; }
+        if (data?.includeInByObjectNameXMLFunction !== undefined) { this.includeInByObjectNameXMLFunction = data.includeInByObjectNameXMLFunction; }
     }
 
     /**
@@ -34,15 +35,18 @@ export class FetchModel implements FetchSchema {
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            name: this.name,
-            byPropName: this.byPropName,
-            byObjectName: this.byObjectName,
-            byObjectNamespaceName: this.byObjectNamespaceName,
-            includeInByObjectNameXMLFunction: this.includeInByObjectNameXMLFunction
-        };
+        const json: any = {};
+        
+        // Add optional properties only if they are defined
+        if (this.name !== undefined) { json.name = this.name; }
+        if (this.byPropName !== undefined) { json.byPropName = this.byPropName; }
+        if (this.byObjectName !== undefined) { json.byObjectName = this.byObjectName; }
+        if (this.byObjectNamespaceName !== undefined) { json.byObjectNamespaceName = this.byObjectNamespaceName; }
+        if (this.includeInByObjectNameXMLFunction !== undefined) { json.includeInByObjectNameXMLFunction = this.includeInByObjectNameXMLFunction; }
+        
+        return json;
     }
 }

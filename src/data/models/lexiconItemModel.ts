@@ -5,14 +5,15 @@
 import { LexiconItemSchema } from "../interfaces";
 
 export class LexiconItemModel implements LexiconItemSchema {
-    name: string;
-    internalTextValue: string;
-    displayTextValue: string;
+    name?: string;
+    internalTextValue?: string;
+    displayTextValue?: string;
 
     constructor(data?: Partial<LexiconItemSchema>) {
-        this.name = data?.name || "";
-        this.internalTextValue = data?.internalTextValue || "";
-        this.displayTextValue = data?.displayTextValue || "";
+        // Optional properties are only assigned if they exist in data
+        if (data?.name !== undefined) { this.name = data.name; }
+        if (data?.internalTextValue !== undefined) { this.internalTextValue = data.internalTextValue; }
+        if (data?.displayTextValue !== undefined) { this.displayTextValue = data.displayTextValue; }
     }
 
     /**
@@ -30,13 +31,16 @@ export class LexiconItemModel implements LexiconItemSchema {
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            name: this.name,
-            internalTextValue: this.internalTextValue,
-            displayTextValue: this.displayTextValue
-        };
+        const json: any = {};
+        
+        // Add optional properties only if they are defined
+        if (this.name !== undefined) { json.name = this.name; }
+        if (this.internalTextValue !== undefined) { json.internalTextValue = this.internalTextValue; }
+        if (this.displayTextValue !== undefined) { json.displayTextValue = this.displayTextValue; }
+        
+        return json;
     }
 }

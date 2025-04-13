@@ -5,14 +5,15 @@
 import { PropSubscriptionSchema } from "../interfaces";
 
 export class PropSubscriptionModel implements PropSubscriptionSchema {
-    destinationContextObjectName: string;
-    destinationTargetName: string;
-    isIgnored: string;
+    destinationContextObjectName?: string;
+    destinationTargetName?: string;
+    isIgnored?: string;
 
     constructor(data?: Partial<PropSubscriptionSchema>) {
-        this.destinationContextObjectName = data?.destinationContextObjectName || "";
-        this.destinationTargetName = data?.destinationTargetName || "";
-        this.isIgnored = data?.isIgnored || "false";
+        // Optional properties are only assigned if they exist in data
+        if (data?.destinationContextObjectName !== undefined) { this.destinationContextObjectName = data.destinationContextObjectName; }
+        if (data?.destinationTargetName !== undefined) { this.destinationTargetName = data.destinationTargetName; }
+        if (data?.isIgnored !== undefined) { this.isIgnored = data.isIgnored; }
     }
 
     /**
@@ -30,13 +31,16 @@ export class PropSubscriptionModel implements PropSubscriptionSchema {
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            destinationContextObjectName: this.destinationContextObjectName,
-            destinationTargetName: this.destinationTargetName,
-            isIgnored: this.isIgnored
-        };
+        const json: any = {};
+        
+        // Add optional properties only if they are defined
+        if (this.destinationContextObjectName !== undefined) { json.destinationContextObjectName = this.destinationContextObjectName; }
+        if (this.destinationTargetName !== undefined) { json.destinationTargetName = this.destinationTargetName; }
+        if (this.isIgnored !== undefined) { json.isIgnored = this.isIgnored; }
+        
+        return json;
     }
 }

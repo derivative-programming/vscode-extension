@@ -5,20 +5,21 @@
 import { ModelPkgSchema } from "../interfaces";
 
 export class ModelPkgModel implements ModelPkgSchema {
-    isImported: string;
-    isSubscriptionAllowed: string;
-    isSubscribed: string;
-    role: string;
-    name: string;
-    pkgType: string;
+    isImported?: string;
+    isSubscriptionAllowed?: string;
+    isSubscribed?: string;
+    role?: string;
+    name?: string;
+    pkgType?: string;
 
     constructor(data?: Partial<ModelPkgSchema>) {
-        this.isImported = data?.isImported || "false";
-        this.isSubscriptionAllowed = data?.isSubscriptionAllowed || "false";
-        this.isSubscribed = data?.isSubscribed || "false";
-        this.role = data?.role || "";
-        this.name = data?.name || "";
-        this.pkgType = data?.pkgType || "NA";
+        // Optional properties are only assigned if they exist in data
+        if (data?.isImported !== undefined) { this.isImported = data.isImported; }
+        if (data?.isSubscriptionAllowed !== undefined) { this.isSubscriptionAllowed = data.isSubscriptionAllowed; }
+        if (data?.isSubscribed !== undefined) { this.isSubscribed = data.isSubscribed; }
+        if (data?.role !== undefined) { this.role = data.role; }
+        if (data?.name !== undefined) { this.name = data.name; }
+        if (data?.pkgType !== undefined) { this.pkgType = data.pkgType; }
     }
 
     /**
@@ -36,16 +37,19 @@ export class ModelPkgModel implements ModelPkgSchema {
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            isImported: this.isImported,
-            isSubscriptionAllowed: this.isSubscriptionAllowed,
-            isSubscribed: this.isSubscribed,
-            role: this.role,
-            name: this.name,
-            pkgType: this.pkgType
-        };
+        const json: any = {};
+        
+        // Add optional properties only if they are defined
+        if (this.isImported !== undefined) { json.isImported = this.isImported; }
+        if (this.isSubscriptionAllowed !== undefined) { json.isSubscriptionAllowed = this.isSubscriptionAllowed; }
+        if (this.isSubscribed !== undefined) { json.isSubscribed = this.isSubscribed; }
+        if (this.role !== undefined) { json.role = this.role; }
+        if (this.name !== undefined) { json.name = this.name; }
+        if (this.pkgType !== undefined) { json.pkgType = this.pkgType; }
+        
+        return json;
     }
 }

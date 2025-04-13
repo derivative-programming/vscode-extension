@@ -18,55 +18,58 @@ import {
 } from "../interfaces";
 
 export class ObjectModel implements ObjectSchema {
-    name: string;
-    codeDescription: string;
-    isLookup: string;
-    parentObjectName: string;
-    modelPkg: ModelPkgSchema[];
-    lookupItem: LookupItemSchema[];
-    childObject: ChildObjectSchema[];
-    prop: PropSchema[];
-    propSubscription: PropSubscriptionSchema[];
-    calculatedProp: CalculatedPropSchema[];
-    report: ReportSchema[];
-    objectWorkflow: ObjectWorkflowSchema[];
-    fetch: FetchSchema[];
-    query: QuerySchema[];
-    intersectionObj: IntersectionObjSchema[];
-    isFullResearchDatabaseViewAllowed: string;
-    isNotImplemented: string;
-    isSoftDeleteUsed: string;
-    cacheAllRecs: string;
-    cacheIndividualRecs: string;
+    name: string; // Required property - removed optional ? modifier
+    codeDescription?: string;
+    isLookup?: string;
+    parentObjectName?: string;
+    modelPkg?: ModelPkgSchema[];
+    lookupItem?: LookupItemSchema[];
+    childObject?: ChildObjectSchema[];
+    prop?: PropSchema[];
+    propSubscription?: PropSubscriptionSchema[];
+    calculatedProp?: CalculatedPropSchema[];
+    report?: ReportSchema[];
+    objectWorkflow?: ObjectWorkflowSchema[];
+    fetch?: FetchSchema[];
+    query?: QuerySchema[];
+    intersectionObj?: IntersectionObjSchema[];
+    isFullResearchDatabaseViewAllowed?: string;
+    isNotImplemented?: string;
+    isSoftDeleteUsed?: string;
+    cacheAllRecs?: string;
+    cacheIndividualRecs?: string;
 
     constructor(data?: Partial<ObjectSchema>) {
-        this.name = data?.name || "";
-        this.codeDescription = data?.codeDescription || "";
-        this.isLookup = data?.isLookup || "false";
-        this.parentObjectName = data?.parentObjectName || "";
-        this.modelPkg = data?.modelPkg || [];
-        this.lookupItem = data?.lookupItem || [];
-        this.childObject = data?.childObject || [];
-        this.prop = data?.prop || [];
-        this.propSubscription = data?.propSubscription || [];
-        this.calculatedProp = data?.calculatedProp || [];
-        this.report = data?.report || [];
-        this.objectWorkflow = data?.objectWorkflow || [];
-        this.fetch = data?.fetch || [];
-        this.query = data?.query || [];
-        this.intersectionObj = data?.intersectionObj || [];
-        this.isFullResearchDatabaseViewAllowed = data?.isFullResearchDatabaseViewAllowed || "false";
-        this.isNotImplemented = data?.isNotImplemented || "false";
-        this.isSoftDeleteUsed = data?.isSoftDeleteUsed || "false";
-        this.cacheAllRecs = data?.cacheAllRecs || "false";
-        this.cacheIndividualRecs = data?.cacheIndividualRecs || "false";
+        // Required property initialization
+        this.name = data?.name || ""; // Set default empty string if not provided
+        
+        // Optional properties
+        if (data?.codeDescription !== undefined) { this.codeDescription = data.codeDescription; }
+        if (data?.isLookup !== undefined) { this.isLookup = data.isLookup; }
+        if (data?.parentObjectName !== undefined) { this.parentObjectName = data.parentObjectName; }
+        if (data?.modelPkg !== undefined) { this.modelPkg = data.modelPkg; }
+        if (data?.lookupItem !== undefined) { this.lookupItem = data.lookupItem; }
+        if (data?.childObject !== undefined) { this.childObject = data.childObject; }
+        if (data?.prop !== undefined) { this.prop = data.prop; }
+        if (data?.propSubscription !== undefined) { this.propSubscription = data.propSubscription; }
+        if (data?.calculatedProp !== undefined) { this.calculatedProp = data.calculatedProp; }
+        if (data?.report !== undefined) { this.report = data.report; }
+        if (data?.objectWorkflow !== undefined) { this.objectWorkflow = data.objectWorkflow; }
+        if (data?.fetch !== undefined) { this.fetch = data.fetch; }
+        if (data?.query !== undefined) { this.query = data.query; }
+        if (data?.intersectionObj !== undefined) { this.intersectionObj = data.intersectionObj; }
+        if (data?.isFullResearchDatabaseViewAllowed !== undefined) { this.isFullResearchDatabaseViewAllowed = data.isFullResearchDatabaseViewAllowed; }
+        if (data?.isNotImplemented !== undefined) { this.isNotImplemented = data.isNotImplemented; }
+        if (data?.isSoftDeleteUsed !== undefined) { this.isSoftDeleteUsed = data.isSoftDeleteUsed; }
+        if (data?.cacheAllRecs !== undefined) { this.cacheAllRecs = data.cacheAllRecs; }
+        if (data?.cacheIndividualRecs !== undefined) { this.cacheIndividualRecs = data.cacheIndividualRecs; }
     }
 
     /**
      * Create a new empty object model
      */
     public static createEmpty(): ObjectModel {
-        return new ObjectModel();
+        return new ObjectModel({ name: "" }); // Initialize with required property
     }
 
     /**
@@ -77,30 +80,56 @@ export class ObjectModel implements ObjectSchema {
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            name: this.name,
-            codeDescription: this.codeDescription,
-            isLookup: this.isLookup,
-            parentObjectName: this.parentObjectName,
-            modelPkg: this.modelPkg,
-            lookupItem: this.lookupItem,
-            childObject: this.childObject,
-            prop: this.prop,
-            propSubscription: this.propSubscription,
-            calculatedProp: this.calculatedProp,
-            report: this.report,
-            objectWorkflow: this.objectWorkflow,
-            fetch: this.fetch,
-            query: this.query,
-            intersectionObj: this.intersectionObj,
-            isFullResearchDatabaseViewAllowed: this.isFullResearchDatabaseViewAllowed,
-            isNotImplemented: this.isNotImplemented,
-            isSoftDeleteUsed: this.isSoftDeleteUsed,
-            cacheAllRecs: this.cacheAllRecs,
-            cacheIndividualRecs: this.cacheIndividualRecs
+        const json: any = {
+            name: this.name // Always include required property
         };
+        
+        if (this.codeDescription !== undefined) { json.codeDescription = this.codeDescription; }
+        if (this.isLookup !== undefined) { json.isLookup = this.isLookup; }
+        if (this.parentObjectName !== undefined) { json.parentObjectName = this.parentObjectName; }
+        if (this.isFullResearchDatabaseViewAllowed !== undefined) { json.isFullResearchDatabaseViewAllowed = this.isFullResearchDatabaseViewAllowed; }
+        if (this.isNotImplemented !== undefined) { json.isNotImplemented = this.isNotImplemented; }
+        if (this.isSoftDeleteUsed !== undefined) { json.isSoftDeleteUsed = this.isSoftDeleteUsed; }
+        if (this.cacheAllRecs !== undefined) { json.cacheAllRecs = this.cacheAllRecs; }
+        if (this.cacheIndividualRecs !== undefined) { json.cacheIndividualRecs = this.cacheIndividualRecs; }
+        
+        if (this.modelPkg !== undefined && this.modelPkg.length > 0) {
+            json.modelPkg = this.modelPkg;
+        }
+        if (this.lookupItem !== undefined && this.lookupItem.length > 0) {
+            json.lookupItem = this.lookupItem;
+        }
+        if (this.childObject !== undefined && this.childObject.length > 0) {
+            json.childObject = this.childObject;
+        }
+        if (this.prop !== undefined && this.prop.length > 0) {
+            json.prop = this.prop;
+        }
+        if (this.propSubscription !== undefined && this.propSubscription.length > 0) {
+            json.propSubscription = this.propSubscription;
+        }
+        if (this.calculatedProp !== undefined && this.calculatedProp.length > 0) {
+            json.calculatedProp = this.calculatedProp;
+        }
+        if (this.report !== undefined && this.report.length > 0) {
+            json.report = this.report;
+        }
+        if (this.objectWorkflow !== undefined && this.objectWorkflow.length > 0) {
+            json.objectWorkflow = this.objectWorkflow;
+        }
+        if (this.fetch !== undefined && this.fetch.length > 0) {
+            json.fetch = this.fetch;
+        }
+        if (this.query !== undefined && this.query.length > 0) {
+            json.query = this.query;
+        }
+        if (this.intersectionObj !== undefined && this.intersectionObj.length > 0) {
+            json.intersectionObj = this.intersectionObj;
+        }
+        
+        return json;
     }
 }

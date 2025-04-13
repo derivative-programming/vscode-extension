@@ -5,16 +5,18 @@
 import { ChildObjectSchema } from "../interfaces";
 
 export class ChildObjectModel implements ChildObjectSchema {
-    name: string;
+    name?: string;
 
     constructor(data?: Partial<ChildObjectSchema>) {
-        this.name = data?.name || "";
+        // Optional property is only assigned if it exists in data
+        if (data?.name !== undefined) { this.name = data.name; }
     }
 
     /**
      * Create a new empty child object model
      */
     public static createEmpty(): ChildObjectModel {
+        // Returns a model with all properties undefined
         return new ChildObjectModel();
     }
 
@@ -22,15 +24,19 @@ export class ChildObjectModel implements ChildObjectSchema {
      * Create a child object model from JSON data
      */
     public static fromJson(json: any): ChildObjectModel {
-        return new ChildObjectModel(json);
+        // Ensure json is treated as Partial<ChildObjectSchema>
+        return new ChildObjectModel(json as Partial<ChildObjectSchema>);
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            name: this.name
-        };
+        const json: any = {};
+        
+        // Add optional property only if it is defined
+        if (this.name !== undefined) { json.name = this.name; }
+        
+        return json;
     }
 }

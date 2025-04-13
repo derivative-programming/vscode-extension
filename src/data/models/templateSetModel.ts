@@ -5,16 +5,17 @@
 import { TemplateSetSchema } from "../interfaces";
 
 export class TemplateSetModel implements TemplateSetSchema {
-    name: string;
-    title: string;
-    version: string;
-    isDisabled: string;
+    name?: string;
+    title?: string;
+    version?: string;
+    isDisabled?: string;
 
     constructor(data?: Partial<TemplateSetSchema>) {
-        this.name = data?.name || "";
-        this.title = data?.title || "";
-        this.version = data?.version || "";
-        this.isDisabled = data?.isDisabled || "false";
+        // Optional properties are only assigned if they exist in data
+        if (data?.name !== undefined) { this.name = data.name; }
+        if (data?.title !== undefined) { this.title = data.title; }
+        if (data?.version !== undefined) { this.version = data.version; }
+        if (data?.isDisabled !== undefined) { this.isDisabled = data.isDisabled; }
     }
 
     /**
@@ -32,14 +33,17 @@ export class TemplateSetModel implements TemplateSetSchema {
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            name: this.name,
-            title: this.title,
-            version: this.version,
-            isDisabled: this.isDisabled
-        };
+        const json: any = {};
+        
+        // Add optional properties only if they are defined
+        if (this.name !== undefined) { json.name = this.name; }
+        if (this.title !== undefined) { json.title = this.title; }
+        if (this.version !== undefined) { json.version = this.version; }
+        if (this.isDisabled !== undefined) { json.isDisabled = this.isDisabled; }
+        
+        return json;
     }
 }

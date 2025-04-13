@@ -5,16 +5,17 @@
 import { ModelFeatureSchema } from "../interfaces";
 
 export class ModelFeatureModel implements ModelFeatureSchema {
-    name: string;
-    version: string;
-    description: string;
-    isCompleted: string;
+    name?: string;
+    version?: string;
+    description?: string;
+    isCompleted?: string;
 
     constructor(data?: Partial<ModelFeatureSchema>) {
-        this.name = data?.name || "";
-        this.version = data?.version || "";
-        this.description = data?.description || "";
-        this.isCompleted = data?.isCompleted || "false";
+        // Optional properties are only assigned if they exist in data
+        if (data?.name !== undefined) { this.name = data.name; }
+        if (data?.version !== undefined) { this.version = data.version; }
+        if (data?.description !== undefined) { this.description = data.description; }
+        if (data?.isCompleted !== undefined) { this.isCompleted = data.isCompleted; }
     }
 
     /**
@@ -32,14 +33,17 @@ export class ModelFeatureModel implements ModelFeatureSchema {
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            name: this.name,
-            version: this.version,
-            description: this.description,
-            isCompleted: this.isCompleted
-        };
+        const json: any = {};
+        
+        // Add optional properties only if they are defined
+        if (this.name !== undefined) { json.name = this.name; }
+        if (this.version !== undefined) { json.version = this.version; }
+        if (this.description !== undefined) { json.description = this.description; }
+        if (this.isCompleted !== undefined) { json.isCompleted = this.isCompleted; }
+        
+        return json;
     }
 }

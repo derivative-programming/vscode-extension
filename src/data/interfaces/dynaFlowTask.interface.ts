@@ -3,12 +3,13 @@
  */
 
 export interface DynaFlowTaskSchema {
-    childObjWFName?: string;
-    childObjWFIsExposed?: string;
-    codeDescription?: string;
-    taskTitle?: string;
-    taskDescription?: string;
-    isOptional?: string;
-    isBusinessRuleTask?: string;
+    name?: string;
+    taskType?: string;
+    taskOrder?: string;
+    targetObjectName?: string;
+    targetObjectWorkflowName?: string;
+    sourceParamNames?: string;
+    isVisible?: string;
     isIgnored?: string;
+    // Add other properties based on schema requirements
 }

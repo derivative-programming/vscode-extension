@@ -5,60 +5,62 @@
 import { ObjectWorkflowParamSchema } from "../interfaces";
 
 export class ObjectWorkflowParamModel implements ObjectWorkflowParamSchema {
-    name: string;
-    sqlServerDBDataType: string;
-    sqlServerDBDataTypeSize: string;
-    isFK: string;
-    fKObjectName: string;
-    isFKLookup: string;
-    isFKList: string;
-    isFKListInactiveIncluded: string;
-    fKListOrderBy: string;
-    isFKListSearchable: string;
-    labelText: string;
-    codeDescription: string;
-    defaultValue: string;
-    isVisible: string;
-    isRequired: string;
-    isReadOnly: string;
-    isQueryOnly: string;
-    isQueryStringOnly: string;
-    isHidden: string;
-    isEncrypted: string;
-    isUnknownLookupAllowed: string;
-    inputControl: string;
-    isIgnored: string;
+    name?: string;
+    sqlServerDBDataType?: string;
+    sqlServerDBDataTypeSize?: string;
+    isFK?: string;
+    fKObjectName?: string;
+    isFKLookup?: string;
+    isFKList?: string;
+    isFKListInactiveIncluded?: string;
+    fKListOrderBy?: string;
+    isFKListSearchable?: string;
+    labelText?: string;
+    codeDescription?: string;
+    defaultValue?: string;
+    isVisible?: string;
+    isRequired?: string;
+    isReadOnly?: string;
+    isQueryOnly?: string;
+    isQueryStringOnly?: string;
+    isHidden?: string;
+    isEncrypted?: string;
+    isUnknownLookupAllowed?: string;
+    inputControl?: string;
+    isIgnored?: string;
 
     constructor(data?: Partial<ObjectWorkflowParamSchema>) {
-        this.name = data?.name || "";
-        this.sqlServerDBDataType = data?.sqlServerDBDataType || "nvarchar";
-        this.sqlServerDBDataTypeSize = data?.sqlServerDBDataTypeSize || "100";
-        this.isFK = data?.isFK || "false";
-        this.fKObjectName = data?.fKObjectName || "";
-        this.isFKLookup = data?.isFKLookup || "false";
-        this.isFKList = data?.isFKList || "false";
-        this.isFKListInactiveIncluded = data?.isFKListInactiveIncluded || "false";
-        this.fKListOrderBy = data?.fKListOrderBy || "NameAsc";
-        this.isFKListSearchable = data?.isFKListSearchable || "false";
-        this.labelText = data?.labelText || "";
-        this.codeDescription = data?.codeDescription || "";
-        this.defaultValue = data?.defaultValue || "";
-        this.isVisible = data?.isVisible || "true";
-        this.isRequired = data?.isRequired || "false";
-        this.isReadOnly = data?.isReadOnly || "false";
-        this.isQueryOnly = data?.isQueryOnly || "false";
-        this.isQueryStringOnly = data?.isQueryStringOnly || "false";
-        this.isHidden = data?.isHidden || "false";
-        this.isEncrypted = data?.isEncrypted || "false";
-        this.isUnknownLookupAllowed = data?.isUnknownLookupAllowed || "false";
-        this.inputControl = data?.inputControl || "";
-        this.isIgnored = data?.isIgnored || "false";
+        // Optional properties are only assigned if they exist in data
+        if (data?.name !== undefined) { this.name = data.name; }
+        if (data?.sqlServerDBDataType !== undefined) { this.sqlServerDBDataType = data.sqlServerDBDataType; }
+        if (data?.sqlServerDBDataTypeSize !== undefined) { this.sqlServerDBDataTypeSize = data.sqlServerDBDataTypeSize; }
+        if (data?.isFK !== undefined) { this.isFK = data.isFK; }
+        if (data?.fKObjectName !== undefined) { this.fKObjectName = data.fKObjectName; }
+        if (data?.isFKLookup !== undefined) { this.isFKLookup = data.isFKLookup; }
+        if (data?.isFKList !== undefined) { this.isFKList = data.isFKList; }
+        if (data?.isFKListInactiveIncluded !== undefined) { this.isFKListInactiveIncluded = data.isFKListInactiveIncluded; }
+        if (data?.fKListOrderBy !== undefined) { this.fKListOrderBy = data.fKListOrderBy; }
+        if (data?.isFKListSearchable !== undefined) { this.isFKListSearchable = data.isFKListSearchable; }
+        if (data?.labelText !== undefined) { this.labelText = data.labelText; }
+        if (data?.codeDescription !== undefined) { this.codeDescription = data.codeDescription; }
+        if (data?.defaultValue !== undefined) { this.defaultValue = data.defaultValue; }
+        if (data?.isVisible !== undefined) { this.isVisible = data.isVisible; }
+        if (data?.isRequired !== undefined) { this.isRequired = data.isRequired; }
+        if (data?.isReadOnly !== undefined) { this.isReadOnly = data.isReadOnly; }
+        if (data?.isQueryOnly !== undefined) { this.isQueryOnly = data.isQueryOnly; }
+        if (data?.isQueryStringOnly !== undefined) { this.isQueryStringOnly = data.isQueryStringOnly; }
+        if (data?.isHidden !== undefined) { this.isHidden = data.isHidden; }
+        if (data?.isEncrypted !== undefined) { this.isEncrypted = data.isEncrypted; }
+        if (data?.isUnknownLookupAllowed !== undefined) { this.isUnknownLookupAllowed = data.isUnknownLookupAllowed; }
+        if (data?.inputControl !== undefined) { this.inputControl = data.inputControl; }
+        if (data?.isIgnored !== undefined) { this.isIgnored = data.isIgnored; }
     }
 
     /**
      * Create a new empty object workflow parameter model
      */
     public static createEmpty(): ObjectWorkflowParamModel {
+        // Returns a model with all properties undefined
         return new ObjectWorkflowParamModel();
     }
 
@@ -66,37 +68,39 @@ export class ObjectWorkflowParamModel implements ObjectWorkflowParamSchema {
      * Create an object workflow parameter model from JSON data
      */
     public static fromJson(json: any): ObjectWorkflowParamModel {
-        return new ObjectWorkflowParamModel(json);
+        // Ensure json is treated as Partial<ObjectWorkflowParamSchema>
+        return new ObjectWorkflowParamModel(json as Partial<ObjectWorkflowParamSchema>);
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            name: this.name,
-            sqlServerDBDataType: this.sqlServerDBDataType,
-            sqlServerDBDataTypeSize: this.sqlServerDBDataTypeSize,
-            isFK: this.isFK,
-            fKObjectName: this.fKObjectName,
-            isFKLookup: this.isFKLookup,
-            isFKList: this.isFKList,
-            isFKListInactiveIncluded: this.isFKListInactiveIncluded,
-            fKListOrderBy: this.fKListOrderBy,
-            isFKListSearchable: this.isFKListSearchable,
-            labelText: this.labelText,
-            codeDescription: this.codeDescription,
-            defaultValue: this.defaultValue,
-            isVisible: this.isVisible,
-            isRequired: this.isRequired,
-            isReadOnly: this.isReadOnly,
-            isQueryOnly: this.isQueryOnly,
-            isQueryStringOnly: this.isQueryStringOnly,
-            isHidden: this.isHidden,
-            isEncrypted: this.isEncrypted,
-            isUnknownLookupAllowed: this.isUnknownLookupAllowed,
-            inputControl: this.inputControl,
-            isIgnored: this.isIgnored
-        };
+        const json: any = {};
+        // Add optional properties only if they are defined
+        if (this.name !== undefined) { json.name = this.name; }
+        if (this.sqlServerDBDataType !== undefined) { json.sqlServerDBDataType = this.sqlServerDBDataType; }
+        if (this.sqlServerDBDataTypeSize !== undefined) { json.sqlServerDBDataTypeSize = this.sqlServerDBDataTypeSize; }
+        if (this.isFK !== undefined) { json.isFK = this.isFK; }
+        if (this.fKObjectName !== undefined) { json.fKObjectName = this.fKObjectName; }
+        if (this.isFKLookup !== undefined) { json.isFKLookup = this.isFKLookup; }
+        if (this.isFKList !== undefined) { json.isFKList = this.isFKList; }
+        if (this.isFKListInactiveIncluded !== undefined) { json.isFKListInactiveIncluded = this.isFKListInactiveIncluded; }
+        if (this.fKListOrderBy !== undefined) { json.fKListOrderBy = this.fKListOrderBy; }
+        if (this.isFKListSearchable !== undefined) { json.isFKListSearchable = this.isFKListSearchable; }
+        if (this.labelText !== undefined) { json.labelText = this.labelText; }
+        if (this.codeDescription !== undefined) { json.codeDescription = this.codeDescription; }
+        if (this.defaultValue !== undefined) { json.defaultValue = this.defaultValue; }
+        if (this.isVisible !== undefined) { json.isVisible = this.isVisible; }
+        if (this.isRequired !== undefined) { json.isRequired = this.isRequired; }
+        if (this.isReadOnly !== undefined) { json.isReadOnly = this.isReadOnly; }
+        if (this.isQueryOnly !== undefined) { json.isQueryOnly = this.isQueryOnly; }
+        if (this.isQueryStringOnly !== undefined) { json.isQueryStringOnly = this.isQueryStringOnly; }
+        if (this.isHidden !== undefined) { json.isHidden = this.isHidden; }
+        if (this.isEncrypted !== undefined) { json.isEncrypted = this.isEncrypted; }
+        if (this.isUnknownLookupAllowed !== undefined) { json.isUnknownLookupAllowed = this.isUnknownLookupAllowed; }
+        if (this.inputControl !== undefined) { json.inputControl = this.inputControl; }
+        if (this.isIgnored !== undefined) { json.isIgnored = this.isIgnored; }
+        return json;
     }
 }

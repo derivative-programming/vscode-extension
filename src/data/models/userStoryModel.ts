@@ -5,18 +5,19 @@
 import { UserStorySchema } from "../interfaces";
 
 export class UserStoryModel implements UserStorySchema {
-    name: string;
-    storyNumber: string;
-    storyText: string;
-    isIgnored: string;
-    isStoryProcessed: string;
+    name?: string;
+    storyNumber?: string;
+    storyText?: string;
+    isIgnored?: string;
+    isStoryProcessed?: string;
 
     constructor(data?: Partial<UserStorySchema>) {
-        this.name = data?.name || "";
-        this.storyNumber = data?.storyNumber || "";
-        this.storyText = data?.storyText || "";
-        this.isIgnored = data?.isIgnored || "false";
-        this.isStoryProcessed = data?.isStoryProcessed || "false";
+        // Optional properties are only assigned if they exist in data
+        if (data?.name !== undefined) { this.name = data.name; }
+        if (data?.storyNumber !== undefined) { this.storyNumber = data.storyNumber; }
+        if (data?.storyText !== undefined) { this.storyText = data.storyText; }
+        if (data?.isIgnored !== undefined) { this.isIgnored = data.isIgnored; }
+        if (data?.isStoryProcessed !== undefined) { this.isStoryProcessed = data.isStoryProcessed; }
     }
 
     /**
@@ -34,15 +35,18 @@ export class UserStoryModel implements UserStorySchema {
     }
 
     /**
-     * Convert the model to a JSON object
+     * Convert the model to a JSON object, omitting undefined properties
      */
     public toJson(): any {
-        return {
-            name: this.name,
-            storyNumber: this.storyNumber,
-            storyText: this.storyText,
-            isIgnored: this.isIgnored,
-            isStoryProcessed: this.isStoryProcessed
-        };
+        const json: any = {};
+        
+        // Add optional properties only if they are defined
+        if (this.name !== undefined) { json.name = this.name; }
+        if (this.storyNumber !== undefined) { json.storyNumber = this.storyNumber; }
+        if (this.storyText !== undefined) { json.storyText = this.storyText; }
+        if (this.isIgnored !== undefined) { json.isIgnored = this.isIgnored; }
+        if (this.isStoryProcessed !== undefined) { json.isStoryProcessed = this.isStoryProcessed; }
+        
+        return json;
     }
 }
