@@ -88,7 +88,7 @@
       },
       {
         "command": "appdna.listAllReports",
-        "title": "List All Reports", 
+        "title": "List All Reports",
         "icon": "$(table)"
       },
       {
@@ -134,8 +134,10 @@
     "@vscode/test-electron": "^2.4.1",
     "copy-webpack-plugin": "^13.0.0",
     "eslint": "^9.23.0",
+    "mocha": "^11.1.0",
     "ts-loader": "^9.5.2",
-    "typescript": "^5.8.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
     "webpack": "^5.85.0",
     "webpack-cli": "^5.1.1"
   },
