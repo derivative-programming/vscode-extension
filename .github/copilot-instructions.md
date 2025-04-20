@@ -4,6 +4,8 @@ This is a VS Code extension project. Please use the get_vscode_api with a query 
 
 Always be careful and create accurate code.
 
+extension description is in file 'EXTENSION-DESCRIPTION.md'
+
 1. Always load and parse the external JSON schema from "app-dna.schema.json" to obtain all possible properties instead of hardcoding values.
 
 2. Iterate over the schema's non-array properties and use them to dynamically generate form inputs and other UI elements.
