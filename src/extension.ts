@@ -62,34 +62,20 @@ export function activate(context: vscode.ExtensionContext) {
         fileWatcher.onDidCreate(() => {
             console.log(modelFileName + ' file was created');
             updateFileExistsContext(appDNAFilePath);
-            // Load the model when file is created
-            if (appDNAFilePath) {
-                modelService.loadFile(appDNAFilePath).catch(err => {
-                    console.error("Failed to load model:", err);
-                });
-            }
-            jsonTreeDataProvider.refresh();
+            vscode.commands.executeCommand("appdna.refreshView");
         });
         
         // Watch for file deletion
         fileWatcher.onDidDelete(() => {
             console.log(modelFileName + ' file was deleted');
             updateFileExistsContext(appDNAFilePath);
-            // Clear the model cache when file is deleted
-            modelService.clearCache();
-            jsonTreeDataProvider.refresh();
+            vscode.commands.executeCommand("appdna.refreshView");
         });
         
         // Watch for file changes
         fileWatcher.onDidChange(() => {
             console.log(modelFileName + ' file was changed');
-            // Reload the model when file changes
-            if (appDNAFilePath) {
-                modelService.loadFile(appDNAFilePath).catch(err => {
-                    console.error("Failed to load model:", err);
-                });
-            }
-            jsonTreeDataProvider.refresh();
+            vscode.commands.executeCommand("appdna.refreshView");
         });
         
         // Make sure to dispose of the watcher when the extension is deactivated
