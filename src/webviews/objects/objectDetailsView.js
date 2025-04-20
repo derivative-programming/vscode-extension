@@ -7,6 +7,9 @@ const { generateDetailsView } = require("./components/detailsViewGenerator");
 // Track current panels to avoid duplicates
 const activePanels = new Map();
 
+// Registry to track all open object details panels
+const openPanels = new Map();
+
 /**
  * Opens a webview panel displaying details for a data object
  * @param {Object} item The tree item representing the data object
@@ -35,12 +38,14 @@ function showObjectDetails(item, modelService) {
         }
     );
     
-    // Track this panel
+    // Track this panel in both activePanels and openPanels
     activePanels.set(panelId, panel);
+    openPanels.set(panelId, { panel, item, modelService });
     
     // Remove from tracking when disposed
     panel.onDidDispose(() => {
         activePanels.delete(panelId);
+        openPanels.delete(panelId);
     });
     
     // Get the full object data from ModelService
@@ -113,6 +118,36 @@ function showObjectDetails(item, modelService) {
 }
 
 /**
+ * Refreshes all open object details webviews with the latest model data
+ */
+function refreshAll() {
+    for (const { panel, item, modelService } of openPanels.values()) {
+        if (panel && !panel._disposed) {
+            // Get the latest object data
+            let objectData;
+            if (modelService && typeof modelService.isFileLoaded === "function" && modelService.isFileLoaded()) {
+                const allObjects = modelService.getAllObjects();
+                objectData = allObjects.find(obj =>
+                    obj.name && obj.name.trim().toLowerCase() === item.label.trim().toLowerCase()
+                );
+            }
+            if (!objectData) {
+                objectData = { name: item.label, error: "Object not found in model" };
+            }
+            if (!objectData.prop) {
+                objectData.prop = [];
+            }
+            // Get schema for generating the HTML
+            const schema = loadSchema();
+            const objectSchemaProps = getObjectSchemaProperties(schema);
+            const propItemsSchema = getPropItemsSchema(schema);
+            // Update the HTML content
+            panel.webview.html = generateDetailsView(objectData, objectSchemaProps, propItemsSchema);
+        }
+    }
+}
+
+/**
  * Updates object data directly in the ModelService instance
  * @param {Object} data The data to update (contains props array)
  * @param {Object} objectReference Direct reference to the object in the model
@@ -165,5 +200,6 @@ function updateSettingsDirectly(data, objectReference, modelService) {
 
 // Export the showObjectDetails function
 module.exports = {
-    showObjectDetails
+    showObjectDetails,
+    refreshAll
 };

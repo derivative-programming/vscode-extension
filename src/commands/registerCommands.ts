@@ -31,6 +31,26 @@ export function registerCommands(
     });
     context.subscriptions.push(refreshCommand);
 
+    // Register refresh view command for the title bar button
+    context.subscriptions.push(
+        vscode.commands.registerCommand("appdna.refreshView", async () => {
+            // Reload the model file into memory
+            if (appDNAFilePath) {
+                try {
+                    await modelService.loadFile(appDNAFilePath);
+                } catch (err) {
+                    vscode.window.showErrorMessage("Failed to reload model: " + (err && err.message ? err.message : err));
+                }
+            }
+            // Refresh the tree view
+            jsonTreeDataProvider.refresh();
+            // Refresh all open object details webviews (if implemented)
+            if (objectDetailsView && typeof objectDetailsView.refreshAll === "function") {
+                objectDetailsView.refreshAll();
+            }
+        })
+    );
+
     // Register edit command
     const editCommand = vscode.commands.registerCommand('appdna.editObject', (node: JsonTreeItem) => {
         openJsonEditor(context, node.label);

@@ -22,9 +22,11 @@ export function updateFileExistsContext(appDNAFilePath: string | null): boolean 
  * @returns The model file name (e.g., 'app-dna.json')
  */
 export function getModelFileNameFromConfig(workspaceFolder: string): string {
-    const configPath = workspaceFolder ? `${workspaceFolder}/app-dna.config.json` : null;
+    const configPath = workspaceFolder ? workspaceFolder + "/app-dna.config.json" : null;
     const defaultModelFile = "app-dna.json";
-    if (!configPath) return defaultModelFile;
+    if (!configPath) {
+        return defaultModelFile;
+    }
     try {
         if (fs.existsSync(configPath)) {
             const configRaw = fs.readFileSync(configPath, "utf8");
