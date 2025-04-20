@@ -158,6 +158,102 @@ function getSaveSubmitHandlers() {
                 }
             });
         }
+
+        // For settings tab fields
+        const settingsFields = document.querySelectorAll('.form-row input[type="text"], .form-row select');
+        settingsFields.forEach(field => {
+            const key = field.getAttribute('name');
+            const checkbox = field.parentElement.querySelector('.setting-checkbox[data-prop="' + key + '"]');
+            if (!key || !checkbox) return;
+
+            // Helper to convert value to correct type if needed
+            function getTypedValue(val) {
+                // For this schema, all enums are type string, so always return as string
+                return val;
+            }
+
+            // Listen for input and change events
+            if (field.tagName === "SELECT") {
+                field.addEventListener('change', function() {
+                    if (checkbox.checked) {
+                        const typedValue = getTypedValue(field.value);
+                        console.log("[DEBUG] Sending dropdown value for "+key+":", typedValue, typeof typedValue);
+                        vscode.postMessage({
+                            command: "updateSettings",
+                            data: {
+                                property: key,
+                                exists: true,
+                                value: typedValue
+                            }
+                        });
+                    }
+                });
+            } else {
+                field.addEventListener('input', function() {
+                    if (checkbox.checked) {
+                        vscode.postMessage({
+                            command: "updateSettings",
+                            data: {
+                                property: key,
+                                exists: true,
+                                value: field.value
+                            }
+                        });
+                    }
+                });
+                field.addEventListener('change', function() {
+                    if (checkbox.checked) {
+                        vscode.postMessage({
+                            command: "updateSettings",
+                            data: {
+                                property: key,
+                                exists: true,
+                                value: field.value
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        // Listen for checkbox changes in settings tab
+        const settingsCheckboxes = document.querySelectorAll('.setting-checkbox');
+        settingsCheckboxes.forEach(checkbox => {
+            const key = checkbox.getAttribute('data-prop');
+            const field = checkbox.parentElement.querySelector('[name="' + key + '"]');
+            if (!key || !field) return;
+            checkbox.addEventListener('change', function() {
+                if (checkbox.checked) {
+                    field.readOnly = false;
+                    field.disabled = false;
+                    field.style.backgroundColor = 'var(--vscode-input-background)';
+                    field.style.color = 'var(--vscode-input-foreground)';
+                    field.style.opacity = '1';
+                    vscode.postMessage({
+                        command: "updateSettings",
+                        data: {
+                            property: key,
+                            exists: true,
+                            value: field.value
+                        }
+                    });
+                } else {
+                    field.readOnly = true;
+                    field.disabled = true;
+                    field.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                    field.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                    field.style.opacity = '0.8';
+                    vscode.postMessage({
+                        command: "updateSettings",
+                        data: {
+                            property: key,
+                            exists: false,
+                            value: null
+                        }
+                    });
+                }
+            });
+        });
         
         // For table rows
         const rows = document.querySelectorAll("#propsTable tbody tr");

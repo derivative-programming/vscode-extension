@@ -3,6 +3,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import { JsonTreeItem } from '../models/types';
 import { JsonTreeDataProvider } from '../providers/jsonTreeDataProvider';
 import { openJsonEditor } from '../webviews/jsonEditor';
@@ -143,6 +144,44 @@ export function registerCommands(
             
             // Open the model explorer webview for reports
             openModelExplorer(context, modelService, 'reports');
+        })
+    );
+
+    // Register save file command for the sidebar save button
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.saveFile', async () => {
+            // Log the command usage
+            try {
+                const logPath = path.join(
+                    vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '',
+                    "copilot-command-history.txt"
+                );
+                fs.appendFileSync(logPath, `Command: Save model to file (appdna.saveFile)\n`);
+            } catch (e) {}
+
+            console.log("[DEBUG] Save command triggered");
+
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage("No App DNA file is currently loaded.");
+                return;
+            }
+            const model = modelService.getCurrentModel();
+            if (!model) {
+                vscode.window.showErrorMessage("No model is loaded in memory.");
+                return;
+            }
+            // Debug: print the in-memory model structure
+            try {
+                console.log("[DEBUG] In-memory model before save:", JSON.stringify(model, null, 2));
+            } catch (e) {
+                console.log("[DEBUG] Could not stringify model");
+            }
+            try {
+                await modelService.saveToFile(model);
+                vscode.window.showInformationMessage("Model saved successfully.");
+            } catch (err) {
+                vscode.window.showErrorMessage("Failed to save model: " + (err && err.message ? err.message : err));
+            }
         })
     );
 }

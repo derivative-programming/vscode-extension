@@ -155,12 +155,12 @@ function refreshAll() {
  */
 function updateModelDirectly(data, objectReference, modelService) {
     try {
+        console.log("[DEBUG] updateModelDirectly called");
+        console.log("[DEBUG] objectReference before update:", JSON.stringify(objectReference, null, 2));
         // Update props if provided
         if (data.props) {
-            // Directly update the objectReference's props array
             objectReference.prop = data.props;
-            
-            // No need to call saveToFile as we're directly modifying the model instance
+            console.log("[DEBUG] objectReference after update:", JSON.stringify(objectReference, null, 2));
             // Just refresh the tree view to reflect any visible changes
             vscode.commands.executeCommand("appdna.refresh");
         }
@@ -177,9 +177,11 @@ function updateModelDirectly(data, objectReference, modelService) {
  */
 function updateSettingsDirectly(data, objectReference, modelService) {
     try {
+        console.log("[DEBUG] updateSettingsDirectly called");
+        console.log("[DEBUG] objectReference before update:", JSON.stringify(objectReference, null, 2));
         // Extract property information from the data
         const { property, exists, value } = data;
-        
+        console.log("[DEBUG] updateSettingsDirectly received:", property, value, typeof value);
         if (property) {
             if (exists) {
                 // Add or update the property
@@ -188,9 +190,7 @@ function updateSettingsDirectly(data, objectReference, modelService) {
                 // Remove the property
                 delete objectReference[property];
             }
-            
-            // No need to call saveToFile as we're directly modifying the model instance
-            // Just refresh the tree view to reflect any visible changes
+            console.log("[DEBUG] objectReference after update:", JSON.stringify(objectReference, null, 2));
             vscode.commands.executeCommand("appdna.refresh");
         }
     } catch (error) {

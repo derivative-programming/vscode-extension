@@ -37,8 +37,23 @@ export function activate(context: vscode.ExtensionContext) {
         // Create a fallback implementation in case of error
     }
 
-    // Initialize ModelService
+    // Add a flag to track if a save is in progress
+    let isSaving = false;
+
+    // Patch ModelService.saveToFile to set/reset the flag
     const modelService = ModelService.getInstance();
+    const originalSaveToFile = modelService.saveToFile.bind(modelService);
+    modelService.saveToFile = async function(...args) {
+        isSaving = true;
+        try {
+            const result = await originalSaveToFile(...args);
+            return result;
+        } finally {
+            // Use a short timeout to ensure the file watcher sees the change
+            setTimeout(() => { isSaving = false; }, 500);
+        }
+    };
+
     // Load model if model file exists
     if (appDNAFilePath && fs.existsSync(appDNAFilePath)) {
         modelService.loadFile(appDNAFilePath).catch(err => {
@@ -74,6 +89,10 @@ export function activate(context: vscode.ExtensionContext) {
         
         // Watch for file changes
         fileWatcher.onDidChange(() => {
+            if (isSaving) {
+                console.log("[DEBUG] Ignoring file change event triggered by our own save.");
+                return;
+            }
             console.log(modelFileName + ' file was changed');
             vscode.commands.executeCommand("appdna.refreshView");
         });
