@@ -1,3 +1,6 @@
+// SEARCH_TAG: model service for VS Code extension
+// Handles model-related logic and data operations.
+
 /**
  * ModelService - Provides high-level operations for loading and saving model data
  * This service acts as a facade over the ModelDataProvider to simplify working with App DNA files

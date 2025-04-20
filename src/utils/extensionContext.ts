@@ -1,3 +1,5 @@
+// SEARCH_TAG: extension context utility for VS Code extension
+// Utility for managing extension context.
 import * as vscode from 'vscode';
 import * as path from 'path';
 

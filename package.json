@@ -35,6 +35,16 @@
           "command": "appdna.addFile",
           "when": "view == appdna && !appDnaFileExists",
           "group": "navigation"
+        },
+        {
+          "command": "appdna.saveFile",
+          "when": "view == appdna && appDnaFileExists",
+          "group": "navigation"
+        },
+        {
+          "command": "appdna.refreshView",
+          "when": "view == appdna && appDnaFileExists",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -80,6 +90,16 @@
         "command": "appdna.listAllReports",
         "title": "List All Reports", 
         "icon": "$(table)"
+      },
+      {
+        "command": "appdna.saveFile",
+        "title": "Save File",
+        "icon": "$(save)"
+      },
+      {
+        "command": "appdna.refreshView",
+        "title": "Refresh View",
+        "icon": "$(refresh)"
       }
     ],
     "keybindings": [

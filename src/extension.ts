@@ -1,3 +1,6 @@
+// SEARCH_TAG: extension entry point for VS Code extension
+// This is the main entry for the extension.
+
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -18,9 +21,10 @@ export function activate(context: vscode.ExtensionContext) {
     // Set the extension context for use throughout the extension
     setExtensionContext(context);
 
-    // Get the workspace folder and app-dna.json file path
+    // Get the workspace folder and model file path from config
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    const appDNAFilePath = workspaceFolder ? path.join(workspaceFolder, 'app-dna.json') : null;
+    const modelFileName = workspaceFolder ? require('./utils/fileUtils').getModelFileNameFromConfig(workspaceFolder) : "app-dna.json";
+    const appDNAFilePath = workspaceFolder ? path.join(workspaceFolder, modelFileName) : null;
     
     // Set initial context based on file existence
     updateFileExistsContext(appDNAFilePath);
@@ -35,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Initialize ModelService
     const modelService = ModelService.getInstance();
-    // Load model if app-dna.json exists
+    // Load model if model file exists
     if (appDNAFilePath && fs.existsSync(appDNAFilePath)) {
         modelService.loadFile(appDNAFilePath).catch(err => {
             console.error("Failed to load model:", err);
@@ -48,15 +52,15 @@ export function activate(context: vscode.ExtensionContext) {
     
     context.subscriptions.push(treeView);
 
-    // Set up file system watcher for the app-dna.json file
+    // Set up file system watcher for the model file
     if (workspaceFolder) {
         const fileWatcher = vscode.workspace.createFileSystemWatcher(
-            new vscode.RelativePattern(workspaceFolder, 'app-dna.json')
+            new vscode.RelativePattern(workspaceFolder, modelFileName)
         );
         
         // Watch for file creation
         fileWatcher.onDidCreate(() => {
-            console.log('app-dna.json file was created');
+            console.log(modelFileName + ' file was created');
             updateFileExistsContext(appDNAFilePath);
             // Load the model when file is created
             if (appDNAFilePath) {
@@ -69,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
         
         // Watch for file deletion
         fileWatcher.onDidDelete(() => {
-            console.log('app-dna.json file was deleted');
+            console.log(modelFileName + ' file was deleted');
             updateFileExistsContext(appDNAFilePath);
             // Clear the model cache when file is deleted
             modelService.clearCache();
@@ -78,7 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
         
         // Watch for file changes
         fileWatcher.onDidChange(() => {
-            console.log('app-dna.json file was changed');
+            console.log(modelFileName + ' file was changed');
             // Reload the model when file changes
             if (appDNAFilePath) {
                 modelService.loadFile(appDNAFilePath).catch(err => {

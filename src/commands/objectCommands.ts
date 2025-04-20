@@ -1,3 +1,6 @@
+// SEARCH_TAG: object commands for VS Code extension
+// Contains commands related to object manipulation.
+
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';

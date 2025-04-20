@@ -1,3 +1,6 @@
+// SEARCH_TAG: JSON tree data provider for VS Code extension
+// Provides tree data for the AppDNA JSON structure.
+
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { JsonTreeItem, AppDNAData, TreeDataChange } from '../models/types';

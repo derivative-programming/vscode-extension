@@ -1,3 +1,6 @@
+// SEARCH_TAG: schema validator utility for VS Code extension
+// Utility for validating JSON data against the schema.
+
 import * as vscode from 'vscode';
 import * as path from 'path';
 import Ajv from 'ajv';

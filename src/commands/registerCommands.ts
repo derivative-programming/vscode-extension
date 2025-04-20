@@ -1,3 +1,6 @@
+// SEARCH_TAG: command registration for VS Code extension
+// Registers all extension commands.
+
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { JsonTreeItem } from '../models/types';

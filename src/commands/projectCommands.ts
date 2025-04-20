@@ -1,3 +1,6 @@
+// SEARCH_TAG: project commands for VS Code extension
+// Contains commands related to project-level actions.
+
 import * as vscode from 'vscode';
 
 /**

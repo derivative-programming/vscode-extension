@@ -45,6 +45,8 @@ export function getWebviewContent(nodeLabel: string): string {
     <title>Edit JSON</title>
 </head>
 <body>
+    <!-- SEARCH_TAG: JSON editor webview for VS Code extension -->
+    <!-- Webview for editing JSON data. -->
     <h1>Edit JSON: ${nodeLabel}</h1>
     <form id="jsonForm">
         <label for="key">Key:</label>
