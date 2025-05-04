@@ -47,3 +47,7 @@ extension description is in file 'EXTENSION-DESCRIPTION.md'
 
 20. when converting pascal or camel to human readable text with spaces, capital letters that are together should be kep together.  for example, 
 "DNAApp" -> "DNA App", "AppDNA" should be converted to "App DNA" and not "App D N A".  "AppDNATest" should be converted to "App DNA Test" and not "App D N A Test".  "AppDNATest123" should be converted to "App DNA Test 123" and not "App D N A Test 123".
+
+21. In each file, add comments at the top with the file name, a brief description of the file's purpose, and the date it was created or last modified. This will help in understanding the context of the code and its evolution over time.
+
+22. In the file ai-agent-architecture-notes.md, add items that you learn along the way about the code base that you can use in the future to quickly understand the code base.  This will help you to learn the code base faster and be more efficient in the future.

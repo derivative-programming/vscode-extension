@@ -1,0 +1,95 @@
+# AppDNA VS Code Extension Architecture Notes
+
+*Last updated: May 4, 2025*
+
+## Overview
+The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
+
+## Core Architecture
+
+### Extension Initialization Flow
+1. The extension starts in `extension.ts` with the `activate` function
+2. It sets up the extension context, initializes the ModelService
+3. Creates file watchers for the model file
+4. Initializes the tree view with JsonTreeDataProvider
+5. Registers all commands via registerCommands.ts
+
+### Key Components
+
+#### ModelService (Singleton)
+- Central service that manages loading, caching, and saving the AppDNA model file
+- Provides methods to manipulate the model (getAllObjects, getAllReports, etc.)
+- Acts as a facade over the ModelDataProvider for data operations
+
+#### JsonTreeDataProvider
+- Manages the tree view in the sidebar showing the model structure
+- Creates tree items for objects, namespaces, reports, etc.
+- Uses ModelService to access model data
+
+#### Webviews
+- JavaScript files in the `webviews` folder handle UI for editing objects
+- These run in a separate context (not TypeScript)
+- Communicate with the extension via postMessage API
+- Dynamically generate UI based on the schema properties
+
+#### Commands
+- Registered in `registerCommands.ts` 
+- Include operations like adding objects, saving files, generating code
+- All commands are logged in `copilot-command-history.txt` for traceability
+
+### Data Flow
+
+1. **Loading**: ModelService loads the JSON file → ModelDataProvider parses and validates → In-memory model created
+2. **Display**: JsonTreeDataProvider accesses model via ModelService → Renders tree view
+3. **Editing**: User selects object in tree → Webview opens with UI generated from schema → Changes made in UI
+4. **Saving**: Save command → ModelService.saveToFile → Updates JSON file on disk
+
+### Schema Structure
+- Complex schema defined in `app-dna.schema.json`
+- Root element with properties like appName, projectName
+- Namespaces that contain objects
+- Objects with properties, reports, workflows, etc.
+- TypeScript interfaces in `data/interfaces` match the schema structure
+
+### UI/UX Conventions
+- Schema descriptions are shown as tooltips
+- Enum properties are displayed as dropdowns
+- Properties are displayed alphabetically
+- Checkboxes control property presence in JSON file
+- Read-only controls have a distinct background
+- No delete operations exposed - properties like `isIgnored` are used instead
+
+## Important File Relationships
+
+- `extension.ts` → initializes → `ModelService`
+- `extension.ts` → creates → `JsonTreeDataProvider`
+- `JsonTreeDataProvider` → uses → `ModelService` 
+- `commands/*.ts` → call → `ModelService` methods
+- `webviews/*.js` → communicate with → extension via messages
+
+## Special Patterns
+
+1. **Dynamic UI Generation**:
+   - Schema is loaded and parsed to discover all possible properties
+   - UI elements are generated based on property types (enum → dropdown)
+
+2. **File Watching Logic**:
+   - Extension monitors model file for changes
+   - Saves triggered by the extension are ignored by the watcher
+   - External changes trigger a refresh of the tree view
+
+3. **Property Existence Control**:
+   - Checkboxes control whether a property appears in the JSON
+   - Unchecked = property is omitted from the file
+
+## Code Style Conventions
+- Double quotes preferred over single quotes
+- Regular concatenation preferred over template literals for short strings
+- TypeScript for extension code, JavaScript for webviews
+
+## Extension Points
+
+The model can be extended by:
+- Updating `app-dna.schema.json` with new properties (UI will automatically reflect changes)
+- Adding new commands in `registerCommands.ts`
+- Creating new webview implementations for different object types
