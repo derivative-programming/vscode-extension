@@ -220,6 +220,17 @@ export async function addFileCommand(
     }
 
     try {
+        // Log the command usage
+        try {
+            const logPath = path.join(
+                vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '',
+                "copilot-command-history.txt"
+            );
+            fs.appendFileSync(logPath, `Command: Add model file (appdna.addFile) - ${new Date().toISOString()}\n`);
+        } catch (e) {
+            console.error("Failed to log command:", e);
+        }
+
         // Get model service if not provided
         if (!modelService) {
             modelService = ModelService.getInstance();
@@ -263,9 +274,15 @@ export async function addFileCommand(
             return;
         }
         
-        // Create the file
+        // Create the model file
         await vscode.workspace.fs.writeFile(vscode.Uri.file(appDNAFilePath), Buffer.from(defaultContent, 'utf-8'));
-        vscode.window.showInformationMessage('New AppDNA file created.');
+
+        // Create the config file alongside the model file
+        const configFileName = createConfigFileName(appDNAFilePath);
+        const configContent = generateConfigFileContent(path.basename(appDNAFilePath));
+        await vscode.workspace.fs.writeFile(vscode.Uri.file(configFileName), Buffer.from(configContent, 'utf-8'));
+        
+        vscode.window.showInformationMessage('New AppDNA file and configuration created.');
         
         // Load the model from the newly created file
         await modelService.loadFile(appDNAFilePath);
@@ -276,6 +293,46 @@ export async function addFileCommand(
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         vscode.window.showErrorMessage(`Failed to create AppDNA file: ${errorMessage}`);
     }
+}
+
+/**
+ * Creates the config file name based on the model file path
+ * @param modelFilePath Path to the model file
+ * @returns Path to the config file
+ */
+function createConfigFileName(modelFilePath: string): string {
+    const dir = path.dirname(modelFilePath);
+    const baseName = path.basename(modelFilePath, '.json');
+    return path.join(dir, `${baseName}.config.json`);
+}
+
+/**
+ * Generates the content for the config file
+ * @param modelFileName Name of the model file
+ * @returns Config file content as JSON string
+ */
+function generateConfigFileContent(modelFileName: string): string {
+    const config = {
+        version: "1.0.0",
+        modelFile: modelFileName,
+        settings: {
+            validateOnSave: true,
+            backupOnSave: true,
+            backupLocation: "./backups",
+            codeGeneration: {
+                outputPath: "./generated",
+                languages: ["typescript", "csharp"],
+                generateComments: true
+            },
+            editor: {
+                showAdvancedProperties: false,
+                defaultView: "tree",
+                expandNodesOnLoad: true
+            }
+        }
+    };
+    
+    return JSON.stringify(config, null, 2);
 }
 
 /**
