@@ -82,6 +82,26 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
    - Checkboxes control whether a property appears in the JSON
    - Unchecked = property is omitted from the file
 
+4. **Webview Email Pre-population Pattern**:
+   - For reliable pre-population of fields in VS Code webviews, use a handshake pattern:
+     1. The webview JS sends a `webviewReady` message to the extension after DOMContentLoaded.
+     2. The extension responds with a `setEmailValue` message containing the value to pre-populate.
+     3. The webview JS sets the field value on receiving this message.
+   - This avoids race conditions where the extension sends a message before the webview is ready.
+
+5. **Secret Storage for Email**:
+   - To pre-populate the email field after logout, do NOT delete the email from VS Code secret storage on logout. Only delete the API key.
+   - This allows the extension to retrieve and pre-populate the email field for user convenience on subsequent logins.
+
+## Model Services API and Login Flow (2025-05-04)
+- The extension authenticates users via the Model Services API endpoint: https://modelservicesapi.derivative-programming.com/api/v1_0/logins
+- Login request body: { "email": string, "password": string }
+- Response: { "success": boolean, "message": string, "modelServicesAPIKey": string, "validationError": [ { "property": string, "message": string } ] }
+- On successful login, the API key is stored in VS Code secret storage and used for subsequent authenticated requests.
+- The user's email is also stored in secret storage (and not deleted on logout) to enable pre-population of the login form for convenience.
+- The login webview uses a handshake pattern: the webview JS sends a `webviewReady` message, and the extension responds with the saved email for pre-population.
+- The login page provides a registration link for new users and displays terms/disclaimers about data usage and liability.
+
 ## Code Style Conventions
 - Double quotes preferred over single quotes
 - Regular concatenation preferred over template literals for short strings
