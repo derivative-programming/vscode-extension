@@ -3,6 +3,7 @@
 'use strict';
 
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin'); // Add this line to require the plugin
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -68,7 +69,15 @@ const extensionConfig = {
     ]
   },
   plugins: [
-    // Remove CopyWebpackPlugin as it's no longer needed
+    // Add CopyWebpackPlugin to copy webview files
+    new CopyWebpackPlugin({
+      patterns: [
+        { 
+          from: 'src/webviews/objects',
+          to: 'webviews/objects' 
+        }
+      ]
+    })
   ],
   devtool: 'nosources-source-map',
   infrastructureLogging: {
