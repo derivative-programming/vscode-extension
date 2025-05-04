@@ -19,8 +19,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     private readonly jsonStructure: any = {
         "root": {
             "namespace": [],
-            "object": [],
-            "lookupItem": []
+            "object": []
         }
     };
     
@@ -142,29 +141,11 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 
                 // First item is always Login/Logout based on current state
                 if (isLoggedIn) {
-                    // Add logout option
-                    const logoutItem = new JsonTreeItem(
-                        "Logout",
-                        vscode.TreeItemCollapsibleState.None,
-                        'modelServiceLogout'
-                    );
-                    
-                    logoutItem.iconPath = new vscode.ThemeIcon('sign-out');
-                    logoutItem.command = {
-                        command: 'appdna.logoutModelServices',
-                        title: 'Logout from Model Services',
-                        arguments: []
-                    };
-                    
-                    items.push(logoutItem);
-                    
-                    // When logged in, add service items
+                    // When logged in, add service items first
                     const serviceItems = [
-                        { name: "Code Generation API", description: "Generate code from models" },
-                        { name: "Model Validation", description: "Validate models against best practices" },
-                        { name: "Template Repository", description: "Access model templates" }
+                        { name: "Model Validation", description: "Validate models against best practices" }
+                        // Removed Code Generation API
                     ];
-                    
                     serviceItems.forEach(service => {
                         const serviceItem = new JsonTreeItem(
                             service.name,
@@ -173,8 +154,26 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         );
                         serviceItem.tooltip = service.description;
                         serviceItem.iconPath = new vscode.ThemeIcon('cloud');
+                        serviceItem.command = {
+                            command: 'appdna.modelValidation',
+                            title: 'Show Model Validation Requests',
+                            arguments: []
+                        };
                         items.push(serviceItem);
                     });
+                    // Add logout option last
+                    const logoutItem = new JsonTreeItem(
+                        "Logout",
+                        vscode.TreeItemCollapsibleState.None,
+                        'modelServiceLogout'
+                    );
+                    logoutItem.iconPath = new vscode.ThemeIcon('sign-out');
+                    logoutItem.command = {
+                        command: 'appdna.logoutModelServices',
+                        title: 'Logout from Model Services',
+                        arguments: []
+                    };
+                    items.push(logoutItem);
                 } else {
                     // Add login option
                     const loginItem = new JsonTreeItem(

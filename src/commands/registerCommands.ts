@@ -223,4 +223,84 @@ export function registerCommands(
             }
         })
     );
+
+    // Register model validation command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.modelValidation', async () => {
+            const panel = vscode.window.createWebviewPanel(
+                'modelValidation',
+                'Model Validation Requests',
+                vscode.ViewColumn.One,
+                {
+                    enableScripts: true,
+                    retainContextWhenHidden: true,
+                }
+            );
+            const scriptUri = panel.webview.asWebviewUri(
+                vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'modelValidationView.js')
+            );
+            panel.webview.html = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Model Validation Requests</title>
+                    <style>
+                        body { font-family: var(--vscode-font-family); margin: 0; padding: 0; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
+                        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+                        th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 6px 10px; text-align: left; }
+                        th { background: var(--vscode-sideBar-background); cursor: pointer; }
+                        tr:nth-child(even) { background: var(--vscode-sideBarSectionHeader-background); }
+                        #paging { margin: 1em 0; text-align: center; }
+                        button { margin: 0 4px; }
+                    </style>
+                </head>
+                <body>
+                    <h2>Model Validation Requests</h2>
+                    <div id="paging"></div>
+                    <table id="validationTable"></table>
+                    <script src="${scriptUri}"></script>
+                </body>
+                </html>
+            `;
+            // Handler for messages from the webview
+            async function fetchAndSend(pageNumber, itemCountPerPage, orderByColumnName, orderByDescending) {
+                const authService = require('../services/authService').AuthService.getInstance();
+                const apiKey = await authService.getApiKey();
+                if (!apiKey) {
+                    panel.webview.postMessage({ command: 'setValidationData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
+                    vscode.window.showErrorMessage('You must be logged in to use Model Validation.');
+                    return;
+                }
+                const params = [
+                    'PageNumber=' + encodeURIComponent(pageNumber || 1),
+                    'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 10),
+                    'OrderByDescending=' + encodeURIComponent(orderByDescending ? 'true' : 'false')
+                ];
+                if (orderByColumnName) {
+                    params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
+                }
+                const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests?' + params.join('&');
+                try {
+                    const res = await fetch(url, {
+                        headers: { 'Api-Key': apiKey }
+                    });
+                    const data = await res.json();
+                    panel.webview.postMessage({ command: 'setValidationData', data });
+                } catch (err) {
+                    panel.webview.postMessage({ command: 'setValidationData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
+                    vscode.window.showErrorMessage('Failed to fetch validation requests: ' + (err && err.message ? err.message : err));
+                }
+            }
+            panel.webview.onDidReceiveMessage(async (msg) => {
+                if (msg.command === 'webviewReady') {
+                    await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', false);
+                } else if (msg.command === 'requestPage') {
+                    await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
+                }
+            });
+        })
+    );
 }
