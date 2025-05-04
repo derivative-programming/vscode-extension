@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { JsonTreeItem, AppDNAData, TreeDataChange } from '../models/types';
 import { ModelService } from '../services/modelService';
+import { AuthService } from '../services/authService';
 
 /**
  * TreeDataProvider for managing JSON structure in the AppDNA extension
@@ -22,11 +23,16 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             "lookupItem": []
         }
     };
+    
+    // Auth service instance to manage login state
+    private authService: AuthService;
 
     constructor(
         private readonly appDNAFilePath: string | null,
         private readonly modelService: ModelService
-    ) { }
+    ) { 
+        this.authService = AuthService.getInstance();
+    }
 
     getTreeItem(element: JsonTreeItem): vscode.TreeItem {
         return element;
@@ -40,7 +46,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         // If no element is provided (root level request)
         if (!element) {
             if (fileExists) {
-                // Create tree item for DATA OBJECTS with database icon
+                // Create tree items for root level
                 const dataObjectsItem = new JsonTreeItem(
                     'DATA OBJECTS',
                     vscode.TreeItemCollapsibleState.Collapsed,
@@ -50,7 +56,30 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 // Set a database icon for the DATA OBJECTS item
                 dataObjectsItem.iconPath = new vscode.ThemeIcon('database');
                 
-                return Promise.resolve([dataObjectsItem]);
+                // Create MODEL SERVICES item with appropriate icon based on login status
+                const isLoggedIn = this.authService.isLoggedIn();
+                const modelServicesItem = new JsonTreeItem(
+                    'MODEL SERVICES',
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    'modelServices'
+                );
+                
+                // Use different icons based on authentication status
+                if (isLoggedIn) {
+                    // Unlocked icon for logged-in state
+                    modelServicesItem.iconPath = new vscode.ThemeIcon('globe');
+                } else {
+                    // Locked icon for logged-out state
+                    modelServicesItem.iconPath = new vscode.ThemeIcon('lock');
+                }
+                
+                // Set tooltip to show login status
+                modelServicesItem.tooltip = isLoggedIn ? 
+                    "Connected to Model Services API" : 
+                    "Authentication required to access Model Services";
+                
+                // Return both tree items
+                return Promise.resolve([dataObjectsItem, modelServicesItem]);
             } else {
                 // File doesn't exist, show empty tree
                 return Promise.resolve([]);
@@ -101,6 +130,72 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 }
             } catch (error) {
                 console.error('Error reading objects:', error);
+                return Promise.resolve([]);
+            }
+        }
+        
+        // Handle MODEL SERVICES children - show login/logout option and services when logged in
+        if (element?.contextValue === 'modelServices' && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                const isLoggedIn = this.authService.isLoggedIn();
+                
+                // First item is always Login/Logout based on current state
+                if (isLoggedIn) {
+                    // Add logout option
+                    const logoutItem = new JsonTreeItem(
+                        "Logout",
+                        vscode.TreeItemCollapsibleState.None,
+                        'modelServiceLogout'
+                    );
+                    
+                    logoutItem.iconPath = new vscode.ThemeIcon('sign-out');
+                    logoutItem.command = {
+                        command: 'appdna.logoutModelServices',
+                        title: 'Logout from Model Services',
+                        arguments: []
+                    };
+                    
+                    items.push(logoutItem);
+                    
+                    // When logged in, add service items
+                    const serviceItems = [
+                        { name: "Code Generation API", description: "Generate code from models" },
+                        { name: "Model Validation", description: "Validate models against best practices" },
+                        { name: "Template Repository", description: "Access model templates" }
+                    ];
+                    
+                    serviceItems.forEach(service => {
+                        const serviceItem = new JsonTreeItem(
+                            service.name,
+                            vscode.TreeItemCollapsibleState.None,
+                            'modelServiceItem'
+                        );
+                        serviceItem.tooltip = service.description;
+                        serviceItem.iconPath = new vscode.ThemeIcon('cloud');
+                        items.push(serviceItem);
+                    });
+                } else {
+                    // Add login option
+                    const loginItem = new JsonTreeItem(
+                        "Login to AppDNA Model Services",
+                        vscode.TreeItemCollapsibleState.None,
+                        'modelServiceLogin'
+                    );
+                    
+                    loginItem.iconPath = new vscode.ThemeIcon('sign-in');
+                    loginItem.command = {
+                        command: 'appdna.loginModelServices',
+                        title: 'Login to AppDNA Model Services',
+                        arguments: []
+                    };
+                    
+                    items.push(loginItem);
+                }
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error loading model services:', error);
                 return Promise.resolve([]);
             }
         }

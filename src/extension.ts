@@ -10,6 +10,7 @@ import { JsonTreeDataProvider } from './providers/jsonTreeDataProvider';
 import { registerCommands } from './commands/registerCommands';
 import * as objectDetailsView from './webviews/objectDetailsView';
 import { ModelService } from './services/modelService';
+import { AuthService } from './services/authService';
 import { showWelcomeView } from './webviews/welcomeView';
 
 // Track whether welcome view has been shown in this session
@@ -24,6 +25,10 @@ export function activate(context: vscode.ExtensionContext) {
     
     // Set the extension context for use throughout the extension
     setExtensionContext(context);
+
+    // Initialize the authentication service
+    const authService = AuthService.getInstance();
+    authService.initialize(context);
 
     // Get the workspace folder and model file path from config
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;

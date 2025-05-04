@@ -13,6 +13,8 @@ import * as objectDetailsView from '../webviews/objectDetailsView';
 import { ModelService } from '../services/modelService';
 import { openModelExplorer } from '../webviews/modelExplorerView';
 import { showWelcomeView } from '../webviews/welcomeView';
+import { showLoginView } from '../webviews/loginView';
+import { AuthService } from '../services/authService';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -182,4 +184,43 @@ export function registerCommands(
         showWelcomeView(context);
     });
     context.subscriptions.push(showWelcomeCommand);
+    
+    // Register login command for Model Services
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.loginModelServices', async () => {
+            // Initialize auth service with extension context
+            const authService = AuthService.getInstance();
+            authService.initialize(context);
+            
+            // Show login webview and refresh tree view on successful login
+            await showLoginView(context, () => {
+                // Refresh the tree view to update icons and available services
+                jsonTreeDataProvider.refresh();
+                vscode.commands.executeCommand('appdna.refreshView');
+            });
+        })
+    );
+    
+    // Register logout command for Model Services
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.logoutModelServices', async () => {
+            const authService = AuthService.getInstance();
+            authService.initialize(context);
+            
+            // Confirm logout
+            const confirmed = await vscode.window.showWarningMessage(
+                "Are you sure you want to log out from Model Services?",
+                { modal: true },
+                "Yes", "No"
+            );
+            
+            if (confirmed === "Yes") {
+                await authService.logout();
+                vscode.window.showInformationMessage("Logged out from Model Services");
+                
+                // Refresh the tree view to update icons and available services
+                jsonTreeDataProvider.refresh();
+            }
+        })
+    );
 }
