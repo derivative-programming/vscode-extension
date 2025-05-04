@@ -20,6 +20,7 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 - Central service that manages loading, caching, and saving the AppDNA model file
 - Provides methods to manipulate the model (getAllObjects, getAllReports, etc.)
 - Acts as a facade over the ModelDataProvider for data operations
+- Direct file manipulation without creating backups (preserves original files)
 
 #### JsonTreeDataProvider
 - Manages the tree view in the sidebar showing the model structure
@@ -42,7 +43,7 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 1. **Loading**: ModelService loads the JSON file → ModelDataProvider parses and validates → In-memory model created
 2. **Display**: JsonTreeDataProvider accesses model via ModelService → Renders tree view
 3. **Editing**: User selects object in tree → Webview opens with UI generated from schema → Changes made in UI
-4. **Saving**: Save command → ModelService.saveToFile → Updates JSON file on disk
+4. **Saving**: Save command → ModelService.saveToFile → Updates JSON file on disk directly (no backups)
 
 ### Schema Structure
 - Complex schema defined in `app-dna.schema.json`
@@ -125,6 +126,20 @@ The extension uses a multi-level testing approach:
    - `clean-project.test.ts`: E2E tests for clean project scenarios
 
 Both test suites verify critical extension functionality including command registration, UI visibility, and context-sensitive behaviors.
+
+## Configuration Files
+
+The extension uses two types of files:
+
+1. **Model Files** (`app-dna.json`):
+   - Contains the actual model data following the schema
+   - Core file that defines objects, reports, namespaces, etc.
+
+2. **Config Files** (`app-dna.config.json`):
+   - Created alongside model files when using "Add File" command
+   - Contains extension-specific settings like validation preferences and code generation options
+   - Does not include backup settings as backups are not supported
+   - Can be manually edited to customize extension behavior
 
 ## Code Generation
 

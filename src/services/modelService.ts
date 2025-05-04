@@ -141,45 +141,6 @@ export class ModelService {
     }
 
     /**
-     * Create a backup of a file before making changes
-     * @param filePath Path to the file to back up
-     * @returns Promise resolving to the backup file path or undefined if no backup was created
-     */
-    public async createBackup(filePath: string): Promise<string | undefined> {
-        try {
-            // Ensure file exists
-            if (!fs.existsSync(filePath)) {
-                return undefined;
-            }
-            
-            // Create backups directory if it doesn't exist
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            if (!workspaceFolders) {
-                return undefined;
-            }
-            
-            const backupDir = path.join(workspaceFolders[0].uri.fsPath, "backups");
-            if (!fs.existsSync(backupDir)) {
-                fs.mkdirSync(backupDir, { recursive: true });
-            }
-            
-            // Generate backup file name with timestamp
-            const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-            const fileName = path.basename(filePath);
-            const backupPath = path.join(backupDir, `${fileName}.${timestamp}.bak`);
-            
-            // Copy the file
-            fs.copyFileSync(filePath, backupPath);
-            
-            console.log(`Created backup: ${backupPath}`);
-            return backupPath;
-        } catch (error) {
-            console.error("Error creating backup:", error);
-            return undefined;
-        }
-    }
-
-    /**
      * Get the current file path
      * @returns The current file path or null if no file is loaded
      */

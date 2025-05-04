@@ -317,8 +317,6 @@ function generateConfigFileContent(modelFileName: string): string {
         modelFile: modelFileName,
         settings: {
             validateOnSave: true,
-            backupOnSave: true,
-            backupLocation: "./backups",
             codeGeneration: {
                 outputPath: "./generated",
                 languages: ["typescript", "csharp"],
