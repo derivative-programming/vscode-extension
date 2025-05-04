@@ -317,7 +317,7 @@
                     const td = document.createElement("td");
                     if (col.key === "status") {
                         let status = "";
-                        if (item.modelValidationRequestIsCancelled) {
+                        if (item.modelValidationRequestIsCanceled) {
                             status = "Cancelled";
                         } else if (!item.modelValidationRequestIsStarted) {
                             status = "Queued";
