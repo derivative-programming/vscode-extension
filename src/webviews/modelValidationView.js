@@ -18,7 +18,6 @@
         { key: "modelValidationRequestRequestedUTCDateTime", label: "Requested At" },
         { key: "modelValidationRequestDescription", label: "Description" },
         { key: "status", label: "Status" },
-        { key: "modelValidationRequestIsSuccessful", label: "Successful" },
         { key: "modelValidationRequestReportUrl", label: "Report URL" }
     ];
 
@@ -43,6 +42,8 @@
     function initializeUI() {
         // Create main container structure
         document.body.innerHTML = `
+            <link rel="stylesheet" href="https://unpkg.com/@vscode/codicons@latest/dist/codicon.css" />
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
             <style>
                 body {
                     font-family: var(--vscode-font-family);
@@ -70,6 +71,26 @@
                     font-size: 1.3em;
                     font-weight: normal;
                     color: var(--vscode-editor-foreground);
+                }
+
+                /* Added toolbar styles for refresh button */
+                .toolbar {
+                    display: flex;
+                    justify-content: flex-end;
+                    margin-bottom: 10px;
+                }
+                .refresh-button {
+                    background-color: var(--vscode-button-background);
+                    color: var(--vscode-button-foreground);
+                    border: none;
+                    padding: 4px 8px;
+                    cursor: pointer;
+                    border-radius: 3px;
+                    display: flex;
+                    align-items: center;
+                }
+                .refresh-button:hover {
+                    background-color: var(--vscode-button-hoverBackground);
                 }
                 
                 .validation-content {
@@ -225,6 +246,11 @@
                 <div class="validation-header">
                     <h2>Model Validation Requests</h2>
                 </div>
+                <div class="toolbar">
+                    <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                        Refresh
+                    </button>
+                </div>
                 <div class="validation-content">
                     <div class="table-container">
                         <table id="validationTable" class="validation-table"></table>
@@ -239,6 +265,11 @@
         
         // Initial ready message
         vscode.postMessage({ command: "webviewReady" });
+
+        // Attach refresh button handler
+        document.getElementById("refreshButton").onclick = function() {
+            requestPage(pageNumber);
+        };
     }
 
     function renderTable() {
@@ -310,12 +341,7 @@
                         td.appendChild(badge);
                     } else {
                         const value = item[col.key];
-                        if (col.key === "modelValidationRequestIsSuccessful") {
-                            const badge = document.createElement("span");
-                            badge.className = value ? "success-badge" : "failure-badge";
-                            badge.textContent = value ? "Success" : "Failed";
-                            td.appendChild(badge);
-                        } else if (col.key === "modelValidationRequestReportUrl" && value) {
+                        if (col.key === "modelValidationRequestReportUrl" && value) {
                             const button = document.createElement("button");
                             button.className = "view-button";
                             button.textContent = "View Report";

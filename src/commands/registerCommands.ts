@@ -283,6 +283,8 @@ export function registerCommands(
                     params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
                 }
                 const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests?' + params.join('&');
+                // Log the API call details
+                console.log("[DEBUG] Model Validation API called. URL:", url, "Options:", { headers: { 'Api-Key': '[REDACTED]' } });
                 try {
                     const res = await fetch(url, {
                         headers: { 'Api-Key': apiKey }
@@ -296,7 +298,7 @@ export function registerCommands(
             }
             panel.webview.onDidReceiveMessage(async (msg) => {
                 if (msg.command === 'webviewReady') {
-                    await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', false);
+                    await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
                 } else if (msg.command === 'requestPage') {
                     await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
                 }
