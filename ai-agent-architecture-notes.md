@@ -93,3 +93,46 @@ The model can be extended by:
 - Updating `app-dna.schema.json` with new properties (UI will automatically reflect changes)
 - Adding new commands in `registerCommands.ts`
 - Creating new webview implementations for different object types
+
+## Testing Framework
+
+The extension uses a multi-level testing approach:
+
+1. **Unit Tests** (`test/` directory):
+   - Focus on testing individual components
+   - Use a separate TypeScript configuration (`test/tsconfig.json`) that extends the main one
+   - Set `rootDir` to `..` to allow access to both test and source files
+   - Primary test files: `extension.test.ts` and `emptyProject.test.ts`
+
+2. **End-to-End Tests** (`test-e2e/` directory):
+   - Test the full extension in an actual VS Code window
+   - Use a completely separate TypeScript configuration
+   - Create temporary workspaces to test extension functionality
+   - Focus on testing user-facing functionality like UI elements and commands
+
+3. **TypeScript Configuration Separation**:
+   - Main `tsconfig.json`: 
+     - Focuses only on source code with `"rootDir": "src"`
+     - Explicitly includes only `src/**/*` files
+     - Excludes test directories to avoid compilation errors
+   - Test configs:
+     - Extend from the main config but override critical settings
+     - Allow compilation of test files without mixing contexts
+
+4. **Key Test Files**:
+   - `runTest.ts`: Sets up the VS Code test environment
+   - `emptyProject.test.ts`: Tests extension behavior with no model file
+   - `clean-project.test.ts`: E2E tests for clean project scenarios
+
+Both test suites verify critical extension functionality including command registration, UI visibility, and context-sensitive behaviors.
+
+## Code Generation
+
+The `codeGenerator.ts` module provides functionality to generate code from model objects:
+
+1. Supports generating both TypeScript and C# model classes
+2. Makes API calls to an external model service for code generation
+3. Has a fallback code generation capability if the API is unavailable
+4. Creates basic class definitions with appropriate properties and types
+
+The code generator demonstrates the extension's end-to-end capabilities beyond just model editing.
