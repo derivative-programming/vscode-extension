@@ -11,13 +11,13 @@
     let validationData = [];
     let pageNumber = 1;
     let itemCountPerPage = 10;
-    let orderByColumn = "modelValidationRequestRequestedUTCDateTime";
-    let orderByDescending = false;
+    let orderByColumn = "ModelValidationRequestRequestedUTCDateTime";
+    let orderByDescending = true;
     let totalRecords = 0;
     const columns = [
-        { key: "modelValidationRequestDescription", label: "Description" },
-        { key: "modelValidationRequestRequestedBy", label: "Requested By" },
         { key: "modelValidationRequestRequestedUTCDateTime", label: "Requested At" },
+        { key: "modelValidationRequestDescription", label: "Description" },
+        { key: "status", label: "Status" },
         { key: "modelValidationRequestIsSuccessful", label: "Successful" },
         { key: "modelValidationRequestReportUrl", label: "Report URL" }
     ];
@@ -78,13 +78,6 @@
                     flex-direction: column;
                 }
                 
-                .table-controls {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 10px;
-                }
-                
                 .table-container {
                     overflow: auto;
                     border: 1px solid var(--vscode-panel-border);
@@ -135,12 +128,18 @@
                     text-decoration: underline;
                 }
                 
+                .footer-controls {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 10px;
+                }
+                
                 .paging-controls {
                     display: flex;
                     align-items: center;
                     gap: 10px;
                     justify-content: flex-end;
-                    margin-top: 10px;
                 }
                 
                 .paging-controls button {
@@ -188,6 +187,17 @@
                     font-weight: 500;
                 }
 
+                .processing-badge {
+                    background-color: var(--vscode-inputValidation-infoBackground, #007acc);
+                    color: var(--vscode-editor-background);
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    font-size: 0.8em;
+                    display: inline-block;
+                    text-align: center;
+                    font-weight: 500;
+                }
+
                 .view-button {
                     padding: 4px 8px;
                     background-color: var(--vscode-button-background);
@@ -216,14 +226,12 @@
                     <h2>Model Validation Requests</h2>
                 </div>
                 <div class="validation-content">
-                    <div class="table-controls">
-                        <div class="table-info">
-                            <span id="record-info"></span>
-                        </div>
-                        <div id="paging" class="paging-controls"></div>
-                    </div>
                     <div class="table-container">
                         <table id="validationTable" class="validation-table"></table>
+                    </div>
+                    <div class="footer-controls">
+                        <div id="paging" class="paging-controls"></div>
+                        <div class="table-info"><span id="record-info"></span></div>
                     </div>
                 </div>
             </div>
@@ -276,39 +284,61 @@
                 const row = document.createElement("tr");
                 columns.forEach(function(col) {
                     const td = document.createElement("td");
-                    const value = item[col.key];
-                    
-                    if (col.key === "modelValidationRequestIsSuccessful") {
+                    if (col.key === "status") {
+                        let status = "";
+                        if (item.modelValidationRequestIsCancelled) {
+                            status = "Cancelled";
+                        } else if (!item.modelValidationRequestIsStarted) {
+                            status = "Queued";
+                        } else if (item.modelValidationRequestIsStarted && !item.modelValidationRequestIsCompleted) {
+                            status = "Processing";
+                        } else if (item.modelValidationRequestIsCompleted && !item.modelValidationRequestIsSuccessful) {
+                            status = "Validation Error";
+                        } else if (item.modelValidationRequestIsCompleted && item.modelValidationRequestIsSuccessful) {
+                            status = "Validation Passed";
+                        }
+                        // Create badge element based on status
                         const badge = document.createElement("span");
-                        badge.className = value ? "success-badge" : "failure-badge";
-                        badge.textContent = value ? "Success" : "Failed";
+                        if (status === "Processing") {
+                            badge.className = "processing-badge";
+                        } else if (status === "Validation Error") {
+                            badge.className = "failure-badge";
+                        } else if (status === "Validation Passed") {
+                            badge.className = "success-badge";
+                        }
+                        badge.textContent = status;
                         td.appendChild(badge);
-                    } 
-                    else if (col.key === "modelValidationRequestReportUrl" && value) {
-                        const button = document.createElement("button");
-                        button.className = "view-button";
-                        button.textContent = "View Report";
-                        button.onclick = function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            vscode.postMessage({
-                                command: "openExternalUrl",
-                                url: value
-                            });
-                        };
-                        td.appendChild(button);
-                    } 
-                    else if (col.key === "modelValidationRequestRequestedUTCDateTime" && value) {
-                        // Format date nicely
-                        try {
-                            const date = new Date(value);
-                            td.textContent = date.toLocaleString();
-                        } catch (e) {
+                    } else {
+                        const value = item[col.key];
+                        if (col.key === "modelValidationRequestIsSuccessful") {
+                            const badge = document.createElement("span");
+                            badge.className = value ? "success-badge" : "failure-badge";
+                            badge.textContent = value ? "Success" : "Failed";
+                            td.appendChild(badge);
+                        } else if (col.key === "modelValidationRequestReportUrl" && value) {
+                            const button = document.createElement("button");
+                            button.className = "view-button";
+                            button.textContent = "View Report";
+                            button.onclick = function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                vscode.postMessage({
+                                    command: "openExternalUrl",
+                                    url: value
+                                });
+                            };
+                            td.appendChild(button);
+                        } else if (col.key === "modelValidationRequestRequestedUTCDateTime" && value) {
+                            // Format date nicely
+                            try {
+                                const date = new Date(value);
+                                td.textContent = date.toLocaleString();
+                            } catch (e) {
+                                td.textContent = value || "";
+                            }
+                        } else {
                             td.textContent = value || "";
                         }
-                    }
-                    else {
-                        td.textContent = value || "";
                     }
                     row.appendChild(td);
                 });
@@ -327,10 +357,10 @@
         table.appendChild(tbody);
         
         // Update record info
-        const start = (pageNumber - 1) * itemCountPerPage + 1;
-        const end = Math.min(start + validationData.length - 1, totalRecords);
+        const start = validationData.length ? (pageNumber - 1) * itemCountPerPage + 1 : 0;
+        const end = validationData.length ? Math.min(start + validationData.length - 1, totalRecords) : 0;
         document.getElementById("record-info").textContent = 
-            `Showing ${start} to ${end} of ${totalRecords} requests`;
+            validationData.length ? `Showing ${start} to ${end} of ${totalRecords} requests` : `No validation requests to display`;
     }
 
     function renderPaging() {
