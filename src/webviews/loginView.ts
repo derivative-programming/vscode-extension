@@ -30,12 +30,21 @@ export async function showLoginView(context: vscode.ExtensionContext, onLoginSuc
     // Add debug logging
     console.log("[DEBUG] Previous email retrieved:", previousEmail);
     
-    // Set the HTML content with the previous email
-    panel.webview.html = getLoginViewHtml(previousEmail);
+    // Set the HTML content
+    panel.webview.html = getLoginViewContent();
 
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(async message => {
         switch (message.command) {
+            case "webviewReady":
+                if (previousEmail) {
+                    panel.webview.postMessage({
+                        command: "setEmailValue",
+                        value: previousEmail
+                    });
+                }
+                return;
+
             case "login":
                 try {
                     const success = await authService.login(message.email, message.password);
@@ -74,16 +83,20 @@ export async function showLoginView(context: vscode.ExtensionContext, onLoginSuc
                 vscode.env.openExternal(vscode.Uri.parse(registrationUrl));
                 vscode.window.showInformationMessage("Opening registration page in your browser");
                 return;
+
+            case "debugEmailValue":
+                // Log debug information when received from the webview
+                console.log("[DEBUG-WEBVIEW] Email field value:", message.value);
+                return;
         }
     });
 }
 
 /**
  * Generates the HTML content for the login webview
- * @param previousEmail The previously used email address
  * @returns HTML content as a string
  */
-function getLoginViewHtml(previousEmail: string): string {
+function getLoginViewContent(): string {
     // Get the model services URL from settings to display to user
     const config = vscode.workspace.getConfiguration("appDNA");
     const apiUrl = config.get<string>("modelServiceUrl") || "Not configured";
@@ -198,7 +211,7 @@ function getLoginViewHtml(previousEmail: string): string {
         <form id="loginForm">
             <div class="form-group">
                 <label for="email">Email:</label>
-                <input type="email" id="email" name="email" value="${previousEmail}" required autofocus>
+                <input type="email" id="email" name="email" required autofocus>
             </div>
             <div class="form-group">
                 <label for="password">Password:</label>
@@ -230,68 +243,82 @@ function getLoginViewHtml(previousEmail: string): string {
     <script>
         (function() {
             const vscode = acquireVsCodeApi();
-            const loginForm = document.getElementById('loginForm');
-            const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
-            const cancelButton = document.getElementById('cancelButton');
+            function onReady() {
+                const loginForm = document.getElementById('loginForm');
+                const errorMessage = document.getElementById('errorMessage');
+                const successMessage = document.getElementById('successMessage');
+                const cancelButton = document.getElementById('cancelButton');
+                const emailField = document.getElementById('email');
 
-            // Handle form submission
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                
-                if (!email || !password) {
-                    errorMessage.textContent = 'Please enter both email and password.';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-                
-                // Send credentials to the extension
-                vscode.postMessage({
-                    command: 'login',
-                    email: email,
-                    password: password
+                // Listen for messages from the extension
+                window.addEventListener('message', function(event) {
+                    const message = event.data;
+                    switch(message.command) {
+                        case 'setEmailValue':
+                            if (emailField) {
+                                emailField.value = message.value || '';
+                            }
+                            break;
+                        case 'loginError':
+                            errorMessage.textContent = message.message || 'Login failed. Please try again.';
+                            errorMessage.style.display = 'block';
+                            successMessage.style.display = 'none';
+                            break;
+                        case 'loginSuccess':
+                            errorMessage.style.display = 'none';
+                            successMessage.style.display = 'block';
+                            loginForm.querySelector('button[type="submit"]').disabled = true;
+                            break;
+                    }
                 });
-            });
-            
-            // Handle cancel button
-            cancelButton.addEventListener('click', function() {
-                vscode.postMessage({
-                    command: 'cancel'
-                });
-            });
-            
-            // Handle register link
-            const registerLink = document.getElementById('registerLink');
-            if (registerLink) {
-                registerLink.addEventListener('click', function(e) {
+
+                // Notify extension when webview is ready
+                vscode.postMessage({ command: 'webviewReady' });
+
+                // Handle form submission
+                loginForm.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    
+                    if (!email || !password) {
+                        errorMessage.textContent = 'Please enter both email and password.';
+                        errorMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Send credentials to the extension
                     vscode.postMessage({
-                        command: 'register'
+                        command: 'login',
+                        email: email,
+                        password: password
                     });
                 });
-            }
-            
-            // Listen for messages from the extension
-            window.addEventListener('message', function(event) {
-                const message = event.data;
                 
-                switch(message.command) {
-                    case 'loginError':
-                        errorMessage.textContent = message.message || 'Login failed. Please try again.';
-                        errorMessage.style.display = 'block';
-                        successMessage.style.display = 'none';
-                        break;
-                        
-                    case 'loginSuccess':
-                        errorMessage.style.display = 'none';
-                        successMessage.style.display = 'block';
-                        loginForm.querySelector('button[type="submit"]').disabled = true;
-                        break;
+                // Handle cancel button
+                cancelButton.addEventListener('click', function() {
+                    vscode.postMessage({
+                        command: 'cancel'
+                    });
+                });
+                
+                // Handle register link
+                const registerLink = document.getElementById('registerLink');
+                if (registerLink) {
+                    registerLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        vscode.postMessage({
+                            command: 'register'
+                        });
+                    });
                 }
-            });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', onReady);
+            } else {
+                onReady();
+            }
         })();
     </script>
 </body>

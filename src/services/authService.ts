@@ -141,15 +141,14 @@ export class AuthService {
     }
     
     /**
-     * Logout and clear stored credentials
+     * Logout and clear stored credentials (except email, so it can be pre-populated)
      */
     public async logout(): Promise<void> {
         if (!this.context) {
             return;
         }
-        
         await this.context.secrets.delete(this.API_KEY_STORAGE_KEY);
-        await this.context.secrets.delete(this.EMAIL_STORAGE_KEY);
+        // Do NOT delete the email, so it can be pre-populated next time
         this.isAuthenticated = false;
     }
     
