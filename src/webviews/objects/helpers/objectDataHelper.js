@@ -120,7 +120,9 @@ function saveObjectData(data, appDNAFilePath) {
  * @returns {string} The formatted label
  */
 function formatLabel(key) {
-    if (!key) return "";
+    if (!key) {
+        return "";
+    }
 
     // Use regex for a more robust approach to handle various cases including acronyms
     let result = key
