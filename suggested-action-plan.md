@@ -2,7 +2,6 @@
 
 ## 1. Test Framework Improvements
 
-- **Fix the ESLint Warning**: Address the warning in `objectDataHelper.js` (line 123) by adding curly braces after the if condition
 - **Add More Test Coverage**: Develop additional tests for complex model operations and webview interactions
 - **Create Mock Data**: Build a comprehensive set of test fixtures for different model scenarios
 

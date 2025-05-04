@@ -12,6 +12,7 @@ import { newProjectCommand, openProjectCommand, saveProjectCommand } from './pro
 import * as objectDetailsView from '../webviews/objectDetailsView';
 import { ModelService } from '../services/modelService';
 import { openModelExplorer } from '../webviews/modelExplorerView';
+import { showWelcomeView } from '../webviews/welcomeView';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -184,4 +185,10 @@ export function registerCommands(
             }
         })
     );
+
+    // Register show welcome view command
+    const showWelcomeCommand = vscode.commands.registerCommand('appdna.showWelcome', () => {
+        showWelcomeView(context);
+    });
+    context.subscriptions.push(showWelcomeCommand);
 }

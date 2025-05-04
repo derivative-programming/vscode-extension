@@ -10,6 +10,10 @@ import { JsonTreeDataProvider } from './providers/jsonTreeDataProvider';
 import { registerCommands } from './commands/registerCommands';
 import * as objectDetailsView from './webviews/objectDetailsView';
 import { ModelService } from './services/modelService';
+import { showWelcomeView } from './webviews/welcomeView';
+
+// Track whether welcome view has been shown in this session
+let hasShownWelcomeView = false;
 
 /**
  * Activates the extension
@@ -27,6 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
     const appDNAFilePath = workspaceFolder ? path.join(workspaceFolder, modelFileName) : null;
     
     // Set initial context based on file existence
+    const fileExists = appDNAFilePath && fs.existsSync(appDNAFilePath);
     updateFileExistsContext(appDNAFilePath);
     
     // Load the objectDetailsView module safely
@@ -103,6 +108,29 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register all commands
     registerCommands(context, jsonTreeDataProvider, appDNAFilePath, modelService);
+
+    // Show welcome view if the AppDNA file doesn't exist and welcome view hasn't been shown yet
+    if (!fileExists && !hasShownWelcomeView) {
+        hasShownWelcomeView = true;
+        
+        // Small delay to allow VS Code to initialize properly before showing welcome view
+        setTimeout(() => {
+            showWelcomeView(context);
+        }, 1000);
+    }
+
+    // Add command to show AppDNA panel when extension is activated
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.focus', () => {
+            // If no file exists, show welcome view
+            if (!fileExists && !hasShownWelcomeView) {
+                hasShownWelcomeView = true;
+                showWelcomeView(context);
+            } else {
+                treeView.reveal(undefined, { focus: true, expand: true });
+            }
+        })
+    );
 }
 
 /**
@@ -110,6 +138,9 @@ export function activate(context: vscode.ExtensionContext) {
  */
 export function deactivate() {
     console.log('Extension deactivated.');
+    // Reset welcome view shown flag
+    hasShownWelcomeView = false;
+    
     // Clear model service cache on deactivation
     ModelService.getInstance().clearCache();
 }
