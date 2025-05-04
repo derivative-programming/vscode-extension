@@ -40,10 +40,17 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         // If no element is provided (root level request)
         if (!element) {
             if (fileExists) {
-                // File exists, show 'Data Objects'
-                return Promise.resolve([
-                    new JsonTreeItem('Data Objects', vscode.TreeItemCollapsibleState.Collapsed, 'dataObjects')
-                ]);
+                // Create tree item for DATA OBJECTS with database icon
+                const dataObjectsItem = new JsonTreeItem(
+                    'DATA OBJECTS',
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    'dataObjects'
+                );
+                
+                // Set a database icon for the DATA OBJECTS item
+                dataObjectsItem.iconPath = new vscode.ThemeIcon('database');
+                
+                return Promise.resolve([dataObjectsItem]);
             } else {
                 // File doesn't exist, show empty tree
                 return Promise.resolve([]);
