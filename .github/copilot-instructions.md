@@ -1,5 +1,7 @@
 <!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
 
+IMPORTANT: The following are instructions for how AI assistants should interact with the codebase.
+
 # AppDNA VS Code Extension - Coding Guidelines
 
 This is a VS Code extension project that provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. Please use the get_vscode_api with a query as input to fetch the latest VS Code API references.

@@ -220,17 +220,6 @@ export async function addFileCommand(
     }
 
     try {
-        // Log the command usage
-        try {
-            const logPath = path.join(
-                vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '',
-                "copilot-command-history.txt"
-            );
-            fs.appendFileSync(logPath, `Command: Add model file (appdna.addFile) - ${new Date().toISOString()}\n`);
-        } catch (e) {
-            console.error("Failed to log command:", e);
-        }
-
         // Get model service if not provided
         if (!modelService) {
             modelService = ModelService.getInstance();

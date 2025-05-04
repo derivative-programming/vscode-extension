@@ -151,15 +151,6 @@ export function registerCommands(
     // Register save file command for the sidebar save button
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.saveFile', async () => {
-            // // Log the command usage
-            // try {
-            //     const logPath = path.join(
-            //         vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '',
-            //         "copilot-command-history.txt"
-            //     );
-            //     fs.appendFileSync(logPath, `Command: Save model to file (appdna.saveFile)\n`);
-            // } catch (e) {}
-
             console.log("[DEBUG] Save command triggered");
 
             if (!modelService.isFileLoaded()) {

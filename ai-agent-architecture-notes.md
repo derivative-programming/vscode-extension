@@ -36,7 +36,6 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 #### Commands
 - Registered in `registerCommands.ts` 
 - Include operations like adding objects, saving files, generating code
-- All commands are logged in `copilot-command-history.txt` for traceability
 
 ### Data Flow
 

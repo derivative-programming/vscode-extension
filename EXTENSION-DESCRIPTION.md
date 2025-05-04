@@ -20,8 +20,8 @@ This extension provides a graphical interface in Visual Studio Code for editing,
   - The save button writes the current in-memory model to disk and logs the action.
 
 - **Commands and Logging:**
-  - All user commands (add, save, refresh, etc.) are logged in `copilot-command-history.txt` for traceability.
   - The extension provides commands for adding objects, properties, generating code, and more.
+  - Debug logs are available in the VS Code output panel for troubleshooting.
 
 - **UI/UX Conventions:**
   - Controls are styled to match VS Code’s default look and feel.
