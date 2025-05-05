@@ -185,7 +185,7 @@ async function downloadReport(panel: vscode.WebviewPanel, url: string, requestCo
         }
 
         // Get the report content as text
-        const reportContent = await response.text();
+        let reportContent = await response.text();
 
         // Create validation_request directory if it doesn't exist
         const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -198,6 +198,45 @@ async function downloadReport(panel: vscode.WebviewPanel, url: string, requestCo
         
         if (!fs.existsSync(validationDirPath)) {
             fs.mkdirSync(validationDirPath, { recursive: true });
+        }
+
+        // Look for change requests in the report content
+        const startMarker = "GENChangeRequestArrayStart";
+        const endMarker = "GENChangeRequestArrayEnd";
+        
+        const startIndex = reportContent.indexOf(startMarker);
+        const endIndex = reportContent.indexOf(endMarker);
+        
+        if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+            // Extract the JSON content (adding the marker length to get after the start marker)
+            const jsonStartIndex = startIndex + startMarker.length;
+            const jsonContent = reportContent.substring(jsonStartIndex, endIndex).trim();
+            
+            // Create the change_requests directory if it doesn't exist
+            const changeRequestsDirPath = path.join(workspaceRoot, 'change_requests');
+            if (!fs.existsSync(changeRequestsDirPath)) {
+                fs.mkdirSync(changeRequestsDirPath, { recursive: true });
+            }
+            
+            try {
+                // Parse the JSON to validate it's properly formatted
+                JSON.parse(jsonContent);
+                
+                // Save the change requests to a separate file
+                const changeRequestsFilePath = path.join(changeRequestsDirPath, `${requestCode}.json`);
+                fs.writeFileSync(changeRequestsFilePath, jsonContent);
+                console.log("[Extension] Change requests saved to:", changeRequestsFilePath);
+                
+                // Remove the change requests from the original report
+                reportContent = reportContent.substring(0, startIndex) + 
+                                reportContent.substring(endIndex + endMarker.length);
+                
+                console.log("[Extension] Change requests extracted from validation report");
+            } catch (jsonError) {
+                console.error("[Extension] Error parsing change requests JSON:", jsonError);
+                // Continue with saving the report - we don't want to fail the whole operation
+                vscode.window.showWarningMessage(`Failed to extract change requests: ${jsonError.message}`);
+            }
         }
 
         // Save the report content to a file
