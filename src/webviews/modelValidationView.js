@@ -141,6 +141,25 @@
                 .modal-content input {
                     width: 100%;
                     padding: 4px;
+                    /* Ensure input uses VS Code styles */
+                    background-color: var(--vscode-input-background);
+                    color: var(--vscode-input-foreground);
+                    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+                    box-sizing: border-box; /* Include padding and border in width */
+                }
+                /* New styles for modal buttons */
+                .modal-buttons {
+                    display: flex;
+                    justify-content: flex-end; /* Right justify buttons */
+                    margin-top: 15px; /* Add space above buttons */
+                    gap: 8px; /* Space between buttons */
+                }
+                .modal-button-secondary {
+                    background-color: var(--vscode-button-secondaryBackground);
+                    color: var(--vscode-button-secondaryForeground);
+                }
+                .modal-button-secondary:hover {
+                    background-color: var(--vscode-button-secondaryHoverBackground);
                 }
                 
                 .validation-content {
@@ -259,8 +278,8 @@
                 }
 
                 .processing-badge {
-                    background-color: var(--vscode-inputValidation-infoBackground, #007acc);
-                    color: var(--vscode-editor-background);
+                    background-color: var(--vscode-button-background, #0E639C); /* Changed from infoBackground */
+                    color: var(--vscode-button-foreground, #FFFFFF); /* Ensure text is contrasty */
                     padding: 2px 6px;
                     border-radius: 3px;
                     font-size: 0.8em;
@@ -348,8 +367,10 @@
                     <div class="modal-content">
                         <h3>Add Validation Request</h3>
                         <label>Description:<br><input type="text" id="addDescription" /></label>
-                        <button id="submitAdd" class="refresh-button">Add</button>
-                        <button id="cancelAdd" class="refresh-button">Cancel</button>
+                        <div class="modal-buttons"> <!-- Button container -->
+                            <button id="submitAdd" class="refresh-button">Add</button>
+                            <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Apply secondary style -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -365,6 +386,7 @@
         // Attach add button handler
         document.getElementById("addButton").onclick = function() {
             document.getElementById("addModal").style.display = "flex";
+            document.getElementById("addDescription").focus(); // Focus input on open
         };
         document.getElementById("cancelAdd").onclick = function() {
             document.getElementById("addModal").style.display = "none";
@@ -376,7 +398,16 @@
             const desc = document.getElementById("addDescription").value;
             vscode.postMessage({ command: "addValidationRequest", data: { description: desc } });
             document.getElementById("addModal").style.display = "none";
+            document.getElementById("addDescription").value = ''; // Clear input after submit
         };
+
+        // Add keypress listener for Enter key in description input
+        document.getElementById("addDescription").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent default Enter behavior (like adding newline)
+                document.getElementById("submitAdd").click(); // Trigger submit button click
+            }
+        });
     }
 
     function renderTable() {
