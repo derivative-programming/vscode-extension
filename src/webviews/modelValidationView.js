@@ -36,6 +36,8 @@
             totalRecords = message.data.recordsTotal || 0;
             renderTable();
             renderPaging();
+            // Hide spinner when data is set
+            hideSpinner();
         }
     });
 
@@ -91,6 +93,38 @@
                 }
                 .refresh-button:hover {
                     background-color: var(--vscode-button-hoverBackground);
+                }
+                .add-button {
+                    margin-right: 8px;
+                }
+                /* Modal styles */
+                .modal {
+                    position: fixed;
+                    top: 0; left: 0;
+                    width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.4);
+                    display: none;
+                    align-items: center; justify-content: center;
+                }
+                .modal-content {
+                    background: var(--vscode-editor-background);
+                    padding: 20px;
+                    border-radius: 4px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                    width: 300px;
+                }
+                .modal-content h3 {
+                    margin-top: 0;
+                    margin-bottom: 10px;
+                    font-size: 1.1em;
+                }
+                .modal-content label {
+                    display: block;
+                    margin-bottom: 10px;
+                }
+                .modal-content input {
+                    width: 100%;
+                    padding: 4px;
                 }
                 
                 .validation-content {
@@ -241,12 +275,45 @@
                     font-style: italic;
                     background-color: var(--vscode-editor-background);
                 }
+
+                /* Spinner overlay for processing */
+                .spinner-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.3);
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                }
+                .spinner {
+                    border: 4px solid var(--vscode-editor-widget-background);
+                    border-top: 4px solid var(--vscode-button-background);
+                    border-radius: 50%;
+                    width: 30px;
+                    height: 30px;
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
             </style>
             <div class="validation-container">
+                <!-- Spinner overlay -->
+                <div id="spinnerOverlay" class="spinner-overlay">
+                    <div class="spinner"></div>
+                </div>
                 <div class="validation-header">
                     <h2>Model Validation Requests</h2>
                 </div>
                 <div class="toolbar">
+                    <button id="addButton" class="refresh-button add-button" title="Add Request">
+                        Add
+                    </button>
                     <button id="refreshButton" class="refresh-button" title="Refresh Table">
                         Refresh
                     </button>
@@ -260,6 +327,15 @@
                         <div class="table-info"><span id="record-info"></span></div>
                     </div>
                 </div>
+                <!-- Add Request Modal -->
+                <div id="addModal" class="modal">
+                    <div class="modal-content">
+                        <h3>Add Validation Request</h3>
+                        <label>Description:<br><input type="text" id="addDescription" /></label>
+                        <button id="submitAdd" class="refresh-button">Add</button>
+                        <button id="cancelAdd" class="refresh-button">Cancel</button>
+                    </div>
+                </div>
             </div>
         `;
         
@@ -270,6 +346,23 @@
         document.getElementById("refreshButton").onclick = function() {
             requestPage(pageNumber);
         };
+        // Attach add button handler
+        document.getElementById("addButton").onclick = function() {
+            document.getElementById("addModal").style.display = "flex";
+        };
+        document.getElementById("cancelAdd").onclick = function() {
+            document.getElementById("addModal").style.display = "none";
+        };
+        document.getElementById("submitAdd").onclick = function() {
+            // Show spinner while sending request
+            showSpinner();
+            const desc = document.getElementById("addDescription").value;
+            vscode.postMessage({ command: "addValidationRequest", data: { description: desc } });
+            document.getElementById("addModal").style.display = "none";
+        };
+        // Spinner control functions
+        function showSpinner() { document.getElementById("spinnerOverlay").style.display = "flex"; }
+        function hideSpinner() { document.getElementById("spinnerOverlay").style.display = "none"; }
     }
 
     function renderTable() {

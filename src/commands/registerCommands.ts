@@ -4,6 +4,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import JSZip from 'jszip';
 import { JsonTreeItem } from '../models/types';
 import { JsonTreeDataProvider } from '../providers/jsonTreeDataProvider';
 import { openJsonEditor } from '../webviews/jsonEditor';
@@ -301,6 +302,57 @@ export function registerCommands(
                     await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
                 } else if (msg.command === 'requestPage') {
                     await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
+                } else if (msg.command === 'addValidationRequest') {
+                    // Retrieve API key for authenticated call
+                    const authService = AuthService.getInstance();
+                    authService.initialize(context);
+                    const apiKey = await authService.getApiKey();
+                    if (!apiKey) {
+                        vscode.window.showErrorMessage('You must be logged in to add a validation request.');
+                        return;
+                    }
+                    // POST a new validation request with modelFileData
+                    const desc = msg.data.description || '';
+                    // Ensure model file path is available
+                    if (!appDNAFilePath) {
+                        vscode.window.showErrorMessage('No model file is loaded to attach to request.');
+                        return;
+                    }
+                    // Read and encode model file
+                    let modelFileData: string;
+                    try {
+                        // Read model JSON and create a ZIP archive
+                        const fileContent = fs.readFileSync(appDNAFilePath, 'utf8');
+                        const zip = new JSZip();
+                        zip.file('model.json', fileContent);
+                        const archive = await zip.generateAsync({ type: 'nodebuffer' });
+                        modelFileData = archive.toString('base64');
+                    } catch (e) {
+                        vscode.window.showErrorMessage('Failed to read or zip model file for request: ' + (e.message || e));
+                        return;
+                    }
+                    const payload = { description: desc, modelFileData };
+                    const addUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests';
+                    console.log("[DEBUG] Model Validation ADD API called. URL:", addUrl, "Options:", {
+                        method: 'POST',
+                        headers: { 'Api-Key': '[REDACTED]', 'Content-Type': 'application/json' },
+                        body: '[REDACTED]'
+                    });
+                    try {
+                        const res2 = await fetch(addUrl, {
+                            method: 'POST',
+                            headers: { 'Api-Key': apiKey, 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!res2.ok) {
+                            throw new Error(`API responded with status ${res2.status}`);
+                        }
+                    
+                        // Refresh first page after adding
+                        await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', false);
+                    } catch (err) {
+                        vscode.window.showErrorMessage('Failed to add validation request: ' + (err && err.message ? err.message : err));
+                    }
                 }
             });
         })

@@ -1,12 +1,6 @@
 Agent todo items...
  
 - mv list columns
-    - request utc datetime
-    - description
-    - is started
-    - is completed
-    - is successful
-    - is cancelled
     - details button
     - page size dropdown
     
