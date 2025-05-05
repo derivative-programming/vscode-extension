@@ -21,13 +21,25 @@
         { key: "modelValidationRequestReportUrl", label: "Report URL" }
     ];
 
+    // Spinner control functions (moved to global scope within IIFE)
+    function showSpinner() { 
+        console.log("[Webview] showSpinner called");
+        document.getElementById("spinnerOverlay").style.display = "flex"; 
+    }
+    function hideSpinner() { 
+        console.log("[Webview] hideSpinner called");
+        document.getElementById("spinnerOverlay").style.display = "none"; 
+    }
+
     // Set up the UI
     initializeUI();
 
     // Event listeners
     window.addEventListener("message", function(event) {
         const message = event.data;
+        console.log("[Webview] Received message:", message.command, message.data);
         if (message.command === "setValidationData") {
+            console.log("[Webview] Handling setValidationData");
             validationData = message.data.items || [];
             pageNumber = message.data.pageNumber || 1;
             itemCountPerPage = message.data.itemCountPerPage || 10;
@@ -37,6 +49,10 @@
             renderTable();
             renderPaging();
             // Hide spinner when data is set
+            hideSpinner();
+        } else if (message.command === "validationRequestReceived" || message.command === "validationRequestFailed") {
+            console.log("[Webview] Handling", message.command);
+            // Hide spinner when validation request is received or failed
             hideSpinner();
         }
     });
@@ -354,15 +370,13 @@
             document.getElementById("addModal").style.display = "none";
         };
         document.getElementById("submitAdd").onclick = function() {
+            console.log("[Webview] Submit Add clicked");
             // Show spinner while sending request
             showSpinner();
             const desc = document.getElementById("addDescription").value;
             vscode.postMessage({ command: "addValidationRequest", data: { description: desc } });
             document.getElementById("addModal").style.display = "none";
         };
-        // Spinner control functions
-        function showSpinner() { document.getElementById("spinnerOverlay").style.display = "flex"; }
-        function hideSpinner() { document.getElementById("spinnerOverlay").style.display = "none"; }
     }
 
     function renderTable() {

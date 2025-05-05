@@ -244,7 +244,7 @@ export function registerCommands(
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
-                    <meta charset="UTF-8">
+                    <meta charset="UTF-">
                     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Model Validation Requests</title>
@@ -298,24 +298,32 @@ export function registerCommands(
                 }
             }
             panel.webview.onDidReceiveMessage(async (msg) => {
+                console.log("[Extension] Received message from webview:", msg.command);
                 if (msg.command === 'webviewReady') {
+                    console.log("[Extension] Handling webviewReady");
                     await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
                 } else if (msg.command === 'requestPage') {
+                    console.log("[Extension] Handling requestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
                     await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
                 } else if (msg.command === 'addValidationRequest') {
+                    console.log("[Extension] Handling addValidationRequest:", msg.data);
                     // Retrieve API key for authenticated call
                     const authService = AuthService.getInstance();
                     authService.initialize(context);
                     const apiKey = await authService.getApiKey();
                     if (!apiKey) {
+                        console.error("[Extension] No API key found for addValidationRequest");
                         vscode.window.showErrorMessage('You must be logged in to add a validation request.');
+                        panel.webview.postMessage({ command: "validationRequestFailed" }); // Notify webview of failure
                         return;
                     }
                     // POST a new validation request with modelFileData
                     const desc = msg.data.description || '';
                     // Ensure model file path is available
                     if (!appDNAFilePath) {
+                        console.error("[Extension] No model file path available for addValidationRequest");
                         vscode.window.showErrorMessage('No model file is loaded to attach to request.');
+                        panel.webview.postMessage({ command: "validationRequestFailed" }); // Notify webview of failure
                         return;
                     }
                     // Read and encode model file
@@ -328,29 +336,38 @@ export function registerCommands(
                         const archive = await zip.generateAsync({ type: 'nodebuffer' });
                         modelFileData = archive.toString('base64');
                     } catch (e) {
+                        console.error("[Extension] Failed to read or zip model file:", e);
                         vscode.window.showErrorMessage('Failed to read or zip model file for request: ' + (e.message || e));
+                        panel.webview.postMessage({ command: "validationRequestFailed" }); // Notify webview of failure
                         return;
                     }
                     const payload = { description: desc, modelFileData };
                     const addUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests';
-                    console.log("[DEBUG] Model Validation ADD API called. URL:", addUrl, "Options:", {
-                        method: 'POST',
-                        headers: { 'Api-Key': '[REDACTED]', 'Content-Type': 'application/json' },
-                        body: '[REDACTED]'
-                    });
+                    console.log("[Extension] Calling ADD API. URL:", addUrl);
                     try {
                         const res2 = await fetch(addUrl, {
                             method: 'POST',
                             headers: { 'Api-Key': apiKey, 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
+                        console.log("[Extension] ADD API response status:", res2.status);
                         if (!res2.ok) {
                             throw new Error(`API responded with status ${res2.status}`);
                         }
+                        
+                        // Notify webview that request was successful
+                        console.log("[Extension] Sending validationRequestReceived to webview");
+                        panel.webview.postMessage({ command: "validationRequestReceived" });
                     
                         // Refresh first page after adding
-                        await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', false);
+                        console.log("[Extension] Refreshing data after successful add...");
+                        await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
+                        console.log("[Extension] Data refresh complete after add.");
                     } catch (err) {
+                        console.error("[Extension] Failed to add validation request:", err);
+                        // Notify webview that request failed
+                        console.log("[Extension] Sending validationRequestFailed to webview");
+                        panel.webview.postMessage({ command: "validationRequestFailed" });
                         vscode.window.showErrorMessage('Failed to add validation request: ' + (err && err.message ? err.message : err));
                     }
                 }
