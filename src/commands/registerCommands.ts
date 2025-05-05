@@ -16,6 +16,7 @@ import { openModelExplorer } from '../webviews/modelExplorerView';
 import { showWelcomeView } from '../webviews/welcomeView';
 import { showLoginView } from '../webviews/loginView';
 import { AuthService } from '../services/authService';
+import { showValidationRequestDetailsView } from '../webviews/validationRequestDetailsView'; // Import the new details view function
 
 /**
  * Registers all commands for the AppDNA extension
@@ -370,6 +371,14 @@ export function registerCommands(
                         panel.webview.postMessage({ command: "validationRequestFailed" });
                         vscode.window.showErrorMessage('Failed to add validation request: ' + (err && err.message ? err.message : err));
                     }
+                } else if (msg.command === 'showValidationRequestDetails') { // Handle showing details
+                    console.log("[Extension] Handling showValidationRequestDetails for code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        vscode.window.showErrorMessage('Missing request code for details view.');
+                        return;
+                    }
+                    // Call function to open the details webview
+                    showValidationRequestDetailsView(context, msg.requestCode);
                 }
             });
         })

@@ -18,7 +18,7 @@
         { key: "modelValidationRequestRequestedUTCDateTime", label: "Requested At" },
         { key: "modelValidationRequestDescription", label: "Description" },
         { key: "status", label: "Status" },
-        { key: "modelValidationRequestReportUrl", label: "Report URL" }
+        { key: "viewDetails", label: "View" } // Added View column
     ];
 
     // Spinner control functions (moved to global scope within IIFE)
@@ -479,16 +479,17 @@
                         td.appendChild(badge);
                     } else {
                         const value = item[col.key];
-                        if (col.key === "modelValidationRequestReportUrl" && value) {
+                        if (col.key === "viewDetails") { // Added View Details button handling
                             const button = document.createElement("button");
-                            button.className = "view-button";
-                            button.textContent = "View Report";
+                            button.className = "view-button"; // Re-use existing button style
+                            button.textContent = "Details";
                             button.onclick = function(e) {
                                 e.preventDefault();
-                                e.stopPropagation();
+                                e.stopPropagation(); // Prevent row click handler
+                                console.log("[Webview] Details button clicked for request code:", item.modelValidationRequestCode);
                                 vscode.postMessage({
-                                    command: "openExternalUrl",
-                                    url: value
+                                    command: "showValidationRequestDetails",
+                                    requestCode: item.modelValidationRequestCode // Send the request code
                                 });
                             };
                             td.appendChild(button);
