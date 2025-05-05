@@ -19,23 +19,6 @@
             case 'setError':
                 renderError(message.text);
                 break;
-            case 'cancelSuccess':
-                // Update UI to reflect a successful cancel
-                const cancelBtn = document.getElementById('cancelButton');
-                if (cancelBtn) {
-                    cancelBtn.disabled = true;
-                    cancelBtn.textContent = 'Request Cancelled';
-                }
-                // Refresh the status display
-                const statusValue = document.querySelector('.status-field .detail-value');
-                if (statusValue) {
-                    statusValue.textContent = 'Cancelled';
-                }
-                vscode.postMessage({ command: 'showMessage', type: 'info', message: 'Validation request cancelled successfully' });
-                break;
-            case 'cancelError':
-                vscode.postMessage({ command: 'showMessage', type: 'error', message: message.text });
-                break;
         }
     });
 
@@ -101,37 +84,6 @@
                 ${displayValue}
             `;
             container.appendChild(itemDiv);
-        });
-
-        // Add the Cancel Request button
-        const actionDiv = document.createElement('div');
-        actionDiv.className = 'action-container';
-        
-        // Check conditions for enabling the cancel button
-        const canCancel = !data.modelValidationRequestIsStarted && !data.modelValidationRequestIsCanceled;
-        
-        actionDiv.innerHTML = `
-            <button id="cancelButton" class="cancel-button" ${!canCancel ? 'disabled' : ''}>
-                Cancel Request
-            </button>
-        `;
-        container.appendChild(actionDiv);
-        
-        // Attach event handler to the cancel button
-        document.getElementById('cancelButton').addEventListener('click', function() {
-            if (canCancel) {
-                if (confirm('Are you sure you want to cancel this validation request?')) {
-                    // Send cancel request to extension
-                    vscode.postMessage({ 
-                        command: 'cancelRequest', 
-                        requestCode: data.modelValidationRequestCode 
-                    });
-                    
-                    // Disable the button immediately to prevent double clicks
-                    this.disabled = true;
-                    this.textContent = 'Cancelling...';
-                }
-            }
         });
     }
 

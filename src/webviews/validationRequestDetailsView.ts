@@ -39,11 +39,6 @@ export async function showValidationRequestDetailsView(context: vscode.Extension
                     await fetchAndSendDetails(panel, requestCode);
                     return;
                     
-                case 'cancelRequest':
-                    console.log("[Extension] Received cancel request for code:", message.requestCode);
-                    await cancelValidationRequest(panel, message.requestCode);
-                    return;
-                    
                 case 'showMessage':
                     // Handle showing messages from the webview
                     if (message.type === 'error') {
@@ -102,45 +97,6 @@ async function fetchAndSendDetails(panel: vscode.WebviewPanel, requestCode: stri
         console.error("[Extension] Failed to fetch validation details:", error);
         vscode.window.showErrorMessage(`Failed to fetch details for request ${requestCode}: ${error.message}`);
         panel.webview.postMessage({ command: 'setError', text: `Failed to load details: ${error.message}` });
-    }
-}
-
-/**
- * Cancels a validation request by sending a DELETE request to the API.
- * @param panel The webview panel.
- * @param requestCode The request code to cancel.
- */
-async function cancelValidationRequest(panel: vscode.WebviewPanel, requestCode: string) {
-    const authService = AuthService.getInstance();
-    const apiKey = await authService.getApiKey();
-
-    if (!apiKey) {
-        vscode.window.showErrorMessage('You must be logged in to cancel a validation request.');
-        panel.webview.postMessage({ command: 'cancelError', text: 'Authentication required.' });
-        return;
-    }
-
-    const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests/${encodeURIComponent(requestCode)}`;
-    console.log("[Extension] Sending cancel request to URL:", url);
-
-    try {
-        const response = await fetch(url, {
-            method: 'DELETE',
-            headers: { 'Api-Key': apiKey }
-        });
-
-        if (!response.ok) {
-            throw new Error(`API responded with status ${response.status}`);
-        }
-
-        console.log("[Extension] Validation request successfully cancelled");
-        panel.webview.postMessage({ command: 'cancelSuccess' });
-        vscode.window.showInformationMessage(`Validation request ${requestCode} cancelled successfully.`);
-        
-    } catch (error) {
-        console.error("[Extension] Failed to cancel validation request:", error);
-        vscode.window.showErrorMessage(`Failed to cancel request ${requestCode}: ${error.message}`);
-        panel.webview.postMessage({ command: 'cancelError', text: `Failed to cancel: ${error.message}` });
     }
 }
 

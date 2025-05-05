@@ -562,23 +562,23 @@
                                 };
                                 td.appendChild(button);
                             } else {
-                                // For other cases, show a disabled button
-                                const button = document.createElement("button");
-                                button.className = "view-button";
-                                button.disabled = true;
-                                button.style.opacity = "0.5";
-                                button.style.cursor = "not-allowed";
+                                // For other cases, show no button
+                                // const button = document.createElement("button");
+                                // button.className = "view-button";
+                                // button.disabled = true;
+                                // button.style.opacity = "0.5";
+                                // button.style.cursor = "not-allowed";
                                 
-                                // Choose appropriate button text
-                                if (item.modelValidationRequestIsCanceled) {
-                                    button.textContent = "Cancelled";
-                                } else if (item.modelValidationRequestIsStarted) {
-                                    button.textContent = "Processing";
-                                } else {
-                                    button.textContent = "Unavailable";
-                                }
+                                // // Choose appropriate button text
+                                // if (item.modelValidationRequestIsCanceled) {
+                                //     button.textContent = "Cancelled";
+                                // } else if (item.modelValidationRequestIsStarted) {
+                                //     button.textContent = "Processing";
+                                // } else {
+                                //     button.textContent = "Unavailable";
+                                // }
                                 
-                                td.appendChild(button);
+                                // td.appendChild(button);
                             }
                         } else if (col.key === "modelValidationRequestRequestedUTCDateTime" && value) {
                             // Format date nicely
