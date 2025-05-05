@@ -3,14 +3,11 @@ Agent todo items...
 - mv list columns
     - details button
     - page size dropdown
-    
-- model validation list - view details
-- model validaiton list - refresh button
-- model validation list - add modal
-    - add button on list page
-    - modal
-        - add button
-        - cancel button
+     
+change requests...
+- on download of val report, look for change requests json and save in separate file in change_requests subfolder.  remove from val report
+- on val request details page, show 'view change requests' button.
+- show change requests list in a new view. 
 
 
 
