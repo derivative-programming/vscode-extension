@@ -56,6 +56,16 @@ export async function showValidationRequestDetailsView(context: vscode.Extension
                     await openExistingReport(panel, message.requestCode);
                     return;
                     
+                case 'checkChangeRequestsExist':
+                    console.log("[Extension] Checking if change requests exist for request code:", message.requestCode);
+                    await checkChangeRequestsExist(panel, message.requestCode);
+                    return;
+                    
+                case 'viewChangeRequests':
+                    console.log("[Extension] Opening change requests for request code:", message.requestCode);
+                    await openChangeRequestsFile(panel, message.requestCode);
+                    return;
+                    
                 case 'showMessage':
                     // Handle showing messages from the webview
                     if (message.type === 'error') {
@@ -143,6 +153,83 @@ async function openExistingReport(panel: vscode.WebviewPanel, requestCode: strin
         vscode.window.showErrorMessage(`Failed to open report: ${error.message}`);
         panel.webview.postMessage({ 
             command: 'reportOpenError', 
+            error: error.message
+        });
+    }
+}
+
+/**
+ * Checks if change requests exist locally for the given request code.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ */
+async function checkChangeRequestsExist(panel: vscode.WebviewPanel, requestCode: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const changeRequestsDirPath = path.join(workspaceRoot, 'change_requests');
+        const filePath = path.join(changeRequestsDirPath, `${requestCode}.json`);
+        
+        const exists = fs.existsSync(filePath);
+        
+        console.log("[Extension] Change requests file status:", exists ? "Exists" : "Does not exist", "at path:", filePath);
+        
+        // Inform the webview whether the file exists
+        panel.webview.postMessage({ 
+            command: 'changeRequestsExistResult', 
+            exists: exists,
+            requestCode: requestCode
+        });
+        
+    } catch (error) {
+        console.error("[Extension] Error checking if change requests exist:", error);
+        panel.webview.postMessage({ 
+            command: 'changeRequestsExistResult', 
+            exists: false,
+            requestCode: requestCode,
+            error: error.message
+        });
+    }
+}
+
+/**
+ * Opens an existing change requests file in the editor.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ */
+async function openChangeRequestsFile(panel: vscode.WebviewPanel, requestCode: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const changeRequestsDirPath = path.join(workspaceRoot, 'change_requests');
+        const filePath = path.join(changeRequestsDirPath, `${requestCode}.json`);
+        
+        // Check if file exists before trying to open it
+        if (!fs.existsSync(filePath)) {
+            throw new Error('Change requests file does not exist');
+        }
+
+        // Open the file in a new editor tab
+        const fileUri = vscode.Uri.file(filePath);
+        const document = await vscode.workspace.openTextDocument(fileUri);
+        await vscode.window.showTextDocument(document, { viewColumn: vscode.ViewColumn.One });
+        
+        panel.webview.postMessage({ command: 'changeRequestsOpened' });
+        console.log("[Extension] Change requests file opened successfully:", filePath);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to open change requests file:", error);
+        vscode.window.showErrorMessage(`Failed to open change requests file: ${error.message}`);
+        panel.webview.postMessage({ 
+            command: 'changeRequestsOpenError', 
             error: error.message
         });
     }
@@ -243,11 +330,7 @@ async function downloadReport(panel: vscode.WebviewPanel, url: string, requestCo
         const filePath = path.join(validationDirPath, `${requestCode}.txt`);
         fs.writeFileSync(filePath, reportContent);
 
-        // Open the file in a new editor tab
-        const fileUri = vscode.Uri.file(filePath);
-        const document = await vscode.workspace.openTextDocument(fileUri);
-        await vscode.window.showTextDocument(document, { viewColumn: vscode.ViewColumn.One });
-
+        // Don't open the file automatically - let the user hit 'View Report' to open it
         console.log("[Extension] Report downloaded and saved to:", filePath);
         panel.webview.postMessage({ command: 'reportDownloadSuccess' });
         vscode.window.showInformationMessage(`Report downloaded and saved to: ${filePath}`);

@@ -24,11 +24,16 @@
             case 'reportExistsResult':
                 handleReportExistsResult(message);
                 break;
+            case 'changeRequestsExistResult':
+                handleChangeRequestsExistResult(message);
+                break;
             case 'reportDownloadStarted':
                 updateButtonToProcessing();
                 break;
             case 'reportDownloadSuccess':
                 updateButtonAfterSuccess();
+                // After successful download, check if change requests were extracted
+                checkForChangeRequests();
                 vscode.postMessage({ 
                     command: 'showMessage', 
                     type: 'info', 
@@ -37,6 +42,9 @@
                 break;
             case 'reportOpened':
                 console.log("[Webview] Report opened successfully");
+                break;
+            case 'changeRequestsOpened':
+                console.log("[Webview] Change requests opened successfully");
                 break;
             case 'reportDownloadError':
                 updateButtonAfterError();
@@ -53,8 +61,30 @@
                     message: message.error || 'Failed to open report.'
                 });
                 break;
+            case 'changeRequestsOpenError':
+                vscode.postMessage({ 
+                    command: 'showMessage', 
+                    type: 'error', 
+                    message: message.error || 'Failed to open change requests.'
+                });
+                break;
         }
     });
+
+    /**
+     * Checks if change requests exist for the current validation request.
+     */
+    function checkForChangeRequests() {
+        if (!currentRequestData || !currentRequestData.modelValidationRequestCode) {
+            console.error("[Webview] Cannot check for change requests: no request data available");
+            return;
+        }
+        
+        vscode.postMessage({
+            command: 'checkChangeRequestsExist',
+            requestCode: currentRequestData.modelValidationRequestCode
+        });
+    }
 
     /**
      * Handles the result of checking if a report exists locally.
@@ -79,8 +109,8 @@
         let buttonText = exists ? "View Report" : "Download Report";
         let buttonCommand = exists ? "viewReport" : "downloadReport";
         
-        // Remove any existing button
-        const existingButton = actionDiv.querySelector('button');
+        // Remove any existing report button
+        const existingButton = actionDiv.querySelector('.download-button');
         if (existingButton) {
             actionDiv.removeChild(existingButton);
         }
@@ -107,6 +137,54 @@
         });
         
         actionDiv.appendChild(reportButton);
+        
+        // Also check if change requests exist for this validation request
+        checkForChangeRequests();
+    }
+
+    /**
+     * Handles the result of checking if change requests exist locally.
+     * @param {object} message The message containing the exists result.
+     */
+    function handleChangeRequestsExistResult(message) {
+        if (!currentRequestData) {
+            console.error("[Webview] Cannot handle change requests exists result: no request data available");
+            return;
+        }
+
+        const actionDiv = document.querySelector('.action-container');
+        if (!actionDiv) {
+            console.error("[Webview] Cannot handle change requests exists result: action container not found");
+            return;
+        }
+
+        const exists = message.exists;
+        console.log("[Webview] Change requests exist locally:", exists);
+        
+        // Remove any existing change requests button
+        const existingButton = actionDiv.querySelector('.change-requests-button');
+        if (existingButton) {
+            actionDiv.removeChild(existingButton);
+        }
+        
+        // Only show the button if change requests exist
+        if (exists) {
+            // Create the change requests button
+            const changeRequestsButton = document.createElement('button');
+            changeRequestsButton.className = 'download-button change-requests-button';
+            changeRequestsButton.textContent = "View Change Requests";
+            changeRequestsButton.style.marginLeft = "10px";  // Add spacing between buttons
+            
+            changeRequestsButton.addEventListener('click', function() {
+                // Send message to extension to view the change requests
+                vscode.postMessage({
+                    command: 'viewChangeRequests',
+                    requestCode: currentRequestData.modelValidationRequestCode
+                });
+            });
+            
+            actionDiv.appendChild(changeRequestsButton);
+        }
     }
 
     /**
@@ -214,19 +292,19 @@
             container.appendChild(itemDiv);
         });
 
-        // Add the Report button container if report URL is available
+        // Add the action container for buttons
+        const actionDiv = document.createElement('div');
+        actionDiv.className = 'action-container';
+        container.appendChild(actionDiv);
+        
+        // Add the report button if report URL is available
         if (data.modelValidationRequestReportUrl) {
-            const actionDiv = document.createElement('div');
-            actionDiv.className = 'action-container';
-            
             // Add a placeholder button that will be updated after checking if the file exists
             const tempButton = document.createElement('button');
             tempButton.className = 'download-button';
             tempButton.textContent = 'Checking...';
             tempButton.disabled = true;
-            
             actionDiv.appendChild(tempButton);
-            container.appendChild(actionDiv);
             
             // Check if the report file already exists locally
             vscode.postMessage({
@@ -234,6 +312,8 @@
                 requestCode: data.modelValidationRequestCode
             });
         }
+        
+        // We'll check for change requests after we know about report existence
     }
 
     /**
