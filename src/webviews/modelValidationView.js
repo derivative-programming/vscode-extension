@@ -54,6 +54,11 @@
             console.log("[Webview] Handling", message.command);
             // Hide spinner when validation request is received or failed
             hideSpinner();
+        } else if (message.command === "validationRequestCancelled") {
+            console.log("[Webview] Request cancelled successfully, refreshing data");
+            hideSpinner();
+            // Refresh the current page after a successful cancel
+            requestPage(pageNumber);
         }
     });
 
@@ -479,20 +484,102 @@
                         td.appendChild(badge);
                     } else {
                         const value = item[col.key];
-                        if (col.key === "viewDetails") { // Added View Details button handling
-                            const button = document.createElement("button");
-                            button.className = "view-button"; // Re-use existing button style
-                            button.textContent = "Details";
-                            button.onclick = function(e) {
-                                e.preventDefault();
-                                e.stopPropagation(); // Prevent row click handler
-                                console.log("[Webview] Details button clicked for request code:", item.modelValidationRequestCode);
-                                vscode.postMessage({
-                                    command: "showValidationRequestDetails",
-                                    requestCode: item.modelValidationRequestCode // Send the request code
+                        if (col.key === "viewDetails") { // View/action buttons column
+                            // Check conditions for showing different buttons
+                            const canCancel = !item.modelValidationRequestIsStarted && !item.modelValidationRequestIsCanceled;
+                            const isCompleted = item.modelValidationRequestIsCompleted;
+                            
+                            if (canCancel) {
+                                // Show Cancel Request button
+                                const button = document.createElement("button");
+                                button.className = "view-button"; 
+                                button.textContent = "Cancel Request";
+                                button.setAttribute("data-request-code", item.modelValidationRequestCode);
+                                button.style.position = "relative";  // Ensure button has its own stacking context
+                                button.style.zIndex = "2";  // Higher z-index than the row
+                                
+                                // Log that we're creating the button for debugging
+                                console.log("[Webview] Created Cancel button for request:", item.modelValidationRequestCode);
+                                
+                                // Use addEventListener instead of onclick for better control
+                                button.addEventListener("click", function(e) {
+                                    console.log("[Webview] Cancel button click detected!");
+                                    e.preventDefault();
+                                    e.stopPropagation(); // Stop event from reaching the row
+                                    
+                                    const requestCode = this.getAttribute("data-request-code");
+                                    console.log("[Webview] Cancel button clicked for request code:", requestCode);
+                                    
+                                    // Create a VS Code-friendly confirmation modal instead of using browser confirm()
+                                    const confirmModal = document.createElement("div");
+                                    confirmModal.className = "modal";
+                                    confirmModal.style.display = "flex";
+                                    confirmModal.innerHTML = `
+                                        <div class="modal-content" style="width: 300px;">
+                                            <h3>Cancel Validation Request</h3>
+                                            <p>Are you sure you want to cancel this validation request?</p>
+                                            <div class="modal-buttons">
+                                                <button id="confirmCancel" class="refresh-button">Yes, Cancel</button>
+                                                <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>
+                                            </div>
+                                        </div>
+                                    `;
+                                    
+                                    document.body.appendChild(confirmModal);
+                                    
+                                    // Handle confirmation button
+                                    document.getElementById("confirmCancel").addEventListener("click", function() {
+                                        console.log("[Webview] User confirmed cancel, sending message to extension");
+                                        showSpinner();
+                                        document.body.removeChild(confirmModal);
+                                        vscode.postMessage({
+                                            command: "cancelValidationRequest",
+                                            requestCode: requestCode
+                                        });
+                                    });
+                                    
+                                    // Handle cancel button
+                                    document.getElementById("cancelCancel").addEventListener("click", function() {
+                                        console.log("[Webview] User cancelled the cancel operation");
+                                        document.body.removeChild(confirmModal);
+                                    });
                                 });
-                            };
-                            td.appendChild(button);
+                                
+                                td.appendChild(button);
+                            } else if (isCompleted) {
+                                // Show Details button only for completed requests
+                                const button = document.createElement("button");
+                                button.className = "view-button";
+                                button.textContent = "Details";
+                                button.onclick = function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation(); // Prevent row click handler
+                                    console.log("[Webview] Details button clicked for request code:", item.modelValidationRequestCode);
+                                    vscode.postMessage({
+                                        command: "showValidationRequestDetails",
+                                        requestCode: item.modelValidationRequestCode
+                                    });
+                                };
+                                td.appendChild(button);
+                            } else {
+                                // For other cases, show a disabled button
+                                const button = document.createElement("button");
+                                button.className = "view-button";
+                                button.disabled = true;
+                                button.style.opacity = "0.5";
+                                button.style.cursor = "not-allowed";
+                                
+                                // Choose appropriate button text
+                                if (item.modelValidationRequestIsCanceled) {
+                                    button.textContent = "Cancelled";
+                                } else if (item.modelValidationRequestIsStarted) {
+                                    button.textContent = "Processing";
+                                } else {
+                                    button.textContent = "Unavailable";
+                                }
+                                
+                                td.appendChild(button);
+                            }
                         } else if (col.key === "modelValidationRequestRequestedUTCDateTime" && value) {
                             // Format date nicely
                             try {

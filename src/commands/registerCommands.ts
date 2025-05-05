@@ -379,6 +379,49 @@ export function registerCommands(
                     }
                     // Call function to open the details webview
                     showValidationRequestDetailsView(context, msg.requestCode);
+                } else if (msg.command === 'cancelValidationRequest') { // Handle cancel request from list view
+                    console.log("[Extension] Handling cancelValidationRequest for code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        vscode.window.showErrorMessage('Missing request code for cancel operation.');
+                        return;
+                    }
+                    
+                    // Cancel the validation request
+                    try {
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+                        
+                        if (!apiKey) {
+                            vscode.window.showErrorMessage('You must be logged in to cancel a validation request.');
+                            panel.webview.postMessage({ command: "validationRequestFailed" });
+                            return;
+                        }
+                        
+                        const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests/${encodeURIComponent(msg.requestCode)}`;
+                        console.log("[Extension] Sending cancel request to URL:", url);
+                        
+                        const response = await fetch(url, {
+                            method: 'DELETE',
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`API responded with status ${response.status}`);
+                        }
+                        
+                        console.log("[Extension] Validation request successfully cancelled");
+                        vscode.window.showInformationMessage(`Validation request cancelled successfully.`);
+                        
+                        // Send success message back to webview to hide spinner and refresh
+                        panel.webview.postMessage({ command: "validationRequestCancelled" });
+                        
+                        // Refresh the list after cancelling
+                        await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
+                    } catch (error) {
+                        console.error("[Extension] Failed to cancel validation request:", error);
+                        vscode.window.showErrorMessage(`Failed to cancel request: ${error.message}`);
+                        panel.webview.postMessage({ command: "validationRequestFailed" });
+                    }
                 }
             });
         })
