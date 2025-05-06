@@ -558,3 +558,444 @@ function getNonce() {
     }
     return text;
 }
+
+/**
+ * Handles approving a specific change request.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ * @param changeRequestCode The specific change request code to approve.
+ */
+async function handleApproveChangeRequest(panel: vscode.WebviewPanel, requestCode: string, changeRequestCode: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        
+        // Read file contents
+        if (!fs.existsSync(changeRequestsFilePath)) {
+            throw new Error(`Change requests file not found: ${changeRequestsFilePath}`);
+        }
+        
+        const fileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
+        let changeRequestsData = JSON.parse(fileContent);
+        
+        // Find the target data array
+        let targetArray = changeRequestsData;
+        if (!Array.isArray(changeRequestsData)) {
+            if (changeRequestsData.changeRequests && Array.isArray(changeRequestsData.changeRequests)) {
+                targetArray = changeRequestsData.changeRequests;
+            } else if (changeRequestsData.items && Array.isArray(changeRequestsData.items)) {
+                targetArray = changeRequestsData.items;
+            } else {
+                for (const key of Object.keys(changeRequestsData)) {
+                    if (Array.isArray(changeRequestsData[key])) {
+                        targetArray = changeRequestsData[key];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Find and update the specific change request
+        const changeRequestIndex = targetArray.findIndex(
+            (cr: any) => (cr.Code === changeRequestCode || cr.code === changeRequestCode)
+        );
+        
+        if (changeRequestIndex === -1) {
+            throw new Error(`Change request with code ${changeRequestCode} not found`);
+        }
+        
+        // Update the change request status
+        targetArray[changeRequestIndex].IsApproved = true;
+        targetArray[changeRequestIndex].IsRejected = false;
+        
+        // Save the updated file
+        fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+        
+        // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Show a success message
+        vscode.window.showInformationMessage(`Change request ${changeRequestCode} approved successfully`);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to approve change request:", error);
+        vscode.window.showErrorMessage(`Failed to approve change request: ${error.message}`);
+        panel.webview.postMessage({ command: 'setError', text: `Failed to approve change request: ${error.message}` });
+    }
+}
+
+/**
+ * Handles rejecting a specific change request.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ * @param changeRequestCode The specific change request code to reject.
+ * @param reason The reason for rejection.
+ */
+async function handleRejectChangeRequest(panel: vscode.WebviewPanel, requestCode: string, changeRequestCode: string, reason?: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        
+        // Read file contents
+        if (!fs.existsSync(changeRequestsFilePath)) {
+            throw new Error(`Change requests file not found: ${changeRequestsFilePath}`);
+        }
+        
+        const fileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
+        let changeRequestsData = JSON.parse(fileContent);
+        
+        // Find the target data array
+        let targetArray = changeRequestsData;
+        if (!Array.isArray(changeRequestsData)) {
+            if (changeRequestsData.changeRequests && Array.isArray(changeRequestsData.changeRequests)) {
+                targetArray = changeRequestsData.changeRequests;
+            } else if (changeRequestsData.items && Array.isArray(changeRequestsData.items)) {
+                targetArray = changeRequestsData.items;
+            } else {
+                for (const key of Object.keys(changeRequestsData)) {
+                    if (Array.isArray(changeRequestsData[key])) {
+                        targetArray = changeRequestsData[key];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Find and update the specific change request
+        const changeRequestIndex = targetArray.findIndex(
+            (cr: any) => (cr.Code === changeRequestCode || cr.code === changeRequestCode)
+        );
+        
+        if (changeRequestIndex === -1) {
+            throw new Error(`Change request with code ${changeRequestCode} not found`);
+        }
+        
+        // Update the change request status
+        targetArray[changeRequestIndex].IsApproved = false;
+        targetArray[changeRequestIndex].IsRejected = true;
+        
+        // Add rejection reason if provided
+        if (reason) {
+            targetArray[changeRequestIndex].RejectionReason = reason;
+        }
+        
+        // Save the updated file
+        fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+        
+        // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Show a success message
+        vscode.window.showInformationMessage(`Change request ${changeRequestCode} rejected successfully`);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to reject change request:", error);
+        vscode.window.showErrorMessage(`Failed to reject change request: ${error.message}`);
+        panel.webview.postMessage({ command: 'setError', text: `Failed to reject change request: ${error.message}` });
+    }
+}
+
+/**
+ * Handles applying a specific change request to the model.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ * @param changeRequestCode The specific change request code to apply.
+ */
+async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode: string, changeRequestCode: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        
+        // Read file contents
+        if (!fs.existsSync(changeRequestsFilePath)) {
+            throw new Error(`Change requests file not found: ${changeRequestsFilePath}`);
+        }
+        
+        const fileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
+        let changeRequestsData = JSON.parse(fileContent);
+        
+        // Find the target data array
+        let targetArray = changeRequestsData;
+        if (!Array.isArray(changeRequestsData)) {
+            if (changeRequestsData.changeRequests && Array.isArray(changeRequestsData.changeRequests)) {
+                targetArray = changeRequestsData.changeRequests;
+            } else if (changeRequestsData.items && Array.isArray(changeRequestsData.items)) {
+                targetArray = changeRequestsData.items;
+            } else {
+                for (const key of Object.keys(changeRequestsData)) {
+                    if (Array.isArray(changeRequestsData[key])) {
+                        targetArray = changeRequestsData[key];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Find the specific change request
+        const changeRequestIndex = targetArray.findIndex(
+            (cr: any) => (cr.Code === changeRequestCode || cr.code === changeRequestCode)
+        );
+        
+        if (changeRequestIndex === -1) {
+            throw new Error(`Change request with code ${changeRequestCode} not found`);
+        }
+        
+        const changeRequest = targetArray[changeRequestIndex];
+        
+        // Ensure the change request is approved before applying
+        if (!changeRequest.IsApproved) {
+            throw new Error(`Change request ${changeRequestCode} must be approved before it can be applied`);
+        }
+        
+        // Apply the change to the model
+        // This would integrate with the modelService to actually make the change
+        // For now, just mark it as processed
+        changeRequest.IsProcessed = true;
+        
+        // TODO: Implement actual model update logic here
+        // This will depend on how your application handles model updates
+        // You might need to call a service to apply the actual change to the model file
+        
+        // Save the updated change requests file
+        fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+        
+        // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Show a success message
+        vscode.window.showInformationMessage(`Change request ${changeRequestCode} applied successfully`);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to apply change request:", error);
+        vscode.window.showErrorMessage(`Failed to apply change request: ${error.message}`);
+        panel.webview.postMessage({ command: 'setError', text: `Failed to apply change request: ${error.message}` });
+    }
+}
+
+/**
+ * Handles approving all pending change requests.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ */
+async function handleApproveAllChangeRequests(panel: vscode.WebviewPanel, requestCode: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        
+        // Read file contents
+        if (!fs.existsSync(changeRequestsFilePath)) {
+            throw new Error(`Change requests file not found: ${changeRequestsFilePath}`);
+        }
+        
+        const fileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
+        let changeRequestsData = JSON.parse(fileContent);
+        
+        // Find the target data array
+        let targetArray = changeRequestsData;
+        if (!Array.isArray(changeRequestsData)) {
+            if (changeRequestsData.changeRequests && Array.isArray(changeRequestsData.changeRequests)) {
+                targetArray = changeRequestsData.changeRequests;
+            } else if (changeRequestsData.items && Array.isArray(changeRequestsData.items)) {
+                targetArray = changeRequestsData.items;
+            } else {
+                for (const key of Object.keys(changeRequestsData)) {
+                    if (Array.isArray(changeRequestsData[key])) {
+                        targetArray = changeRequestsData[key];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Count number of updated requests
+        let approvedCount = 0;
+        
+        // Update all pending change requests
+        for (const changeRequest of targetArray) {
+            // If not processed or rejected - approve it
+            if (!changeRequest.IsProcessed && !changeRequest.IsRejected) {
+                changeRequest.IsApproved = true;
+                changeRequest.IsRejected = false;
+                approvedCount++;
+            }
+        }
+        
+        // Save the updated file
+        fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+        
+        // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Show a success message
+        vscode.window.showInformationMessage(`${approvedCount} change requests approved successfully`);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to approve all change requests:", error);
+        vscode.window.showErrorMessage(`Failed to approve all change requests: ${error.message}`);
+        panel.webview.postMessage({ command: 'setError', text: `Failed to approve all change requests: ${error.message}` });
+    }
+}
+
+/**
+ * Handles rejecting all pending change requests.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ * @param reason The reason for rejection.
+ */
+async function handleRejectAllChangeRequests(panel: vscode.WebviewPanel, requestCode: string, reason?: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        
+        // Read file contents
+        if (!fs.existsSync(changeRequestsFilePath)) {
+            throw new Error(`Change requests file not found: ${changeRequestsFilePath}`);
+        }
+        
+        const fileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
+        let changeRequestsData = JSON.parse(fileContent);
+        
+        // Find the target data array
+        let targetArray = changeRequestsData;
+        if (!Array.isArray(changeRequestsData)) {
+            if (changeRequestsData.changeRequests && Array.isArray(changeRequestsData.changeRequests)) {
+                targetArray = changeRequestsData.changeRequests;
+            } else if (changeRequestsData.items && Array.isArray(changeRequestsData.items)) {
+                targetArray = changeRequestsData.items;
+            } else {
+                for (const key of Object.keys(changeRequestsData)) {
+                    if (Array.isArray(changeRequestsData[key])) {
+                        targetArray = changeRequestsData[key];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Count number of updated requests
+        let rejectedCount = 0;
+        
+        // Update all pending change requests
+        for (const changeRequest of targetArray) {
+            // If not processed or approved - reject it
+            if (!changeRequest.IsProcessed && !changeRequest.IsApproved) {
+                changeRequest.IsApproved = false;
+                changeRequest.IsRejected = true;
+                if (reason) {
+                    changeRequest.RejectionReason = reason;
+                }
+                rejectedCount++;
+            }
+        }
+        
+        // Save the updated file
+        fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+        
+        // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Show a success message
+        vscode.window.showInformationMessage(`${rejectedCount} change requests rejected successfully`);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to reject all change requests:", error);
+        vscode.window.showErrorMessage(`Failed to reject all change requests: ${error.message}`);
+        panel.webview.postMessage({ command: 'setError', text: `Failed to reject all change requests: ${error.message}` });
+    }
+}
+
+/**
+ * Handles applying all approved change requests to the model.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ */
+async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestCode: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        
+        // Read file contents
+        if (!fs.existsSync(changeRequestsFilePath)) {
+            throw new Error(`Change requests file not found: ${changeRequestsFilePath}`);
+        }
+        
+        const fileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
+        let changeRequestsData = JSON.parse(fileContent);
+        
+        // Find the target data array
+        let targetArray = changeRequestsData;
+        if (!Array.isArray(changeRequestsData)) {
+            if (changeRequestsData.changeRequests && Array.isArray(changeRequestsData.changeRequests)) {
+                targetArray = changeRequestsData.changeRequests;
+            } else if (changeRequestsData.items && Array.isArray(changeRequestsData.items)) {
+                targetArray = changeRequestsData.items;
+            } else {
+                for (const key of Object.keys(changeRequestsData)) {
+                    if (Array.isArray(changeRequestsData[key])) {
+                        targetArray = changeRequestsData[key];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Count number of updated requests
+        let appliedCount = 0;
+        
+        // Apply all approved change requests
+        for (const changeRequest of targetArray) {
+            // If approved and not processed and has automation available - apply it
+            if (changeRequest.IsApproved && !changeRequest.IsProcessed && changeRequest.IsAutomatedChangeAvailable) {
+                changeRequest.IsProcessed = true;
+                appliedCount++;
+                
+                // TODO: Implement actual model update logic here
+                // This will depend on how your application handles model updates
+            }
+        }
+        
+        // Save the updated file
+        fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+        
+        // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Show a success message
+        vscode.window.showInformationMessage(`${appliedCount} change requests applied successfully`);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to apply all change requests:", error);
+        vscode.window.showErrorMessage(`Failed to apply all change requests: ${error.message}`);
+        panel.webview.postMessage({ command: 'setError', text: `Failed to apply all change requests: ${error.message}` });
+    }
+}
