@@ -762,14 +762,67 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
             throw new Error(`Change request ${changeRequestCode} must be approved before it can be applied`);
         }
         
-        // Apply the change to the model
-        // This would integrate with the modelService to actually make the change
-        // For now, just mark it as processed
-        changeRequest.IsProcessed = true;
+        // Import required utilities
+        const { XPathUtils } = require('../utils/xpathUtils');
         
-        // TODO: Implement actual model update logic here
-        // This will depend on how your application handles model updates
-        // You might need to call a service to apply the actual change to the model file
+        // Get the model service instance to find the current model file path
+        const { ModelService } = require('../services/modelService');
+        const modelService = ModelService.getInstance();
+        
+        // Get the model file path
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            throw new Error('No model file path is available');
+        }
+        
+        // Read the model file directly
+        const modelFileContent = fs.readFileSync(modelFilePath, 'utf8');
+        const modelJson = JSON.parse(modelFileContent);
+        
+        // Get the property path from the change request
+        const propertyPath = changeRequest.PropertyPath || changeRequest.propertyPath;
+        
+        // Get the new value to set
+        const newValue = changeRequest.NewValue || changeRequest.newValue;
+        
+        if (propertyPath) {
+            // We have an explicit path, use it to apply the change
+            console.log(`[Extension] Applying change to path: ${propertyPath}`);
+            
+            // Apply the change using XPathUtils
+            const changeApplied = XPathUtils.setValue(modelJson, propertyPath, newValue);
+            
+            if (!changeApplied) {
+                throw new Error(`Failed to apply change: could not find property at path ${propertyPath}`);
+            }
+        } else {
+            // If there's no explicit PropertyPath, try to construct one from PropertyName
+            const propertyName = changeRequest.PropertyName || changeRequest.propertyName;
+            if (!propertyName) {
+                throw new Error('Change request does not specify a property path or name');
+            }
+            
+            // Simplified approach: Try to find the property in the model
+            console.log(`[Extension] No explicit property path found. Using simplified approach with property name: ${propertyName}`);
+            
+            // Apply the change using the appropriate method based on property format
+            let changeApplied = false;
+            
+            // Method 1: Try to use property name as a direct path (for simple cases like 'name', 'description')
+            changeApplied = XPathUtils.setValue(modelJson, `root/${propertyName}`, newValue);
+            
+            if (!changeApplied) {
+                // Method 2: For more complex cases, try to search for objects with a matching property
+                vscode.window.showWarningMessage(`Could not automatically locate path for property: ${propertyName}. Please provide a full XPath in the change request.`);
+                throw new Error(`Could not apply change: property path not found for ${propertyName}`);
+            }
+        }
+        
+        // Save the modified model JSON back to the file
+        fs.writeFileSync(modelFilePath, JSON.stringify(modelJson, null, 2), 'utf8');
+        
+        // Mark the change request as processed
+        changeRequest.IsProcessed = true;
         
         // Save the updated change requests file
         fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
@@ -969,29 +1022,105 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
             }
         }
         
+        // Import required utilities
+        const { XPathUtils } = require('../utils/xpathUtils');
+        const { ModelService } = require('../services/modelService');
+        const modelService = ModelService.getInstance();
+        
+        // Get the model file path
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            throw new Error('No model file path is available');
+        }
+        
+        // Read the model file directly
+        const modelFileContent = fs.readFileSync(modelFilePath, 'utf8');
+        const modelJson = JSON.parse(modelFileContent);
+        
         // Count number of updated requests
         let appliedCount = 0;
+        let failedCount = 0;
         
         // Apply all approved change requests
         for (const changeRequest of targetArray) {
             // If approved and not processed and has automation available - apply it
             if (changeRequest.IsApproved && !changeRequest.IsProcessed && changeRequest.IsAutomatedChangeAvailable) {
-                changeRequest.IsProcessed = true;
-                appliedCount++;
-                
-                // TODO: Implement actual model update logic here
-                // This will depend on how your application handles model updates
+                try {
+                    // Get the property path from the change request
+                    const propertyPath = changeRequest.PropertyPath || changeRequest.propertyPath;
+                    
+                    // Get the new value to set
+                    const newValue = changeRequest.NewValue || changeRequest.newValue;
+                    
+                    if (propertyPath) {
+                        // Apply the change using XPathUtils
+                        const changeApplied = XPathUtils.setValue(modelJson, propertyPath, newValue);
+                        
+                        if (changeApplied) {
+                            // Mark as processed
+                            changeRequest.IsProcessed = true;
+                            appliedCount++;
+                            console.log(`[Extension] Successfully applied change to path: ${propertyPath}`);
+                        } else {
+                            failedCount++;
+                            console.error(`[Extension] Failed to apply change: could not find property at path ${propertyPath}`);
+                            // Keep trying other changes
+                        }
+                    } else {
+                        // If there's no explicit PropertyPath, try to use the PropertyName
+                        const propertyName = changeRequest.PropertyName || changeRequest.propertyName;
+                        
+                        if (propertyName) {
+                            // Try to use property name as a direct path
+                            const changeApplied = XPathUtils.setValue(modelJson, `root/${propertyName}`, newValue);
+                            
+                            if (changeApplied) {
+                                // Mark as processed
+                                changeRequest.IsProcessed = true;
+                                appliedCount++;
+                                console.log(`[Extension] Successfully applied change to property: ${propertyName}`);
+                            } else {
+                                failedCount++;
+                                console.error(`[Extension] Failed to apply change: could not find property ${propertyName}`);
+                                // Keep trying other changes
+                            }
+                        } else {
+                            failedCount++;
+                            console.error("[Extension] Change request does not specify a property path or name");
+                            // Keep trying other changes
+                        }
+                    }
+                } catch (e) {
+                    failedCount++;
+                    console.error(`[Extension] Error applying change:`, e);
+                    // Keep trying other changes
+                }
             }
         }
         
-        // Save the updated file
+        // Save the model if any changes were applied
+        if (appliedCount > 0) {
+            // Write the modified JSON directly to the model file
+            fs.writeFileSync(modelFilePath, JSON.stringify(modelJson, null, 2), 'utf8');
+        }
+        
+        // Save the updated change requests file
         fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
         
         // Reload and send updated data to the webview
         await loadAndSendChangeRequests(panel, requestCode);
         
-        // Show a success message
-        vscode.window.showInformationMessage(`${appliedCount} change requests applied successfully`);
+        // Show a success message with details
+        if (appliedCount > 0) {
+            const message = failedCount > 0 ?
+                `Applied ${appliedCount} change requests successfully with ${failedCount} failures` :
+                `${appliedCount} change requests applied successfully`;
+            vscode.window.showInformationMessage(message);
+        } else if (failedCount > 0) {
+            vscode.window.showErrorMessage(`Failed to apply ${failedCount} change requests`);
+        } else {
+            vscode.window.showInformationMessage(`No change requests to apply`);
+        }
         
     } catch (error) {
         console.error("[Extension] Failed to apply all change requests:", error);
