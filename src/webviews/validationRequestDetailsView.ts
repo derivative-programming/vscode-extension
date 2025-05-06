@@ -63,7 +63,7 @@ export async function showValidationRequestDetailsView(context: vscode.Extension
                     
                 case 'viewChangeRequests':
                     console.log("[Extension] Opening change requests for request code:", message.requestCode);
-                    await openChangeRequestsFile(panel, message.requestCode);
+                    await openChangeRequestsFile(panel, message.requestCode, context);
                     return;
                     
                 case 'showMessage':
@@ -197,11 +197,12 @@ async function checkChangeRequestsExist(panel: vscode.WebviewPanel, requestCode:
 }
 
 /**
- * Opens an existing change requests file in the editor.
+ * Opens the change requests list view.
  * @param panel The webview panel.
  * @param requestCode The validation request code.
+ * @param context The extension context.
  */
-async function openChangeRequestsFile(panel: vscode.WebviewPanel, requestCode: string) {
+async function openChangeRequestsFile(panel: vscode.WebviewPanel, requestCode: string, context: vscode.ExtensionContext) {
     try {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
@@ -217,17 +218,18 @@ async function openChangeRequestsFile(panel: vscode.WebviewPanel, requestCode: s
             throw new Error('Change requests file does not exist');
         }
 
-        // Open the file in a new editor tab
-        const fileUri = vscode.Uri.file(filePath);
-        const document = await vscode.workspace.openTextDocument(fileUri);
-        await vscode.window.showTextDocument(document, { viewColumn: vscode.ViewColumn.One });
+        // Import the change requests list view module
+        const { showChangeRequestsListView } = require('./changeRequestsListView');
+        
+        // Show the change requests list view in the main editor column
+        await showChangeRequestsListView(context, requestCode);
         
         panel.webview.postMessage({ command: 'changeRequestsOpened' });
-        console.log("[Extension] Change requests file opened successfully:", filePath);
+        console.log("[Extension] Change requests view opened successfully for request code:", requestCode);
         
     } catch (error) {
-        console.error("[Extension] Failed to open change requests file:", error);
-        vscode.window.showErrorMessage(`Failed to open change requests file: ${error.message}`);
+        console.error("[Extension] Failed to open change requests view:", error);
+        vscode.window.showErrorMessage(`Failed to open change requests view: ${error.message}`);
         panel.webview.postMessage({ 
             command: 'changeRequestsOpenError', 
             error: error.message
@@ -491,12 +493,36 @@ function getWebviewContent(scriptUri: vscode.Uri, requestCode: string): string {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
+                .request-code-footer {
+                    margin-top: 40px;
+                    padding-top: 20px;
+                    border-top: 1px solid var(--vscode-panel-border);
+                    font-family: var(--vscode-editor-font-family);
+                    font-size: 0.9em;
+                    color: var(--vscode-descriptionForeground);
+                }
+                .code-display {
+                    font-family: var(--vscode-editor-font-family);
+                    font-size: 1em;
+                    color: var(--vscode-editor-foreground);
+                    background-color: var(--vscode-input-background);
+                    padding: 5px 8px;
+                    border-radius: 3px;
+                    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+                    display: inline-block;
+                    margin-left: 10px;
+                }
             </style>
         </head>
         <body>
             <h1>Validation Request Details</h1>
             <div id="details-container">
                 <p class="loading-message">Loading details for ${requestCode}...</p>
+            </div>
+            
+            <div class="request-code-footer">
+                <span>Validation Request Code:</span>
+                <span class="code-display">${requestCode}</span>
             </div>
 
             <script nonce="${nonce}" src="${scriptUri}"></script>
