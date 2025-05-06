@@ -143,6 +143,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 if (isLoggedIn) {
                     // When logged in, add service items first
                     const serviceItems = [
+                        { name: "Model AI Processing", description: "Submit models for AI processing" },
                         { name: "Model Validation", description: "Validate models against best practices" }
                         // Removed Code Generation API
                     ];
@@ -154,13 +155,25 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         );
                         serviceItem.tooltip = service.description;
                         serviceItem.iconPath = new vscode.ThemeIcon('cloud');
-                        serviceItem.command = {
-                            command: 'appdna.modelValidation',
-                            title: 'Show Model Validation Requests',
-                            arguments: []
-                        };
+                        
+                        // Set the appropriate command for each service
+                        if (service.name === "Model Validation") {
+                            serviceItem.command = {
+                                command: 'appdna.modelValidation',
+                                title: 'Show Model Validation Requests',
+                                arguments: []
+                            };
+                        } else if (service.name === "Model AI Processing") {
+                            serviceItem.command = {
+                                command: 'appdna.modelAIProcessing',
+                                title: 'Show Model AI Processing Requests',
+                                arguments: []
+                            };
+                        }
+                        
                         items.push(serviceItem);
                     });
+                    
                     // Add logout option last
                     const logoutItem = new JsonTreeItem(
                         "Logout",
