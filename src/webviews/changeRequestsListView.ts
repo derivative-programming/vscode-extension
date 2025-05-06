@@ -779,43 +779,121 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
         const modelFileContent = fs.readFileSync(modelFilePath, 'utf8');
         const modelJson = JSON.parse(modelFileContent);
         
-        // Get the property path from the change request
+        // Get property information from the change request
+        const modelXPath = changeRequest.ModelXPath || changeRequest.modelXPath;
         const propertyPath = changeRequest.PropertyPath || changeRequest.propertyPath;
+        const propertyName = changeRequest.PropertyName || changeRequest.propertyName;
+        const oldValue = changeRequest.OldValue !== undefined ? changeRequest.OldValue : changeRequest.oldValue;
+        const newValue = changeRequest.NewValue !== undefined ? changeRequest.NewValue : changeRequest.newValue;
         
-        // Get the new value to set
-        const newValue = changeRequest.NewValue || changeRequest.newValue;
+        // Validate that we have the necessary information to proceed
+        if (!modelXPath && !propertyPath && !propertyName) {
+            throw new Error('Change request does not specify a property location (ModelXPath, PropertyPath, or PropertyName)');
+        }
         
-        if (propertyPath) {
-            // We have an explicit path, use it to apply the change
-            console.log(`[Extension] Applying change to path: ${propertyPath}`);
+        let targetObject = null;
+        let currentValue = null;
+        
+        // First try to use ModelXPath if available - this is the most precise way to locate the property
+        if (modelXPath) {
+            console.log(`[Extension] Using ModelXPath to locate property: ${modelXPath}`);
             
-            // Apply the change using XPathUtils
-            const changeApplied = XPathUtils.setValue(modelJson, propertyPath, newValue);
+            // Use getValue with JSONPath instead of query which doesn't exist
+            const result = XPathUtils.getValue(modelJson, modelXPath);
             
-            if (!changeApplied) {
-                throw new Error(`Failed to apply change: could not find property at path ${propertyPath}`);
-            }
-        } else {
-            // If there's no explicit PropertyPath, try to construct one from PropertyName
-            const propertyName = changeRequest.PropertyName || changeRequest.propertyName;
-            if (!propertyName) {
-                throw new Error('Change request does not specify a property path or name');
+            if (result === undefined) {
+                throw new Error(`No objects found at XPath: ${modelXPath}`);
             }
             
-            // Simplified approach: Try to find the property in the model
-            console.log(`[Extension] No explicit property path found. Using simplified approach with property name: ${propertyName}`);
+            // Handle the case where JSONPath might return an array of results or a single object
+            targetObject = Array.isArray(result) ? result[0] : result;
             
-            // Apply the change using the appropriate method based on property format
-            let changeApplied = false;
-            
-            // Method 1: Try to use property name as a direct path (for simple cases like 'name', 'description')
-            changeApplied = XPathUtils.setValue(modelJson, `root/${propertyName}`, newValue);
-            
-            if (!changeApplied) {
-                // Method 2: For more complex cases, try to search for objects with a matching property
-                vscode.window.showWarningMessage(`Could not automatically locate path for property: ${propertyName}. Please provide a full XPath in the change request.`);
-                throw new Error(`Could not apply change: property path not found for ${propertyName}`);
+            if (!targetObject) {
+                throw new Error(`No matching object found at XPath: ${modelXPath}`);
             }
+            
+            // If we have the object but need to access a specific property within it
+            if (targetObject && propertyName && targetObject[propertyName] === undefined) {
+                throw new Error(`Property '${propertyName}' not found in object at XPath: ${modelXPath}`);
+            }
+            
+            // Get the current value
+            currentValue = propertyName ? targetObject[propertyName] : targetObject;
+            
+            console.log(`[Extension] Found target object using ModelXPath, property: ${propertyName}, currentValue:`, currentValue);
+        }
+        // Fall back to PropertyPath if ModelXPath isn't available or didn't work
+        else if (propertyPath) {
+            console.log(`[Extension] Using PropertyPath to locate property: ${propertyPath}`);
+            currentValue = XPathUtils.getValue(modelJson, propertyPath);
+            
+            if (currentValue === undefined) {
+                throw new Error(`Property not found at path: ${propertyPath}`);
+            }
+        }
+        // Last resort - try to construct a path from PropertyName
+        else if (propertyName) {
+            const constructedPath = `root/${propertyName}`;
+            console.log(`[Extension] Using constructed path to locate property: ${constructedPath}`);
+            currentValue = XPathUtils.getValue(modelJson, constructedPath);
+            
+            if (currentValue === undefined) {
+                throw new Error(`Property not found at constructed path: ${constructedPath}`);
+            }
+        }
+        
+        // Verify the current value matches the old value from the change request
+        if (JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
+            console.error(`[Extension] Value mismatch: Current value (${JSON.stringify(currentValue)}) ` + 
+                         `doesn't match expected old value (${JSON.stringify(oldValue)})`);
+            
+            // Mark as rejected with out of date reason
+            changeRequest.IsApproved = false;
+            changeRequest.IsRejected = true;
+            changeRequest.RejectionReason = "The property value has changed since this request was created. Changes are out of date.";
+            changeRequest.IsProcessed = true; // Mark as processed since we've handled it
+            
+            // Save the updated change requests file
+            fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+            
+            // Reload and send updated data to the webview
+            await loadAndSendChangeRequests(panel, requestCode);
+            
+            // Show a warning message
+            vscode.window.showWarningMessage(`Change request ${changeRequestCode} rejected: Current model value doesn't match the expected old value`);
+            return;
+        }
+        
+        // Apply the change based on how we found the property
+        let changeApplied = false;
+        
+        if (modelXPath && targetObject) {
+            if (propertyName) {
+                // Update the property in the found object
+                console.log(`[Extension] Updating property '${propertyName}' in object at XPath: ${modelXPath}`);
+                targetObject[propertyName] = newValue;
+                changeApplied = true;
+            } else {
+                // The entire object is being replaced
+                console.log(`[Extension] Replacing entire object at XPath: ${modelXPath}`);
+                
+                // This is more complex and would require finding the parent object and index
+                // For now, we'll throw an error since this case is less common
+                throw new Error(`Replacing entire objects via ModelXPath is not yet supported`);
+            }
+        } else if (propertyPath) {
+            // Use PropertyPath to set the value
+            console.log(`[Extension] Setting value at PropertyPath: ${propertyPath}`);
+            changeApplied = XPathUtils.setValue(modelJson, propertyPath, newValue);
+        } else if (propertyName) {
+            // Use the constructed path to set the value
+            const constructedPath = `root/${propertyName}`;
+            console.log(`[Extension] Setting value at constructed path: ${constructedPath}`);
+            changeApplied = XPathUtils.setValue(modelJson, constructedPath, newValue);
+        }
+        
+        if (!changeApplied) {
+            throw new Error(`Failed to apply change: could not set the new value`);
         }
         
         // Save the modified model JSON back to the file
@@ -1037,70 +1115,139 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
         const modelFileContent = fs.readFileSync(modelFilePath, 'utf8');
         const modelJson = JSON.parse(modelFileContent);
         
-        // Count number of updated requests
+        // Count successful applications
         let appliedCount = 0;
-        let failedCount = 0;
+        let rejectedCount = 0;
         
-        // Apply all approved change requests
-        for (const changeRequest of targetArray) {
-            // If approved and not processed and has automation available - apply it
-            if (changeRequest.IsApproved && !changeRequest.IsProcessed && changeRequest.IsAutomatedChangeAvailable) {
-                try {
-                    // Get the property path from the change request
-                    const propertyPath = changeRequest.PropertyPath || changeRequest.propertyPath;
-                    
-                    // Get the new value to set
-                    const newValue = changeRequest.NewValue || changeRequest.newValue;
-                    
-                    if (propertyPath) {
-                        // Apply the change using XPathUtils
-                        const changeApplied = XPathUtils.setValue(modelJson, propertyPath, newValue);
-                        
-                        if (changeApplied) {
-                            // Mark as processed
-                            changeRequest.IsProcessed = true;
-                            appliedCount++;
-                            console.log(`[Extension] Successfully applied change to path: ${propertyPath}`);
-                        } else {
-                            failedCount++;
-                            console.error(`[Extension] Failed to apply change: could not find property at path ${propertyPath}`);
-                            // Keep trying other changes
-                        }
-                    } else {
-                        // If there's no explicit PropertyPath, try to use the PropertyName
-                        const propertyName = changeRequest.PropertyName || changeRequest.propertyName;
-                        
-                        if (propertyName) {
-                            // Try to use property name as a direct path
-                            const changeApplied = XPathUtils.setValue(modelJson, `root/${propertyName}`, newValue);
-                            
-                            if (changeApplied) {
-                                // Mark as processed
-                                changeRequest.IsProcessed = true;
-                                appliedCount++;
-                                console.log(`[Extension] Successfully applied change to property: ${propertyName}`);
-                            } else {
-                                failedCount++;
-                                console.error(`[Extension] Failed to apply change: could not find property ${propertyName}`);
-                                // Keep trying other changes
-                            }
-                        } else {
-                            failedCount++;
-                            console.error("[Extension] Change request does not specify a property path or name");
-                            // Keep trying other changes
-                        }
-                    }
-                } catch (e) {
-                    failedCount++;
-                    console.error(`[Extension] Error applying change:`, e);
-                    // Keep trying other changes
+        // Filter for approved but not processed change requests
+        const approvableRequests = targetArray.filter(
+            (cr: any) => cr.IsApproved && !cr.IsProcessed
+        );
+        
+        // Process each change request
+        for (const changeRequest of approvableRequests) {
+            try {
+                // Get property information from the change request
+                const modelXPath = changeRequest.ModelXPath || changeRequest.modelXPath;
+                const propertyPath = changeRequest.PropertyPath || changeRequest.propertyPath;
+                const propertyName = changeRequest.PropertyName || changeRequest.propertyName;
+                const oldValue = changeRequest.OldValue !== undefined ? changeRequest.OldValue : changeRequest.oldValue;
+                const newValue = changeRequest.NewValue !== undefined ? changeRequest.NewValue : changeRequest.newValue;
+                
+                // Validate that we have the necessary information to proceed
+                if (!modelXPath && !propertyPath && !propertyName) {
+                    console.warn(`[Extension] Change request ${changeRequest.Code} does not specify a property location`);
+                    continue;
                 }
+                
+                let targetObject = null;
+                let currentValue = null;
+                
+                // First try to use ModelXPath if available - this is the most precise way to locate the property
+                if (modelXPath) {
+                    console.log(`[Extension] Using ModelXPath to locate property: ${modelXPath}`);
+                    
+                    // Use getValue with JSONPath
+                    const result = XPathUtils.getValue(modelJson, modelXPath);
+                    
+                    if (result === undefined) {
+                        throw new Error(`No objects found at XPath: ${modelXPath}`);
+                    }
+                    
+                    // Handle the case where JSONPath might return an array of results or a single object
+                    targetObject = Array.isArray(result) ? result[0] : result;
+                    
+                    if (!targetObject) {
+                        throw new Error(`No matching object found at XPath: ${modelXPath}`);
+                    }
+                    
+                    // If we have the object but need to access a specific property within it
+                    if (targetObject && propertyName && targetObject[propertyName] === undefined) {
+                        throw new Error(`Property '${propertyName}' not found in object at XPath: ${modelXPath}`);
+                    }
+                    
+                    // Get the current value
+                    currentValue = propertyName ? targetObject[propertyName] : targetObject;
+                }
+                // Fall back to PropertyPath if ModelXPath isn't available or didn't work
+                else if (propertyPath) {
+                    console.log(`[Extension] Using PropertyPath to locate property: ${propertyPath}`);
+                    currentValue = XPathUtils.getValue(modelJson, propertyPath);
+                    
+                    if (currentValue === undefined) {
+                        throw new Error(`Property not found at path: ${propertyPath}`);
+                    }
+                }
+                // Last resort - try to construct a path from PropertyName
+                else if (propertyName) {
+                    const constructedPath = `root/${propertyName}`;
+                    console.log(`[Extension] Using constructed path to locate property: ${constructedPath}`);
+                    currentValue = XPathUtils.getValue(modelJson, constructedPath);
+                    
+                    if (currentValue === undefined) {
+                        throw new Error(`Property not found at constructed path: ${constructedPath}`);
+                    }
+                }
+                
+                // Verify the current value matches the old value from the change request
+                if (JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
+                    console.error(`[Extension] Value mismatch for change request ${changeRequest.Code}: ` + 
+                                 `Current value (${JSON.stringify(currentValue)}) ` + 
+                                 `doesn't match expected old value (${JSON.stringify(oldValue)})`);
+                    
+                    // Mark as rejected with out of date reason
+                    changeRequest.IsApproved = false;
+                    changeRequest.IsRejected = true;
+                    changeRequest.RejectionReason = "The property value has changed since this request was created. Changes are out of date.";
+                    changeRequest.IsProcessed = true; // Mark as processed since we've handled it
+                    rejectedCount++;
+                    continue;
+                }
+                
+                // Apply the change based on how we found the property
+                let changeApplied = false;
+                
+                if (modelXPath && targetObject) {
+                    if (propertyName) {
+                        // Update the property in the found object
+                        console.log(`[Extension] Updating property '${propertyName}' in object at XPath: ${modelXPath}`);
+                        targetObject[propertyName] = newValue;
+                        changeApplied = true;
+                    } else {
+                        // The entire object is being replaced
+                        throw new Error(`Replacing entire objects via ModelXPath is not yet supported`);
+                    }
+                } else if (propertyPath) {
+                    // Use PropertyPath to set the value
+                    console.log(`[Extension] Setting value at PropertyPath: ${propertyPath}`);
+                    changeApplied = XPathUtils.setValue(modelJson, propertyPath, newValue);
+                } else if (propertyName) {
+                    // Use the constructed path to set the value
+                    const constructedPath = `root/${propertyName}`;
+                    console.log(`[Extension] Setting value at constructed path: ${constructedPath}`);
+                    changeApplied = XPathUtils.setValue(modelJson, constructedPath, newValue);
+                }
+                
+                if (!changeApplied) {
+                    throw new Error(`Failed to apply change: could not set the new value`);
+                }
+                
+                // Mark as successfully processed
+                changeRequest.IsProcessed = true;
+                appliedCount++;
+                
+            } catch (error) {
+                console.error(`[Extension] Error applying change request ${changeRequest.Code || changeRequest.code}:`, error);
+                
+                // Mark as failed
+                changeRequest.IsRejected = true;
+                changeRequest.RejectionReason = `Failed to apply: ${error.message}`;
+                rejectedCount++;
             }
         }
         
-        // Save the model if any changes were applied
+        // Save the modified model JSON back to the file if any changes were applied
         if (appliedCount > 0) {
-            // Write the modified JSON directly to the model file
             fs.writeFileSync(modelFilePath, JSON.stringify(modelJson, null, 2), 'utf8');
         }
         
@@ -1110,16 +1257,15 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
         // Reload and send updated data to the webview
         await loadAndSendChangeRequests(panel, requestCode);
         
-        // Show a success message with details
-        if (appliedCount > 0) {
-            const message = failedCount > 0 ?
-                `Applied ${appliedCount} change requests successfully with ${failedCount} failures` :
-                `${appliedCount} change requests applied successfully`;
-            vscode.window.showInformationMessage(message);
-        } else if (failedCount > 0) {
-            vscode.window.showErrorMessage(`Failed to apply ${failedCount} change requests`);
+        // Show a summary message
+        if (appliedCount > 0 && rejectedCount > 0) {
+            vscode.window.showInformationMessage(`Applied ${appliedCount} change requests. ${rejectedCount} change requests were rejected.`);
+        } else if (appliedCount > 0) {
+            vscode.window.showInformationMessage(`Successfully applied ${appliedCount} change requests.`);
+        } else if (rejectedCount > 0) {
+            vscode.window.showWarningMessage(`${rejectedCount} change requests were rejected. No changes were applied.`);
         } else {
-            vscode.window.showInformationMessage(`No change requests to apply`);
+            vscode.window.showInformationMessage(`No change requests were applied.`);
         }
         
     } catch (error) {
