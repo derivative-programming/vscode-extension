@@ -144,8 +144,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     // When logged in, add service items first
                     const serviceItems = [
                         { name: "Model AI Processing", description: "Submit models for AI processing" },
-                        { name: "Model Validation", description: "Validate models against best practices" }
-                        // Removed Code Generation API
+                        { name: "Model Validation", description: "Validate models against best practices" },
+                        { name: "Model Fabrication", description: "Generate fabrication code from models" }
                     ];
                     serviceItems.forEach(service => {
                         const serviceItem = new JsonTreeItem(
@@ -167,6 +167,12 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                             serviceItem.command = {
                                 command: 'appdna.modelAIProcessing',
                                 title: 'Show Model AI Processing Requests',
+                                arguments: []
+                            };
+                        } else if (service.name === "Model Fabrication") {
+                            serviceItem.command = {
+                                command: 'appdna.modelFabrication',
+                                title: 'Show Model Fabrication Requests',
                                 arguments: []
                             };
                         }
