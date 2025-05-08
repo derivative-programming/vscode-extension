@@ -50,11 +50,11 @@
             renderPaging();
             // Hide spinner when data is set
             hideSpinner();
-        } else if (message.command === "fabricationRequestReceived" || message.command === "fabricationRequestFailed") {
+        } else if (message.command === "ModelFabricationRequestReceived" || message.command === "ModelFabricationRequestFailed") {
             console.log("[Webview] Handling", message.command);
             // Hide spinner when fabrication request is received or failed
             hideSpinner();
-        } else if (message.command === "fabricationRequestCancelled") {
+        } else if (message.command === "ModelFabricationRequestCancelled") {
             console.log("[Webview] Request cancelled successfully, refreshing data");
             hideSpinner();
             // Refresh the current page after a successful cancel
@@ -382,7 +382,7 @@
         `;
         
         // Initial ready message
-        vscode.postMessage({ command: "webviewReady" });
+        vscode.postMessage({ command: "ModelFabricationWebviewReady" });
 
         // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
@@ -401,7 +401,7 @@
             // Show spinner while sending request
             showSpinner();
             const desc = document.getElementById("addDescription").value;
-            vscode.postMessage({ command: "addFabricationRequest", data: { description: desc } });
+            vscode.postMessage({ command: "ModelFabricationAddRequest", data: { description: desc } });
             document.getElementById("addModal").style.display = "none";
             document.getElementById("addDescription").value = ''; // Clear input after submit
         };
@@ -533,7 +533,7 @@
                                         showSpinner();
                                         document.body.removeChild(confirmModal);
                                         vscode.postMessage({
-                                            command: "cancelFabricationRequest",
+                                            command: "ModelFabricationCancelRequest",
                                             requestCode: requestCode
                                         });
                                     });
@@ -556,7 +556,7 @@
                                     e.stopPropagation(); // Prevent row click handler
                                     console.log("[Webview] Details button clicked for request code:", item.modelFabricationRequestCode);
                                     vscode.postMessage({
-                                        command: "showFabricationRequestDetails",
+                                        command: "ModelFabricationShowRequestDetails",
                                         requestCode: item.modelFabricationRequestCode
                                     });
                                 };
@@ -582,7 +582,7 @@
                 // Add row click handler for item details
                 row.addEventListener("click", function() {
                     vscode.postMessage({
-                        command: "showFabricationDetails",
+                        command: "ModelFabricationShowDetails",
                         item: item
                     });
                 });
@@ -644,7 +644,7 @@
 
     function requestPage(page) {
         vscode.postMessage({
-            command: "requestPage",
+            command: "ModelFabricationRequestPage",
             pageNumber: page,
             itemCountPerPage: itemCountPerPage,
             orderByColumnName: orderByColumn,
