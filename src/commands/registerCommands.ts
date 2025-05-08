@@ -17,6 +17,8 @@ import { showWelcomeView } from '../webviews/welcomeView';
 import { showLoginView } from '../webviews/loginView';
 import { AuthService } from '../services/authService';
 import { showValidationRequestDetailsView } from '../webviews/validationRequestDetailsView';
+// Import showFabricationRequestDetailsView
+import { showFabricationRequestDetailsView } from '../webviews/fabricationRequestDetailsView';
 // Import showChangeRequestsListView and alias getWebviewContent
 import { getWebviewContent as getChangeRequestsViewHtml, showChangeRequestsListView } from '../webviews/changeRequestsListView';
 
@@ -1066,8 +1068,172 @@ export function registerCommands(
                         vscode.window.showErrorMessage('Missing request code for details view.');
                         return;
                     }
-                    // Call function to open the details webview if implemented
-                    vscode.window.showInformationMessage(`Viewing details for fabrication request: ${msg.requestCode}`);
+                    // Use the showFabricationRequestDetailsView function
+                    showFabricationRequestDetailsView(context, msg.requestCode);
+                } else if (msg.command === 'ModelFabricationFetchRequestDetails') { // Handle fetch request details for showing in modal
+                    console.log("[Extension] Handling ModelFabricationFetchRequestDetails for code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        vscode.window.showErrorMessage('Missing request code for details view.');
+                        return;
+                    }
+                    
+                    // Fetch fabrication request details and return to webview for modal display
+                    try {
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+                        
+                        if (!apiKey) {
+                            console.error("[Extension] No API key found for fetch fabrication details");
+                            vscode.window.showErrorMessage('You must be logged in to view fabrication details.');
+                            return;
+                        }
+                        
+                        // Use query string parameter for the request code
+                        const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests?modelFabricationRequestCode=${encodeURIComponent(msg.requestCode)}`;
+                        console.log("[Extension] Fetching fabrication details from URL:", url);
+                        
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`API responded with status ${response.status}`);
+                        }
+                        
+                        const responseData = await response.json();
+                        
+                        // Extract the first item from the items array if it exists
+                        if (responseData.items && Array.isArray(responseData.items) && responseData.items.length > 0) {
+                            const details = responseData.items[0];
+                            panel.webview.postMessage({ 
+                                command: 'ModelFabricationRequestDetailsData', 
+                                data: details 
+                            });
+                        } else {
+                            panel.webview.postMessage({ 
+                                command: 'ModelFabricationRequestDetailsError', 
+                                error: 'No details found for this fabrication request.' 
+                            });
+                        }
+                    } catch (error) {
+                        console.error("[Extension] Failed to fetch fabrication details:", error);
+                        panel.webview.postMessage({ 
+                            command: 'ModelFabricationRequestDetailsError', 
+                            error: `Failed to load details: ${error.message}` 
+                        });
+                    }
+                } else if (msg.command === 'ModelFabricationDownloadResults') { // Handle downloading fabrication results
+                    console.log("[Extension] Handling ModelFabricationDownloadResults for URL:", msg.url);
+                    if (!msg.url || !msg.requestCode) {
+                        vscode.window.showErrorMessage('Missing parameters for results download.');
+                        return;
+                    }
+                    
+                    // Download and extract fabrication results
+                    try {
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+                        
+                        if (!apiKey) {
+                            vscode.window.showErrorMessage('You must be logged in to download fabrication results.');
+                            return;
+                        }
+                        
+                        // Create directory for fabrication results if it doesn't exist
+                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                        if (!workspaceFolder) {
+                            throw new Error('No workspace folder found');
+                        }
+                        
+                        const fabricationResultsDir = path.join(workspaceFolder.uri.fsPath, 'fabrication_results');
+                        console.log("[Extension] Creating/cleaning fabrication results directory:", fabricationResultsDir);
+                        
+                        // Create or clean directory
+                        if (fs.existsSync(fabricationResultsDir)) {
+                            // Clean the directory by removing all files
+                            const entries = fs.readdirSync(fabricationResultsDir);
+                            for (const entry of entries) {
+                                const entryPath = path.join(fabricationResultsDir, entry);
+                                if (fs.statSync(entryPath).isDirectory()) {
+                                    fs.rmdirSync(entryPath, { recursive: true });
+                                } else {
+                                    fs.unlinkSync(entryPath);
+                                }
+                            }
+                        } else {
+                            fs.mkdirSync(fabricationResultsDir, { recursive: true });
+                        }
+                        
+                        // Download the results zip file
+                        console.log("[Extension] Downloading fabrication results from URL:", msg.url);
+                        const response = await fetch(msg.url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Failed to download results: ${response.status} ${response.statusText}`);
+                        }
+                        
+                        // Get the response as an array buffer
+                        const zipData = await response.arrayBuffer();
+                        
+                        // Save zip file temporarily
+                        const zipPath = path.join(fabricationResultsDir, 'fabrication_results.zip');
+                        fs.writeFileSync(zipPath, Buffer.from(zipData));
+                        
+                        // Unzip the file
+                        console.log("[Extension] Extracting fabrication results...");
+                        const zip = new JSZip();
+                        const zipContent = await zip.loadAsync(fs.readFileSync(zipPath));
+                        
+                        // Extract all files
+                        const extractionPromises = [];
+                        zipContent.forEach((relativePath, zipEntry) => {
+                            if (!zipEntry.dir) {
+                                const promise = zipEntry.async('nodebuffer').then(content => {
+                                    const outputPath = path.join(fabricationResultsDir, relativePath);
+                                    const outputDir = path.dirname(outputPath);
+                                    
+                                    // Create directory if it doesn't exist
+                                    if (!fs.existsSync(outputDir)) {
+                                        fs.mkdirSync(outputDir, { recursive: true });
+                                    }
+                                    
+                                    // Write file
+                                    fs.writeFileSync(outputPath, content);
+                                });
+                                extractionPromises.push(promise);
+                            }
+                        });
+                        
+                        // Wait for all extraction promises to complete
+                        await Promise.all(extractionPromises);
+                        
+                        // Clean up zip file
+                        fs.unlinkSync(zipPath);
+                        
+                        console.log("[Extension] Fabrication results successfully extracted to:", fabricationResultsDir);
+                        
+                        // Show success message
+                        vscode.window.showInformationMessage(
+                            'Fabrication results have been downloaded and extracted to the fabrication_results folder. ' +
+                            'Review the files and copy needed files to your project.'
+                        );
+                        
+                        // Notify webview that download is complete
+                        panel.webview.postMessage({ 
+                            command: 'ModelFabricationResultDownloadSuccess',
+                            requestCode: msg.requestCode
+                        });
+                        
+                    } catch (error) {
+                        console.error("[Extension] Error downloading fabrication results:", error);
+                        vscode.window.showErrorMessage(`Failed to download fabrication results: ${error.message}`);
+                        panel.webview.postMessage({ 
+                            command: 'ModelFabricationResultDownloadError',
+                            error: error.message
+                        });
+                    }
                 } else if (msg.command === 'ModelFabricationCancelRequest') { // Handle cancel request from list view
                     console.log("[Extension] Handling ModelFabricationCancelRequest for code:", msg.requestCode);
                     if (!msg.requestCode) {

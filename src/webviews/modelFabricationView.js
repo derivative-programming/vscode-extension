@@ -1,6 +1,6 @@
 // modelFabricationView.js
 // Webview for displaying Model Fabrication requests in a paged, sortable table
-// Last modified: May 6, 2025
+// Last modified: May 8, 2025
 // This file provides a professional, VS Code-consistent UI for model fabrication requests.
 
 (function () {
@@ -59,6 +59,11 @@
             hideSpinner();
             // Refresh the current page after a successful cancel
             requestPage(pageNumber);
+        } else if (message.command === "ModelFabricationRequestDetailsData") {
+            // Handle receiving details for displaying in modal
+            console.log("[Webview] Received details for modal:", message.data);
+            hideSpinner();
+            showDetailsModal(message.data);
         }
     });
 
@@ -126,18 +131,24 @@
                     background: rgba(0,0,0,0.4);
                     display: none;
                     align-items: center; justify-content: center;
+                    z-index: 1000;
                 }
                 .modal-content {
                     background: var(--vscode-editor-background);
                     padding: 20px;
                     border-radius: 4px;
                     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                    width: 300px;
+                    width: 500px;
+                    max-width: 90%;
+                    max-height: 90vh;
+                    overflow-y: auto;
                 }
                 .modal-content h3 {
                     margin-top: 0;
-                    margin-bottom: 10px;
-                    font-size: 1.1em;
+                    margin-bottom: 15px;
+                    font-size: 1.2em;
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                    padding-bottom: 8px;
                 }
                 .modal-content label {
                     display: block;
@@ -341,6 +352,72 @@
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
+                
+                /* Styles for details modal content */
+                .detail-item {
+                    margin-bottom: 15px;
+                    display: flex;
+                    align-items: baseline;
+                }
+                .detail-label {
+                    flex: 0 0 120px;
+                    font-weight: 600;
+                    color: var(--vscode-descriptionForeground);
+                }
+                .detail-value {
+                    flex: 1;
+                }
+                .error-message {
+                    color: var(--vscode-errorForeground, #f14c4c);
+                    margin: 20px 0;
+                    padding: 10px;
+                    border-radius: 3px;
+                    background-color: var(--vscode-inputValidation-errorBackground, rgba(241, 76, 76, 0.1));
+                    border-left: 3px solid var(--vscode-errorForeground, #f14c4c);
+                }
+                .error-details .detail-value {
+                    color: var(--vscode-errorForeground, #f14c4c);
+                }
+                .action-container {
+                    margin-top: 20px;
+                    padding-top: 15px;
+                    border-top: 1px solid var(--vscode-panel-border);
+                    display: flex;
+                    justify-content: flex-end;
+                }
+                .download-button {
+                    background-color: var(--vscode-button-background);
+                    color: var(--vscode-button-foreground);
+                    border: none;
+                    padding: 6px 12px;
+                    cursor: pointer;
+                    border-radius: 3px;
+                    font-family: var(--vscode-font-family);
+                }
+                .download-button:hover {
+                    background-color: var(--vscode-button-hoverBackground);
+                }
+                .download-button:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+                .download-success {
+                    background-color: var(--vscode-testing-iconPassed, #89D185);
+                }
+                .close-button {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: none;
+                    border: none;
+                    font-size: 16px;
+                    color: var(--vscode-editor-foreground);
+                    cursor: pointer;
+                    opacity: 0.7;
+                }
+                .close-button:hover {
+                    opacity: 1;
+                }
             </style>
             <div class="fabrication-container">
                 <!-- Spinner overlay -->
@@ -378,6 +455,14 @@
                         </div>
                     </div>
                 </div>
+                <!-- Fabrication Details Modal -->
+                <div id="detailsModal" class="modal">
+                    <div class="modal-content">
+                        <button id="closeDetails" class="close-button">&times;</button>
+                        <h3>Fabrication Request Details</h3>
+                        <div id="detailsContent"></div>
+                    </div>
+                </div>
             </div>
         `;
         
@@ -405,6 +490,11 @@
             document.getElementById("addModal").style.display = "none";
             document.getElementById("addDescription").value = ''; // Clear input after submit
         };
+        
+        // Close details modal when X button is clicked
+        document.getElementById("closeDetails").onclick = function() {
+            document.getElementById("detailsModal").style.display = "none";
+        };
 
         // Add keypress listener for Enter key in description input
         document.getElementById("addDescription").addEventListener("keypress", function(event) {
@@ -413,6 +503,13 @@
                 document.getElementById("submitAdd").click(); // Trigger submit button click
             }
         });
+        
+        // Close modal when clicking outside the modal content
+        window.onclick = function(event) {
+            if (event.target.className === "modal" && event.target.style.display === "flex") {
+                event.target.style.display = "none";
+            }
+        };
     }
 
     function renderTable() {
@@ -551,13 +648,21 @@
                                 const button = document.createElement("button");
                                 button.className = "view-button";
                                 button.textContent = "Details";
+                                button.setAttribute("data-request-code", item.modelFabricationRequestCode);
                                 button.onclick = function(e) {
                                     e.preventDefault();
                                     e.stopPropagation(); // Prevent row click handler
-                                    console.log("[Webview] Details button clicked for request code:", item.modelFabricationRequestCode);
+                                    
+                                    const requestCode = this.getAttribute("data-request-code");
+                                    console.log("[Webview] Details button clicked for request code:", requestCode);
+                                    
+                                    // Show spinner while fetching details
+                                    showSpinner();
+                                    
+                                    // Fetch request details to show in modal
                                     vscode.postMessage({
-                                        command: "ModelFabricationShowRequestDetails",
-                                        requestCode: item.modelFabricationRequestCode
+                                        command: "ModelFabricationFetchRequestDetails",
+                                        requestCode: requestCode
                                     });
                                 };
                                 td.appendChild(button);
@@ -581,10 +686,14 @@
                 
                 // Add row click handler for item details
                 row.addEventListener("click", function() {
-                    vscode.postMessage({
-                        command: "ModelFabricationShowDetails",
-                        item: item
-                    });
+                    // Only handle the click if it's not on a button
+                    if (event.target.tagName !== "BUTTON") {
+                        showSpinner();
+                        vscode.postMessage({
+                            command: "ModelFabricationFetchRequestDetails",
+                            requestCode: item.modelFabricationRequestCode
+                        });
+                    }
                 });
                 
                 tbody.appendChild(row);
@@ -640,6 +749,135 @@
         last.title = "Last Page";
         last.onclick = function () { requestPage(totalPages); };
         paging.appendChild(last);
+    }
+
+    /**
+     * Shows the details modal with the fabrication request data
+     * @param {Object} data The fabrication request details
+     */
+    function showDetailsModal(data) {
+        if (!data) {
+            console.error("[Webview] No data provided for details modal");
+            return;
+        }
+
+        const detailsContent = document.getElementById("detailsContent");
+        detailsContent.innerHTML = "";
+
+        // Define which fields to display and their labels
+        const fieldsToShow = [
+            { key: "modelFabricationRequestDescription", label: "Description" },
+            { key: "modelFabricationRequestRequestedUTCDateTime", label: "Requested At", type: "datetime" },
+            { key: "status", label: "Status", className: "status-field" } 
+        ];
+
+        fieldsToShow.forEach(field => {
+            let value = data[field.key];
+            let displayValue = "";
+
+            // Special handling for status
+            if (field.key === "status") {
+                let status = "";
+                if (data.modelFabricationRequestIsCanceled) {
+                    status = "Cancelled";
+                } else if (!data.modelFabricationRequestIsStarted) {
+                    status = "Queued";
+                } else if (data.modelFabricationRequestIsStarted && !data.modelFabricationRequestIsCompleted) {
+                    status = "Processing";
+                } else if (data.modelFabricationRequestIsCompleted && !data.modelFabricationRequestIsSuccessful) {
+                    status = "Fabrication Error";
+                } else if (data.modelFabricationRequestIsCompleted && data.modelFabricationRequestIsSuccessful) {
+                    status = "Success";
+                }
+                value = status;
+                displayValue = `<span class="detail-value">${value || "N/A"}</span>`;
+            } else {
+                // Handle different types
+                if (value === null || typeof value === "undefined") {
+                    displayValue = '<span class="detail-value">N/A</span>';
+                } else if (field.type === "datetime") {
+                    try {
+                        displayValue = `<span class="detail-value">${new Date(value).toLocaleString()}</span>`;
+                    } catch (e) {
+                        displayValue = `<span class="detail-value">${value} (Invalid Date)</span>`;
+                    }
+                } else {
+                    // Default: display as text, escaping HTML
+                    const textValue = String(value);
+                    const escapedValue = textValue
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#039;");
+                    displayValue = `<span class="detail-value">${escapedValue || "N/A"}</span>`;
+                }
+            }
+
+            // Create the detail item
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "detail-item";
+            if (field.className) {
+                itemDiv.classList.add(field.className);
+            }
+            itemDiv.innerHTML = `
+                <span class="detail-label">${field.label}:</span>
+                ${displayValue}
+            `;
+            detailsContent.appendChild(itemDiv);
+        });
+
+        // Add error information if there were errors
+        if (data.modelFabricationRequestIsCompleted && !data.modelFabricationRequestIsSuccessful) {
+            const errorDiv = document.createElement("div");
+            errorDiv.className = "detail-item error-details";
+            errorDiv.innerHTML = `
+                <span class="detail-label">Error Details:</span>
+                <span class="detail-value error-message">${data.modelFabricationRequestErrorMessage || "No specific error details available."}</span>
+            `;
+            detailsContent.appendChild(errorDiv);
+        }
+
+        // Add action buttons container if needed
+        if (data.modelFabricationRequestIsCompleted) {
+            const actionDiv = document.createElement("div");
+            actionDiv.className = "action-container";
+            
+            // Add download results button if request was successful
+            if (data.modelFabricationRequestIsSuccessful && data.modelFabricationRequestResultUrl) {
+                const downloadButton = document.createElement("button");
+                downloadButton.className = "download-button";
+                downloadButton.textContent = "Download Results";
+                downloadButton.onclick = function() {
+                    // Show spinner and close modal
+                    showSpinner();
+                    document.getElementById("detailsModal").style.display = "none";
+                    
+                    // Send message to extension to download the results
+                    vscode.postMessage({
+                        command: "ModelFabricationDownloadResults",
+                        url: data.modelFabricationRequestResultUrl,
+                        requestCode: data.modelFabricationRequestCode
+                    });
+                };
+                actionDiv.appendChild(downloadButton);
+            }
+            
+            // Add close button to action container
+            const closeButton = document.createElement("button");
+            closeButton.className = "refresh-button modal-button-secondary";
+            closeButton.textContent = "Close";
+            closeButton.style.marginLeft = "8px";
+            closeButton.onclick = function() {
+                document.getElementById("detailsModal").style.display = "none";
+            };
+            actionDiv.appendChild(closeButton);
+            
+            detailsContent.appendChild(actionDiv);
+        }
+
+        // Display the modal
+        document.getElementById("detailsModal").style.display = "flex";
     }
 
     function requestPage(page) {
