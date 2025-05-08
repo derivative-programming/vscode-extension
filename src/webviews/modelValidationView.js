@@ -59,6 +59,90 @@
             hideSpinner();
             // Refresh the current page after a successful cancel
             requestPage(pageNumber);
+        } else if (message.command === "setValidationDetails") {
+            console.log("[Webview] Received validation details data");
+            renderDetailsInModal(message.data);
+            hideSpinner();
+        } else if (message.command === "validationDetailsError") {
+            console.log("[Webview] Error fetching validation details:", message.error);
+            renderErrorInModal(message.error || "Failed to fetch validation details.");
+            hideSpinner();
+        } else if (message.command === "reportDownloadStarted") {
+            console.log("[Webview] Report download started");
+            // Update the download button to show progress
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button");
+            if (reportButton) {
+                reportButton.disabled = true;
+                reportButton.innerHTML = '<span class="spinner"></span> Downloading...';
+            }
+        } else if (message.command === "reportDownloadSuccess") {
+            console.log("[Webview] Report downloaded successfully, changeRequestsExtracted:", message.changeRequestsExtracted);
+            // Update the download button to show success
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button");
+            if (reportButton) {
+                reportButton.disabled = false;
+                reportButton.textContent = 'View Report';
+                // Change the button action to view the report instead of downloading it
+                reportButton.onclick = function() {
+                    vscode.postMessage({
+                        command: 'viewReport',
+                        requestCode: currentRequestCode
+                    });
+                };
+            }
+            // If change requests were extracted during download, refresh the change request button state
+            if (message.changeRequestsExtracted) {
+                vscode.postMessage({
+                    command: 'checkChangeRequestsExist',
+                    requestCode: currentRequestCode
+                });
+            }
+        } else if (message.command === "reportDownloadError") {
+            console.log("[Webview] Report download error:", message.error);
+            // Update the download button to allow retry
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button");
+            if (reportButton) {
+                reportButton.disabled = false;
+                reportButton.textContent = 'Download Report';
+            }
+        } else if (message.command === "reportExistsResult") {
+            console.log("[Webview] Report exists locally:", message.exists);
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button");
+            if (reportButton) {
+                reportButton.disabled = false;
+                // Update button text and action based on whether report exists locally
+                if (message.exists) {
+                    reportButton.textContent = 'View Report';
+                    reportButton.onclick = function() {
+                        vscode.postMessage({
+                            command: 'viewReport',
+                            requestCode: currentRequestCode
+                        });
+                    };
+                } else {
+                    reportButton.textContent = 'Download Report';
+                    reportButton.onclick = function() {
+                        downloadReport(currentRequestCode);
+                    };
+                }
+            }
+        } else if (message.command === "changeRequestsExistResult") {
+            console.log("[Webview] Change requests exist locally:", message.exists);
+            const container = document.getElementById('changeRequestsButtonContainer');
+            if (container) {
+                container.innerHTML = '';
+                
+                // Only show the button if change requests exist
+                if (message.exists) {
+                    const changeRequestsButton = document.createElement('button');
+                    changeRequestsButton.className = 'download-button';
+                    changeRequestsButton.textContent = 'View Change Requests';
+                    changeRequestsButton.addEventListener('click', function() {
+                        openChangeRequests(currentRequestCode);
+                    });
+                    container.appendChild(changeRequestsButton);
+                }
+            }
         }
     });
 
@@ -341,6 +425,95 @@
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
+                
+                /* Details Modal Specific Styles */
+                .details-modal-content {
+                    width: 600px;
+                    max-width: 80vw;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                }
+                
+                .modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 15px;
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                    padding-bottom: 10px;
+                }
+                
+                .close-button {
+                    background: none;
+                    border: none;
+                    font-size: 1.5em;
+                    cursor: pointer;
+                    color: var(--vscode-editor-foreground);
+                    padding: 0;
+                    margin: 0;
+                }
+                
+                .detail-item {
+                    margin-bottom: 15px;
+                }
+                
+                .detail-label {
+                    font-weight: bold;
+                    color: var(--vscode-descriptionForeground);
+                    display: block;
+                    margin-bottom: 5px;
+                }
+                
+                .detail-value {
+                    font-family: var(--vscode-editor-font-family);
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    background-color: var(--vscode-input-background);
+                    padding: 5px 8px;
+                    border-radius: 3px;
+                    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+                    display: block;
+                }
+                
+                .loading-message {
+                    color: var(--vscode-descriptionForeground);
+                    font-style: italic;
+                }
+                
+                .action-container {
+                    margin-top: 20px;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+                
+                .download-button {
+                    background-color: var(--vscode-button-background);
+                    color: var(--vscode-button-foreground);
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    font-family: var(--vscode-font-family);
+                    font-size: 13px;
+                }
+                
+                .download-button:hover {
+                    background-color: var(--vscode-button-hoverBackground);
+                }
+                
+                .download-button:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+                
+                .error-message {
+                    color: var(--vscode-errorForeground);
+                    background-color: var(--vscode-inputValidation-errorBackground);
+                    border: 1px solid var(--vscode-inputValidation-errorBorder);
+                    padding: 10px;
+                    border-radius: 3px;
+                }
             </style>
             <div class="validation-container">
                 <!-- Spinner overlay -->
@@ -375,6 +548,22 @@
                         <div class="modal-buttons"> <!-- Button container -->
                             <button id="submitAdd" class="refresh-button">Add</button>
                             <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Apply secondary style -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Details Modal -->
+                <div id="detailsModal" class="modal">
+                    <div class="modal-content details-modal-content">
+                        <div class="modal-header">
+                            <h3>Validation Request Details</h3>
+                            <button id="closeDetails" class="close-button">&times;</button>
+                        </div>
+                        <div id="details-container">
+                            <p class="loading-message">Loading details...</p>
+                        </div>
+                        <div class="action-container"></div>
+                        <div class="modal-buttons">
+                            <button id="closeDetailsBtn" class="refresh-button modal-button-secondary">Close</button>
                         </div>
                     </div>
                 </div>
@@ -551,14 +740,15 @@
                                 const button = document.createElement("button");
                                 button.className = "view-button";
                                 button.textContent = "Details";
+                                button.setAttribute("data-request-code", item.modelValidationRequestCode);
                                 button.onclick = function(e) {
                                     e.preventDefault();
                                     e.stopPropagation(); // Prevent row click handler
-                                    console.log("[Webview] Details button clicked for request code:", item.modelValidationRequestCode);
-                                    vscode.postMessage({
-                                        command: "showValidationRequestDetails",
-                                        requestCode: item.modelValidationRequestCode
-                                    });
+                                    const requestCode = this.getAttribute("data-request-code");
+                                    console.log("[Webview] Details button clicked for request code:", requestCode);
+                                    
+                                    // Show the details modal and fetch request details
+                                    showDetailsModal(requestCode);
                                 };
                                 td.appendChild(button);
                             } else {
@@ -665,6 +855,192 @@
             itemCountPerPage: itemCountPerPage,
             orderByColumnName: orderByColumn,
             orderByDescending: orderByDescending
+        });
+    }
+
+    // Details Modal Functions
+    let currentRequestData = null;
+    let currentRequestCode = null;
+
+    // Initialize modal controls after the UI has been created
+    document.getElementById("closeDetails").addEventListener("click", function() {
+        hideDetailsModal();
+    });
+    document.getElementById("closeDetailsBtn").addEventListener("click", function() {
+        hideDetailsModal();
+    });
+
+    /**
+     * Shows the details modal and triggers a request to fetch validation details.
+     * @param {string} requestCode - The validation request code.
+     */
+    function showDetailsModal(requestCode) {
+        currentRequestCode = requestCode;
+        const detailsContainer = document.getElementById("details-container");
+        detailsContainer.innerHTML = '<p class="loading-message">Loading details...</p>';
+        document.querySelector("#detailsModal .action-container").innerHTML = '';
+        document.getElementById("detailsModal").style.display = "flex";
+        
+        // Request the details data from the extension
+        vscode.postMessage({
+            command: "fetchValidationDetails",
+            requestCode: requestCode
+        });
+    }
+
+    /**
+     * Hides the details modal.
+     */
+    function hideDetailsModal() {
+        document.getElementById("detailsModal").style.display = "none";
+        currentRequestData = null;
+    }
+
+    /**
+     * Renders the validation request details in the modal.
+     * @param {Object} data - The validation request details.
+     */
+    function renderDetailsInModal(data) {
+        if (!data) {
+            renderErrorInModal("No details received from the extension.");
+            return;
+        }
+
+        currentRequestData = data;
+        const detailsContainer = document.getElementById("details-container");
+        
+        // Clear loading message
+        detailsContainer.innerHTML = '';
+
+        // Define which fields to display and their labels
+        const fieldsToShow = [
+            { key: 'modelValidationRequestCode', label: 'Request Code' },
+            { key: 'modelValidationRequestDescription', label: 'Description' },
+            { key: 'modelValidationRequestRequestedUTCDateTime', label: 'Requested At', type: 'datetime' },
+            { key: 'status', label: 'Status', className: 'status-field' } // Calculated status
+        ];
+
+        // Render each field
+        fieldsToShow.forEach(field => {
+            let value = data[field.key];
+            let displayValue = '';
+
+            // Special handling for status
+            if (field.key === 'status') {
+                value = calculateStatus(data);
+                displayValue = `<span class="detail-value">${value || 'N/A'}</span>`;
+            } else {
+                // Handle different types
+                if (value === null || typeof value === 'undefined') {
+                    displayValue = '<span class="detail-value">N/A</span>';
+                } else if (field.type === 'datetime') {
+                    try {
+                        displayValue = `<span class="detail-value">${new Date(value).toLocaleString()}</span>`;
+                    } catch (e) {
+                        displayValue = `<span class="detail-value">${value} (Invalid Date)</span>`;
+                    }
+                } else {
+                    // Default: display as text, escaping HTML
+                    const textValue = String(value);
+                    const escapedValue = textValue.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+                    displayValue = `<span class="detail-value">${escapedValue || 'N/A'}</span>`;
+                }
+            }
+
+            // Create the item div
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'detail-item';
+            if (field.className) {
+                itemDiv.classList.add(field.className);
+            }
+            itemDiv.innerHTML = `
+                <span class="detail-label">${field.label}:</span>
+                ${displayValue}
+            `;
+            detailsContainer.appendChild(itemDiv);
+        });
+
+        // Add the action buttons
+        const actionContainer = document.querySelector("#detailsModal .action-container");
+        actionContainer.innerHTML = '';
+        
+        // Add report button if report URL is available
+        if (data.modelValidationRequestReportUrl) {
+            // First check if the report exists locally before showing the appropriate button
+            vscode.postMessage({
+                command: 'checkReportExists',
+                requestCode: currentRequestCode
+            });
+            
+            // Add a placeholder button that will be updated after checking if the file exists
+            const reportButton = document.createElement('button');
+            reportButton.className = 'download-button';
+            reportButton.textContent = 'Checking...';
+            reportButton.disabled = true;
+            actionContainer.appendChild(reportButton);
+        }
+
+        // Check if change requests exist for this validation request
+        vscode.postMessage({
+            command: 'checkChangeRequestsExist',
+            requestCode: currentRequestCode
+        });
+        
+        // Add placeholder for change requests button - it will be updated when we get the response
+        const changeRequestsButtonContainer = document.createElement('div');
+        changeRequestsButtonContainer.id = 'changeRequestsButtonContainer';
+        actionContainer.appendChild(changeRequestsButtonContainer);
+    }
+
+    /**
+     * Renders an error in the details modal.
+     * @param {string} message - The error message.
+     */
+    function renderErrorInModal(message) {
+        const detailsContainer = document.getElementById("details-container");
+        detailsContainer.innerHTML = `<div class="error-message">${message}</div>`;
+    }
+
+    /**
+     * Calculates the display status based on the request flags.
+     * @param {object} data - The request data object.
+     * @returns {string} The calculated status string.
+     */
+    function calculateStatus(data) {
+        if (data.modelValidationRequestIsCanceled) {
+            return "Cancelled";
+        } else if (!data.modelValidationRequestIsStarted) {
+            return "Queued";
+        } else if (data.modelValidationRequestIsStarted && !data.modelValidationRequestIsCompleted) {
+            return "Processing";
+        } else if (data.modelValidationRequestIsCompleted && !data.modelValidationRequestIsSuccessful) {
+            return "Validation Error";
+        } else if (data.modelValidationRequestIsCompleted && data.modelValidationRequestIsSuccessful) {
+            return "Validation Passed";
+        }
+        return "Unknown"; // Default case
+    }
+
+    /**
+     * Downloads the validation report.
+     * @param {string} requestCode - The validation request code.
+     */
+    function downloadReport(requestCode) {
+        vscode.postMessage({
+            command: 'downloadReport',
+            requestCode: requestCode,
+            url: currentRequestData.modelValidationRequestReportUrl
+        });
+    }
+
+    /**
+     * Opens change requests for the specified validation request.
+     * @param {string} requestCode - The validation request code.
+     */
+    function openChangeRequests(requestCode) {
+        vscode.postMessage({
+            command: 'viewChangeRequests',
+            requestCode: requestCode
         });
     }
 })();

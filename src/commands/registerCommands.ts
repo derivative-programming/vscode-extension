@@ -16,7 +16,9 @@ import { openModelExplorer } from '../webviews/modelExplorerView';
 import { showWelcomeView } from '../webviews/welcomeView';
 import { showLoginView } from '../webviews/loginView';
 import { AuthService } from '../services/authService';
-import { showValidationRequestDetailsView } from '../webviews/validationRequestDetailsView'; // Import the new details view function
+import { showValidationRequestDetailsView } from '../webviews/validationRequestDetailsView';
+// Import showChangeRequestsListView and alias getWebviewContent
+import { getWebviewContent as getChangeRequestsViewHtml, showChangeRequestsListView } from '../webviews/changeRequestsListView';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -272,7 +274,6 @@ export function registerCommands(
                 const authService = require('../services/authService').AuthService.getInstance();
                 const apiKey = await authService.getApiKey();
                 if (!apiKey) {
-                    panel.webview.postMessage({ command: 'setValidationData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('You must be logged in to use Model Validation.');
                     return;
                 }
@@ -377,8 +378,283 @@ export function registerCommands(
                         vscode.window.showErrorMessage('Missing request code for details view.');
                         return;
                     }
-                    // Call function to open the details webview
+                    
+                    // This is now deprecated - we'll use modal instead via fetchValidationDetails
                     showValidationRequestDetailsView(context, msg.requestCode);
+                } else if (msg.command === 'fetchValidationDetails') {
+                    console.log("[Extension] Handling fetchValidationDetails for code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        vscode.window.showErrorMessage('Missing request code for details.');
+                        panel.webview.postMessage({ 
+                            command: 'validationDetailsError', 
+                            error: 'Missing request code' 
+                        });
+                        return;
+                    }
+                    
+                    // Fetch validation request details directly and send to webview for modal display
+                    try {
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+                        
+                        if (!apiKey) {
+                            console.error("[Extension] No API key found for fetchValidationDetails");
+                            vscode.window.showErrorMessage('You must be logged in to view validation details.');
+                            panel.webview.postMessage({ 
+                                command: 'validationDetailsError', 
+                                error: 'Authentication required' 
+                            });
+                            return;
+                        }
+                        
+                        // Use query string parameter for the request code instead of path parameter
+                        const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests?modelValidationRequestCode=${encodeURIComponent(msg.requestCode)}`;
+                        console.log("[Extension] Fetching validation details from URL:", url);
+                        
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`API responded with status ${response.status}`);
+                        }
+                        
+                        const responseData = await response.json();
+                        console.log("[Extension] Sending details to webview:", responseData);
+                        
+                        // Extract the first item from the items array if it exists
+                        if (responseData.items && Array.isArray(responseData.items) && responseData.items.length > 0) {
+                            const details = responseData.items[0];
+                            panel.webview.postMessage({ command: 'setValidationDetails', data: details });
+                        } else {
+                            panel.webview.postMessage({ 
+                                command: 'validationDetailsError', 
+                                error: 'No details found for this validation request.' 
+                            });
+                        }
+                    } catch (error) {
+                        console.error("[Extension] Failed to fetch validation details:", error);
+                        panel.webview.postMessage({ 
+                            command: 'validationDetailsError', 
+                            error: `Failed to load details: ${error.message}` 
+                        });
+                    }
+                } else if (msg.command === 'checkReportExists') {
+                    console.log("[Extension] Checking if report exists locally for request code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        panel.webview.postMessage({ 
+                            command: 'reportExistsResult', 
+                            exists: false,
+                            requestCode: msg.requestCode,
+                            error: 'Missing request code'
+                        });
+                        return;
+                    }
+                    
+                    try {
+                        // Check if report file exists in the workspace
+                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                        if (!workspaceFolder) {
+                            throw new Error('No workspace folder found');
+                        }
+                        
+                        const reportPath = path.join(workspaceFolder.uri.fsPath, 'validation_reports', `validation_report_${msg.requestCode}.html`);
+                        const exists = fs.existsSync(reportPath);
+                        
+                        console.log("[Extension] Report exists:", exists, "for path:", reportPath);
+                        panel.webview.postMessage({ 
+                            command: 'reportExistsResult', 
+                            exists: exists,
+                            requestCode: msg.requestCode
+                        });
+                    } catch (error) {
+                        console.error("[Extension] Error checking if report exists:", error);
+                        panel.webview.postMessage({ 
+                            command: 'reportExistsResult', 
+                            exists: false,
+                            requestCode: msg.requestCode,
+                            error: error.message
+                        });
+                    }
+                } else if (msg.command === 'checkChangeRequestsExist') {
+                    console.log("[Extension] Checking if change requests exist for request code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        panel.webview.postMessage({ 
+                            command: 'changeRequestsExistResult', 
+                            exists: false,
+                            requestCode: msg.requestCode,
+                            error: 'Missing request code'
+                        });
+                        return;
+                    }
+                    
+                    try {
+                        // Check if change requests file exists in the workspace
+                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                        if (!workspaceFolder) {
+                            throw new Error('No workspace folder found');
+                        }
+                        
+                        // CORRECTED: Filename should be <requestCode>.json directly in validation_change_requests folder
+                        const changeRequestsPath = path.join(workspaceFolder.uri.fsPath, 'validation_change_requests', `${msg.requestCode}.json`);
+                        const exists = fs.existsSync(changeRequestsPath);
+                        
+                        console.log("[Extension] Change requests file check. Path:", changeRequestsPath, "Exists:", exists);
+                        panel.webview.postMessage({ 
+                            command: 'changeRequestsExistResult', 
+                            exists: exists,
+                            requestCode: msg.requestCode
+                        });
+                    } catch (error) {
+                        console.error("[Extension] Error checking if change requests exist:", error);
+                        panel.webview.postMessage({ 
+                            command: 'changeRequestsExistResult', 
+                            exists: false,
+                            requestCode: msg.requestCode,
+                            error: error.message
+                        });
+                    }
+                } else if (msg.command === 'downloadReport') {
+                    console.log("[Extension] Handling downloadReport for request code:", msg.requestCode);
+                    if (!msg.requestCode || !msg.url) {
+                        vscode.window.showErrorMessage('Missing parameters for report download.');
+                        panel.webview.postMessage({ 
+                            command: 'reportDownloadError', 
+                            error: 'Missing request code or URL'
+                        });
+                        return;
+                    }
+                    
+                    // Notify webview that download has started
+                    panel.webview.postMessage({ command: 'reportDownloadStarted' });
+                    
+                    try {
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+                        
+                        if (!apiKey) {
+                            throw new Error('Authentication required');
+                        }
+                        
+                        // Create directory for reports if it doesn't exist
+                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                        if (!workspaceFolder) {
+                            throw new Error('No workspace folder found');
+                        }
+                        
+                        const reportsDir = path.join(workspaceFolder.uri.fsPath, 'validation_reports');
+                        if (!fs.existsSync(reportsDir)) {
+                            fs.mkdirSync(reportsDir, { recursive: true });
+                        }
+                        
+                        // Download the report
+                        const response = await fetch(msg.url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Failed to download report: ${response.status} ${response.statusText}`);
+                        }
+                        
+                        // Get the report content as text
+                        let reportContent = await response.text();
+
+                        // --- Start: Logic to extract Change Requests from report content ---
+                        const startMarker = "GENChangeRequestArrayStart";
+                        const endMarker = "GENChangeRequestArrayEnd";
+                        const startIndex = reportContent.indexOf(startMarker);
+                        const endIndex = reportContent.indexOf(endMarker);
+
+                        let changeRequestsExtracted = false;
+                        if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+                            const jsonStartIndex = startIndex + startMarker.length;
+                            const jsonContent = reportContent.substring(jsonStartIndex, endIndex).trim();
+                            
+                            const changeRequestsDirPath = path.join(workspaceFolder.uri.fsPath, 'validation_change_requests');
+                            if (!fs.existsSync(changeRequestsDirPath)) {
+                                fs.mkdirSync(changeRequestsDirPath, { recursive: true });
+                            }
+                            
+                            try {
+                                JSON.parse(jsonContent); // Validate JSON
+                                const changeRequestsFilePath = path.join(changeRequestsDirPath, `${msg.requestCode}.json`);
+                                fs.writeFileSync(changeRequestsFilePath, jsonContent, 'utf8');
+                                console.log("[Extension] Change requests extracted and saved to:", changeRequestsFilePath);
+                                
+                                // Remove the change requests from the original report content
+                                reportContent = reportContent.substring(0, startIndex) + reportContent.substring(endIndex + endMarker.length);
+                                changeRequestsExtracted = true;
+                            } catch (jsonError) {
+                                console.error("[Extension] Error parsing or saving extracted change requests JSON:", jsonError);
+                                vscode.window.showWarningMessage(`Failed to extract or save change requests from report: ${jsonError.message}`);
+                                // Do not set changeRequestsExtracted to true, proceed with full report
+                            }
+                        }
+                        // --- End: Logic to extract Change Requests ---
+                        
+                        // Save the main report content to file (now an HTML file)
+                        const reportPath = path.join(reportsDir, `validation_report_${msg.requestCode}.html`);
+                        fs.writeFileSync(reportPath, reportContent, 'utf8');
+                        
+                        // Open the report in editor
+                        const reportUri = vscode.Uri.file(reportPath);
+                        // await vscode.commands.executeCommand('vscode.open', reportUri); // Do not auto-open, let user click View Report
+                        
+                        // Notify webview of success
+                        panel.webview.postMessage({ 
+                            command: 'reportDownloadSuccess', 
+                            requestCode: msg.requestCode, 
+                            changeRequestsExtracted: changeRequestsExtracted 
+                        });
+                    } catch (error) {
+                        console.error("[Extension] Error downloading report:", error);
+                        panel.webview.postMessage({ 
+                            command: 'reportDownloadError', 
+                            error: error.message,
+                            requestCode: msg.requestCode
+                        });
+                    }
+                } else if (msg.command === 'viewReport') {
+                    console.log("[Extension] Handling viewReport for request code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        vscode.window.showErrorMessage('Missing request code for viewing report.');
+                        return;
+                    }
+                    
+                    try {
+                        // Open existing report
+                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                        if (!workspaceFolder) {
+                            throw new Error('No workspace folder found');
+                        }
+                        
+                        const reportPath = path.join(workspaceFolder.uri.fsPath, 'validation_reports', `validation_report_${msg.requestCode}.html`);
+                        if (!fs.existsSync(reportPath)) {
+                            throw new Error('Report file not found');
+                        }
+                        
+                        // Open the report in editor
+                        const reportUri = vscode.Uri.file(reportPath);
+                        await vscode.commands.executeCommand('vscode.open', reportUri);
+                    } catch (error) {
+                        console.error("[Extension] Error viewing report:", error);
+                        vscode.window.showErrorMessage(`Failed to open report: ${error.message}`);
+                    }
+                } else if (msg.command === 'viewChangeRequests') {
+                    console.log("[Extension] Handling viewChangeRequests for request code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        vscode.window.showErrorMessage('Missing request code for viewing change requests.');
+                        return;
+                    }
+                    
+                    try {
+                        // Import and use the showChangeRequestsListView function directly
+                        const { showChangeRequestsListView } = require('../webviews/changeRequestsListView');
+                        await showChangeRequestsListView(context, msg.requestCode);
+                    } catch (error) {
+                        console.error("[Extension] Error showing change requests:", error);
+                        vscode.window.showErrorMessage(`Failed to show change requests: ${error.message}`);
+                    }
                 } else if (msg.command === 'cancelValidationRequest') { // Handle cancel request from list view
                     console.log("[Extension] Handling cancelValidationRequest for code:", msg.requestCode);
                     if (!msg.requestCode) {

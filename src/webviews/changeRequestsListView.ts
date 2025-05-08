@@ -19,7 +19,8 @@ async function loadAndSendChangeRequests(panel: vscode.WebviewPanel, requestCode
         }
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        // CORRECTED: Ensure this path matches where change requests are saved
+        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
         
         // Check if file exists
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -195,7 +196,7 @@ export async function showChangeRequestsListView(context: vscode.ExtensionContex
  * @param webview For generating webview URIs if needed for other assets like codicons.
  * @returns HTML string.
  */
-function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cspSource: string, webview: vscode.Webview): string {
+export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cspSource: string, webview: vscode.Webview): string {
     const nonce = getNonce();
 
     return `<!DOCTYPE html>
@@ -573,7 +574,7 @@ async function handleApproveChangeRequest(panel: vscode.WebviewPanel, requestCod
         }
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -644,7 +645,7 @@ async function handleRejectChangeRequest(panel: vscode.WebviewPanel, requestCode
         }
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -719,7 +720,7 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
         }
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -931,7 +932,7 @@ async function handleApproveAllChangeRequests(panel: vscode.WebviewPanel, reques
         }
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -1001,7 +1002,7 @@ async function handleRejectAllChangeRequests(panel: vscode.WebviewPanel, request
         }
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -1073,7 +1074,7 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
         }
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'change_requests', `${requestCode}.json`);
+        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
