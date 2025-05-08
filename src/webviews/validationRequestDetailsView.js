@@ -13,24 +13,24 @@
         console.log("[Webview] Received message:", message.command);
 
         switch (message.command) {
-            case 'setRequestDetails':
+            case 'modelValidationSetRequestDetails':
                 console.log("[Webview] Full details data:", message.data);
                 currentRequestData = message.data;
                 renderDetails(message.data);
                 break;
-            case 'setError':
+            case 'modelValidationSetError':
                 renderError(message.text);
                 break;
-            case 'reportExistsResult':
+            case 'modelValidationReportExistsResult':
                 handleReportExistsResult(message);
                 break;
-            case 'changeRequestsExistResult':
+            case 'modelValidationChangeRequestsExistResult':
                 handleChangeRequestsExistResult(message);
                 break;
-            case 'reportDownloadStarted':
+            case 'modelValidationReportDownloadStarted':
                 updateButtonToProcessing();
                 break;
-            case 'reportDownloadSuccess':
+            case 'modelValidationReportDownloadSuccess':
                 updateButtonAfterSuccess();
                 // After successful download, check if change requests were extracted
                 checkForChangeRequests();
@@ -46,7 +46,7 @@
             case 'changeRequestsOpened':
                 console.log("[Webview] Change requests opened successfully");
                 break;
-            case 'reportDownloadError':
+            case 'modelValidationReportDownloadError':
                 updateButtonAfterError();
                 vscode.postMessage({ 
                     command: 'showMessage', 
@@ -81,7 +81,7 @@
         }
         
         vscode.postMessage({
-            command: 'checkChangeRequestsExist',
+            command: 'modelValidationCheckChangeRequestsExist',
             requestCode: currentRequestData.modelValidationRequestCode
         });
     }
@@ -123,14 +123,14 @@
             if (buttonCommand === 'downloadReport') {
                 // Send message to extension to download the report
                 vscode.postMessage({
-                    command: 'downloadReport',
+                    command: 'modelValidationDownloadReport',
                     url: currentRequestData.modelValidationRequestReportUrl,
                     requestCode: currentRequestData.modelValidationRequestCode
                 });
             } else {
                 // Send message to extension to view the existing report
                 vscode.postMessage({
-                    command: 'viewReport',
+                    command: 'modelValidationViewReport',
                     requestCode: currentRequestData.modelValidationRequestCode
                 });
             }
@@ -178,7 +178,7 @@
             changeRequestsButton.addEventListener('click', function() {
                 // Send message to extension to view the change requests
                 vscode.postMessage({
-                    command: 'viewChangeRequests',
+                    command: 'modelValidationViewChangeRequests',
                     requestCode: currentRequestData.modelValidationRequestCode
                 });
             });
@@ -207,10 +207,10 @@
             button.disabled = false;
             button.textContent = 'View Report';
             
-            // Update the click handler to use viewReport instead of downloadReport
+            // Update the click handler to use modelValidationViewReport instead of viewReport
             button.onclick = function() {
                 vscode.postMessage({
-                    command: 'viewReport',
+                    command: 'modelValidationViewReport',
                     requestCode: currentRequestData.modelValidationRequestCode
                 });
             };
@@ -308,7 +308,7 @@
             
             // Check if the report file already exists locally
             vscode.postMessage({
-                command: 'checkReportExists',
+                command: 'modelValidationCheckReportExists',
                 requestCode: data.modelValidationRequestCode
             });
         }
@@ -347,6 +347,6 @@
 
     // Send message to extension that webview is ready
     console.log("[Webview] Sending webviewReady");
-    vscode.postMessage({ command: 'webviewReady' });
+    vscode.postMessage({ command: 'modelValidationWebviewReady' });
 
 })();

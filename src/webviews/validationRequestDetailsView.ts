@@ -35,33 +35,33 @@ export async function showValidationRequestDetailsView(context: vscode.Extension
     panel.webview.onDidReceiveMessage(
         async message => {
             switch (message.command) {
-                case 'webviewReady':
+                case 'modelValidationWebviewReady':
                     console.log("[Extension] validationRequestDetailsView webview is ready for code:", requestCode);
                     // Webview is ready, fetch details and send them
                     await fetchAndSendDetails(panel, requestCode);
                     return;
                     
-                case 'downloadReport':
+                case 'modelValidationDownloadReport':
                     console.log("[Extension] Received download report request for URL:", message.url);
                     await downloadReport(panel, message.url, message.requestCode);
                     return;
                     
-                case 'checkReportExists':
+                case 'modelValidationCheckReportExists':
                     console.log("[Extension] Checking if report exists locally for request code:", message.requestCode);
                     await checkReportExists(panel, message.requestCode);
                     return;
                     
-                case 'viewReport':
+                case 'modelValidationViewReport':
                     console.log("[Extension] Opening existing report for request code:", message.requestCode);
                     await openExistingReport(panel, message.requestCode);
                     return;
                     
-                case 'checkChangeRequestsExist':
+                case 'modelValidationCheckChangeRequestsExist':
                     console.log("[Extension] Checking if change requests exist for request code:", message.requestCode);
                     await checkChangeRequestsExist(panel, message.requestCode);
                     return;
                     
-                case 'viewChangeRequests':
+                case 'modelValidationViewChangeRequests':
                     console.log("[Extension] Opening change requests for request code:", message.requestCode);
                     await openChangeRequestsFile(panel, message.requestCode, context);
                     return;
@@ -103,7 +103,7 @@ async function checkReportExists(panel: vscode.WebviewPanel, requestCode: string
         
         // Inform the webview whether the file exists
         panel.webview.postMessage({ 
-            command: 'reportExistsResult', 
+            command: 'modelValidationReportExistsResult', 
             exists: exists,
             requestCode: requestCode
         });
@@ -111,7 +111,7 @@ async function checkReportExists(panel: vscode.WebviewPanel, requestCode: string
     } catch (error) {
         console.error("[Extension] Error checking if report exists:", error);
         panel.webview.postMessage({ 
-            command: 'reportExistsResult', 
+            command: 'modelValidationReportExistsResult', 
             exists: false,
             requestCode: requestCode,
             error: error.message
@@ -180,7 +180,7 @@ async function checkChangeRequestsExist(panel: vscode.WebviewPanel, requestCode:
         
         // Inform the webview whether the file exists
         panel.webview.postMessage({ 
-            command: 'changeRequestsExistResult', 
+            command: 'modelValidationChangeRequestsExistResult', 
             exists: exists,
             requestCode: requestCode
         });
@@ -188,7 +188,7 @@ async function checkChangeRequestsExist(panel: vscode.WebviewPanel, requestCode:
     } catch (error) {
         console.error("[Extension] Error checking if change requests exist:", error);
         panel.webview.postMessage({ 
-            command: 'changeRequestsExistResult', 
+            command: 'modelValidationChangeRequestsExistResult', 
             exists: false,
             requestCode: requestCode,
             error: error.message
@@ -249,18 +249,18 @@ async function downloadReport(panel: vscode.WebviewPanel, url: string, requestCo
 
     if (!apiKey) {
         vscode.window.showErrorMessage('You must be logged in to download validation reports.');
-        panel.webview.postMessage({ command: 'reportDownloadError', error: 'Authentication required.' });
+        panel.webview.postMessage({ command: 'modelValidationReportDownloadError', error: 'Authentication required.' });
         return;
     }
 
     if (!url) {
         vscode.window.showErrorMessage('No report URL available for this validation request.');
-        panel.webview.postMessage({ command: 'reportDownloadError', error: 'No report URL available.' });
+        panel.webview.postMessage({ command: 'modelValidationReportDownloadError', error: 'No report URL available.' });
         return;
     }
 
     // Notify the webview that download has started
-    panel.webview.postMessage({ command: 'reportDownloadStarted' });
+    panel.webview.postMessage({ command: 'modelValidationReportDownloadStarted' });
 
     try {
         // Download the report content
@@ -334,13 +334,13 @@ async function downloadReport(panel: vscode.WebviewPanel, url: string, requestCo
 
         // Don't open the file automatically - let the user hit 'View Report' to open it
         console.log("[Extension] Report downloaded and saved to:", filePath);
-        panel.webview.postMessage({ command: 'reportDownloadSuccess' });
+        panel.webview.postMessage({ command: 'modelValidationReportDownloadSuccess' });
         vscode.window.showInformationMessage(`Report downloaded and saved to: ${filePath}`);
         
     } catch (error) {
         console.error("[Extension] Failed to download report:", error);
         vscode.window.showErrorMessage(`Failed to download report: ${error.message}`);
-        panel.webview.postMessage({ command: 'reportDownloadError', error: error.message });
+        panel.webview.postMessage({ command: 'modelValidationReportDownloadError', error: error.message });
     }
 }
 
@@ -355,7 +355,7 @@ async function fetchAndSendDetails(panel: vscode.WebviewPanel, requestCode: stri
 
     if (!apiKey) {
         vscode.window.showErrorMessage('You must be logged in to view validation request details.');
-        panel.webview.postMessage({ command: 'setError', text: 'Authentication required.' });
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: 'Authentication required.' });
         return;
     }
 
@@ -378,15 +378,15 @@ async function fetchAndSendDetails(panel: vscode.WebviewPanel, requestCode: stri
         // Extract the first item from the items array if it exists
         if (responseData.items && Array.isArray(responseData.items) && responseData.items.length > 0) {
             const details = responseData.items[0];
-            panel.webview.postMessage({ command: 'setRequestDetails', data: details });
+            panel.webview.postMessage({ command: 'modelValidationSetRequestDetails', data: details });
         } else {
-            panel.webview.postMessage({ command: 'setError', text: 'No details found for this validation request.' });
+            panel.webview.postMessage({ command: 'modelValidationSetError', text: 'No details found for this validation request.' });
         }
 
     } catch (error) {
         console.error("[Extension] Failed to fetch validation details:", error);
         vscode.window.showErrorMessage(`Failed to fetch details for request ${requestCode}: ${error.message}`);
-        panel.webview.postMessage({ command: 'setError', text: `Failed to load details: ${error.message}` });
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to load details: ${error.message}` });
     }
 }
 

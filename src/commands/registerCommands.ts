@@ -293,22 +293,22 @@ export function registerCommands(
                         headers: { 'Api-Key': apiKey }
                     });
                     const data = await res.json();
-                    panel.webview.postMessage({ command: 'setValidationData', data });
+                    panel.webview.postMessage({ command: 'modelValidationSetValidationData', data });
                 } catch (err) {
-                    panel.webview.postMessage({ command: 'setValidationData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
+                    panel.webview.postMessage({ command: 'modelValidationSetValidationData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('Failed to fetch validation requests: ' + (err && err.message ? err.message : err));
                 }
             }
             panel.webview.onDidReceiveMessage(async (msg) => {
                 console.log("[Extension] Received message from webview:", msg.command);
-                if (msg.command === 'webviewReady') {
-                    console.log("[Extension] Handling webviewReady");
+                if (msg.command === 'modelValidationWebviewReady') {
+                    console.log("[Extension] Handling modelValidationWebviewReady");
                     await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
-                } else if (msg.command === 'requestPage') {
-                    console.log("[Extension] Handling requestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
+                } else if (msg.command === 'modelValidationRequestPage') {
+                    console.log("[Extension] Handling modelValidationRequestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
                     await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
-                } else if (msg.command === 'addValidationRequest') {
-                    console.log("[Extension] Handling addValidationRequest:", msg.data);
+                } else if (msg.command === 'modelValidationAddValidationRequest') {
+                    console.log("[Extension] Handling modelValidationAddValidationRequest:", msg.data);
                     // Retrieve API key for authenticated call
                     const authService = AuthService.getInstance();
                     authService.initialize(context);
@@ -372,8 +372,8 @@ export function registerCommands(
                         panel.webview.postMessage({ command: "modelValidationRequestFailed" });
                         vscode.window.showErrorMessage('Failed to add validation request: ' + (err && err.message ? err.message : err));
                     }
-                } else if (msg.command === 'showValidationRequestDetails') { // Handle showing details
-                    console.log("[Extension] Handling showValidationRequestDetails for code:", msg.requestCode);
+                } else if (msg.command === 'modelValidationShowValidationRequestDetails') { // Handle showing details
+                    console.log("[Extension] Handling modelValidationShowValidationRequestDetails for code:", msg.requestCode);
                     if (!msg.requestCode) {
                         vscode.window.showErrorMessage('Missing request code for details view.');
                         return;
@@ -381,8 +381,8 @@ export function registerCommands(
                     
                     // This is now deprecated - we'll use modal instead via fetchValidationDetails
                     showValidationRequestDetailsView(context, msg.requestCode);
-                } else if (msg.command === 'fetchValidationDetails') {
-                    console.log("[Extension] Handling fetchValidationDetails for code:", msg.requestCode);
+                } else if (msg.command === 'modelValidationFetchValidationDetails') {
+                    console.log("[Extension] Handling modelValidationFetchValidationDetails for code:", msg.requestCode);
                     if (!msg.requestCode) {
                         vscode.window.showErrorMessage('Missing request code for details.');
                         panel.webview.postMessage({ 
@@ -425,7 +425,7 @@ export function registerCommands(
                         // Extract the first item from the items array if it exists
                         if (responseData.items && Array.isArray(responseData.items) && responseData.items.length > 0) {
                             const details = responseData.items[0];
-                            panel.webview.postMessage({ command: 'setModelValidationDetails', data: details });
+                            panel.webview.postMessage({ command: 'modelValidationSetValidationDetails', data: details });
                         } else {
                             panel.webview.postMessage({ 
                                 command: 'modelValidationDetailsError', 
@@ -439,7 +439,7 @@ export function registerCommands(
                             error: `Failed to load details: ${error.message}` 
                         });
                     }
-                } else if (msg.command === 'checkReportExists') {
+                } else if (msg.command === 'modelValidationCheckReportExists') {
                     console.log("[Extension] Checking if report exists locally for request code:", msg.requestCode);
                     if (!msg.requestCode) {
                         panel.webview.postMessage({ 
@@ -476,7 +476,7 @@ export function registerCommands(
                             error: error.message
                         });
                     }
-                } else if (msg.command === 'checkChangeRequestsExist') {
+                } else if (msg.command === 'modelValidationCheckChangeRequestsExist') {
                     console.log("[Extension] Checking if change requests exist for request code:", msg.requestCode);
                     if (!msg.requestCode) {
                         panel.webview.postMessage({ 
@@ -514,8 +514,8 @@ export function registerCommands(
                             error: error.message
                         });
                     }
-                } else if (msg.command === 'downloadReport') {
-                    console.log("[Extension] Handling downloadReport for request code:", msg.requestCode);
+                } else if (msg.command === 'modelValidationDownloadReport') {
+                    console.log("[Extension] Handling modelValidationDownloadReport for request code:", msg.requestCode);
                     if (!msg.requestCode || !msg.url) {
                         vscode.window.showErrorMessage('Missing parameters for report download.');
                         panel.webview.postMessage({ 
@@ -614,8 +614,8 @@ export function registerCommands(
                             requestCode: msg.requestCode
                         });
                     }
-                } else if (msg.command === 'viewReport') {
-                    console.log("[Extension] Handling viewReport for request code:", msg.requestCode);
+                } else if (msg.command === 'modelValidationViewReport') {
+                    console.log("[Extension] Handling modelValidationViewReport for request code:", msg.requestCode);
                     if (!msg.requestCode) {
                         vscode.window.showErrorMessage('Missing request code for viewing report.');
                         return;
@@ -640,8 +640,8 @@ export function registerCommands(
                         console.error("[Extension] Error viewing report:", error);
                         vscode.window.showErrorMessage(`Failed to open report: ${error.message}`);
                     }
-                } else if (msg.command === 'viewChangeRequests') {
-                    console.log("[Extension] Handling viewChangeRequests for request code:", msg.requestCode);
+                } else if (msg.command === 'modelValidationViewChangeRequests') {
+                    console.log("[Extension] Handling modelValidationViewChangeRequests for request code:", msg.requestCode);
                     if (!msg.requestCode) {
                         vscode.window.showErrorMessage('Missing request code for viewing change requests.');
                         return;
@@ -655,8 +655,8 @@ export function registerCommands(
                         console.error("[Extension] Error showing change requests:", error);
                         vscode.window.showErrorMessage(`Failed to show change requests: ${error.message}`);
                     }
-                } else if (msg.command === 'cancelValidationRequest') { // Handle cancel request from list view
-                    console.log("[Extension] Handling cancelValidationRequest for code:", msg.requestCode);
+                } else if (msg.command === 'modelValidationCancelValidationRequest') { // Handle cancel request from list view
+                    console.log("[Extension] Handling modelValidationCancelValidationRequest for code:", msg.requestCode);
                     if (!msg.requestCode) {
                         vscode.window.showErrorMessage('Missing request code for cancel operation.');
                         return;

@@ -38,8 +38,9 @@
                 renderChangeRequests();
                 break;
                 
-            case 'setError':
-                renderError(message.text);
+            case 'modelValidationSetError':
+                showError(message.text);
+                hideSpinner();
                 break;
         }
     });

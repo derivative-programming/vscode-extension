@@ -38,8 +38,8 @@
     window.addEventListener("message", function(event) {
         const message = event.data;
         console.log("[Webview] Received message:", message.command, message.data);
-        if (message.command === "setValidationData") {
-            console.log("[Webview] Handling setValidationData");
+        if (message.command === "modelValidationSetValidationData") {
+            console.log("[Webview] Handling modelValidationSetValidationData");
             validationData = message.data.items || [];
             pageNumber = message.data.pageNumber || 1;
             itemCountPerPage = message.data.itemCountPerPage || 10;
@@ -50,24 +50,24 @@
             renderPaging();
             // Hide spinner when data is set
             hideSpinner();
-        } else if (message.command === "validationRequestReceived" || message.command === "validationRequestFailed") {
+        } else if (message.command === "modelValidationRequestReceived" || message.command === "modelValidationRequestFailed") {
             console.log("[Webview] Handling", message.command);
             // Hide spinner when validation request is received or failed
             hideSpinner();
-        } else if (message.command === "validationRequestCancelled") {
+        } else if (message.command === "modelValidationRequestCancelled") {
             console.log("[Webview] Request cancelled successfully, refreshing data");
             hideSpinner();
             // Refresh the current page after a successful cancel
             requestPage(pageNumber);
-        } else if (message.command === "setValidationDetails") {
+        } else if (message.command === "modelValidationSetValidationDetails") {
             console.log("[Webview] Received validation details data");
             renderDetailsInModal(message.data);
             hideSpinner();
-        } else if (message.command === "validationDetailsError") {
+        } else if (message.command === "modelValidationDetailsError") {
             console.log("[Webview] Error fetching validation details:", message.error);
             renderErrorInModal(message.error || "Failed to fetch validation details.");
             hideSpinner();
-        } else if (message.command === "reportDownloadStarted") {
+        } else if (message.command === "modelValidationReportDownloadStarted") {
             console.log("[Webview] Report download started");
             // Update the download button to show progress
             const reportButton = document.querySelector("#detailsModal .action-container .download-button");
@@ -75,7 +75,7 @@
                 reportButton.disabled = true;
                 reportButton.innerHTML = '<span class="spinner"></span> Downloading...';
             }
-        } else if (message.command === "reportDownloadSuccess") {
+        } else if (message.command === "modelValidationReportDownloadSuccess") {
             console.log("[Webview] Report downloaded successfully, changeRequestsExtracted:", message.changeRequestsExtracted);
             // Update the download button to show success
             const reportButton = document.querySelector("#detailsModal .action-container .download-button");
@@ -85,7 +85,7 @@
                 // Change the button action to view the report instead of downloading it
                 reportButton.onclick = function() {
                     vscode.postMessage({
-                        command: 'viewReport',
+                        command: 'modelValidationViewReport',
                         requestCode: currentRequestCode
                     });
                 };
@@ -93,11 +93,11 @@
             // If change requests were extracted during download, refresh the change request button state
             if (message.changeRequestsExtracted) {
                 vscode.postMessage({
-                    command: 'checkChangeRequestsExist',
+                    command: 'modelValidationCheckChangeRequestsExist',
                     requestCode: currentRequestCode
                 });
             }
-        } else if (message.command === "reportDownloadError") {
+        } else if (message.command === "modelValidationReportDownloadError") {
             console.log("[Webview] Report download error:", message.error);
             // Update the download button to allow retry
             const reportButton = document.querySelector("#detailsModal .action-container .download-button");
@@ -105,7 +105,7 @@
                 reportButton.disabled = false;
                 reportButton.textContent = 'Download Report';
             }
-        } else if (message.command === "reportExistsResult") {
+        } else if (message.command === "modelValidationReportExistsResult") {
             console.log("[Webview] Report exists locally:", message.exists);
             const reportButton = document.querySelector("#detailsModal .action-container .download-button");
             if (reportButton) {
@@ -115,7 +115,7 @@
                     reportButton.textContent = 'View Report';
                     reportButton.onclick = function() {
                         vscode.postMessage({
-                            command: 'viewReport',
+                            command: 'modelValidationViewReport',
                             requestCode: currentRequestCode
                         });
                     };
@@ -126,7 +126,7 @@
                     };
                 }
             }
-        } else if (message.command === "changeRequestsExistResult") {
+        } else if (message.command === "modelValidationChangeRequestsExistResult") {
             console.log("[Webview] Change requests exist locally:", message.exists);
             const container = document.getElementById('changeRequestsButtonContainer');
             if (container) {
@@ -571,7 +571,7 @@
         `;
         
         // Initial ready message
-        vscode.postMessage({ command: "webviewReady" });
+        vscode.postMessage({ command: "modelValidationWebviewReady" });
 
         // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
@@ -590,7 +590,7 @@
             // Show spinner while sending request
             showSpinner();
             const desc = document.getElementById("addDescription").value;
-            vscode.postMessage({ command: "addValidationRequest", data: { description: desc } });
+            vscode.postMessage({ command: "modelValidationAddValidationRequest", data: { description: desc } });
             document.getElementById("addModal").style.display = "none";
             document.getElementById("addDescription").value = ''; // Clear input after submit
         };
@@ -722,7 +722,7 @@
                                         showSpinner();
                                         document.body.removeChild(confirmModal);
                                         vscode.postMessage({
-                                            command: "cancelValidationRequest",
+                                            command: "modelValidationCancelValidationRequest",
                                             requestCode: requestCode
                                         });
                                     });
@@ -788,7 +788,7 @@
                 // Add row click handler for item details
                 row.addEventListener("click", function() {
                     vscode.postMessage({
-                        command: "showValidationDetails",
+                        command: "modelValidationShowValidationDetails",
                         item: item
                     });
                 });
@@ -850,7 +850,7 @@
 
     function requestPage(page) {
         vscode.postMessage({
-            command: "requestPage",
+            command: "modelValidationRequestPage",
             pageNumber: page,
             itemCountPerPage: itemCountPerPage,
             orderByColumnName: orderByColumn,
@@ -883,7 +883,7 @@
         
         // Request the details data from the extension
         vscode.postMessage({
-            command: "fetchValidationDetails",
+            command: "modelValidationFetchValidationDetails",
             requestCode: requestCode
         });
     }
@@ -968,7 +968,7 @@
         if (data.modelValidationRequestReportUrl) {
             // First check if the report exists locally before showing the appropriate button
             vscode.postMessage({
-                command: 'checkReportExists',
+                command: 'modelValidationCheckReportExists',
                 requestCode: currentRequestCode
             });
             
@@ -982,7 +982,7 @@
 
         // Check if change requests exist for this validation request
         vscode.postMessage({
-            command: 'checkChangeRequestsExist',
+            command: 'modelValidationCheckChangeRequestsExist',
             requestCode: currentRequestCode
         });
         
@@ -1027,7 +1027,7 @@
      */
     function downloadReport(requestCode) {
         vscode.postMessage({
-            command: 'downloadReport',
+            command: 'modelValidationDownloadReport',
             requestCode: requestCode,
             url: currentRequestData.modelValidationRequestReportUrl
         });
@@ -1039,7 +1039,7 @@
      */
     function openChangeRequests(requestCode) {
         vscode.postMessage({
-            command: 'viewChangeRequests',
+            command: 'modelValidationViewChangeRequests',
             requestCode: requestCode
         });
     }

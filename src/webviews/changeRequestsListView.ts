@@ -105,7 +105,7 @@ async function loadAndSendChangeRequests(panel: vscode.WebviewPanel, requestCode
     } catch (error) {
         console.error("[Extension] Failed to load change requests:", error);
         vscode.window.showErrorMessage(`Failed to load change requests: ${error.message}`);
-        panel.webview.postMessage({ command: 'setError', text: `Failed to load change requests: ${error.message}` });
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to load change requests: ${error.message}` });
     }
 }
 
@@ -626,7 +626,7 @@ async function handleApproveChangeRequest(panel: vscode.WebviewPanel, requestCod
     } catch (error) {
         console.error("[Extension] Failed to approve change request:", error);
         vscode.window.showErrorMessage(`Failed to approve change request: ${error.message}`);
-        panel.webview.postMessage({ command: 'setError', text: `Failed to approve change request: ${error.message}` });
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to approve change request: ${error.message}` });
     }
 }
 
@@ -702,7 +702,7 @@ async function handleRejectChangeRequest(panel: vscode.WebviewPanel, requestCode
     } catch (error) {
         console.error("[Extension] Failed to reject change request:", error);
         vscode.window.showErrorMessage(`Failed to reject change request: ${error.message}`);
-        panel.webview.postMessage({ command: 'setError', text: `Failed to reject change request: ${error.message}` });
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to reject change request: ${error.message}` });
     }
 }
 
@@ -915,7 +915,7 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
     } catch (error) {
         console.error("[Extension] Failed to apply change request:", error);
         vscode.window.showErrorMessage(`Failed to apply change request: ${error.message}`);
-        panel.webview.postMessage({ command: 'setError', text: `Failed to apply change request: ${error.message}` });
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to apply change request: ${error.message}` });
     }
 }
 
@@ -984,7 +984,7 @@ async function handleApproveAllChangeRequests(panel: vscode.WebviewPanel, reques
     } catch (error) {
         console.error("[Extension] Failed to approve all change requests:", error);
         vscode.window.showErrorMessage(`Failed to approve all change requests: ${error.message}`);
-        panel.webview.postMessage({ command: 'setError', text: `Failed to approve all change requests: ${error.message}` });
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to approve all change requests: ${error.message}` });
     }
 }
 
@@ -1057,7 +1057,7 @@ async function handleRejectAllChangeRequests(panel: vscode.WebviewPanel, request
     } catch (error) {
         console.error("[Extension] Failed to reject all change requests:", error);
         vscode.window.showErrorMessage(`Failed to reject all change requests: ${error.message}`);
-        panel.webview.postMessage({ command: 'setError', text: `Failed to reject all change requests: ${error.message}` });
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to reject all change requests: ${error.message}` });
     }
 }
 
@@ -1272,6 +1272,6 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
     } catch (error) {
         console.error("[Extension] Failed to apply all change requests:", error);
         vscode.window.showErrorMessage(`Failed to apply all change requests: ${error.message}`);
-        panel.webview.postMessage({ command: 'setError', text: `Failed to apply all change requests: ${error.message}` });
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to apply all change requests: ${error.message}` });
     }
 }
