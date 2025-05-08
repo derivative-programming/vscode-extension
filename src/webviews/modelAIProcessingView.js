@@ -1,6 +1,6 @@
 // modelAIProcessingView.js
 // Webview for displaying Model AI Processing requests in a paged, sortable table
-// Last modified: May 6, 2025
+// Last modified: May 8, 2025
 // This file provides a professional, VS Code-consistent UI for model AI processing requests.
 
 (function () {
@@ -382,7 +382,7 @@
         `;
         
         // Initial ready message
-        vscode.postMessage({ command: "webviewReady" });
+        vscode.postMessage({ command: "ModelAIProcessingWebviewReady" });
 
         // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
@@ -401,7 +401,7 @@
             // Show spinner while sending request
             showSpinner();
             const desc = document.getElementById("addDescription").value;
-            vscode.postMessage({ command: "addProcessingRequest", data: { description: desc } });
+            vscode.postMessage({ command: "ModelAIProcessingAddRequest", data: { description: desc } });
             document.getElementById("addModal").style.display = "none";
             document.getElementById("addDescription").value = ''; // Clear input after submit
         };
@@ -533,7 +533,7 @@
                                         showSpinner();
                                         document.body.removeChild(confirmModal);
                                         vscode.postMessage({
-                                            command: "cancelProcessingRequest",
+                                            command: "ModelAIProcessingCancelRequest",
                                             requestCode: requestCode
                                         });
                                     });
@@ -556,7 +556,7 @@
                                     e.stopPropagation(); // Prevent row click handler
                                     console.log("[Webview] Details button clicked for request code:", item.modelPrepRequestCode);
                                     vscode.postMessage({
-                                        command: "showProcessingRequestDetails",
+                                        command: "ModelAIProcessingShowRequestDetails",
                                         requestCode: item.modelPrepRequestCode
                                     });
                                 };
@@ -582,7 +582,7 @@
                 // Add row click handler for item details
                 row.addEventListener("click", function() {
                     vscode.postMessage({
-                        command: "showProcessingDetails",
+                        command: "ModelAIProcessingShowDetails",
                         item: item
                     });
                 });
@@ -644,7 +644,7 @@
 
     function requestPage(page) {
         vscode.postMessage({
-            command: "requestPage",
+            command: "ModelAIProcessingRequestPage",
             pageNumber: page,
             itemCountPerPage: itemCountPerPage,
             orderByColumnName: orderByColumn,

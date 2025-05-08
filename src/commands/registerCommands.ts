@@ -779,31 +779,31 @@ export function registerCommands(
             
             panel.webview.onDidReceiveMessage(async (msg) => {
                 console.log("[Extension] Received message from webview:", msg.command);
-                if (msg.command === 'webviewReady') {
-                    console.log("[Extension] Handling webviewReady");
+                if (msg.command === 'ModelAIProcessingWebviewReady') {
+                    console.log("[Extension] Handling ModelAIProcessingWebviewReady");
                     await fetchAndSend(1, 10, 'modelPrepRequestRequestedUTCDateTime', true);
-                } else if (msg.command === 'requestPage') {
-                    console.log("[Extension] Handling requestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
+                } else if (msg.command === 'ModelAIProcessingRequestPage') {
+                    console.log("[Extension] Handling ModelAIProcessingRequestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
                     await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
-                } else if (msg.command === 'addProcessingRequest') {
-                    console.log("[Extension] Handling addProcessingRequest:", msg.data);
+                } else if (msg.command === 'ModelAIProcessingAddRequest') {
+                    console.log("[Extension] Handling ModelAIProcessingAddRequest:", msg.data);
                     // Retrieve API key for authenticated call
                     const authService = AuthService.getInstance();
                     authService.initialize(context);
                     const apiKey = await authService.getApiKey();
                     if (!apiKey) {
-                        console.error("[Extension] No API key found for addProcessingRequest");
+                        console.error("[Extension] No API key found for ModelAIProcessingAddRequest");
                         vscode.window.showErrorMessage('You must be logged in to add a processing request.');
-                        panel.webview.postMessage({ command: "processingRequestFailed" }); // Notify webview of failure
+                        panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" }); // Notify webview of failure
                         return;
                     }
                     // POST a new processing request with modelFileData
                     const desc = msg.data.description || '';
                     // Ensure model file path is available
                     if (!appDNAFilePath) {
-                        console.error("[Extension] No model file path available for addProcessingRequest");
+                        console.error("[Extension] No model file path available for ModelAIProcessingAddRequest");
                         vscode.window.showErrorMessage('No model file is loaded to attach to request.');
-                        panel.webview.postMessage({ command: "processingRequestFailed" }); // Notify webview of failure
+                        panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" }); // Notify webview of failure
                         return;
                     }
                     // Read and encode model file
@@ -818,7 +818,7 @@ export function registerCommands(
                     } catch (e) {
                         console.error("[Extension] Failed to read or zip model file:", e);
                         vscode.window.showErrorMessage('Failed to read or zip model file for request: ' + (e.message || e));
-                        panel.webview.postMessage({ command: "processingRequestFailed" }); // Notify webview of failure
+                        panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" }); // Notify webview of failure
                         return;
                     }
                     const payload = { description: desc, modelFileData };
@@ -836,8 +836,8 @@ export function registerCommands(
                         }
                         
                         // Notify webview that request was successful
-                        console.log("[Extension] Sending processingRequestReceived to webview");
-                        panel.webview.postMessage({ command: "processingRequestReceived" });
+                        console.log("[Extension] Sending ModelAIProcessingRequestReceived to webview");
+                        panel.webview.postMessage({ command: "ModelAIProcessingRequestReceived" });
                     
                         // Refresh first page after adding
                         console.log("[Extension] Refreshing data after successful add...");
@@ -846,12 +846,20 @@ export function registerCommands(
                     } catch (err) {
                         console.error("[Extension] Failed to add processing request:", err);
                         // Notify webview that request failed
-                        console.log("[Extension] Sending processingRequestFailed to webview");
-                        panel.webview.postMessage({ command: "processingRequestFailed" });
+                        console.log("[Extension] Sending ModelAIProcessingRequestFailed to webview");
+                        panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
                         vscode.window.showErrorMessage('Failed to add processing request: ' + (err && err.message ? err.message : err));
                     }
-                } else if (msg.command === 'cancelProcessingRequest') {
-                    console.log("[Extension] Handling cancelProcessingRequest for code:", msg.requestCode);
+                } else if (msg.command === 'ModelAIProcessingShowRequestDetails') { // Handle showing details
+                    console.log("[Extension] Handling ModelAIProcessingShowRequestDetails for code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        vscode.window.showErrorMessage('Missing request code for details view.');
+                        return;
+                    }
+                    // Call function to open the details webview if implemented
+                    vscode.window.showInformationMessage(`Viewing details for processing request: ${msg.requestCode}`);
+                } else if (msg.command === 'ModelAIProcessingCancelRequest') { // Handle cancel request from list view
+                    console.log("[Extension] Handling ModelAIProcessingCancelRequest for code:", msg.requestCode);
                     if (!msg.requestCode) {
                         vscode.window.showErrorMessage('Missing request code for cancel operation.');
                         return;
@@ -864,7 +872,7 @@ export function registerCommands(
                         
                         if (!apiKey) {
                             vscode.window.showErrorMessage('You must be logged in to cancel a processing request.');
-                            panel.webview.postMessage({ command: "processingRequestFailed" });
+                            panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
                             return;
                         }
                         
@@ -884,15 +892,23 @@ export function registerCommands(
                         vscode.window.showInformationMessage(`Processing request cancelled successfully.`);
                         
                         // Send success message back to webview to hide spinner and refresh
-                        panel.webview.postMessage({ command: "processingRequestCancelled" });
+                        panel.webview.postMessage({ command: "ModelAIProcessingRequestCancelled" });
                         
                         // Refresh the list after cancelling
                         await fetchAndSend(1, 10, 'modelPrepRequestRequestedUTCDateTime', true);
                     } catch (error) {
                         console.error("[Extension] Failed to cancel processing request:", error);
                         vscode.window.showErrorMessage(`Failed to cancel request: ${error.message}`);
-                        panel.webview.postMessage({ command: "processingRequestFailed" });
+                        panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
                     }
+                } else if (msg.command === 'ModelAIProcessingShowDetails') {
+                    console.log("[Extension] Handling ModelAIProcessingShowDetails for item:", msg.item);
+                    if (!msg.item) {
+                        vscode.window.showErrorMessage('Missing item data for details.');
+                        return;
+                    }
+                    // Implement detailed view for the processing item if needed
+                    vscode.window.showInformationMessage(`Viewing detailed information for processing request`);
                 }
             });
         })
