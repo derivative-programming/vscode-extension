@@ -1,0 +1,542 @@
+// filepath: c:\VR\Source\DP\vscode-extension\src\webviews\projectSettingsView.js
+// projectSettingsView.js
+// Shows the project settings view in a webview panel
+// May 9, 2025
+
+"use strict";
+
+// Import VS Code API for use in the extension context
+const vscode = require('vscode');
+
+// Cache for schema data
+const schemaCache = {}; 
+
+/**
+ * Shows a project settings view in a webview
+ * @param {Object} context The extension context
+ * @param {Object} modelService The model service instance
+ */
+function showProjectSettings(context, modelService) {
+    if (!modelService || !modelService.isFileLoaded()) {
+        vscode.window.showErrorMessage("No project is currently loaded.");
+        return;
+    }
+
+    // Create webview panel
+    const panel = vscode.window.createWebviewPanel(
+        'projectSettings',
+        'Project Settings',
+        vscode.ViewColumn.One,
+        {
+            enableScripts: true,
+            retainContextWhenHidden: true
+        }
+    );
+
+    // Get the model data
+    const model = modelService.getCurrentModel();
+    if (!model || !model.root) {
+        vscode.window.showErrorMessage("Model does not contain root data.");
+        return;
+    }
+
+    // Load the schema for validation and UI generation
+    Promise.all([
+        vscode.workspace.fs.readFile(vscode.Uri.file(modelService.getSchemaPath()))
+    ]).then(results => {
+        const schemaContent = new TextDecoder().decode(results[0]);
+        const schema = JSON.parse(schemaContent);
+        schemaCache.schema = schema; // Cache the schema
+
+        // Set the HTML content
+        panel.webview.html = getWebviewContent(panel, context, model, schema);
+
+        // Handle messages from webview
+        panel.webview.onDidReceiveMessage(message => {
+            switch (message.command) {
+                case 'webviewReady':
+                    // When webview is ready, send the root node and first namespace data
+                    refreshWebviewData(panel, model);
+                    break;
+
+                case 'updateSetting':
+                    handleUpdateSetting(message.data, model, modelService, panel);
+                    break;
+            }
+        });
+    }).catch(err => {
+        vscode.window.showErrorMessage(`Failed to load schema: ${err.message}`);
+        console.error("Error loading schema:", err);
+    });
+}
+
+/**
+ * Sends updated model data to the webview
+ * @param {Object} panel The webview panel
+ * @param {Object} model The current model data
+ */
+function refreshWebviewData(panel, model) {
+    // Extract root node properties
+    const rootData = {
+        properties: {}
+    };
+    
+    // Copy direct properties from the root node, excluding namespace array
+    for (const key in model.root) {
+        if (key !== 'namespace') {
+            rootData.properties[key] = model.root[key];
+        }
+    }
+    
+    // Get the first namespace, if it exists
+    let firstNamespace = null;
+    if (model.root.namespace && Array.isArray(model.root.namespace) && model.root.namespace.length > 0) {
+        firstNamespace = model.root.namespace[0];
+    }
+
+    // Send data to the webview
+    panel.webview.postMessage({
+        command: 'setProjectData',
+        rootData: rootData,
+        namespaceData: firstNamespace
+    });
+}
+
+/**
+ * Handles updates to project settings
+ * @param {Object} data The update data with property name, exists flag, and value
+ * @param {Object} model The current model
+ * @param {Object} modelService The model service
+ * @param {Object} panel The webview panel
+ */
+function handleUpdateSetting(data, model, modelService, panel) {
+    const { section, property, exists, value } = data;
+    
+    try {
+        // Update root node or namespace based on the section
+        if (section === 'root') {
+            if (exists) {
+                model.root[property] = value;
+            } else if (model.root.hasOwnProperty(property)) {
+                delete model.root[property];
+            }
+        } else if (section === 'namespace') {
+            if (model.root.namespace && model.root.namespace.length > 0) {
+                if (exists) {
+                    model.root.namespace[0][property] = value;
+                } else if (model.root.namespace[0].hasOwnProperty(property)) {
+                    delete model.root.namespace[0][property];
+                }
+            }
+        }
+        
+        // Save the updated model
+        modelService.saveToFile(model);
+        
+        // Refresh the webview data
+        refreshWebviewData(panel, model);
+        
+        // Send confirmation back to webview
+        panel.webview.postMessage({
+            command: 'settingUpdated',
+            property: property,
+            success: true
+        });
+        
+    } catch (error) {
+        console.error(`Error updating setting ${property}:`, error);
+        panel.webview.postMessage({
+            command: 'settingUpdated',
+            property: property,
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+/**
+ * Creates the HTML content for the webview
+ * @param {Object} panel The webview panel
+ * @param {Object} context The extension context
+ * @param {Object} model The model data
+ * @param {Object} schema The JSON schema
+ * @returns {string} The HTML content
+ */
+function getWebviewContent(panel, context, model, schema) {
+    // Get webview-compliant URIs for CSS and script files
+    const styleUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'styles', 'styles.css'));
+    
+    return `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Project Settings</title>
+        <link rel="stylesheet" href="${styleUri}">
+        <style>
+            body {
+                padding: 20px;
+                color: var(--vscode-editor-foreground);
+                font-family: var(--vscode-editor-font-family);
+                background-color: var(--vscode-editor-background);
+            }
+            h2 {
+                border-bottom: 1px solid var(--vscode-panel-border);
+                padding-bottom: 8px;
+            }
+            .settings-section {
+                margin-bottom: 20px;
+            }
+            .property-row {
+                display: flex;
+                margin-bottom: 8px;
+                align-items: center;
+            }
+            .property-name {
+                width: 170px;
+                padding-right: 10px;
+                text-align: right;
+            }
+            .control-with-checkbox {
+                display: flex;
+                flex-grow: 1;
+                align-items: center;
+            }
+            .control-with-checkbox input[type="text"],
+            .control-with-checkbox select {
+                flex-grow: 1;
+                margin-right: 10px;
+                padding: 5px;
+                background-color: var(--vscode-input-background);
+                color: var(--vscode-input-foreground);
+                border: 1px solid var(--vscode-input-border);
+            }
+            .control-with-checkbox input[type="checkbox"] {
+                margin-left: 6px;
+            }
+            input[readonly],
+            select[disabled] {
+                background-color: var(--vscode-input-disabledBackground, #e9e9e9) !important;
+                color: var(--vscode-input-disabledForeground, #999) !important;
+                opacity: 0.8;
+            }
+            .section-title {
+                font-size: 1.2em;
+                font-weight: bold;
+                margin: 15px 0 10px 0;
+                color: var(--vscode-editor-foreground);
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Project Settings</h2>
+        <p>Manage root-level project settings and namespace configuration.</p>
+
+        <div class="settings-section">
+            <div class="section-title">Root Settings</div>
+            <div id="rootSettings">
+                <!-- Will be populated dynamically -->
+                <div class="loading">Loading root settings...</div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-title">Namespace Settings</div>
+            <div id="namespaceSettings">
+                <!-- Will be populated dynamically -->
+                <div class="loading">Loading namespace settings...</div>
+            </div>
+        </div>
+
+        <script>
+            // Store the schema and properties for reference
+            let schema = ${JSON.stringify(schema)};
+            let rootData = {};
+            let namespaceData = {};
+            const vscode = acquireVsCodeApi();
+            
+            // Initialize on DOM content loaded
+            document.addEventListener('DOMContentLoaded', function() {
+                // Notify the extension that the webview is ready to receive data
+                vscode.postMessage({
+                    command: 'webviewReady'
+                });
+            });
+
+            // Listen for messages from the extension
+            window.addEventListener('message', event => {
+                const message = event.data;
+                
+                switch (message.command) {
+                    case 'setProjectData':
+                        // Update our cached data
+                        rootData = message.rootData;
+                        namespaceData = message.namespaceData;
+                        
+                        // Rebuild the UI with the new data
+                        renderRootSettings();
+                        renderNamespaceSettings();
+                        break;
+                        
+                    case 'settingUpdated':
+                        // Could add confirmation or error handling UI
+                        if (!message.success) {
+                            console.error('Failed to update setting:', message.property, message.error);
+                        }
+                        break;
+                }
+            });
+
+            // Generate UI for root settings
+            function renderRootSettings() {
+                const container = document.getElementById('rootSettings');
+                container.innerHTML = ''; // Clear existing content
+                
+                // Get root schema properties
+                const rootSchema = schema.properties?.root?.properties || {};
+                
+                // Skip namespace property as it's handled separately
+                const propertiesToDisplay = Object.keys(rootSchema)
+                    .filter(key => key !== 'namespace')
+                    .sort(); // Sort alphabetically
+                
+                // No properties to display
+                if (propertiesToDisplay.length === 0) {
+                    container.innerHTML = '<p>No root properties found in schema.</p>';
+                    return;
+                }
+                
+                // Create rows for each property
+                propertiesToDisplay.forEach(propName => {
+                    const propSchema = rootSchema[propName];
+                    const propValue = rootData.properties && rootData.properties[propName];
+                    const propExists = rootData.properties && rootData.properties.hasOwnProperty(propName);
+                    
+                    // Create the property row
+                    const row = createPropertyRow(propName, propSchema, propValue, propExists, 'root');
+                    container.appendChild(row);
+                });
+            }
+
+            // Generate UI for namespace settings
+            function renderNamespaceSettings() {
+                const container = document.getElementById('namespaceSettings');
+                container.innerHTML = ''; // Clear existing content
+                
+                if (!namespaceData) {
+                    container.innerHTML = '<p>No namespace found in the model.</p>';
+                    return;
+                }
+                
+                // Get namespace schema properties
+                const namespaceSchema = schema.properties?.root?.properties?.namespace?.items?.properties || {};
+                
+                // Skip object property as that's the data objects collection
+                const propertiesToDisplay = Object.keys(namespaceSchema)
+                    .filter(key => key !== 'object')
+                    .sort(); // Sort alphabetically
+                
+                // No properties to display
+                if (propertiesToDisplay.length === 0) {
+                    container.innerHTML = '<p>No namespace properties found in schema.</p>';
+                    return;
+                }
+                
+                // Add namespace name as first item
+                if (namespaceData.name) {
+                    const nameLabel = document.createElement('div');
+                    nameLabel.className = 'property-row';
+                    nameLabel.innerHTML = '<div class="property-name">Namespace:</div>' +
+                        '<div><strong>' + namespaceData.name + '</strong></div>';
+                    container.appendChild(nameLabel);
+                }
+                
+                // Create rows for each property
+                propertiesToDisplay.forEach(propName => {
+                    // Skip the name property as we displayed it separately
+                    if (propName === 'name') return; 
+                    
+                    const propSchema = namespaceSchema[propName];
+                    const propValue = namespaceData[propName];
+                    const propExists = namespaceData.hasOwnProperty(propName);
+                    
+                    // Create the property row
+                    const row = createPropertyRow(propName, propSchema, propValue, propExists, 'namespace');
+                    container.appendChild(row);
+                });
+            }
+
+            /**
+             * Creates a row for a property with appropriate controls based on schema
+             * @param {string} propName The property name
+             * @param {Object} propSchema The schema for this property
+             * @param {*} value The current value
+             * @param {boolean} exists Whether the property exists in the data
+             * @param {string} section 'root' or 'namespace' 
+             * @returns {HTMLElement} The property row
+             */
+            function createPropertyRow(propName, propSchema, value, exists, section) {
+                const row = document.createElement('div');
+                row.className = 'property-row';
+                
+                // Create the label
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'property-name';
+                nameDiv.textContent = formatPropertyName(propName) + ':';
+                row.appendChild(nameDiv);
+                
+                // Create the control container
+                const controlContainer = document.createElement('div');
+                controlContainer.className = 'control-with-checkbox';
+                
+                // Determine what type of control to create based on schema
+                let inputElement;
+                
+                if (propSchema.enum && Array.isArray(propSchema.enum)) {
+                    // Enum property - use dropdown
+                    inputElement = document.createElement('select');
+                    
+                    // Add options
+                    propSchema.enum.forEach(option => {
+                        const optionEl = document.createElement('option');
+                        optionEl.value = option;
+                        optionEl.textContent = option;
+                        inputElement.appendChild(optionEl);
+                    });
+                    
+                    if (exists && value !== undefined) {
+                        inputElement.value = value;
+                    }
+                    
+                    inputElement.disabled = !exists;
+                } else {
+                    // Regular property - use text input
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'text';
+                    
+                    if (exists && value !== undefined) {
+                        inputElement.value = value;
+                    }
+                    
+                    inputElement.readOnly = !exists;
+                }
+                
+                // Add tooltip if there's a description
+                if (propSchema.description) {
+                    inputElement.title = propSchema.description;
+                }
+                
+                inputElement.id = propName;
+                inputElement.name = propName;
+                
+                // Set styles based on readonly/disabled state
+                updateInputStyle(inputElement, exists);
+                
+                // Add change handler
+                inputElement.addEventListener('change', function() {
+                    sendSettingUpdate(section, propName, exists, this.value);
+                });
+                
+                // Add the input to the container
+                controlContainer.appendChild(inputElement);
+                
+                // Add checkbox for toggling property existence
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'setting-checkbox';
+                checkbox.checked = exists;
+                checkbox.dataset.prop = propName;
+                checkbox.title = "Toggle property existence";
+                
+                // Add change handler for checkbox
+                checkbox.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = !isChecked;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = !isChecked;
+                    }
+                    
+                    // Update input styling
+                    updateInputStyle(inputElement, isChecked);
+                    
+                    // If enabling, ensure we have a default value
+                    if (isChecked) {
+                        // For select elements with no value, select the first option
+                        if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === "")) {
+                            if (inputElement.options.length > 0) {
+                                inputElement.value = inputElement.options[0].value;
+                            }
+                        }
+                    }
+                    
+                    // Send update to extension
+                    sendSettingUpdate(section, propName, isChecked, isChecked ? inputElement.value : null);
+                });
+                
+                controlContainer.appendChild(checkbox);
+                row.appendChild(controlContainer);
+                
+                return row;
+            }
+            
+            /**
+             * Updates the styling for an input based on its enabled/disabled state
+             * @param {HTMLElement} inputElement The input or select element
+             * @param {boolean} enabled Whether the control is enabled
+             */
+            function updateInputStyle(inputElement, enabled) {
+                if (!enabled) {
+                    inputElement.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                    inputElement.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                    inputElement.style.opacity = '0.8';
+                } else {
+                    inputElement.style.backgroundColor = 'var(--vscode-input-background)';
+                    inputElement.style.color = 'var(--vscode-input-foreground)';
+                    inputElement.style.opacity = '1';
+                }
+            }
+            
+            /**
+             * Formats a property name into a human-readable label
+             * @param {string} name The property name in camelCase or PascalCase
+             * @returns {string} The formatted name with spaces
+             */
+            function formatPropertyName(name) {
+                // Handle cases where capital letters are together (e.g., DNA -> DNA not D N A)
+                return name
+                    // Insert a space before all caps if not preceded by a capital letter
+                    .replace(/([^A-Z])([A-Z])/g, '$1 $2')
+                    // Insert a space before all numbers if not preceded by a number
+                    .replace(/([^0-9])([0-9])/g, '$1 $2')
+                    // Capitalize the first letter
+                    .replace(/^./, function(str) { return str.toUpperCase(); });
+            }
+
+            /**
+             * Sends a setting update message to the extension
+             * @param {string} section The section ('root' or 'namespace')
+             * @param {string} property The property name
+             * @param {boolean} exists Whether the property should exist
+             * @param {any} value The property value
+             */
+            function sendSettingUpdate(section, property, exists, value) {
+                vscode.postMessage({
+                    command: 'updateSetting',
+                    data: {
+                        section: section,
+                        property: property,
+                        exists: exists,
+                        value: value
+                    }
+                });
+            }
+        </script>
+    </body>
+    </html>`;
+}
+
+module.exports = {
+    showProjectSettings
+};

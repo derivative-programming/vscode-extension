@@ -46,6 +46,17 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         if (!element) {
             if (fileExists) {
                 // Create tree items for root level
+                // Create PROJECT item that will be the top-level item
+                const projectItem = new JsonTreeItem(
+                    'PROJECT',
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    'project'
+                );
+                
+                // Set a project icon for the PROJECT item
+                projectItem.iconPath = new vscode.ThemeIcon('project');
+                projectItem.tooltip = "Project settings and configuration";
+                
                 const dataObjectsItem = new JsonTreeItem(
                     'DATA OBJECTS',
                     vscode.TreeItemCollapsibleState.Collapsed,
@@ -77,10 +88,35 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     "Connected to Model Services API" : 
                     "Authentication required to access Model Services";
                 
-                // Return both tree items
-                return Promise.resolve([dataObjectsItem, modelServicesItem]);
+                // Return tree items in order: PROJECT, DATA OBJECTS, MODEL SERVICES
+                return Promise.resolve([projectItem, dataObjectsItem, modelServicesItem]);
             } else {
                 // File doesn't exist, show empty tree
+                return Promise.resolve([]);
+            }
+        }
+        
+        // Handle PROJECT children
+        if (element?.contextValue === 'project' && fileExists) {
+            try {
+                // Create Settings item under PROJECT
+                const settingsItem = new JsonTreeItem(
+                    'Settings',
+                    vscode.TreeItemCollapsibleState.None,
+                    'projectSettings'
+                );
+                
+                settingsItem.iconPath = new vscode.ThemeIcon('settings-gear');
+                settingsItem.tooltip = "Project configuration settings";
+                settingsItem.command = {
+                    command: 'appdna.showProjectSettings',
+                    title: 'Show Project Settings',
+                    arguments: []
+                };
+                
+                return Promise.resolve([settingsItem]);
+            } catch (error) {
+                console.error('Error reading project settings:', error);
                 return Promise.resolve([]);
             }
         }

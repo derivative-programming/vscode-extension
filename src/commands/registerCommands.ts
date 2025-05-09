@@ -21,6 +21,8 @@ import { showValidationRequestDetailsView } from '../webviews/validationRequestD
 import { showFabricationRequestDetailsView } from '../webviews/fabricationRequestDetailsView';
 // Import showChangeRequestsListView and alias getWebviewContent
 import { getWebviewContent as getChangeRequestsViewHtml, showChangeRequestsListView } from '../webviews/changeRequestsListView';
+// Import showProjectSettings 
+import { showProjectSettings } from '../webviews/projectSettingsView';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -702,6 +704,19 @@ export function registerCommands(
                     }
                 }
             });
+        })
+    );
+
+    // Register show project settings command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showProjectSettings', async () => {
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+                return;
+            }
+            
+            // Show the project settings view
+            showProjectSettings(context, modelService);
         })
     );
 
