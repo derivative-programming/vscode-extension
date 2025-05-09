@@ -448,19 +448,71 @@ function getWebviewContent(panel, context, model, schema) {
                     return;
                 }
                 
-                // Add namespace name as first item
-                if (namespaceData.name) {
+                // Add namespace name as first item as an editable field
+                if (namespaceData.name !== undefined) {
+                    const nameRow = document.createElement('div');
+                    nameRow.className = 'property-row';
+                    
                     const nameLabel = document.createElement('div');
-                    nameLabel.className = 'property-row';
-                    nameLabel.innerHTML = '<div class="property-name">Namespace:</div>' +
-                        '<div><strong>' + namespaceData.name + '</strong></div>';
-                    container.appendChild(nameLabel);
+                    nameLabel.className = 'property-name';
+                    nameLabel.textContent = 'Namespace:';
+                    nameRow.appendChild(nameLabel);
+                    
+                    const controlContainer = document.createElement('div');
+                    controlContainer.className = 'control-with-checkbox';
+                    
+                    // Create input for namespace name
+                    const nameInput = document.createElement('input');
+                    nameInput.type = 'text';
+                    nameInput.value = namespaceData.name;
+                    nameInput.id = 'namespaceName';
+                    nameInput.name = 'name';
+                    nameInput.required = true;
+                    nameInput.title = "Namespace name cannot be empty";
+                    
+                    // Add validation to prevent empty namespace
+                    nameInput.addEventListener('input', function() {
+                        // Trim the value to check if it's really empty
+                        if (!this.value.trim()) {
+                            this.setCustomValidity("Namespace name cannot be empty");
+                            this.reportValidity();
+                        } else {
+                            this.setCustomValidity("");
+                        }
+                    });
+                    
+                    nameInput.addEventListener('change', function() {
+                        // If empty after change, revert to previous value
+                        if (!this.value.trim()) {
+                            this.value = namespaceData.name;
+                            this.setCustomValidity("Namespace name cannot be empty");
+                            this.reportValidity();
+                            return;
+                        }
+                        
+                        // Update the namespace name
+                        sendSettingUpdate('namespace', 'name', true, this.value);
+                    });
+                    
+                    controlContainer.appendChild(nameInput);
+                    
+                    // Add checkbox for consistency with other fields (always checked since name is required)
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'setting-checkbox';
+                    checkbox.checked = true;
+                    checkbox.disabled = true; // Disable checkbox since namespace name is required
+                    checkbox.title = "Namespace name is required and cannot be unchecked";
+                    
+                    controlContainer.appendChild(checkbox);
+                    nameRow.appendChild(controlContainer);
+                    container.appendChild(nameRow);
                 }
                 
                 // Create rows for each property
                 propertiesToDisplay.forEach(propName => {
-                    // Skip the name property as we displayed it separately
-                    if (propName === 'name') return; 
+                    // Skip the name property as we displayed it separately as a textbox
+                    if (propName === 'name') return;
                     
                     const propSchema = namespaceSchema[propName];
                     const propValue = namespaceData[propName];
@@ -552,34 +604,41 @@ function getWebviewContent(panel, context, model, schema) {
                 checkbox.className = 'setting-checkbox';
                 checkbox.checked = exists;
                 checkbox.dataset.prop = propName;
-                checkbox.title = "Toggle property existence";
                 
-                // Add change handler for checkbox
-                checkbox.addEventListener('change', function() {
-                    const isChecked = this.checked;
+                // If property already exists, disable the checkbox to prevent unchecking
+                if (exists) {
+                    checkbox.disabled = true;
+                    checkbox.title = "Property exists in model and cannot be removed";
+                } else {
+                    checkbox.title = "Toggle property existence";
                     
-                    if (inputElement.tagName === 'INPUT') {
-                        inputElement.readOnly = !isChecked;
-                    } else if (inputElement.tagName === 'SELECT') {
-                        inputElement.disabled = !isChecked;
-                    }
-                    
-                    // Update input styling
-                    updateInputStyle(inputElement, isChecked);
-                    
-                    // If enabling, ensure we have a default value
-                    if (isChecked) {
-                        // For select elements with no value, select the first option
-                        if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === "")) {
-                            if (inputElement.options.length > 0) {
-                                inputElement.value = inputElement.options[0].value;
+                    // Add change handler for checkbox (only for properties that don't exist yet)
+                    checkbox.addEventListener('change', function() {
+                        const isChecked = this.checked;
+                        
+                        if (inputElement.tagName === 'INPUT') {
+                            inputElement.readOnly = !isChecked;
+                        } else if (inputElement.tagName === 'SELECT') {
+                            inputElement.disabled = !isChecked;
+                        }
+                        
+                        // Update input styling
+                        updateInputStyle(inputElement, isChecked);
+                        
+                        // If enabling, ensure we have a default value
+                        if (isChecked) {
+                            // For select elements with no value, select the first option
+                            if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === "")) {
+                                if (inputElement.options.length > 0) {
+                                    inputElement.value = inputElement.options[0].value;
+                                }
                             }
                         }
-                    }
-                    
-                    // Send update to extension
-                    sendSettingUpdate(section, propName, isChecked, isChecked ? inputElement.value : null);
-                });
+                        
+                        // Send update to extension
+                        sendSettingUpdate(section, propName, isChecked, isChecked ? inputElement.value : null);
+                    });
+                }
                 
                 controlContainer.appendChild(checkbox);
                 row.appendChild(controlContainer);
