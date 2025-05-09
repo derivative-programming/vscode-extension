@@ -162,18 +162,49 @@
     }
 
     function downloadComplete() {
-        console.log("[Webview] Modal: Download complete!");
+        console.log("[Webview] Modal: downloadComplete() called. Cleaning UI and showing success.");
         const modalContent = document.querySelector('#download-modal .modal-content');
-        
+
         if (!modalContent) {
+            console.warn("[Webview] Modal: Cannot find #download-modal .modal-content for cleanup.");
             return;
         }
+
+        // 1. Aggressively remove the main progress display area
+        const mainProgressContainer = modalContent.querySelector('#modal-progress-container');
+        if (mainProgressContainer) {
+            console.log("[Webview] Clearing, hiding, and removing #modal-progress-container.");
+            mainProgressContainer.innerHTML = ''; // Clear content to stop any lingering updates
+            mainProgressContainer.style.display = 'none'; // Explicitly hide
+            mainProgressContainer.remove(); // Remove from DOM
+        } else {
+            console.log("[Webview] #modal-progress-container not found for removal.");
+        }
+
+        // 2. Remove any other potential old/rogue progress containers (belt and suspenders)
+        const legacyProgressContainers = modalContent.querySelectorAll('#download-progress-container, #extraction-progress-container');
+        legacyProgressContainers.forEach(container => {
+            console.log("[Webview] Removing legacy progress container:", container.id);
+            container.remove();
+        });
         
-        // Remove any progress containers
-        const progressContainers = modalContent.querySelectorAll('.progress-container');
-        progressContainers.forEach(container => container.remove());
-        
-        // Show success message
+        const classBasedProgress = modalContent.querySelectorAll('.progress-container.visible');
+         classBasedProgress.forEach(container => {
+            // Check if it's not the main one (which should be gone) or already removed
+            if (container && container.parentNode && container.id !== 'modal-progress-container') { 
+                 console.log("[Webview] Removing visible progress container by class:", container.id || "no-id");
+                 container.remove();
+            }
+         });
+
+        // 3. Remove any pre-existing success messages to avoid duplication
+        const existingSuccessMessages = modalContent.querySelectorAll('.success-message');
+        existingSuccessMessages.forEach(msg => {
+            console.log("[Webview] Removing existing success message.");
+            msg.remove();
+        });
+
+        // 4. Show the new success message
         const successMessage = document.createElement('div');
         successMessage.className = 'success-message';
         successMessage.style.cssText = `
@@ -182,18 +213,34 @@
             background-color: var(--vscode-terminal-ansiGreen, rgba(137, 209, 133, 0.1));
             border-left: 3px solid var(--vscode-testing-iconPassed, #89D185);
             color: var(--vscode-editor-foreground);
+            display: block !important; 
         `;
         successMessage.textContent = 'Fabrication results have been downloaded and extracted successfully.';
         
-        modalContent.appendChild(successMessage);
-        
-        // Update download button if it exists
-        const dlButton = modalContent.querySelector('.download-button');
-        if (dlButton) {
-            dlButton.disabled = false;
-            dlButton.textContent = 'Download Again';
-            dlButton.className = 'download-button download-success';
+        const actionContainer = modalContent.querySelector('.action-container');
+        if (actionContainer) {
+            actionContainer.parentNode.insertBefore(successMessage, actionContainer.nextSibling);
+            console.log("[Webview] Appended success message after .action-container.");
+        } else {
+            modalContent.appendChild(successMessage);
+            console.log("[Webview] Appended success message to modalContent.");
         }
+        
+        // 5. Update the download button state
+        const downloadButton = modalContent.querySelector('#downloadResultsButton'); // Use ID for specificity
+        if (downloadButton) {
+            console.log("[Webview] Updating #downloadResultsButton state.");
+            downloadButton.disabled = false;
+            downloadButton.textContent = 'Download Results'; // Consistent text
+            downloadButton.classList.remove('downloading'); // If such a class is used for styling during download
+            downloadButton.classList.add('download-success');
+            
+            const spinner = downloadButton.querySelector('.spinner'); // Remove spinner from button
+            if (spinner) spinner.remove();
+        } else {
+            console.log("[Webview] #downloadResultsButton not found in modalContent.");
+        }
+        console.log("[Webview] downloadComplete() finished.");
     }
     
     function downloadError(errorMessage) {
@@ -276,14 +323,15 @@
             console.log("[Webview] Extraction progress:", message.percent, `(${message.extracted}/${message.total})`);
             updateExtractionProgressInModal(message.extracted, message.total, message.percent);
         } else if (message.command === "modelFabricationResultDownloadSuccess") {
-            console.log("[Webview] Download complete");
-            // Update modal UI for download success if visible
+            console.log("[Webview] Received modelFabricationResultDownloadSuccess event.");
             const downloadModal = document.getElementById('download-modal');
             if (downloadModal && downloadModal.style.display === 'block') {
-                downloadComplete();
+                console.log("[Webview] Download modal is visible. Executing downloadComplete().");
+                downloadComplete(); // This function now handles all modal UI updates for success.
+            } else {
+                console.log("[Webview] Download modal is not visible or not found. Cannot run downloadComplete().");
             }
-            updateButtonAfterSuccess();
-            hideSpinner();
+            hideSpinner(); // Hide any global spinner.
         } else if (message.command === "modelFabricationResultDownloadError") {
             console.log("[Webview] Download error:", message.error);
             // Update modal UI for download error if visible
