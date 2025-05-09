@@ -7,6 +7,7 @@
 
 // Import VS Code API for use in the extension context
 const vscode = require('vscode');
+const fs = require('fs');
 
 // Cache for schema data
 const schemaCache = {}; 
@@ -33,65 +34,135 @@ function showProjectSettings(context, modelService) {
         }
     );
 
-    // Get the model data
-    const model = modelService.getCurrentModel();
-    if (!model || !model.root) {
-        vscode.window.showErrorMessage("Model does not contain root data.");
+    // Get the model data - this is a RootModel object
+    const rootModel = modelService.getCurrentModel();
+    if (!rootModel) {
+        vscode.window.showErrorMessage("Failed to get model data. Check if the model file is loaded correctly.");
         return;
     }
+    
+    // Ensure rootModel.namespace exists and is an array
+    if (!rootModel.namespace || !Array.isArray(rootModel.namespace)) {
+        console.log("Root model does not have a namespace array. Creating one to avoid errors.");
+        rootModel.namespace = [];
+    }
 
+    // Get schema path
+    let schemaPath;
+    try {
+        schemaPath = modelService.getSchemaPath();
+        if (!schemaPath) {
+            throw new Error("Schema path is undefined");
+        }
+        if (!fs.existsSync(schemaPath)) {
+            throw new Error(`Schema file not found: ${schemaPath}`);
+        }
+        console.log(`Loading schema from: ${schemaPath}`);
+    } catch (error) {
+        console.error(`Error getting schema path: ${error.message}`);
+        vscode.window.showErrorMessage(`Failed to locate schema file: ${error.message}`);
+        // Continue without schema - we'll use an empty schema object
+        displayWebviewWithoutSchema(panel, context, rootModel);
+        return;
+    }
+    
     // Load the schema for validation and UI generation
     Promise.all([
-        vscode.workspace.fs.readFile(vscode.Uri.file(modelService.getSchemaPath()))
+        vscode.workspace.fs.readFile(vscode.Uri.file(schemaPath))
     ]).then(results => {
-        const schemaContent = new TextDecoder().decode(results[0]);
-        const schema = JSON.parse(schemaContent);
-        schemaCache.schema = schema; // Cache the schema
-
-        // Set the HTML content
-        panel.webview.html = getWebviewContent(panel, context, model, schema);
-
-        // Handle messages from webview
-        panel.webview.onDidReceiveMessage(message => {
-            switch (message.command) {
-                case 'webviewReady':
-                    // When webview is ready, send the root node and first namespace data
-                    refreshWebviewData(panel, model);
-                    break;
-
-                case 'updateSetting':
-                    handleUpdateSetting(message.data, model, modelService, panel);
-                    break;
-            }
-        });
+        try {
+            const schemaContent = new TextDecoder().decode(results[0]);
+            const schema = JSON.parse(schemaContent);
+            schemaCache.schema = schema; // Cache the schema
+            
+            // Set the HTML content
+            panel.webview.html = getWebviewContent(panel, context, rootModel, schema);
+            
+            // Handle messages from webview
+            panel.webview.onDidReceiveMessage(message => {
+                switch (message.command) {
+                    case 'webviewReady':
+                        // When webview is ready, send the root node and first namespace data
+                        refreshWebviewData(panel, rootModel);
+                        break;
+                        
+                    case 'updateSetting':
+                        handleUpdateSetting(message.data, rootModel, modelService, panel);
+                        break;
+                }
+            });
+        } catch (err) {
+            console.error("Error parsing schema:", err);
+            vscode.window.showErrorMessage(`Failed to parse schema: ${err.message}`);
+            displayWebviewWithoutSchema(panel, context, rootModel);
+        }
     }).catch(err => {
-        vscode.window.showErrorMessage(`Failed to load schema: ${err.message}`);
         console.error("Error loading schema:", err);
+        vscode.window.showErrorMessage(`Failed to load schema: ${err.message}`);
+        displayWebviewWithoutSchema(panel, context, rootModel);
+    });
+}
+
+/**
+ * Displays the webview with a minimal schema when schema loading fails
+ * @param {Object} panel The webview panel
+ * @param {Object} context The extension context
+ * @param {Object} rootModel The root model data
+ */
+function displayWebviewWithoutSchema(panel, context, rootModel) {
+    // Create a minimal schema that allows basic editing
+    const minimalSchema = {
+        properties: {
+            root: {
+                properties: {
+                    // Empty object to avoid errors when accessing properties
+                },
+                type: "object"
+            }
+        },
+        type: "object"
+    };
+    
+    // Set the webview HTML with minimal schema
+    panel.webview.html = getWebviewContent(panel, context, rootModel, minimalSchema);
+    
+    // Handle messages from webview
+    panel.webview.onDidReceiveMessage(message => {
+        switch (message.command) {
+            case 'webviewReady':
+                // When webview is ready, send the root node and first namespace data
+                refreshWebviewData(panel, rootModel);
+                break;
+                
+            case 'updateSetting':
+                handleUpdateSetting(message.data, rootModel, modelService, panel);
+                break;
+        }
     });
 }
 
 /**
  * Sends updated model data to the webview
  * @param {Object} panel The webview panel
- * @param {Object} model The current model data
+ * @param {Object} rootModel The root model data
  */
-function refreshWebviewData(panel, model) {
-    // Extract root node properties
+function refreshWebviewData(panel, rootModel) {
+    // Extract root properties
     const rootData = {
         properties: {}
     };
     
-    // Copy direct properties from the root node, excluding namespace array
-    for (const key in model.root) {
+    // Copy direct properties from the root model, excluding namespace array
+    for (const key in rootModel) {
         if (key !== 'namespace') {
-            rootData.properties[key] = model.root[key];
+            rootData.properties[key] = rootModel[key];
         }
     }
     
     // Get the first namespace, if it exists
     let firstNamespace = null;
-    if (model.root.namespace && Array.isArray(model.root.namespace) && model.root.namespace.length > 0) {
-        firstNamespace = model.root.namespace[0];
+    if (rootModel.namespace && Array.isArray(rootModel.namespace) && rootModel.namespace.length > 0) {
+        firstNamespace = rootModel.namespace[0];
     }
 
     // Send data to the webview
@@ -105,36 +176,36 @@ function refreshWebviewData(panel, model) {
 /**
  * Handles updates to project settings
  * @param {Object} data The update data with property name, exists flag, and value
- * @param {Object} model The current model
+ * @param {Object} rootModel The root model object
  * @param {Object} modelService The model service
  * @param {Object} panel The webview panel
  */
-function handleUpdateSetting(data, model, modelService, panel) {
+function handleUpdateSetting(data, rootModel, modelService, panel) {
     const { section, property, exists, value } = data;
     
     try {
-        // Update root node or namespace based on the section
+        // Update root properties or namespace based on the section
         if (section === 'root') {
             if (exists) {
-                model.root[property] = value;
-            } else if (model.root.hasOwnProperty(property)) {
-                delete model.root[property];
+                rootModel[property] = value;
+            } else if (rootModel.hasOwnProperty(property)) {
+                delete rootModel[property];
             }
         } else if (section === 'namespace') {
-            if (model.root.namespace && model.root.namespace.length > 0) {
+            if (rootModel.namespace && rootModel.namespace.length > 0) {
                 if (exists) {
-                    model.root.namespace[0][property] = value;
-                } else if (model.root.namespace[0].hasOwnProperty(property)) {
-                    delete model.root.namespace[0][property];
+                    rootModel.namespace[0][property] = value;
+                } else if (rootModel.namespace[0].hasOwnProperty(property)) {
+                    delete rootModel.namespace[0][property];
                 }
             }
         }
         
         // Save the updated model
-        modelService.saveToFile(model);
+        modelService.saveToFile(rootModel);
         
         // Refresh the webview data
-        refreshWebviewData(panel, model);
+        refreshWebviewData(panel, rootModel);
         
         // Send confirmation back to webview
         panel.webview.postMessage({

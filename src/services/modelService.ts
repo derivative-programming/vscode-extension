@@ -273,4 +273,23 @@ export class ModelService {
             throw error;
         }
     }
+
+    /**
+     * Get the schema path for validation and UI generation
+     * @returns The path to the schema file
+     */
+    public getSchemaPath(): string {
+        // Look for schema in the workspace first
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders) {
+            const workspaceSchemaPath = path.join(workspaceFolders[0].uri.fsPath, 'app-dna.schema.json');
+            if (fs.existsSync(workspaceSchemaPath)) {
+                return workspaceSchemaPath;
+            }
+        }
+
+        // Fall back to the extension's schema file
+        const extensionPath = vscode.extensions.getExtension('TestPublisher.appdna')?.extensionPath || '';
+        return path.join(extensionPath, 'app-dna.schema.json');
+    }
 }
