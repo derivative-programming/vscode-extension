@@ -143,6 +143,51 @@
         .error-details .detail-value {
             color: var(--vscode-errorForeground, #f14c4c);
         }
+
+        /* Progress bar styles */
+        .progress-container {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .progress-container.visible {
+            display: block;
+        }
+
+        .progress-title {
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: var(--vscode-descriptionForeground);
+        }
+
+        .progress-bar-container {
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--vscode-button-background);
+            width: 0;
+            transition: width 0.2s;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: var(--vscode-descriptionForeground);
+        }
+
+        .status-message {
+            font-weight: 500;
+            margin-top: 5px;
+            color: var(--vscode-descriptionForeground);
+        }
     </style>
 </head>
 <body>

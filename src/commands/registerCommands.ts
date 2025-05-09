@@ -1129,14 +1129,16 @@ export function registerCommands(
                         return;
                     }
                     
+                    // Tell the webview that download has started
+                    panel.webview.postMessage({ command: 'modelFabricationResultDownloadStarted' });
+                    
                     // Download and extract fabrication results
                     try {
                         const authService = AuthService.getInstance();
                         const apiKey = await authService.getApiKey();
                         
                         if (!apiKey) {
-                            vscode.window.showErrorMessage('You must be logged in to download fabrication results.');
-                            return;
+                            throw new Error('You must be logged in to download fabrication results.');
                         }
                         
                         // Create directory for fabrication results if it doesn't exist
@@ -1164,8 +1166,9 @@ export function registerCommands(
                             fs.mkdirSync(fabricationResultsDir, { recursive: true });
                         }
                         
-                        // Download the results zip file
+                        // Download the results with progress reporting
                         console.log("[Extension] Downloading fabrication results from URL:", msg.url);
+                        
                         const response = await fetch(msg.url, {
                             headers: { 'Api-Key': apiKey }
                         });
@@ -1174,20 +1177,83 @@ export function registerCommands(
                             throw new Error(`Failed to download results: ${response.status} ${response.statusText}`);
                         }
                         
-                        // Get the response as an array buffer
-                        const zipData = await response.arrayBuffer();
+                        // Get total size from Content-Length header 
+                        const contentLength = response.headers.get('content-length');
+                        const totalSize = contentLength ? parseInt(contentLength, 10) : 0;
+                        console.log(`[Extension] Total download size: ${totalSize} bytes`);
                         
-                        // Save zip file temporarily
+                        // Create a reader from the response body
+                        const reader = response.body?.getReader();
+                        if (!reader) {
+                            throw new Error("Failed to create reader from response");
+                        }
+                        
+                        // Create a write stream for the zip file
                         const zipPath = path.join(fabricationResultsDir, 'fabrication_results.zip');
-                        fs.writeFileSync(zipPath, Buffer.from(zipData));
+                        const fileStream = fs.createWriteStream(zipPath);
                         
-                        // Unzip the file
+                        let receivedBytes = 0;
+                        let lastProgressUpdate = 0;
+                        
+                        // Process the data as it comes in
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            
+                            if (done) {
+                                console.log("[Extension] Download read complete");
+                                break;
+                            }
+                            
+                            // Write chunk to file
+                            if (value) {
+                                fileStream.write(Buffer.from(value));
+                                receivedBytes += value.length;
+                                
+                                // Update progress at least every 1%
+                                if (totalSize > 0) {
+                                    const percent = Math.floor((receivedBytes / totalSize) * 100);
+                                    if (percent > lastProgressUpdate) {
+                                        lastProgressUpdate = percent;
+                                        console.log(`[Extension] Download progress: ${percent}%`);
+                                        panel.webview.postMessage({ 
+                                            command: 'modelFabricationDownloadProgress',
+                                            percent: percent
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Close the file
+                        fileStream.end();
+                        
+                        // Wait for the file to be fully written
+                        await new Promise<void>(resolve => {
+                            fileStream.on('finish', () => {
+                                resolve();
+                            });
+                        });
+                        
+                        // Unzip the file with progress reporting
                         console.log("[Extension] Extracting fabrication results...");
                         const zip = new JSZip();
                         const zipContent = await zip.loadAsync(fs.readFileSync(zipPath));
                         
-                        // Extract all files
+                        // Get number of files for progress reporting
+                        const fileCount = Object.keys(zipContent.files).length;
+                        console.log(`[Extension] Extracting ${fileCount} files from zip`);
+                        
+                        // Notify webview that extraction has started
+                        panel.webview.postMessage({ 
+                            command: 'modelFabricationExtractionStarted',
+                            fileCount: fileCount
+                        });
+                        
+                        // Extract all files with progress updates
                         const extractionPromises = [];
+                        let extractedCount = 0;
+                        let lastExtractionUpdate = 0;
+                        
                         zipContent.forEach((relativePath, zipEntry) => {
                             if (!zipEntry.dir) {
                                 const promise = zipEntry.async('nodebuffer').then(content => {
@@ -1201,6 +1267,20 @@ export function registerCommands(
                                     
                                     // Write file
                                     fs.writeFileSync(outputPath, content);
+                                    
+                                    // Update extraction progress
+                                    extractedCount++;
+                                    const percent = Math.floor((extractedCount / fileCount) * 100);
+                                    if (percent > lastExtractionUpdate) {
+                                        lastExtractionUpdate = percent;
+                                        console.log(`[Extension] Extraction progress: ${percent}% (${extractedCount}/${fileCount} files)`);
+                                        panel.webview.postMessage({ 
+                                            command: 'modelFabricationExtractionProgress',
+                                            extracted: extractedCount,
+                                            total: fileCount,
+                                            percent: percent
+                                        });
+                                    }
                                 });
                                 extractionPromises.push(promise);
                             }
@@ -1222,7 +1302,7 @@ export function registerCommands(
                         
                         // Notify webview that download is complete
                         panel.webview.postMessage({ 
-                            command: 'ModelFabricationResultDownloadSuccess',
+                            command: 'modelFabricationResultDownloadSuccess',
                             requestCode: msg.requestCode
                         });
                         
@@ -1230,7 +1310,7 @@ export function registerCommands(
                         console.error("[Extension] Error downloading fabrication results:", error);
                         vscode.window.showErrorMessage(`Failed to download fabrication results: ${error.message}`);
                         panel.webview.postMessage({ 
-                            command: 'ModelFabricationResultDownloadError',
+                            command: 'modelFabricationResultDownloadError',
                             error: error.message
                         });
                     }

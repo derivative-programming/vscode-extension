@@ -1,15 +1,8 @@
 Agent todo items...
  
-
-model fabrication request details...
-on model fabrication request list view, on click of the details button, show the details of the request in a modal.  This should show the details of the request, including the status, and any errors that occurred during processing. This is similar to the model validation details modal, but no 'download report', 'view report', or 'view change requests' buttons.
+ 
 
 model fabrication download...
-  The user should be able to download the results of the request from this modal. the modelFabricationRequestResultUrl has the url of a zip file that contains the results of the request.  The user should be able to download this file from the details modal.  On download...
-- create a fabrication_results folder in the project directory if it does not exist.
-- delete the contents of the fabrication_results folder if it exists.
-- download the zip file to the fabrication_results folder.
-- unzip the zip file into the fabrication_results folder.
 - show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder.
 - show a processing animation during the download and unzip process. During the unzip process, you should be able to know the number of files in the zip, so you can show a progress bar to the user.  iterate through the files, update the progress bar, and unzip the individual file into the fabrication_results folder.  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
 
