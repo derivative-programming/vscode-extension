@@ -12,6 +12,33 @@ const fs = require('fs');
 // Cache for schema data
 const schemaCache = {}; 
 
+// Define properties to hide in the root settings section
+const HIDDEN_ROOT_PROPERTIES = [
+    "isBasicAuthenticationIncluded",
+    "isDatabaseAuditColumnsCreated",
+    "isInternalObjectApiCreated",
+    "isValidationMissesLogged",
+    "navButton",
+    "suppressFillObjLookupTableScripts",
+    "suppressUsingDatabaseDeclarationInScripts",
+    "templateSet"
+];
+
+// Define properties to hide in the namespace settings section
+const HIDDEN_NAMESPACE_PROPERTIES = [
+    "apiSite",
+    "favoriteListContextObjectName",
+    "favoriteListDestinationTargetName",
+    "isDynaFlowAvailable",
+    "isModelFeatureConfigUserDBEditor",
+    "isModelFeatureConfigUserDBVeiwer",
+    "lexicon",
+    "modelFeature",
+    "scheduleListContextObjectName",
+    "scheduleListDestinationTargetName",
+    "userStory"
+];
+
 /**
  * Shows a project settings view in a webview
  * @param {Object} context The extension context
@@ -237,6 +264,10 @@ function getWebviewContent(panel, context, model, schema) {
     // Get webview-compliant URIs for CSS and script files
     const styleUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'styles', 'styles.css'));
     
+    // Convert the hidden properties arrays to JSON for use in the webview
+    const hiddenRootProps = JSON.stringify(HIDDEN_ROOT_PROPERTIES);
+    const hiddenNamespaceProps = JSON.stringify(HIDDEN_NAMESPACE_PROPERTIES);
+    
     return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -326,6 +357,10 @@ function getWebviewContent(panel, context, model, schema) {
             let namespaceData = {};
             const vscode = acquireVsCodeApi();
             
+            // Define the hidden properties arrays in the webview context
+            const HIDDEN_ROOT_PROPERTIES = ${hiddenRootProps};
+            const HIDDEN_NAMESPACE_PROPERTIES = ${hiddenNamespaceProps};
+            
             // Initialize on DOM content loaded
             document.addEventListener('DOMContentLoaded', function() {
                 // Notify the extension that the webview is ready to receive data
@@ -368,7 +403,7 @@ function getWebviewContent(panel, context, model, schema) {
                 
                 // Skip namespace property as it's handled separately
                 const propertiesToDisplay = Object.keys(rootSchema)
-                    .filter(key => key !== 'namespace')
+                    .filter(key => key !== 'namespace' && !HIDDEN_ROOT_PROPERTIES.includes(key))
                     .sort(); // Sort alphabetically
                 
                 // No properties to display
@@ -404,7 +439,7 @@ function getWebviewContent(panel, context, model, schema) {
                 
                 // Skip object property as that's the data objects collection
                 const propertiesToDisplay = Object.keys(namespaceSchema)
-                    .filter(key => key !== 'object')
+                    .filter(key => key !== 'object' && !HIDDEN_NAMESPACE_PROPERTIES.includes(key))
                     .sort(); // Sort alphabetically
                 
                 // No properties to display
