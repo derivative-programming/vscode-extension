@@ -183,12 +183,24 @@ function showUserStoriesView(context, modelService) {
                         csvContent += `${storyNumber},${storyText}\n`;
                     });
 
+                    // Generate timestamped filename
+                    const now = new Date();
+                    const pad = n => n.toString().padStart(2, '0');
+                    const y = now.getFullYear();
+                    const m = pad(now.getMonth() + 1);
+                    const d = pad(now.getDate());
+                    const h = pad(now.getHours());
+                    const min = pad(now.getMinutes());
+                    const s = pad(now.getSeconds());
+                    const timestamp = `${y}${m}${d}${h}${min}${s}`;
+                    const filename = `user_story_report_${timestamp}.csv`;
+
                     // Send CSV content back to webview for download
                     panel.webview.postMessage({
                         command: 'csvData',
                         data: {
                             content: csvContent,
-                            filename: 'user_stories.csv'
+                            filename: filename
                         }
                     });
                 } catch (error) {
@@ -294,6 +306,30 @@ function showUserStoriesView(context, modelService) {
                 } catch (error) {
                     console.error('Error processing CSV upload:', error);
                     vscode.window.showErrorMessage(`Failed to process CSV upload: ${error.message}`);
+                }
+                break;
+
+            case 'saveCsvToWorkspace':
+                try {
+                    const fs = require('fs');
+                    const path = require('path');
+                    // Use the actual workspace root, not extensionPath
+                    const workspaceFolders = vscode.workspace.workspaceFolders;
+                    if (!workspaceFolders || workspaceFolders.length === 0) {
+                        throw new Error('No workspace folder is open');
+                    }
+                    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                    const reportDir = path.join(workspaceRoot, 'user_story_report');
+                    if (!fs.existsSync(reportDir)) {
+                        fs.mkdirSync(reportDir, { recursive: true });
+                    }
+                    const filePath = path.join(reportDir, message.data.filename);
+                    fs.writeFileSync(filePath, message.data.content, 'utf8');
+                    vscode.window.showInformationMessage('CSV file saved to workspace: ' + filePath);
+                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+                } catch (error) {
+                    console.error('Error saving CSV to workspace:', error);
+                    vscode.window.showErrorMessage('Failed to save CSV to workspace: ' + error.message);
                 }
                 break;
         }
@@ -760,6 +796,7 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
             
             // Handle download CSV button
             btnDownloadCsv.addEventListener('click', () => {
+                console.log('[UserStoriesView] Download CSV button clicked');
                 vscode.postMessage({
                     command: 'downloadCsv'
                 });
@@ -836,21 +873,19 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
                         
                     case 'csvData':
                         // Download CSV file
-                        const blob = new Blob([message.data.content], { type: 'text/csv;charset=utf-8;' });
-                        const link = document.createElement('a');
-                        
-                        // Use browser download if available
-                        if (navigator.msSaveBlob) {
-                            // For IE
-                            navigator.msSaveBlob(blob, message.data.filename);
-                        } else {
-                            // For other browsers
-                            link.href = URL.createObjectURL(blob);
-                            link.setAttribute('download', message.data.filename);
-                            link.style.visibility = 'hidden';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
+                        try {
+                            console.log('[UserStoriesView] Received csvData message from extension', message.data);
+                            // Send a message to the extension host to save the file in the workspace
+                            vscode.postMessage({
+                                command: 'saveCsvToWorkspace',
+                                data: {
+                                    content: message.data.content,
+                                    filename: message.data.filename
+                                }
+                            });
+                        } catch (e) {
+                            console.error('[UserStoriesView] Failed to trigger CSV workspace save:', e);
+                            messageContainer.innerHTML = '<div class="error-message">Failed to save CSV: ' + e.message + '</div>';
                         }
                         break;
                         

@@ -3,23 +3,16 @@ Agent todo items...
  Use a .copilotignore file to exclude specific files from Copilot’s indexing, improving performance.
 
 
-
+allowed user story format...
+As a [Role Name], I want [View all, view, add, update, delete] [a,an,all] [Object Name(s)] 
  
 model ai processing details...
 on model ai processing request list view, on click of the details button, show the details of the request in a modal.  This should show the details of the request, including the status, and any errors that occurred during processing. This is similar to the model validation details modal, but no 'download report', 'view report', or 'view change requests' buttons.
  
 
 project settings view... test change on all settings 
+   
  
-user stories treeview item...
-Under the 'Project' treeview item, show a 'User Stories' item. On click of the 'User Stories' item, show a 'User Stories' view in the primary pane. The 'User Stories' view will show all userStory items in the first root namespace item. Show a table with a row for each userStory item. show a column for the storyNumber and a column for the storyText . 
-
-Allow sort on the two columns
-
-Allow a search to filter the displayed rows using text typed by the user
-
-isIgnored column.  Show a checkbox for each row to allow the user to mark a user story as ignored. if checked, the value is "true". 
-
 add user story...
 show an 'Add User Story' button. When clicked, show a modal dialog with a  textbox for the user to enter the story text. show a label letting the user know the expected format of the story text. something like... 'Format... \'A [Role name] wants to [View all, view, add, update, delete] a [object" +
     " name]'. When the user clicks 'OK', add a new userStory item to the model with the entered value as storyText. name will be a new guid value. storyNumber will be NULL. isIgnored and isStoryProcessed is false.
