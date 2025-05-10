@@ -25,6 +25,8 @@ import { getWebviewContent as getChangeRequestsViewHtml, showChangeRequestsListV
 import { showProjectSettings } from '../webviews/projectSettingsView';
 // Import showLexiconView
 import { showLexiconView } from '../webviews/lexiconView';
+// Import showUserStoriesView
+import { showUserStoriesView } from '../webviews/userStoriesView';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -719,8 +721,7 @@ export function registerCommands(
             showProjectSettings(context, modelService);
         })
     );
-    
-    // Register show lexicon command
+      // Register show lexicon command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showLexicon', async () => {
             if (!modelService.isFileLoaded()) {
@@ -730,6 +731,19 @@ export function registerCommands(
             
             // Show the lexicon view
             showLexiconView(context, modelService);
+        })
+    );
+    
+    // Register show user stories command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showUserStories', async () => {
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+                return;
+            }
+            
+            // Show the user stories view
+            showUserStoriesView(context, modelService);
         })
     );
 

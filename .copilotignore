@@ -1,0 +1,27 @@
+# .copilotignore file
+# This file instructs GitHub Copilot to ignore specific files or directories
+# Improves performance by excluding files that don't need AI assistance
+
+# Build output and dependencies
+node_modules/
+out/
+dist/
+.vscode-test/
+*.vsix
+
+# Large files and datasets
+**/*.json
+!package.json
+!tsconfig.json
+!.vscode/*.json
+
+# Temporary files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Other unnecessary files
+.git/
+backups/
+fabrication_results/

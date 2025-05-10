@@ -112,8 +112,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     title: 'Show Project Settings',
                     arguments: []
                 };
-                
-                // Create Lexicon item under PROJECT
+                  // Create Lexicon item under PROJECT
                 const lexiconItem = new JsonTreeItem(
                     'Lexicon',
                     vscode.TreeItemCollapsibleState.None,
@@ -128,7 +127,22 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     arguments: []
                 };
                 
-                return Promise.resolve([settingsItem, lexiconItem]);
+                // Create User Stories item under PROJECT
+                const userStoriesItem = new JsonTreeItem(
+                    'User Stories',
+                    vscode.TreeItemCollapsibleState.None,
+                    'projectUserStories'
+                );
+                
+                userStoriesItem.iconPath = new vscode.ThemeIcon('book');
+                userStoriesItem.tooltip = "Manage user stories";
+                userStoriesItem.command = {
+                    command: 'appdna.showUserStories',
+                    title: 'Show User Stories',
+                    arguments: []
+                };
+                
+                return Promise.resolve([settingsItem, lexiconItem, userStoriesItem]);
             } catch (error) {
                 console.error('Error reading project settings:', error);
                 return Promise.resolve([]);
