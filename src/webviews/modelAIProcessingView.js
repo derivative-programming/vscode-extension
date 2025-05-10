@@ -53,12 +53,21 @@
         } else if (message.command === "processingRequestReceived" || message.command === "processingRequestFailed") {
             console.log("[Webview] Handling", message.command);
             // Hide spinner when processing request is received or failed
-            hideSpinner();
-        } else if (message.command === "processingRequestCancelled") {
+            hideSpinner();        } else if (message.command === "processingRequestCancelled") {
             console.log("[Webview] Request cancelled successfully, refreshing data");
             hideSpinner();
             // Refresh the current page after a successful cancel
-            requestPage(pageNumber);
+            requestPage(pageNumber);        } else if (message.command === "modelAIProcessingSetRootNodeProjectInfo") {
+            const { projectName, projectVersionNumber } = message;
+            let desc = "";
+            if (projectName && projectVersionNumber) {
+                desc = "Project: " + projectName + ", Version: " + projectVersionNumber;
+            } else if (projectName) {
+                desc = "Project: " + projectName;
+            } else if (projectVersionNumber) {
+                desc = "Version: " + projectVersionNumber;
+            }
+            document.getElementById("addDescription").value = desc;
         }
     });
 
@@ -387,9 +396,10 @@
         // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
             requestPage(pageNumber);
-        };
-        // Attach add button handler
+        };        // Attach add button handler
         document.getElementById("addButton").onclick = function() {
+            // Fetch projectName and projectVersionNumber from extension
+            vscode.postMessage({ command: "modelAIProcessingGetRootNodeProjectInfo" });
             document.getElementById("addModal").style.display = "flex";
             document.getElementById("addDescription").focus(); // Focus input on open
         };

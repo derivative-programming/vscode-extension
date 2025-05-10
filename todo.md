@@ -8,10 +8,7 @@ on model ai processing request list view, on click of the details button, show t
 project settings view... test change on all settings 
    
  
-
-prepop request description...
-on add of model validation request, prepop description with root node values projectName and projectVersion Number  in format  'Project: [projectName], Version: [projectVersion]'
-
+ 
 
 on add of model ai processing request, prepop description with root node values projectName and projectVersion Number  in format  'Project: [projectName], Version: [projectVersion]'
 
@@ -49,13 +46,7 @@ change requests...
     - details
         - download report
         - view report
-        - download results (merge)
-
-- fabrication requests
-    - https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests 
-    - show the details of each request.     
-    - download results
-        - to fabrication_results sub folder
+        - download results (merge) 
 
 Model Features...
 - add a 'Model Features' item under 'Project' in the tree view.  This will show all the features in the model.  The user can select a feature and see the details of that feature.  The user can also add a new feature to the model.
@@ -64,10 +55,7 @@ Model Features...
 Lexicon...
 - add a 'Lexicon' item under 'Project' in the tree view.  This will show all the lexicons in the model.  The user can select a lexicon and see the details of that lexicon.  The user can also add a new lexicon to the model.
 - create a lexicon list view
-
-User Stories...
-- add a 'User Stories' item under 'Project' in the tree view.  This will show all the user stories in the model.  The user can select a user story and see the details of that user story.  The user can also add a new user story to the model.
-- create a user story list view
+ 
 
 - implement 'add property' 
 i need to handle the 'add property' button. I need to ask for the property name but i also need to give an option to allow the user to 'bulk add' multiple properties and give them a multi line textbox to add a property for each line entered. validation rules... 1. no spaces allowed in names. 2. alpha characters only.

@@ -844,7 +844,22 @@ export function registerCommands(
                     await fetchAndSend(1, 10, 'modelPrepRequestRequestedUTCDateTime', true);
                 } else if (msg.command === 'ModelAIProcessingRequestPage') {
                     console.log("[Extension] Handling ModelAIProcessingRequestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
-                    await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
+                    await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);                } else if (msg.command === 'modelAIProcessingGetRootNodeProjectInfo') {
+                    // Provide projectName and projectVersionNumber from the in-memory rootModel
+                    if (modelService && modelService.isFileLoaded()) {
+                        const rootModel = modelService.getCurrentModel();
+                        panel.webview.postMessage({
+                            command: 'modelAIProcessingSetRootNodeProjectInfo',
+                            projectName: rootModel?.projectName || '',
+                            projectVersionNumber: rootModel?.projectVersionNumber || ''
+                        });
+                    } else {
+                        panel.webview.postMessage({
+                            command: 'modelAIProcessingSetRootNodeProjectInfo',
+                            projectName: '',
+                            projectVersionNumber: ''
+                        });
+                    }
                 } else if (msg.command === 'ModelAIProcessingAddRequest') {
                     console.log("[Extension] Handling ModelAIProcessingAddRequest:", msg.data);
                     // Retrieve API key for authenticated call
@@ -1054,7 +1069,22 @@ export function registerCommands(
                     await fetchAndSend(1, 10, 'modelFabricationRequestRequestedUTCDateTime', true);
                 } else if (msg.command === 'ModelFabricationRequestPage') {
                     console.log("[Extension] Handling ModelFabricationRequestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
-                    await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
+                    await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);                } else if (msg.command === 'modelFabricationGetRootNodeProjectInfo') {
+                    // Provide projectName and projectVersionNumber from the in-memory rootModel
+                    if (modelService && modelService.isFileLoaded()) {
+                        const rootModel = modelService.getCurrentModel();
+                        panel.webview.postMessage({
+                            command: 'modelFabricationSetRootNodeProjectInfo',
+                            projectName: rootModel?.projectName || '',
+                            projectVersionNumber: rootModel?.projectVersionNumber || ''
+                        });
+                    } else {
+                        panel.webview.postMessage({
+                            command: 'modelFabricationSetRootNodeProjectInfo',
+                            projectName: '',
+                            projectVersionNumber: ''
+                        });
+                    }
                 } else if (msg.command === 'ModelFabricationAddRequest') {
                     console.log("[Extension] Handling ModelFabricationAddRequest:", msg.data);
                     // Retrieve API key for authenticated call

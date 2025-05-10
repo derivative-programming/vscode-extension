@@ -313,11 +313,21 @@
         } else if (message.command === "modelFabricationDownloadProgress") {
             // Update download progress
             console.log("[Webview] Download progress:", message.percent);
-            updateDownloadProgressInModal(message.percent);
-        } else if (message.command === "modelFabricationExtractionStarted") {
+            updateDownloadProgressInModal(message.percent);        } else if (message.command === "modelFabricationExtractionStarted") {
             // Show extraction progress
             console.log("[Webview] Extraction started, file count:", message.fileCount);
             showExtractionProgressInModal(message.fileCount);
+        } else if (message.command === "modelFabricationSetRootNodeProjectInfo") {
+            const { projectName, projectVersionNumber } = message;
+            let desc = "";
+            if (projectName && projectVersionNumber) {
+                desc = "Project: " + projectName + ", Version: " + projectVersionNumber;
+            } else if (projectName) {
+                desc = "Project: " + projectName;
+            } else if (projectVersionNumber) {
+                desc = "Version: " + projectVersionNumber;
+            }
+            document.getElementById("addDescription").value = desc;
         } else if (message.command === "modelFabricationExtractionProgress") {
             // Update extraction progress
             console.log("[Webview] Extraction progress:", message.percent, `(${message.extracted}/${message.total})`);
@@ -782,9 +792,10 @@
         // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
             requestPage(pageNumber);
-        };
-        // Attach add button handler
+        };        // Attach add button handler
         document.getElementById("addButton").onclick = function() {
+            // Fetch projectName and projectVersionNumber from extension
+            vscode.postMessage({ command: "modelFabricationGetRootNodeProjectInfo" });
             document.getElementById("addModal").style.display = "flex";
             document.getElementById("addDescription").focus(); // Focus input on open
         };
