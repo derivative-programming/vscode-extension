@@ -143,6 +143,17 @@
                     container.appendChild(changeRequestsButton);
                 }
             }
+        } else if (message.command === "modelValidationSetRootNodeProjectInfo") {
+            const { projectName, projectVersionNumber } = message;
+            let desc = "";
+            if (projectName && projectVersionNumber) {
+                desc = "Project: " + projectName + ", Version: " + projectVersionNumber;
+            } else if (projectName) {
+                desc = "Project: " + projectName;
+            } else if (projectVersionNumber) {
+                desc = "Version: " + projectVersionNumber;
+            }
+            document.getElementById("addDescription").value = desc;
         }
     });
 
@@ -579,6 +590,8 @@
         };
         // Attach add button handler
         document.getElementById("addButton").onclick = function() {
+            // Fetch projectName and projectVersionNumber from extension
+            vscode.postMessage({ command: "modelValidationGetRootNodeProjectInfo" });
             document.getElementById("addModal").style.display = "flex";
             document.getElementById("addDescription").focus(); // Focus input on open
         };

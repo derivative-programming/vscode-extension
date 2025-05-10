@@ -309,7 +309,23 @@ export function registerCommands(
             }
             panel.webview.onDidReceiveMessage(async (msg) => {
                 console.log("[Extension] Received message from webview:", msg.command);
-                if (msg.command === 'modelValidationWebviewReady') {
+                if (msg.command === 'modelValidationGetRootNodeProjectInfo') {
+                    // Provide projectName and projectVersionNumber from the in-memory rootModel
+                    if (modelService && modelService.isFileLoaded()) {
+                        const rootModel = modelService.getCurrentModel();
+                        panel.webview.postMessage({
+                            command: 'modelValidationSetRootNodeProjectInfo',
+                            projectName: rootModel?.projectName || '',
+                            projectVersionNumber: rootModel?.projectVersionNumber || ''
+                        });
+                    } else {
+                        panel.webview.postMessage({
+                            command: 'modelValidationSetRootNodeProjectInfo',
+                            projectName: '',
+                            projectVersionNumber: ''
+                        });
+                    }
+                } else if (msg.command === 'modelValidationWebviewReady') {
                     console.log("[Extension] Handling modelValidationWebviewReady");
                     await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
                 } else if (msg.command === 'modelValidationRequestPage') {

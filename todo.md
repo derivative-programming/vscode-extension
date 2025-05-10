@@ -1,10 +1,5 @@
 Agent todo items...
- 
- Use a .copilotignore file to exclude specific files from Copilot’s indexing, improving performance.
-
-
-allowed user story format...
-As a [Role Name], I want [View all, view, add, update, delete] [a,an,all] [Object Name(s)] 
+  
  
 model ai processing details...
 on model ai processing request list view, on click of the details button, show the details of the request in a modal.  This should show the details of the request, including the status, and any errors that occurred during processing. This is similar to the model validation details modal, but no 'download report', 'view report', or 'view change requests' buttons.
@@ -13,16 +8,6 @@ on model ai processing request list view, on click of the details button, show t
 project settings view... test change on all settings 
    
  
-add user story...
-show an 'Add User Story' button. When clicked, show a modal dialog with a  textbox for the user to enter the story text. show a label letting the user know the expected format of the story text. something like... 'Format... \'A [Role name] wants to [View all, view, add, update, delete] a [object" +
-    " name]'. When the user clicks 'OK', add a new userStory item to the model with the entered value as storyText. name will be a new guid value. storyNumber will be NULL. isIgnored and isStoryProcessed is false.
-Validate that the new story text follows the format, but the role or object does not need to already exist. validate that the story text does not already exist. 
- 
-user story csv...
-allow download of a csv file of the two columns.
-
-allow upload of a csv with a single column holding story text, or two columns holding story number and story text columns. if no story number in the row, try to add the storyitem. use similar validation as the add modal. if validaiton is not passed, then skip the row.
-
 
 prepop request description...
 on add of model validation request, prepop description with root node values projectName and projectVersion Number  in format  'Project: [projectName], Version: [projectVersion]'
