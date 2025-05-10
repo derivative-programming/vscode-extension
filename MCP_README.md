@@ -15,9 +15,27 @@ The MCP server provides two main tools:
 
 ### Starting and Stopping the Server
 
+You can start and stop the MCP server using any of these methods:
+
+#### Using the Tree View (Recommended)
+1. In the Explorer sidebar, expand the "PROJECT" node in the AppDNA panel
+2. Click on the "MCP Server" item which shows the current status (Running/Stopped)
+   - When stopped, clicking will start the server
+   - When running, clicking will stop the server
+
+#### Using the Command Palette (Standard MCP)
 1. Open the VS Code Command Palette (Ctrl+Shift+P or ⌘+Shift+P)
 2. Type "AppDNA: Start MCP Server" to start the server
 3. Type "AppDNA: Stop MCP Server" to stop the server
+
+#### Using the HTTP Server Option (Alternative)
+If the standard MCP server isn't recognized by GitHub Copilot, try the HTTP server option:
+
+1. Open the VS Code Command Palette (Ctrl+Shift+P or ⌘+Shift+P)
+2. Type "AppDNA: Start MCP HTTP Server" to start the HTTP server
+3. Use "AppDNA: Stop MCP HTTP Server" to stop it
+
+The HTTP server creates an `mcp-http.json` configuration file in the `.vscode` folder with an HTTP endpoint that GitHub Copilot can connect to.
 
 ### User Story Format
 
@@ -36,6 +54,53 @@ Once the MCP server is running, you can ask GitHub Copilot to:
 
 1. Create a new user story: "Create a user story: As a Project Manager, I want to view all tasks"
 2. List all user stories: "Show me all user stories in this project"
+
+### Required VS Code Settings
+
+For GitHub Copilot to properly discover and use the MCP server, the following settings are automatically added to the user's workspace `.vscode/settings.json` when they run the MCP server (not to the extension's development environment):
+
+```json
+{
+  "github.copilot.advanced": {
+    "mcp.discovery.enabled": true,
+    "mcp.execution.enabled": true
+  },
+  "mcp": {
+    "servers": {
+      "AppDNAUserStoryMCP": {
+        "type": "stdio",
+        "command": "${execPath}",
+        "args": [
+          "${workspaceFolder}",
+          "--extensionDevelopmentPath=${execPath}/extensions/TestPublisher.appdna-0.0.1",
+          "--command=appdna.startMCPServer"
+        ]
+      }
+    }
+  }
+}
+```
+
+For the HTTP server option, a different configuration is used:
+
+```json
+{
+  "github.copilot.advanced": {
+    "mcp.discovery.enabled": true,
+    "mcp.execution.enabled": true
+  },
+  "mcp": {
+    "servers": {
+      "AppDNAUserStoryMCPHttp": {
+        "type": "http",
+        "url": "http://localhost:3000"
+      }
+    }
+  }
+}
+```
+
+These settings are automatically added when you start either MCP server, but if Copilot doesn't detect the server, verify these settings are present and correct in your `.vscode/settings.json` file.
 
 ### Error Handling
 

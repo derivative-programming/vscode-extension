@@ -51,18 +51,69 @@ async function createOrUpdateMcpConfig(): Promise<void> {
             vscode.window.showWarningMessage('No workspace folder found. MCP config will not be created.');
             return;
         }
+        
+        // Check if we're in a development environment
+        const extensionDevelopmentPath = process.env.VSCODE_EXTENSION_DEVELOPMENT_PATH;
+        const isDevEnvironment = extensionDevelopmentPath && workspaceFolder.uri.fsPath.includes(extensionDevelopmentPath);
+        
+        if (isDevEnvironment) {
+            console.log('Skipping Copilot configuration in development environment');
+            return;
+        }
 
         // Create .vscode folder if it doesn't exist
         const vscodeFolder = path.join(workspaceFolder.uri.fsPath, '.vscode');
         if (!fs.existsSync(vscodeFolder)) {
             fs.mkdirSync(vscodeFolder, { recursive: true });
         }
-
-        // Create or update mcp.json
-        const mcpConfigPath = path.join(vscodeFolder, 'mcp.json');
         
+        // Add required GitHub Copilot settings for MCP and register the server
+        const settingsPath = path.join(vscodeFolder, 'settings.json');
+        let settings = {};
+            
+        // Read existing settings if available
+        if (fs.existsSync(settingsPath)) {
+            try {
+                const settingsContent = fs.readFileSync(settingsPath, 'utf8');
+                settings = JSON.parse(settingsContent);
+            } catch (error) {
+                console.error(`Error reading settings.json: ${error instanceof Error ? error.message : String(error)}`);
+                // Continue with empty settings if parsing fails
+            }
+        }
+        
+        // Ensure settings has github.copilot.advanced and mcp.servers sections
+        settings = {
+            ...settings,
+            "github.copilot.advanced": {
+                ...(settings["github.copilot.advanced"] || {}),
+                "mcp.discovery.enabled": true,
+                "mcp.execution.enabled": true
+            },
+            "mcp": {
+                ...((settings["mcp"] || {})),
+                "servers": {
+                    ...((settings["mcp"] && settings["mcp"]["servers"]) || {}),
+                    "AppDNAUserStoryMCP": {
+                        "type": "stdio",
+                        "command": "${execPath}",
+                        "args": [
+                            "${workspaceFolder}",
+                            "--extensionDevelopmentPath=${execPath}/extensions/TestPublisher.appdna-0.0.1",
+                            "--command=appdna.startMCPServer"
+                        ]
+                    }
+                }
+            }
+        };
+            
+        // Write updated settings
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
+        console.log(`Updated VS Code settings for Copilot MCP integration at ${settingsPath}`);
+        
+        // Create or update mcp.json for backward compatibility
+        const mcpConfigPath = path.join(vscodeFolder, 'mcp.json');
         const mcpConfig = {
-            "$schema": "https://github.com/batleena/model-context-protocol/releases/download/v0.0.14/mcp.schema.json",
             "name": "AppDNA User Story MCP",
             "description": "MCP server for interacting with AppDNA user stories",
             "version": "1.0.0",
@@ -98,14 +149,6 @@ async function createOrUpdateMcpConfig(): Promise<void> {
             ],
             "server": {
                 "type": "stdio"
-            },
-            "launch": {
-                "command": "${execPath}",
-                "args": [
-                    "${workspaceFolder}",
-                    "--extensionDevelopmentPath=${execPath}/extensions/TestPublisher.appdna-0.0.1",
-                    "--command=appdna.startMCPServer"
-                ]
             }
         };
         

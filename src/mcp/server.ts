@@ -18,6 +18,13 @@ export class MCPServer {
     private userStoryTools: UserStoryTools;
     // In-memory storage for user stories when model service is not available
     private inMemoryUserStories: any[] = [];
+    
+    // Output channel for MCP server logging
+    private outputChannel: vscode.OutputChannel | undefined;
+    
+    // Event emitter for server status changes
+    private readonly _onStatusChange: vscode.EventEmitter<boolean> = new vscode.EventEmitter<boolean>();
+    readonly onStatusChange: vscode.Event<boolean> = this._onStatusChange.event;
 
     /**
      * Private constructor for singleton pattern
@@ -35,9 +42,7 @@ export class MCPServer {
             MCPServer.instance = new MCPServer();
         }
         return MCPServer.instance;
-    }
-
-    /**
+    }    /**
      * Start the MCP server
      */
     public async start(): Promise<void> {
@@ -50,14 +55,18 @@ export class MCPServer {
             this.isRunning = true;
             this.setupStdioTransport();
             vscode.window.showInformationMessage('MCP server started successfully');
+            
+            // Notify listeners about status change
+            this._onStatusChange.fire(true);
         } catch (error) {
             this.isRunning = false;
             const errorMessage = error instanceof Error ? error.message : String(error);
             vscode.window.showErrorMessage(`Failed to start MCP server: ${errorMessage}`);
+            
+            // Notify listeners about failed start
+            this._onStatusChange.fire(false);
         }
-    }
-
-    /**
+    }    /**
      * Stop the MCP server
      */
     public stop(): void {
@@ -69,6 +78,9 @@ export class MCPServer {
         this.isRunning = false;
         // Clean up resources here if needed
         vscode.window.showInformationMessage('MCP server stopped');
+        
+        // Notify listeners about status change
+        this._onStatusChange.fire(false);
     }
 
     /**
@@ -88,9 +100,7 @@ export class MCPServer {
                 tools: this.getToolDefinitions()
             }
         });
-    }
-
-    /**
+    }    /**
      * Handle incoming MCP messages
      */
     private handleIncomingMessage(message: string): void {
@@ -98,11 +108,29 @@ export class MCPServer {
             const parsedMessage = JSON.parse(message);
             console.log('[MCP Server] Received message:', parsedMessage);
 
+            // Create an output channel if it doesn't exist
+            if (!this.outputChannel) {
+                this.outputChannel = vscode.window.createOutputChannel('AppDNA MCP Server');
+            }
+            
+            // Log to output channel for debugging
+            this.outputChannel.appendLine(`[${new Date().toISOString()}] RECEIVED: ${message}`);
+            this.outputChannel.show();
+            
+            // Show notification for tool execution requests
             if (parsedMessage.method === 'mcp/execute') {
+                const toolName = parsedMessage.params?.name || 'unknown';
+                vscode.window.showInformationMessage(`MCP Server: GitHub Copilot requested '${toolName}'`);
                 this.handleToolExecution(parsedMessage);
             }
         } catch (error) {
             console.error('[MCP Server] Error handling message:', error);
+            
+            if (this.outputChannel) {
+                this.outputChannel.appendLine(`[${new Date().toISOString()}] ERROR: ${error}`);
+                this.outputChannel.show();
+            }
+            
             this.sendErrorResponse({
                 code: -32700,
                 message: 'Parse error',
@@ -182,15 +210,30 @@ export class MCPServer {
                 }
             }
         ];
-    }
-
-    /**
+    }    /**
      * Send a message via MCP
      */
     private sendMessage(message: any): void {
         const serialized = JSON.stringify(message);
         process.stdout.write(serialized + '\n');
+        
+        // Comprehensive logging
         console.log('[MCP Server] Sent message:', serialized);
+        
+        // Create an output channel if it doesn't exist
+        if (!this.outputChannel) {
+            this.outputChannel = vscode.window.createOutputChannel('AppDNA MCP Server');
+        }
+        
+        // Log to output channel for debugging
+        this.outputChannel.appendLine(`[${new Date().toISOString()}] SENT: ${serialized}`);
+        
+        // For ready message and important messages, show notifications
+        if (message.method === 'mcp/ready') {
+            vscode.window.showInformationMessage(`MCP Server ready with ${(message.params?.tools || []).length} tools`);
+        } else if (message.error) {
+            vscode.window.showErrorMessage(`MCP Server error: ${message.error.message || 'Unknown error'}`);
+        }
     }
 
     /**

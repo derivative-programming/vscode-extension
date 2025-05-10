@@ -116,11 +116,20 @@
         "command": "appdna.startMCPServer",
         "title": "Start MCP Server",
         "icon": "$(debug-start)"
-      },
-      {
+      },      {
         "command": "appdna.stopMCPServer",
         "title": "Stop MCP Server",
         "icon": "$(debug-stop)"
+      },
+      {
+        "command": "appdna.startMCPHttpServer",
+        "title": "Start MCP HTTP Server",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "appdna.stopMCPHttpServer",
+        "title": "Stop MCP HTTP Server",
+        "icon": "$(close)"
       }
     ],
     "keybindings": [

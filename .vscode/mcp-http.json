@@ -1,6 +1,6 @@
 {
-  "name": "AppDNA User Story MCP",
-  "description": "MCP server for interacting with AppDNA user stories",
+  "name": "AppDNA User Story MCP (HTTP)",
+  "description": "HTTP MCP server for interacting with AppDNA user stories",
   "version": "1.0.0",
   "tools": [
     {
@@ -31,14 +31,7 @@
     }
   ],
   "server": {
-    "type": "stdio"
-  },
-  "launch": {
-    "command": "${execPath}",
-    "args": [
-      "${workspaceFolder}",
-      "--extensionDevelopmentPath=${execPath}/extensions/TestPublisher.appdna-0.0.1",
-      "--command=appdna.startMCPServer"
-    ]
+    "type": "http",
+    "url": "http://localhost:3000"
   }
 }

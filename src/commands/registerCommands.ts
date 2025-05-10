@@ -11,6 +11,7 @@ import { openJsonEditor } from '../webviews/jsonEditor';
 import { addFileCommand, addObjectCommand, removeObjectCommand, generateCodeCommand } from './objectCommands';
 import { newProjectCommand, openProjectCommand, saveProjectCommand } from './projectCommands';
 import { startMCPServerCommand, stopMCPServerCommand } from './mcpCommands';
+import { startMCPHttpServerCommand, stopMCPHttpServerCommand } from './mcpHttpCommands';
 import * as objectDetailsView from '../webviews/objectDetailsView';
 import { ModelService } from '../services/modelService';
 import { openModelExplorer } from '../webviews/modelExplorerView';
@@ -774,6 +775,20 @@ export function registerCommands(
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.stopMCPServer', async () => {
             await stopMCPServerCommand();
+        })
+    );
+    
+    // Register start MCP HTTP server command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.startMCPHttpServer', async () => {
+            await startMCPHttpServerCommand();
+        })
+    );
+    
+    // Register stop MCP HTTP server command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.stopMCPHttpServer', async () => {
+            await stopMCPHttpServerCommand();
         })
     );
 

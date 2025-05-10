@@ -26,6 +26,18 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 - Manages the tree view in the sidebar showing the model structure
 - Creates tree items for objects, namespaces, reports, etc.
 - Uses ModelService to access model data
+- Dynamically updates UI elements based on service status changes (e.g., MCP server, authentication)
+- Tree items have context values that determine their behavior and appearance
+
+#### MCPServer (Singleton)
+- Implements a Model Context Protocol server that enables GitHub Copilot to interact with user stories
+- Uses stdio transport for communication as the primary method
+- Also supports HTTP transport via MCPHttpServer for alternative communication approach
+- Status is reflected in the UI through a dedicated tree item in the PROJECT node
+- Fires status change events that the JsonTreeDataProvider listens to for UI updates
+- Provides user story management tools through the MCP API
+- Automatically configures VS Code settings (github.copilot.advanced and mcp.servers) for server discovery
+- Both server implementations register themselves directly in settings.json for proper GitHub Copilot discovery
 
 #### Webviews
 - Two types of webview implementation in the codebase:
@@ -137,9 +149,22 @@ The extension includes a Model Context Protocol server that enables GitHub Copil
    - `listUserStories`: Returns a list of all defined user stories
 
 3. **Transport and Communication**:
-   - Uses standard input/output (stdio) transport
+   - Uses standard input/output (stdio) transport for regular MCP server
+   - Also supports HTTP transport via the HTTP server option (src/mcp/httpServer.ts)
    - Follows the JSON-RPC 2.0 message format according to MCP specification
    - Integration with VS Code via `.vscode/mcp.json` configuration
+   - HTTP server creates `.vscode/mcp-http.json` configuration
+   - MCP configurations don't include schema references to avoid validation errors
+
+4. **Copilot Integration**:
+   - Automatically configures required VS Code settings in `.vscode/settings.json`:
+     ```json
+     "github.copilot.advanced": {
+       "mcp.discovery.enabled": true,
+       "mcp.execution.enabled": true
+     }
+     ```
+   - No additional code is required from users to connect Copilot to the MCP server
 
 4. **Format Validation**:
    - Shares validation logic with the userStoriesView.js component
