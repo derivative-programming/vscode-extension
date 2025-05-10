@@ -91,30 +91,14 @@ function showLexiconView(context, modelService) {
                                 index,
                                 item: namespace.lexicon[index]
                             }
-                        });
-
-                        // Update the model in memory but don't save to disk yet
-                        console.log(`Updated lexicon item ${index} to: ${displayTextValue}`);
+                        });                        // Update the model in memory but don't save to disk
+                        // The user will need to use the save button in the treeview to persist changes
+                        console.log(`Updated lexicon item ${index} to: ${displayTextValue} (in memory only, not saved to file)`); 
                     } else {
                         throw new Error(`Lexicon item with index ${index} not found`);
-                    }                } catch (error) {
-                    console.error('Error updating lexicon item:', error);
+                    }                } catch (error) {                    console.error('Error updating lexicon item:', error);
                     // Use the imported vscode module directly
                     vscode.window.showErrorMessage(`Failed to update lexicon item: ${error.message}`);
-                }
-                break;
-
-            case 'saveChanges':
-                try {
-                    // Save the model with the updated lexicon items
-                    const model = modelService.getCurrentModel();
-                    if (model) {
-                        await modelService.saveToFile(model);
-                        vscode.window.showInformationMessage("Lexicon changes saved successfully.");
-                    }                } catch (error) {
-                    console.error('Error saving lexicon changes:', error);
-                    // Use the imported vscode module directly
-                    vscode.window.showErrorMessage(`Failed to save lexicon changes: ${error.message}`);
                 }
                 break;
                 
@@ -263,8 +247,8 @@ function createHtmlContent(lexiconItems, errorMessage = null) {
                     <table id="lexiconTable">
                         <thead>
                             <tr>
-                                <th data-sort="internalTextValue">Name</th>
-                                <th data-sort="displayTextValue">Value</th>
+                                <th data-sort="internalTextValue">Property</th>
+                                <th data-sort="displayTextValue">Display Value</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -286,10 +270,7 @@ function createHtmlContent(lexiconItems, errorMessage = null) {
                     </table>
                 </div>
             </div>
-            
-            <div class="controls">
-                <button id="saveButton">Save Changes</button>
-            </div>
+              <!-- No controls needed as changes are saved automatically -->
               <script>
                 (function() {
                     // Acquire VS Code API here inside the webview script
@@ -297,29 +278,20 @@ function createHtmlContent(lexiconItems, errorMessage = null) {
                     
                     // Store lexicon items
                     const lexiconItems = ${JSON.stringify(lexiconItems)};
-                    
-                    // Get elements
+                      // Get elements
                     const table = document.getElementById('lexiconTable');
-                    const saveButton = document.getElementById('saveButton');
                     const searchInput = document.getElementById('searchInput');
                     const displayTextInputs = document.querySelectorAll('.display-text');
-                    
-                    // Check if there are changes to save
-                    let hasChanges = false;
-                    
-                    // Add event listener for all display text inputs
+                      // Add event listener for all display text inputs
                     displayTextInputs.forEach(input => {
                         const originalValue = input.dataset.original;
-                        
-                        input.addEventListener('change', event => {
+                          input.addEventListener('change', event => {
                             const index = parseInt(event.target.dataset.index);
                             const newValue = event.target.value;
                             
                             // Check if value has changed
                             if (originalValue !== newValue) {
-                                hasChanges = true;
-                                
-                                // Send message to VS Code extension
+                                // Update the model in memory immediately but don't save to file
                                 vscode.postMessage({
                                     command: 'updateLexiconItem',
                                     data: {
@@ -327,14 +299,9 @@ function createHtmlContent(lexiconItems, errorMessage = null) {
                                         displayTextValue: newValue
                                     }
                                 });
+                                
+                                // Do NOT save changes automatically - rely on the save button in the treeview
                             }
-                        });
-                    });
-                    
-                    // Add event listener for save button
-                    saveButton.addEventListener('click', () => {
-                        vscode.postMessage({
-                            command: 'saveChanges'
                         });
                     });
                     

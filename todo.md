@@ -7,14 +7,11 @@ model ai processing details...
 on model ai processing request list view, on click of the details button, show the details of the request in a modal.  This should show the details of the request, including the status, and any errors that occurred during processing. This is similar to the model validation details modal, but no 'download report', 'view report', or 'view change requests' buttons.
  
 
-project settings view... test change on all settings
+project settings view... test change on all settings 
 
-lexicon treeview item...
-Under the 'Project' treeview item, show a 'Lexicon' item. On click of the Lexicon item, show a 'Lexicon' view in the primary pane. The lexicon view will show all lexicon items in the first root namespace item. Show a table of name\value pairs with a row for each lexicon item. The first column will show the 'internalTextValue' property and the second column will show the displayTextValue in a textbox. When the user modifies the textbox, it also modifies the corresponding displayTextValue in the model held in modelservice memory.
-
-Allow sort on the first Lexicon column 'Name' and second lexicon column 'Value'
 
 Allow a search to filter the displayed rows using text typed by the user
+
 
 
 user stories treeview item...
@@ -125,7 +122,11 @@ welcome screen...
 sub folders...
 - put a ".app_dna_" at the start of the folder names
     
+treeview...
+clicking an item that is already open should not open it again.  It should just focus on the already open item.
 
+all views...
+- if the model file chagnes, reload the view
 
 model fabrication download...
  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
