@@ -12,6 +12,7 @@ import * as objectDetailsView from './webviews/objectDetailsView';
 import { ModelService } from './services/modelService';
 import { AuthService } from './services/authService';
 import { showWelcomeView } from './webviews/welcomeView';
+import { showLexiconView } from './webviews/lexiconView';
 
 // Track whether welcome view has been shown in this session
 let hasShownWelcomeView = false;

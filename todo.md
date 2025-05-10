@@ -7,11 +7,10 @@ model ai processing details...
 on model ai processing request list view, on click of the details button, show the details of the request in a modal.  This should show the details of the request, including the status, and any errors that occurred during processing. This is similar to the model validation details modal, but no 'download report', 'view report', or 'view change requests' buttons.
  
 
-project settings view...
-When the Project 'Settings' item is selected, show the project settings view in primary pane.  This will show all the simple name\value properties of the rootModel node and the first namespaceModel node.  This will be similar functionality and design to the settings tab of a Object details view (but no tab), but speicifically for the rootModel and first namespaceModel.  
+project settings view... test change on all settings
 
 lexicon treeview item...
-Under the 'Project' 'Settings' treeview item, show a 'Lexicon' item. On click of the Lexicon item, show a 'Lexicon' view in the primary pane. The lexicon view will show all lexicon items in the first root namespace item. Show a table of name\value pairs with a row for each lexicon item. The first column will show the 'internalTextValue' property and the second column will show the displayTextValue in a textbox. When the user modifies the textbox, it also modifies the corresponding displayTextValue in the model held in modelservice memory.
+Under the 'Project' treeview item, show a 'Lexicon' item. On click of the Lexicon item, show a 'Lexicon' view in the primary pane. The lexicon view will show all lexicon items in the first root namespace item. Show a table of name\value pairs with a row for each lexicon item. The first column will show the 'internalTextValue' property and the second column will show the displayTextValue in a textbox. When the user modifies the textbox, it also modifies the corresponding displayTextValue in the model held in modelservice memory.
 
 Allow sort on the first Lexicon column 'Name' and second lexicon column 'Value'
 

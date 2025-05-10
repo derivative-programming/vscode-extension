@@ -95,8 +95,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 return Promise.resolve([]);
             }
         }
-        
-        // Handle PROJECT children
+          // Handle PROJECT children
         if (element?.contextValue === 'project' && fileExists) {
             try {
                 // Create Settings item under PROJECT
@@ -114,7 +113,22 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     arguments: []
                 };
                 
-                return Promise.resolve([settingsItem]);
+                // Create Lexicon item under PROJECT
+                const lexiconItem = new JsonTreeItem(
+                    'Lexicon',
+                    vscode.TreeItemCollapsibleState.None,
+                    'projectLexicon'
+                );
+                
+                lexiconItem.iconPath = new vscode.ThemeIcon('symbol-string');
+                lexiconItem.tooltip = "Manage lexicon entries";
+                lexiconItem.command = {
+                    command: 'appdna.showLexicon',
+                    title: 'Show Lexicon',
+                    arguments: []
+                };
+                
+                return Promise.resolve([settingsItem, lexiconItem]);
             } catch (error) {
                 console.error('Error reading project settings:', error);
                 return Promise.resolve([]);

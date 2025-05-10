@@ -23,6 +23,8 @@ import { showFabricationRequestDetailsView } from '../webviews/fabricationReques
 import { getWebviewContent as getChangeRequestsViewHtml, showChangeRequestsListView } from '../webviews/changeRequestsListView';
 // Import showProjectSettings 
 import { showProjectSettings } from '../webviews/projectSettingsView';
+// Import showLexiconView
+import { showLexiconView } from '../webviews/lexiconView';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -705,9 +707,7 @@ export function registerCommands(
                 }
             });
         })
-    );
-
-    // Register show project settings command
+    );    // Register show project settings command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showProjectSettings', async () => {
             if (!modelService.isFileLoaded()) {
@@ -717,6 +717,19 @@ export function registerCommands(
             
             // Show the project settings view
             showProjectSettings(context, modelService);
+        })
+    );
+    
+    // Register show lexicon command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showLexicon', async () => {
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+                return;
+            }
+            
+            // Show the lexicon view
+            showLexiconView(context, modelService);
         })
     );
 
