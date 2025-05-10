@@ -81,12 +81,13 @@ function showUserStoriesView(context, modelService) {
 
                     // Validate the story text format
                     const storyText = message.data.storyText;
-                    const storyFormat = /^A \[\w+( \w+)*\] wants to \[(View all|view|add|update|delete)\] a \[\w+( \w+)*\]$/i;
+                    // Accepts with or without square brackets, e.g. A admin wants to view a ticket OR A [admin] wants to [view] a [ticket]
+                    const storyFormat = /^A(\s+\[?\w+(?: \w+)*\]?\s+)wants to(\s+\[?(View all|view|add|update|delete)\]?\s+)a(\s+\[?\w+(?: \w+)*\]?\s*)$/i;
                     if (!storyFormat.test(storyText)) {
                         panel.webview.postMessage({
                             command: 'addUserStoryError',
                             data: {
-                                error: 'Story text format is invalid. Expected format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]"'
+                                error: 'Story text format is invalid. Expected format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]" (brackets optional)'
                             }
                         });
                         return;
@@ -262,7 +263,7 @@ function showUserStoriesView(context, modelService) {
                         }
                         
                         // Validate story format
-                        const storyFormat = /^A \[\w+( \w+)*\] wants to \[(View all|view|add|update|delete)\] a \[\w+( \w+)*\]$/i;
+                        const storyFormat = /^A(\s+\[?\w+(?: \w+)*\]?\s+)wants to(\s+\[?(View all|view|add|update|delete)\]?\s+)a(\s+\[?\w+(?: \w+)*\]?\s*)$/i;
                         if (!storyFormat.test(storyText)) {
                             results.skipped++;
                             results.errors.push(`Invalid format: "${storyText}"`);
