@@ -14,6 +14,26 @@ let userStoryItems = [];
 let originalUserStoryItems = [];
 
 /**
+ * Validates user story text against allowed formats.
+ * Accepts:
+ *   - A [Role Name] wants to [View all, view, add, update, delete] [a,an,all] [Object Name(s)]
+ *   - As a [Role Name], I want to [View all, view, add, update, delete] [a,an,all] [Object Name(s)]
+ * Brackets are optional, case is ignored, and 'a', 'an', or 'all' are allowed before the object.
+ * @param {string} text
+ * @returns {boolean}
+ */
+function isValidUserStoryFormat(text) {
+    if (!text || typeof text !== "string") { return false; }
+    // Remove extra spaces
+    const t = text.trim().replace(/\s+/g, " ");
+    // Regex for: A [Role] wants to [action] [a|an|all] [object]
+    const re1 = /^A\s+\[?\w+(?: \w+)*\]?\s+wants to\s+\[?(View all|view|add|update|delete)\]?\s+(a|an|all)\s+\[?\w+(?: \w+)*\]?$/i;
+    // Regex for: As a [Role], I want to [action] [a|an|all] [object]
+    const re2 = /^As a\s+\[?\w+(?: \w+)*\]?\s*,?\s*I want to\s+\[?(View all|view|add|update|delete)\]?\s+(a|an|all)\s+\[?\w+(?: \w+)*\]?$/i;
+    return re1.test(t) || re2.test(t);
+}
+
+/**
  * Shows a user stories view in a webview
  * @param {Object} context The extension context
  * @param {Object} modelService The model service instance
@@ -81,13 +101,11 @@ function showUserStoriesView(context, modelService) {
 
                     // Validate the story text format
                     const storyText = message.data.storyText;
-                    // Accepts with or without square brackets, e.g. A admin wants to view a ticket OR A [admin] wants to [view] a [ticket]
-                    const storyFormat = /^A(\s+\[?\w+(?: \w+)*\]?\s+)wants to(\s+\[?(View all|view|add|update|delete)\]?\s+)a(\s+\[?\w+(?: \w+)*\]?\s*)$/i;
-                    if (!storyFormat.test(storyText)) {
+                    if (!isValidUserStoryFormat(storyText)) {
                         panel.webview.postMessage({
                             command: 'addUserStoryError',
                             data: {
-                                error: 'Story text format is invalid. Expected format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]" (brackets optional)'
+                                error: 'Story text format is invalid. Expected format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]" or "As a [Role name], I want to [View all, view, add, update, delete] a [object name]" (brackets optional, a/an/all allowed)'
                             }
                         });
                         return;
@@ -263,8 +281,7 @@ function showUserStoriesView(context, modelService) {
                         }
                         
                         // Validate story format
-                        const storyFormat = /^A(\s+\[?\w+(?: \w+)*\]?\s+)wants to(\s+\[?(View all|view|add|update|delete)\]?\s+)a(\s+\[?\w+(?: \w+)*\]?\s*)$/i;
-                        if (!storyFormat.test(storyText)) {
+                        if (!isValidUserStoryFormat(storyText)) {
                             results.skipped++;
                             results.errors.push(`Invalid format: "${storyText}"`);
                             continue;
@@ -320,7 +337,7 @@ function showUserStoriesView(context, modelService) {
                         throw new Error('No workspace folder is open');
                     }
                     const workspaceRoot = workspaceFolders[0].uri.fsPath;
-                    const reportDir = path.join(workspaceRoot, 'user_story_report');
+                    const reportDir = path.join(workspaceRoot, 'user_story_reports');
                     if (!fs.existsSync(reportDir)) {
                         fs.mkdirSync(reportDir, { recursive: true });
                     }
@@ -652,7 +669,8 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
             <div class="modal-body">
                 <label for="storyText">Story Text:</label>
                 <textarea id="storyText" placeholder="Enter user story text..."></textarea>
-                <p>Format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]"</p>
+                <p>Format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]"<br>
+Alternate format: "As a [Role name], I want to [View all, view, add, update, delete] a [object name]"</p>
                 <div id="addStoryError" class="error-message" style="display: none;"></div>
             </div>
             <div class="modal-footer">
