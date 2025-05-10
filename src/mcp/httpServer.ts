@@ -17,7 +17,10 @@ export class MCPHttpServer {
     private isRunning = false;
     private port = 3000;
     private mcpServer: MCPServer;
-    private outputChannel: vscode.OutputChannel;
+    private outputChannel: vscode.OutputChannel;    
+    // Event emitter for server status changes
+    private readonly _onStatusChange: vscode.EventEmitter<boolean> = new vscode.EventEmitter<boolean>();
+    readonly onStatusChange: vscode.Event<boolean> = this._onStatusChange.event;
 
     /**
      * Private constructor for singleton pattern
@@ -53,7 +56,7 @@ export class MCPHttpServer {
             // Create HTTP server
             this.server = http.createServer((req, res) => this.handleRequest(req, res));
             
-            // Start listening
+            // Start listening            
             this.server.listen(this.port, '127.0.0.1', () => {
                 this.isRunning = true;
                 this.logMessage(`MCP HTTP Server running at http://localhost:${this.port}/`);
@@ -61,6 +64,9 @@ export class MCPHttpServer {
                 
                 // Create or update the Copilot config file
                 this.createCopilotConfig();
+                
+                // Notify listeners about status change
+                this._onStatusChange.fire(true);
             });
 
             // Handle server errors
@@ -85,11 +91,13 @@ export class MCPHttpServer {
         }
 
         try {
-            this.server.close(() => {
-                this.isRunning = false;
+            this.server.close(() => {                this.isRunning = false;
                 this.server = null;
                 this.logMessage('MCP HTTP Server stopped');
                 vscode.window.showInformationMessage('MCP HTTP server stopped');
+                
+                // Notify listeners about status change
+                this._onStatusChange.fire(false);
             });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -352,10 +360,16 @@ export class MCPHttpServer {
             
             fs.writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2), 'utf8');
             this.logMessage(`Created MCP HTTP config at ${mcpConfigPath}`);
-            vscode.window.showInformationMessage('MCP HTTP configuration created');
-        } catch (error) {
+            vscode.window.showInformationMessage('MCP HTTP configuration created');        } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logError(`Failed to create MCP HTTP configuration: ${errorMessage}`);
         }
+    }
+
+    /**
+     * Check if the server is running
+     */
+    public isServerRunning(): boolean {
+        return this.isRunning;
     }
 }

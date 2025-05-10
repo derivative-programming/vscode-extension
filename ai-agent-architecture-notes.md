@@ -26,8 +26,12 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 - Manages the tree view in the sidebar showing the model structure
 - Creates tree items for objects, namespaces, reports, etc.
 - Uses ModelService to access model data
-- Dynamically updates UI elements based on service status changes (e.g., MCP server, authentication)
+- Dynamically updates UI elements based on service status changes (e.g., MCP server, MCP HTTP server, authentication)
 - Tree items have context values that determine their behavior and appearance
+- Service status indicators (like MCP Server and MCP HTTP Server) use consistent iconography:
+  - Running services: server-environment icon (MCP Server, MCP HTTP Server)
+  - Stopped services: server-process icon (MCP Server, MCP HTTP Server)
+  - Each service item can be clicked to toggle its status (start/stop)
 
 #### MCPServer (Singleton)
 - Implements a Model Context Protocol server that enables GitHub Copilot to interact with user stories
@@ -236,6 +240,25 @@ The extension uses two types of files:
   2. Send a single message to the extension
   3. Extension processes the update
   4. Extension sends an acknowledgment back without triggering a full refresh
+
+## MCP Components
+
+The extension includes Model Context Protocol (MCP) integration with two server components:
+
+1. **MCPServer** (`src/mcp/server.ts`):
+   - Main MCP server for handling GitHub Copilot interactions
+   - Implements the core MCP protocol features
+   - Manages tools for user stories, lexicon, and model operations
+   - Provides status events that UI components can listen to
+
+2. **MCPHttpServer** (`src/mcp/httpServer.ts`):
+   - HTTP wrapper around the core MCP server
+   - Allows external tools like GitHub Copilot to communicate with the MCP server
+   - Handles configuration for VS Code settings integration
+   - Provides status events for UI components
+   - Uses consistent iconography with MCPServer in the UI
+
+Both components implement the Singleton pattern and provide status events that the JsonTreeDataProvider listens to for UI updates. The UI represents their status consistently using the 'server-environment' icon for running servers and 'server-process' icon for stopped servers.
 
 ## Code Generation
 
