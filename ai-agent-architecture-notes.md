@@ -1,6 +1,6 @@
 # AppDNA VS Code Extension Architecture Notes
 
-*Last updated: May 4, 2025*
+*Last updated: May 10, 2025*
 
 ## Overview
 The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
@@ -28,7 +28,15 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 - Uses ModelService to access model data
 
 #### Webviews
-- JavaScript files in the `webviews` folder handle UI for editing objects
+- Two types of webview implementation in the codebase:
+  1. Native TypeScript webviews (e.g., `modelExplorerView.ts`, `loginView.ts`, `validationRequestDetailsView.ts`) - implemented directly in TypeScript
+  2. TypeScript wrappers around JavaScript implementations (e.g., `lexiconView.ts`, `userStoriesView.ts`)
+- The wrapper pattern uses a TypeScript file (e.g., `userStoriesView.ts`) to provide type-safe exports
+  that internally use `require()` to dynamically import JavaScript implementations (e.g., `userStoriesView.js`)
+- JavaScript implementation files export their functions using `module.exports` at the end of the file
+- The wrapper pattern allows sharing webview code between VS Code (TypeScript) and web environments
+- Important design note: When writing these wrapper files, always import the JS module dynamically inside the wrapper function rather than at the module level to avoid potential TypeScript/ESLint errors
+- Commands that use webviews are registered in `registerCommands.ts` and reference the TypeScript wrapper functions, not the JS implementations directly
 - These run in a separate context (not TypeScript)
 - Communicate with the extension via postMessage API
 - Dynamically generate UI based on the schema properties
@@ -113,6 +121,35 @@ The model can be extended by:
 - Updating `app-dna.schema.json` with new properties (UI will automatically reflect changes)
 - Adding new commands in `registerCommands.ts`
 - Creating new webview implementations for different object types
+- Expanding the MCP server functionality with additional tools
+
+## Model Context Protocol (MCP) Server (2025-05-10)
+
+The extension includes a Model Context Protocol server that enables GitHub Copilot to interact with user story data:
+
+1. **Architecture**: 
+   - `src/mcp/server.ts`: The main MCP server implementation, handles stdio transport and message routing
+   - `src/mcp/tools/userStoryTools.ts`: Implements user story creation and listing tools
+   - `src/commands/mcpCommands.ts`: Commands to start/stop the server and update configuration
+
+2. **Tool Definitions**:
+   - `createUserStory`: Creates and validates user stories against standard format patterns
+   - `listUserStories`: Returns a list of all defined user stories
+
+3. **Transport and Communication**:
+   - Uses standard input/output (stdio) transport
+   - Follows the JSON-RPC 2.0 message format according to MCP specification
+   - Integration with VS Code via `.vscode/mcp.json` configuration
+
+4. **Format Validation**:
+   - Shares validation logic with the userStoriesView.js component
+   - Validates against two regex patterns for user story formatting:
+     - "A [Role] wants to [action] a [object]"
+     - "As a [Role], I want to [action] a [object]"
+
+5. **Storage Strategy**:
+   - Primarily saves to the model through ModelService when available
+   - Falls back to in-memory storage when the model file isn't loaded
 
 ## Testing Framework
 
@@ -159,6 +196,21 @@ The extension uses two types of files:
    - Contains extension-specific settings like validation preferences and code generation options
    - Does not include backup settings as backups are not supported
    - Can be manually edited to customize extension behavior
+
+## Debugging and Performance Notes
+
+### Webview Communication Patterns
+
+- **Potential Recursion Issue**: Be careful when updating model data in response to webview messages.
+  - In `projectSettingsView.js`, calling `refreshWebviewData` from inside `handleUpdateSetting` caused a Maximum call stack size exceeded error when clicking on project settings.
+  - This is because `refreshWebviewData` sends a 'setProjectData' message that triggers UI updates, which can trigger additional 'updateSetting' messages, creating an infinite loop.
+  - The fix was to separate the saving of data from refreshing the UI, avoiding the recursive call cycle.
+
+- **Event Handling Pattern**: When a UI element's state changes:
+  1. Update UI element visually
+  2. Send a single message to the extension
+  3. Extension processes the update
+  4. Extension sends an acknowledgment back without triggering a full refresh
 
 ## Code Generation
 

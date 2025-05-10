@@ -7,17 +7,7 @@ on model ai processing request list view, on click of the details button, show t
 
 project settings view... test change on all settings 
    
- 
- 
-
-on add of model ai processing request, prepop description with root node values projectName and projectVersion Number  in format  'Project: [projectName], Version: [projectVersion]'
-
-
-on add of model fabrication request, prepop description with root node values projectName and projectVersion Number  in format  'Project: [projectName], Version: [projectVersion]'
-
-
- 
-
+  
 - model service request lists (validation, ai processing, fabrication)
     - page size dropdown
     - if one is processing or queued on the page, auto refresh every minute.

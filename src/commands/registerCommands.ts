@@ -10,6 +10,7 @@ import { JsonTreeDataProvider } from '../providers/jsonTreeDataProvider';
 import { openJsonEditor } from '../webviews/jsonEditor';
 import { addFileCommand, addObjectCommand, removeObjectCommand, generateCodeCommand } from './objectCommands';
 import { newProjectCommand, openProjectCommand, saveProjectCommand } from './projectCommands';
+import { startMCPServerCommand, stopMCPServerCommand } from './mcpCommands';
 import * as objectDetailsView from '../webviews/objectDetailsView';
 import { ModelService } from '../services/modelService';
 import { openModelExplorer } from '../webviews/modelExplorerView';
@@ -749,8 +750,7 @@ export function registerCommands(
             showLexiconView(context, modelService);
         })
     );
-    
-    // Register show user stories command
+      // Register show user stories command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showUserStories', async () => {
             if (!modelService.isFileLoaded()) {
@@ -760,6 +760,20 @@ export function registerCommands(
             
             // Show the user stories view
             showUserStoriesView(context, modelService);
+        })
+    );
+    
+    // Register start MCP server command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.startMCPServer', async () => {
+            await startMCPServerCommand();
+        })
+    );
+    
+    // Register stop MCP server command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.stopMCPServer', async () => {
+            await stopMCPServerCommand();
         })
     );
 

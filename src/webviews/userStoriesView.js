@@ -1,4 +1,3 @@
-// filepath: c:\VR\Source\DP\vscode-extension\src\webviews\userStoriesView.js
 // userStoriesView.js
 // Shows the user story items in a table view
 // May 10, 2025

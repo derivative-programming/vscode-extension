@@ -231,10 +231,8 @@ function handleUpdateSetting(data, rootModel, modelService, panel) {
         // Save the updated model
         modelService.saveToFile(rootModel);
         
-        // Refresh the webview data
-        refreshWebviewData(panel, rootModel);
-        
-        // Send confirmation back to webview
+        // Instead of refreshing webview data (which can cause infinite recursion),
+        // just send confirmation back to webview
         panel.webview.postMessage({
             command: 'settingUpdated',
             property: property,

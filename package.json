@@ -71,8 +71,7 @@
           "description": "URL for the external model generation service"
         }
       }
-    },
-    "commands": [
+    },    "commands": [
       {
         "command": "appdna.addFile",
         "title": "Add File",
@@ -112,6 +111,16 @@
         "command": "appdna.showWelcome",
         "title": "Show Welcome",
         "icon": "$(home)"
+      },
+      {
+        "command": "appdna.startMCPServer",
+        "title": "Start MCP Server",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "appdna.stopMCPServer",
+        "title": "Stop MCP Server",
+        "icon": "$(debug-stop)"
       }
     ],
     "keybindings": [
@@ -162,8 +171,7 @@
     "wdio-vscode-service": "^5.2.3",
     "webpack": "^5.85.0",
     "webpack-cli": "^5.1.1"
-  },
-  "dependencies": {
+  },  "dependencies": {
     "@babel/core": "^7.22.5",
     "@babel/plugin-transform-react-jsx": "^7.22.5",
     "@babel/preset-env": "^7.22.5",

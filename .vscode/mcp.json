@@ -1,0 +1,45 @@
+{
+  "$schema": "https://github.com/batleena/model-context-protocol/releases/download/v0.0.14/mcp.schema.json",
+  "name": "AppDNA User Story MCP",
+  "description": "MCP server for interacting with AppDNA user stories",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "createUserStory",
+      "description": "Creates a user story and validates its format",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title or ID for the user story (optional)"
+          },
+          "description": {
+            "type": "string",
+            "description": "The user story text following one of these formats:\n1. A [Role name] wants to [View all, view, add, update, delete] a [object name]\n2. As a [Role name], I want to [View all, view, add, update, delete] a [object name]"
+          }
+        },
+        "required": ["description"]
+      }
+    },
+    {
+      "name": "listUserStories",
+      "description": "Lists all user stories",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ],
+  "server": {
+    "type": "stdio"
+  },
+  "launch": {
+    "command": "${execPath}",
+    "args": [
+      "${workspaceFolder}",
+      "--extensionDevelopmentPath=${execPath}/extensions/TestPublisher.appdna-0.0.1",
+      "--command=appdna.startMCPServer"
+    ]
+  }
+}
