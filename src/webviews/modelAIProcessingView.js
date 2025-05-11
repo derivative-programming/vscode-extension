@@ -136,8 +136,7 @@
                 }
                 .add-button {
                     margin-right: 8px;
-                }
-                /* Modal styles */
+                }                /* Modal styles */
                 .modal {
                     position: fixed;
                     top: 0; left: 0;
@@ -145,13 +144,15 @@
                     background: rgba(0,0,0,0.4);
                     display: none;
                     align-items: center; justify-content: center;
-                }
-                .modal-content {
+                    z-index: 100; /* Add a high z-index to ensure modal appears above everything */
+                }                .modal-content {
                     background: var(--vscode-editor-background);
                     padding: 20px;
                     border-radius: 4px;
                     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
                     width: 300px;
+                    position: relative;
+                    z-index: 101; /* Even higher z-index than the modal backdrop */
                 }
                 .modal-content h3 {
                     margin-top: 0;
@@ -204,8 +205,7 @@
                     border-collapse: collapse;
                     table-layout: fixed;
                 }
-                
-                .processing-table th {
+                  .processing-table th {
                     text-align: left;
                     padding: 8px 12px;
                     font-weight: 600;
@@ -213,7 +213,7 @@
                     border-bottom: 1px solid var(--vscode-panel-border);
                     position: sticky;
                     top: 0;
-                    z-index: 1;
+                    z-index: 2; /* Lower z-index than the modal */
                     cursor: pointer;
                 }
                 
@@ -360,13 +360,14 @@
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
-                
-                /* Details Modal Specific Styles */
+                  /* Details Modal Specific Styles */
                 .details-modal-content {
                     width: 600px;
                     max-width: 80vw;
                     max-height: 80vh;
                     overflow-y: auto;
+                    position: relative;
+                    z-index: 101; /* Ensure details modal content is above everything */
                 }
                 
                 .modal-header {
@@ -486,8 +487,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Details Modal -->
-                <div id="detailsModal" class="modal">
+                <!-- Details Modal -->                <div id="detailsModal" class="modal">
                     <div class="modal-content details-modal-content">
                         <div class="modal-header">
                             <h3>AI Processing Request Details</h3>

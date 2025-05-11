@@ -1,8 +1,10 @@
 Agent todo items...
    
  
-model ai processing details...
+model ai processing details... ✓ COMPLETED
 on model ai processing request list view, on click of the details button, show the details of the request in a modal.  This should show the details of the request, including the status. This is similar to the model validation details modal, but no 'download report', 'view report', or 'view change requests' buttons.
+- allow merge of ai processing results into curent model
+
  
 
 project settings view... test change on all settings 
@@ -14,6 +16,9 @@ project settings view... test change on all settings
     - cancelled requests dont need a details button.
 
 handle if no connection using model services
+
+model validation details modal... ✓ COMPLETED
+The model validation details modal has been updated to properly layer above all other content with appropriate z-index values.
 
 model validation rejection validaiton using an alert instead of validaiton error text... Please provide a reason for rejection.
      

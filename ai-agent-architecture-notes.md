@@ -1,6 +1,6 @@
 # AppDNA VS Code Extension Architecture Notes
 
-*Last updated: May 10, 2025*
+*Last updated: May 20, 2025*
 
 ## Overview
 The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
@@ -324,3 +324,23 @@ The `codeGenerator.ts` module provides functionality to generate code from model
 4. Creates basic class definitions with appropriate properties and types
 
 The code generator demonstrates the extension's end-to-end capabilities beyond just model editing.
+
+## UI/UX Implementation Notes
+
+### Modal Dialogs
+1. **Z-Index Management**:
+   - Modal containers require `z-index: 100` to appear above all content
+   - Modal content needs `z-index: 101` to ensure proper layering
+   - Table headers use `z-index: 2` to stay visible while scrolling but below modals
+   - Modal backdrops use semi-transparent backgrounds (`rgba(0,0,0,0.4)`)
+   - All modal implementations across different views (modelAIProcessingView.js, modelValidationView.js, etc.) should maintain consistent z-index values to prevent layering issues
+
+2. **Dialog Structure**:
+   - Modals are implemented with a container div (.modal) and an inner content div (.modal-content)
+   - Close buttons are provided both in the header (X) and as a button at the bottom
+   - Action buttons use the VS Code theming variables for consistency
+
+3. **Loading States**:
+   - Modals display a "Loading..." message when fetching data
+   - Spinner overlays are used during lengthy operations
+   - Error states are handled with appropriate styling and messages
