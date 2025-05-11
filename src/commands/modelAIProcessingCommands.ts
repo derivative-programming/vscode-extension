@@ -202,8 +202,7 @@ export function registerModelAIProcessingCommands(
                             panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
                             return;
                         }
-                        
-                        const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests/${encodeURIComponent(msg.requestCode)}`;
+                          const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests?modelPrepRequestCode=${encodeURIComponent(msg.requestCode)}`;
                         console.log("[Extension] Sending cancel request to URL:", url);
                         
                         const response = await fetch(url, {
@@ -227,8 +226,7 @@ export function registerModelAIProcessingCommands(
                         console.error("[Extension] Failed to cancel processing request:", error);
                         vscode.window.showErrorMessage(`Failed to cancel request: ${error.message}`);
                         panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
-                    }
-                } else if (msg.command === 'ModelAIProcessingShowDetails') {
+                    }                } else if (msg.command === 'ModelAIProcessingShowDetails') {
                     console.log("[Extension] Handling ModelAIProcessingShowDetails for item:", msg.item);
                     if (!msg.item) {
                         vscode.window.showErrorMessage('Missing item data for details.');
@@ -236,6 +234,62 @@ export function registerModelAIProcessingCommands(
                     }
                     // Implement detailed view for the processing item if needed
                     vscode.window.showInformationMessage(`Viewing detailed information for processing request`);
+                } else if (msg.command === 'ModelAIProcessingFetchRequestDetails') {
+                    console.log("[Extension] Handling ModelAIProcessingFetchRequestDetails for code:", msg.requestCode);
+                    if (!msg.requestCode) {
+                        panel.webview.postMessage({ 
+                            command: "ModelAIProcessingDetailsError", 
+                            error: "Missing request code for details." 
+                        });
+                        return;
+                    }
+                    
+                    try {
+                        // Fetch the details for the specific request
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+                        
+                        if (!apiKey) {
+                            panel.webview.postMessage({ 
+                                command: "ModelAIProcessingDetailsError", 
+                                error: "You must be logged in to view request details." 
+                            });
+                            return;
+                        }
+                          // Construct URL for fetching a specific processing request details using query parameter
+                        const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests?modelPrepRequestCode=${encodeURIComponent(msg.requestCode)}`;
+                        console.log("[Extension] Fetching processing request details from URL:", url);
+                        
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                          if (!response.ok) {
+                            throw new Error(`API responded with status ${response.status}`);
+                        }
+                        
+                        const responseData = await response.json();
+                        console.log("[Extension] Processing request details fetched successfully:", responseData);
+                        
+                        // Extract the first item from the items array if it exists
+                        if (responseData.items && Array.isArray(responseData.items) && responseData.items.length > 0) {
+                            const details = responseData.items[0];
+                            panel.webview.postMessage({ 
+                                command: "ModelAIProcessingRequestDetailsData", 
+                                data: details 
+                            });
+                        } else {
+                            panel.webview.postMessage({ 
+                                command: "ModelAIProcessingDetailsError", 
+                                error: 'No details found for this processing request.' 
+                            });
+                        }
+                    } catch (error) {
+                        console.error("[Extension] Failed to fetch processing request details:", error);
+                        panel.webview.postMessage({ 
+                            command: "ModelAIProcessingDetailsError", 
+                            error: `Failed to fetch request details: ${error.message}` 
+                        });
+                    }
                 }
             });
         })

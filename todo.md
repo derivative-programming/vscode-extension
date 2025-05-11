@@ -1,11 +1,5 @@
 Agent todo items...
-  
-
-deccrease size of registerCommands.ts
-- create modleValidationCommands.ts
-- create modelAiProcessingCommands.ts
-- create modelFabricationCommands.ts
-
+   
  
 model ai processing details...
 on model ai processing request list view, on click of the details button, show the details of the request in a modal.  This should show the details of the request, including the status. This is similar to the model validation details modal, but no 'download report', 'view report', or 'view change requests' buttons.
