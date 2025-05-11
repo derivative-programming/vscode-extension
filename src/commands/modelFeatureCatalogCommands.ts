@@ -33,9 +33,18 @@ export function registerModelFeatureCatalogCommands(
                     <meta charset="UTF-8">
                     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Model Feature Catalog</title>                    <style>
-                        body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
-                        h2 { margin-bottom: 15px; color: var(--vscode-titleBar-activeBackground); }
+                    <title>Model Feature Catalog</title>                    <style>                        body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
+                        .validation-header {
+                            padding: 10px 0;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            margin-bottom: 15px;
+                        }
+                        .validation-header h2 {
+                            margin: 0;
+                            font-size: 1.3em;
+                            font-weight: normal;
+                            color: var(--vscode-editor-foreground);
+                        }
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; }
                         th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
                         th { background: var(--vscode-sideBar-background); cursor: pointer; font-weight: bold; }
@@ -99,7 +108,9 @@ export function registerModelFeatureCatalogCommands(
                         }
                     </style>
                 </head>                <body>
-                    <h2>Model Feature Catalog</h2>
+                    <div class="validation-header">
+                        <h2>Model Feature Catalog</h2>
+                    </div>
                     <div id="paging"></div>
                     <table id="featureCatalogTable"></table>
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">

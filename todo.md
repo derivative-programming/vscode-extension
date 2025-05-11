@@ -7,11 +7,10 @@ model feature catalog view...
  
  
 when the model file changes, we automatically update the model singleton. It should also update any open 'model feature catalog' views or 'fabrication blueprint catalog' views.
-
-On click, display a new view that displays the items returned from the get endpoint https://modelservicesapi.derivative-programming.com/api/v1_0/template-sets. review https://modelservicesapi.derivative-programming.com/openapi.json for its request and result schema.
-
-
-review the rootmodel and templatesetmodel.  The items in the root templateset array are the templateset items that the user selected for the model. On the model service fabrication blueprint catalog list, add a column for 'selected' and a checkbox.  When the user clicks the checkbox, it will add the item to the model.  If the user unchecks the checkbox, it will remove the item from the model.  
+ 
+fabrication blueprint catalog view...
+- use similar style and design as the model validation request list.
+- use similar paging controls and page range display as the model validation request list.
  
 model ai processing details...
 - allow merge of ai processing results into curent model. https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests 
@@ -37,8 +36,7 @@ change requests...
 - approve all button
 - reject all button
 - on approval verify the old value is still the same. if not, show as 'out of date' in status
-- show rejection reason under the rejection status?
-- show a details button for each change request. when clicked, show the details of the change request in a new view.
+- show rejection reason under the rejection status? 
 - Apply all approved btn
 - implement apply. if old value does not match the current value. reject with reason 'out of date'.
 - show rejection reason in button column.   

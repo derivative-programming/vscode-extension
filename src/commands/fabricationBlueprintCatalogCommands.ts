@@ -33,10 +33,19 @@ export function registerFabricationBlueprintCatalogCommands(
                     <meta charset="UTF-8">
                     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Fabrication Blueprint Catalog</title>
-                    <style>
+                    <title>Fabrication Blueprint Catalog</title>                    <style>
                         body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
-                        h2 { margin-bottom: 15px; color: var(--vscode-titleBar-activeBackground); }
+                        .validation-header {
+                            padding: 10px 0;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            margin-bottom: 15px;
+                        }
+                        .validation-header h2 {
+                            margin: 0;
+                            font-size: 1.3em;
+                            font-weight: normal;
+                            color: var(--vscode-editor-foreground);
+                        }
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; }
                         th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
                         th { background: var(--vscode-sideBar-background); cursor: pointer; font-weight: bold; }
@@ -100,8 +109,10 @@ export function registerFabricationBlueprintCatalogCommands(
                         }
                     </style>                </head>
                 <body>
-                    <h2>Fabrication Blueprint Catalog</h2>
-                    <p style="margin-top: -10px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
+                    <div class="validation-header">
+                        <h2>Fabrication Blueprint Catalog</h2>
+                    </div>
+                    <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
                         Select blueprints to define the types of files you want to fabricate. Selected blueprints will be included in your model.
                     </p>
                     <div id="paging"></div>
