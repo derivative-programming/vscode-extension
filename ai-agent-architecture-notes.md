@@ -110,6 +110,39 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 - Communicate with the extension via postMessage API
 - Dynamically generate UI based on the schema properties
 
+### Webview Pagination Pattern
+
+The model feature catalog and other list webviews implement a standardized pagination approach:
+
+1. **Page Control Elements**:
+   - First page button (`«`): Jumps to the first page
+   - Previous page button (`‹`): Moves back one page
+   - Page indicator: Shows current page number and total pages
+   - Next page button (`›`): Moves forward one page
+   - Last page button (`»`): Jumps to the last page
+   - Items per page dropdown: Allows selecting 10, 25, 50, or 100 items per page
+   - Record counter: Shows "X of Y items" information
+
+2. **Implementation Pattern**:
+   - `renderPaging()` function creates the pagination controls
+   - Buttons are disabled appropriately when at first/last page
+   - Page size defaults to 100 items per page to reduce pagination needs
+   - All UI components follow VS Code theming variables for consistent styling
+
+3. **Data Flow**:
+   - Pagination state is tracked in the webview (pageNumber, itemCountPerPage)
+   - Page change events trigger API calls via the extension
+   - Extension handles API pagination parameters and returns paginated data
+   - Spinner is displayed during page loading for user feedback
+
+4. **Sort Controls**:
+   - Column headers are clickable for sorting
+   - Current sort column is indicated with an up/down arrow
+   - Sort indicator shows ascending (▲) or descending (▼)
+   - Clicking the same column toggles sort direction
+
+This consistent pagination pattern is implemented across multiple views including model feature catalog, model validation requests, and fabrication requests for a unified user experience.
+
 #### Commands
 - Registered in `registerCommands.ts` 
 - Include operations like adding objects, saving files, generating code

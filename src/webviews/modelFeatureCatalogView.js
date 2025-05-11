@@ -4,20 +4,19 @@
 (function() {
     // Acquire the VS Code API
     const vscode = acquireVsCodeApi();
-    
-    // Keep track of the current state
+      // Keep track of the current state
     let featureData = {
         items: [],
         pageNumber: 1,
-        itemCountPerPage: 10,
+        itemCountPerPage: 100,
         recordsTotal: 0,
         recordsFiltered: 0
     };
     
     // Keep track of pagination and sorting
     let pageNumber = 1;
-    let itemCountPerPage = 10;
-    let orderByColumn = "name";
+    let itemCountPerPage = 100; // Default to 100 items per page
+    let orderByColumn = "displayName"; // Use displayName as default sort column
     let orderByDescending = false;
     let totalRecords = 0;
     
@@ -45,10 +44,9 @@
         console.log("[Webview] Received message:", message.command);
         
         if (message.command === "setFeatureData") {
-            console.log("[Webview] Handling setFeatureData");
-            featureData = message.data || { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 };
+            console.log("[Webview] Handling setFeatureData");            featureData = message.data || { items: [], pageNumber: 1, itemCountPerPage: 100, recordsTotal: 0 };
             pageNumber = featureData.pageNumber || 1;
-            itemCountPerPage = featureData.itemCountPerPage || 10;
+            itemCountPerPage = featureData.itemCountPerPage || 100;
             orderByColumn = featureData.orderByColumnName || orderByColumn;
             orderByDescending = featureData.orderByDescending || false;
             totalRecords = featureData.recordsTotal || 0;
@@ -97,10 +95,11 @@
         console.log("[Webview] Initializing UI");
         // Initially empty table and paging controls will be populated
     }
-    
-    function renderTable() {
+      function renderTable() {
         const table = document.getElementById("featureCatalogTable");
-        if (!table) return;
+        if (!table) {
+            return;
+        }
         
         // Clear the table
         table.innerHTML = "";
@@ -108,12 +107,10 @@
         // Create table header
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
-        
-        // Define table columns
+          // Define table columns
         const columns = [
             { key: "selected", label: "Selected", sortable: false },
-            { key: "name", label: "Name", sortable: true },
-            { key: "displayName", label: "Display Name", sortable: true },
+            { key: "displayName", label: "Name", sortable: true }, // Changed label from "Display Name" to "Name"
             { key: "description", label: "Description", sortable: true },
             { key: "version", label: "Version", sortable: true }
         ];
@@ -165,8 +162,7 @@
         
         // Create rows for each item
         if (featureData.items && featureData.items.length > 0) {
-            featureData.items.forEach(item => {
-                const row = document.createElement("tr");
+            featureData.items.forEach(item => {                const row = document.createElement("tr");
                 
                 columns.forEach(col => {
                     const td = document.createElement("td");
@@ -249,23 +245,45 @@
                 checkbox.title = "";
             }
         });
-    }
-    
-    function renderPaging() {
+    }    function renderPaging() {
         const pagingDiv = document.getElementById("paging");
-        if (!pagingDiv) return;
+        if (!pagingDiv) {
+            return;
+        }
         
         pagingDiv.innerHTML = "";
         
-        if (totalRecords === 0) return;
+        if (totalRecords === 0) {
+            return;
+        }
         
         // Calculate total pages
         const totalPages = Math.ceil(totalRecords / itemCountPerPage);
         
-        // Create paging controls
+        // Create paging controls similar to model validation view
+        // First page button
+        const firstButton = document.createElement("button");
+        firstButton.textContent = "«";
+        firstButton.disabled = pageNumber <= 1;
+        firstButton.title = "First Page";
+        firstButton.addEventListener("click", () => {
+            if (pageNumber > 1) {
+                showSpinner();
+                vscode.postMessage({
+                    command: "ModelFeatureCatalogRequestPage",
+                    pageNumber: 1,
+                    itemCountPerPage: itemCountPerPage,
+                    orderByColumnName: orderByColumn,
+                    orderByDescending: orderByDescending
+                });
+            }
+        });
+        
+        // Previous button
         const prevButton = document.createElement("button");
-        prevButton.textContent = "Previous";
+        prevButton.textContent = "‹";
         prevButton.disabled = pageNumber <= 1;
+        prevButton.title = "Previous Page";
         prevButton.addEventListener("click", () => {
             if (pageNumber > 1) {
                 showSpinner();
@@ -279,9 +297,15 @@
             }
         });
         
+        // Page info
+        const pageSpan = document.createElement("span");
+        pageSpan.textContent = ` Page ${pageNumber} of ${totalPages || 1} `;
+        
+        // Next button
         const nextButton = document.createElement("button");
-        nextButton.textContent = "Next";
+        nextButton.textContent = "›";
         nextButton.disabled = pageNumber >= totalPages;
+        nextButton.title = "Next Page";
         nextButton.addEventListener("click", () => {
             if (pageNumber < totalPages) {
                 showSpinner();
@@ -295,9 +319,23 @@
             }
         });
         
-        // Page selector
-        const pageSpan = document.createElement("span");
-        pageSpan.textContent = ` Page ${pageNumber} of ${totalPages} `;
+        // Last page button
+        const lastButton = document.createElement("button");
+        lastButton.textContent = "»";
+        lastButton.disabled = pageNumber >= totalPages;
+        lastButton.title = "Last Page";
+        lastButton.addEventListener("click", () => {
+            if (pageNumber < totalPages) {
+                showSpinner();
+                vscode.postMessage({
+                    command: "ModelFeatureCatalogRequestPage",
+                    pageNumber: totalPages,
+                    itemCountPerPage: itemCountPerPage,
+                    orderByColumnName: orderByColumn,
+                    orderByDescending: orderByDescending
+                });
+            }
+        });
         
         // Items per page selector
         const perPageSelect = document.createElement("select");
@@ -326,9 +364,11 @@
         countSpan.textContent = ` (${featureData.items ? featureData.items.length : 0} of ${totalRecords} items) `;
         
         // Append all elements
+        pagingDiv.appendChild(firstButton);
         pagingDiv.appendChild(prevButton);
         pagingDiv.appendChild(pageSpan);
         pagingDiv.appendChild(nextButton);
+        pagingDiv.appendChild(lastButton);
         pagingDiv.appendChild(document.createTextNode(" | "));
         pagingDiv.appendChild(perPageSelect);
         pagingDiv.appendChild(countSpan);

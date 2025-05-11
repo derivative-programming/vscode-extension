@@ -33,18 +33,41 @@ export function registerModelFeatureCatalogCommands(
                     <meta charset="UTF-8">
                     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Model Feature Catalog</title>
-                    <style>
-                        body { font-family: var(--vscode-font-family); margin: 0; padding: 0; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
+                    <title>Model Feature Catalog</title>                    <style>
+                        body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
+                        h2 { margin-bottom: 15px; color: var(--vscode-titleBar-activeBackground); }
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; }
-                        th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 6px 10px; text-align: left; }
-                        th { background: var(--vscode-sideBar-background); cursor: pointer; }
+                        th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
+                        th { background: var(--vscode-sideBar-background); cursor: pointer; font-weight: bold; }
                         tr:nth-child(even) { background: var(--vscode-sideBarSectionHeader-background); }
-                        #paging { margin: 1em 0; text-align: center; }
-                        button { margin: 0 4px; }
+                        tr:hover { background-color: var(--vscode-list-hoverBackground); }
+                        #paging { margin: 1em 0; padding: 10px 0; text-align: center; }
+                        button { 
+                            margin: 0 4px; 
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border: none;
+                            padding: 4px 8px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                        }
+                        button:disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                        }
+                        button:hover:not(:disabled) {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
                         .checkbox-container { text-align: center; }
                         input[type="checkbox"] { cursor: pointer; }
                         input[type="checkbox"]:disabled { cursor: not-allowed; opacity: 0.6; }
+                        select {
+                            padding: 4px;
+                            background-color: var(--vscode-dropdown-background);
+                            color: var(--vscode-dropdown-foreground);
+                            border: 1px solid var(--vscode-dropdown-border);
+                            border-radius: 2px;
+                        }
                         .spinner {
                             border: 4px solid rgba(0, 0, 0, 0.1);
                             width: 36px;
@@ -66,6 +89,9 @@ export function registerModelFeatureCatalogCommands(
                             bottom: 0;
                             background-color: rgba(0, 0, 0, 0.2);
                             z-index: 999;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         }
                         @keyframes spin {
                             0% { transform: rotate(0deg); }
@@ -84,19 +110,19 @@ export function registerModelFeatureCatalogCommands(
                 </body>
                 </html>
             `;
-            
-            // Handler for messages from the webview
-            async function fetchAndSend(pageNumber, itemCountPerPage, orderByColumnName, orderByDescending) {
+              // Handler for messages from the webview
+            async function fetchAndSend(pageNumber: number, itemCountPerPage: number, orderByColumnName: string, orderByDescending: boolean) {
                 const authService = require('../services/authService').AuthService.getInstance();
                 const apiKey = await authService.getApiKey();
                 if (!apiKey) {
-                    panel.webview.postMessage({ command: 'setFeatureData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
+                    panel.webview.postMessage({ command: 'setFeatureData', data: { items: [], pageNumber: 1, itemCountPerPage: 100, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('You must be logged in to use Model Feature Catalog.');
                     return;
                 }
+                
                 const params = [
                     'PageNumber=' + encodeURIComponent(pageNumber || 1),
-                    'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 10),
+                    'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 100),
                     'OrderByDescending=' + encodeURIComponent(orderByDescending ? 'true' : 'false')
                 ];
                 if (orderByColumnName) {
@@ -110,9 +136,8 @@ export function registerModelFeatureCatalogCommands(
                         headers: { 'Api-Key': apiKey }
                     });
                     const data = await res.json();
-                    panel.webview.postMessage({ command: 'setFeatureData', data });
-                } catch (err) {
-                    panel.webview.postMessage({ command: 'setFeatureData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
+                    panel.webview.postMessage({ command: 'setFeatureData', data });                } catch (err) {
+                    panel.webview.postMessage({ command: 'setFeatureData', data: { items: [], pageNumber: 1, itemCountPerPage: 100, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('Failed to fetch model features: ' + (err && err.message ? err.message : err));
                 }
             }
@@ -121,7 +146,7 @@ export function registerModelFeatureCatalogCommands(
                 console.log("[Extension] Received message from webview:", msg.command);
                 if (msg.command === 'ModelFeatureCatalogWebviewReady') {
                     console.log("[Extension] Handling ModelFeatureCatalogWebviewReady");
-                    await fetchAndSend(1, 10, 'name', false);
+                    await fetchAndSend(1, 100, 'displayName', false);
                 } else if (msg.command === 'ModelFeatureCatalogRequestPage') {
                     console.log("[Extension] Handling ModelFeatureCatalogRequestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
                     await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
@@ -238,10 +263,8 @@ export function registerModelFeatureCatalogCommands(
                                     }
                                 }
                             }
-                        }
-                        
-                        // Save the model
-                        await modelService.saveToFile();
+                        }                        // Save the model
+                        await modelService.saveToFile(rootModel);
                         console.log("[Extension] Model saved after feature update");
                         
                         // Notify the webview of success
