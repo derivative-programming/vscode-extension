@@ -5,11 +5,11 @@ model feature catalog view...
 - use similar style and design as the model validation request list.
 - use similar paging controls and page range display as the model validation request list.
  
-
-
-add a 'Fabrication Blueprint Catalog' treeview item under 'Model Services' and above 'Model Fabrication.  
+ 
+when the model file changes, we automatically update the model singleton. It should also update any open 'model feature catalog' views or 'fabrication blueprint catalog' views.
 
 On click, display a new view that displays the items returned from the get endpoint https://modelservicesapi.derivative-programming.com/api/v1_0/template-sets. review https://modelservicesapi.derivative-programming.com/openapi.json for its request and result schema.
+
 
 review the rootmodel and templatesetmodel.  The items in the root templateset array are the templateset items that the user selected for the model. On the model service fabrication blueprint catalog list, add a column for 'selected' and a checkbox.  When the user clicks the checkbox, it will add the item to the model.  If the user unchecks the checkbox, it will remove the item from the model.  
  

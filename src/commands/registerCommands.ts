@@ -30,6 +30,7 @@ import { registerModelValidationCommands } from './modelValidationCommands';
 import { registerModelAIProcessingCommands } from './modelAIProcessingCommands';
 import { registerModelFabricationCommands } from './modelFabricationCommands';
 import { registerModelFeatureCatalogCommands } from './modelFeatureCatalogCommands';
+import { registerFabricationBlueprintCatalogCommands } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 
 /**
@@ -322,8 +323,9 @@ export function registerCommands(
         vscode.commands.registerCommand('appdna.stopMCPHttpServer', async () => {
             await stopMCPHttpServerCommand();
         })
-    );
-
-    registerModelFabricationCommands(context, appDNAFilePath, modelService);
+    );    registerModelFabricationCommands(context, appDNAFilePath, modelService);
+    
+    // Register fabrication blueprint catalog commands
+    registerFabricationBlueprintCatalogCommands(context, appDNAFilePath, modelService);
 
 }
