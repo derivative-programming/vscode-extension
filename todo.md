@@ -17,6 +17,7 @@ project settings view... test change on all settings
 - model service request lists (validation, ai processing, fabrication)
     - page size dropdown
     - if one is processing or queued on the page, auto refresh every minute.
+    - cancelled requests dont need a details button.
 
 handle if no connection using model services
 
