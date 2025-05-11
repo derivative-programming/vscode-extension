@@ -749,9 +749,8 @@
                                     });
                                 });
                                 
-                                td.appendChild(button);
-                            } else if (isCompleted) {
-                                // Show Details button only for completed requests
+                                td.appendChild(button);                            } else if (isCompleted && !item.modelValidationRequestIsCanceled) {
+                                // Show Details button only for completed requests that aren't cancelled
                                 const button = document.createElement("button");
                                 button.className = "view-button";
                                 button.textContent = "Details";

@@ -680,8 +680,7 @@
                             // Check conditions for showing different buttons
                             const canCancel = !item.modelPrepRequestIsStarted && !item.modelPrepRequestIsCanceled;
                             const isCompleted = item.modelPrepRequestIsCompleted;
-                            
-                            if (canCancel) {
+                              if (canCancel) {
                                 // Show Cancel Request button
                                 const button = document.createElement("button");
                                 button.className = "view-button"; 
@@ -738,8 +737,8 @@
                                 });
                                 
                                 td.appendChild(button);
-                            } else if (isCompleted) {
-                                // Show Details button only for completed requests
+                            } else if (isCompleted && !item.modelPrepRequestIsCanceled) {
+                                // Show Details button only for completed requests that aren't cancelled
                                 const button = document.createElement("button");
                                 button.className = "view-button";
                                 button.textContent = "Details";                                button.onclick = function(e) {
