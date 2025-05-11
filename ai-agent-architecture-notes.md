@@ -419,3 +419,25 @@ The code generator demonstrates the extension's end-to-end capabilities beyond j
    - Modals display a "Loading..." message when fetching data
    - Spinner overlays are used during lengthy operations
    - Error states are handled with appropriate styling and messages
+
+### Standardized Pagination Pattern
+- Consistent pagination controls are used across data-heavy views like:
+  - Model Feature Catalog (modelFeatureCatalogView.js)
+  - Model Validation Request List (modelValidationView.js)
+- Standard structure includes:
+  - First/Previous/Next/Last page navigation buttons
+  - Page indicator ("Page X of Y")
+  - Items per page selector (standardized to 10, 25, 50, 100 options)
+  - Count summary showing current items and total records
+  - Default configuration shows 100 items per page
+
+### Model Feature Catalog
+- Allows users to add/remove model features from the current AppDNA model
+- Uses a consistent table format for displaying features with:
+  - Selection checkboxes for toggling feature inclusion
+  - Display Name shown in the "Name" column
+  - Description and Version columns for additional details
+  - Hidden internal name column to avoid duplicating information
+- Changes are kept in memory only and not automatically saved to disk
+- The primary Tree View's save button must be used to persist changes
+- Selection toggle is immediate but applies only to the in-memory model

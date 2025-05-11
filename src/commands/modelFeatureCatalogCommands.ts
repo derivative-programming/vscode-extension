@@ -98,8 +98,7 @@ export function registerModelFeatureCatalogCommands(
                             100% { transform: rotate(360deg); }
                         }
                     </style>
-                </head>
-                <body>
+                </head>                <body>
                     <h2>Model Feature Catalog</h2>
                     <div id="paging"></div>
                     <table id="featureCatalogTable"></table>
@@ -263,9 +262,10 @@ export function registerModelFeatureCatalogCommands(
                                     }
                                 }
                             }
-                        }                        // Save the model
-                        await modelService.saveToFile(rootModel);
-                        console.log("[Extension] Model saved after feature update");
+                        }                        // Don't save the model yet, just keep changes in memory
+                        // Since we're modifying the object returned by getCurrentModel() directly,
+                        // the changes are already in memory in the ModelService
+                        console.log("[Extension] Model updated in memory after feature toggle");
                         
                         // Notify the webview of success
                         panel.webview.postMessage({

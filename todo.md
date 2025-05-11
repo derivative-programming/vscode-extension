@@ -2,19 +2,9 @@ Agent todo items...
    
 
 model feature catalog view...
-- on checkbox toggle, just change the model in memory in the model service.
 - use similar style and design as the model validation request list.
 - use similar paging controls and page range display as the model validation request list.
-- hide 'name' column  
-- change 'display name' column header text to 'name' text
-- default to 100 items per page
-
  
- 
-
-review the rootmodel, namespacemodel, and ModelFeatureModel.  The items in the namespace modelfeature array are the ModelFeature items that the user selected for the model. On the model service model feature list, add a column for 'selected' and a checkbox.  When the user clicks the checkbox, it will add the item to the model.  If the user unchecks the checkbox, it will remove the item from the model.  if the model feature has isCompleted = true, then the user cannot uncheck the checkbox.  
-
-
 
 
 add a 'Fabrication Blueprint Catalog' treeview item under 'Model Services' and above 'Model Fabrication.  
