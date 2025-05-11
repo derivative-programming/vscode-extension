@@ -278,12 +278,12 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const isLoggedIn = this.authService.isLoggedIn();
                 
                 // First item is always Login/Logout based on current state
-                if (isLoggedIn) {
-                    // When logged in, add service items first
+                if (isLoggedIn) {                    // When logged in, add service items first
                     const serviceItems = [
                         { name: "Model Feature Catalog", description: "Browse and select model features" },
                         { name: "Model AI Processing", description: "Submit models for AI processing" },
                         { name: "Model Validation", description: "Validate models against best practices" },
+                        { name: "Fabrication Blueprint Catalog", description: "Browse and select fabrication blueprints" },
                         { name: "Model Fabrication", description: "Generate fabrication code from models" }
                     ];
                     serviceItems.forEach(service => {
@@ -312,6 +312,11 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                             serviceItem.command = {
                                 command: 'appdna.modelAIProcessing',
                                 title: 'Show Model AI Processing Requests',
+                                arguments: []
+                            };                        } else if (service.name === "Fabrication Blueprint Catalog") {
+                            serviceItem.command = {
+                                command: 'appdna.fabricationBlueprintCatalog',
+                                title: 'Show Fabrication Blueprint Catalog',
                                 arguments: []
                             };
                         } else if (service.name === "Model Fabrication") {
