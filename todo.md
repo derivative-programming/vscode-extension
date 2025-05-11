@@ -1,7 +1,7 @@
 Agent todo items...
    
 
-model feature catalog...
+model feature catalog view...
 - use similar style and design as the model validation request list.
 - use similar paging controls and page range display as the model validation request list.
 - hide 'name' column  
@@ -9,14 +9,11 @@ model feature catalog...
 - default to 100 items per page
 
 
-on teh appdna left sidebar title bar in the tree view...
+on the appdna left sidebar title bar in the tree view...
 - add a icon button to expand all top level items in the tree view
-- add a icon button to collapse all top level items in the tree view
 
 
-
-
-add a 'Model Feature Catalog' treeview item under 'Model Services' and above 'Model AI Processing.  On click, display a new view that displays the items returned from the get endpoint https://modelservicesapi.derivative-programming.com/api/v1_0/model-features. review https://modelservicesapi.derivative-programming.com/openapi.json for its request and result schema.
+ 
 
 review the rootmodel, namespacemodel, and ModelFeatureModel.  The items in the namespace modelfeature array are the ModelFeature items that the user selected for the model. On the model service model feature list, add a column for 'selected' and a checkbox.  When the user clicks the checkbox, it will add the item to the model.  If the user unchecks the checkbox, it will remove the item from the model.  if the model feature has isCompleted = true, then the user cannot uncheck the checkbox.  
 

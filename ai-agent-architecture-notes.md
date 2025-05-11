@@ -19,6 +19,30 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 #### ModelService (Singleton)
 - Central service that manages loading, caching, and saving the AppDNA model file
 - Provides methods to manipulate the model (getAllObjects, getAllReports, etc.)
+
+#### Tree View Architecture
+- **JsonTreeDataProvider**: The main provider class that implements `vscode.TreeDataProvider`
+  - Contains the core methods for generating tree items
+  - `getChildren()`: Returns child items for a given parent item
+  - `getParent()`: Returns the parent item for a given child item (required for reveal functionality)
+  - `refresh()`: Triggers a refresh of the tree view
+
+- **JsonTreeItem**: Custom tree item class that extends `vscode.TreeItem`
+  - Represents individual nodes in the tree
+  - Properties like label, id, and context are set in the constructor
+  - Used for PROJECT, DATA OBJECTS, MODEL SERVICES sections
+
+- **Tree View Commands**:
+  - `expandAllTopLevelCommand`: Expands all top-level nodes in the tree
+  - `collapseAllTopLevelCommand`: Collapses all tree nodes
+  - These are implemented in expandCollapseCommands.ts
+
+- **Parent-Child Relationships**:
+  - Top-level items: PROJECT, DATA OBJECTS, MODEL SERVICES (no parent)
+  - Second-level items: Each has a specific parent based on contextValue
+    - project* → PROJECT
+    - dataObjectItem → DATA OBJECTS
+    - modelService* → MODEL SERVICES
 - Acts as a facade over the ModelDataProvider for data operations
 - Direct file manipulation without creating backups (preserves original files)
 
@@ -32,6 +56,12 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
   - Running services: server-environment icon (MCP Server, MCP HTTP Server)
   - Stopped services: server-process icon (MCP Server, MCP HTTP Server)
   - Each service item can be clicked to toggle its status (start/stop)
+- Tree view has expandAll and collapseAll buttons in the title bar for easy navigation:
+  - Expand button uses the VS Code built-in 'list.toggleAllExpanded' command with a fallback mechanism
+  - Collapse button uses the VS Code built-in 'workbench.actions.treeView.appdna.collapseAll' command
+  - Both commands have robust error handling and logging
+  - The expandAllItems method in JsonTreeDataProvider provides additional programmatic control
+  - Both commands log actions to the command history file using commandLog utility
 
 #### MCPServer (Singleton)
 - Implements a Model Context Protocol server that enables GitHub Copilot to interact with user stories

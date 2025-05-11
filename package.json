@@ -44,6 +44,16 @@
           "group": "navigation"
         },
         {
+          "command": "appdna.expandAllTopLevel",
+          "when": "view == appdna && appDnaFileExists",
+          "group": "navigation"
+        },
+        {
+          "command": "appdna.collapseAllTopLevel",
+          "when": "view == appdna && appDnaFileExists",
+          "group": "navigation"
+        },
+        {
           "command": "appdna.refreshView",
           "when": "view == appdna && appDnaFileExists",
           "group": "navigation"
@@ -131,6 +141,16 @@
         "command": "appdna.stopMCPHttpServer",
         "title": "Stop MCP HTTP Server",
         "icon": "$(close)"
+      },
+      {
+        "command": "appdna.expandAllTopLevel",
+        "title": "Expand All Top Level",
+        "icon": "$(expand-all)"
+      },
+      {
+        "command": "appdna.collapseAllTopLevel",
+        "title": "Collapse All Top Level",
+        "icon": "$(collapse-all)"
       }
     ],
     "keybindings": [

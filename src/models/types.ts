@@ -67,7 +67,7 @@ export class JsonTreeItem extends vscode.TreeItem {
             this.iconPath = new vscode.ThemeIcon('database');
         }
 
-        // If the item represents a data object, attach a command to show details.
+    // If the item represents a data object, attach a command to show details.
         if (contextValue === 'dataObjectItem') {
             this.command = {
                 title: 'Show Details',
@@ -75,5 +75,9 @@ export class JsonTreeItem extends vscode.TreeItem {
                 arguments: [this]
             };
         }
+        
+        // Set the id property directly instead of using a getter
+        // to avoid conflict with the parent class property
+        this.id = `${this.contextValue || 'item'}-${this.label}`;
     }
 }

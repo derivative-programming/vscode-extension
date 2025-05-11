@@ -30,6 +30,7 @@ import { registerModelValidationCommands } from './modelValidationCommands';
 import { registerModelAIProcessingCommands } from './modelAIProcessingCommands';
 import { registerModelFabricationCommands } from './modelFabricationCommands';
 import { registerModelFeatureCatalogCommands } from './modelFeatureCatalogCommands';
+import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -67,6 +68,16 @@ export function registerCommands(
             if (objectDetailsView && typeof objectDetailsView.refreshAll === "function") {
                 objectDetailsView.refreshAll();
             }
+        })
+    );    // Register expand all top level items command using the dedicated handler
+    context.subscriptions.push(
+        vscode.commands.registerCommand("appdna.expandAllTopLevel", async () => {
+            await expandAllTopLevelCommand(jsonTreeDataProvider);
+        })
+    );    // Register collapse all top level items command using the dedicated handler
+    context.subscriptions.push(
+        vscode.commands.registerCommand("appdna.collapseAllTopLevel", async () => {
+            await collapseAllTopLevelCommand();
         })
     );
 

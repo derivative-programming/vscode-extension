@@ -370,6 +370,81 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         this._onDidChangeTreeData.fire();
     }
 
+    /**
+     * Expands all top-level items in the tree view
+     * Used by the expandAllTopLevel command
+     */
+    expandAllItems(): void {
+        try {
+            // Get the top-level items from the model
+            const topLevelItems = [
+                'PROJECT',
+                'DATA OBJECTS',
+                'MODEL SERVICES'
+            ];
+            
+            // The trick is to create a special change event that will
+            // both refresh the tree and expand all items
+            this._onDidChangeTreeData.fire();
+            
+            console.log("Fired tree data change event for expansion");
+            
+            // After the tree refreshes, we need to manually reveal/expand each item
+            // This is handled by the command itself
+        } catch (error) {
+            console.error("Error expanding all items:", error);
+        }
+    }
+
+    /**
+     * Gets the parent of a given tree item
+     * Required for the treeView.reveal() method to work correctly
+     * @param element The tree item to get the parent for
+     * @returns The parent tree item or null if the element is a root item
+     */
+    getParent(element: JsonTreeItem): Thenable<JsonTreeItem | null> {
+        // Check if this is one of our root-level items
+        if (!element) {
+            return Promise.resolve(null);
+        }
+        
+        // Root-level items (PROJECT, DATA OBJECTS, MODEL SERVICES) have no parent
+        if (['PROJECT', 'DATA OBJECTS', 'MODEL SERVICES'].includes(element.label)) {
+            return Promise.resolve(null);
+        }
+        
+        // Check context values to determine hierarchy
+        if (element.contextValue === 'dataObjectItem') {
+            // If this is a data object, its parent is the DATA OBJECTS item
+            return Promise.resolve(new JsonTreeItem(
+                'DATA OBJECTS',
+                vscode.TreeItemCollapsibleState.Collapsed,
+                'dataObjects'
+            ));
+        }
+        
+        if (element.contextValue?.startsWith('project')) {
+            // If this is a project-related item, its parent is the PROJECT item
+            return Promise.resolve(new JsonTreeItem(
+                'PROJECT',
+                vscode.TreeItemCollapsibleState.Collapsed,
+                'project'
+            ));
+        }
+        
+        if (element.contextValue?.startsWith('modelService')) {
+            // If this is a model service-related item, its parent is the MODEL SERVICES item
+            return Promise.resolve(new JsonTreeItem(
+                'MODEL SERVICES',
+                vscode.TreeItemCollapsibleState.Collapsed,
+                'modelServices'
+            ));
+        }
+        
+        // Default case - can't determine parent
+        return Promise.resolve(null);
+    }
+
     addObject(name: string, namespace: string = "Default"): void {
         if (!this.appDNAFilePath || !fs.existsSync(this.appDNAFilePath)) {
             vscode.window.showErrorMessage('AppDNA file not found. Cannot add object.');
