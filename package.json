@@ -12,6 +12,7 @@
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
+  "mcp": "./dist/mcp/stdioBridge.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [

@@ -13,6 +13,7 @@ import { ModelService } from './services/modelService';
 import { AuthService } from './services/authService';
 import { showWelcomeView } from './webviews/welcomeView';
 import { showLexiconView } from './webviews/lexiconView';
+import { initializeStdioServer } from './mcp/stdioBridge';
 
 // Track whether welcome view has been shown in this session
 let hasShownWelcomeView = false;
@@ -23,6 +24,9 @@ let hasShownWelcomeView = false;
  */
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "AppDNA" is now active!');
+    
+    // Check if this is a stdio MCP server request and initialize if needed
+    initializeStdioServer();
     
     // Set the extension context for use throughout the extension
     setExtensionContext(context);

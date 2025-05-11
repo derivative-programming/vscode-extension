@@ -40,8 +40,31 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 - Status is reflected in the UI through a dedicated tree item in the PROJECT node
 - Fires status change events that the JsonTreeDataProvider listens to for UI updates
 - Provides user story management tools through the MCP API
+- Handles JSON-RPC 2.0 protocol, including the critical `initialize` handshake required by Copilot
+- Responds to initialize requests with detailed capabilities information in JSON-RPC 2.0 format
+- Tool definitions follow the MCP specification with `inputs` and `outputs` arrays
+- Uses a dedicated entry point (stdioBridge.ts) for standalone stdio MCP server mode
+- Can be launched either through VS Code commands or directly as a stdio server
+- Properly handles process lifecycle events (SIGINT, SIGTERM) when running in standalone mode
 - Automatically configures VS Code settings (github.copilot.advanced and mcp.servers) for server discovery
 - Both server implementations register themselves directly in settings.json for proper GitHub Copilot discovery
+
+#### MCPHttpServer (Singleton)
+- Implements an HTTP server wrapper for the MCP protocol to enable GitHub Copilot integration
+- Provides endpoints that follow the Model Context Protocol (MCP) specification:
+  - Root path (`/`) - SSE (Server-Sent Events) connection endpoint for streaming responses back to clients
+  - `/message` endpoint - JSON-RPC 2.0 communication channel for Copilot to send requests
+  - `/.well-known/mcp` - Standard MCP discovery endpoint providing server capabilities
+  - `/mcp/ready` - Endpoint that provides tool definitions to clients
+  - `/mcp/execute` - Legacy endpoint for direct tool execution (older protocol version)
+- Tracks active SSE connections via session IDs to enable sending responses back to specific clients
+- Uses a request-acknowledgement pattern where:
+  1. Client sends a JSON-RPC request to `/message` endpoint
+  2. Server acknowledges receipt with a 202 HTTP status
+  3. Server processes the request asynchronously
+  4. Server sends the actual response via the SSE connection established earlier
+- Automatically configures VS Code settings for GitHub Copilot to discover and use the server
+- Fires events to update the UI when server status changes
 
 #### Webviews
 - Two types of webview implementation in the codebase:
@@ -252,13 +275,44 @@ The extension includes Model Context Protocol (MCP) integration with two server 
    - Provides status events that UI components can listen to
 
 2. **MCPHttpServer** (`src/mcp/httpServer.ts`):
-   - HTTP wrapper around the core MCP server
-   - Allows external tools like GitHub Copilot to communicate with the MCP server
+   - HTTP wrapper around the core MCP server implementing the Model Context Protocol (MCP)
+   - Allows external tools like GitHub Copilot and Copilot Studio to communicate with the MCP server
    - Handles configuration for VS Code settings integration
    - Provides status events for UI components
    - Uses consistent iconography with MCPServer in the UI
+   - Implements these key MCP endpoints:
+     - `/` - Root endpoint for SSE (Server-Sent Events) connectivity with sessionId support
+     - `/initialize` - Required by GitHub Copilot to establish a session with capabilities exchange
+     - `/.well-known/mcp` - Standard MCP discovery endpoint for tool and capability discovery
+     - `/mcp` - Base MCP endpoint for server information
+     - `/mcp/ready` - Returns available tools in JSON-RPC 2.0 format
+     - `/mcp/execute` - Handles tool execution requests from Copilot
 
 Both components implement the Singleton pattern and provide status events that the JsonTreeDataProvider listens to for UI updates. The UI represents their status consistently using the 'server-environment' icon for running servers and 'server-process' icon for stopped servers.
+
+### MCP Protocol Implementation
+
+The Model Context Protocol (MCP) implementation in the application follows these key principles:
+
+1. **JSON-RPC 2.0 Compliance**:
+   - All messages follow the JSON-RPC 2.0 specification
+   - Proper error codes and message formats for invalid requests
+   - Request/response correlation using message IDs
+
+2. **Server-Sent Events (SSE) Transport**:
+   - Used for server-to-client communication
+   - Supports session tracking with sessionId parameter
+   - Maintains connection with periodic keep-alive messages
+
+3. **Discovery Mechanism**:
+   - Standard `.well-known/mcp` endpoint for capability discovery
+   - Full URL paths for all endpoints to support Copilot Studio
+   - Complete tool definitions with input/output schemas
+
+4. **VS Code Integration**:
+   - Automatic configuration of VS Code settings.json
+   - Support for auto-discovery of MCP servers
+   - Configuration for both HTTP and native MCP servers
 
 ## Code Generation
 

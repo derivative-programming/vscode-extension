@@ -42,7 +42,9 @@ export class MCPServer {
             MCPServer.instance = new MCPServer();
         }
         return MCPServer.instance;
-    }    /**
+    }
+
+    /**
      * Start the MCP server
      */
     public async start(): Promise<void> {
@@ -66,7 +68,9 @@ export class MCPServer {
             // Notify listeners about failed start
             this._onStatusChange.fire(false);
         }
-    }    /**
+    }
+
+    /**
      * Stop the MCP server
      */
     public stop(): void {
@@ -100,7 +104,9 @@ export class MCPServer {
                 tools: this.getToolDefinitions()
             }
         });
-    }    /**
+    }
+
+    /**
      * Handle incoming MCP messages
      */
     private handleIncomingMessage(message: string): void {
@@ -117,8 +123,12 @@ export class MCPServer {
             this.outputChannel.appendLine(`[${new Date().toISOString()}] RECEIVED: ${message}`);
             this.outputChannel.show();
             
-            // Show notification for tool execution requests
-            if (parsedMessage.method === 'mcp/execute') {
+            // Handle initialize request (critical for JSON-RPC 2.0 handshake)
+            if (parsedMessage.method === 'initialize') {
+                this.handleInitializeRequest(parsedMessage);
+            }
+            // Handle tool execution requests
+            else if (parsedMessage.method === 'mcp/execute') {
                 const toolName = parsedMessage.params?.name || 'unknown';
                 vscode.window.showInformationMessage(`MCP Server: GitHub Copilot requested '${toolName}'`);
                 this.handleToolExecution(parsedMessage);
@@ -137,6 +147,49 @@ export class MCPServer {
                 data: { error: String(error) }
             });
         }
+    }
+
+    /**
+     * Handle initialize requests for MCP
+     * This is a critical part of the JSON-RPC 2.0 handshake used by Copilot
+     */
+    private handleInitializeRequest(message: any): void {
+        const { id } = message;
+        const tools = this.getToolDefinitions();
+        
+        // Log the initialize request
+        console.log('[MCP Server] Handling initialize request with id:', id);
+        
+        if (this.outputChannel) {
+            this.outputChannel.appendLine(`[${new Date().toISOString()}] HANDLING: Initialize request with id ${id}`);
+        }
+        
+        // Build and send the initialize response according to the MCP specification
+        this.sendMessage({
+            jsonrpc: '2.0',
+            id,
+            result: {
+                capabilities: {
+                    // Include all tools supported by the server
+                    tools: tools,
+                    // Indicate this server uses stdio transport
+                    transport: ['stdio'],
+                    // No authentication required for stdio-based servers
+                    authentication: ['none'],
+                    // Additional capability flags
+                    json: true,
+                    streaming: true
+                },
+                // Include server information
+                serverInfo: {
+                    name: "AppDNA User Story MCP",
+                    version: "1.0.0",
+                    description: "MCP server for interacting with AppDNA user stories"
+                }
+            }
+        });
+        
+        vscode.window.showInformationMessage('MCP server initialized for GitHub Copilot');
     }
 
     /**
@@ -177,13 +230,61 @@ export class MCPServer {
     }
 
     /**
-     * Get tool definitions for the MCP server
+     * Execute a tool by name
+     * Used for dynamic tool execution when tools are added in the future
      */
-    private getToolDefinitions(): any[] {
+    public async executeToolByName(name: string, parameters: any): Promise<any> {
+        // Execute tool based on name
+        if (name === 'createUserStory') {
+            return await this.userStoryTools.createUserStory(parameters);
+        } else if (name === 'listUserStories') {
+            return await this.userStoryTools.listUserStories();
+        } 
+        
+        // Add more tool implementations here as they are developed
+        
+        // If no matching tool is found
+        throw new Error(`Unknown tool: ${name}`);
+    }
+
+    /**
+     * Get tool definitions for the MCP server
+     * Used by both stdio and HTTP transports
+     */
+    public getToolDefinitions(): any[] {
         return [
             {
                 name: 'createUserStory',
                 description: 'Creates a user story and validates its format',
+                inputs: [
+                    {
+                        name: 'title',
+                        type: 'string',
+                        description: 'Title or ID for the user story (optional)',
+                        required: false
+                    },
+                    {
+                        name: 'description',
+                        type: 'string',
+                        description: 'The user story text following one of these formats:\n' +
+                            '1. A [Role name] wants to [View all, view, add, update, delete] a [object name]\n' +
+                            '2. As a [Role name], I want to [View all, view, add, update, delete] a [object name]',
+                        required: true
+                    }
+                ],
+                outputs: [
+                    {
+                        name: 'id',
+                        type: 'string',
+                        description: 'Generated ID for the created user story'
+                    },
+                    {
+                        name: 'story',
+                        type: 'object',
+                        description: 'The created user story with all details'
+                    }
+                ],
+                // Supporting older schema format for backward compatibility
                 parameters: {
                     type: 'object',
                     properties: {
@@ -204,13 +305,24 @@ export class MCPServer {
             {
                 name: 'listUserStories',
                 description: 'Lists all user stories',
+                inputs: [],
+                outputs: [
+                    {
+                        name: 'stories',
+                        type: 'array',
+                        description: 'List of all user stories'
+                    }
+                ],
+                // Supporting older schema format for backward compatibility
                 parameters: {
                     type: 'object',
                     properties: {}
                 }
             }
         ];
-    }    /**
+    }
+
+    /**
      * Send a message via MCP
      */
     private sendMessage(message: any): void {

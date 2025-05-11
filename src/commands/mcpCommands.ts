@@ -89,20 +89,17 @@ async function createOrUpdateMcpConfig(): Promise<void> {
                 ...(settings["github.copilot.advanced"] || {}),
                 "mcp.discovery.enabled": true,
                 "mcp.execution.enabled": true
-            },
-            "mcp": {
-                ...((settings["mcp"] || {})),
-                "servers": {
-                    ...((settings["mcp"] && settings["mcp"]["servers"]) || {}),
-                    "AppDNAUserStoryMCP": {
-                        "type": "stdio",
-                        "command": "${execPath}",
-                        "args": [
-                            "${workspaceFolder}",
-                            "--extensionDevelopmentPath=${execPath}/extensions/TestPublisher.appdna-0.0.1",
-                            "--command=appdna.startMCPServer"
-                        ]
-                    }
+            },            "mcp.servers": {
+                ...((settings["mcp.servers"] || {})),
+                "AppDNAUserStoryMCP": {
+                    "type": "stdio",
+                    "command": "${execPath}",
+                    "args": [
+                        "--extensionDevelopmentPath=${workspaceFolder}",
+                        "--stdio-mcp"
+                    ],
+                    "transport": "stdio",
+                    "enabled": true
                 }
             }
         };
