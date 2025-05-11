@@ -196,13 +196,12 @@ export function registerModelAIProcessingCommands(
                     try {
                         const authService = AuthService.getInstance();
                         const apiKey = await authService.getApiKey();
-                        
-                        if (!apiKey) {
+                          if (!apiKey) {
                             vscode.window.showErrorMessage('You must be logged in to cancel a processing request.');
                             panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
                             return;
                         }
-                          const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests?modelPrepRequestCode=${encodeURIComponent(msg.requestCode)}`;
+                          const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests/${encodeURIComponent(msg.requestCode)}`;
                         console.log("[Extension] Sending cancel request to URL:", url);
                         
                         const response = await fetch(url, {

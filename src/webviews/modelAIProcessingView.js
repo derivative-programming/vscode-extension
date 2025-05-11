@@ -52,11 +52,10 @@
             renderPaging();
             // Hide spinner when data is set
             hideSpinner();
-        } else if (message.command === "processingRequestReceived" || message.command === "processingRequestFailed") {
-            console.log("[Webview] Handling", message.command);
+        } else if (message.command === "processingRequestReceived" || message.command === "processingRequestFailed") {            console.log("[Webview] Handling", message.command);
             // Hide spinner when processing request is received or failed
             hideSpinner();        
-        } else if (message.command === "processingRequestCancelled") {
+        } else if (message.command === "ModelAIProcessingRequestCancelled") {
             console.log("[Webview] Request cancelled successfully, refreshing data");
             hideSpinner();
             // Refresh the current page after a successful cancel
