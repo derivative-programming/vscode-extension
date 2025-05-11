@@ -2,6 +2,8 @@
 
 IMPORTANT: The following are instructions for how AI assistants should interact with the codebase.
 
+I'm running on windows
+
 # AppDNA VS Code Extension - Coding Guidelines
 
 This is a VS Code extension project that provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. Please use the get_vscode_api with a query as input to fetch the latest VS Code API references.

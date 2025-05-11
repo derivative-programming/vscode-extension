@@ -1,0 +1,3375 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Model Services API",
+    "description": "",
+    "termsOfService": "https:///terms/",
+    "contact": {
+      "name": "Site Support",
+      "url": "https://support./hc/en-us/requests/new",
+      "email": "support@"
+    },
+    "x-logo": {
+      "url": "/img/logo.png",
+      "altText": "Site"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0"
+  },
+  "externalDocs": {
+    "description": "Find out more about us",
+    "url": "https://"
+  },
+  "servers": [
+
+{
+  "url": "",
+  "description": ""
+}
+
+  ],
+  "paths": {
+
+    "/api/v1_0/change-rpt-requests": {
+
+      "post": {
+        "tags": [
+          "ChangeRptRequest"
+        ],
+        "description": "",
+        "operationId": "ChangeRptRequest_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRptRequestPostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRptRequestPostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRptRequestPostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestPostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestPostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestPostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+      "get": {
+        "tags": [
+          "ChangeRptRequest"
+        ],
+        "description": "",
+        "operationId": "ChangeRptRequest_Get",
+        "parameters": [
+          {
+            "name": "modelChangeRptRequestCode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    },
+    "/api/v1_0/change-rpt-requests/{modelChangeRptRequestCode}": {
+
+      "delete": {
+        "tags": [
+          "ChangeRptRequest"
+        ],
+        "description": "",
+        "operationId": "ChangeRptRequest_Delete",
+        "parameters": [
+          {
+            "name": "modelChangeRptRequestCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestDeleteResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestDeleteResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestDeleteResponse"
+                }
+              }
+            }
+          }
+        }
+    },
+
+      "get": {
+        "tags": [
+          "ChangeRptRequest"
+        ],
+        "description": "",
+        "operationId": "ChangeRptRequest_Get",
+        "parameters": [
+          {
+            "name": "modelChangeRptRequestCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": false
+            }
+          },
+          {
+            "name": "modelChangeRptRequestCode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRptRequestListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    }
+
+  ,
+
+    "/api/v1_0/change-rpt-requests/{modelChangeRptRequestCode}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/demo-page-requests": {
+
+      "post": {
+        "tags": [
+          "DemoPageRequest"
+        ],
+        "description": "",
+        "operationId": "DemoPageRequest_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoPageRequestPostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoPageRequestPostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoPageRequestPostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoPageRequestPostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoPageRequestPostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoPageRequestPostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+    },
+    "/api/v1_0/demo-page-requests/{}": {
+
+    }
+
+  ,
+
+    "/api/v1_0/demo-page-requests/{}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/fabrication-requests": {
+
+      "post": {
+        "tags": [
+          "FabricationRequest"
+        ],
+        "description": "",
+        "operationId": "FabricationRequest_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FabricationRequestPostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FabricationRequestPostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FabricationRequestPostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestPostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestPostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestPostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+      "get": {
+        "tags": [
+          "FabricationRequest"
+        ],
+        "description": "",
+        "operationId": "FabricationRequest_Get",
+        "parameters": [
+          {
+            "name": "modelFabricationRequestCode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    },
+    "/api/v1_0/fabrication-requests/{modelFabricationRequestCode}": {
+
+      "delete": {
+        "tags": [
+          "FabricationRequest"
+        ],
+        "description": "",
+        "operationId": "FabricationRequest_Delete",
+        "parameters": [
+          {
+            "name": "modelFabricationRequestCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestDeleteResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestDeleteResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestDeleteResponse"
+                }
+              }
+            }
+          }
+        }
+    },
+
+      "get": {
+        "tags": [
+          "FabricationRequest"
+        ],
+        "description": "",
+        "operationId": "FabricationRequest_Get",
+        "parameters": [
+          {
+            "name": "modelFabricationRequestCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": false
+            }
+          },
+          {
+            "name": "modelFabricationRequestCode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FabricationRequestListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    }
+
+  ,
+
+    "/api/v1_0/fabrication-requests/{modelFabricationRequestCode}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/logins": {
+
+      "post": {
+        "tags": [
+          "Login"
+        ],
+        "description": "",
+        "operationId": "Login_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginPostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginPostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginPostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginPostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginPostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginPostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+    },
+    "/api/v1_0/logins/{}": {
+
+    }
+
+  ,
+
+    "/api/v1_0/logins/{}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/model-chat": {
+
+      "post": {
+        "tags": [
+          "ModelChat"
+        ],
+        "description": "Send natural language query about a project model",
+        "operationId": "ModelChat_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelChatPostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelChatPostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelChatPostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelChatPostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelChatPostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelChatPostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+    },
+    "/api/v1_0/model-chat/{}": {
+
+    }
+
+  ,
+
+    "/api/v1_0/model-chat/{}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/model-features": {
+
+      "get": {
+        "tags": [
+          "ModelFeature"
+        ],
+        "description": "",
+        "operationId": "ModelFeature_Get",
+        "parameters": [
+
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelFeatureListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelFeatureListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelFeatureListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    },
+    "/api/v1_0/model-features/{}": {
+
+    }
+
+  ,
+
+    "/api/v1_0/model-features/{}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/model-merge": {
+
+      "post": {
+        "tags": [
+          "ModelMerge"
+        ],
+        "description": "Merge two models - Newest model data is posted, the url of possible additions is also sent",
+        "operationId": "ModelMerge_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelMergePostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelMergePostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelMergePostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelMergePostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelMergePostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelMergePostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+    },
+    "/api/v1_0/model-merge/{o}": {
+
+    }
+
+  ,
+
+    "/api/v1_0/model-merge/{o}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/prep-requests": {
+
+      "post": {
+        "tags": [
+          "PrepRequest"
+        ],
+        "description": "",
+        "operationId": "PrepRequest_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepRequestPostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepRequestPostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepRequestPostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestPostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestPostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestPostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+      "get": {
+        "tags": [
+          "PrepRequest"
+        ],
+        "description": "",
+        "operationId": "PrepRequest_Get",
+        "parameters": [
+          {
+            "name": "modelPrepRequestCode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    },
+    "/api/v1_0/prep-requests/{modelPrepRequestCode}": {
+
+      "delete": {
+        "tags": [
+          "PrepRequest"
+        ],
+        "description": "",
+        "operationId": "PrepRequest_Delete",
+        "parameters": [
+          {
+            "name": "modelPrepRequestCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestDeleteResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestDeleteResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestDeleteResponse"
+                }
+              }
+            }
+          }
+        }
+    },
+
+      "get": {
+        "tags": [
+          "PrepRequest"
+        ],
+        "description": "",
+        "operationId": "PrepRequest_Get",
+        "parameters": [
+          {
+            "name": "modelPrepRequestCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": false
+            }
+          },
+          {
+            "name": "modelPrepRequestCode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepRequestListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    }
+
+  ,
+
+    "/api/v1_0/prep-requests/{modelPrepRequestCode}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/registers": {
+
+      "post": {
+        "tags": [
+          "Register"
+        ],
+        "description": "",
+        "operationId": "Register_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterPostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterPostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterPostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+    },
+    "/api/v1_0/registers/{}": {
+
+    }
+
+  ,
+
+    "/api/v1_0/registers/{}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/template-sets": {
+
+      "post": {
+        "tags": [
+          "TemplateSet"
+        ],
+        "description": "",
+        "operationId": "TemplateSet_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateSetPostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateSetPostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateSetPostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateSetPostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateSetPostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateSetPostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+      "get": {
+        "tags": [
+          "TemplateSet"
+        ],
+        "description": "",
+        "operationId": "TemplateSet_Get",
+        "parameters": [
+
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateSetListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateSetListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateSetListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    },
+    "/api/v1_0/template-sets/{}": {
+
+    }
+
+  ,
+
+    "/api/v1_0/template-sets/{}/init": {
+
+    }
+
+  ,
+
+    "/api/v1_0/validation-requests": {
+
+      "post": {
+        "tags": [
+          "ValidationRequest"
+        ],
+        "description": "",
+        "operationId": "ValidationRequest_Post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidationRequestPostModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidationRequestPostModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidationRequestPostModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestPostResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestPostResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestPostResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "value"
+      },
+
+      "get": {
+        "tags": [
+          "ValidationRequest"
+        ],
+        "description": "",
+        "operationId": "ValidationRequest_Get",
+        "parameters": [
+          {
+            "name": "modelValidationRequestCode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    },
+    "/api/v1_0/validation-requests/{modelValidationRequestCode}": {
+
+      "delete": {
+        "tags": [
+          "ValidationRequest"
+        ],
+        "description": "",
+        "operationId": "ValidationRequest_Delete",
+        "parameters": [
+          {
+            "name": "modelValidationRequestCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestDeleteResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestDeleteResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestDeleteResponse"
+                }
+              }
+            }
+          }
+        }
+    },
+
+      "get": {
+        "tags": [
+          "ValidationRequest"
+        ],
+        "description": "",
+        "operationId": "ValidationRequest_Get",
+        "parameters": [
+          {
+            "name": "modelValidationRequestCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": false
+            }
+          },
+          {
+            "name": "modelValidationRequestCode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ItemCountPerPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": false
+            }
+          },
+          {
+            "name": "OrderByColumnName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          {
+            "name": "OrderByDescending",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": false
+            }
+          },
+          {
+            "name": "ForceErrorMessage",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestListModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestListModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRequestListModel"
+                }
+              }
+            }
+          }
+        }
+      }
+
+    }
+
+  ,
+
+    "/api/v1_0/validation-requests/{modelValidationRequestCode}/init": {
+
+    }
+
+  },
+  "components": {
+
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "description": "To use the api, submit your api key in a header variable named 'Api-Key'. You must do this with each api request.",
+        "name": "Api-Key",
+        "in": "header"
+      }
+    },
+
+    "schemas": {
+
+      "ValidationRequestPostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+            "modelValidationRequestCode": {
+                "type": "string",
+                "format": "guid"
+            },
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "ValidationRequestPostModel": {
+        "required": [
+
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+              "type": "string"
+          } ,
+          "modelFileData": {
+              "type": "string"
+              ,"format": "Base64String"
+          }
+        }
+      }
+
+ ,
+
+      "ValidationRequestListModel": {
+        "required": [
+          "recordsFiltered",
+          "recordsTotal",
+          "success"
+        ],
+        "type": "object",
+        "properties": {
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationRequestListModelItem"
+            }
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "recordsTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recordsFiltered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "appVersion": {
+            "type": "string"
+          },
+           "request": {
+            "$ref": "#/components/schemas/ValidationRequestListRequest"
+          }
+        }
+      },
+      "ValidationRequestListModelItem": {
+        "required": [
+          "modelValidationRequestCode",
+          "modelValidationRequestCanceledBy",
+          "modelValidationRequestCanceledUTCDateTime",
+          "modelValidationRequestCompletedUTCDateTime",
+          "modelValidationRequestDescription",
+          "modelValidationRequestInitialModelUrl",
+          "modelValidationRequestIsCanceled",
+          "modelValidationRequestIsCompleted",
+          "modelValidationRequestIsStarted",
+          "modelValidationRequestIsSuccessful",
+          "modelValidationRequestPrimaryTaskProgressCurrentValue",
+          "modelValidationRequestPrimaryTaskProgressMaxValue",
+          "modelValidationRequestPrimaryTaskStatus",
+          "modelValidationRequestReportUrl",
+          "modelValidationRequestRequestedBy",
+          "modelValidationRequestRequestedUTCDateTime",
+          "modelValidationRequestResultMessage",
+          "modelValidationRequestStartedUTCDateTime",
+          "modelValidationRequestSubTaskProgressCurrentValue",
+          "modelValidationRequestSubTaskProgressMaxValue",
+          "modelValidationRequestSubTaskStatus",
+          "modelValidationRequestProgressPercentage",
+          "modelValidationRequestIsValidationSuccessful"
+        ],
+        "type": "object",
+        "properties": {
+          "modelValidationRequestCode": {
+              "type": "string",
+              "format": "guid"
+          },
+          "modelValidationRequestCanceledBy": {
+              "type": "string"
+          },
+          "modelValidationRequestCanceledUTCDateTime": {
+              "type": "string"
+          },
+          "modelValidationRequestCompletedUTCDateTime": {
+              "type": "string"
+          },
+          "modelValidationRequestDescription": {
+              "type": "string"
+          },
+          "modelValidationRequestInitialModelUrl": {
+              "type": "string"
+          },
+          "modelValidationRequestIsCanceled": {
+                "type": "boolean"
+          },
+          "modelValidationRequestIsCompleted": {
+                "type": "boolean"
+          },
+          "modelValidationRequestIsStarted": {
+                "type": "boolean"
+          },
+          "modelValidationRequestIsSuccessful": {
+                "type": "boolean"
+          },
+          "modelValidationRequestPrimaryTaskProgressCurrentValue": {
+              "type": "string"
+          },
+          "modelValidationRequestPrimaryTaskProgressMaxValue": {
+              "type": "string"
+          },
+          "modelValidationRequestPrimaryTaskStatus": {
+              "type": "string"
+          },
+          "modelValidationRequestReportUrl": {
+              "type": "string"
+          },
+          "modelValidationRequestRequestedBy": {
+              "type": "string"
+          },
+          "modelValidationRequestRequestedUTCDateTime": {
+              "type": "string"
+          },
+          "modelValidationRequestResultMessage": {
+              "type": "string"
+          },
+          "modelValidationRequestStartedUTCDateTime": {
+              "type": "string"
+          },
+          "modelValidationRequestSubTaskProgressCurrentValue": {
+              "type": "string"
+          },
+          "modelValidationRequestSubTaskProgressMaxValue": {
+              "type": "string"
+          },
+          "modelValidationRequestSubTaskStatus": {
+              "type": "string"
+          },
+          "modelValidationRequestProgressPercentage": {
+              "type": "string"
+          },
+          "modelValidationRequestIsValidationSuccessful": {
+                "type": "boolean"
+          }
+        }
+      },
+
+      "ValidationRequestListRequest": {
+        "required": [
+          "itemCountPerPage",
+          "orderByDescending",
+          "pageNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "modelValidationRequestCode": {
+              "type": "string",
+              "format": "guid"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "forceErrorMessage": {
+            "type": "string"
+          }
+        }
+      }
+
+,
+
+      "ValidationRequestDeleteResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+
+           "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      }
+
+,
+
+      "TemplateSetPostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "TemplateSetPostModel": {
+        "required": [
+
+        ],
+        "type": "object",
+        "properties": {
+          "zipFile": {
+              "type": "string"
+              ,"format": "Base64String"
+          }
+        }
+      }
+
+ ,
+
+      "TemplateSetListModel": {
+        "required": [
+          "recordsFiltered",
+          "recordsTotal",
+          "success"
+        ],
+        "type": "object",
+        "properties": {
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TemplateSetListModelItem"
+            }
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "recordsTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recordsFiltered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "appVersion": {
+            "type": "string"
+          },
+           "request": {
+            "$ref": "#/components/schemas/TemplateSetListRequest"
+          }
+        }
+      },
+      "TemplateSetListModelItem": {
+        "required": [
+          "name",
+          "title",
+          "description",
+          "displayVersion",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+              "type": "string"
+          },
+          "title": {
+              "type": "string"
+          },
+          "description": {
+              "type": "string"
+          },
+          "displayVersion": {
+              "type": "string"
+          },
+          "version": {
+              "type": "string"
+          }
+        }
+      },
+
+      "TemplateSetListRequest": {
+        "required": [
+          "itemCountPerPage",
+          "orderByDescending",
+          "pageNumber"
+        ],
+        "type": "object",
+        "properties": {
+
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "forceErrorMessage": {
+            "type": "string"
+          }
+        }
+      }
+
+,
+
+      "RegisterPostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+            "modelServicesAPIKey": {
+                "type": "string"
+            },
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "RegisterPostModel": {
+        "required": [
+
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+              "type": "string"
+          } ,
+          "password": {
+              "type": "string"
+          } ,
+          "confirmPassword": {
+              "type": "string"
+          } ,
+          "firstName": {
+              "type": "string"
+          } ,
+          "lastName": {
+              "type": "string"
+          } ,
+          "optIntoTerms": {
+                "type": "boolean"
+          }
+        }
+      }
+
+ ,
+
+      "PrepRequestPostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+            "modelPrepRequestCode": {
+                "type": "string",
+                "format": "guid"
+            },
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "PrepRequestPostModel": {
+        "required": [
+
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+              "type": "string"
+          } ,
+          "modelFileData": {
+              "type": "string"
+              ,"format": "Base64String"
+          }
+        }
+      }
+
+ ,
+
+      "PrepRequestListModel": {
+        "required": [
+          "recordsFiltered",
+          "recordsTotal",
+          "success"
+        ],
+        "type": "object",
+        "properties": {
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrepRequestListModelItem"
+            }
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "recordsTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recordsFiltered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "appVersion": {
+            "type": "string"
+          },
+           "request": {
+            "$ref": "#/components/schemas/PrepRequestListRequest"
+          }
+        }
+      },
+      "PrepRequestListModelItem": {
+        "required": [
+          "modelPrepRequestCode",
+          "modelPrepRequestCanceledBy",
+          "modelPrepRequestCanceledUTCDateTime",
+          "modelPrepRequestCompletedUTCDateTime",
+          "modelPrepRequestDescription",
+          "modelPrepRequestInitialModelUrl",
+          "modelPrepRequestIsCanceled",
+          "modelPrepRequestIsCompleted",
+          "modelPrepRequestIsStarted",
+          "modelPrepRequestIsSuccessful",
+          "modelPrepRequestPrimaryTaskProgressCurrentValue",
+          "modelPrepRequestPrimaryTaskProgressMaxValue",
+          "modelPrepRequestPrimaryTaskStatus",
+          "modelPrepRequestReportUrl",
+          "modelPrepRequestRequestedBy",
+          "modelPrepRequestRequestedUTCDateTime",
+          "modelPrepRequestResultMessage",
+          "modelPrepRequestResultModelUrl",
+          "modelPrepRequestStartedUTCDateTime",
+          "modelPrepRequestSubTaskProgressCurrentValue",
+          "modelPrepRequestSubTaskProgressMaxValue",
+          "modelPrepRequestSubTaskStatus",
+          "modelPrepRequestProgressPercentage",
+          "modelPrepRequestIsPrepSuccessful"
+        ],
+        "type": "object",
+        "properties": {
+          "modelPrepRequestCode": {
+              "type": "string",
+              "format": "guid"
+          },
+          "modelPrepRequestCanceledBy": {
+              "type": "string"
+          },
+          "modelPrepRequestCanceledUTCDateTime": {
+              "type": "string"
+          },
+          "modelPrepRequestCompletedUTCDateTime": {
+              "type": "string"
+          },
+          "modelPrepRequestDescription": {
+              "type": "string"
+          },
+          "modelPrepRequestInitialModelUrl": {
+              "type": "string"
+          },
+          "modelPrepRequestIsCanceled": {
+                "type": "boolean"
+          },
+          "modelPrepRequestIsCompleted": {
+                "type": "boolean"
+          },
+          "modelPrepRequestIsStarted": {
+                "type": "boolean"
+          },
+          "modelPrepRequestIsSuccessful": {
+                "type": "boolean"
+          },
+          "modelPrepRequestPrimaryTaskProgressCurrentValue": {
+              "type": "string"
+          },
+          "modelPrepRequestPrimaryTaskProgressMaxValue": {
+              "type": "string"
+          },
+          "modelPrepRequestPrimaryTaskStatus": {
+              "type": "string"
+          },
+          "modelPrepRequestReportUrl": {
+              "type": "string"
+          },
+          "modelPrepRequestRequestedBy": {
+              "type": "string"
+          },
+          "modelPrepRequestRequestedUTCDateTime": {
+              "type": "string"
+          },
+          "modelPrepRequestResultMessage": {
+              "type": "string"
+          },
+          "modelPrepRequestResultModelUrl": {
+              "type": "string"
+          },
+          "modelPrepRequestStartedUTCDateTime": {
+              "type": "string"
+          },
+          "modelPrepRequestSubTaskProgressCurrentValue": {
+              "type": "string"
+          },
+          "modelPrepRequestSubTaskProgressMaxValue": {
+              "type": "string"
+          },
+          "modelPrepRequestSubTaskStatus": {
+              "type": "string"
+          },
+          "modelPrepRequestProgressPercentage": {
+              "type": "string"
+          },
+          "modelPrepRequestIsPrepSuccessful": {
+                "type": "boolean"
+          }
+        }
+      },
+
+      "PrepRequestListRequest": {
+        "required": [
+          "itemCountPerPage",
+          "orderByDescending",
+          "pageNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "modelPrepRequestCode": {
+              "type": "string",
+              "format": "guid"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "forceErrorMessage": {
+            "type": "string"
+          }
+        }
+      }
+
+,
+
+      "PrepRequestDeleteResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+
+           "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      }
+
+,
+
+      "ModelMergePostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+            "resultModelUrl": {
+                "type": "string"
+            },
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "ModelMergePostModel": {
+        "required": [
+
+        ],
+        "type": "object",
+        "properties": {
+          "modelFileData": {
+              "type": "string"
+              ,"format": "Base64String"
+          } ,
+          "additionsModelUrl": {
+              "type": "string"
+          }
+        }
+      }
+
+ ,
+
+      "ModelFeatureListModel": {
+        "required": [
+          "recordsFiltered",
+          "recordsTotal",
+          "success"
+        ],
+        "type": "object",
+        "properties": {
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelFeatureListModelItem"
+            }
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "recordsTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recordsFiltered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "appVersion": {
+            "type": "string"
+          },
+           "request": {
+            "$ref": "#/components/schemas/ModelFeatureListRequest"
+          }
+        }
+      },
+      "ModelFeatureListModelItem": {
+        "required": [
+          "name",
+          "displayName",
+          "description",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+              "type": "string"
+          },
+          "displayName": {
+              "type": "string"
+          },
+          "description": {
+              "type": "string"
+          },
+          "version": {
+              "type": "string"
+          }
+        }
+      },
+
+      "ModelFeatureListRequest": {
+        "required": [
+          "itemCountPerPage",
+          "orderByDescending",
+          "pageNumber"
+        ],
+        "type": "object",
+        "properties": {
+
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "forceErrorMessage": {
+            "type": "string"
+          }
+        }
+      }
+
+,
+
+      "ModelChatPostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+            "responseText": {
+                "type": "string"
+            },
+            "responseAudioUrl": {
+                "type": "string"
+            },
+            "queryText": {
+                "type": "string"
+            },
+            "currentContextObjectType": {
+                "type": "string"
+            },
+            "currentContextName": {
+                "type": "string"
+            },
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "ModelChatPostModel": {
+        "required": [
+
+        ],
+        "type": "object",
+        "properties": {
+          "projectCode": {
+              "type": "string",
+              "format": "guid"
+          } ,
+          "queryText": {
+              "type": "string"
+          } ,
+          "isResponseTextConvertedToAudioUrl": {
+                "type": "boolean"
+          } ,
+          "queryAudioFile": {
+              "type": "string"
+              ,"format": "Base64String"
+          }
+        }
+      }
+
+ ,
+
+      "LoginPostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+            "modelServicesAPIKey": {
+                "type": "string"
+            },
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "LoginPostModel": {
+        "required": [
+
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+              "type": "string"
+          } ,
+          "password": {
+              "type": "string"
+          }
+        }
+      }
+
+ ,
+
+      "FabricationRequestPostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+            "modelFabricationRequestCode": {
+                "type": "string",
+                "format": "guid"
+            },
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "FabricationRequestPostModel": {
+        "required": [
+
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+              "type": "string"
+          } ,
+          "modelFileData": {
+              "type": "string"
+              ,"format": "Base64String"
+          }
+        }
+      }
+
+ ,
+
+      "FabricationRequestListModel": {
+        "required": [
+          "recordsFiltered",
+          "recordsTotal",
+          "success"
+        ],
+        "type": "object",
+        "properties": {
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FabricationRequestListModelItem"
+            }
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "recordsTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recordsFiltered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "appVersion": {
+            "type": "string"
+          },
+           "request": {
+            "$ref": "#/components/schemas/FabricationRequestListRequest"
+          }
+        }
+      },
+      "FabricationRequestListModelItem": {
+        "required": [
+          "modelFabricationRequestCode",
+          "modelFabricationRequestCanceledBy",
+          "modelFabricationRequestCanceledUTCDateTime",
+          "modelFabricationRequestCompletedUTCDateTime",
+          "modelFabricationRequestDescription",
+          "modelFabricationRequestInitialModelUrl",
+          "modelFabricationRequestIsCanceled",
+          "modelFabricationRequestIsCompleted",
+          "modelFabricationRequestIsStarted",
+          "modelFabricationRequestIsSuccessful",
+          "modelFabricationRequestPrimaryTaskProgressCurrentValue",
+          "modelFabricationRequestPrimaryTaskProgressMaxValue",
+          "modelFabricationRequestPrimaryTaskStatus",
+          "modelFabricationRequestReportUrl",
+          "modelFabricationRequestRequestedBy",
+          "modelFabricationRequestRequestedUTCDateTime",
+          "modelFabricationRequestResultMessage",
+          "modelFabricationRequestResultUrl",
+          "modelFabricationRequestStartedUTCDateTime",
+          "modelFabricationRequestSubTaskProgressCurrentValue",
+          "modelFabricationRequestSubTaskProgressMaxValue",
+          "modelFabricationRequestSubTaskStatus",
+          "modelFabricationRequestProgressPercentage",
+          "modelFabricationRequestCodeSizeInMB",
+          "modelFabricationRequestIsFabricationSuccessful"
+        ],
+        "type": "object",
+        "properties": {
+          "modelFabricationRequestCode": {
+              "type": "string",
+              "format": "guid"
+          },
+          "modelFabricationRequestCanceledBy": {
+              "type": "string"
+          },
+          "modelFabricationRequestCanceledUTCDateTime": {
+              "type": "string"
+          },
+          "modelFabricationRequestCompletedUTCDateTime": {
+              "type": "string"
+          },
+          "modelFabricationRequestDescription": {
+              "type": "string"
+          },
+          "modelFabricationRequestInitialModelUrl": {
+              "type": "string"
+          },
+          "modelFabricationRequestIsCanceled": {
+                "type": "boolean"
+          },
+          "modelFabricationRequestIsCompleted": {
+                "type": "boolean"
+          },
+          "modelFabricationRequestIsStarted": {
+                "type": "boolean"
+          },
+          "modelFabricationRequestIsSuccessful": {
+                "type": "boolean"
+          },
+          "modelFabricationRequestPrimaryTaskProgressCurrentValue": {
+              "type": "string"
+          },
+          "modelFabricationRequestPrimaryTaskProgressMaxValue": {
+              "type": "string"
+          },
+          "modelFabricationRequestPrimaryTaskStatus": {
+              "type": "string"
+          },
+          "modelFabricationRequestReportUrl": {
+              "type": "string"
+          },
+          "modelFabricationRequestRequestedBy": {
+              "type": "string"
+          },
+          "modelFabricationRequestRequestedUTCDateTime": {
+              "type": "string"
+          },
+          "modelFabricationRequestResultMessage": {
+              "type": "string"
+          },
+          "modelFabricationRequestResultUrl": {
+              "type": "string"
+          },
+          "modelFabricationRequestStartedUTCDateTime": {
+              "type": "string"
+          },
+          "modelFabricationRequestSubTaskProgressCurrentValue": {
+              "type": "string"
+          },
+          "modelFabricationRequestSubTaskProgressMaxValue": {
+              "type": "string"
+          },
+          "modelFabricationRequestSubTaskStatus": {
+              "type": "string"
+          },
+          "modelFabricationRequestProgressPercentage": {
+              "type": "string"
+          },
+          "modelFabricationRequestCodeSizeInMB": {
+                "type": "integer",
+                "format": "int32"
+          },
+          "modelFabricationRequestIsFabricationSuccessful": {
+                "type": "boolean"
+          }
+        }
+      },
+
+      "FabricationRequestListRequest": {
+        "required": [
+          "itemCountPerPage",
+          "orderByDescending",
+          "pageNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "modelFabricationRequestCode": {
+              "type": "string",
+              "format": "guid"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "forceErrorMessage": {
+            "type": "string"
+          }
+        }
+      }
+
+,
+
+      "FabricationRequestDeleteResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+
+           "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      }
+
+,
+
+      "DemoPageRequestPostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+            "demoPageUrl": {
+                "type": "string"
+            },
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "DemoPageRequestPostModel": {
+        "required": [
+
+        ],
+        "type": "object",
+        "properties": {
+          "modelData": {
+              "type": "string"
+              ,"format": "Base64String"
+          } ,
+          "pageName": {
+              "type": "string"
+          }
+        }
+      }
+
+ ,
+
+      "ChangeRptRequestPostResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+            "modelChangeRptRequestCode": {
+                "type": "string",
+                "format": "guid"
+            },
+          "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      },
+
+      "ChangeRptRequestPostModel": {
+        "required": [
+        "modelFileData" ,
+        "nextModelFileData"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+              "type": "string"
+          } ,
+          "modelFileData": {
+              "type": "string"
+              ,"format": "Base64String"
+          } ,
+          "nextModelFileData": {
+              "type": "string"
+              ,"format": "Base64String"
+          }
+        }
+      }
+
+ ,
+
+      "ChangeRptRequestListModel": {
+        "required": [
+          "recordsFiltered",
+          "recordsTotal",
+          "success"
+        ],
+        "type": "object",
+        "properties": {
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChangeRptRequestListModelItem"
+            }
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "recordsTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recordsFiltered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "appVersion": {
+            "type": "string"
+          },
+           "request": {
+            "$ref": "#/components/schemas/ChangeRptRequestListRequest"
+          }
+        }
+      },
+      "ChangeRptRequestListModelItem": {
+        "required": [
+          "modelChangeRptRequestCode",
+          "modelChangeRptRequestCanceledBy",
+          "modelChangeRptRequestCanceledUTCDateTime",
+          "modelChangeRptRequestCompletedUTCDateTime",
+          "modelChangeRptRequestDescription",
+          "modelChangeRptRequestInitialModelUrl",
+          "modelChangeRptRequestIsCanceled",
+          "modelChangeRptRequestIsCompleted",
+          "modelChangeRptRequestIsStarted",
+          "modelChangeRptRequestIsSuccessful",
+          "modelChangeRptRequestPrimaryTaskProgressCurrentValue",
+          "modelChangeRptRequestPrimaryTaskProgressMaxValue",
+          "modelChangeRptRequestPrimaryTaskStatus",
+          "modelChangeRptRequestReportUrl",
+          "modelChangeRptRequestRequestedBy",
+          "modelChangeRptRequestRequestedUTCDateTime",
+          "modelChangeRptRequestResultMessage",
+          "modelChangeRptRequestStartedUTCDateTime",
+          "modelChangeRptRequestSubTaskProgressCurrentValue",
+          "modelChangeRptRequestSubTaskProgressMaxValue",
+          "modelChangeRptRequestSubTaskStatus",
+          "modelChangeRptRequestProgressPercentage",
+          "modelChangeRptRequestNextModelUrl",
+          "modelChangeRptRequestIsReportGenerationSuccessful"
+        ],
+        "type": "object",
+        "properties": {
+          "modelChangeRptRequestCode": {
+              "type": "string",
+              "format": "guid"
+          },
+          "modelChangeRptRequestCanceledBy": {
+              "type": "string"
+          },
+          "modelChangeRptRequestCanceledUTCDateTime": {
+              "type": "string"
+          },
+          "modelChangeRptRequestCompletedUTCDateTime": {
+              "type": "string"
+          },
+          "modelChangeRptRequestDescription": {
+              "type": "string"
+          },
+          "modelChangeRptRequestInitialModelUrl": {
+              "type": "string"
+          },
+          "modelChangeRptRequestIsCanceled": {
+                "type": "boolean"
+          },
+          "modelChangeRptRequestIsCompleted": {
+                "type": "boolean"
+          },
+          "modelChangeRptRequestIsStarted": {
+                "type": "boolean"
+          },
+          "modelChangeRptRequestIsSuccessful": {
+                "type": "boolean"
+          },
+          "modelChangeRptRequestPrimaryTaskProgressCurrentValue": {
+              "type": "string"
+          },
+          "modelChangeRptRequestPrimaryTaskProgressMaxValue": {
+              "type": "string"
+          },
+          "modelChangeRptRequestPrimaryTaskStatus": {
+              "type": "string"
+          },
+          "modelChangeRptRequestReportUrl": {
+              "type": "string"
+          },
+          "modelChangeRptRequestRequestedBy": {
+              "type": "string"
+          },
+          "modelChangeRptRequestRequestedUTCDateTime": {
+              "type": "string"
+          },
+          "modelChangeRptRequestResultMessage": {
+              "type": "string"
+          },
+          "modelChangeRptRequestStartedUTCDateTime": {
+              "type": "string"
+          },
+          "modelChangeRptRequestSubTaskProgressCurrentValue": {
+              "type": "string"
+          },
+          "modelChangeRptRequestSubTaskProgressMaxValue": {
+              "type": "string"
+          },
+          "modelChangeRptRequestSubTaskStatus": {
+              "type": "string"
+          },
+          "modelChangeRptRequestProgressPercentage": {
+              "type": "string"
+          },
+          "modelChangeRptRequestNextModelUrl": {
+              "type": "string"
+          },
+          "modelChangeRptRequestIsReportGenerationSuccessful": {
+                "type": "boolean"
+          }
+        }
+      },
+
+      "ChangeRptRequestListRequest": {
+        "required": [
+          "itemCountPerPage",
+          "orderByDescending",
+          "pageNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "modelChangeRptRequestCode": {
+              "type": "string",
+              "format": "guid"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemCountPerPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderByColumnName": {
+            "type": "string"
+          },
+          "orderByDescending": {
+            "type": "boolean"
+          },
+          "forceErrorMessage": {
+            "type": "string"
+          }
+        }
+      }
+
+,
+
+      "ChangeRptRequestDeleteResponse": {
+        "required": [
+           "success"
+        ],
+        "type": "object",
+        "properties": {
+           "success": {
+             "type": "boolean"
+           },
+           "message": {
+             "type": "string"
+           },
+
+           "validationError": {
+             "type": "array",
+             "items": {
+               "properties": {
+                 "property": {
+                   "type": "string"
+                 },
+                 "message": {
+                   "type": "string"
+                 }
+               }
+             }
+           }
+        }
+      }
+
+    }
+  },
+  "security": [
+
+    {
+      "apiKeyAuth": []
+    }
+
+  ]
+
+}

@@ -281,6 +281,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 if (isLoggedIn) {
                     // When logged in, add service items first
                     const serviceItems = [
+                        { name: "Model Feature Catalog", description: "Browse and select model features" },
                         { name: "Model AI Processing", description: "Submit models for AI processing" },
                         { name: "Model Validation", description: "Validate models against best practices" },
                         { name: "Model Fabrication", description: "Generate fabrication code from models" }
@@ -295,7 +296,13 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         serviceItem.iconPath = new vscode.ThemeIcon('cloud');
                         
                         // Set the appropriate command for each service
-                        if (service.name === "Model Validation") {
+                        if (service.name === "Model Feature Catalog") {
+                            serviceItem.command = {
+                                command: 'appdna.modelFeatureCatalog',
+                                title: 'Show Model Feature Catalog',
+                                arguments: []
+                            };
+                        } else if (service.name === "Model Validation") {
                             serviceItem.command = {
                                 command: 'appdna.modelValidation',
                                 title: 'Show Model Validation Requests',

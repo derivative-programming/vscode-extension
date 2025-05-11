@@ -29,6 +29,7 @@ import { showUserStoriesView } from '../webviews/userStoriesView';
 import { registerModelValidationCommands } from './modelValidationCommands';
 import { registerModelAIProcessingCommands } from './modelAIProcessingCommands';
 import { registerModelFabricationCommands } from './modelFabricationCommands';
+import { registerModelFeatureCatalogCommands } from './modelFeatureCatalogCommands';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -240,6 +241,12 @@ export function registerCommands(
 
     // Register model validation commands
     registerModelValidationCommands(context, appDNAFilePath, modelService);
+    
+    // Register model feature catalog commands
+    registerModelFeatureCatalogCommands(context, appDNAFilePath, modelService);
+    
+    // Register model AI processing commands
+    registerModelAIProcessingCommands(context, appDNAFilePath, modelService);
 
     // Register show project settings command
     context.subscriptions.push(
@@ -305,8 +312,6 @@ export function registerCommands(
             await stopMCPHttpServerCommand();
         })
     );
-
-    registerModelAIProcessingCommands(context, appDNAFilePath, modelService);
 
     registerModelFabricationCommands(context, appDNAFilePath, modelService);
 

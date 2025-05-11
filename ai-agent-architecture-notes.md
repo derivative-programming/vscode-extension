@@ -1,6 +1,6 @@
 # AppDNA VS Code Extension Architecture Notes
 
-*Last updated: May 20, 2025*
+*Last updated: May 11, 2025*
 
 ## Overview
 The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
@@ -105,6 +105,18 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 - Checkboxes control property presence in JSON file
 - Read-only controls have a distinct background
 - No delete operations exposed - properties like `isIgnored` are used instead
+
+### Model Services Architecture
+- Services require authentication via AuthService before they can be used
+- Each service has a dedicated command file (e.g., modelValidationCommands.ts)
+- Commands create webviews with specific functionality
+- API endpoints follow a consistent pattern with pagination and filtering
+- Model Feature Catalog integrates with the AppDNA model structure by:
+  - Listing available features from the API endpoint
+  - Showing which features are already selected in the model
+  - Allowing users to add/remove features from the model
+  - Features with isCompleted=true cannot be removed
+  - Selected features are stored in the namespace.modelFeature array
 
 ## Important File Relationships
 

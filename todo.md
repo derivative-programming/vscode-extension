@@ -1,6 +1,21 @@
 Agent todo items...
    
 
+model feature catalog...
+- use similar style and design as the model validation request list.
+- use similar paging controls and page range display as the model validation request list.
+- hide 'name' column  
+- change 'display name' column header text to 'name' text
+- default to 100 items per page
+
+
+on teh appdna left sidebar title bar in the tree view...
+- add a icon button to expand all top level items in the tree view
+- add a icon button to collapse all top level items in the tree view
+
+
+
+
 add a 'Model Feature Catalog' treeview item under 'Model Services' and above 'Model AI Processing.  On click, display a new view that displays the items returned from the get endpoint https://modelservicesapi.derivative-programming.com/api/v1_0/model-features. review https://modelservicesapi.derivative-programming.com/openapi.json for its request and result schema.
 
 review the rootmodel, namespacemodel, and ModelFeatureModel.  The items in the namespace modelfeature array are the ModelFeature items that the user selected for the model. On the model service model feature list, add a column for 'selected' and a checkbox.  When the user clicks the checkbox, it will add the item to the model.  If the user unchecks the checkbox, it will remove the item from the model.  if the model feature has isCompleted = true, then the user cannot uncheck the checkbox.  
@@ -8,14 +23,14 @@ review the rootmodel, namespacemodel, and ModelFeatureModel.  The items in the n
 
 
 
-add a 'Fabrication Blueprint Catalog' treeview item under 'Model Services' and above 'Model Fabrication.  On click, display a new view that displays the items returned from the get endpoint https://modelservicesapi.derivative-programming.com/api/v1_0/template-sets. review https://modelservicesapi.derivative-programming.com/openapi.json for its request and result schema.
+add a 'Fabrication Blueprint Catalog' treeview item under 'Model Services' and above 'Model Fabrication.  
+
+On click, display a new view that displays the items returned from the get endpoint https://modelservicesapi.derivative-programming.com/api/v1_0/template-sets. review https://modelservicesapi.derivative-programming.com/openapi.json for its request and result schema.
 
 review the rootmodel and templatesetmodel.  The items in the root templateset array are the templateset items that the user selected for the model. On the model service fabrication blueprint catalog list, add a column for 'selected' and a checkbox.  When the user clicks the checkbox, it will add the item to the model.  If the user unchecks the checkbox, it will remove the item from the model.  
  
 model ai processing details...
 - allow merge of ai processing results into curent model. https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests 
-- download report
-- view report
 
 
  
@@ -26,11 +41,7 @@ project settings view... test change on all settings
 - model service request lists (validation, ai processing, fabrication)
     - page size dropdown
     - if one is processing or queued on the page, auto refresh every minute.
-    - cancelled requests dont need a details button?
-
-
-
-
+ 
 
 handle if no connection using model services
  
@@ -50,10 +61,6 @@ change requests...
 - show note...  There is a difference between Model AI processing and Model Change Requests.  Model Change requests modify existing data in a model, while Model AI processing only adds data to a model.
 - both sort arrows are displayed.
 - use checkboxes on each row, instead of 'apply all, rejected, approved' buttons.   
-
-Model Features...
-- add a 'Model Features' item under 'Project' in the tree view.  This will show all the features in the model.  The user can select a feature and see the details of that feature.  The user can also add a new feature to the model.
-- create a model feature list view
  
  
 
