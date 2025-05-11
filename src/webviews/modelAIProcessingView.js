@@ -55,11 +55,13 @@
         } else if (message.command === "processingRequestReceived" || message.command === "processingRequestFailed") {
             console.log("[Webview] Handling", message.command);
             // Hide spinner when processing request is received or failed
-            hideSpinner();        } else if (message.command === "processingRequestCancelled") {
+            hideSpinner();        
+        } else if (message.command === "processingRequestCancelled") {
             console.log("[Webview] Request cancelled successfully, refreshing data");
             hideSpinner();
             // Refresh the current page after a successful cancel
-            requestPage(pageNumber);        } else if (message.command === "modelAIProcessingSetRootNodeProjectInfo") {
+            requestPage(pageNumber);        
+        } else if (message.command === "modelAIProcessingSetRootNodeProjectInfo") {
             const { projectName, projectVersionNumber } = message;
             let desc = "";
             if (projectName && projectVersionNumber) {
@@ -77,7 +79,65 @@
         } else if (message.command === "ModelAIProcessingDetailsError") {
             console.log("[Webview] Error fetching details:", message.error);
             renderErrorInModal(message.error || "Failed to fetch AI processing details.");
-            hideSpinner();
+            hideSpinner();        } else if (message.command === "modelAIProcessingReportExistsResult") {
+            console.log("[Webview] Report exists locally:", message.exists, "for request code:", message.requestCode);
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button");
+            if (reportButton) {
+                reportButton.disabled = false;
+                // Update button text and action based on whether report exists locally
+                if (message.exists) {
+                    reportButton.textContent = 'View Report';
+                    reportButton.onclick = function() {
+                        vscode.postMessage({
+                            command: 'modelAIProcessingViewReport',
+                            requestCode: currentRequestData.modelPrepRequestCode
+                        });
+                    };
+                } else {
+                    reportButton.textContent = 'Download Report';
+                    reportButton.onclick = function() {
+                        downloadReport(currentRequestData.modelPrepRequestCode);
+                    };
+                }
+            }
+        } else if (message.command === "modelAIProcessingReportDownloadStarted") {
+            console.log("[Webview] Report download started");
+            // Update the download button to show progress
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button");
+            if (reportButton) {
+                reportButton.disabled = true;
+                reportButton.innerHTML = '<span class="spinner"></span> Downloading...';
+            }        } else if (message.command === "modelAIProcessingReportDownloadSuccess") {
+            console.log("[Webview] Report downloaded successfully");
+            // Update the download button to show success
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button");
+            if (reportButton) {
+                reportButton.disabled = false;
+                reportButton.textContent = 'View Report';
+                // Change the button action to view the report instead of downloading it
+                reportButton.onclick = function() {
+                    vscode.postMessage({
+                        command: 'modelAIProcessingViewReport',
+                        requestCode: currentRequestData.modelPrepRequestCode
+                    });
+                };
+            }
+        } else if (message.command === "modelAIProcessingReportDownloadError") {
+            console.log("[Webview] Report download error:", message.error);
+            // Update the download button to allow retry
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button");
+            if (reportButton) {
+                reportButton.disabled = false;
+                reportButton.textContent = 'Download Report';
+            }
+        } else if (message.command === "reportOpened") {
+            console.log("[Webview] Report opened successfully");
+        } else if (message.command === "reportOpenError") {
+            vscode.postMessage({ 
+                command: 'showMessage', 
+                type: 'error', 
+                message: message.error || 'Failed to open report.'
+            });
         }
     });
 
@@ -710,13 +770,15 @@
                     }
                     row.appendChild(td);
                 });
-                
-                // Add row click handler for item details
+                  // Add row click handler for item details
                 row.addEventListener("click", function() {
-                    vscode.postMessage({
-                        command: "ModelAIProcessingShowDetails",
-                        item: item
-                    });
+                    // Only handle the click if it's not on a button
+                    if (event.target.tagName !== "BUTTON") {
+                        vscode.postMessage({
+                            command: "modelAIProcessingShowRequestDetails",
+                            item: item
+                        });
+                    }
                 });
                 
                 tbody.appendChild(row);
@@ -889,6 +951,26 @@
             `;
             detailsContainer.appendChild(errorDiv);
         }
+        
+        // Add the action container for report buttons
+        const actionContainer = document.querySelector("#detailsModal .action-container");
+        actionContainer.innerHTML = '';
+        
+        // Add report button if report URL is available
+        if (data.modelPrepRequestReportUrl) {
+            // Add a placeholder button that will be updated after checking if the file exists
+            const tempButton = document.createElement('button');
+            tempButton.className = 'download-button';
+            tempButton.textContent = 'Checking...';
+            tempButton.disabled = true;
+            actionContainer.appendChild(tempButton);
+            
+            // Check if the report file already exists locally
+            vscode.postMessage({
+                command: 'modelAIProcessingCheckReportExists',
+                requestCode: data.modelPrepRequestCode
+            });
+        }
     }
 
     /**
@@ -919,5 +1001,17 @@
             status = "Success";
         }
         return status;
+    }
+
+    /**
+     * Downloads the AI processing report.
+     * @param {string} requestCode - The AI processing request code.
+     */
+    function downloadReport(requestCode) {
+        vscode.postMessage({
+            command: 'modelAIProcessingDownloadReport',
+            requestCode: requestCode,
+            url: currentRequestData.modelPrepRequestReportUrl
+        });
     }
 })();

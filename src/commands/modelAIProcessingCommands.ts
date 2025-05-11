@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import JSZip from 'jszip';
-import { showValidationRequestDetailsView } from '../webviews/validationRequestDetailsView';
+import { showModelAIProcessingDetailsView } from '../webviews/modelAIProcessingDetailsView';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService'; // Assuming AuthService is in services
 
@@ -289,9 +289,157 @@ export function registerModelAIProcessingCommands(
                             command: "ModelAIProcessingDetailsError", 
                             error: `Failed to fetch request details: ${error.message}` 
                         });
+                    }                } else if (msg.command === 'modelAIProcessingShowRequestDetails') {
+                    console.log("[Extension] Showing AI Processing request details view for:", msg.item);
+                    // Open the AI Processing details view in a separate panel
+                    await showModelAIProcessingDetailsView(context, msg.item.modelPrepRequestCode);
+                } else if (msg.command === 'modelAIProcessingCheckReportExists') {
+                    console.log("[Extension] Checking if report exists locally for request code:", msg.requestCode);
+                    try {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        if (!workspaceFolders) {
+                            throw new Error('No workspace folder is open');
+                        }
+
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const processingDirPath = path.join(workspaceRoot, '.app_dna_ai_processing_reports');
+                        const filePath = path.join(processingDirPath, `${msg.requestCode}.txt`);
+                        
+                        const exists = fs.existsSync(filePath);
+                        
+                        console.log("[Extension] Report file status:", exists ? "Exists" : "Does not exist", "at path:", filePath);
+                        
+                        // Inform the webview whether the file exists
+                        panel.webview.postMessage({ 
+                            command: 'modelAIProcessingReportExistsResult', 
+                            exists: exists,
+                            requestCode: msg.requestCode
+                        });
+                        
+                    } catch (error) {
+                        console.error("[Extension] Error checking if report exists:", error);
+                        panel.webview.postMessage({ 
+                            command: 'modelAIProcessingReportExistsResult', 
+                            exists: false,
+                            requestCode: msg.requestCode,
+                            error: error.message
+                        });
                     }
+                } else if (msg.command === 'modelAIProcessingDownloadReport') {
+                    console.log("[Extension] Received download report request for URL:", msg.url);
+                    await downloadAIProcessingReport(panel, msg.url, msg.requestCode);
+                } else if (msg.command === 'modelAIProcessingViewReport') {
+                    console.log("[Extension] Opening existing report for request code:", msg.requestCode);
+                    await openAIProcessingReport(panel, msg.requestCode);
                 }
             });
         })
     );
+}
+
+/**
+ * Downloads a report from the API and saves it to a local file.
+ * @param panel The webview panel.
+ * @param url The URL of the report to download.
+ * @param requestCode The AI processing request code for naming the file.
+ */
+async function downloadAIProcessingReport(panel: vscode.WebviewPanel, url: string, requestCode: string) {
+    const authService = AuthService.getInstance();
+    const apiKey = await authService.getApiKey();
+
+    if (!apiKey) {
+        vscode.window.showErrorMessage('You must be logged in to download AI processing reports.');
+        panel.webview.postMessage({ command: 'modelAIProcessingReportDownloadError', error: 'Authentication required.' });
+        return;
+    }
+
+    if (!url) {
+        vscode.window.showErrorMessage('No report URL available for this AI processing request.');
+        panel.webview.postMessage({ command: 'modelAIProcessingReportDownloadError', error: 'No report URL available.' });
+        return;
+    }
+
+    // Notify the webview that download has started
+    panel.webview.postMessage({ command: 'modelAIProcessingReportDownloadStarted' });
+
+    try {
+        // Download the report content
+        console.log("[Extension] Downloading report from URL:", url);
+        const response = await fetch(url, {
+            headers: { 'Api-Key': apiKey }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API responded with status ${response.status}`);
+        }
+
+        // Get the report content as text
+        const reportContent = await response.text();
+
+        // Create AI processing reports directory if it doesn't exist
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const processingDirPath = path.join(workspaceRoot, '.app_dna_ai_processing_reports');
+        
+        if (!fs.existsSync(processingDirPath)) {
+            fs.mkdirSync(processingDirPath, { recursive: true });
+        }
+
+        // Save the report content to a file
+        const filePath = path.join(processingDirPath, `${requestCode}.txt`);
+        fs.writeFileSync(filePath, reportContent);
+
+        // Don't open the file automatically - let the user hit 'View Report' to open it
+        console.log("[Extension] Report downloaded and saved to:", filePath);
+        panel.webview.postMessage({ command: 'modelAIProcessingReportDownloadSuccess' });
+        vscode.window.showInformationMessage(`Report downloaded and saved to: ${filePath}`);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to download report:", error);
+        vscode.window.showErrorMessage(`Failed to download report: ${error.message}`);
+        panel.webview.postMessage({ command: 'modelAIProcessingReportDownloadError', error: error.message });
+    }
+}
+
+/**
+ * Opens an existing report file in the editor.
+ * @param panel The webview panel.
+ * @param requestCode The AI processing request code.
+ */
+async function openAIProcessingReport(panel: vscode.WebviewPanel, requestCode: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const processingDirPath = path.join(workspaceRoot, '.app_dna_ai_processing_reports');
+        const filePath = path.join(processingDirPath, `${requestCode}.txt`);
+        
+        // Check if file exists before trying to open it
+        if (!fs.existsSync(filePath)) {
+            throw new Error('Report file does not exist');
+        }
+
+        // Open the file in a new editor tab
+        const fileUri = vscode.Uri.file(filePath);
+        const document = await vscode.workspace.openTextDocument(fileUri);
+        await vscode.window.showTextDocument(document, { viewColumn: vscode.ViewColumn.One });
+        
+        panel.webview.postMessage({ command: 'reportOpened' });
+        console.log("[Extension] Report opened successfully:", filePath);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to open report:", error);
+        vscode.window.showErrorMessage(`Failed to open report: ${error.message}`);
+        panel.webview.postMessage({ 
+            command: 'reportOpenError', 
+            error: error.message
+        });
+    }
 }
