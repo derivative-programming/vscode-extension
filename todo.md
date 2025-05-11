@@ -1,8 +1,14 @@
 Agent todo items...
   
+
+deccrease size of registerCommands.ts
+- create modleValidationCommands.ts
+- create modelAiProcessingCommands.ts
+- create modelFabricationCommands.ts
+
  
 model ai processing details...
-on model ai processing request list view, on click of the details button, show the details of the request in a modal.  This should show the details of the request, including the status, and any errors that occurred during processing. This is similar to the model validation details modal, but no 'download report', 'view report', or 'view change requests' buttons.
+on model ai processing request list view, on click of the details button, show the details of the request in a modal.  This should show the details of the request, including the status. This is similar to the model validation details modal, but no 'download report', 'view report', or 'view change requests' buttons.
  
 
 project settings view... test change on all settings 
@@ -41,10 +47,7 @@ change requests...
 Model Features...
 - add a 'Model Features' item under 'Project' in the tree view.  This will show all the features in the model.  The user can select a feature and see the details of that feature.  The user can also add a new feature to the model.
 - create a model feature list view
-
-Lexicon...
-- add a 'Lexicon' item under 'Project' in the tree view.  This will show all the lexicons in the model.  The user can select a lexicon and see the details of that lexicon.  The user can also add a new lexicon to the model.
-- create a lexicon list view
+ 
  
 
 - implement 'add property' 

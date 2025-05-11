@@ -14,6 +14,8 @@
     let orderByColumn = "ModelPrepRequestRequestedUTCDateTime";
     let orderByDescending = true;
     let totalRecords = 0;
+    let currentRequestData = null;
+    let currentRequestCode = null;
     const columns = [
         { key: "modelPrepRequestRequestedUTCDateTime", label: "Requested At" },
         { key: "modelPrepRequestDescription", label: "Description" },
@@ -68,6 +70,14 @@
                 desc = "Version: " + projectVersionNumber;
             }
             document.getElementById("addDescription").value = desc;
+        } else if (message.command === "ModelAIProcessingRequestDetailsData") {
+            console.log("[Webview] Received details for modal:", message.data);
+            renderDetailsInModal(message.data);
+            hideSpinner();
+        } else if (message.command === "ModelAIProcessingDetailsError") {
+            console.log("[Webview] Error fetching details:", message.error);
+            renderErrorInModal(message.error || "Failed to fetch AI processing details.");
+            hideSpinner();
         }
     });
 
@@ -350,6 +360,95 @@
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
+                
+                /* Details Modal Specific Styles */
+                .details-modal-content {
+                    width: 600px;
+                    max-width: 80vw;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                }
+                
+                .modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 15px;
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                    padding-bottom: 10px;
+                }
+                
+                .close-button {
+                    background: none;
+                    border: none;
+                    font-size: 1.5em;
+                    cursor: pointer;
+                    color: var(--vscode-editor-foreground);
+                    padding: 0;
+                    margin: 0;
+                }
+                
+                .detail-item {
+                    margin-bottom: 15px;
+                }
+                
+                .detail-label {
+                    font-weight: bold;
+                    color: var(--vscode-descriptionForeground);
+                    display: block;
+                    margin-bottom: 5px;
+                }
+                
+                .detail-value {
+                    font-family: var(--vscode-editor-font-family);
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    background-color: var(--vscode-input-background);
+                    padding: 5px 8px;
+                    border-radius: 3px;
+                    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+                    display: block;
+                }
+                
+                .loading-message {
+                    color: var(--vscode-descriptionForeground);
+                    font-style: italic;
+                }
+                
+                .action-container {
+                    margin-top: 20px;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+                
+                .download-button {
+                    background-color: var(--vscode-button-background);
+                    color: var(--vscode-button-foreground);
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    font-family: var(--vscode-font-family);
+                    font-size: 13px;
+                }
+                
+                .download-button:hover {
+                    background-color: var(--vscode-button-hoverBackground);
+                }
+                
+                .download-button:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+                
+                .error-message {
+                    color: var(--vscode-errorForeground);
+                    background-color: var(--vscode-inputValidation-errorBackground);
+                    border: 1px solid var(--vscode-inputValidation-errorBorder);
+                    padding: 10px;
+                    border-radius: 3px;
+                }
             </style>
             <div class="processing-container">
                 <!-- Spinner overlay -->
@@ -387,6 +486,22 @@
                         </div>
                     </div>
                 </div>
+                <!-- Details Modal -->
+                <div id="detailsModal" class="modal">
+                    <div class="modal-content details-modal-content">
+                        <div class="modal-header">
+                            <h3>AI Processing Request Details</h3>
+                            <button id="closeDetails" class="close-button">&times;</button>
+                        </div>
+                        <div id="details-container">
+                            <p class="loading-message">Loading details...</p>
+                        </div>
+                        <div class="action-container"></div>
+                        <div class="modal-buttons">
+                            <button id="closeDetailsBtn" class="refresh-button modal-button-secondary">Close</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
         
@@ -415,6 +530,14 @@
             document.getElementById("addModal").style.display = "none";
             document.getElementById("addDescription").value = ''; // Clear input after submit
         };
+
+        // Initialize modal controls for details modal
+        document.getElementById("closeDetails").addEventListener("click", function() {
+            hideDetailsModal();
+        });
+        document.getElementById("closeDetailsBtn").addEventListener("click", function() {
+            hideDetailsModal();
+        });
 
         // Add keypress listener for Enter key in description input
         document.getElementById("addDescription").addEventListener("keypress", function(event) {
@@ -560,15 +683,14 @@
                                 // Show Details button only for completed requests
                                 const button = document.createElement("button");
                                 button.className = "view-button";
-                                button.textContent = "Details";
-                                button.onclick = function(e) {
+                                button.textContent = "Details";                                button.onclick = function(e) {
                                     e.preventDefault();
                                     e.stopPropagation(); // Prevent row click handler
-                                    console.log("[Webview] Details button clicked for request code:", item.modelPrepRequestCode);
-                                    vscode.postMessage({
-                                        command: "ModelAIProcessingShowRequestDetails",
-                                        requestCode: item.modelPrepRequestCode
-                                    });
+                                    const requestCode = item.modelPrepRequestCode;
+                                    console.log("[Webview] Details button clicked for request code:", requestCode);
+                                    
+                                    // Show the details modal and fetch request details
+                                    showDetailsModal(requestCode);
                                 };
                                 td.appendChild(button);
                             } else {
@@ -660,5 +782,142 @@
             orderByColumnName: orderByColumn,
             orderByDescending: orderByDescending
         });
+    }    // Details Modal Functions
+
+    /**
+     * Shows the details modal and triggers a request to fetch AI processing details.
+     * @param {string} requestCode - The processing request code.
+     */
+    function showDetailsModal(requestCode) {
+        currentRequestCode = requestCode;
+        const detailsContainer = document.getElementById("details-container");
+        detailsContainer.innerHTML = '<p class="loading-message">Loading details...</p>';
+        document.querySelector("#detailsModal .action-container").innerHTML = '';
+        document.getElementById("detailsModal").style.display = "flex";
+        
+        // Request the details data from the extension
+        vscode.postMessage({
+            command: "ModelAIProcessingFetchRequestDetails",
+            requestCode: requestCode
+        });
+    }
+
+    /**
+     * Hides the details modal.
+     */
+    function hideDetailsModal() {
+        document.getElementById("detailsModal").style.display = "none";
+        currentRequestData = null;
+    }
+
+    /**
+     * Renders the AI processing request details in the modal.
+     * @param {Object} data - The processing request details.
+     */
+    function renderDetailsInModal(data) {
+        if (!data) {
+            renderErrorInModal("No details received from the extension.");
+            return;
+        }
+
+        currentRequestData = data;
+        const detailsContainer = document.getElementById("details-container");
+        
+        // Clear loading message
+        detailsContainer.innerHTML = '';
+
+        // Define which fields to display and their labels
+        const fieldsToShow = [
+            { key: 'modelPrepRequestCode', label: 'Request Code' },
+            { key: 'modelPrepRequestDescription', label: 'Description' },
+            { key: 'modelPrepRequestRequestedUTCDateTime', label: 'Requested At', type: 'datetime' },
+            { key: 'status', label: 'Status', className: 'status-field' } // Calculated status
+        ];
+
+        // Render each field
+        fieldsToShow.forEach(field => {
+            let value = data[field.key];
+            let displayValue = '';
+
+            // Special handling for status
+            if (field.key === 'status') {
+                value = calculateStatus(data);
+                displayValue = `<span class="detail-value">${value || 'N/A'}</span>`;
+            } else {
+                // Handle different types
+                if (value === null || typeof value === 'undefined') {
+                    displayValue = '<span class="detail-value">N/A</span>';
+                } else if (field.type === 'datetime') {
+                    try {
+                        displayValue = `<span class="detail-value">${new Date(value).toLocaleString()}</span>`;
+                    } catch (e) {
+                        displayValue = `<span class="detail-value">${value} (Invalid Date)</span>`;
+                    }
+                } else {
+                    // Default: display as text, escaping HTML
+                    const textValue = String(value);
+                    const escapedValue = textValue
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                    displayValue = `<span class="detail-value">${escapedValue || 'N/A'}</span>`;
+                }
+            }
+
+            // Create the item div
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'detail-item';
+            if (field.className) {
+                itemDiv.classList.add(field.className);
+            }
+            itemDiv.innerHTML = `
+                <span class="detail-label">${field.label}:</span>
+                ${displayValue}
+            `;
+            detailsContainer.appendChild(itemDiv);
+        });
+
+        // Add error information if there were errors
+        if (data.modelPrepRequestIsCompleted && !data.modelPrepRequestIsSuccessful) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'detail-item error-details';
+            errorDiv.innerHTML = `
+                <span class="detail-label">Error Details:</span>
+                <span class="detail-value error-message">${data.modelPrepRequestErrorMessage || 'No specific error details available.'}</span>
+            `;
+            detailsContainer.appendChild(errorDiv);
+        }
+    }
+
+    /**
+     * Renders an error in the details modal.
+     * @param {string} message - The error message.
+     */
+    function renderErrorInModal(message) {
+        const detailsContainer = document.getElementById("details-container");
+        detailsContainer.innerHTML = `<div class="error-message">${message}</div>`;
+    }
+
+    /**
+     * Calculates the display status based on the request flags.
+     * @param {object} data - The request data object.
+     * @returns {string} The calculated status string.
+     */
+    function calculateStatus(data) {
+        let status = "";
+        if (data.modelPrepRequestIsCanceled) {
+            status = "Cancelled";
+        } else if (!data.modelPrepRequestIsStarted) {
+            status = "Queued";
+        } else if (data.modelPrepRequestIsStarted && !data.modelPrepRequestIsCompleted) {
+            status = "Processing";
+        } else if (data.modelPrepRequestIsCompleted && !data.modelPrepRequestIsSuccessful) {
+            status = "Processing Error";
+        } else if (data.modelPrepRequestIsCompleted && data.modelPrepRequestIsSuccessful) {
+            status = "Success";
+        }
+        return status;
     }
 })();
