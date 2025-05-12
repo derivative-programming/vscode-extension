@@ -6,7 +6,6 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import JSZip from 'jszip';
-import { showModelAIProcessingDetailsView } from '../webviews/modelAIProcessingDetailsView';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService'; // Assuming AuthService is in services
 
@@ -176,16 +175,7 @@ export function registerModelAIProcessingCommands(
                         console.log("[Extension] Sending ModelAIProcessingRequestFailed to webview");
                         panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
                         vscode.window.showErrorMessage('Failed to add processing request: ' + (err && err.message ? err.message : err));
-                    }
-                } else if (msg.command === 'ModelAIProcessingShowRequestDetails') { // Handle showing details
-                    console.log("[Extension] Handling ModelAIProcessingShowRequestDetails for code:", msg.requestCode);
-                    if (!msg.requestCode) {
-                        vscode.window.showErrorMessage('Missing request code for details view.');
-                        return;
-                    }
-                    // Call function to open the details webview if implemented
-                    vscode.window.showInformationMessage(`Viewing details for processing request: ${msg.requestCode}`);
-                } else if (msg.command === 'ModelAIProcessingCancelRequest') { // Handle cancel request from list view
+                    }                } else if (msg.command === 'ModelAIProcessingCancelRequest') {// Handle cancel request from list view
                     console.log("[Extension] Handling ModelAIProcessingCancelRequest for code:", msg.requestCode);
                     if (!msg.requestCode) {
                         vscode.window.showErrorMessage('Missing request code for cancel operation.');
@@ -286,13 +276,8 @@ export function registerModelAIProcessingCommands(
                         console.error("[Extension] Failed to fetch processing request details:", error);
                         panel.webview.postMessage({ 
                             command: "ModelAIProcessingDetailsError", 
-                            error: `Failed to fetch request details: ${error.message}` 
-                        });
-                    }                } else if (msg.command === 'modelAIProcessingShowRequestDetails') {
-                    console.log("[Extension] Showing AI Processing request details view for:", msg.item);
-                    // Open the AI Processing details view in a separate panel
-                    await showModelAIProcessingDetailsView(context, msg.item.modelPrepRequestCode);
-                } else if (msg.command === 'modelAIProcessingCheckReportExists') {
+                            error: `Failed to fetch request details: ${error.message}`                        });
+                    }                } else if (msg.command === 'modelAIProcessingCheckReportExists') {
                     console.log("[Extension] Checking if report exists locally for request code:", msg.requestCode);
                     try {
                         const workspaceFolders = vscode.workspace.workspaceFolders;

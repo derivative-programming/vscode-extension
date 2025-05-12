@@ -206,8 +206,7 @@
             itemDiv.className = 'detail-item';
             if (field.className) {
                 itemDiv.classList.add(field.className);
-            }
-            itemDiv.innerHTML = `
+            }            itemDiv.innerHTML = `
                 <span class="detail-label">${field.label}:</span>
                 ${displayValue}
             `;

@@ -1000,20 +1000,7 @@
                         } else {
                             td.textContent = value || "";
                         }
-                    }
-                    row.appendChild(td);
-                });
-                
-                // Add row click handler for item details
-                row.addEventListener("click", function() {
-                    // Only handle the click if it's not on a button
-                    if (event.target.tagName !== "BUTTON") {
-                        showSpinner();
-                        vscode.postMessage({
-                            command: "ModelFabricationFetchRequestDetails",
-                            requestCode: item.modelFabricationRequestCode
-                        });
-                    }
+                    }                    row.appendChild(td);
                 });
                 
                 tbody.appendChild(row);

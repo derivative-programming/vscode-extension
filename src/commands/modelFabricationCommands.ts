@@ -6,7 +6,6 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import JSZip from 'jszip';
-import { showFabricationRequestDetailsView } from '../webviews/fabricationRequestDetailsView';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService'; // Assuming AuthService is in services
 
@@ -176,14 +175,6 @@ export function registerModelFabricationCommands(
                         panel.webview.postMessage({ command: "ModelFabricationRequestFailed" });
                         vscode.window.showErrorMessage('Failed to add fabrication request: ' + (err && err.message ? err.message : err));
                     }
-                } else if (msg.command === 'ModelFabricationShowRequestDetails') { // Handle showing details
-                    console.log("[Extension] Handling ModelFabricationShowRequestDetails for code:", msg.requestCode);
-                    if (!msg.requestCode) {
-                        vscode.window.showErrorMessage('Missing request code for details view.');
-                        return;
-                    }
-                    // Use the showFabricationRequestDetailsView function
-                    showFabricationRequestDetailsView(context, msg.requestCode);
                 } else if (msg.command === 'ModelFabricationFetchRequestDetails') { // Handle fetch request details for showing in modal
                     console.log("[Extension] Handling ModelFabricationFetchRequestDetails for code:", msg.requestCode);
                     if (!msg.requestCode) {

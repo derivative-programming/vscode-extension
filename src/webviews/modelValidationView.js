@@ -795,16 +795,7 @@
                         } else {
                             td.textContent = value || "";
                         }
-                    }
-                    row.appendChild(td);
-                });
-                
-                // Add row click handler for item details
-                row.addEventListener("click", function() {
-                    vscode.postMessage({
-                        command: "modelValidationShowValidationDetails",
-                        item: item
-                    });
+                    }                    row.appendChild(td);
                 });
                 
                 tbody.appendChild(row);

@@ -175,15 +175,6 @@ export function registerModelValidationCommands(
                         panel.webview.postMessage({ command: "modelValidationRequestFailed" });
                         vscode.window.showErrorMessage('Failed to add validation request: ' + (err && err.message ? err.message : err));
                     }
-                } else if (msg.command === 'modelValidationShowValidationRequestDetails') { // Handle showing details
-                    console.log("[Extension] Handling modelValidationShowValidationRequestDetails for code:", msg.requestCode);
-                    if (!msg.requestCode) {
-                        vscode.window.showErrorMessage('Missing request code for details view.');
-                        return;
-                    }
-                    
-                    // This is now deprecated - we'll use modal instead via fetchValidationDetails
-                    showValidationRequestDetailsView(context, msg.requestCode);
                 } else if (msg.command === 'modelValidationFetchValidationDetails') {
                     console.log("[Extension] Handling modelValidationFetchValidationDetails for code:", msg.requestCode);
                     if (!msg.requestCode) {
