@@ -223,36 +223,63 @@ export class ModelService {
      * @param modelJson The JSON object containing the model data (with a 'root' property)
      * @returns Promise resolving to the updated RootModel
      * @throws Error if the model cannot be updated
-     */
-    public async updateModelFromJson(modelJson: any): Promise<RootModel> {
+     */    public async updateModelFromJson(modelJson: any): Promise<RootModel> {
+        console.log("[ModelService] updateModelFromJson called");
         try {
             // Validate we have a root property
-            if (!modelJson || !modelJson.root) {
+            if (!modelJson) {
+                console.error("[ModelService] modelJson is null or undefined");
+                throw new Error("Invalid model JSON structure: missing model data");
+            }
+            
+            console.log("[ModelService] Model JSON keys:", Object.keys(modelJson));
+            
+            if (!modelJson.root) {
+                console.error("[ModelService] Missing root property in model JSON");
                 throw new Error("Invalid model JSON structure: missing root property");
             }
             
             // Get the current model path
             const currentPath = this.currentFilePath;
+            console.log("[ModelService] Current file path:", currentPath);
+            
             if (!currentPath) {
+                console.error("[ModelService] No current file path available");
                 throw new Error("No model file is currently loaded");
             }
             
             // Save the JSON data to a temporary file
             const tempPath = `${currentPath}.temp`;
-            fs.writeFileSync(tempPath, JSON.stringify(modelJson, null, 2), 'utf8');
+            console.log("[ModelService] Creating temp file:", tempPath);
+            
+            try {
+                // Pretty print the JSON for better debugging
+                const jsonString = JSON.stringify(modelJson, null, 2);
+                console.log("[ModelService] JSON string length:", jsonString.length);
+                fs.writeFileSync(tempPath, jsonString, 'utf8');
+                console.log("[ModelService] Temp file written successfully");
+            } catch (writeError) {
+                console.error("[ModelService] Error writing temp file:", writeError);
+                throw new Error(`Failed to write temp file: ${writeError.message}`);
+            }
             
             try {
                 // Load this temp file to create a proper model instance
+                console.log("[ModelService] Loading model from temp file");
                 const updatedModel = await this.dataProvider.loadRootModel(tempPath);
+                console.log("[ModelService] Model loaded from temp file successfully");
                 
                 // Save the model back to the original file
+                console.log("[ModelService] Saving model to original file:", currentPath);
                 await this.dataProvider.saveRootModel(currentPath, updatedModel);
+                console.log("[ModelService] Model saved to original file successfully");
                 
                 // Update the cached model
                 this.currentFilePath = currentPath;
                 
                 // Clean up the temp file
                 if (fs.existsSync(tempPath)) {
+                    console.log("[ModelService] Cleaning up temp file");
                     fs.unlinkSync(tempPath);
                 }
                 
@@ -263,12 +290,14 @@ export class ModelService {
             } finally {
                 // Ensure temp file is cleaned up even if an error occurs
                 if (fs.existsSync(tempPath)) {
+                    console.log("[ModelService] Cleaning up temp file in finally block");
                     fs.unlinkSync(tempPath);
                 }
             }
         } catch (error) {
             // Log and re-throw the error
-            console.error("Error updating model from JSON:", error);
+            console.error("[ModelService] Error updating model from JSON:", error);
+            console.error("[ModelService] Error stack:", error.stack);
             vscode.window.showErrorMessage(`Failed to update model: ${error instanceof Error ? error.message : String(error)}`);
             throw error;
         }

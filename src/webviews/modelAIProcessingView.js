@@ -136,7 +136,69 @@
                 command: 'showMessage', 
                 type: 'error', 
                 message: message.error || 'Failed to open report.'
-            });
+            });        } else if (message.command === "modelAIProcessingMergeStarted") {
+            console.log("[Webview] Merge operation started");
+            // Update the merge button to show progress
+            const mergeButton = document.querySelector("#detailsModal .action-container .merge-button");
+            console.log("[Webview] Found merge button:", !!mergeButton);
+            if (mergeButton) {
+                console.log("[Webview] Updating button to show merge in progress");
+                mergeButton.disabled = true;
+                mergeButton.innerHTML = '<span class="spinner"></span> Merging...';
+            } else {
+                console.warn("[Webview] Could not find the merge button element");
+            }
+            // Hide the spinner in case it was shown
+            hideSpinner();
+        } else if (message.command === "modelAIProcessingMergeSuccess") {
+            console.log("[Webview] Merge operation completed successfully");
+            // Update the merge button to show success
+            const mergeButton = document.querySelector("#detailsModal .action-container .merge-button");
+            console.log("[Webview] Found merge button for success:", !!mergeButton);
+            if (mergeButton) {
+                console.log("[Webview] Updating button to show merge success");
+                mergeButton.disabled = false;
+                mergeButton.classList.add("success-merge");
+                mergeButton.textContent = 'Merge Successful';
+            } else {
+                console.warn("[Webview] Could not find the merge button element for success");
+            }
+            // Hide the spinner in case it was shown
+            hideSpinner();        } else if (message.command === "modelAIProcessingMergeError") {
+            console.log("[Webview] Merge operation failed:", message.error);
+            console.error("[Webview] Error details:", message);
+            
+            // Update the merge button to allow retry
+            const mergeButton = document.querySelector("#detailsModal .action-container .merge-button");
+            console.log("[Webview] Found merge button for error:", !!mergeButton);
+            if (mergeButton) {
+                console.log("[Webview] Updating button to show merge error and allow retry");
+                mergeButton.disabled = false;
+                mergeButton.textContent = 'Retry Merge';
+            } else {
+                console.warn("[Webview] Could not find the merge button element for error");
+            }
+            
+            // Add error message to the details container for better user feedback
+            const actionContainer = document.querySelector("#detailsModal .action-container");
+            if (actionContainer) {
+                // Remove any existing error message
+                const existingError = actionContainer.querySelector('.merge-error-message');
+                if (existingError) {
+                    existingError.remove();
+                }
+                
+                // Add a new error message
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message merge-error-message';
+                errorDiv.style.marginTop = '10px';
+                errorDiv.style.width = '100%';
+                errorDiv.textContent = `Merge failed: ${message.error || 'Unknown error'}`;
+                actionContainer.appendChild(errorDiv);
+            }
+            
+            // Hide the spinner in case it was shown
+            hideSpinner();
         }
     });
 
@@ -958,6 +1020,21 @@
                 requestCode: data.modelPrepRequestCode
             });
         }
+        
+        // Add "Merge Results into Model" button if modelPrepRequestResultModelUrl is available
+        // and the request is completed successfully
+        if (data.modelPrepRequestResultModelUrl && 
+            data.modelPrepRequestIsCompleted && 
+            data.modelPrepRequestIsSuccessful) {
+            
+            const mergeButton = document.createElement('button');
+            mergeButton.className = 'merge-button';
+            mergeButton.textContent = 'Merge Results into Model';
+            mergeButton.onclick = function() {
+                mergeResultsIntoModel(data.modelPrepRequestCode, data.modelPrepRequestResultModelUrl);
+            };
+            actionContainer.appendChild(mergeButton);
+        }
     }
 
     /**
@@ -1000,5 +1077,25 @@
             requestCode: requestCode,
             url: currentRequestData.modelPrepRequestReportUrl
         });
+    }    /**
+     * Merges the results into the model.
+     * @param {string} requestCode - The AI processing request code.
+     * @param {string} resultModelUrl - The URL of the result model.
+     */
+    function mergeResultsIntoModel(requestCode, resultModelUrl) {
+        console.log("[Webview] Merging results into model");
+        console.log("[Webview] Request code:", requestCode);
+        console.log("[Webview] Result model URL:", resultModelUrl);
+        
+        // Show spinner while merging
+        showSpinner();
+        
+        vscode.postMessage({
+            command: 'modelAIProcessingMergeResults',
+            requestCode: requestCode,
+            url: resultModelUrl
+        });
+        
+        console.log("[Webview] Merge message posted to extension");
     }
 })();

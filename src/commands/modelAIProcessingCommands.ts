@@ -170,12 +170,13 @@ export function registerModelAIProcessingCommands(
                         await fetchAndSend(1, 10, 'modelPrepRequestRequestedUTCDateTime', true);
                         console.log("[Extension] Data refresh complete after add.");
                     } catch (err) {
-                        console.error("[Extension] Failed to add processing request:", err);
-                        // Notify webview that request failed
+                        console.error("[Extension] Failed to add processing request:", err);                        // Notify webview that request failed
                         console.log("[Extension] Sending ModelAIProcessingRequestFailed to webview");
                         panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
                         vscode.window.showErrorMessage('Failed to add processing request: ' + (err && err.message ? err.message : err));
-                    }                } else if (msg.command === 'ModelAIProcessingCancelRequest') {// Handle cancel request from list view
+                    }
+                } else if (msg.command === 'ModelAIProcessingCancelRequest') {
+                    // Handle cancel request from list view
                     console.log("[Extension] Handling ModelAIProcessingCancelRequest for code:", msg.requestCode);
                     if (!msg.requestCode) {
                         vscode.window.showErrorMessage('Missing request code for cancel operation.');
@@ -273,10 +274,10 @@ export function registerModelAIProcessingCommands(
                             });
                         }
                     } catch (error) {
-                        console.error("[Extension] Failed to fetch processing request details:", error);
-                        panel.webview.postMessage({ 
+                        console.error("[Extension] Failed to fetch processing request details:", error);                        panel.webview.postMessage({ 
                             command: "ModelAIProcessingDetailsError", 
-                            error: `Failed to fetch request details: ${error.message}`                        });
+                            error: `Failed to fetch request details: ${error.message}`
+                        });
                     }                } else if (msg.command === 'modelAIProcessingCheckReportExists') {
                     console.log("[Extension] Checking if report exists locally for request code:", msg.requestCode);
                     try {
@@ -315,6 +316,145 @@ export function registerModelAIProcessingCommands(
                 } else if (msg.command === 'modelAIProcessingViewReport') {
                     console.log("[Extension] Opening existing report for request code:", msg.requestCode);
                     await openAIProcessingReport(panel, msg.requestCode);
+                } else if (msg.command === 'modelAIProcessingMergeResults') {
+                    console.log("[Extension] Handling modelAIProcessingMergeResults for URL:", msg.url);
+                    console.log("[Extension] Request code:", msg.requestCode);
+                    
+                    if (!msg.url || !msg.requestCode) {
+                        console.error("[Extension] Missing URL or request code for merge operation");
+                        vscode.window.showErrorMessage('Missing URL or request code for merge operation.');
+                        return;
+                    }
+                    
+                    // Ensure model file path is available
+                    if (!appDNAFilePath) {
+                        console.error("[Extension] No model file path available for merge operation");
+                        vscode.window.showErrorMessage('No model file is loaded to merge results into.');
+                        return;
+                    }
+                    
+                    console.log("[Extension] Model file path for merge:", appDNAFilePath);
+                    
+                    try {
+                        // Show progress notification
+                        console.log("[Extension] Sending merge started notification to webview");
+                        panel.webview.postMessage({ command: "modelAIProcessingMergeStarted" });
+                        
+                        // Retrieve API key for authenticated call
+                        console.log("[Extension] Retrieving API key");
+                        const authService = AuthService.getInstance();
+                        authService.initialize(context);
+                        const apiKey = await authService.getApiKey();
+                        
+                        if (!apiKey) {
+                            console.error("[Extension] No API key available");
+                            throw new Error('You must be logged in to merge results into model.');
+                        }
+                        
+                        console.log("[Extension] API key retrieved successfully");
+                          // Read model file and create a ZIP archive
+                        console.log("[Extension] Reading model file:", appDNAFilePath);
+                        const fileContent = fs.readFileSync(appDNAFilePath, 'utf8');
+                        console.log("[Extension] File content length:", fileContent.length);
+                        
+                        // Create a ZIP archive like we do for model validation
+                        console.log("[Extension] Creating ZIP archive for model file");
+                        const zip = new JSZip();
+                        zip.file('model.json', fileContent);
+                        const archive = await zip.generateAsync({ type: 'nodebuffer' });
+                        const modelFileData = archive.toString('base64');
+                        console.log("[Extension] Zipped Base64 encoded length:", modelFileData.length);
+                        
+                        // Prepare payload for merge API
+                        const payload = {
+                            modelFileData,
+                            additionsModelUrl: msg.url
+                        };
+                        
+                        // Call merge API
+                        const mergeUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/model-merge';
+                        console.log("[Extension] Calling model-merge API. URL:", mergeUrl);
+                        console.log("[Extension] Payload additionsModelUrl:", payload.additionsModelUrl);
+                        
+                        console.log("[Extension] Sending API request");
+                        const response = await fetch(mergeUrl, {
+                            method: 'POST',
+                            headers: { 'Api-Key': apiKey, 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        console.log("[Extension] API response status:", response.status);
+                        console.log("[Extension] API response status text:", response.statusText);
+                        
+                        if (!response.ok) {
+                            throw new Error(`API responded with status ${response.status}: ${response.statusText}`);
+                        }
+                          console.log("[Extension] Parsing API response JSON");
+                        const mergeResult = await response.json();
+                        console.log("[Extension] Merge result:", JSON.stringify(mergeResult));
+                        
+                        // Check if the operation was successful according to the API
+                        if (mergeResult.success === false) {
+                            console.error("[Extension] API reported merge failure:", mergeResult.message);
+                            
+                            // Get detailed error message
+                            let errorMessage = 'API reported merge failure';
+                            if (mergeResult.message) {
+                                errorMessage += ': ' + mergeResult.message;
+                            }
+                            if (mergeResult.validationErrors && mergeResult.validationErrors.length > 0) {
+                                errorMessage += ' - ' + mergeResult.validationErrors.join('; ');
+                            }
+                            
+                            throw new Error(errorMessage);
+                        }
+                        
+                        if (!mergeResult.resultModelUrl) {
+                            console.error("[Extension] No resultModelUrl in response");
+                            throw new Error('No result model URL returned from merge operation');
+                        }
+                        
+                        // Download the merged model
+                        console.log("[Extension] Downloading merged model from:", mergeResult.resultModelUrl);
+                        const modelResponse = await fetch(mergeResult.resultModelUrl, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        console.log("[Extension] Model download response status:", modelResponse.status);
+                        
+                        if (!modelResponse.ok) {
+                            throw new Error(`Failed to download merged model: ${modelResponse.status}: ${modelResponse.statusText}`);
+                        }
+                        
+                        // Parse the downloaded model
+                        console.log("[Extension] Parsing downloaded model JSON");
+                        const mergedModelData = await modelResponse.json();
+                        console.log("[Extension] Merged model data keys:", Object.keys(mergedModelData));
+                        console.log("[Extension] Has root property:", mergedModelData.hasOwnProperty('root'));
+                        
+                        // Update the model in memory and save to disk
+                        console.log("[Extension] Updating model from JSON");
+                        try {
+                            await modelService.updateModelFromJson(mergedModelData);
+                            console.log("[Extension] Model successfully updated");
+                        } catch (updateError) {
+                            console.error("[Extension] Error updating model:", updateError);
+                            throw updateError;
+                        }
+                        
+                        // Notify webview that merge was successful
+                        console.log("[Extension] Sending merge success notification to webview");
+                        panel.webview.postMessage({ command: "modelAIProcessingMergeSuccess" });
+                        vscode.window.showInformationMessage('Successfully merged AI processing results into model.');
+                    } catch (error) {
+                        console.error("[Extension] Failed to merge results:", error);
+                        console.error("[Extension] Error stack:", error.stack);
+                        panel.webview.postMessage({ 
+                            command: "modelAIProcessingMergeError", 
+                            error: error.message 
+                        });
+                        vscode.window.showErrorMessage(`Failed to merge results: ${error.message || error}`);
+                    }
                 }
             });
         })

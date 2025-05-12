@@ -78,7 +78,10 @@ welcome screen...
         - download the fabrication results when complete
         - in the fabrication_results folder, you will find generated source code. Copy what you need to your project from here to your source code folder.
 
- 
+in model service have indicator that unsaved work exists. 
+
+if prep merging then warn user to save their work first.
+
 sub folders...
 - put a ".app_dna_" at the start of the folder names
     
