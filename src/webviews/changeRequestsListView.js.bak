@@ -1,9 +1,8 @@
-﻿// src/webviews/changeRequestsListView.js
+// src/webviews/changeRequestsListView.js
 // Handles displaying and interacting with change requests in a webview.
-// Last modified: May 12, 2025
+// Last modified: May 6, 2025
 
-(function() {
-    const vscode = acquireVsCodeApi();
+(function() {    const vscode = acquireVsCodeApi();
     const container = document.getElementById('changeRequestsContainer');
     const statusFilterSelect = document.getElementById('statusFilter');
     const refreshButton = document.getElementById('refreshButton');
@@ -43,8 +42,7 @@
 
     // Set up event listeners
     statusFilterSelect.addEventListener('change', renderChangeRequests);
-    refreshButton.addEventListener('click', refreshData);
-    cancelRejectButton.addEventListener('click', closeRejectModal);
+    refreshButton.addEventListener('click', refreshData);    cancelRejectButton.addEventListener('click', closeRejectModal);
     confirmRejectButton.addEventListener('click', submitRejection);
 
     /**
@@ -81,6 +79,33 @@
     }
 
     /**
+     * Opens the batch reject modal for all pending change requests.
+     */
+    function openBatchRejectModal() {
+        const pendingRequests = getFilteredPendingRequests();
+        
+        if (pendingRequests.length === 0) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'warning',
+                message: 'There are no pending change requests to reject.'
+            });
+            return;
+        }
+        
+        batchRejectionReasonInput.value = '';
+        batchRejectModal.style.display = 'flex';
+        batchRejectionReasonInput.focus();
+    }
+
+    /**
+     * Closes the batch reject modal.
+     */
+    function closeBatchRejectModal() {
+        batchRejectModal.style.display = 'none';
+    }
+
+    /**
      * Submits the rejection with reason.
      */
     function submitRejection() {
@@ -104,6 +129,42 @@
         });
         
         closeRejectModal();
+    }
+
+    /**
+     * Submits the batch rejection with reason.
+     */
+    function submitBatchRejection() {
+        const reason = batchRejectionReasonInput.value.trim();
+        
+        if (!reason) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'error',
+                message: 'Please provide a reason for rejection.'
+            });
+            return;
+        }
+        
+        const pendingRequests = getFilteredPendingRequests();
+        
+        if (pendingRequests.length === 0) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'warning',
+                message: 'There are no pending change requests to reject.'
+            });
+            return;
+        }
+        
+        showSpinner();
+        vscode.postMessage({
+            command: 'rejectAllChangeRequests',
+            requestCode: currentRequestCode,
+            reason: reason
+        });
+        
+        closeBatchRejectModal();
     }
 
     /**
@@ -301,6 +362,9 @@
             filteredData = sortChangeRequests(filteredData, sortConfig.column, sortConfig.direction);
         }
         
+        // Update batch action buttons state
+        updateBatchActionsButtonsState();
+        
         let tableHtml = `
             <table class="change-requests-table">
                 <thead>
@@ -397,9 +461,9 @@
      */
     function getSortIcon(column) {
         if (sortConfig.column !== column) {
-            return '';
+            return '↕';
         }
-        return sortConfig.direction === 'asc' ? '' : '';
+        return sortConfig.direction === 'asc' ? '↑' : '↓';
     }
 
     /**
@@ -418,6 +482,90 @@
         
         // Re-render with new sort configuration
         renderChangeRequests();
+    }
+
+    /**
+     * Updates the state (enabled/disabled) of batch action buttons based on the current data.
+     */
+    function updateBatchActionsButtonsState() {
+        const pendingRequests = getFilteredPendingRequests();
+        const approvedRequests = getFilteredApprovedRequests();
+        
+        const approveAllBtn = document.getElementById('approveAllBtn');
+        const rejectAllBtn = document.getElementById('rejectAllBtn');
+        const applyAllBtn = document.getElementById('applyAllBtn');
+        
+        // Enable/disable buttons based on if there are items to act on
+        if (approveAllBtn) {
+            approveAllBtn.disabled = pendingRequests.length === 0;
+            approveAllBtn.title = pendingRequests.length === 0 ? 
+                'No pending change requests to approve' : 
+                `Approve all ${pendingRequests.length} pending change requests`;
+        }
+        
+        if (rejectAllBtn) {
+            rejectAllBtn.disabled = pendingRequests.length === 0;
+            rejectAllBtn.title = pendingRequests.length === 0 ? 
+                'No pending change requests to reject' : 
+                `Reject all ${pendingRequests.length} pending change requests`;
+        }
+        
+        if (applyAllBtn) {
+            applyAllBtn.disabled = approvedRequests.length === 0;
+            applyAllBtn.title = approvedRequests.length === 0 ? 
+                'No approved change requests to apply' : 
+                `Apply all ${approvedRequests.length} approved change requests`;
+        }
+    }
+
+    /**
+     * Approves all pending change requests.
+     */
+    function approveAllChangeRequests() {
+        const pendingRequests = getFilteredPendingRequests();
+        
+        if (pendingRequests.length === 0) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'warning',
+                message: 'There are no pending change requests to approve.'
+            });
+            return;
+        }
+        
+        // Confirm with the user
+        if (confirm(`Are you sure you want to approve all ${pendingRequests.length} pending change requests?`)) {
+            showSpinner();
+            vscode.postMessage({
+                command: 'approveAllChangeRequests',
+                requestCode: currentRequestCode
+            });
+        }
+    }
+
+    /**
+     * Applies all approved change requests.
+     */
+    function applyAllChangeRequests() {
+        const approvedRequests = getFilteredApprovedRequests();
+        
+        if (approvedRequests.length === 0) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'warning',
+                message: 'There are no approved change requests to apply.'
+            });
+            return;
+        }
+        
+        // Confirm with the user
+        if (confirm(`Are you sure you want to apply all ${approvedRequests.length} approved change requests?`)) {
+            showSpinner();
+            vscode.postMessage({
+                command: 'applyAllChangeRequests',
+                requestCode: currentRequestCode
+            });
+        }
     }
 
     /**

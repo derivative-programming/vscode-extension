@@ -1,20 +1,16 @@
 Agent todo items...
-   
-model ai processing details...
-- model ai processing result has a property modelPrepRequestResultModelUrl.
-- the api has an endpoint https://modelservicesapi.derivative-programming.com/api/v1_0/model-merge that accepts a POST request with a json body {
-"modelFileData": "string",
-"additionsModelUrl": "string"
-}
-- i need a 'merge results into model' button that will call this endpoint with the model file data and the modelPrepRequestResultModelUrl.
-- the response of merge is resultModelUrl.  download this and save it to the model file.
+    
 
+add wordwrap on model serviice request list views
 
+model ai processing details merge button has issues.  after click of merge, it seems to modify the dowload\view report button instead of the merge button
 
 model feature catalog view...
 - use similar style and design as the model validation request list.
 - use similar paging controls and page range display as the model validation request list.
  
+
+change request needs a details modal
  
 when the model file changes, we automatically update the model singleton. It should also update any open 'model feature catalog' views or 'fabrication blueprint catalog' views.
  

@@ -139,7 +139,7 @@
             });        } else if (message.command === "modelAIProcessingMergeStarted") {
             console.log("[Webview] Merge operation started");
             // Update the merge button to show progress
-            const mergeButton = document.querySelector("#detailsModal .action-container .merge-button");
+            const mergeButton = document.querySelector("#detailsModal .action-container .download-button");
             console.log("[Webview] Found merge button:", !!mergeButton);
             if (mergeButton) {
                 console.log("[Webview] Updating button to show merge in progress");
@@ -149,16 +149,15 @@
                 console.warn("[Webview] Could not find the merge button element");
             }
             // Hide the spinner in case it was shown
-            hideSpinner();
-        } else if (message.command === "modelAIProcessingMergeSuccess") {
+            hideSpinner();        } else if (message.command === "modelAIProcessingMergeSuccess") {
             console.log("[Webview] Merge operation completed successfully");
             // Update the merge button to show success
-            const mergeButton = document.querySelector("#detailsModal .action-container .merge-button");
+            const mergeButton = document.querySelector("#detailsModal .action-container .download-button");
             console.log("[Webview] Found merge button for success:", !!mergeButton);
             if (mergeButton) {
                 console.log("[Webview] Updating button to show merge success");
                 mergeButton.disabled = false;
-                mergeButton.classList.add("success-merge");
+                mergeButton.classList.add("success-download");
                 mergeButton.textContent = 'Merge Successful';
             } else {
                 console.warn("[Webview] Could not find the merge button element for success");
@@ -169,7 +168,7 @@
             console.error("[Webview] Error details:", message);
             
             // Update the merge button to allow retry
-            const mergeButton = document.querySelector("#detailsModal .action-container .merge-button");
+            const mergeButton = document.querySelector("#detailsModal .action-container .download-button");
             console.log("[Webview] Found merge button for error:", !!mergeButton);
             if (mergeButton) {
                 console.log("[Webview] Updating button to show merge error and allow retry");
@@ -178,7 +177,6 @@
             } else {
                 console.warn("[Webview] Could not find the merge button element for error");
             }
-            
             // Add error message to the details container for better user feedback
             const actionContainer = document.querySelector("#detailsModal .action-container");
             if (actionContainer) {
@@ -558,10 +556,14 @@
                 .download-button:hover {
                     background-color: var(--vscode-button-hoverBackground);
                 }
-                
-                .download-button:disabled {
+                  .download-button:disabled {
                     opacity: 0.6;
                     cursor: not-allowed;
+                }
+                
+                .download-button.success-download {
+                    background-color: var(--vscode-testing-iconPassed, #89D185);
+                    color: var(--vscode-editor-background);
                 }
                 
                 .error-message {
@@ -1026,9 +1028,8 @@
         if (data.modelPrepRequestResultModelUrl && 
             data.modelPrepRequestIsCompleted && 
             data.modelPrepRequestIsSuccessful) {
-            
-            const mergeButton = document.createElement('button');
-            mergeButton.className = 'merge-button';
+              const mergeButton = document.createElement('button');
+            mergeButton.className = 'download-button';
             mergeButton.textContent = 'Merge Results into Model';
             mergeButton.onclick = function() {
                 mergeResultsIntoModel(data.modelPrepRequestCode, data.modelPrepRequestResultModelUrl);
