@@ -268,8 +268,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                 .refresh-button:hover {
                     background-color: var(--vscode-button-secondaryHoverBackground);
                 }
-                
-                .action-button {
+                  .action-button {
                     background-color: var(--vscode-button-background);
                     color: var(--vscode-button-foreground);
                     border: none;
@@ -277,6 +276,8 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     cursor: pointer;
                     border-radius: 2px;
                     font-size: 0.9em;
+                    margin-bottom: 4px;
+                    display: block;
                 }
                 
                 .action-button:hover {
@@ -475,11 +476,10 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     text-align: center;
                     color: var(--vscode-descriptionForeground);
                 }
-                
-                .truncate {
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
+                  .truncate {
+                    white-space: normal;
+                    word-break: break-word;
+                    overflow-wrap: break-word;
                 }
                 
                 .mono {

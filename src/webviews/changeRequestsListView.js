@@ -353,10 +353,10 @@
                     <td class="checkbox-cell">
                         <input type="checkbox" class="row-checkbox" data-code="${item.Code}" ${isCheckable ? '' : 'disabled'}>
                     </td>
-                    <td class="truncate" title="${item.Description}">${item.Description}</td>
+                    <td class="truncate">${item.Description}</td>
                     <td>${item.PropertyName}</td>
-                    <td class="truncate" title="${item.OldValue}"><span class="mono">${item.OldValue}</span></td>
-                    <td class="truncate" title="${item.NewValue}"><span class="mono">${item.NewValue}</span></td>
+                    <td class="truncate"><span class="mono">${item.OldValue}</span></td>
+                    <td class="truncate"><span class="mono">${item.NewValue}</span></td>
                     <td><span class="status-badge ${statusInfo.class}">${statusInfo.text}</span></td>
                     <td>
                         ${isPending ? `

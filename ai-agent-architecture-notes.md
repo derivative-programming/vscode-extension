@@ -229,6 +229,17 @@ This consistent pagination pattern is implemented across multiple views includin
 - Regular concatenation preferred over template literals for short strings
 - TypeScript for extension code, JavaScript for webviews
 
+## UI Styling Conventions
+- Table cells use word wrapping instead of truncation with ellipsis for better readability
+- Consistent styling across all catalog and list views (validation, feature catalog, fabrication catalog)
+- Tables use fixed layout with defined column widths (percentage-based)
+- Status badges use consistent colors across all views
+- All tables have sortable columns with visual indicators
+- VS Code design language is used throughout (using VS Code theme variables)
+- Pagination controls follow a standard pattern across all list views
+- Action buttons in tables have vertical spacing (margin-bottom) to prevent stacking
+- Buttons are displayed as block elements for better vertical alignment
+
 ## Extension Points
 
 The model can be extended by:
