@@ -29,6 +29,32 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 
 - **JsonTreeItem**: Custom tree item class that extends `vscode.TreeItem`
   - Represents individual nodes in the tree
+
+## Change Requests List View UI Layout
+The Change Requests List View follows these UI organization principles:
+1. Filters (like Status dropdown) are positioned at the top-left of the page
+2. Batch operations that act on selected items (Approve Selected, Reject Selected) appear directly below the filters
+3. Global operations like "Apply All Approved" that don't depend on selection are positioned in the top-right action controls area
+
+This layout provides a logical separation of functionality:
+- Top area contains filtering and operations
+- Filter-related operations are close to the filters they work with
+- Selection-based operations are separate from global operations
+
+The HTML structure follows this pattern:
+```html
+<div class="toolbar">
+    <div class="filter-controls">
+        <!-- Filter dropdowns and options -->
+    </div>
+    <div class="action-controls">
+        <!-- Global actions -->
+    </div>
+</div>
+<div class="batch-actions">
+    <!-- Selection-based actions -->
+</div>
+```
   - Properties like label, id, and context are set in the constructor
   - Used for PROJECT, DATA OBJECTS, MODEL SERVICES sections
 
@@ -442,6 +468,18 @@ The code generator demonstrates the extension's end-to-end capabilities beyond j
   - Count summary showing current items and total records
   - Default configuration shows 100 items per page
 
+### Change Request List View
+- Displays change requests from model validation results
+- Allows users to approve, reject, and apply individual changes
+- Features batch operations via checkboxes and action buttons:
+  - "Approve Selected" button for batch approval of checked items
+  - "Reject Selected" button with modal for providing rejection reasons
+  - "Apply All Approved" button to implement all approved changes
+- Row-level actions for individual change operations
+- Status filtering to view subsets of change requests
+- Consistent table format with sortable columns
+- Word-wrapped cell content for better readability
+
 ### Model Feature Catalog
 - Allows users to add/remove model features from the current AppDNA model
 - Uses a consistent table format for displaying features with:
@@ -452,3 +490,16 @@ The code generator demonstrates the extension's end-to-end capabilities beyond j
 - Changes are kept in memory only and not automatically saved to disk
 - The primary Tree View's save button must be used to persist changes
 - Selection toggle is immediate but applies only to the in-memory model
+
+## Change Requests List View UI Layout
+
+The Change Requests List View follows these UI organization principles:
+
+1. Batch operations that act on selected items (Approve Selected, Reject Selected) are positioned close to the main filters, making it clear they operate on the filtered and selected items
+2. Global operations like "Apply All Approved" that don't depend on selection are positioned in the top-right action controls area
+3. The action buttons use a consistent color scheme:
+   - Standard buttons use the default button background color
+   - Reject buttons use the error foreground color
+   - Each button includes a descriptive tooltip
+
+This organization makes the UI more intuitive by grouping related controls - selection-based actions are close to selection tools, while global actions remain separate.

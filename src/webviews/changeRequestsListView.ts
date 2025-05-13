@@ -312,11 +312,11 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                 input[type="checkbox"]:disabled {
                     opacity: 0.5;
                     cursor: not-allowed;
-                }
-
-                .batch-actions {
+                }                .batch-actions {
                     display: flex;
                     gap: 10px;
+                    margin-top: 10px;
+                    margin-bottom: 10px;
                 }
                 
                 .change-requests-table {
@@ -509,9 +509,15 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                         <i class="codicon codicon-refresh"></i>
                         <span>Refresh</span>
                     </button>
-                </div>                <div class="action-controls">
+                </div>
+                <div class="action-controls">
                     <button id="applyAllApprovedBtn" class="action-button" title="Apply all approved change requests that haven't been applied yet">Apply All Approved</button>
                 </div>
+            </div>
+            
+            <div class="batch-actions">
+                <button id="approveSelectedBtn" class="action-button" title="Approve all selected change requests that haven't been processed">Approve Selected</button>
+                <button id="rejectSelectedBtn" class="action-button reject" title="Reject all selected change requests that haven't been processed">Reject Selected</button>
             </div>
             
             <!-- This is where the table will be rendered -->
@@ -530,6 +536,21 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     <div class="form-actions">
                         <button id="cancelReject" class="action-button">Cancel</button>
                         <button id="confirmReject" class="action-button reject">Confirm Reject</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Batch Reject Modal -->
+            <div id="batchRejectModal" class="modal">
+                <div class="modal-content">
+                    <h3 class="modal-title">Reject Selected Change Requests</h3>
+                    <div class="form-group">
+                        <label for="batchRejectionReason">Rejection Reason:</label>
+                        <textarea id="batchRejectionReason" placeholder="Please provide a reason for rejecting the selected requests..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button id="cancelBatchReject" class="action-button">Cancel</button>
+                        <button id="confirmBatchReject" class="action-button reject">Confirm Reject</button>
                     </div>
                 </div>
             </div>

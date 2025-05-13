@@ -46,15 +46,33 @@
     refreshButton.addEventListener('click', refreshData);
     cancelRejectButton.addEventListener('click', closeRejectModal);
     confirmRejectButton.addEventListener('click', submitRejection);
+    
+    // Set up batch reject modal event listeners
+    const cancelBatchRejectButton = document.getElementById('cancelBatchReject');
+    const confirmBatchRejectButton = document.getElementById('confirmBatchReject');
+    if (cancelBatchRejectButton && confirmBatchRejectButton) {
+        cancelBatchRejectButton.addEventListener('click', closeBatchRejectModal);
+        confirmBatchRejectButton.addEventListener('click', submitBatchRejection);
+    }
 
-    // Add event listener for apply all approved button
+    // Add event listeners for action buttons
     try {
         const applyAllApprovedBtn = document.getElementById('applyAllApprovedBtn');
         if (applyAllApprovedBtn) {
             applyAllApprovedBtn.addEventListener('click', applyAllApprovedChangeRequests);
         }
+        
+        const approveSelectedBtn = document.getElementById('approveSelectedBtn');
+        if (approveSelectedBtn) {
+            approveSelectedBtn.addEventListener('click', approveSelectedChangeRequests);
+        }
+        
+        const rejectSelectedBtn = document.getElementById('rejectSelectedBtn');
+        if (rejectSelectedBtn) {
+            rejectSelectedBtn.addEventListener('click', openBatchRejectModal);
+        }
     } catch (error) {
-        console.error("[Webview] Error setting up Apply All Approved button:", error);
+        console.error("[Webview] Error setting up action buttons:", error);
     }
 
     /**
@@ -507,6 +525,137 @@
     }
 
     /**
+     * Approves all selected change requests that haven't been processed.
+     */
+    function approveSelectedChangeRequests() {
+        const selectedCodes = getSelectedUnprocessedChangeRequestCodes();
+        
+        if (selectedCodes.length === 0) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'warning',
+                message: 'No unprocessed change requests are selected. Please select at least one unprocessed item to approve.'
+            });
+            return;
+        }
+        
+        showConfirmationModal(`Are you sure you want to approve all ${selectedCodes.length} selected change requests?`, () => {
+            showSpinner();
+            
+            // Process each selected change request
+            let processed = 0;
+            
+            // Approve each selected change request one by one
+            const processNext = () => {
+                if (processed < selectedCodes.length) {
+                    const code = selectedCodes[processed];
+                    processed++;
+                    
+                    vscode.postMessage({
+                        command: 'approveChangeRequest',
+                        requestCode: currentRequestCode,
+                        changeRequestCode: code
+                    });
+                    
+                    // Add a small delay to avoid overwhelming the server
+                    setTimeout(processNext, 100);
+                }
+            };
+            
+            processNext();
+        });
+    }
+
+    /**
+     * Opens the batch reject modal for rejecting multiple selected change requests.
+     */
+    function openBatchRejectModal() {
+        const selectedCodes = getSelectedUnprocessedChangeRequestCodes();
+        
+        if (selectedCodes.length === 0) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'warning',
+                message: 'No unprocessed change requests are selected. Please select at least one unprocessed item to reject.'
+            });
+            return;
+        }
+        
+        const batchRejectModal = document.getElementById('batchRejectModal');
+        const batchRejectionReasonInput = document.getElementById('batchRejectionReason');
+        
+        // Clear previous input and show the modal
+        batchRejectionReasonInput.value = '';
+        batchRejectModal.style.display = 'flex';
+        batchRejectionReasonInput.focus();
+    }
+    
+    /**
+     * Closes the batch reject modal.
+     */
+    function closeBatchRejectModal() {
+        const batchRejectModal = document.getElementById('batchRejectModal');
+        batchRejectModal.style.display = 'none';
+    }
+    
+    /**
+     * Submits batch rejection with reason for all selected change requests.
+     */
+    function submitBatchRejection() {
+        const batchRejectionReasonInput = document.getElementById('batchRejectionReason');
+        const reason = batchRejectionReasonInput.value.trim();
+        
+        if (!reason) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'error',
+                message: 'Please provide a reason for rejection.'
+            });
+            return;
+        }
+        
+        const selectedCodes = getSelectedUnprocessedChangeRequestCodes();
+        
+        if (selectedCodes.length === 0) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'warning',
+                message: 'No unprocessed change requests are selected.'
+            });
+            closeBatchRejectModal();
+            return;
+        }
+        
+        showSpinner();
+        
+        // Process each selected change request
+        let processed = 0;
+        
+        // Close the modal
+        closeBatchRejectModal();
+        
+        // Reject each selected change request one by one
+        const processNext = () => {
+            if (processed < selectedCodes.length) {
+                const code = selectedCodes[processed];
+                processed++;
+                
+                vscode.postMessage({
+                    command: 'rejectChangeRequest',
+                    requestCode: currentRequestCode,
+                    changeRequestCode: code,
+                    reason: reason
+                });
+                
+                // Add a small delay to avoid overwhelming the server
+                setTimeout(processNext, 100);
+            }
+        };
+        
+        processNext();
+    }
+
+    /**
      * Updates the "select all" checkbox state based on individual checkbox selections.
      */
     function updateSelectAllCheckboxState() {
@@ -539,6 +688,18 @@
         const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
         return Array.from(selectedCheckboxes).map(checkbox => {
             return checkbox.getAttribute('data-code');
+        });
+    }
+    
+    /**
+     * Gets only the selected change requests that haven't been processed.
+     * @returns {Array<string>} Array of selected change request codes that haven't been processed.
+     */
+    function getSelectedUnprocessedChangeRequestCodes() {
+        const selectedCodes = getSelectedChangeRequestCodes();
+        return selectedCodes.filter(code => {
+            const item = changeRequestsData.find(cr => cr.Code === code || cr.code === code);
+            return item && !item.IsProcessed;
         });
     }
 
