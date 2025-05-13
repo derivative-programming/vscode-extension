@@ -47,6 +47,16 @@
     cancelRejectButton.addEventListener('click', closeRejectModal);
     confirmRejectButton.addEventListener('click', submitRejection);
 
+    // Add event listener for apply all approved button
+    try {
+        const applyAllApprovedBtn = document.getElementById('applyAllApprovedBtn');
+        if (applyAllApprovedBtn) {
+            applyAllApprovedBtn.addEventListener('click', applyAllApprovedChangeRequests);
+        }
+    } catch (error) {
+        console.error("[Webview] Error setting up Apply All Approved button:", error);
+    }
+
     /**
      * Shows the loading spinner overlay.
      */
@@ -231,9 +241,9 @@
      * @returns {number} A numeric priority (lower numbers come first).
      */
     function getStatusPriority(item) {
-        if (item.IsRejected) return 4;
-        if (item.IsProcessed) return 3;
-        if (item.IsApproved) return 2;
+        if (item.IsRejected) { return 4; }
+        if (item.IsProcessed) { return 3; }
+        if (item.IsApproved) { return 2; }
         return 1; // Pending
     }
 
@@ -261,7 +271,7 @@
      * @returns {string} The formatted date.
      */
     function formatDate(dateString) {
-        if (!dateString) return 'N/A';
+        if (!dateString) { return 'N/A'; }
         try {
             const date = new Date(dateString);
             return date.toLocaleString();
@@ -305,7 +315,10 @@
             <table class="change-requests-table">
                 <thead>
                     <tr>
-                        <th class="sortable" data-column="Description" style="width: 35%">
+                        <th style="width: 5%">
+                            <input type="checkbox" id="selectAllCheckbox" title="Select all change requests">
+                        </th>
+                        <th class="sortable" data-column="Description" style="width: 30%">
                             Description
                             <span class="sort-icon">${getSortIcon('Description')}</span>
                         </th>
@@ -333,9 +346,13 @@
         filteredData.forEach(item => {
             const statusInfo = getStatusInfo(item);
             const isPending = !item.IsApproved && !item.IsRejected && !item.IsProcessed;
+            const isCheckable = !item.IsProcessed; // Only allow selecting items that haven't been processed yet
             
             tableHtml += `
                 <tr data-code="${item.Code}">
+                    <td class="checkbox-cell">
+                        <input type="checkbox" class="row-checkbox" data-code="${item.Code}" ${isCheckable ? '' : 'disabled'}>
+                    </td>
                     <td class="truncate" title="${item.Description}">${item.Description}</td>
                     <td>${item.PropertyName}</td>
                     <td class="truncate" title="${item.OldValue}"><span class="mono">${item.OldValue}</span></td>
@@ -388,6 +405,22 @@
                 handleColumnHeaderClick(column);
             });
         });
+        
+        // Add event listener for the select all checkbox
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.row-checkbox:not([disabled])').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+        }
+        
+        // Add event listeners for row checkboxes to update the "select all" state
+        document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectAllCheckboxState);
+        });
     }
 
     /**
@@ -433,6 +466,8 @@
         });
     }
 
+    // Placeholder comment - first implementation of applyAllApprovedChangeRequests was removed
+
     /**
      * Applies a change request to the model.
      * @param {string} changeRequestCode The change request code to apply.
@@ -444,6 +479,111 @@
             requestCode: currentRequestCode,
             changeRequestCode: changeRequestCode
         });
+    }
+
+    /**
+     * Applies all approved change requests.
+     */
+    function applyAllApprovedChangeRequests() {
+        const approvedRequests = getFilteredApprovedRequests();
+        
+        if (approvedRequests.length === 0) {
+            vscode.postMessage({
+                command: 'showMessage',
+                type: 'warning',
+                message: 'There are no approved change requests to apply.'
+            });
+            return;
+        }
+        
+        // Show custom confirmation modal instead of using confirm()
+        showConfirmationModal(`Are you sure you want to apply all ${approvedRequests.length} approved change requests?`, () => {
+            showSpinner();
+            vscode.postMessage({
+                command: 'applyAllChangeRequests',
+                requestCode: currentRequestCode
+            });
+        });
+    }
+
+    /**
+     * Updates the "select all" checkbox state based on individual checkbox selections.
+     */
+    function updateSelectAllCheckboxState() {
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (!selectAllCheckbox) { return; }
+        
+        const checkableCheckboxes = document.querySelectorAll('.row-checkbox:not([disabled])');
+        const checkedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+        
+        if (checkableCheckboxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedCheckboxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedCheckboxes.length === checkableCheckboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+    
+    /**
+     * Gets all selected change request codes.
+     * @returns {Array<string>} Array of selected change request codes.
+     */
+    function getSelectedChangeRequestCodes() {
+        const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+        return Array.from(selectedCheckboxes).map(checkbox => {
+            return checkbox.getAttribute('data-code');
+        });
+    }
+
+    /**
+     * Shows a custom confirmation modal with a message and callback for confirmation.
+     * @param {string} message The message to display in the confirmation modal.
+     * @param {Function} onConfirm Callback function to execute when the user confirms the action.
+     */
+    function showConfirmationModal(message, onConfirm) {
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const cancelConfirmButton = document.getElementById('cancelConfirm');
+        const confirmActionButton = document.getElementById('confirmAction');
+        
+        // Set the message
+        confirmMessage.textContent = message;
+        
+        // Show the modal
+        confirmModal.style.display = 'flex';
+        
+        // Set up event listeners
+        const handleCancel = () => {
+            closeConfirmationModal();
+        };
+        
+        const handleConfirm = () => {
+            closeConfirmationModal();
+            onConfirm();
+        };
+        
+        // Remove any existing event listeners
+        cancelConfirmButton.removeEventListener('click', handleCancel);
+        confirmActionButton.removeEventListener('click', handleConfirm);
+        
+        // Add event listeners
+        cancelConfirmButton.addEventListener('click', handleCancel);
+        confirmActionButton.addEventListener('click', handleConfirm);
+    }
+    
+    /**
+     * Closes the confirmation modal.
+     */
+    function closeConfirmationModal() {
+        const confirmModal = document.getElementById('confirmModal');
+        confirmModal.style.display = 'none';
     }
 
     /**
@@ -463,3 +603,5 @@
     console.log("[Webview] Sending webviewReady message");
     vscode.postMessage({ command: 'webviewReady' });
 })();
+
+

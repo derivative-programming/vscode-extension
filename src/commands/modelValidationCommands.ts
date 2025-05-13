@@ -6,7 +6,6 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import JSZip from 'jszip';
-import { showValidationRequestDetailsView } from '../webviews/validationRequestDetailsView';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService'; // Assuming AuthService is in services
 

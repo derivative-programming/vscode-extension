@@ -1,7 +1,10 @@
 Agent todo items...
     
 
-add wordwrap on model serviice request list views
+if a model service view gets an unauthorized error on the api call, lgoout and go to the login view
+
+model validaiton change list view...
+some of the table cells are cutting off the text. allow all to have  wordwrap
 
 model ai processing details merge button has issues.  after click of merge, it seems to modify the dowload\view report button instead of the merge button
 
@@ -36,16 +39,13 @@ model validation rejection validaiton using an alert instead of validaiton error
      
 
 change requests...
-- approve all button
-- reject all button
+- add button to top right: apply all approved
 - on approval verify the old value is still the same. if not, show as 'out of date' in status
 - show rejection reason under the rejection status? 
-- Apply all approved btn
 - implement apply. if old value does not match the current value. reject with reason 'out of date'.
 - show rejection reason in button column.   
 - show note...  There is a difference between Model AI processing and Model Change Requests.  Model Change requests modify existing data in a model, while Model AI processing only adds data to a model.
-- both sort arrows are displayed.
-- use checkboxes on each row, instead of 'apply all, rejected, approved' buttons.   
+- show a row in the far right of checkboxes. its header will have a chckbox that either checks all or unchecks all.
  
  
 

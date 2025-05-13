@@ -158,6 +158,8 @@ export async function showChangeRequestsListView(context: vscode.ExtensionContex
                     
                 case 'applyChangeRequest':
                     await handleApplyChangeRequest(panel, message.requestCode, message.changeRequestCode);
+                    return;                case 'applyAllChangeRequests':
+                    await handleApplyAllChangeRequests(panel, message.requestCode);
                     return;
                     
                 case 'showMessage':
@@ -236,8 +238,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     font-size: 0.9em;
                     color: var(--vscode-descriptionForeground);
                 }
-                
-                .filter-controls select {
+                  .filter-controls select {
                     background-color: var(--vscode-dropdown-background);
                     color: var(--vscode-dropdown-foreground);
                     border: 1px solid var(--vscode-dropdown-border);
@@ -246,6 +247,12 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     font-family: inherit;
                 }
                 
+                .action-controls {
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                }
+
                 .refresh-button {
                     background-color: var(--vscode-button-secondaryBackground);
                     color: var(--vscode-button-secondaryForeground);
@@ -285,6 +292,23 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                 }
                 
                 .action-button:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+                .checkbox-cell {
+                    text-align: center;
+                    vertical-align: middle;
+                    width: 5%;
+                }
+                
+                input[type="checkbox"] {
+                    cursor: pointer;
+                    width: 16px;
+                    height: 16px;
+                }
+                
+                input[type="checkbox"]:disabled {
                     opacity: 0.5;
                     cursor: not-allowed;
                 }
@@ -471,8 +495,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
             <div class="change-requests-header">
                 <h1>Change Requests</h1>
                 <div>Validation Request: <span id="requestCodeDisplay" class="mono">${requestCode}</span></div>
-            </div>
-              <div class="toolbar">
+            </div>            <div class="toolbar">
                 <div class="filter-controls">
                     <label for="statusFilter">Status:</label>
                     <select id="statusFilter">
@@ -486,6 +509,8 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                         <i class="codicon codicon-refresh"></i>
                         <span>Refresh</span>
                     </button>
+                </div>                <div class="action-controls">
+                    <button id="applyAllApprovedBtn" class="action-button" title="Apply all approved change requests that haven't been applied yet">Apply All Approved</button>
                 </div>
             </div>
             
@@ -494,9 +519,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                 <div class="empty-state">
                     <p>Loading change requests...</p>
                 </div>
-            </div>
-
-            <!-- Individual Reject Modal -->
+            </div>            <!-- Individual Reject Modal -->
             <div id="rejectModal" class="modal">
                 <div class="modal-content">
                     <h3 class="modal-title">Reject Change Request</h3>
@@ -507,6 +530,20 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     <div class="form-actions">
                         <button id="cancelReject" class="action-button">Cancel</button>
                         <button id="confirmReject" class="action-button reject">Confirm Reject</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Confirmation Modal -->
+            <div id="confirmModal" class="modal">
+                <div class="modal-content">
+                    <h3 class="modal-title">Confirm Action</h3>
+                    <div class="form-group">
+                        <p id="confirmMessage"></p>
+                    </div>
+                    <div class="form-actions">
+                        <button id="cancelConfirm" class="action-button">Cancel</button>
+                        <button id="confirmAction" class="action-button">Confirm</button>
                     </div>
                 </div>
             </div>
@@ -881,6 +918,219 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
         console.error("[Extension] Failed to apply change request:", error);
         vscode.window.showErrorMessage(`Failed to apply change request: ${error.message}`);
         panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to apply change request: ${error.message}` });
+    }
+}
+
+/**
+ * Handles applying all approved change requests to the model.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ */
+async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestCode: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
+        
+        // Read file contents
+        if (!fs.existsSync(changeRequestsFilePath)) {
+            throw new Error(`Change requests file not found: ${changeRequestsFilePath}`);
+        }
+        
+        const fileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
+        let changeRequestsData = JSON.parse(fileContent);
+        
+        // Find the target data array
+        let targetArray = changeRequestsData;
+        if (!Array.isArray(changeRequestsData)) {
+            if (changeRequestsData.changeRequests && Array.isArray(changeRequestsData.changeRequests)) {
+                targetArray = changeRequestsData.changeRequests;
+            } else if (changeRequestsData.items && Array.isArray(changeRequestsData.items)) {
+                targetArray = changeRequestsData.items;
+            } else {
+                for (const key of Object.keys(changeRequestsData)) {
+                    if (Array.isArray(changeRequestsData[key])) {
+                        targetArray = changeRequestsData[key];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Import required utilities
+        const { XPathUtils } = require('../utils/xpathUtils');
+        const { ModelService } = require('../services/modelService');
+        const modelService = ModelService.getInstance();
+        
+        // Get the model file path
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            throw new Error('No model file path is available');
+        }
+        
+        // Read the model file directly
+        const modelFileContent = fs.readFileSync(modelFilePath, 'utf8');
+        const modelJson = JSON.parse(modelFileContent);
+        
+        // Count successful applications
+        let appliedCount = 0;
+        let rejectedCount = 0;        // Filter for approved but not processed change requests
+        const approvableRequests = targetArray.filter(
+            (cr: any) => cr.IsApproved && !cr.IsProcessed
+        );
+        
+        // Process each change request
+        for (const changeRequest of approvableRequests) {
+            try {
+                // Get property information from the change request
+                const modelXPath = changeRequest.ModelXPath || changeRequest.modelXPath;
+                const propertyPath = changeRequest.PropertyPath || changeRequest.propertyPath;
+                const propertyName = changeRequest.PropertyName || changeRequest.propertyName;
+                const oldValue = changeRequest.OldValue !== undefined ? changeRequest.OldValue : changeRequest.oldValue;
+                const newValue = changeRequest.NewValue !== undefined ? changeRequest.NewValue : changeRequest.newValue;
+                
+                // Validate that we have the necessary information to proceed
+                if (!modelXPath && !propertyPath && !propertyName) {
+                    console.warn(`[Extension] Change request ${changeRequest.Code} does not specify a property location`);
+                    continue;
+                }
+                
+                let targetObject = null;
+                let currentValue = null;
+                
+                // First try to use ModelXPath if available - this is the most precise way to locate the property
+                if (modelXPath) {
+                    console.log(`[Extension] Using ModelXPath to locate property: ${modelXPath}`);
+                    
+                    // Use getValue with JSONPath
+                    const result = XPathUtils.getValue(modelJson, modelXPath);
+                    
+                    if (result === undefined) {
+                        throw new Error(`No objects found at XPath: ${modelXPath}`);
+                    }
+                    
+                    // Handle the case where JSONPath might return an array of results or a single object
+                    targetObject = Array.isArray(result) ? result[0] : result;
+                    
+                    if (!targetObject) {
+                        throw new Error(`No matching object found at XPath: ${modelXPath}`);
+                    }
+                    
+                    // If we have the object but need to access a specific property within it
+                    if (targetObject && propertyName && targetObject[propertyName] === undefined) {
+                        throw new Error(`Property '${propertyName}' not found in object at XPath: ${modelXPath}`);
+                    }
+                    
+                    // Get the current value
+                    currentValue = propertyName ? targetObject[propertyName] : targetObject;
+                }
+                // Fall back to PropertyPath if ModelXPath isn't available or didn't work
+                else if (propertyPath) {
+                    console.log(`[Extension] Using PropertyPath to locate property: ${propertyPath}`);
+                    currentValue = XPathUtils.getValue(modelJson, propertyPath);
+                    
+                    if (currentValue === undefined) {
+                        throw new Error(`Property not found at path: ${propertyPath}`);
+                    }
+                }
+                // Last resort - try to construct a path from PropertyName
+                else if (propertyName) {
+                    const constructedPath = `root/${propertyName}`;
+                    console.log(`[Extension] Using constructed path to locate property: ${constructedPath}`);
+                    currentValue = XPathUtils.getValue(modelJson, constructedPath);
+                    
+                    if (currentValue === undefined) {
+                        throw new Error(`Property not found at constructed path: ${constructedPath}`);
+                    }
+                }
+                
+                // Verify the current value matches the old value from the change request
+                if (JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
+                    console.error(`[Extension] Value mismatch for change request ${changeRequest.Code}: ` + 
+                                 `Current value (${JSON.stringify(currentValue)}) ` + 
+                                 `doesn't match expected old value (${JSON.stringify(oldValue)})`);
+                    
+                    // Mark as rejected with out of date reason
+                    changeRequest.IsApproved = false;
+                    changeRequest.IsRejected = true;
+                    changeRequest.RejectionReason = "The property value has changed since this request was created. Changes are out of date.";
+                    changeRequest.IsProcessed = true; // Mark as processed since we've handled it
+                    rejectedCount++;
+                    continue;
+                }
+                
+                // Apply the change based on how we found the property
+                let changeApplied = false;
+                
+                if (modelXPath && targetObject) {
+                    if (propertyName) {
+                        // Update the property in the found object
+                        console.log(`[Extension] Updating property '${propertyName}' in object at XPath: ${modelXPath}`);
+                        targetObject[propertyName] = newValue;
+                        changeApplied = true;
+                    } else {
+                        // The entire object is being replaced
+                        throw new Error(`Replacing entire objects via ModelXPath is not yet supported`);
+                    }
+                } else if (propertyPath) {
+                    // Use PropertyPath to set the value
+                    console.log(`[Extension] Setting value at PropertyPath: ${propertyPath}`);
+                    changeApplied = XPathUtils.setValue(modelJson, propertyPath, newValue);
+                } else if (propertyName) {
+                    // Use the constructed path to set the value
+                    const constructedPath = `root/${propertyName}`;
+                    console.log(`[Extension] Setting value at constructed path: ${constructedPath}`);
+                    changeApplied = XPathUtils.setValue(modelJson, constructedPath, newValue);
+                }
+                
+                if (!changeApplied) {
+                    throw new Error(`Failed to apply change: could not set the new value`);
+                }
+                
+                // Mark as successfully processed
+                changeRequest.IsProcessed = true;
+                appliedCount++;
+                
+            } catch (error) {
+                console.error(`[Extension] Error applying change request ${changeRequest.Code || changeRequest.code}:`, error);
+                
+                // Mark as failed
+                changeRequest.IsRejected = true;
+                changeRequest.RejectionReason = `Failed to apply: ${error.message}`;
+                rejectedCount++;
+            }
+        }
+        
+        // Save the modified model JSON back to the file if any changes were applied
+        if (appliedCount > 0) {
+            fs.writeFileSync(modelFilePath, JSON.stringify(modelJson, null, 2), 'utf8');
+        }
+        
+        // Save the updated change requests file
+        fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+        
+        // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Show a summary message
+        if (appliedCount > 0 && rejectedCount > 0) {
+            vscode.window.showInformationMessage(`Applied ${appliedCount} change requests. ${rejectedCount} change requests were rejected.`);
+        } else if (appliedCount > 0) {
+            vscode.window.showInformationMessage(`Successfully applied ${appliedCount} change requests.`);
+        } else if (rejectedCount > 0) {
+            vscode.window.showWarningMessage(`${rejectedCount} change requests were rejected. No changes were applied.`);
+        } else {
+            vscode.window.showInformationMessage(`No change requests were applied.`);
+        }
+        
+    } catch (error) {
+        console.error("[Extension] Failed to apply all change requests:", error);
+        vscode.window.showErrorMessage(`Failed to apply all change requests: ${error.message}`);
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to apply all change requests: ${error.message}` });
     }
 }
 
