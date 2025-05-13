@@ -1,19 +1,20 @@
 Agent todo items...
     
+model change request view...
+- under reject status, show the rejection reason
 
-if a model service view gets an unauthorized error on the api call, lgoout and go to the login view
+if a model service view gets an unauthorized error on the api call, logout and go to the login view
+ 
+treeview...
+clicking an item that is already open should not open it again.  It should just focus on the already open item.
 
-model validaiton change list view...
-some of the table cells are cutting off the text. allow all to have  wordwrap
 
 model ai processing details merge button has issues.  after click of merge, it seems to modify the dowload\view report button instead of the merge button
 
 model feature catalog view...
 - use similar style and design as the model validation request list.
 - use similar paging controls and page range display as the model validation request list.
- 
-
-change request needs a details modal
+  
  
 when the model file changes, we automatically update the model singleton. It should also update any open 'model feature catalog' views or 'fabrication blueprint catalog' views.
  
@@ -39,13 +40,9 @@ model validation rejection validaiton using an alert instead of validaiton error
      
 
 change requests...
-- add button to top right: apply all approved
 - on approval verify the old value is still the same. if not, show as 'out of date' in status
-- show rejection reason under the rejection status? 
 - implement apply. if old value does not match the current value. reject with reason 'out of date'.
-- show rejection reason in button column.   
 - show note...  There is a difference between Model AI processing and Model Change Requests.  Model Change requests modify existing data in a model, while Model AI processing only adds data to a model.
-- show a row in the far right of checkboxes. its header will have a chckbox that either checks all or unchecks all.
  
  
 
@@ -80,9 +77,7 @@ if prep merging then warn user to save their work first.
 
 sub folders...
 - put a ".app_dna_" at the start of the folder names
-    
-treeview...
-clicking an item that is already open should not open it again.  It should just focus on the already open item.
+     
 
 all views...
 - if the model file chagnes, reload the view

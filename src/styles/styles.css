@@ -36,3 +36,22 @@ input[readonly], select[disabled] {
   background-color: var(--vscode-input-disabledBackground);
   color: var(--vscode-input-disabledForeground);
 }
+
+/* Modal button styling to ensure cancel buttons are always on the right */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end; 
+  gap: 8px;
+  margin-top: 15px;
+}
+
+/* Reverse the order of buttons in modal-buttons when cancel button should be rightmost */
+.modal-buttons button:last-child:not([id*="cancel" i]):not([id*="Cancel" i]) + button[id*="cancel" i],
+.modal-buttons button:last-child:not([id*="cancel" i]):not([id*="Cancel" i]) + button[id*="Cancel" i] {
+  order: 2;
+}
+
+.modal-buttons button[id*="cancel" i] + button:not([id*="cancel" i]):not([id*="Cancel" i]),
+.modal-buttons button[id*="Cancel" i] + button:not([id*="cancel" i]):not([id*="Cancel" i]) {
+  order: 2;
+}

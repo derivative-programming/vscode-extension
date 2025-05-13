@@ -532,10 +532,9 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     <div class="form-group">
                         <label for="rejectionReason">Rejection Reason:</label>
                         <textarea id="rejectionReason" placeholder="Please provide a reason for rejection..."></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button id="cancelReject" class="action-button">Cancel</button>
+                    </div>                    <div class="form-actions">
                         <button id="confirmReject" class="action-button reject">Confirm Reject</button>
+                        <button id="cancelReject" class="action-button">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -547,10 +546,9 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     <div class="form-group">
                         <label for="batchRejectionReason">Rejection Reason:</label>
                         <textarea id="batchRejectionReason" placeholder="Please provide a reason for rejecting the selected requests..."></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button id="cancelBatchReject" class="action-button">Cancel</button>
+                    </div>                    <div class="form-actions">
                         <button id="confirmBatchReject" class="action-button reject">Confirm Reject</button>
+                        <button id="cancelBatchReject" class="action-button">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -561,10 +559,9 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     <h3 class="modal-title">Confirm Action</h3>
                     <div class="form-group">
                         <p id="confirmMessage"></p>
-                    </div>
-                    <div class="form-actions">
-                        <button id="cancelConfirm" class="action-button">Cancel</button>
+                    </div>                    <div class="form-actions">
                         <button id="confirmAction" class="action-button">Confirm</button>
+                        <button id="cancelConfirm" class="action-button">Cancel</button>
                     </div>
                 </div>
             </div>

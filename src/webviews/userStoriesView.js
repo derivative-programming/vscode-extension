@@ -671,10 +671,9 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
                 <p>Format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]"<br>
 Alternate format: "As a [Role name], I want to [View all, view, add, update, delete] a [object name]"</p>
                 <div id="addStoryError" class="error-message" style="display: none;"></div>
-            </div>
-            <div class="modal-footer">
-                <button id="btnCancelAddStory">Cancel</button>
+            </div>            <div class="modal-footer">
                 <button id="btnConfirmAddStory">Add</button>
+                <button id="btnCancelAddStory">Cancel</button>
             </div>
         </div>
     </div>

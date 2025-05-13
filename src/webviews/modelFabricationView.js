@@ -768,10 +768,9 @@
                 <div id="addModal" class="modal">
                     <div class="modal-content">
                         <h3>Add Fabrication Request</h3>
-                        <label>Description:<br><input type="text" id="addDescription" /></label>
-                        <div class="modal-buttons"> <!-- Button container -->
+                        <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
+                            <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Cancel button always on the right -->
                             <button id="submitAdd" class="refresh-button">Add</button>
-                            <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Apply secondary style -->
                         </div>
                     </div>
                 </div>
@@ -935,10 +934,9 @@
                                     confirmModal.innerHTML = `
                                         <div class="modal-content" style="width: 300px;">
                                             <h3>Cancel Fabrication Request</h3>
-                                            <p>Are you sure you want to cancel this fabrication request?</p>
-                                            <div class="modal-buttons">
-                                                <button id="confirmCancel" class="refresh-button">Yes, Cancel</button>
+                                            <p>Are you sure you want to cancel this fabrication request?</p>                                            <div class="modal-buttons">
                                                 <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>
+                                                <button id="confirmCancel" class="refresh-button">Yes, Cancel</button>
                                             </div>
                                         </div>
                                     `;
@@ -1173,8 +1171,7 @@
                 };
                 actionDiv.appendChild(downloadButton);
             }
-            
-            // Add close button to action container
+              // Add close button to action container - inserting before the download button to ensure it appears on the right
             const closeButton = document.createElement("button");
             closeButton.className = "refresh-button modal-button-secondary";
             closeButton.textContent = "Close";
@@ -1182,7 +1179,14 @@
             closeButton.onclick = function() {
                 document.getElementById("detailsModal").style.display = "none";
             };
-            actionDiv.appendChild(closeButton);
+            
+            // Insert close button after download button to place it on the right
+            if (downloadButton) {
+                actionDiv.insertBefore(closeButton, downloadButton);
+                actionDiv.insertBefore(downloadButton, closeButton);
+            } else {
+                actionDiv.appendChild(closeButton);
+            }
             
             detailsContent.appendChild(actionDiv);
             

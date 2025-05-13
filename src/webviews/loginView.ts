@@ -218,10 +218,9 @@ function getLoginViewContent(): string {
                 <input type="password" id="password" name="password" required>
             </div>
             <div id="errorMessage" class="error"></div>
-            <div id="successMessage" class="success">Login successful! Redirecting...</div>
-            <div class="buttons">
-                <button type="submit">Login</button>
+            <div id="successMessage" class="success">Login successful! Redirecting...</div>            <div class="buttons">
                 <button type="button" id="cancelButton" class="secondary">Cancel</button>
+                <button type="submit">Login</button>
             </div>
             <div class="register-link">
                 <p>Don't have an account? <a href="#" id="registerLink">Register here</a></p>
