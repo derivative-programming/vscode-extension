@@ -1,4 +1,3 @@
-// filepath: c:\VR\Source\DP\vscode-extension\src\webviews\projectSettingsView.js
 // projectSettingsView.js
 // Shows the project settings view in a webview panel
 // May 9, 2025
@@ -8,6 +7,9 @@
 // Import VS Code API for use in the extension context
 const vscode = require('vscode');
 const fs = require('fs');
+
+// Track current panels to avoid duplicates
+const activePanels = new Map();
 
 // Cache for schema data
 const schemaCache = {}; 
@@ -50,6 +52,18 @@ function showProjectSettings(context, modelService) {
         return;
     }
 
+    // Create a normalized panel ID to ensure consistency
+    const panelId = `projectSettings`;
+    console.log(`showProjectSettings called (panelId: ${panelId})`);
+    
+    // Check if panel already exists 
+    if (activePanels.has(panelId)) {
+        console.log(`Panel already exists for project settings, revealing existing panel`);
+        // Panel exists, reveal it instead of creating a new one
+        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        return;
+    }
+
     // Create webview panel
     const panel = vscode.window.createWebviewPanel(
         'projectSettings',
@@ -60,6 +74,16 @@ function showProjectSettings(context, modelService) {
             retainContextWhenHidden: true
         }
     );
+    
+    // Track this panel
+    console.log(`Adding new panel to activePanels with id: ${panelId}`);
+    activePanels.set(panelId, panel);
+    
+    // Remove from tracking when disposed
+    panel.onDidDispose(() => {
+        console.log(`Panel disposed, removing from tracking: ${panelId}`);
+        activePanels.delete(panelId);
+    });
 
     // Get the model data - this is a RootModel object
     const rootModel = modelService.getCurrentModel();

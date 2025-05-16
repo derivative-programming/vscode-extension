@@ -6,6 +6,9 @@ import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService';
 import { TemplateSetModel } from '../data/models/templateSetModel';
 
+// Track active panels to avoid duplicates
+const activePanels = new Map<string, vscode.WebviewPanel>();
+
 export function registerFabricationBlueprintCatalogCommands(
     context: vscode.ExtensionContext,
     appDNAFilePath: string | null,
@@ -14,6 +17,19 @@ export function registerFabricationBlueprintCatalogCommands(
     // Register fabrication blueprint catalog command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.fabricationBlueprintCatalog', async () => {
+            // Create a consistent panel ID
+            const panelId = 'fabricationBlueprintCatalog';
+            console.log(`fabricationBlueprintCatalog command called (panelId: ${panelId})`);
+            
+            // Check if panel already exists
+            if (activePanels.has(panelId)) {
+                console.log(`Panel already exists for fabrication blueprint catalog, revealing existing panel`);
+                // Panel exists, reveal it instead of creating a new one
+                activePanels.get(panelId)?.reveal(vscode.ViewColumn.One);
+                return;
+            }
+            
+            // Create new panel if one doesn't exist
             const panel = vscode.window.createWebviewPanel(
                 'fabricationBlueprintCatalog',
                 'Fabrication Blueprint Catalog',
@@ -23,6 +39,16 @@ export function registerFabricationBlueprintCatalogCommands(
                     retainContextWhenHidden: true,
                 }
             );
+            
+            // Track this panel
+            console.log(`Adding new panel to activePanels with id: ${panelId}`);
+            activePanels.set(panelId, panel);
+            
+            // Remove from tracking when disposed
+            panel.onDidDispose(() => {
+                console.log(`Panel disposed, removing from tracking: ${panelId}`);
+                activePanels.delete(panelId);
+            });
             const scriptUri = panel.webview.asWebviewUri(
                 vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'fabricationBlueprintCatalogView.js')
             );

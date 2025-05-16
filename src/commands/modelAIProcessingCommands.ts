@@ -23,6 +23,9 @@ function handleApiError(error: any, panel: vscode.WebviewPanel, errorCommand: st
     vscode.window.showErrorMessage('API Error: ' + (error && error.message ? error.message : error));
 }
 
+// Track active panels to avoid duplicates
+const activePanels = new Map<string, vscode.WebviewPanel>();
+
 export function registerModelAIProcessingCommands(
     context: vscode.ExtensionContext,
     appDNAFilePath: string | null,
@@ -31,6 +34,19 @@ export function registerModelAIProcessingCommands(
     // Register model AI processing command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.modelAIProcessing', async () => {
+            // Create a consistent panel ID
+            const panelId = 'modelAIProcessing';
+            console.log(`modelAIProcessing command called (panelId: ${panelId})`);
+            
+            // Check if panel already exists
+            if (activePanels.has(panelId)) {
+                console.log(`Panel already exists for model AI processing, revealing existing panel`);
+                // Panel exists, reveal it instead of creating a new one
+                activePanels.get(panelId)?.reveal(vscode.ViewColumn.One);
+                return;
+            }
+            
+            // Create new panel if one doesn't exist
             const panel = vscode.window.createWebviewPanel(
                 'modelAIProcessing',
                 'Model AI Processing Requests',
@@ -40,6 +56,16 @@ export function registerModelAIProcessingCommands(
                     retainContextWhenHidden: true,
                 }
             );
+            
+            // Track this panel
+            console.log(`Adding new panel to activePanels with id: ${panelId}`);
+            activePanels.set(panelId, panel);
+            
+            // Remove from tracking when disposed
+            panel.onDidDispose(() => {
+                console.log(`Panel disposed, removing from tracking: ${panelId}`);
+                activePanels.delete(panelId);
+            });
             const scriptUri = panel.webview.asWebviewUri(
                 vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'modelAIProcessingView.js')
             );

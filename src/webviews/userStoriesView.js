@@ -32,6 +32,9 @@ function isValidUserStoryFormat(text) {
     return re1.test(t) || re2.test(t);
 }
 
+// Track active panels to avoid duplicates
+const activePanels = new Map();
+
 /**
  * Shows a user stories view in a webview
  * @param {Object} context The extension context
@@ -44,6 +47,18 @@ function showUserStoriesView(context, modelService) {
         return;
     }
 
+    // Create a consistent panel ID
+    const panelId = 'userStoriesView';
+    console.log(`showUserStoriesView called (panelId: ${panelId})`);
+    
+    // Check if panel already exists
+    if (activePanels.has(panelId)) {
+        console.log(`Panel already exists for user stories view, revealing existing panel`);
+        // Panel exists, reveal it instead of creating a new one
+        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        return;
+    }
+    
     // Create the webview panel
     const panel = vscode.window.createWebviewPanel(
         'userStoriesView',
@@ -54,6 +69,16 @@ function showUserStoriesView(context, modelService) {
             retainContextWhenHidden: true
         }
     );
+    
+    // Track this panel
+    console.log(`Adding new panel to activePanels with id: ${panelId}`);
+    activePanels.set(panelId, panel);
+    
+    // Remove from tracking when disposed
+    panel.onDidDispose(() => {
+        console.log(`Panel disposed, removing from tracking: ${panelId}`);
+        activePanels.delete(panelId);
+    });
 
     // Get the model data
     const rootModel = modelService.getCurrentModel();

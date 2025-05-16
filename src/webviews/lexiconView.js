@@ -15,6 +15,9 @@ const vscode = require('vscode');
 let lexiconItems = [];
 let originalLexiconItems = [];
 
+// Track active panels to avoid duplicates
+const activePanels = new Map();
+
 /**
  * Shows a lexicon view in a webview
  * @param {Object} context The extension context
@@ -27,6 +30,18 @@ function showLexiconView(context, modelService) {
         return;
     }
 
+    // Create a consistent panel ID
+    const panelId = 'lexiconView';
+    console.log(`showLexiconView called (panelId: ${panelId})`);
+    
+    // Check if panel already exists
+    if (activePanels.has(panelId)) {
+        console.log(`Panel already exists for lexicon view, revealing existing panel`);
+        // Panel exists, reveal it instead of creating a new one
+        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        return;
+    }
+    
     // Create the webview panel
     const panel = vscode.window.createWebviewPanel(
         'lexiconView',
@@ -37,6 +52,16 @@ function showLexiconView(context, modelService) {
             retainContextWhenHidden: true
         }
     );
+    
+    // Track this panel
+    console.log(`Adding new panel to activePanels with id: ${panelId}`);
+    activePanels.set(panelId, panel);
+    
+    // Remove from tracking when disposed
+    panel.onDidDispose(() => {
+        console.log(`Panel disposed, removing from tracking: ${panelId}`);
+        activePanels.delete(panelId);
+    });
 
     // Get the model data
     const rootModel = modelService.getCurrentModel();

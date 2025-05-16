@@ -4,7 +4,7 @@ Agent todo items...
 
 test:if a model service view gets an unauthorized error on the api call, logout and go to the login view
  
-treeview...
+treeview... ✅ COMPLETED
 clicking an item that is already open should not open it again.  It should just focus on the already open item.
 
 

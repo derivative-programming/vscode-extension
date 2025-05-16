@@ -158,6 +158,17 @@ The HTML structure follows this pattern:
 - Communicate with the extension via postMessage API
 - Dynamically generate UI based on the schema properties
 
+### Panel Management Pattern
+- The extension implements a consistent pattern for handling panels (webviews) to avoid duplicate panels
+- Each panel type (objectDetails, projectSettings, modelValidation, etc.) uses:
+  - A static Map to track active panels: `const activePanels = new Map()`
+  - A consistent panel ID generation approach: `const panelId = 'panelType-identifier'`
+  - A check before creating new panels: `if (activePanels.has(panelId)) { activePanels.get(panelId).reveal() }`
+  - Panel tracking: `activePanels.set(panelId, panel)`
+  - Cleanup on disposal: `panel.onDidDispose(() => { activePanels.delete(panelId) })`
+- This ensures clicking an already open item focuses on it rather than creating a duplicate panel
+- Implementation is similar across object details, project settings, and model service views
+
 ### Webview Pagination Pattern
 
 The model feature catalog and other list webviews implement a standardized pagination approach:
