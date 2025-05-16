@@ -9,6 +9,7 @@ const { showObjectDetails, refreshAll } = require("./objects/objectDetailsView")
  * @param {Object} modelService ModelService instance
  */
 function showObjectDetailsWrapper(item, modelService) {
+    console.log(`Wrapper called for ${item.label}`);
     // Pass parameters to the implementation
     showObjectDetails(item, modelService);
 }

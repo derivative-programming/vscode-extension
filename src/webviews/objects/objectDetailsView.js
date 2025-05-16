@@ -16,12 +16,15 @@ const openPanels = new Map();
  * @param {Object} modelService The ModelService instance
  */
 function showObjectDetails(item, modelService) {
-    console.log(`showObjectDetails called for ${item.label}`);
+    // Create a normalized panel ID to ensure consistency
+    const normalizedLabel = item.label.trim().toLowerCase();
+    const panelId = `objectDetails-${normalizedLabel}`;
+    
+    console.log(`showObjectDetails called for ${item.label} (normalized: ${normalizedLabel}, panelId: ${panelId})`);
     
     // Check if panel already exists for this object
-    const panelId = `objectDetails-${item.label}`;
-    
     if (activePanels.has(panelId)) {
+        console.log(`Panel already exists for ${item.label}, revealing existing panel`);
         // Panel exists, reveal it instead of creating a new one
         activePanels.get(panelId).reveal(vscode.ViewColumn.One);
         return;
@@ -37,13 +40,14 @@ function showObjectDetails(item, modelService) {
             retainContextWhenHidden: true
         }
     );
-    
-    // Track this panel in both activePanels and openPanels
+      // Track this panel in both activePanels and openPanels
+    console.log(`Adding new panel to activePanels and openPanels with id: ${panelId}`);
     activePanels.set(panelId, panel);
     openPanels.set(panelId, { panel, item, modelService });
     
     // Remove from tracking when disposed
     panel.onDidDispose(() => {
+        console.log(`Panel disposed, removing from tracking: ${panelId}`);
         activePanels.delete(panelId);
         openPanels.delete(panelId);
     });
@@ -121,14 +125,20 @@ function showObjectDetails(item, modelService) {
  * Refreshes all open object details webviews with the latest model data
  */
 function refreshAll() {
+    console.log(`Refreshing all open panels, count: ${openPanels.size}`);
     for (const { panel, item, modelService } of openPanels.values()) {
         if (panel && !panel._disposed) {
+            // Use the same normalization as in showObjectDetails
+            const normalizedLabel = item.label.trim().toLowerCase();
+            const panelId = `objectDetails-${normalizedLabel}`;
+            console.log(`Refreshing panel for ${item.label} (normalized: ${normalizedLabel}, panelId: ${panelId})`);
+            
             // Get the latest object data
             let objectData;
             if (modelService && typeof modelService.isFileLoaded === "function" && modelService.isFileLoaded()) {
                 const allObjects = modelService.getAllObjects();
                 objectData = allObjects.find(obj =>
-                    obj.name && obj.name.trim().toLowerCase() === item.label.trim().toLowerCase()
+                    obj.name && obj.name.trim().toLowerCase() === normalizedLabel
                 );
             }
             if (!objectData) {
