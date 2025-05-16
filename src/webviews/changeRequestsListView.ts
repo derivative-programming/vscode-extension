@@ -376,6 +376,16 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     color: var(--vscode-editor-background);
                 }
                 
+                .rejection-reason {
+                    margin-top: 4px;
+                    color: var(--vscode-errorForeground);
+                    font-size: 0.85em;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                    white-space: nowrap;
+                }
+                
                 .details-row {
                     display: none;
                     padding: 10px;

@@ -275,7 +275,11 @@
             return { text: 'Applied', class: 'applied' };
         }
         if (item.IsRejected) {
-            return { text: 'Rejected', class: 'rejected' };
+            return { 
+                text: 'Rejected', 
+                class: 'rejected', 
+                reason: item.RejectionReason || item.rejectionReason 
+            };
         }
         if (item.IsApproved) {
             return { text: 'Approved', class: 'approved' };
@@ -375,7 +379,13 @@
                     <td>${item.PropertyName}</td>
                     <td class="truncate"><span class="mono">${item.OldValue}</span></td>
                     <td class="truncate"><span class="mono">${item.NewValue}</span></td>
-                    <td><span class="status-badge ${statusInfo.class}">${statusInfo.text}</span></td>
+                    <td>
+                        <span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>
+                        ${statusInfo.reason ? 
+                        `<div class="rejection-reason" title="${statusInfo.reason}">
+                            <small>Reason: ${statusInfo.reason}</small>
+                        </div>` : ''}
+                    </td>
                     <td>
                         ${isPending ? `
                             <button class="action-button approve-btn" data-code="${item.Code}">Approve</button>

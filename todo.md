@@ -1,7 +1,6 @@
 Agent todo items...
     
-model change request view...
-- under reject status, show the rejection reason
+ 
 
 if a model service view gets an unauthorized error on the api call, logout and go to the login view
  
