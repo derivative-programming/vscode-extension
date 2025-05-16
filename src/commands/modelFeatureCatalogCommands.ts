@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService';
 import { ModelFeatureModel } from '../data/models/modelFeatureModel';
+import { handleApiError } from '../utils/apiErrorHandler';
 
 export function registerModelFeatureCatalogCommands(
     context: vscode.ExtensionContext,
@@ -140,13 +141,24 @@ export function registerModelFeatureCatalogCommands(
                 }
                 const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/model-features?' + params.join('&');
                 // Log the API call details
-                console.log("[DEBUG] Model Feature Catalog API called. URL:", url, "Options:", { headers: { 'Api-Key': '[REDACTED]' } });
-                try {
+                console.log("[DEBUG] Model Feature Catalog API called. URL:", url, "Options:", { headers: { 'Api-Key': '[REDACTED]' } });                try {
                     const res = await fetch(url, {
                         headers: { 'Api-Key': apiKey }
                     });
+                    
+                    // Check for unauthorized errors
+                    if (await handleApiError(context, res, 'Failed to fetch model features')) {
+                        // If true, the error was handled (was a 401)
+                        panel.webview.postMessage({ 
+                            command: 'setFeatureData', 
+                            data: { items: [], pageNumber: 1, itemCountPerPage: 100, recordsTotal: 0 } 
+                        });
+                        return;
+                    }
+                    
                     const data = await res.json();
-                    panel.webview.postMessage({ command: 'setFeatureData', data });                } catch (err) {
+                    panel.webview.postMessage({ command: 'setFeatureData', data });
+                } catch (err) {
                     panel.webview.postMessage({ command: 'setFeatureData', data: { items: [], pageNumber: 1, itemCountPerPage: 100, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('Failed to fetch model features: ' + (err && err.message ? err.message : err));
                 }

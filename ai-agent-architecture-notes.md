@@ -1,6 +1,6 @@
 # AppDNA VS Code Extension Architecture Notes
 
-*Last updated: May 11, 2025*
+*Last updated: May 16, 2025*
 
 ## Overview
 The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
@@ -99,6 +99,28 @@ The HTML structure follows this pattern:
 - Handles JSON-RPC 2.0 protocol, including the critical `initialize` handshake required by Copilot
 - Responds to initialize requests with detailed capabilities information in JSON-RPC 2.0 format
 - Tool definitions follow the MCP specification with `inputs` and `outputs` arrays
+
+#### API Error Handling
+- Centralized API error handling through the `handleApiError` utility in `apiErrorHandler.ts`
+- Specifically handles 401 Unauthorized errors across all API endpoints:
+  - Automatically logs the user out through AuthService
+  - Displays a clear message to the user about session expiration
+  - Opens the login view to allow immediate re-authentication
+  - Returns a boolean flag to indicate if the error was handled (true) or if the response was ok (false)
+- Model service API calls in command files consistently use this pattern:
+  ```typescript
+  const response = await fetch(url, { headers });
+  if (await handleApiError(context, response, 'Failed to fetch data')) {
+    // Error was a 401, it was handled, send empty data to webview
+    return;
+  }
+  // Continue processing the response normally
+  ```
+- Implemented across all model service view commands:
+  - Model Validation
+  - Model Fabrication  
+  - Model Feature Catalog
+  - Model AI Processing
 - Uses a dedicated entry point (stdioBridge.ts) for standalone stdio MCP server mode
 - Can be launched either through VS Code commands or directly as a stdio server
 - Properly handles process lifecycle events (SIGINT, SIGTERM) when running in standalone mode

@@ -8,6 +8,7 @@ import * as path from 'path';
 import JSZip from 'jszip';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService'; // Assuming AuthService is in services
+import { handleApiError } from '../utils/apiErrorHandler';
 
 export function registerModelValidationCommands(
     context: vscode.ExtensionContext,
@@ -74,12 +75,22 @@ export function registerModelValidationCommands(
                 const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests?' + params.join('&');
                 // Log the API call details
                 console.log("[DEBUG] Model Validation API called. URL:", url, "Options:", { headers: { 'Api-Key': '[REDACTED]' } });
-                try {
-                    const res = await fetch(url, {
-                        headers: { 'Api-Key': apiKey }
-                    });
-                    const data = await res.json();
-                    panel.webview.postMessage({ command: 'modelValidationSetValidationData', data });
+                try {                        const res = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (await handleApiError(context, res, 'Failed to fetch validation data')) {
+                            // If true, the error was handled (was a 401)
+                            panel.webview.postMessage({ 
+                                command: 'modelValidationSetValidationData', 
+                                data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } 
+                            });
+                            return;
+                        }
+                        
+                        const data = await res.json();
+                        panel.webview.postMessage({ command: 'modelValidationSetValidationData', data });
                 } catch (err) {
                     panel.webview.postMessage({ command: 'modelValidationSetValidationData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('Failed to fetch validation requests: ' + (err && err.message ? err.message : err));
@@ -148,15 +159,18 @@ export function registerModelValidationCommands(
                     const payload = { description: desc, modelFileData };
                     const addUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests';
                     console.log("[Extension] Calling ADD API. URL:", addUrl);
-                    try {
-                        const res2 = await fetch(addUrl, {
+                    try {                        const res2 = await fetch(addUrl, {
                             method: 'POST',
                             headers: { 'Api-Key': apiKey, 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
                         console.log("[Extension] ADD API response status:", res2.status);
-                        if (!res2.ok) {
-                            throw new Error(`API responded with status ${res2.status}`);
+                        
+                        // Check for unauthorized errors
+                        if (await handleApiError(context, res2, 'Failed to add validation request')) {
+                            // If true, the error was handled (was a 401)
+                            panel.webview.postMessage({ command: "modelValidationRequestFailed" });
+                            return;
                         }
                         
                         // Notify webview that request was successful
@@ -207,9 +221,14 @@ export function registerModelValidationCommands(
                         const response = await fetch(url, {
                             headers: { 'Api-Key': apiKey }
                         });
-                        
-                        if (!response.ok) {
-                            throw new Error(`API responded with status ${response.status}`);
+                          // Check for unauthorized errors
+                        if (await handleApiError(context, response, 'Failed to fetch validation details')) {
+                            // If true, the error was handled (was a 401)
+                            panel.webview.postMessage({ 
+                                command: 'modelValidationDetailsError', 
+                                error: 'Your session has expired. Please log in again.' 
+                            });
+                            return;
                         }
                         
                         const responseData = await response.json();
@@ -473,9 +492,11 @@ export function registerModelValidationCommands(
                             method: 'DELETE',
                             headers: { 'Api-Key': apiKey }
                         });
-                        
-                        if (!response.ok) {
-                            throw new Error(`API responded with status ${response.status}`);
+                          // Check for unauthorized errors
+                        if (await handleApiError(context, response, 'Failed to cancel validation request')) {
+                            // If true, the error was handled (was a 401)
+                            panel.webview.postMessage({ command: "modelValidationRequestFailed" });
+                            return;
                         }
                         
                         console.log("[Extension] Validation request successfully cancelled");

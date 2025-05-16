@@ -9,6 +9,20 @@ import JSZip from 'jszip';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService'; // Assuming AuthService is in services
 
+// Local helper function to handle API errors with panel/UI updates
+function handleApiError(error: any, panel: vscode.WebviewPanel, errorCommand: string, defaultData: any = {}): void {
+    console.error(`[ModelAIProcessingCommands] API Error:`, error);
+    
+    // Send error message to the webview panel
+    panel.webview.postMessage({ 
+        command: errorCommand, 
+        ...defaultData
+    });
+    
+    // Show error message in VS Code
+    vscode.window.showErrorMessage('API Error: ' + (error && error.message ? error.message : error));
+}
+
 export function registerModelAIProcessingCommands(
     context: vscode.ExtensionContext,
     appDNAFilePath: string | null,
@@ -83,8 +97,7 @@ export function registerModelAIProcessingCommands(
                     const data = await res.json();
                     panel.webview.postMessage({ command: 'setProcessingData', data });
                 } catch (err) {
-                    panel.webview.postMessage({ command: 'setProcessingData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
-                    vscode.window.showErrorMessage('Failed to fetch processing requests: ' + (err && err.message ? err.message : err));
+                    handleApiError(err, panel, 'setProcessingData', { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 });
                 }
             }
             
@@ -170,10 +183,7 @@ export function registerModelAIProcessingCommands(
                         await fetchAndSend(1, 10, 'modelPrepRequestRequestedUTCDateTime', true);
                         console.log("[Extension] Data refresh complete after add.");
                     } catch (err) {
-                        console.error("[Extension] Failed to add processing request:", err);                        // Notify webview that request failed
-                        console.log("[Extension] Sending ModelAIProcessingRequestFailed to webview");
-                        panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
-                        vscode.window.showErrorMessage('Failed to add processing request: ' + (err && err.message ? err.message : err));
+                        handleApiError(err, panel, "ModelAIProcessingRequestFailed");
                     }
                 } else if (msg.command === 'ModelAIProcessingCancelRequest') {
                     // Handle cancel request from list view
@@ -194,11 +204,28 @@ export function registerModelAIProcessingCommands(
                         }
                           const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests/${encodeURIComponent(msg.requestCode)}`;
                         console.log("[Extension] Sending cancel request to URL:", url);
-                        
-                        const response = await fetch(url, {
+                          const response = await fetch(url, {
                             method: 'DELETE',
                             headers: { 'Api-Key': apiKey }
                         });
+                          // Check for unauthorized errors
+                        if (response.status === 401) {
+                            console.error("[Extension] Unauthorized error when canceling processing request");
+                            
+                            // Log the user out
+                            const authService = AuthService.getInstance();
+                            await authService.logout();
+                            
+                            // Show error message
+                            vscode.window.showErrorMessage('Your session has expired. Please log in again.');
+                            
+                            // Show login view
+                            await vscode.commands.executeCommand('appdna.login');
+                            
+                            // Notify webview
+                            panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
+                            return;
+                        }
                         
                         if (!response.ok) {
                             throw new Error(`API responded with status ${response.status}`);
@@ -213,9 +240,7 @@ export function registerModelAIProcessingCommands(
                         // Refresh the list after cancelling
                         await fetchAndSend(1, 10, 'modelPrepRequestRequestedUTCDateTime', true);
                     } catch (error) {
-                        console.error("[Extension] Failed to cancel processing request:", error);
-                        vscode.window.showErrorMessage(`Failed to cancel request: ${error.message}`);
-                        panel.webview.postMessage({ command: "ModelAIProcessingRequestFailed" });
+                        handleApiError(error, panel, "ModelAIProcessingRequestFailed");
                     }                } else if (msg.command === 'ModelAIProcessingShowDetails') {
                     console.log("[Extension] Handling ModelAIProcessingShowDetails for item:", msg.item);
                     if (!msg.item) {
@@ -245,15 +270,36 @@ export function registerModelAIProcessingCommands(
                                 error: "You must be logged in to view request details." 
                             });
                             return;
-                        }
-                          // Construct URL for fetching a specific processing request details using query parameter
+                        }                          // Construct URL for fetching a specific processing request details using query parameter
                         const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests?modelPrepRequestCode=${encodeURIComponent(msg.requestCode)}`;
                         console.log("[Extension] Fetching processing request details from URL:", url);
                         
                         const response = await fetch(url, {
                             headers: { 'Api-Key': apiKey }
                         });
-                          if (!response.ok) {
+                            // Check for unauthorized errors
+                        if (response.status === 401) {
+                            console.error("[Extension] Unauthorized error when fetching processing request details");
+                            
+                            // Log the user out
+                            const authService = AuthService.getInstance();
+                            await authService.logout();
+                            
+                            // Show error message
+                            vscode.window.showErrorMessage('Your session has expired. Please log in again.');
+                            
+                            // Show login view
+                            await vscode.commands.executeCommand('appdna.login');
+                            
+                            // Notify webview
+                            panel.webview.postMessage({ 
+                                command: "ModelAIProcessingDetailsError", 
+                                error: 'Your session has expired. Please log in again.' 
+                            });
+                            return;
+                        }
+                        
+                        if (!response.ok) {
                             throw new Error(`API responded with status ${response.status}`);
                         }
                         
@@ -274,10 +320,7 @@ export function registerModelAIProcessingCommands(
                             });
                         }
                     } catch (error) {
-                        console.error("[Extension] Failed to fetch processing request details:", error);                        panel.webview.postMessage({ 
-                            command: "ModelAIProcessingDetailsError", 
-                            error: `Failed to fetch request details: ${error.message}`
-                        });
+                        handleApiError(error, panel, "ModelAIProcessingDetailsError", { error: `Failed to fetch request details: ${error.message}` });
                     }                } else if (msg.command === 'modelAIProcessingCheckReportExists') {
                     console.log("[Extension] Checking if report exists locally for request code:", msg.requestCode);
                     try {
@@ -447,13 +490,7 @@ export function registerModelAIProcessingCommands(
                         panel.webview.postMessage({ command: "modelAIProcessingMergeSuccess" });
                         vscode.window.showInformationMessage('Successfully merged AI processing results into model.');
                     } catch (error) {
-                        console.error("[Extension] Failed to merge results:", error);
-                        console.error("[Extension] Error stack:", error.stack);
-                        panel.webview.postMessage({ 
-                            command: "modelAIProcessingMergeError", 
-                            error: error.message 
-                        });
-                        vscode.window.showErrorMessage(`Failed to merge results: ${error.message || error}`);
+                        handleApiError(error, panel, "modelAIProcessingMergeError", { error: error.message });
                     }
                 }
             });
@@ -523,9 +560,7 @@ async function downloadAIProcessingReport(panel: vscode.WebviewPanel, url: strin
         vscode.window.showInformationMessage(`Report downloaded and saved to: ${filePath}`);
         
     } catch (error) {
-        console.error("[Extension] Failed to download report:", error);
-        vscode.window.showErrorMessage(`Failed to download report: ${error.message}`);
-        panel.webview.postMessage({ command: 'modelAIProcessingReportDownloadError', error: error.message });
+        handleApiError(error, panel, 'modelAIProcessingReportDownloadError', { error: error.message });
     }
 }
 
@@ -559,11 +594,6 @@ async function openAIProcessingReport(panel: vscode.WebviewPanel, requestCode: s
         console.log("[Extension] Report opened successfully:", filePath);
         
     } catch (error) {
-        console.error("[Extension] Failed to open report:", error);
-        vscode.window.showErrorMessage(`Failed to open report: ${error.message}`);
-        panel.webview.postMessage({ 
-            command: 'reportOpenError', 
-            error: error.message
-        });
+        handleApiError(error, panel, 'reportOpenError', { error: error.message });
     }
 }

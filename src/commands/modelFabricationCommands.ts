@@ -8,6 +8,7 @@ import * as path from 'path';
 import JSZip from 'jszip';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService'; // Assuming AuthService is in services
+import { handleApiError } from '../utils/apiErrorHandler';
 
 export function registerModelFabricationCommands(
     context: vscode.ExtensionContext,
@@ -74,11 +75,21 @@ export function registerModelFabricationCommands(
                 }
                 const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests?' + params.join('&');
                 // Log the API call details
-                console.log("[DEBUG] Model Fabrication API called. URL:", url, "Options:", { headers: { 'Api-Key': '[REDACTED]' } });
-                try {
+                console.log("[DEBUG] Model Fabrication API called. URL:", url, "Options:", { headers: { 'Api-Key': '[REDACTED]' } });                try {
                     const res = await fetch(url, {
                         headers: { 'Api-Key': apiKey }
                     });
+                    
+                    // Check for unauthorized errors
+                    if (await handleApiError(context, res, 'Failed to fetch fabrication requests')) {
+                        // If true, the error was handled (was a 401)
+                        panel.webview.postMessage({ 
+                            command: 'setFabricationData', 
+                            data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } 
+                        });
+                        return;
+                    }
+                    
                     const data = await res.json();
                     panel.webview.postMessage({ command: 'setFabricationData', data });
                 } catch (err) {
@@ -148,16 +159,19 @@ export function registerModelFabricationCommands(
                     }
                     const payload = { description: desc, modelFileData };
                     const addUrl = 'https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests';
-                    console.log("[Extension] Calling ADD API. URL:", addUrl);
-                    try {
+                    console.log("[Extension] Calling ADD API. URL:", addUrl);                    try {
                         const res2 = await fetch(addUrl, {
                             method: 'POST',
                             headers: { 'Api-Key': apiKey, 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
                         console.log("[Extension] ADD API response status:", res2.status);
-                        if (!res2.ok) {
-                            throw new Error(`API responded with status ${res2.status}`);
+                        
+                        // Check for unauthorized errors
+                        if (await handleApiError(context, res2, 'Failed to add fabrication request')) {
+                            // If true, the error was handled (was a 401)
+                            panel.webview.postMessage({ command: "ModelFabricationRequestFailed" });
+                            return;
                         }
                         
                         // Notify webview that request was successful
@@ -196,13 +210,18 @@ export function registerModelFabricationCommands(
                         // Use query string parameter for the request code
                         const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests?modelFabricationRequestCode=${encodeURIComponent(msg.requestCode)}`;
                         console.log("[Extension] Fetching fabrication details from URL:", url);
-                        
-                        const response = await fetch(url, {
+                          const response = await fetch(url, {
                             headers: { 'Api-Key': apiKey }
                         });
                         
-                        if (!response.ok) {
-                            throw new Error(`API responded with status ${response.status}`);
+                        // Check for unauthorized errors
+                        if (await handleApiError(context, response, 'Failed to fetch fabrication details')) {
+                            // If true, the error was handled (was a 401)
+                            panel.webview.postMessage({ 
+                                command: 'ModelFabricationRequestDetailsError', 
+                                error: 'Your session has expired. Please log in again.' 
+                            });
+                            return;
                         }
                         
                         const responseData = await response.json();
@@ -273,13 +292,18 @@ export function registerModelFabricationCommands(
                         
                         // Download the results with progress reporting
                         console.log("[Extension] Downloading fabrication results from URL:", msg.url);
-                        
-                        const response = await fetch(msg.url, {
+                          const response = await fetch(msg.url, {
                             headers: { 'Api-Key': apiKey }
                         });
                         
-                        if (!response.ok) {
-                            throw new Error(`Failed to download results: ${response.status} ${response.statusText}`);
+                        // Check for unauthorized errors
+                        if (await handleApiError(context, response, 'Failed to download fabrication results')) {
+                            // If true, the error was handled (was a 401)
+                            panel.webview.postMessage({ 
+                                command: 'ModelFabricationDownloadError', 
+                                error: 'Your session has expired. Please log in again.'
+                            });
+                            return;
                         }
                         
                         // Get total size from Content-Length header 
@@ -439,14 +463,16 @@ export function registerModelFabricationCommands(
                         
                         const url = `https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests/${encodeURIComponent(msg.requestCode)}`;
                         console.log("[Extension] Sending cancel request to URL:", url);
-                        
-                        const response = await fetch(url, {
+                          const response = await fetch(url, {
                             method: 'DELETE',
                             headers: { 'Api-Key': apiKey }
                         });
                         
-                        if (!response.ok) {
-                            throw new Error(`API responded with status ${response.status}`);
+                        // Check for unauthorized errors
+                        if (await handleApiError(context, response, 'Failed to cancel fabrication request')) {
+                            // If true, the error was handled (was a 401)
+                            panel.webview.postMessage({ command: "ModelFabricationRequestFailed" });
+                            return;
                         }
                         
                         console.log("[Extension] Fabrication request successfully cancelled");
