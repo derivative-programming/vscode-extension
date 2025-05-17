@@ -43,28 +43,7 @@ change requests...
 
 - implement 'add property' 
 i need to handle the 'add property' button. I need to ask for the property name but i also need to give an option to allow the user to 'bulk add' multiple properties and give them a multi line textbox to add a property for each line entered. validation rules... 1. no spaces allowed in names. 2. alpha characters only.
-
-welcome screen...
-- show steps in this workflow
-    - create a new project model
-        - A model is held in a json file in your project.
-    - From Model Services, add Model Features
-        - select from a catalog of features 
-    - From Model Services, request Model AI Processing
-        - submit the model to the Model AI processing service
-        - download the model results when complete
-            - AI processing adds data to the model.  It does not change existing data in the model.
-    - From Model Services, request Model Validation
-        - submit the model to the Model Validation service
-        - download the model results when complete
-        - approve and apply any change requests
-            - Model Validation modifies existing data in the model.  It does not add new data to the model.
-    - From Model Services, select Blueprint Selection
-        - blueprints define the type of files you want to fabricate.
-    - From Model Services, request Model Fabrication
-        - submit the model to the Model Fabrication service
-        - download the fabrication results when complete
-        - in the fabrication_results folder, you will find generated source code. Copy what you need to your project from here to your source code folder.
+ 
 
 in model service have indicator that unsaved work exists. 
 

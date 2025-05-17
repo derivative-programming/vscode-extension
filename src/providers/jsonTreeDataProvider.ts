@@ -16,22 +16,23 @@ import { MCPHttpServer } from '../mcp/httpServer';
 export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeItem> {
 
     private readonly _onDidChangeTreeData: vscode.EventEmitter<TreeDataChange> = new vscode.EventEmitter<TreeDataChange>();
-    readonly onDidChangeTreeData: vscode.Event<TreeDataChange> = this._onDidChangeTreeData.event;
-
-    private readonly jsonStructure: any = {
+    readonly onDidChangeTreeData: vscode.Event<TreeDataChange> = this._onDidChangeTreeData.event;    private readonly jsonStructure: any = {
         "root": {
             "namespace": [],
             "object": []
         }
     };
-      // Auth service instance to manage login state
+    // Auth service instance to manage login state
     private authService: AuthService;
     // MCP server instance to check server status
     private mcpServer: MCPServer;
     // MCP HTTP server instance to check HTTP server status
     private mcpHttpServer: MCPHttpServer;
-    
-    constructor(
+    // Reference to the tree view
+    private treeView?: vscode.TreeView<JsonTreeItem>;
+    // Original tree view title (without unsaved changes indicator)
+    private originalTitle?: string;
+      constructor(
         private readonly appDNAFilePath: string | null,
         private readonly modelService: ModelService
     ) { 
@@ -50,6 +51,39 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             // Refresh the tree view when HTTP server status changes
             this.refresh();
         });
+        
+        // Set up a timer to check for unsaved changes
+        setInterval(() => this.checkUnsavedChanges(), 1000);
+    }
+    
+    /**
+     * Sets the tree view reference to enable title updates
+     * @param treeView The TreeView instance from VS Code
+     */
+    setTreeView(treeView: vscode.TreeView<JsonTreeItem>): void {
+        this.treeView = treeView;
+        this.originalTitle = treeView.title;
+        // Initial check for unsaved changes
+        this.checkUnsavedChanges();
+    }
+    
+    /**
+     * Checks for unsaved changes and updates the tree view title accordingly
+     */
+    private checkUnsavedChanges(): void {
+        if (this.treeView) {
+            const hasUnsavedChanges = this.modelService.hasUnsavedChangesInMemory();
+            
+            if (hasUnsavedChanges && !this.treeView.title?.includes('*')) {
+                // Add indicator for unsaved changes
+                this.treeView.title = `${this.originalTitle || 'AppDNA'} *`;
+                console.log("[JsonTreeDataProvider] Added unsaved changes indicator to tree view title");
+            } else if (!hasUnsavedChanges && this.treeView.title?.includes('*')) {
+                // Remove indicator when no unsaved changes
+                this.treeView.title = this.originalTitle || 'AppDNA';
+                console.log("[JsonTreeDataProvider] Removed unsaved changes indicator from tree view title");
+            }
+        }
     }
 
     getTreeItem(element: JsonTreeItem): vscode.TreeItem {
@@ -369,10 +403,10 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         }
         
         return Promise.resolve([]);
-    }
-
-    refresh(): void {
+    }    refresh(): void {
         this._onDidChangeTreeData.fire();
+        // Check for unsaved changes when refreshing the tree view
+        this.checkUnsavedChanges();
     }
 
     /**

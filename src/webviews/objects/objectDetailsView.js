@@ -171,6 +171,13 @@ function updateModelDirectly(data, objectReference, modelService) {
         if (data.props) {
             objectReference.prop = data.props;
             console.log("[DEBUG] objectReference after update:", JSON.stringify(objectReference, null, 2));
+            
+            // Mark that there are unsaved changes
+            if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                modelService.markUnsavedChanges();
+                console.log("[DEBUG] Model marked as having unsaved changes");
+            }
+            
             // Just refresh the tree view to reflect any visible changes
             vscode.commands.executeCommand("appdna.refresh");
         }

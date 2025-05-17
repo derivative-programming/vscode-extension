@@ -102,9 +102,7 @@ function showLexiconView(context, modelService) {
                     const namespace = currentModel.namespace[0];
                     if (!namespace.lexicon || !Array.isArray(namespace.lexicon)) {
                         namespace.lexicon = [];
-                    }
-
-                    // Find and update the lexicon item
+                    }                    // Find and update the lexicon item
                     const { index, displayTextValue } = message.data;
                     if (index >= 0 && index < namespace.lexicon.length) {
                         namespace.lexicon[index].displayTextValue = displayTextValue;
@@ -116,9 +114,14 @@ function showLexiconView(context, modelService) {
                                 index,
                                 item: namespace.lexicon[index]
                             }
-                        });                        // Update the model in memory but don't save to disk
+                        });
+                        
+                        // Mark that there are unsaved changes
+                        modelService.markUnsavedChanges();
+                        
+                        // Update the model in memory but don't save to disk
                         // The user will need to use the save button in the treeview to persist changes
-                        console.log(`Updated lexicon item ${index} to: ${displayTextValue} (in memory only, not saved to file)`); 
+                        console.log(`Updated lexicon item ${index} to: ${displayTextValue} (in memory only, not saved to file)`);
                     } else {
                         throw new Error(`Lexicon item with index ${index} not found`);
                     }                } catch (error) {                    console.error('Error updating lexicon item:', error);

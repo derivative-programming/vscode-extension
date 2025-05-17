@@ -1,13 +1,13 @@
-// filepath: c:\\VR\\Source\\DP\\vscode-extension\\src\\commands\\modelValidationCommands.ts
-// Description: Handles registration of model validation related commands.
+// Description: Handles registration of model AI processing related commands.
 // Created: May 11, 2025
+// Last modified: July 17, 2023
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import JSZip from 'jszip';
 import { ModelService } from '../services/modelService';
-import { AuthService } from '../services/authService'; // Assuming AuthService is in services
+import { AuthService } from '../services/authService';
 
 // Local helper function to handle API errors with panel/UI updates
 function handleApiError(error: any, panel: vscode.WebviewPanel, errorCommand: string, defaultData: any = {}): void {
@@ -388,8 +388,7 @@ export function registerModelAIProcessingCommands(
                 } else if (msg.command === 'modelAIProcessingMergeResults') {
                     console.log("[Extension] Handling modelAIProcessingMergeResults for URL:", msg.url);
                     console.log("[Extension] Request code:", msg.requestCode);
-                    
-                    if (!msg.url || !msg.requestCode) {
+                      if (!msg.url || !msg.requestCode) {
                         console.error("[Extension] Missing URL or request code for merge operation");
                         vscode.window.showErrorMessage('Missing URL or request code for merge operation.');
                         return;
@@ -403,6 +402,34 @@ export function registerModelAIProcessingCommands(
                     }
                     
                     console.log("[Extension] Model file path for merge:", appDNAFilePath);
+                    
+                    // Check for unsaved changes before proceeding with merge
+                    if (modelService.hasUnsavedChangesInMemory()) {
+                        console.log("[Extension] Unsaved changes detected");
+                        const result = await vscode.window.showWarningMessage(
+                            'You have unsaved changes that will be lost if you merge AI processing results. Save changes first?',
+                            'Save and Merge',
+                            'Merge without Saving',
+                            'Cancel'
+                        );
+                        
+                        if (result === 'Save and Merge') {
+                            try {
+                                const model = modelService.getCurrentModel();
+                                if (model) {
+                                    await modelService.saveToFile(model);
+                                }
+                            } catch (saveError) {
+                                console.error("[Extension] Error saving model:", saveError);
+                                vscode.window.showErrorMessage(`Failed to save model: ${saveError.message}`);
+                                return;
+                            }
+                        } else if (result === 'Cancel') {
+                            console.log("[Extension] Merge operation cancelled");
+                            return;
+                        }
+                        // If "Merge without Saving" was selected, we continue without saving
+                    }
                     
                     try {
                         // Show progress notification

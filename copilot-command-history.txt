@@ -9,8 +9,31 @@ Command: Fixed treeview item click behavior for Project and Model Service items
 - Added panel tracking for Lexicon view panels
 - Added panel tracking for User Stories view panels
 - Updated architecture notes with details about the panel management pattern
+
+Command: Implemented unsaved changes indicator in ModelService
+- Added hasUnsavedChanges flag to ModelService
+- Added methods to mark and check for unsaved changes
+- Updated lexiconView.js to mark unsaved changes when lexicon items are updated
+- Updated objectDetailsView.js to mark unsaved changes when object properties are updated
+- Reset unsaved changes flag when loading, saving, or clearing the model
 - Ensured all panel types follow the same pattern for consistency to avoid duplicates
 - Fixed issue where clicking an already open item would create a duplicate panel
+
+Command: Added visual indicator in sidebar treeview for unsaved changes
+- Updated JsonTreeDataProvider to track and update treeview title with an asterisk when there are unsaved changes
+- Added setTreeView method to JsonTreeDataProvider to allow updating the TreeView title
+- Implemented polling mechanism to check for unsaved changes and update the title accordingly
+- Added checkUnsavedChanges method to update the tree view title based on ModelService.hasUnsavedChangesInMemory()
+- Modified refresh method to also check and update unsaved changes indicator
+- Updated the architecture notes with information about the tree view title indicator
+- Preserved original title when removing unsaved changes indicator
+
+Command: Added unsaved changes warning for destructive operations
+- Fixed corrupt imports in modelAIProcessingCommands.ts
+- Implemented warning dialog when merging AI processing results with unsaved changes
+- Added warning dialog when applying validation change requests with unsaved changes
+- Added options to save before continuing, continue without saving, or cancel
+- Updated architecture notes with information about destructive operations warning
 
 Command: Added centralized API error handling for 401 unauthorized responses
 - Created new utility file src/utils/apiErrorHandler.ts with handleApiError function
@@ -46,4 +69,4 @@ Command: Improved welcome page introductory text
 - Added emphasis on the benefits of using AppDNA (accelerated development, code generation)
 - Highlighted the AI-assisted validation and fabrication aspects of the tool
 - Made the text more action-oriented and focused on value proposition
-- Positioned the action cards directly below the enhanced introduction
+- Positioned the action cards directly below the enhanced introductionCommand: Expand all top level tree items in the AppDNA tree view

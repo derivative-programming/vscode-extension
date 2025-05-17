@@ -795,10 +795,33 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
         
         // Import required utilities
         const { XPathUtils } = require('../utils/xpathUtils');
-        
-        // Get the model service instance to find the current model file path
+          // Get the model service instance to find the current model file path
         const { ModelService } = require('../services/modelService');
         const modelService = ModelService.getInstance();
+        
+        // Check for unsaved changes
+        if (modelService.hasUnsavedChangesInMemory()) {
+            // Ask the user what to do about unsaved changes
+            const result = await vscode.window.showWarningMessage(
+                'You have unsaved changes that will be lost if you apply this change request. Save changes first?',
+                'Save and Apply',
+                'Apply without Saving',
+                'Cancel'
+            );
+            
+            if (result === 'Save and Apply') {
+                // Save current model
+                const model = modelService.getCurrentModel();
+                if (model) {
+                    await modelService.saveToFile(model);
+                }
+            } else if (result === 'Cancel') {
+                console.log("[Extension] Apply change request cancelled due to unsaved changes");
+                panel.webview.postMessage({ command: 'modelValidationSetStatus', text: 'Operation cancelled. Your unsaved changes have been preserved.' });
+                return;
+            }
+            // If "Apply without Saving" was selected, we continue without saving
+        }
         
         // Get the model file path
         const modelFilePath = modelService.getCurrentFilePath();
@@ -988,11 +1011,34 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
                 }
             }
         }
-        
-        // Import required utilities
+          // Import required utilities
         const { XPathUtils } = require('../utils/xpathUtils');
         const { ModelService } = require('../services/modelService');
         const modelService = ModelService.getInstance();
+        
+        // Check for unsaved changes
+        if (modelService.hasUnsavedChangesInMemory()) {
+            // Ask the user what to do about unsaved changes
+            const result = await vscode.window.showWarningMessage(
+                'You have unsaved changes that will be lost if you apply all change requests. Save changes first?',
+                'Save and Apply All',
+                'Apply All without Saving',
+                'Cancel'
+            );
+            
+            if (result === 'Save and Apply All') {
+                // Save current model
+                const model = modelService.getCurrentModel();
+                if (model) {
+                    await modelService.saveToFile(model);
+                }
+            } else if (result === 'Cancel') {
+                console.log("[Extension] Apply all change requests cancelled due to unsaved changes");
+                panel.webview.postMessage({ command: 'modelValidationSetStatus', text: 'Operation cancelled. Your unsaved changes have been preserved.' });
+                return;
+            }
+            // If "Apply All without Saving" was selected, we continue without saving
+        }
         
         // Get the model file path
         const modelFilePath = modelService.getCurrentFilePath();

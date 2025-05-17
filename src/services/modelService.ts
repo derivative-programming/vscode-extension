@@ -21,6 +21,7 @@ export class ModelService {
     private static instance: ModelService;
     private dataProvider: ModelDataProvider;
     private currentFilePath: string | null = null;
+    private hasUnsavedChanges: boolean = false;
 
     /**
      * Private constructor to enforce singleton pattern
@@ -58,6 +59,9 @@ export class ModelService {
             // Store the current file path for future save operations
             this.currentFilePath = filePath;
             
+            // Reset unsaved changes flag
+            this.hasUnsavedChanges = false;
+            
             // Notify that file was loaded
             vscode.window.showInformationMessage(`Successfully loaded ${path.basename(filePath)}`);
             
@@ -92,6 +96,9 @@ export class ModelService {
             
             // Update the current file path
             this.currentFilePath = targetPath;
+            
+            // Reset unsaved changes flag after successful save
+            this.hasUnsavedChanges = false;
             
             // Notify that file was saved
             vscode.window.showInformationMessage(`Successfully saved to ${path.basename(targetPath)}`);
@@ -207,14 +214,13 @@ export class ModelService {
         }
         
         return allReports;
-    }
-
-    /**
+    }    /**
      * Clear the cached model data
      */
     public clearCache(): void {
         this.dataProvider.clearCache();
         this.currentFilePath = null;
+        this.hasUnsavedChanges = false;
     }
 
     /**
@@ -268,14 +274,16 @@ export class ModelService {
                 console.log("[ModelService] Loading model from temp file");
                 const updatedModel = await this.dataProvider.loadRootModel(tempPath);
                 console.log("[ModelService] Model loaded from temp file successfully");
-                
-                // Save the model back to the original file
+                  // Save the model back to the original file
                 console.log("[ModelService] Saving model to original file:", currentPath);
                 await this.dataProvider.saveRootModel(currentPath, updatedModel);
                 console.log("[ModelService] Model saved to original file successfully");
                 
                 // Update the cached model
                 this.currentFilePath = currentPath;
+                
+                // Reset unsaved changes flag since we just saved
+                this.hasUnsavedChanges = false;
                 
                 // Clean up the temp file
                 if (fs.existsSync(tempPath)) {
@@ -320,5 +328,22 @@ export class ModelService {
         // Fall back to the extension's schema file
         const extensionPath = vscode.extensions.getExtension('TestPublisher.appdna')?.extensionPath || '';
         return path.join(extensionPath, 'app-dna.schema.json');
+    }
+    
+    /**
+     * Mark that the model has unsaved changes
+     * This should be called whenever the model is modified in memory
+     */
+    public markUnsavedChanges(): void {
+        this.hasUnsavedChanges = true;
+        console.log("[ModelService] Model has been marked as having unsaved changes");
+    }
+    
+    /**
+     * Check if the model has unsaved changes
+     * @returns True if the model has unsaved changes, false otherwise
+     */
+    public hasUnsavedChangesInMemory(): boolean {
+        return this.hasUnsavedChanges;
     }
 }

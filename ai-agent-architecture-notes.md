@@ -19,6 +19,10 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 #### ModelService (Singleton)
 - Central service that manages loading, caching, and saving the AppDNA model file
 - Provides methods to manipulate the model (getAllObjects, getAllReports, etc.)
+- Tracks unsaved changes with hasUnsavedChanges flag
+- Views call markUnsavedChanges() when they update the model in memory
+- hasUnsavedChangesInMemory() can be used to check if model has unsaved changes
+- Destructive operations (like merge) check for unsaved changes and prompt users to save first
 
 #### Tree View Architecture
 - **JsonTreeDataProvider**: The main provider class that implements `vscode.TreeDataProvider`
@@ -26,6 +30,9 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
   - `getChildren()`: Returns child items for a given parent item
   - `getParent()`: Returns the parent item for a given child item (required for reveal functionality)
   - `refresh()`: Triggers a refresh of the tree view
+  - Monitors ModelService's unsaved changes state and updates treeview title with "*" indicator when there are unsaved changes
+    - Updates TreeView title using VS Code's TreeView.title property 
+    - Polls for unsaved changes status periodically to keep title indicator in sync
 
 - **JsonTreeItem**: Custom tree item class that extends `vscode.TreeItem`
   - Represents individual nodes in the tree

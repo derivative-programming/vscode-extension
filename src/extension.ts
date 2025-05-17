@@ -74,11 +74,12 @@ export function activate(context: vscode.ExtensionContext) {
         modelService.loadFile(appDNAFilePath).catch(err => {
             console.error("Failed to load model:", err);
         });
-    }
-
-    // Create the tree data provider (now with ModelService) and tree view
+    }    // Create the tree data provider (now with ModelService) and tree view
     const jsonTreeDataProvider = new JsonTreeDataProvider(appDNAFilePath, modelService);
     const treeView = vscode.window.createTreeView('appdna', { treeDataProvider: jsonTreeDataProvider });
+    
+    // Set the tree view in the tree data provider to enable title updates
+    jsonTreeDataProvider.setTreeView(treeView);
     
     context.subscriptions.push(treeView);
 
