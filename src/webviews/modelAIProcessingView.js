@@ -139,7 +139,7 @@
             });        } else if (message.command === "modelAIProcessingMergeStarted") {
             console.log("[Webview] Merge operation started");
             // Update the merge button to show progress
-            const mergeButton = document.querySelector("#detailsModal .action-container .download-button");
+            const mergeButton = document.querySelector("#detailsModal .action-container .merge-button");
             console.log("[Webview] Found merge button:", !!mergeButton);
             if (mergeButton) {
                 console.log("[Webview] Updating button to show merge in progress");
@@ -152,7 +152,7 @@
             hideSpinner();        } else if (message.command === "modelAIProcessingMergeSuccess") {
             console.log("[Webview] Merge operation completed successfully");
             // Update the merge button to show success
-            const mergeButton = document.querySelector("#detailsModal .action-container .download-button");
+            const mergeButton = document.querySelector("#detailsModal .action-container .merge-button");
             console.log("[Webview] Found merge button for success:", !!mergeButton);
             if (mergeButton) {
                 console.log("[Webview] Updating button to show merge success");
@@ -168,7 +168,7 @@
             console.error("[Webview] Error details:", message);
             
             // Update the merge button to allow retry
-            const mergeButton = document.querySelector("#detailsModal .action-container .download-button");
+            const mergeButton = document.querySelector("#detailsModal .action-container .merge-button");
             console.log("[Webview] Found merge button for error:", !!mergeButton);
             if (mergeButton) {
                 console.log("[Webview] Updating button to show merge error and allow retry");
@@ -1020,14 +1020,13 @@
                 requestCode: data.modelPrepRequestCode
             });
         }
-        
-        // Add "Merge Results into Model" button if modelPrepRequestResultModelUrl is available
+          // Add "Merge Results into Model" button if modelPrepRequestResultModelUrl is available
         // and the request is completed successfully
         if (data.modelPrepRequestResultModelUrl && 
             data.modelPrepRequestIsCompleted && 
             data.modelPrepRequestIsSuccessful) {
               const mergeButton = document.createElement('button');
-            mergeButton.className = 'download-button';
+            mergeButton.className = 'download-button merge-button';
             mergeButton.textContent = 'Merge Results into Model';
             mergeButton.onclick = function() {
                 mergeResultsIntoModel(data.modelPrepRequestCode, data.modelPrepRequestResultModelUrl);

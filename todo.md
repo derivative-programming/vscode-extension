@@ -3,9 +3,7 @@ Agent todo items...
  
 
 test:if a model service view gets an unauthorized error on the api call, logout and go to the login view
- 
-treeview... ✅ COMPLETED
-clicking an item that is already open should not open it again.  It should just focus on the already open item.
+  
 
 
 model ai processing details merge button has issues.  after click of merge, it seems to modify the dowload\view report button instead of the merge button
