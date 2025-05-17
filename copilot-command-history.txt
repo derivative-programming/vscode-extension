@@ -90,6 +90,22 @@ Command: Improved welcome page introductory text
 - Added proper error handling when markUnsavedChanges is not available
 - Ensures consistent behavior with other views (lexiconView.js, objectDetailsView.js, projectSettingsView.js)
 
+Command: Fixed unregistered command error for appdna.unsavedChangesIndicator
+- Added missing command definition in package.json for unsavedChangesIndicator
+- Fixed tree view title display to correctly show "● AppDNA" when there are unsaved changes
+- Fixed the issue where the title was being completely replaced instead of amended
+- Ensured the original title is preserved when there are no unsaved changes
+- Error was appearing as "[TestPublisher.appdna]: Menu item references a command which is not defined in the 'commands' section"
+
+Command: Updated object details view to properly mark unsaved changes on settings updates
+- Added markUnsavedChanges() call in updateSettingsDirectly function
+- Previously only property updates (updateModelDirectly) were marking changes as unsaved
+- Now both object properties and object settings changes will trigger the unsaved indicator
+- Added proper error handling for when markUnsavedChanges is not available
+- Ensured consistent behavior between updateModelDirectly and updateSettingsDirectly functions
+- Added improved logging for debugging unsaved changes when settings are modified
+
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

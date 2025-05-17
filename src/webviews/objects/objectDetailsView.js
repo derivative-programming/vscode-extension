@@ -199,8 +199,7 @@ function updateSettingsDirectly(data, objectReference, modelService) {
         // Extract property information from the data
         const { property, exists, value } = data;
         console.log("[DEBUG] updateSettingsDirectly received:", property, value, typeof value);
-        if (property) {
-            if (exists) {
+        if (property) {            if (exists) {
                 // Add or update the property
                 objectReference[property] = value;
             } else {
@@ -208,6 +207,15 @@ function updateSettingsDirectly(data, objectReference, modelService) {
                 delete objectReference[property];
             }
             console.log("[DEBUG] objectReference after update:", JSON.stringify(objectReference, null, 2));
+            
+            // Mark that there are unsaved changes
+            if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                modelService.markUnsavedChanges();
+                console.log("[DEBUG] Model marked as having unsaved changes after settings update");
+            } else {
+                console.warn("[DEBUG] modelService.markUnsavedChanges is not available");
+            }
+            
             vscode.commands.executeCommand("appdna.refresh");
         }
     } catch (error) {

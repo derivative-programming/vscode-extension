@@ -87,6 +87,11 @@
         }
       }    },    "commands": [
       {
+        "command": "appdna.unsavedChangesIndicator",
+        "title": "Unsaved Changes",
+        "icon": "$(circle-filled)"
+      },
+      {
         "command": "appdna.addFile",
         "title": "Add File",
         "icon": "$(add)"

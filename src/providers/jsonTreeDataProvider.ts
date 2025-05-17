@@ -89,12 +89,11 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             if (this.treeView) {
                 if (!this.originalTitle) {
                     this.originalTitle = "AppDNA"; // Store original title first time
-                }
-                  // Use ThemeIcon with label for the title instead of string interpolation
+                }                // Use ThemeIcon with label for the title instead of string interpolation
                 if (hasUnsavedChanges) {
-                    this.treeView.title = "●";
+                    this.treeView.title = "● " + this.originalTitle;
                 } else {
-                    this.treeView.title = "";
+                    this.treeView.title = this.originalTitle;
                 }
             }
         }
