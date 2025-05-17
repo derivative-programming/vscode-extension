@@ -46,6 +46,13 @@ export function registerCommands(
     appDNAFilePath: string | null,
     modelService: ModelService
 ): void {
+    // Register a no-op command for the unsaved changes indicator
+    const unsavedChangesIndicatorCommand = vscode.commands.registerCommand('appdna.unsavedChangesIndicator', () => {
+        // This command does nothing - it's just a visual indicator
+        console.log("Unsaved changes indicator clicked");
+    });
+    context.subscriptions.push(unsavedChangesIndicatorCommand);
+    
     // Register refresh command
     const refreshCommand = vscode.commands.registerCommand('appdna.refresh', () => {
         jsonTreeDataProvider.refresh();

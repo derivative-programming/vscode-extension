@@ -10,6 +10,13 @@ Command: Fixed treeview item click behavior for Project and Model Service items
 - Added panel tracking for User Stories view panels
 - Updated architecture notes with details about the panel management pattern
 
+Command: Moved unsaved changes circle indicator directly next to tree view title
+- Modified JsonTreeDataProvider to update the tree view title dynamically
+- Added circle-filled icon directly before the "AppDNA" text in the title when there are unsaved changes
+- Preserved the original title when there are no unsaved changes 
+- Ensured the title updates in sync with the unsaved changes status
+- This provides a more integrated visual indicator compared to the separate title bar button
+
 Command: Implemented unsaved changes indicator in ModelService
 - Added hasUnsavedChanges flag to ModelService
 - Added methods to mark and check for unsaved changes
@@ -20,13 +27,12 @@ Command: Implemented unsaved changes indicator in ModelService
 - Fixed issue where clicking an already open item would create a duplicate panel
 
 Command: Added visual indicator in sidebar treeview for unsaved changes
-- Updated JsonTreeDataProvider to track and update treeview title with an asterisk when there are unsaved changes
-- Added setTreeView method to JsonTreeDataProvider to allow updating the TreeView title
-- Implemented polling mechanism to check for unsaved changes and update the title accordingly
-- Added checkUnsavedChanges method to update the tree view title based on ModelService.hasUnsavedChangesInMemory()
-- Modified refresh method to also check and update unsaved changes indicator
-- Updated the architecture notes with information about the tree view title indicator
-- Preserved original title when removing unsaved changes indicator
+- Added circle icon button in the treeview title bar to indicate unsaved changes
+- Created appDnaHasUnsavedChanges context variable to control indicator visibility
+- Added no-op command 'appdna.unsavedChangesIndicator' to display the icon button
+- Used VS Code's built-in circle-filled icon for the indicator
+- Added polling mechanism that updates the context variable when unsaved status changes
+- Positioned the indicator at the front of the title bar with navigation@-1 group
 
 Command: Added unsaved changes warning for destructive operations
 - Fixed corrupt imports in modelAIProcessingCommands.ts
@@ -70,3 +76,11 @@ Command: Improved welcome page introductory text
 - Highlighted the AI-assisted validation and fabrication aspects of the tool
 - Made the text more action-oriented and focused on value proposition
 - Positioned the action cards directly below the enhanced introductionCommand: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view

@@ -30,9 +30,13 @@
           "name": "AppDNA"
         }
       ]
-    },
-    "menus": {
+    },    "menus": {
       "view/title": [
+        {
+          "command": "appdna.unsavedChangesIndicator",
+          "when": "view == appdna && appDnaFileExists && appDnaHasUnsavedChanges",
+          "group": "navigation@-1"
+        },
         {
           "command": "appdna.addFile",
           "when": "view == appdna && !appDnaFileExists",
@@ -81,8 +85,7 @@
           "default": "https://modelservicesapi.derivative-programming.com",
           "description": "URL for the external model generation service"
         }
-      }
-    },    "commands": [
+      }    },    "commands": [
       {
         "command": "appdna.addFile",
         "title": "Add File",

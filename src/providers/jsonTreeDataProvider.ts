@@ -45,43 +45,58 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             // Refresh the tree view when server status changes
             this.refresh();
         });
-        
-        // Register to HTTP server status changes as well
+          // Register to HTTP server status changes as well
         this.mcpHttpServer.onStatusChange(isRunning => {
             // Refresh the tree view when HTTP server status changes
             this.refresh();
         });
-        
-        // Set up a timer to check for unsaved changes
-        setInterval(() => this.checkUnsavedChanges(), 1000);
-    }
+          // Set up a timer to check for unsaved changes and update UI when status changes
+        setInterval(() => {
+            this.updateUnsavedChangesContext();
+        }, 1000);
+    }    
     
-    /**
-     * Sets the tree view reference to enable title updates
+    // Track the last check result to avoid unnecessary refreshes
+    private _hasUnsavedChangesLastCheck: boolean = false;    /**
+     * Sets the tree view reference for future operations
      * @param treeView The TreeView instance from VS Code
      */
     setTreeView(treeView: vscode.TreeView<JsonTreeItem>): void {
         this.treeView = treeView;
-        this.originalTitle = treeView.title;
-        // Initial check for unsaved changes
-        this.checkUnsavedChanges();
+        // Initial refresh and check for unsaved changes
+        this.refresh();
+        this.updateUnsavedChangesContext();
     }
     
     /**
-     * Checks for unsaved changes and updates the tree view title accordingly
+     * Checks if the model has unsaved changes
+     * @returns True if there are unsaved changes
      */
-    private checkUnsavedChanges(): void {
-        if (this.treeView) {
-            const hasUnsavedChanges = this.modelService.hasUnsavedChangesInMemory();
-            
-            if (hasUnsavedChanges && !this.treeView.title?.includes('*')) {
-                // Add indicator for unsaved changes
-                this.treeView.title = `${this.originalTitle || 'AppDNA'} *`;
-                console.log("[JsonTreeDataProvider] Added unsaved changes indicator to tree view title");
-            } else if (!hasUnsavedChanges && this.treeView.title?.includes('*')) {
-                // Remove indicator when no unsaved changes
-                this.treeView.title = this.originalTitle || 'AppDNA';
-                console.log("[JsonTreeDataProvider] Removed unsaved changes indicator from tree view title");
+    private hasUnsavedChanges(): boolean {
+        return this.modelService.hasUnsavedChangesInMemory();
+    }
+      /**
+     * Update the context for showing unsaved changes indicator
+     */
+    private updateUnsavedChangesContext(): void {
+        const hasUnsavedChanges = this.hasUnsavedChanges();
+        
+        if (hasUnsavedChanges !== this._hasUnsavedChangesLastCheck) {
+            this._hasUnsavedChangesLastCheck = hasUnsavedChanges;
+            vscode.commands.executeCommand('setContext', 'appDnaHasUnsavedChanges', hasUnsavedChanges);
+            console.log(`[JsonTreeDataProvider] Updated unsaved changes context to: ${hasUnsavedChanges}`);
+              // Update the tree view title to include/remove the circle indicator
+            if (this.treeView) {
+                if (!this.originalTitle) {
+                    this.originalTitle = "AppDNA"; // Store original title first time
+                }
+                
+                // Use ThemeIcon with label for the title instead of string interpolation
+                if (hasUnsavedChanges) {
+                    this.treeView.title = "●";
+                } else {
+                    this.treeView.title = "";
+                }
             }
         }
     }
@@ -93,9 +108,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     getChildren(element?: JsonTreeItem): Thenable<JsonTreeItem[]> {
         // Check if the file exists and a model is loaded
         const fileExists = this.appDNAFilePath && fs.existsSync(this.appDNAFilePath);
-        const modelLoaded = this.modelService.isFileLoaded();
-
-        // If no element is provided (root level request)
+        const modelLoaded = this.modelService.isFileLoaded();        // If no element is provided (root level request)
         if (!element) {
             if (fileExists) {
                 // Create tree items for root level
@@ -117,9 +130,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 );
                 
                 // Set a database icon for the DATA OBJECTS item
-                dataObjectsItem.iconPath = new vscode.ThemeIcon('database');
-                
-                // Create MODEL SERVICES item with appropriate icon based on login status
+                dataObjectsItem.iconPath = new vscode.ThemeIcon('database');                // Create MODEL SERVICES item with appropriate icon based on login status
                 const isLoggedIn = this.authService.isLoggedIn();
                 const modelServicesItem = new JsonTreeItem(
                     'MODEL SERVICES',
@@ -134,9 +145,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 } else {
                     // Locked icon for logged-out state
                     modelServicesItem.iconPath = new vscode.ThemeIcon('lock');
-                }
-                
-                // Set tooltip to show login status
+                }                // Set tooltip to show login status
                 modelServicesItem.tooltip = isLoggedIn ? 
                     "Connected to Model Services API" : 
                     "Authentication required to access Model Services";
@@ -405,8 +414,6 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         return Promise.resolve([]);
     }    refresh(): void {
         this._onDidChangeTreeData.fire();
-        // Check for unsaved changes when refreshing the tree view
-        this.checkUnsavedChanges();
     }
 
     /**

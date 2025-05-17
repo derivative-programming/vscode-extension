@@ -27,12 +27,12 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 #### Tree View Architecture
 - **JsonTreeDataProvider**: The main provider class that implements `vscode.TreeDataProvider`
   - Contains the core methods for generating tree items
-  - `getChildren()`: Returns child items for a given parent item
-  - `getParent()`: Returns the parent item for a given child item (required for reveal functionality)
+  - `getChildren()`: Returns child items for a given parent item  - `getParent()`: Returns the parent item for a given child item (required for reveal functionality)
   - `refresh()`: Triggers a refresh of the tree view
-  - Monitors ModelService's unsaved changes state and updates treeview title with "*" indicator when there are unsaved changes
-    - Updates TreeView title using VS Code's TreeView.title property 
-    - Polls for unsaved changes status periodically to keep title indicator in sync
+  - Monitors ModelService's unsaved changes state and shows a visual indicator in the title bar
+    - Uses a circle icon in the title bar when changes are unsaved
+    - Updates VS Code context variable 'appDnaHasUnsavedChanges' to control indicator visibility
+    - Polls for unsaved changes status periodically to keep indicator in sync
 
 - **JsonTreeItem**: Custom tree item class that extends `vscode.TreeItem`
   - Represents individual nodes in the tree
@@ -94,6 +94,12 @@ The HTML structure follows this pattern:
   - Collapse button uses the VS Code built-in 'workbench.actions.treeView.appdna.collapseAll' command
   - Both commands have robust error handling and logging
   - The expandAllItems method in JsonTreeDataProvider provides additional programmatic control
+- Unsaved changes indicator in the tree view:
+  - Circle icon appears directly next to "AppDNA" in the tree view title when there are unsaved changes
+  - JsonTreeDataProvider dynamically updates the tree view title to include/remove the indicator
+  - Uses VS Code context variable 'appDnaHasUnsavedChanges' internally
+  - JsonTreeDataProvider polls ModelService every second to detect changes in status
+  - Original title is preserved when there are no unsaved changes
   - Both commands log actions to the command history file using commandLog utility
 
 #### MCPServer (Singleton)
