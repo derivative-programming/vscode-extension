@@ -21,6 +21,10 @@ The AppDNA VS Code extension provides a graphical interface for editing, validat
 - Provides methods to manipulate the model (getAllObjects, getAllReports, etc.)
 - Tracks unsaved changes with hasUnsavedChanges flag
 - Views call markUnsavedChanges() when they update the model in memory
+  - lexiconView.js calls markUnsavedChanges() when lexicon items are updated
+  - objectDetailsView.js calls markUnsavedChanges() when object properties are updated
+  - projectSettingsView.js calls markUnsavedChanges() when project settings are updated
+  - userStoriesView.js calls markUnsavedChanges() when adding/updating user stories or importing from CSV
 - hasUnsavedChangesInMemory() can be used to check if model has unsaved changes
 - Destructive operations (like merge) check for unsaved changes and prompt users to save first
 

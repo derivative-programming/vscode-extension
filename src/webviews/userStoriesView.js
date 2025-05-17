@@ -153,10 +153,16 @@ function showUserStoriesView(context, modelService) {
                         storyText: storyText,
                         isIgnored: "false",
                         isStoryProcessed: "false"
-                    };
-
-                    // Add the new story to the model
+                    };                    // Add the new story to the model
                     namespace.userStory.push(newStory);
+                    
+                    // Mark that there are unsaved changes
+                    if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                        modelService.markUnsavedChanges();
+                        console.log(`[UserStoriesView] Marked unsaved changes after adding new story`);
+                    } else {
+                        console.warn(`[UserStoriesView] modelService.markUnsavedChanges is not available`);
+                    }
 
                     // Send updated items back to the webview
                     panel.webview.postMessage({
@@ -191,9 +197,16 @@ function showUserStoriesView(context, modelService) {
                     const { index, isIgnored } = message.data;
                     const storyItem = namespace.userStory[index];
                     
-                    if (storyItem) {
-                        // Update the isIgnored value in the model
+                    if (storyItem) {                        // Update the isIgnored value in the model
                         storyItem.isIgnored = isIgnored ? "true" : "false";
+                        
+                        // Mark that there are unsaved changes
+                        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                            modelService.markUnsavedChanges();
+                            console.log(`[UserStoriesView] Marked unsaved changes after updating story ignored status`);
+                        } else {
+                            console.warn(`[UserStoriesView] modelService.markUnsavedChanges is not available`);
+                        }
                         
                         console.log(`Updated user story isIgnored status: ${storyItem.storyText} -> ${storyItem.isIgnored} (in memory only, not saved to file)`);
                     } else {
@@ -329,6 +342,15 @@ function showUserStoriesView(context, modelService) {
                         
                         namespace.userStory.push(newStory);
                         results.added++;
+                    }
+                      // Mark that there are unsaved changes if any stories were added
+                    if (results.added > 0) {
+                        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                            modelService.markUnsavedChanges();
+                            console.log(`[UserStoriesView] Marked unsaved changes after importing ${results.added} stories from CSV`);
+                        } else {
+                            console.warn(`[UserStoriesView] modelService.markUnsavedChanges is not available`);
+                        }
                     }
                     
                     // Send results back to webview

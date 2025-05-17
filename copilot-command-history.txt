@@ -50,6 +50,13 @@ Command: Added centralized API error handling for 401 unauthorized responses
 - Ensured all API calls follow the same pattern for consistency
 - Fixed issue when API session expires to automatically redirect to login view
 
+Command: Updated projectSettingsView.js to properly handle unsaved changes
+- Modified handleUpdateSetting() function to call markUnsavedChanges() instead of directly saving to file
+- Added error handling for cases where markUnsavedChanges is not available
+- Updated architecture notes to document projectSettingsView.js integration with unsaved changes
+- Added logging when marking unsaved changes for easier debugging
+- Ensures consistent behavior with lexiconView.js and objectDetailsView.js
+
 Command: Implemented welcome screen with workflow steps
 - Updated welcomeView.js with a detailed workflow section
 - Added 6 step process explaining model creation and processing workflow
@@ -75,12 +82,14 @@ Command: Improved welcome page introductory text
 - Added emphasis on the benefits of using AppDNA (accelerated development, code generation)
 - Highlighted the AI-assisted validation and fabrication aspects of the tool
 - Made the text more action-oriented and focused on value proposition
-- Positioned the action cards directly below the enhanced introductionCommand: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
+- Positioned the action cards directly below the enhanced introductionCommand: Updated userStoriesView.js to properly mark unsaved changes
+- Added markUnsavedChanges() call when adding new user stories
+- Added markUnsavedChanges() call when toggling user story isIgnored status
+- Added markUnsavedChanges() call when importing user stories from CSV
+- Updated architecture notes to document userStoriesView.js integration with unsaved changes
+- Added proper error handling when markUnsavedChanges is not available
+- Ensures consistent behavior with other views (lexiconView.js, objectDetailsView.js, projectSettingsView.js)
+
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

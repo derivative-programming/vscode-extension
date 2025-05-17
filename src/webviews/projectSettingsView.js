@@ -252,8 +252,13 @@ function handleUpdateSetting(data, rootModel, modelService, panel) {
             }
         }
         
-        // Save the updated model
-        modelService.saveToFile(rootModel);
+        // Mark that there are unsaved changes instead of immediately saving
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log(`[ProjectSettingsView] Marked unsaved changes after updating ${property}`);
+        } else {
+            console.warn(`[ProjectSettingsView] modelService.markUnsavedChanges is not available`);
+        }
         
         // Instead of refreshing webview data (which can cause infinite recursion),
         // just send confirmation back to webview
