@@ -33,11 +33,6 @@
     },    "menus": {
       "view/title": [
         {
-          "command": "appdna.unsavedChangesIndicator",
-          "when": "view == appdna && appDnaFileExists && appDnaHasUnsavedChanges",
-          "group": "navigation@-1"
-        },
-        {
           "command": "appdna.addFile",
           "when": "view == appdna && !appDnaFileExists",
           "group": "navigation"
@@ -86,11 +81,6 @@
           "description": "URL for the external model generation service"
         }
       }    },    "commands": [
-      {
-        "command": "appdna.unsavedChangesIndicator",
-        "title": "Unsaved Changes",
-        "icon": "$(circle-filled)"
-      },
       {
         "command": "appdna.addFile",
         "title": "Add File",
