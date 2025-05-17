@@ -158,6 +158,34 @@ function refreshAll() {
 }
 
 /**
+ * Gets an array of items from all open panels
+ * @returns {Array} Array of items from open panels
+ */
+function getOpenPanelItems() {
+    console.log(`Getting items from ${openPanels.size} open panels`);
+    const items = [];
+    for (const { item } of openPanels.values()) {
+        items.push(item);
+    }
+    return items;
+}
+
+/**
+ * Closes all currently open object details panels
+ */
+function closeAllPanels() {
+    console.log(`Closing all panels, count: ${openPanels.size}`);
+    for (const { panel } of openPanels.values()) {
+        if (panel && !panel._disposed) {
+            panel.dispose();
+        }
+    }
+    // Clear the panels maps
+    activePanels.clear();
+    openPanels.clear();
+}
+
+/**
  * Updates object data directly in the ModelService instance
  * @param {Object} data The data to update (contains props array)
  * @param {Object} objectReference Direct reference to the object in the model
@@ -226,5 +254,7 @@ function updateSettingsDirectly(data, objectReference, modelService) {
 // Export the showObjectDetails function
 module.exports = {
     showObjectDetails,
-    refreshAll
+    refreshAll,
+    getOpenPanelItems,
+    closeAllPanels
 };

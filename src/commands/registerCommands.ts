@@ -57,11 +57,20 @@ export function registerCommands(
     const refreshCommand = vscode.commands.registerCommand('appdna.refresh', () => {
         jsonTreeDataProvider.refresh();
     });
-    context.subscriptions.push(refreshCommand);
-
-    // Register refresh view command for the title bar button
+    context.subscriptions.push(refreshCommand);    // Register refresh view command for the title bar button
     context.subscriptions.push(
         vscode.commands.registerCommand("appdna.refreshView", async () => {
+            // Store references to any open object details panels before refreshing
+            let openPanelsToReopen = [];
+            if (objectDetailsView && typeof objectDetailsView.getOpenPanelItems === "function") {
+                openPanelsToReopen = objectDetailsView.getOpenPanelItems();
+            }
+            
+            // Close all open object details panels
+            if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
+                objectDetailsView.closeAllPanels();
+            }
+            
             // Reload the model file into memory
             if (appDNAFilePath) {
                 try {
@@ -70,14 +79,21 @@ export function registerCommands(
                     vscode.window.showErrorMessage("Failed to reload model: " + (err && err.message ? err.message : err));
                 }
             }
+            
             // Refresh the tree view
             jsonTreeDataProvider.refresh();
-            // Refresh all open object details webviews (if implemented)
-            if (objectDetailsView && typeof objectDetailsView.refreshAll === "function") {
-                objectDetailsView.refreshAll();
+            
+            // Wait a moment for the model to fully load
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Reopen any panels that were previously open with fresh data
+            if (openPanelsToReopen.length > 0 && objectDetailsView) {
+                for (const item of openPanelsToReopen) {
+                    objectDetailsView.showObjectDetails(item, modelService);
+                }
             }
         })
-    );    // Register expand all top level items command using the dedicated handler
+    );// Register expand all top level items command using the dedicated handler
     context.subscriptions.push(
         vscode.commands.registerCommand("appdna.expandAllTopLevel", async () => {
             await expandAllTopLevelCommand(jsonTreeDataProvider);

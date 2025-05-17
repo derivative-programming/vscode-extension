@@ -1,7 +1,7 @@
 "use strict";
 
 // Import the object details view from the objects subfolder
-const { showObjectDetails, refreshAll } = require("./objects/objectDetailsView");
+const { showObjectDetails, refreshAll, getOpenPanelItems, closeAllPanels } = require("./objects/objectDetailsView");
 
 /**
  * Shows object details in a webview
@@ -14,8 +14,10 @@ function showObjectDetailsWrapper(item, modelService) {
     showObjectDetails(item, modelService);
 }
 
-// Export the function to maintain compatibility with existing code
+// Export the functions to maintain compatibility with existing code
 module.exports = {
     showObjectDetails: showObjectDetailsWrapper,
-    refreshAll
+    refreshAll,
+    getOpenPanelItems,
+    closeAllPanels
 };

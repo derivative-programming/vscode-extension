@@ -110,3 +110,12 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+
+Command: Fixed refresh functionality in objectDetailsView
+- Implemented getOpenPanelItems() function to track open object detail panels
+- Implemented closeAllPanels() function to close all open panels during refresh
+- Updated the main wrapper module to export the new functions
+- Ensured panels reopen with fresh data after model refresh
+- Added architectural documentation about the refresh mechanism
+Command: Expand all top level tree items in the AppDNA tree view

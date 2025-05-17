@@ -579,3 +579,21 @@ The Welcome View provides an entry point for new users to understand the extensi
    - Command messages like "createNewFile" trigger corresponding VS Code commands
 
 This pattern of presenting a workflow guide helps users understand the proper sequence of operations in the extension and reduces the learning curve for new users.
+
+## Object Details View Mechanism
+
+### Panel Management
+- The extension uses a webview-based approach for displaying object details
+- Object details panels are tracked in two maps within `src/webviews/objects/objectDetailsView.js`:
+  - `activePanels`: Tracks panels by ID to prevent duplicates
+  - `openPanels`: Stores references to panels along with their associated items and modelService
+
+### Refresh Mechanism
+- When the user clicks the refresh button (`appdna.refreshView` command), the extension:
+  1. Gets references to currently open detail panels via `getOpenPanelItems()`
+  2. Closes all open panels via `closeAllPanels()` 
+  3. Reloads the model file from disk
+  4. Refreshes the tree view
+  5. Reopens the previously open panels with fresh data
+
+- This approach ensures that all panels display the most up-to-date data after a refresh, rather than trying to update the panels in-place which could be error-prone.
