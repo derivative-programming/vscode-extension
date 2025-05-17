@@ -4,9 +4,7 @@ Agent todo items...
 
 test:if a model service view gets an unauthorized error on the api call, logout and go to the login view
   
-
-
-model ai processing details merge button has issues.  after click of merge, it seems to modify the dowload\view report button instead of the merge button
+ 
 
 model feature catalog view...
 - use similar style and design as the model validation request list.

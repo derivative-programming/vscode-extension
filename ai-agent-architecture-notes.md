@@ -1,6 +1,6 @@
 # AppDNA VS Code Extension Architecture Notes
 
-*Last updated: May 16, 2025*
+*Last updated: May 17, 2025*
 
 ## Overview
 The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
@@ -536,3 +536,29 @@ The Change Requests List View follows these UI organization principles:
    - Each button includes a descriptive tooltip
 
 This organization makes the UI more intuitive by grouping related controls - selection-based actions are close to selection tools, while global actions remain separate.
+
+## Welcome View Architecture
+
+The Welcome View provides an entry point for new users to understand the extension's capabilities and workflow:
+
+1. **Panel Creation Pattern**:
+   - The welcome view follows a standard pattern for webview panels in VS Code
+   - It uses a singleton pattern via `WelcomePanel.currentPanel` to prevent multiple instances
+   - When an existing panel exists, it uses `reveal()` instead of creating a new panel
+
+2. **Workflow Presentation**:
+   - The welcome screen displays a 6-step workflow for using AppDNA
+   - Each step is visually represented with a numbered indicator and description
+   - Important notes about each step are highlighted in italics with left border styling
+   - The workflow follows a sequential pattern with visual indicators showing the flow direction
+
+3. **UI Organization**:
+   - The welcome view is organized in sections: header, getting started actions, workflow steps, and features
+   - Action cards provide quick access to common functions with hover effects for better interactivity
+   - Styling uses VS Code's theme variables for consistent appearance across themes
+
+4. **Message Communication Pattern**:
+   - The welcome view communicates with the extension via the `postMessage` API
+   - Command messages like "createNewFile" trigger corresponding VS Code commands
+
+This pattern of presenting a workflow guide helps users understand the proper sequence of operations in the extension and reduces the learning curve for new users.

@@ -1,6 +1,7 @@
 // filepath: c:\VR\Source\DP\vscode-extension\src\webviews\welcomeView.js
 // Welcome view component for the AppDNA extension
 // Created: May 4, 2025
+// Modified: May 17, 2025 - Removed Getting Started section
 
 "use strict";
 const vscode = require("vscode");
@@ -170,30 +171,12 @@ class WelcomePanel {
             font-size: 16px;
             margin-bottom: 10px;
             color: var(--vscode-editor-foreground);
-        }
-        .action-description {
+        }        .action-description {
             font-size: 13px;
             color: var(--vscode-descriptionForeground);
         }
-        .feature-section {
+        .workflow-section {
             margin-top: 30px;
-        }
-        .feature-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .feature-item {
-            background-color: var(--vscode-editor-background);
-            border: 1px solid var(--vscode-panel-border);
-            border-radius: 4px;
-            padding: 12px;
-            width: calc(50% - 15px);
-        }
-        .feature-title {
-            font-weight: bold;
-            margin-bottom: 5px;
         }
         .button {
             background-color: var(--vscode-button-background);
@@ -208,68 +191,117 @@ class WelcomePanel {
         .button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
-        @media (max-width: 600px) {
-            .feature-item {
-                width: 100%;
-            }
+        .workflow-container {
+            margin-top: 20px;
+        }
+        .workflow-step {
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .workflow-step:not(:last-child):after {
+            content: "";
+            position: absolute;
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid var(--vscode-panel-border);
+        }
+        .workflow-step-number {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 10px;
+            float: left;
+        }
+        .workflow-step-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+            margin-left: 34px;
+        }
+        .workflow-step-description {
+            margin-left: 34px;
+            margin-bottom: 5px;
+        }
+        .workflow-note {
+            font-style: italic;
+            margin-left: 34px;
+            color: var(--vscode-descriptionForeground);
+            font-size: 13px;
+            border-left: 3px solid var(--vscode-button-background);            padding-left: 10px;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
-    <div class="welcome-container">
-        <div class="logo-container">
+    <div class="welcome-container">        <div class="logo-container">
             <img src="${logoPath}" alt="AppDNA Logo" class="logo" onerror="this.style.display='none'">
             <h1>Welcome to AppDNA</h1>
             <p>A graphical editor for AppDNA model files</p>
         </div>
 
-        <p>AppDNA provides a visual interface for editing, validating, and managing AppDNA model JSON files for your application. This extension helps you create and modify model files with a dynamic UI generated from a JSON schema.</p>
+        <p>AppDNA accelerates your development process by generating high-quality code based on your project model. This extension provides powerful tools to create, edit, and process your model through AI-assisted validation and fabrication services. With a user-friendly interface and guided workflow, you can transform your project requirements into production-ready code in significantly less time than traditional development approaches.</p>
 
-        <h2>Getting Started</h2>
-        <div class="action-container">
-            <div class="action-card" id="create-new">
-                <div class="action-title">Create New Model</div>
-                <div class="action-description">Start with a new AppDNA model file in your workspace.</div>
-                <button class="button">Create New</button>
-            </div>
+        <div class="workflow-section">
+            <h2>AppDNA Workflow</h2>
+            <p>Follow these steps to create and develop your project using AppDNA:</p>
             
-            <div class="action-card" id="open-existing">
-                <div class="action-title">Open Existing Model</div>
-                <div class="action-description">Open an existing AppDNA model file.</div>
-                <button class="button">Open File</button>
-            </div>
-            
-            <div class="action-card" id="view-docs">
-                <div class="action-title">Documentation</div>
-                <div class="action-description">Read the documentation to learn more about using AppDNA.</div>
-                <button class="button">Open Docs</button>
+            <div class="workflow-container">
+                <div class="workflow-step">
+                    <div class="workflow-step-number">1</div>
+                    <div class="workflow-step-title">Create a New Project Model</div>
+                    <div class="workflow-step-description">Start by creating a new AppDNA model file for your project.</div>
+                    <div class="workflow-note">A model is held in a JSON file in your project.</div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">2</div>
+                    <div class="workflow-step-title">Add Model Features</div>
+                    <div class="workflow-step-description">From Model Services, browse and select from a catalog of features to add to your model.</div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">3</div>
+                    <div class="workflow-step-title">Request Model AI Processing</div>
+                    <div class="workflow-step-description">From Model Services, submit the model to the Model AI processing service and download the results when complete.</div>
+                    <div class="workflow-note">AI processing adds data to the model. It does not change existing data in the model.</div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">4</div>
+                    <div class="workflow-step-title">Request Model Validation</div>
+                    <div class="workflow-step-description">From Model Services, submit the model to the Model Validation service, download the results when complete, and approve and apply any change requests.</div>
+                    <div class="workflow-note">Model Validation Change Requests modify existing data in the model. It does not add new data to the model.</div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">5</div>
+                    <div class="workflow-step-title">Select Blueprint</div>
+                    <div class="workflow-step-description">From Model Services, select Blueprint Selection to define the type of files you want to fabricate.</div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">6</div>
+                    <div class="workflow-step-title">Request Model Fabrication</div>
+                    <div class="workflow-step-description">From Model Services, submit the model to the Model Fabrication service and download the fabrication results when complete.</div>
+                    <div class="workflow-note">In the fabrication_results folder, you will find generated source code. Copy what you need from here to your project source code folder.</div>                </div>
             </div>
         </div>
-
-        <div class="feature-section">
-            <h2>Key Features</h2>
-            <div class="feature-list">
-                <div class="feature-item">
-                    <div class="feature-title">Dynamic UI Generation</div>
-                    <p>Edit your model using UI controls automatically generated from the JSON schema.</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-title">Schema Validation</div>
-                    <p>Validate your model against the schema to ensure correctness.</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-title">File Management</div>
-                    <p>Create, open, and save AppDNA model files with ease.</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-title">Code Generation</div>
-                    <p>Generate TypeScript and C# code from your model.</p>
-                </div>
-            </div>
-        </div>
-
-        <h3>Did You Know?</h3>
-        <p>You can access all AppDNA commands through the Command Palette (Ctrl+Shift+P) by typing "AppDNA".</p>
     </div>
 
     <script>
