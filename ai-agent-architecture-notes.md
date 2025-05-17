@@ -597,3 +597,14 @@ This pattern of presenting a workflow guide helps users understand the proper se
   5. Reopens the previously open panels with fresh data
 
 - This approach ensures that all panels display the most up-to-date data after a refresh, rather than trying to update the panels in-place which could be error-prone.
+
+### Project Settings View Mechanism
+- The Project Settings view displays and allows editing of project-level configuration
+- Like Object Details View, it implements a close-and-reopen refresh pattern
+- The view is tracked in the `projectSettingsPanel` object in projectSettingsView.js
+- When the refresh button is clicked:
+  1. A reference to the open project settings panel is stored via `getProjectSettingsPanel()`
+  2. The panel is closed via `closeProjectSettingsPanel()`
+  3. The model is reloaded from disk
+  4. The tree view is refreshed
+  5. The project settings panel is reopened with fresh data using the stored reference

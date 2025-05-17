@@ -20,8 +20,8 @@ import { showLoginView } from '../webviews/loginView';
 import { AuthService } from '../services/authService';
 // Import showChangeRequestsListView and alias getWebviewContent
 import { getWebviewContent as getChangeRequestsViewHtml, showChangeRequestsListView } from '../webviews/changeRequestsListView';
-// Import showProjectSettings 
-import { showProjectSettings } from '../webviews/projectSettingsView';
+// Import showProjectSettings and related functions
+import { showProjectSettings, getProjectSettingsPanel, closeProjectSettingsPanel } from '../webviews/projectSettingsView';
 // Import showLexiconView
 import { showLexiconView } from '../webviews/lexiconView';
 // Import showUserStoriesView
@@ -66,9 +66,17 @@ export function registerCommands(
                 openPanelsToReopen = objectDetailsView.getOpenPanelItems();
             }
             
+            // Store reference to project settings panel if open
+            const projectSettingsData = typeof getProjectSettingsPanel === "function" ? getProjectSettingsPanel() : null;
+            
             // Close all open object details panels
             if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
                 objectDetailsView.closeAllPanels();
+            }
+            
+            // Close project settings panel if open
+            if (typeof closeProjectSettingsPanel === "function") {
+                closeProjectSettingsPanel();
             }
             
             // Reload the model file into memory
@@ -86,11 +94,16 @@ export function registerCommands(
             // Wait a moment for the model to fully load
             await new Promise(resolve => setTimeout(resolve, 100));
             
-            // Reopen any panels that were previously open with fresh data
+            // Reopen any object details panels that were previously open with fresh data
             if (openPanelsToReopen.length > 0 && objectDetailsView) {
                 for (const item of openPanelsToReopen) {
                     objectDetailsView.showObjectDetails(item, modelService);
                 }
+            }
+            
+            // Reopen project settings panel if it was open
+            if (projectSettingsData && projectSettingsData.context && projectSettingsData.modelService) {
+                showProjectSettings(projectSettingsData.context, modelService);
             }
         })
     );// Register expand all top level items command using the dedicated handler

@@ -118,4 +118,14 @@ Command: Fixed refresh functionality in objectDetailsView
 - Updated the main wrapper module to export the new functions
 - Ensured panels reopen with fresh data after model refresh
 - Added architectural documentation about the refresh mechanism
+
+Command: Implemented refresh functionality for Project Settings view
+- Added getProjectSettingsPanel() function to track open project settings panel
+- Added closeProjectSettingsPanel() function to close project settings panel
+- Updated appdna.refreshView command to handle project settings panels
+- Enhanced projectSettingsView.js to store references to context and modelService
+- Updated architecture notes with details about the project settings refresh mechanism
+- Ensured consistent behavior between project settings and object details views
+
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

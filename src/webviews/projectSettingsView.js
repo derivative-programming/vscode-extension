@@ -41,6 +41,40 @@ const HIDDEN_NAMESPACE_PROPERTIES = [
     "userStory"
 ];
 
+// Track project settings panel and its parameters
+const projectSettingsPanel = {
+    panel: null,
+    context: null,
+    modelService: null
+};
+
+/**
+ * Gets the reference to the project settings panel if it's open
+ * @returns {Object|null} The project settings panel info or null if not open
+ */
+function getProjectSettingsPanel() {
+    if (activePanels.has('projectSettings')) {
+        return {
+            type: 'projectSettings',
+            context: projectSettingsPanel.context,
+            modelService: projectSettingsPanel.modelService
+        };
+    }
+    return null;
+}
+
+/**
+ * Closes the project settings panel if it's open
+ */
+function closeProjectSettingsPanel() {
+    console.log(`Closing project settings panel if open`);
+    const panel = activePanels.get('projectSettings');
+    if (panel && !panel._disposed) {
+        panel.dispose();
+        activePanels.delete('projectSettings');
+    }
+}
+
 /**
  * Shows a project settings view in a webview
  * @param {Object} context The extension context
@@ -55,6 +89,10 @@ function showProjectSettings(context, modelService) {
     // Create a normalized panel ID to ensure consistency
     const panelId = `projectSettings`;
     console.log(`showProjectSettings called (panelId: ${panelId})`);
+    
+    // Store reference to context and modelService
+    projectSettingsPanel.context = context;
+    projectSettingsPanel.modelService = modelService;
     
     // Check if panel already exists 
     if (activePanels.has(panelId)) {
@@ -78,11 +116,13 @@ function showProjectSettings(context, modelService) {
     // Track this panel
     console.log(`Adding new panel to activePanels with id: ${panelId}`);
     activePanels.set(panelId, panel);
+    projectSettingsPanel.panel = panel;
     
     // Remove from tracking when disposed
     panel.onDidDispose(() => {
         console.log(`Panel disposed, removing from tracking: ${panelId}`);
         activePanels.delete(panelId);
+        projectSettingsPanel.panel = null;
     });
 
     // Get the model data - this is a RootModel object
@@ -730,5 +770,7 @@ function getWebviewContent(panel, context, model, schema) {
 }
 
 module.exports = {
-    showProjectSettings
+    showProjectSettings,
+    getProjectSettingsPanel,
+    closeProjectSettingsPanel
 };
