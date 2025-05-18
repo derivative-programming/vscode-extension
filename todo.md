@@ -2,8 +2,11 @@ Agent todo items...
     
  
 
-test:if a model service view gets an unauthorized error on the api call, logout and go to the login view
-  
+add refresh button...
+model feature catalog view
+fabrication blueprint catalog view
+
+
  
 
 model feature catalog view...

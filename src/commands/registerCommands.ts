@@ -29,7 +29,7 @@ import { showUserStoriesView, getUserStoriesPanel, closeUserStoriesPanel } from 
 import { registerModelValidationCommands } from './modelValidationCommands';
 import { registerModelAIProcessingCommands } from './modelAIProcessingCommands';
 import { registerModelFabricationCommands } from './modelFabricationCommands';
-import { registerModelFeatureCatalogCommands } from './modelFeatureCatalogCommands';
+import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerFabricationBlueprintCatalogCommands } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 
@@ -64,8 +64,7 @@ export function registerCommands(
             let openPanelsToReopen = [];
             if (objectDetailsView && typeof objectDetailsView.getOpenPanelItems === "function") {
                 openPanelsToReopen = objectDetailsView.getOpenPanelItems();
-            }
-              // Store reference to project settings panel if open
+            }            // Store reference to project settings panel if open
             const projectSettingsData = typeof getProjectSettingsPanel === "function" ? getProjectSettingsPanel() : null;
             
             // Store reference to lexicon view panel if open
@@ -74,11 +73,13 @@ export function registerCommands(
             // Store reference to user stories panel if open
             const userStoriesData = typeof getUserStoriesPanel === "function" ? getUserStoriesPanel() : null;
             
+            // Store reference to model feature catalog panel if open
+            const featureCatalogData = typeof getModelFeatureCatalogPanel === "function" ? getModelFeatureCatalogPanel() : null;
+            
             // Close all open object details panels
             if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
                 objectDetailsView.closeAllPanels();
-            }
-              // Close project settings panel if open
+            }            // Close project settings panel if open
             if (typeof closeProjectSettingsPanel === "function") {
                 closeProjectSettingsPanel();
             }
@@ -91,6 +92,11 @@ export function registerCommands(
             // Close user stories panel if open
             if (typeof closeUserStoriesPanel === "function") {
                 closeUserStoriesPanel();
+            }
+            
+            // Close model feature catalog panel if open
+            if (typeof closeModelFeatureCatalogPanel === "function") {
+                closeModelFeatureCatalogPanel();
             }
             
             // Reload the model file into memory
@@ -122,10 +128,14 @@ export function registerCommands(
             if (lexiconData && lexiconData.context && lexiconData.modelService) {
                 showLexiconView(lexiconData.context, modelService);
             }
-            
-            // Reopen user stories panel if it was open
+              // Reopen user stories panel if it was open
             if (userStoriesData && userStoriesData.context && userStoriesData.modelService) {
                 showUserStoriesView(userStoriesData.context, modelService);
+            }
+            
+            // Reopen model feature catalog panel if it was open
+            if (featureCatalogData && featureCatalogData.context && featureCatalogData.modelService) {
+                vscode.commands.executeCommand('appdna.modelFeatureCatalog');
             }
         })
     );// Register expand all top level items command using the dedicated handler

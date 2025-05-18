@@ -10,14 +10,57 @@ import { handleApiError } from '../utils/apiErrorHandler';
 // Track active panels to avoid duplicates
 const activePanels = new Map<string, vscode.WebviewPanel>();
 
+// Track panel reference for the feature catalog view
+const featureCatalogPanel = {
+    panel: null as vscode.WebviewPanel | null,
+    context: null as vscode.ExtensionContext | null,
+    modelService: null as ModelService | null
+};
+
+/**
+ * Gets the reference to the model feature catalog panel if it's open
+ * @returns The model feature catalog panel info or null if not open
+ */
+export function getModelFeatureCatalogPanel(): { 
+    type: string; 
+    context: vscode.ExtensionContext; 
+    modelService: ModelService 
+} | null {
+    if (activePanels.has('modelFeatureCatalog') && featureCatalogPanel.context && featureCatalogPanel.modelService) {
+        return {
+            type: 'modelFeatureCatalog',
+            context: featureCatalogPanel.context,
+            modelService: featureCatalogPanel.modelService
+        };
+    }
+    return null;
+}
+
+/**
+ * Closes the model feature catalog panel if it's open
+ */
+export function closeModelFeatureCatalogPanel(): void {
+    console.log(`Closing model feature catalog panel if open`);
+    const panel = activePanels.get('modelFeatureCatalog');
+    if (panel) {
+        panel.dispose();
+        activePanels.delete('modelFeatureCatalog');
+    }
+    // Clean up panel reference
+    featureCatalogPanel.panel = null;
+}
+
 export function registerModelFeatureCatalogCommands(
     context: vscode.ExtensionContext,
     appDNAFilePath: string | null,
     modelService: ModelService
-): void {
-    // Register model feature catalog command
+): void {    // Register model feature catalog command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.modelFeatureCatalog', async () => {
+            // Store references to context and modelService
+            featureCatalogPanel.context = context;
+            featureCatalogPanel.modelService = modelService;
+            
             // Create a consistent panel ID
             const panelId = 'modelFeatureCatalog';
             console.log(`modelFeatureCatalog command called (panelId: ${panelId})`);
@@ -44,11 +87,13 @@ export function registerModelFeatureCatalogCommands(
             // Track this panel
             console.log(`Adding new panel to activePanels with id: ${panelId}`);
             activePanels.set(panelId, panel);
+            featureCatalogPanel.panel = panel;
             
             // Remove from tracking when disposed
             panel.onDidDispose(() => {
                 console.log(`Panel disposed, removing from tracking: ${panelId}`);
                 activePanels.delete(panelId);
+                featureCatalogPanel.panel = null;
             });
             const scriptUri = panel.webview.asWebviewUri(
                 vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'modelFeatureCatalogView.js')
