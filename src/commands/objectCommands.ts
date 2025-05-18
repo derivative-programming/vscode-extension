@@ -106,7 +106,25 @@ export async function addObjectCommand(
         // Create new object following the schema; include parentObjectName if applicable.
         const newObject: any = { name: objectName };
         newObject.parentObjectName = (selectedParent && selectedParent.nsIndex !== -1) ? selectedParent.label.split(' (in ')[0] : "";
-          // Add the new object into the chosen namespace's object array
+        
+        // Add default properties to the new object
+        //create prop array
+        
+        const parentObjectIDProp = {
+            name: newObject.parentObjectName + "ID",
+            sqlServerDBDataType: "int",
+            isFK: "true",
+            isNotPublishedToSubscriptions: "true",
+            isFKConstraintSuppressed: "false"
+        };
+
+        newObject.prop = [];
+        newObject.prop.push(parentObjectIDProp);
+        newObject.propSubscription = [];
+        newObject.modelPkg = [];
+        newObject.lookupItem = [];
+        
+        // Add the new object into the chosen namespace's object array
         model.namespace[targetNsIndex].object.push(newObject);
         
         // Mark that there are unsaved changes
