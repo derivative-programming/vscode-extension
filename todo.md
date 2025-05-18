@@ -1,9 +1,8 @@
 Agent todo items...
     
  
-modelFeature isCompleted is not being set to true in model ai processing. dont create isCompleted property. let ai processing add it.
+COMPLETED: modelFeature isCompleted is not being set to true in model ai processing. dont create isCompleted property. let ai processing add it.
  
-
 
 model feature catalog view...
 - add intro text to the top of the page under title
@@ -16,9 +15,6 @@ model validation request list...
 model change request list...
 - fix display of intro text.    
 - disable alert when bulk approving change request
-- on apply all, got alert '176 change requests were rejected. No changes were applied.'
-- on apply... 'Failed to apply change request: Property 'accessKey' not found in object at XPath: $..objectWorkflow[?(@.name == 'CustomerAdminChangeEmailAddress')].objectWorkflowButton[?(@.buttonType == 'submit')]'
-- on apply...'Failed to apply change request: Property 'minWidth' not found in object at XPath: $..report[?(@.name == 'DateGreaterThanFilterYourAppNameCoreObjectAPIV1_0Get')].reportColumn[?(@.name == 'Description')]'
  
 fabrication blueprint catalog view...
 - intro text should be under the title

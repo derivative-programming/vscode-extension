@@ -540,6 +540,9 @@ The code generator demonstrates the extension's end-to-end capabilities beyond j
 - Changes are kept in memory only and not automatically saved to disk
 - The primary Tree View's save button must be used to persist changes
 - Selection toggle is immediate but applies only to the in-memory model
+- When adding a new model feature, we don't create the `isCompleted` property
+- The `isCompleted` property is only added by the AI processing when needed
+- Existing features with the `isCompleted` property set to "true" cannot be removed
 
 ## Change Requests Handling Behavior
 

@@ -336,13 +336,12 @@ export function registerModelFeatureCatalogCommands(
                             // Check if this feature already exists
                             const existingFeatureIndex = namespace.modelFeature.findIndex(f => f.name === msg.featureName);
                             
-                            if (existingFeatureIndex === -1) {
-                                // Feature doesn't exist, add it
+                            if (existingFeatureIndex === -1) {                                // Feature doesn't exist, add it
                                 const newFeature = new ModelFeatureModel({
                                     name: msg.featureName,
                                     description: msg.description || "",
-                                    version: msg.version || "",
-                                    isCompleted: "false"
+                                    version: msg.version || ""
+                                    // Don't add isCompleted property, let AI processing add it
                                 });
                                 
                                 namespace.modelFeature.push(newFeature);
