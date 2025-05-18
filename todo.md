@@ -1,5 +1,6 @@
 Agent todo items...
-     
+    
+project code should be a new guid. set when creating new model.
 
 fabrication request list...
 - allow download of report on fabrication error. use modelFabricationRequestReportUrl

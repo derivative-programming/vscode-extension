@@ -320,7 +320,7 @@ export function registerFabricationBlueprintCatalogCommands(
                                 const newTemplate = new TemplateSetModel({
                                     name: msg.templateName,
                                     title: msg.title || "",
-                                    version: msg.version || "",
+                                    version: msg.displayVersion || "",
                                     isDisabled: "false"
                                 });
                                 

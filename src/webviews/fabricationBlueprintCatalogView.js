@@ -223,7 +223,7 @@
                                 command: "FabricationBlueprintCatalogToggleTemplate",
                                 templateName: item.name,
                                 title: item.title,
-                                version: item.version,
+                                displayVersion: item.displayVersion,
                                 selected: isChecked
                             });
                         });

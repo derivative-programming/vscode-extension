@@ -33,3 +33,5 @@ Command: Add spinner to model fabrication list view refresh button
 - Used the existing showSpinner() function to display a loading indicator
 - This matches the behavior of the model validation request list view's refresh button
 Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
