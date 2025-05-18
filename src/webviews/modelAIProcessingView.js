@@ -577,10 +577,10 @@
             <div class="processing-container">
                 <!-- Spinner overlay -->
                 <div id="spinnerOverlay" class="spinner-overlay">
-                    <div class="spinner"></div>
-                </div>
+                    <div class="spinner"></div>                </div>
                 <div class="processing-header">
                     <h2>Model AI Processing Requests</h2>
+                    <p style="margin-top: 5px; font-size: 0.9em; color: var(--vscode-descriptionForeground);">AI processing adds data to the model. It does not change existing data in the model.</p>
                 </div>
                 <div class="toolbar">
                     <button id="addButton" class="refresh-button add-button" title="Add Request">

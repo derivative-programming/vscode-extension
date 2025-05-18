@@ -5,14 +5,11 @@ Agent todo items...
  
 
 model feature catalog view...
-- use similar style and design as the model validation request list.
 - use similar paging controls and page range display as the model validation request list.
   
- 
-when the model file changes, we automatically update the model singleton. It should also update any open 'model feature catalog' views or 'fabrication blueprint catalog' views.
+  
  
 fabrication blueprint catalog view...
-- use similar style and design as the model validation request list.
 - use similar paging controls and page range display as the model validation request list.
   
 
@@ -24,10 +21,7 @@ project settings view... test change on all settings
 - model service request lists (validation, ai processing, fabrication)
     - page size dropdown
     - if one is processing or queued on the page, auto refresh every minute.
- 
 
-handle if no connection using model services
- 
 
 model validation rejection validaiton using an alert instead of validaiton error text... Please provide a reason for rejection.
      
@@ -42,18 +36,12 @@ change requests...
 - implement 'add property' 
 i need to handle the 'add property' button. I need to ask for the property name but i also need to give an option to allow the user to 'bulk add' multiple properties and give them a multi line textbox to add a property for each line entered. validation rules... 1. no spaces allowed in names. 2. alpha characters only.
  
-
-in model service have indicator that unsaved work exists. 
-
+ 
 if prep merging then warn user to save their work first.
 
 sub folders...
 - put a ".app_dna_" at the start of the folder names
-     
-
-all views...
-- if the model file chagnes, reload the view
-
+      
 model fabrication download...
  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
 
