@@ -806,12 +806,11 @@
         `;
         
         // Initial ready message
-        vscode.postMessage({ command: "ModelFabricationWebviewReady" });
-
-        // Attach refresh button handler
+        vscode.postMessage({ command: "ModelFabricationWebviewReady" });        // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
+            showSpinner(); // Show spinner when refresh button is clicked
             requestPage(pageNumber);
-        };        // Attach add button handler
+        };// Attach add button handler
         document.getElementById("addButton").onclick = function() {
             // Fetch projectName and projectVersionNumber from extension
             vscode.postMessage({ command: "modelFabricationGetRootNodeProjectInfo" });

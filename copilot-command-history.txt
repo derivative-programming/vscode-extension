@@ -19,8 +19,17 @@ Command: Adding a data object should set the unsaved changes exist flag
 - This allows the function to properly display and position buttons in the modal dialog
 - The details button now works correctly to show fabrication request information
 Command: Expand all top level tree items in the AppDNA tree view
+
+Command: Add spinner to refresh button in Model Fabrication View
+- Created showRefreshSpinner() and hideRefreshSpinner() functions
+- Modified the refresh button HTML to accommodate a spinner
+- Added CSS styles for the button spinner
+- Updated event handlers to show/hide the spinner appropriately
+- Ensured the spinner is properly hidden when data is received or errors occur
 Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
+
+Command: Add spinner to model fabrication list view refresh button
+- Modified the refresh button click handler to show a spinner when clicked
+- Used the existing showSpinner() function to display a loading indicator
+- This matches the behavior of the model validation request list view's refresh button
 Command: Expand all top level tree items in the AppDNA tree view

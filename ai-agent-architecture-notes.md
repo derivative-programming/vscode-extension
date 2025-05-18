@@ -1,6 +1,6 @@
 # AppDNA VS Code Extension Architecture Notes
 
-*Last updated: May 17, 2025*
+*Last updated: May 18, 2025*
 
 ## Overview
 The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
@@ -175,6 +175,11 @@ The HTML structure follows this pattern:
 - These run in a separate context (not TypeScript)
 - Communicate with the extension via postMessage API
 - Dynamically generate UI based on the schema properties
+- Webviews include spinner functionality to indicate loading states:
+  - Spinners are displayed during data fetching or lengthy operations
+  - The spinner overlay is styled with semi-transparent backgrounds (`rgba(0,0,0,0.4)`) and centered within the webview
+  - Spinner visibility is toggled dynamically based on the operation's progress
+  - Consistent spinner implementation across all webviews ensures a unified user experience
 
 ### Panel Management Pattern
 - The extension implements a consistent pattern for handling panels (webviews) to avoid duplicate panels
@@ -620,3 +625,22 @@ This pattern of presenting a workflow guide helps users understand the proper se
   3. The model is reloaded from disk
   4. The tree view is refreshed
   5. The project settings panel is reopened with fresh data using the stored reference
+
+## UI Patterns
+
+### Webview Feedback Patterns
+- **Global Spinner Overlay**: Used for major operations that should block the entire UI
+  - Controlled by `showSpinner()` and `hideSpinner()` functions
+  - Covers the entire UI with a semi-transparent overlay and centered spinner
+  - Appropriate for operations like initial data loading or complex processing
+
+- **Button Spinners**: Used for operations triggered by specific buttons
+  - Controlled by button-specific functions like `showRefreshSpinner()` and `hideRefreshSpinner()`
+  - Places a small spinner directly in the button while disabling it
+  - Provides focused feedback without blocking the entire UI
+  - Appropriate for operations like data refreshing or small updates
+
+- **Modal Progress**: Used for long-running operations displayed in modal dialogs
+  - Includes progress bars with percentage indicators
+  - Can display additional context like file counts for extraction operations
+  - Maintains user context by keeping the operation visible until completion
