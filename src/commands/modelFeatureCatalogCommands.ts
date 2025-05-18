@@ -177,11 +177,33 @@ export function registerModelFeatureCatalogCommands(
                         @keyframes spin {
                             0% { transform: rotate(0deg); }
                             100% { transform: rotate(360deg); }
+                        }                        .refresh-button {
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border: none;
+                            padding: 4px 8px;
+                            cursor: pointer;
+                            border-radius: 3px;
+                            display: flex;
+                            align-items: center;
+                        }
+                        .refresh-button:hover {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
+                        .header-actions {
+                            display: flex;
+                            justify-content: flex-end;
+                            margin-bottom: 10px;
                         }
                     </style>
                 </head>                <body>
                     <div class="validation-header">
                         <h2>Model Feature Catalog</h2>
+                    </div>
+                    <div class="header-actions">
+                        <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                            Refresh
+                        </button>
                     </div>
                     <div id="paging"></div>
                     <table id="featureCatalogTable"></table>

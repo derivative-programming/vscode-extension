@@ -22,6 +22,17 @@
     
     // Keep track of selected features
     let selectedFeatures = [];
+      // Helper function to request a page of data
+    function requestPage(pageNum) {
+        showSpinner();
+        vscode.postMessage({
+            command: "ModelFeatureCatalogRequestPage",
+            pageNumber: pageNum,
+            itemCountPerPage: itemCountPerPage,
+            orderByColumnName: orderByColumn,
+            orderByDescending: orderByDescending
+        });
+    }
     
     // Set up the UI when the page loads
     document.addEventListener('DOMContentLoaded', function() {
@@ -33,6 +44,11 @@
         
         // Request the currently selected features
         vscode.postMessage({ command: 'ModelFeatureCatalogGetSelectedFeatures' });
+        
+        // Attach refresh button handler
+        document.getElementById("refreshButton").onclick = function() {
+            requestPage(pageNumber);
+        };
         
         // Show spinner while loading
         showSpinner();

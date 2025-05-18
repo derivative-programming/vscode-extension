@@ -1,3 +1,17 @@
+Command: Added refresh button to Fabrication Blueprint Catalog view
+- Added refresh button to HTML structure in fabricationBlueprintCatalogCommands.ts
+- Added refresh button styles in fabricationBlueprintCatalogCommands.ts
+- Added requestPage helper function to fabricationBlueprintCatalogView.js
+- Added refresh button click handler in fabricationBlueprintCatalogView.js
+- Updated todo.md to mark the task as completed
+
+Command: Added refresh button to Model Feature Catalog view
+- Added refresh button to HTML structure in modelFeatureCatalogCommands.ts
+- Added refresh button styles in modelFeatureCatalogCommands.ts
+- Added requestPage helper function to modelFeatureCatalogView.js
+- Added refresh button click handler in modelFeatureCatalogView.js
+- Updated todo.md to mark the task as completed
+
 // filepath: c:\VR\Source\DP\vscode-extension\copilot-command-history.txt
 Command: Fixed treeview item click behavior for Project and Model Service items
 - Implemented panel ID normalization and tracking for Project Settings view
@@ -127,6 +141,8 @@ Command: Implemented refresh functionality for Project Settings view
 - Updated architecture notes with details about the project settings refresh mechanism
 - Ensured consistent behavior between project settings and object details views
 
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

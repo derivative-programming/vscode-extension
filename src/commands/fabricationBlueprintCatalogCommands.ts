@@ -173,10 +173,27 @@ export function registerFabricationBlueprintCatalogCommands(
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                        }
-                        @keyframes spin {
+                        }                        @keyframes spin {
                             0% { transform: rotate(0deg); }
                             100% { transform: rotate(360deg); }
+                        }
+                        .refresh-button {
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border: none;
+                            padding: 4px 8px;
+                            cursor: pointer;
+                            border-radius: 3px;
+                            display: flex;
+                            align-items: center;
+                        }
+                        .refresh-button:hover {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
+                        .header-actions {
+                            display: flex;
+                            justify-content: flex-end;
+                            margin-bottom: 10px;
                         }
                     </style>                </head>
                 <body>
@@ -186,6 +203,11 @@ export function registerFabricationBlueprintCatalogCommands(
                     <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
                         Select blueprints to define the types of files you want to fabricate. Selected blueprints will be included in your model.
                     </p>
+                    <div class="header-actions">
+                        <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                            Refresh
+                        </button>
+                    </div>
                     <div id="paging"></div>
                     <table id="blueprintCatalogTable"></table>
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
