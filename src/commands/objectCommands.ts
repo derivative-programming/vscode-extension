@@ -204,6 +204,18 @@ export async function removeObjectCommand(
 }
 
 /**
+ * Generates a GUID for new items such as project code
+ * @returns New GUID string
+ */
+function generateGuid(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+/**
  * Command handler for adding a new AppDNA file
  * @param context Extension context
  * @param appDNAFilePath Path to the app-dna.json file
@@ -235,8 +247,7 @@ export async function addFileCommand(
         // Fallback to workspace template if it exists
         const workspaceTemplatePath = path.join(workspaceFolder, 'app-dna.new.json');
         let defaultContent: string;
-        
-        // Try to load the template from the extension directory first
+          // Try to load the template from the extension directory first
         if (fs.existsSync(extensionTemplatePath)) {
             defaultContent = fs.readFileSync(extensionTemplatePath, 'utf-8');
         } 
@@ -245,14 +256,22 @@ export async function addFileCommand(
             defaultContent = fs.readFileSync(workspaceTemplatePath, 'utf-8');
         } 
         // Otherwise use default structure
-        else {
-            defaultContent = JSON.stringify({ 
+        else {            defaultContent = JSON.stringify({ 
                 root: { 
                     name: "DefaultApp",
                     databaseName: "DefaultDatabase",
+                    projectCode: generateGuid(), // Add GUID as projectCode
                     namespace: [] 
                 } 
             }, null, 2);
+        }
+        
+        // Parse the content to modify the projectCode
+        let jsonModel = JSON.parse(defaultContent);
+        if (jsonModel.root && jsonModel.root.projectCode) {
+            // Replace the hardcoded "123456" projectCode with a new GUID
+            jsonModel.root.projectCode = generateGuid();
+            defaultContent = JSON.stringify(jsonModel, null, 2);
         }
         
         // Validate content against schema

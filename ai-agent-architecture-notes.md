@@ -410,6 +410,8 @@ The extension uses two types of files:
 1. **Model Files** (`app-dna.json`):
    - Contains the actual model data following the schema
    - Core file that defines objects, reports, namespaces, etc.
+   - Created from template files (`app-dna.new.json`) when a new project is set up
+   - The `projectCode` property in root is automatically set to a GUID when creating a new file
 
 2. **Config Files** (`app-dna.config.json`):
    - Created alongside model files when using "Add File" command

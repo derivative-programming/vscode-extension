@@ -10,6 +10,11 @@ Command: Fix Model Fabrication Request List Issues
 
 Command: Fixed downloadButton scope issue in Model Fabrication Details modal
 
+Command: Replace hardcoded projectCode with GUID when creating new model files
+- Modified addFileCommand() in objectCommands.ts to replace "123456" projectCode with a generated GUID
+- Ensured default structure case also includes a GUID for projectCode 
+- Used existing generateGuid() function that was already created in the file
+
 Command: Adding a data object should set the unsaved changes exist flag
 - Modified objectCommands.ts to call modelService.markUnsavedChanges() when adding a data object
 - Updated ai-agent-architecture-notes.md to document this change
@@ -32,6 +37,7 @@ Command: Add spinner to model fabrication list view refresh button
 - Modified the refresh button click handler to show a spinner when clicked
 - Used the existing showSpinner() function to display a loading indicator
 - This matches the behavior of the model validation request list view's refresh button
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
