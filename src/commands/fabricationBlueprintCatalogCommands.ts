@@ -9,14 +9,57 @@ import { TemplateSetModel } from '../data/models/templateSetModel';
 // Track active panels to avoid duplicates
 const activePanels = new Map<string, vscode.WebviewPanel>();
 
+// Track panel reference for the fabrication blueprint catalog view
+const fabricationBlueprintPanel = {
+    panel: null as vscode.WebviewPanel | null,
+    context: null as vscode.ExtensionContext | null,
+    modelService: null as ModelService | null
+};
+
+/**
+ * Gets the reference to the fabrication blueprint catalog panel if it's open
+ * @returns The fabrication blueprint catalog panel info or null if not open
+ */
+export function getFabricationBlueprintCatalogPanel(): { 
+    type: string; 
+    context: vscode.ExtensionContext; 
+    modelService: ModelService 
+} | null {
+    if (activePanels.has('fabricationBlueprintCatalog') && fabricationBlueprintPanel.context && fabricationBlueprintPanel.modelService) {
+        return {
+            type: 'fabricationBlueprintCatalog',
+            context: fabricationBlueprintPanel.context,
+            modelService: fabricationBlueprintPanel.modelService
+        };
+    }
+    return null;
+}
+
+/**
+ * Closes the fabrication blueprint catalog panel if it's open
+ */
+export function closeFabricationBlueprintCatalogPanel(): void {
+    console.log(`Closing fabrication blueprint catalog panel if open`);
+    const panel = activePanels.get('fabricationBlueprintCatalog');
+    if (panel) {
+        panel.dispose();
+        activePanels.delete('fabricationBlueprintCatalog');
+    }
+    // Clean up panel reference
+    fabricationBlueprintPanel.panel = null;
+}
+
 export function registerFabricationBlueprintCatalogCommands(
     context: vscode.ExtensionContext,
     appDNAFilePath: string | null,
     modelService: ModelService
-): void {
-    // Register fabrication blueprint catalog command
+): void {    // Register fabrication blueprint catalog command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.fabricationBlueprintCatalog', async () => {
+            // Store references to context and modelService
+            fabricationBlueprintPanel.context = context;
+            fabricationBlueprintPanel.modelService = modelService;
+            
             // Create a consistent panel ID
             const panelId = 'fabricationBlueprintCatalog';
             console.log(`fabricationBlueprintCatalog command called (panelId: ${panelId})`);
@@ -43,11 +86,13 @@ export function registerFabricationBlueprintCatalogCommands(
             // Track this panel
             console.log(`Adding new panel to activePanels with id: ${panelId}`);
             activePanels.set(panelId, panel);
+            fabricationBlueprintPanel.panel = panel;
             
             // Remove from tracking when disposed
             panel.onDidDispose(() => {
                 console.log(`Panel disposed, removing from tracking: ${panelId}`);
                 activePanels.delete(panelId);
+                fabricationBlueprintPanel.panel = null;
             });
             const scriptUri = panel.webview.asWebviewUri(
                 vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'fabricationBlueprintCatalogView.js')

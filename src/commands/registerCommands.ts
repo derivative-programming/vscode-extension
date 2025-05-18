@@ -30,7 +30,7 @@ import { registerModelValidationCommands } from './modelValidationCommands';
 import { registerModelAIProcessingCommands } from './modelAIProcessingCommands';
 import { registerModelFabricationCommands } from './modelFabricationCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
-import { registerFabricationBlueprintCatalogCommands } from './fabricationBlueprintCatalogCommands';
+import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 
 /**
@@ -76,6 +76,9 @@ export function registerCommands(
             // Store reference to model feature catalog panel if open
             const featureCatalogData = typeof getModelFeatureCatalogPanel === "function" ? getModelFeatureCatalogPanel() : null;
             
+            // Store reference to fabrication blueprint catalog panel if open
+            const fabricationBlueprintData = typeof getFabricationBlueprintCatalogPanel === "function" ? getFabricationBlueprintCatalogPanel() : null;
+            
             // Close all open object details panels
             if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
                 objectDetailsView.closeAllPanels();
@@ -97,6 +100,11 @@ export function registerCommands(
             // Close model feature catalog panel if open
             if (typeof closeModelFeatureCatalogPanel === "function") {
                 closeModelFeatureCatalogPanel();
+            }
+            
+            // Close fabrication blueprint catalog panel if open
+            if (typeof closeFabricationBlueprintCatalogPanel === "function") {
+                closeFabricationBlueprintCatalogPanel();
             }
             
             // Reload the model file into memory
@@ -132,10 +140,14 @@ export function registerCommands(
             if (userStoriesData && userStoriesData.context && userStoriesData.modelService) {
                 showUserStoriesView(userStoriesData.context, modelService);
             }
-            
-            // Reopen model feature catalog panel if it was open
+              // Reopen model feature catalog panel if it was open
             if (featureCatalogData && featureCatalogData.context && featureCatalogData.modelService) {
                 vscode.commands.executeCommand('appdna.modelFeatureCatalog');
+            }
+            
+            // Reopen fabrication blueprint catalog panel if it was open
+            if (fabricationBlueprintData && fabricationBlueprintData.context && fabricationBlueprintData.modelService) {
+                vscode.commands.executeCommand('appdna.fabricationBlueprintCatalog');
             }
         })
     );// Register expand all top level items command using the dedicated handler

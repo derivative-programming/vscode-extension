@@ -3,8 +3,8 @@ Agent todo items...
  
 
 add refresh button...
-model feature catalog view
-fabrication blueprint catalog view
+✓ model feature catalog view
+✓ fabrication blueprint catalog view
 
 
  
