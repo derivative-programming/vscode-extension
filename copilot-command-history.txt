@@ -1,3 +1,8 @@
+Command: Set unsaved changes flag when selecting an item in Model Feature Catalog view
+- Modified ModelFeatureCatalogToggleFeature handler in modelFeatureCatalogCommands.ts to call modelService.markUnsavedChanges() when a feature is toggled
+- Added debug logging to track when unsaved changes flag is set
+- Updated todo.md to mark the task as completed
+
 Command: Implemented row click to toggle checkbox in Model Feature Catalog view
 - Modified renderTable function in modelFeatureCatalogView.js to add click event listeners to rows
 - Added logic to toggle checkboxes when clicking on a row (excluding clicks directly on checkboxes)
@@ -189,6 +194,7 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Collapse all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
