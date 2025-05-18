@@ -4,9 +4,6 @@ model feature catalog view...]
 - add intro text to the top of the page under title
 - use similar paging controls and page range display as the model validation request list.
 
-model ai processing request list...
-- Add modal: switch add and cancel button locations
-
 model validation request list...
 - add intro text to the top of the page under title
 - Add modal: switch add and cancel button locations

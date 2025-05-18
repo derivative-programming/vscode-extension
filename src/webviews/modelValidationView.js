@@ -555,11 +555,10 @@
                 </div>
                 <!-- Add Request Modal -->
                 <div id="addModal" class="modal">
-                    <div class="modal-content">
-                        <h3>Add Validation Request</h3>
+                    <div class="modal-content">                        <h3>Add Validation Request</h3>
                         <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
-                            <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Cancel button always on the right -->
                             <button id="submitAdd" class="refresh-button">Add</button>
+                            <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button>
                         </div>
                     </div>
                 </div>
@@ -719,10 +718,9 @@
                                     confirmModal.style.display = "flex";
                                     confirmModal.innerHTML = `
                                         <div class="modal-content" style="width: 300px;">
-                                            <h3>Cancel Validation Request</h3>
-                                            <p>Are you sure you want to cancel this validation request?</p>                                            <div class="modal-buttons">
-                                                <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>
+                                            <h3>Cancel Validation Request</h3>                                            <p>Are you sure you want to cancel this validation request?</p>                                            <div class="modal-buttons">
                                                 <button id="confirmCancel" class="refresh-button">Yes, Cancel</button>
+                                                <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>
                                             </div>
                                         </div>
                                     `;
