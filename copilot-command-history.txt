@@ -19,6 +19,10 @@ Command: Added refresh button to Fabrication Blueprint Catalog view
 - Added refresh button to HTML structure in fabricationBlueprintCatalogCommands.ts
 - Added refresh button styles in fabricationBlueprintCatalogCommands.ts
 - Added requestPage helper function to fabricationBlueprintCatalogView.js
+
+Command: Added spinner to refresh button click in Model AI Processing view
+- Modified refresh button click handler in modelAIProcessingView.js to show spinner when clicked
+- Leveraged existing hideSpinner function that's already called when data is received
 - Added refresh button click handler in fabricationBlueprintCatalogView.js
 - Updated todo.md to mark the task as completed
 
@@ -194,6 +198,7 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Collapse all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

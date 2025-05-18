@@ -1,12 +1,10 @@
 Agent todo items...
      
 model feature catalog view...]
-- [✓] selecting an item should set the unsaved changes flag
 - add intro text to the top of the page under title
 - use similar paging controls and page range display as the model validation request list.
 
 model ai processing request list...
-- refresh button should show a spinner when clicked
 - Add modal: switch add and cancel button locations
 
 model validation request list...
