@@ -1,3 +1,9 @@
+Command: Disabled alerts when bulk approving change requests
+- Modified approveSelectedChangeRequests function in changeRequestsListView.js to return silently without showing alert when no items are selected
+- Modified applyAllApprovedChangeRequests function in changeRequestsListView.js to return silently without showing alert when no items are available
+- Modified openBatchRejectModal function in changeRequestsListView.js for consistency in approach
+- Updated todo.md to mark the task as completed
+
 Command: Added refresh button to Fabrication Blueprint Catalog view
 - Added refresh button to HTML structure in fabricationBlueprintCatalogCommands.ts
 - Added refresh button styles in fabricationBlueprintCatalogCommands.ts
@@ -172,5 +178,6 @@ Command: Fixed handling of missing properties in change requests
 - Modified PropertyPath handling to continue when properties don't exist
 - Modified constructed path handling to continue when properties don't exist
 - Updated value verification to only check existing properties against old values
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

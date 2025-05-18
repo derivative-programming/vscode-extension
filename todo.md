@@ -1,8 +1,10 @@
 Agent todo items...
     
- 
-COMPLETED: modelFeature isCompleted is not being set to true in model ai processing. dont create isCompleted property. let ai processing add it.
- 
+dont show alert 'Successfully loaded [model file name]'
+
+model ai processing request list...
+- refresh button should show a spinner when clicked
+
 
 model feature catalog view...
 - add intro text to the top of the page under title
@@ -11,6 +13,8 @@ model feature catalog view...
 
 model validation request list...
 - add intro text to the top of the page under title
+- Add Validation Request: switch add and cancel button locations
+- refresh button should show a spinner when clicked
 
 model change request list...
 - fix display of intro text.    

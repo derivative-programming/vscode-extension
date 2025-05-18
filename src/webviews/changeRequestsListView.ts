@@ -650,8 +650,8 @@ async function handleApproveChangeRequest(panel: vscode.WebviewPanel, requestCod
         // Reload and send updated data to the webview
         await loadAndSendChangeRequests(panel, requestCode);
         
-        // Show a success message
-        vscode.window.showInformationMessage(`Change request ${changeRequestCode} approved successfully`);
+        // Show no success message
+        // vscode.window.showInformationMessage(`Change request ${changeRequestCode} approved successfully`);
         
     } catch (error) {
         console.error("[Extension] Failed to approve change request:", error);
@@ -726,8 +726,8 @@ async function handleRejectChangeRequest(panel: vscode.WebviewPanel, requestCode
         // Reload and send updated data to the webview
         await loadAndSendChangeRequests(panel, requestCode);
         
-        // Show a success message
-        vscode.window.showInformationMessage(`Change request ${changeRequestCode} rejected successfully`);
+        // Show no success message
+        // vscode.window.showInformationMessage(`Change request ${changeRequestCode} rejected successfully`);
         
     } catch (error) {
         console.error("[Extension] Failed to reject change request:", error);
@@ -968,8 +968,8 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
         // Reload and send updated data to the webview
         await loadAndSendChangeRequests(panel, requestCode);
         
-        // Show a success message
-        vscode.window.showInformationMessage(`Change request ${changeRequestCode} applied successfully`);
+        // Show no success message
+        // vscode.window.showInformationMessage(`Change request ${changeRequestCode} applied successfully`);
         
     } catch (error) {
         console.error("[Extension] Failed to apply change request:", error);

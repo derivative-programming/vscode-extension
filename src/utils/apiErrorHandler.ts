@@ -36,7 +36,7 @@ export async function handleApiError(
         
         // Show the login view
         await showLoginView(context, () => {
-            vscode.window.showInformationMessage('Successfully logged in. You can retry your previous action now.');
+            // vscode.window.showInformationMessage('Successfully logged in. You can retry your previous action now.');
         });
         
         return true; // Error was handled
