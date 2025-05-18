@@ -153,3 +153,17 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+
+Command: Fixed handling of missing properties in change requests
+- Updated property checking to create properties that don't exist instead of throwing errors
+- Modified ModelXPath property handling to continue when properties don't exist
+- Modified PropertyPath handling to continue when properties don't exist
+- Modified constructed path handling to continue when properties don't exist
+- Updated value verification to only check existing properties against old values

@@ -1,21 +1,44 @@
 Agent todo items...
     
  
+modelFeature isCompleted is not being set to true in model ai processing. dont create isCompleted property. let ai processing add it.
  
- 
+
 
 model feature catalog view...
+- add intro text to the top of the page under title
 - use similar paging controls and page range display as the model validation request list.
-  
-  
+
+
+model validation request list...
+- add intro text to the top of the page under title
+
+model change request list...
+- fix display of intro text.    
+- disable alert when bulk approving change request
+- on apply all, got alert '176 change requests were rejected. No changes were applied.'
+- on apply... 'Failed to apply change request: Property 'accessKey' not found in object at XPath: $..objectWorkflow[?(@.name == 'CustomerAdminChangeEmailAddress')].objectWorkflowButton[?(@.buttonType == 'submit')]'
+- on apply...'Failed to apply change request: Property 'minWidth' not found in object at XPath: $..report[?(@.name == 'DateGreaterThanFilterYourAppNameCoreObjectAPIV1_0Get')].reportColumn[?(@.name == 'Description')]'
  
 fabrication blueprint catalog view...
+- intro text should be under the title
 - use similar paging controls and page range display as the model validation request list.
   
-
+model fabrication request list...
+- add intro text to the top of the page under title
+- details button is not working
  
 
-project settings view... test change on all settings 
+test change on all settings ..
+- project settings - done
+- lexicon - done
+- user stories - done
+- model feature catalog - done
+- model fabrication blueprint catalog - done
+- object details - settings tab - done
+- object details - properties tab
+- 
+
    
   
 - model service request lists (validation, ai processing, fabrication)

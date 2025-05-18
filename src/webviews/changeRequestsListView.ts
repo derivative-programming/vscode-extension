@@ -861,18 +861,22 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
             
             // Handle the case where JSONPath might return an array of results or a single object
             targetObject = Array.isArray(result) ? result[0] : result;
-            
+                    
             if (!targetObject) {
                 throw new Error(`No matching object found at XPath: ${modelXPath}`);
             }
             
-            // If we have the object but need to access a specific property within it
-            if (targetObject && propertyName && targetObject[propertyName] === undefined) {
-                throw new Error(`Property '${propertyName}' not found in object at XPath: ${modelXPath}`);
+            // If we have the object but need to access a specific property
+            if (propertyName) {
+                // Get the current value if it exists, or undefined if not
+                currentValue = targetObject[propertyName];
+                
+                // Continue even if property doesn't exist, we'll create it when applying the change
+                console.log(`[Extension] Property '${propertyName}' ${currentValue === undefined ? "not found" : "found"} in object at XPath: ${modelXPath}`);
+            } else {
+                // Get the entire object value
+                currentValue = targetObject;
             }
-            
-            // Get the current value
-            currentValue = propertyName ? targetObject[propertyName] : targetObject;
             
             console.log(`[Extension] Found target object using ModelXPath, property: ${propertyName}, currentValue:`, currentValue);
         }
@@ -881,8 +885,9 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
             console.log(`[Extension] Using PropertyPath to locate property: ${propertyPath}`);
             currentValue = XPathUtils.getValue(modelJson, propertyPath);
             
+            // Allow property to not exist - we'll create it when applying changes
             if (currentValue === undefined) {
-                throw new Error(`Property not found at path: ${propertyPath}`);
+                console.log(`[Extension] Property not found at path: ${propertyPath}, will be created`);
             }
         }
         // Last resort - try to construct a path from PropertyName
@@ -891,13 +896,14 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
             console.log(`[Extension] Using constructed path to locate property: ${constructedPath}`);
             currentValue = XPathUtils.getValue(modelJson, constructedPath);
             
+            // Allow property to not exist - we'll create it when applying changes
             if (currentValue === undefined) {
-                throw new Error(`Property not found at constructed path: ${constructedPath}`);
+                console.log(`[Extension] Property not found at constructed path: ${constructedPath}, will be created`);
             }
         }
         
         // Verify the current value matches the old value from the change request
-        if (JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
+        if (currentValue !== undefined && JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
             console.error(`[Extension] Value mismatch: Current value (${JSON.stringify(currentValue)}) ` + 
                          `doesn't match expected old value (${JSON.stringify(oldValue)})`);
             
@@ -1095,20 +1101,25 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
                     }
                     
                     // If we have the object but need to access a specific property within it
-                    if (targetObject && propertyName && targetObject[propertyName] === undefined) {
-                        throw new Error(`Property '${propertyName}' not found in object at XPath: ${modelXPath}`);
+                    if (propertyName) {
+                        // Get the current value if it exists, or undefined if not
+                        currentValue = targetObject[propertyName];
+                        
+                        // Continue even if property doesn't exist, we'll create it when applying the change
+                        console.log(`[Extension] Property '${propertyName}' ${currentValue === undefined ? "not found" : "found"} in object at XPath: ${modelXPath}`);
+                    } else {
+                        // Get the entire object value
+                        currentValue = targetObject;
                     }
-                    
-                    // Get the current value
-                    currentValue = propertyName ? targetObject[propertyName] : targetObject;
                 }
                 // Fall back to PropertyPath if ModelXPath isn't available or didn't work
                 else if (propertyPath) {
                     console.log(`[Extension] Using PropertyPath to locate property: ${propertyPath}`);
                     currentValue = XPathUtils.getValue(modelJson, propertyPath);
                     
+                    // Allow property to not exist - we'll create it when applying changes
                     if (currentValue === undefined) {
-                        throw new Error(`Property not found at path: ${propertyPath}`);
+                        console.log(`[Extension] Property not found at path: ${propertyPath}, will be created`);
                     }
                 }
                 // Last resort - try to construct a path from PropertyName
@@ -1117,13 +1128,14 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
                     console.log(`[Extension] Using constructed path to locate property: ${constructedPath}`);
                     currentValue = XPathUtils.getValue(modelJson, constructedPath);
                     
+                    // Allow property to not exist - we'll create it when applying changes
                     if (currentValue === undefined) {
-                        throw new Error(`Property not found at constructed path: ${constructedPath}`);
+                        console.log(`[Extension] Property not found at constructed path: ${constructedPath}, will be created`);
                     }
                 }
                 
                 // Verify the current value matches the old value from the change request
-                if (JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
+                if (currentValue !== undefined && JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
                     console.error(`[Extension] Value mismatch for change request ${changeRequest.Code}: ` + 
                                  `Current value (${JSON.stringify(currentValue)}) ` + 
                                  `doesn't match expected old value (${JSON.stringify(oldValue)})`);

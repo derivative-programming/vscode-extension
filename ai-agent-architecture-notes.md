@@ -541,18 +541,26 @@ The code generator demonstrates the extension's end-to-end capabilities beyond j
 - The primary Tree View's save button must be used to persist changes
 - Selection toggle is immediate but applies only to the in-memory model
 
-## Change Requests List View UI Layout
+## Change Requests Handling Behavior
 
-The Change Requests List View follows these UI organization principles:
+The Change Requests List View supports flexible handling of property updates:
 
-1. Batch operations that act on selected items (Approve Selected, Reject Selected) are positioned close to the main filters, making it clear they operate on the filtered and selected items
-2. Global operations like "Apply All Approved" that don't depend on selection are positioned in the top-right action controls area
-3. The action buttons use a consistent color scheme:
-   - Standard buttons use the default button background color
-   - Reject buttons use the error foreground color
-   - Each button includes a descriptive tooltip
+1. **Property Creation**
+   - When applying change requests, the system checks if the property exists
+   - If the property doesn't exist, it will be created with the new value
+   - This applies to properties found via ModelXPath, PropertyPath, or constructed paths
 
-This organization makes the UI more intuitive by grouping related controls - selection-based actions are close to selection tools, while global actions remain separate.
+2. **Value Verification**
+   - For existing properties, the current value is verified against the expected old value
+   - If the values don't match, the change request is rejected as "out of date"
+   - For non-existent properties, verification is skipped since there's no current value to check
+
+3. **Error Handling**
+   - If the parent object can't be found, an error is thrown
+   - If the property itself doesn't exist but its parent does, the property will be created
+   - Detailed logging is provided to trace the property access and creation process
+
+This approach allows for both updating existing properties and adding new ones through the change request mechanism.
 
 ## Welcome View Architecture
 
