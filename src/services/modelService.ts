@@ -62,8 +62,8 @@ export class ModelService {
             // Reset unsaved changes flag
             this.hasUnsavedChanges = false;
             
-            // Notify that file was loaded
-            vscode.window.showInformationMessage(`Successfully loaded ${path.basename(filePath)}`);
+            // don't Notify that file was loaded
+            // vscode.window.showInformationMessage(`Successfully loaded ${path.basename(filePath)}`);
             
             return rootModel;
         } catch (error) {
@@ -100,8 +100,8 @@ export class ModelService {
             // Reset unsaved changes flag after successful save
             this.hasUnsavedChanges = false;
             
-            // Notify that file was saved
-            vscode.window.showInformationMessage(`Successfully saved to ${path.basename(targetPath)}`);
+            // don't Notify that file was saved
+            // vscode.window.showInformationMessage(`Successfully saved to ${path.basename(targetPath)}`);
             
             return targetPath;
         } catch (error) {

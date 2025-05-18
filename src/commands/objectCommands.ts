@@ -271,7 +271,8 @@ export async function addFileCommand(
         const configContent = generateConfigFileContent(path.basename(appDNAFilePath));
         await vscode.workspace.fs.writeFile(vscode.Uri.file(configFileName), Buffer.from(configContent, 'utf-8'));
         
-        vscode.window.showInformationMessage('New AppDNA file and configuration created.');
+        // show no alert
+        // vscode.window.showInformationMessage('New AppDNA file and configuration created.');
         
         // Load the model from the newly created file
         await modelService.loadFile(appDNAFilePath);

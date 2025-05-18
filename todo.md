@@ -1,26 +1,30 @@
 Agent todo items...
-    
-dont show alert 'Successfully loaded [model file name]'
-
-model ai processing request list...
-- refresh button should show a spinner when clicked
-
-
+     
 model feature catalog view...
+- click on row should check the checkbox
+- selecting an item should set the unsaved changes flag
 - add intro text to the top of the page under title
 - use similar paging controls and page range display as the model validation request list.
 
+model ai processing request list...
+- refresh button should show a spinner when clicked
+- Add modal: switch add and cancel button locations
 
 model validation request list...
 - add intro text to the top of the page under title
-- Add Validation Request: switch add and cancel button locations
+- Add modal: switch add and cancel button locations
 - refresh button should show a spinner when clicked
 
 model change request list...
 - fix display of intro text.    
 - disable alert when bulk approving change request
+- show spinner when procesing 'approve selected'
+- show spinner when procesing 'reject selected'
+- show spinner when procesing 'apply all approved'
  
 fabrication blueprint catalog view...
+- click on row should check the checkbox
+- selecting an item should set the unsaved changes flag
 - intro text should be under the title
 - use similar paging controls and page range display as the model validation request list.
   

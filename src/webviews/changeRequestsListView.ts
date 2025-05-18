@@ -1210,7 +1210,7 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
         } else if (rejectedCount > 0) {
             vscode.window.showWarningMessage(`${rejectedCount} change requests were rejected. No changes were applied.`);
         } else {
-            vscode.window.showInformationMessage(`No change requests were applied.`);
+            // vscode.window.showInformationMessage(`No change requests were applied.`);
         }
         
     } catch (error) {
