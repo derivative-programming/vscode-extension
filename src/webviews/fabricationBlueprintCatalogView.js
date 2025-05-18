@@ -177,6 +177,22 @@
             templateSetData.items.forEach(item => {
                 const row = document.createElement("tr");
                 
+                // Add row click handler to toggle checkbox
+                row.style.cursor = "pointer";
+                row.addEventListener("click", (event) => {
+                    // Only toggle if click wasn't on checkbox itself (to avoid double-toggling)
+                    if (!event.target.matches('input[type="checkbox"]')) {
+                        const checkbox = row.querySelector('input[data-template]');
+                        if (checkbox && !checkbox.disabled) {
+                            checkbox.checked = !checkbox.checked;
+                            
+                            // Trigger the change event to handle the selection change
+                            const changeEvent = new Event('change', { bubbles: true });
+                            checkbox.dispatchEvent(changeEvent);
+                        }
+                    }
+                });
+                
                 columns.forEach(col => {
                     const td = document.createElement("td");
                     

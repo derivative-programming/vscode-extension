@@ -347,11 +347,14 @@ export function registerFabricationBlueprintCatalogCommands(
                                 }
                             }
                         }
-                        
-                        // Don't save the model yet, just keep changes in memory
+                          // Don't save the model yet, just keep changes in memory
                         // Since we're modifying the object returned by getCurrentModel() directly,
                         // the changes are already in memory in the ModelService
                         console.log("[Extension] Model updated in memory after template toggle");
+
+                        // Mark that there are unsaved changes in the model
+                        modelService.markUnsavedChanges();
+                        console.log("[Extension] Marked unsaved changes after template toggle");
                         
                         // Notify the webview of success
                         panel.webview.postMessage({

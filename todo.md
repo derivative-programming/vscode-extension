@@ -9,13 +9,8 @@ model validation request list...
 
 model change request list...
 - fix display of intro text.    
-- show spinner when procesing 'approve selected'
-- show spinner when procesing 'reject selected'
-- show spinner when procesing 'apply all approved'
  
 fabrication blueprint catalog view...
-- click on row should check the checkbox
-- selecting an item should set the unsaved changes flag
 - intro text should be under the title
 - use similar paging controls and page range display as the model validation request list.
   

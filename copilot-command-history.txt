@@ -48,7 +48,14 @@ Command: Removed automatic isCompleted property creation for model features
 - Added refresh button click handler in modelFeatureCatalogView.js
 - Updated todo.md to mark the task as completed
 
-// filepath: c:\VR\Source\DP\vscode-extension\copilot-command-history.txt
+Command: Implemented row click to toggle checkbox and set unsaved changes in Fabrication Blueprint Catalog view
+- Modified renderTable function in fabricationBlueprintCatalogView.js to add click event listeners to rows
+- Added logic to toggle checkboxes when clicking anywhere on a row (excluding clicks directly on checkboxes)
+- Added cursor: pointer CSS styling to table rows for better UX
+- Updated FabricationBlueprintCatalogToggleTemplate handler in fabricationBlueprintCatalogCommands.ts to call modelService.markUnsavedChanges() when a template is toggled
+- Added debug logging to track when unsaved changes flag is set
+- Updated todo.md to mark the task as completed
+
 Command: Fixed treeview item click behavior for Project and Model Service items
 - Implemented panel ID normalization and tracking for Project Settings view
 - Added panel tracking for Model Feature Catalog panels
@@ -208,6 +215,7 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Collapse all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
