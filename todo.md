@@ -6,11 +6,9 @@ model feature catalog view...]
 
 model validation request list...
 - add intro text to the top of the page under title
-- refresh button should show a spinner when clicked
 
 model change request list...
 - fix display of intro text.    
-- disable alert when bulk approving change request
 - show spinner when procesing 'approve selected'
 - show spinner when procesing 'reject selected'
 - show spinner when procesing 'apply all approved'

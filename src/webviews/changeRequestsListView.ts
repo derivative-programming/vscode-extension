@@ -646,17 +646,20 @@ async function handleApproveChangeRequest(panel: vscode.WebviewPanel, requestCod
         
         // Save the updated file
         fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
-        
-        // Reload and send updated data to the webview
+          // Reload and send updated data to the webview
         await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Notify webview that the operation is complete
+        panel.webview.postMessage({ command: 'operationComplete' });
         
         // Show no success message
         // vscode.window.showInformationMessage(`Change request ${changeRequestCode} approved successfully`);
-        
-    } catch (error) {
+          } catch (error) {
         console.error("[Extension] Failed to approve change request:", error);
         vscode.window.showErrorMessage(`Failed to approve change request: ${error.message}`);
         panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to approve change request: ${error.message}` });
+        // Ensure we notify the webview to hide the spinner
+        panel.webview.postMessage({ command: 'operationComplete' });
     }
 }
 
@@ -722,17 +725,20 @@ async function handleRejectChangeRequest(panel: vscode.WebviewPanel, requestCode
         
         // Save the updated file
         fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
-        
-        // Reload and send updated data to the webview
+          // Reload and send updated data to the webview
         await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Notify webview that the operation is complete
+        panel.webview.postMessage({ command: 'operationComplete' });
         
         // Show no success message
         // vscode.window.showInformationMessage(`Change request ${changeRequestCode} rejected successfully`);
-        
-    } catch (error) {
+          } catch (error) {
         console.error("[Extension] Failed to reject change request:", error);
         vscode.window.showErrorMessage(`Failed to reject change request: ${error.message}`);
         panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to reject change request: ${error.message}` });
+        // Ensure we notify the webview to hide the spinner
+        panel.webview.postMessage({ command: 'operationComplete' });
     }
 }
 
@@ -1198,9 +1204,11 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
         
         // Save the updated change requests file
         fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
-        
-        // Reload and send updated data to the webview
+          // Reload and send updated data to the webview
         await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Notify webview that the operation is complete
+        panel.webview.postMessage({ command: 'operationComplete' });
         
         // Show a summary message
         if (appliedCount > 0 && rejectedCount > 0) {
@@ -1212,11 +1220,12 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
         } else {
             // vscode.window.showInformationMessage(`No change requests were applied.`);
         }
-        
-    } catch (error) {
+          } catch (error) {
         console.error("[Extension] Failed to apply all change requests:", error);
         vscode.window.showErrorMessage(`Failed to apply all change requests: ${error.message}`);
         panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to apply all change requests: ${error.message}` });
+        // Ensure we notify the webview to hide the spinner
+        panel.webview.postMessage({ command: 'operationComplete' });
     }
 }
 

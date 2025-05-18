@@ -19,9 +19,7 @@
     let sortConfig = {
         column: null,
         direction: 'asc'
-    };
-
-    // Listen for messages from the extension
+    };    // Listen for messages from the extension
     window.addEventListener('message', event => {
         const message = event.data;
         console.log("[Webview] Received message:", message.command);
@@ -32,11 +30,16 @@
                 changeRequestsData = message.data || [];
                 currentRequestCode = message.requestCode;
                 renderChangeRequests();
+                hideSpinner(); // Hide spinner when data is refreshed
                 break;
                 
             case 'modelValidationSetError':
                 showError(message.text);
                 hideSpinner();
+                break;
+                
+            case 'operationComplete':
+                hideSpinner(); // Hide spinner when any operation completes
                 break;
         }
     });
@@ -507,9 +510,7 @@
             requestCode: currentRequestCode,
             changeRequestCode: changeRequestCode
         });
-    }
-
-    /**
+    }    /**
      * Applies all approved change requests.
      */
     function applyAllApprovedChangeRequests() {
@@ -527,14 +528,18 @@
         // Show custom confirmation modal instead of using confirm()
         showConfirmationModal(`Are you sure you want to apply all ${approvedRequests.length} approved change requests?`, () => {
             showSpinner();
-            vscode.postMessage({
-                command: 'applyAllChangeRequests',
-                requestCode: currentRequestCode
-            });
+            try {
+                vscode.postMessage({
+                    command: 'applyAllChangeRequests',
+                    requestCode: currentRequestCode
+                });
+                // The spinner will be hidden when the operation completes and 'operationComplete' message is received
+            } catch (error) {
+                console.error("[Webview] Error applying all approved change requests:", error);
+                hideSpinner(); // Ensure spinner is hidden on error
+            }
         });
-    }
-
-    /**
+    }/**
      * Approves all selected change requests that haven't been processed.
      */
     function approveSelectedChangeRequests() {
@@ -561,14 +566,22 @@
                     const code = selectedCodes[processed];
                     processed++;
                     
-                    vscode.postMessage({
-                        command: 'approveChangeRequest',
-                        requestCode: currentRequestCode,
-                        changeRequestCode: code
-                    });
-                    
-                    // Add a small delay to avoid overwhelming the server
-                    setTimeout(processNext, 100);
+                    try {
+                        vscode.postMessage({
+                            command: 'approveChangeRequest',
+                            requestCode: currentRequestCode,
+                            changeRequestCode: code
+                        });
+                        
+                        // Add a small delay to avoid overwhelming the server
+                        setTimeout(processNext, 100);
+                    } catch (error) {
+                        console.error("[Webview] Error approving change request:", error);
+                        hideSpinner(); // Ensure spinner is hidden on error
+                    }
+                } else {
+                    // No more items to process, we'll wait for the response message
+                    // The extension will send 'operationComplete' when done
                 }
             };
             
@@ -607,8 +620,7 @@
         const batchRejectModal = document.getElementById('batchRejectModal');
         batchRejectModal.style.display = 'none';
     }
-    
-    /**
+      /**
      * Submits batch rejection with reason for all selected change requests.
      */
     function submitBatchRejection() {
@@ -650,15 +662,23 @@
                 const code = selectedCodes[processed];
                 processed++;
                 
-                vscode.postMessage({
-                    command: 'rejectChangeRequest',
-                    requestCode: currentRequestCode,
-                    changeRequestCode: code,
-                    reason: reason
-                });
-                
-                // Add a small delay to avoid overwhelming the server
-                setTimeout(processNext, 100);
+                try {
+                    vscode.postMessage({
+                        command: 'rejectChangeRequest',
+                        requestCode: currentRequestCode,
+                        changeRequestCode: code,
+                        reason: reason
+                    });
+                    
+                    // Add a small delay to avoid overwhelming the server
+                    setTimeout(processNext, 100);
+                } catch (error) {
+                    console.error("[Webview] Error rejecting change request:", error);
+                    hideSpinner(); // Ensure spinner is hidden on error
+                }
+            } else {
+                // No more items to process, we'll wait for the response message
+                // The extension will send 'operationComplete' when done
             }
         };
         

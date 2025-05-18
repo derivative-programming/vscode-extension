@@ -20,6 +20,16 @@ Command: Added refresh button to Fabrication Blueprint Catalog view
 - Added refresh button styles in fabricationBlueprintCatalogCommands.ts
 - Added requestPage helper function to fabricationBlueprintCatalogView.js
 
+Command: Added spinners for processing change requests
+- Updated message event listener in changeRequestsListView.js to handle 'operationComplete' messages and hide spinner
+- Modified handleApproveChangeRequest in changeRequestsListView.ts to send 'operationComplete' message when done
+- Modified handleRejectChangeRequest in changeRequestsListView.ts to send 'operationComplete' message when done
+- Modified handleApplyAllChangeRequests in changeRequestsListView.ts to send 'operationComplete' message when done
+- Updated error handling in approveSelectedChangeRequests function in changeRequestsListView.js to hide spinner on error
+- Updated error handling in submitBatchRejection function in changeRequestsListView.js to hide spinner on error
+- Updated error handling in applyAllApprovedChangeRequests function in changeRequestsListView.js to hide spinner on error
+- Added error handling in TypeScript handlers to ensure spinners are hidden on errors
+
 Command: Added spinner to refresh button click in Model AI Processing view
 - Modified refresh button click handler in modelAIProcessingView.js to show spinner when clicked
 - Leveraged existing hideSpinner function that's already called when data is received
@@ -198,6 +208,7 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Collapse all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
