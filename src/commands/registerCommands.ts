@@ -24,8 +24,8 @@ import { getWebviewContent as getChangeRequestsViewHtml, showChangeRequestsListV
 import { showProjectSettings, getProjectSettingsPanel, closeProjectSettingsPanel } from '../webviews/projectSettingsView';
 // Import showLexiconView and related functions
 import { showLexiconView, getLexiconPanel, closeLexiconPanel } from '../webviews/lexiconView';
-// Import showUserStoriesView
-import { showUserStoriesView } from '../webviews/userStoriesView';
+// Import showUserStoriesView and related functions
+import { showUserStoriesView, getUserStoriesPanel, closeUserStoriesPanel } from '../webviews/userStoriesView';
 import { registerModelValidationCommands } from './modelValidationCommands';
 import { registerModelAIProcessingCommands } from './modelAIProcessingCommands';
 import { registerModelFabricationCommands } from './modelFabricationCommands';
@@ -65,19 +65,20 @@ export function registerCommands(
             if (objectDetailsView && typeof objectDetailsView.getOpenPanelItems === "function") {
                 openPanelsToReopen = objectDetailsView.getOpenPanelItems();
             }
-            
-            // Store reference to project settings panel if open
+              // Store reference to project settings panel if open
             const projectSettingsData = typeof getProjectSettingsPanel === "function" ? getProjectSettingsPanel() : null;
             
             // Store reference to lexicon view panel if open
             const lexiconData = typeof getLexiconPanel === "function" ? getLexiconPanel() : null;
             
+            // Store reference to user stories panel if open
+            const userStoriesData = typeof getUserStoriesPanel === "function" ? getUserStoriesPanel() : null;
+            
             // Close all open object details panels
             if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
                 objectDetailsView.closeAllPanels();
             }
-            
-            // Close project settings panel if open
+              // Close project settings panel if open
             if (typeof closeProjectSettingsPanel === "function") {
                 closeProjectSettingsPanel();
             }
@@ -85,6 +86,11 @@ export function registerCommands(
             // Close lexicon view panel if open
             if (typeof closeLexiconPanel === "function") {
                 closeLexiconPanel();
+            }
+            
+            // Close user stories panel if open
+            if (typeof closeUserStoriesPanel === "function") {
+                closeUserStoriesPanel();
             }
             
             // Reload the model file into memory
@@ -112,10 +118,14 @@ export function registerCommands(
             if (projectSettingsData && projectSettingsData.context && projectSettingsData.modelService) {
                 showProjectSettings(projectSettingsData.context, modelService);
             }
-            
-            // Reopen lexicon view panel if it was open
+              // Reopen lexicon view panel if it was open
             if (lexiconData && lexiconData.context && lexiconData.modelService) {
                 showLexiconView(lexiconData.context, modelService);
+            }
+            
+            // Reopen user stories panel if it was open
+            if (userStoriesData && userStoriesData.context && userStoriesData.modelService) {
+                showUserStoriesView(userStoriesData.context, modelService);
             }
         })
     );// Register expand all top level items command using the dedicated handler

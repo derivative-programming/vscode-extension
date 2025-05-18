@@ -19,3 +19,20 @@ export function showUserStoriesView(context: vscode.ExtensionContext, modelServi
     // Call the JavaScript implementation using the exported function name
     userStoriesViewJS.showUserStoriesView(context, modelService);
 }
+
+/**
+ * Gets the reference to the user stories view panel if it's open
+ * @returns The user stories view panel info or null if not open
+ */
+export function getUserStoriesPanel(): { type: string; context: vscode.ExtensionContext; modelService: ModelService } | null {
+    const userStoriesViewJS = require('./userStoriesView.js');
+    return userStoriesViewJS.getUserStoriesPanel();
+}
+
+/**
+ * Closes the user stories panel if it's open
+ */
+export function closeUserStoriesPanel(): void {
+    const userStoriesViewJS = require('./userStoriesView.js');
+    userStoriesViewJS.closeUserStoriesPanel();
+}

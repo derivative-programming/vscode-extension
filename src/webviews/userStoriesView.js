@@ -35,6 +35,42 @@ function isValidUserStoryFormat(text) {
 // Track active panels to avoid duplicates
 const activePanels = new Map();
 
+// Track panel references for the single user stories view
+const userStoryPanel = {
+    panel: null,
+    context: null,
+    modelService: null
+};
+
+/**
+ * Gets the reference to the user stories view panel if it's open
+ * @returns {Object|null} The user stories view panel info or null if not open
+ */
+function getUserStoriesPanel() {
+    if (activePanels.has('userStoriesView')) {
+        return {
+            type: 'userStoriesView',
+            context: userStoryPanel.context,
+            modelService: userStoryPanel.modelService
+        };
+    }
+    return null;
+}
+
+/**
+ * Closes the user stories panel if it's open
+ */
+function closeUserStoriesPanel() {
+    console.log(`Closing user stories panel if open`);
+    const panel = activePanels.get('userStoriesView');
+    if (panel && !panel._disposed) {
+        panel.dispose();
+        activePanels.delete('userStoriesView');
+    }
+    // Clean up userStoryPanel reference
+    userStoryPanel.panel = null;
+}
+
 /**
  * Shows a user stories view in a webview
  * @param {Object} context The extension context
@@ -45,11 +81,13 @@ function showUserStoriesView(context, modelService) {
         // Use VS Code API from the imported context, not from a global vscode variable
         vscode.window.showErrorMessage("No project is currently loaded.");
         return;
-    }
-
-    // Create a consistent panel ID
+    }    // Create a consistent panel ID
     const panelId = 'userStoriesView';
     console.log(`showUserStoriesView called (panelId: ${panelId})`);
+    
+    // Store reference to context and modelService
+    userStoryPanel.context = context;
+    userStoryPanel.modelService = modelService;
     
     // Check if panel already exists
     if (activePanels.has(panelId)) {
@@ -73,11 +111,13 @@ function showUserStoriesView(context, modelService) {
     // Track this panel
     console.log(`Adding new panel to activePanels with id: ${panelId}`);
     activePanels.set(panelId, panel);
+    userStoryPanel.panel = panel;
     
     // Remove from tracking when disposed
     panel.onDidDispose(() => {
         console.log(`Panel disposed, removing from tracking: ${panelId}`);
         activePanels.delete(panelId);
+        userStoryPanel.panel = null;
     });
 
     // Get the model data
@@ -1015,5 +1055,9 @@ Alternate format: "As a [Role name], I want to [View all, view, add, update, del
 }
 
 module.exports = {
-    showUserStoriesView
+    showUserStoriesView,
+    getUserStoriesPanel,
+    closeUserStoriesPanel,
+    getUserStoriesPanel,
+    closeUserStoriesPanel
 };
