@@ -15,8 +15,8 @@ fabrication blueprint catalog view...
 - use similar paging controls and page range display as the model validation request list.
   
 model fabrication request list...
-- add intro text to the top of the page under title
-- details button is not working
+- ✓ add intro text to the top of the page under title
+- ✓ details button is not working
  
 
 test change on all settings ..

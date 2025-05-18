@@ -102,9 +102,13 @@ export function registerModelFabricationCommands(
                 const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests?' + params.join('&');
                 // Log the API call details
                 console.log("[DEBUG] Model Fabrication API called. URL:", url, "Options:", { headers: { 'Api-Key': '[REDACTED]' } });                try {
+                    console.log("[Extension] Fetching fabrication requests from URL:", url);
+                    
                     const res = await fetch(url, {
                         headers: { 'Api-Key': apiKey }
                     });
+                    
+                    console.log("[Extension] Fabrication API response status:", res.status);
                     
                     // Check for unauthorized errors
                     if (await handleApiError(context, res, 'Failed to fetch fabrication requests')) {
@@ -117,8 +121,12 @@ export function registerModelFabricationCommands(
                     }
                     
                     const data = await res.json();
+                    console.log("[Extension] Fabrication API response data:", 
+                        data ? `Total records: ${data.recordsTotal}, Items: ${data.items ? data.items.length : 0}` : "No data");
+                    
                     panel.webview.postMessage({ command: 'setFabricationData', data });
                 } catch (err) {
+                    console.error("[Extension] Failed to fetch fabrication requests:", err);
                     panel.webview.postMessage({ command: 'setFabricationData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('Failed to fetch fabrication requests: ' + (err && err.message ? err.message : err));
                 }

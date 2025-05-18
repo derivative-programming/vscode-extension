@@ -236,7 +236,9 @@
             downloadButton.classList.add('download-success');
             
             const spinner = downloadButton.querySelector('.spinner'); // Remove spinner from button
-            if (spinner) spinner.remove();
+            if (spinner) { 
+                spinner.remove();
+            }
         } else {
             console.log("[Webview] #downloadResultsButton not found in modalContent.");
         }
@@ -283,8 +285,7 @@
     // Event listeners
     window.addEventListener("message", function(event) {
         const message = event.data;
-        console.log("[Webview] Received message:", message.command, message);
-        if (message.command === "setFabricationData") {
+        console.log("[Webview] Received message:", message.command, message);        if (message.command === "setFabricationData") {
             console.log("[Webview] Handling setFabricationData");
             fabricationData = message.data.items || [];
             pageNumber = message.data.pageNumber || 1;
@@ -292,6 +293,18 @@
             orderByColumn = message.data.orderByColumnName || orderByColumn;
             orderByDescending = message.data.orderByDescending || false;
             totalRecords = message.data.recordsTotal || 0;
+            
+            console.log("[Webview] Fabrication data received:", 
+                { items: fabricationData.length, pageNumber, totalRecords, orderByColumn, orderByDescending });
+            
+            // If no items are found, show a notification
+            if (fabricationData.length === 0) {
+                console.log("[Webview] No fabrication requests found");
+                if (totalRecords === 0) {
+                    console.log("[Webview] Total records is also 0, likely no requests exist yet");
+                }
+            }
+            
             renderTable();
             renderPaging();
             // Hide spinner when data is set
@@ -413,12 +426,19 @@
                     border-bottom: 1px solid var(--vscode-panel-border);
                     margin-bottom: 15px;
                 }
-                
-                .fabrication-header h2 {
+                  .fabrication-header h2 {
                     margin: 0;
                     font-size: 1.3em;
                     font-weight: normal;
                     color: var(--vscode-editor-foreground);
+                }
+                
+                .intro-text {
+                    color: var(--vscode-descriptionForeground);
+                    margin-top: 8px;
+                    margin-bottom: 16px;
+                    font-size: 0.9em;
+                    line-height: 1.4;
                 }
 
                 /* Added toolbar styles for refresh button */
@@ -743,9 +763,9 @@
                 <!-- Spinner overlay -->
                 <div id="spinnerOverlay" class="spinner-overlay">
                     <div class="spinner"></div>
-                </div>
-                <div class="fabrication-header">
+                </div>            <div class="fabrication-header">
                     <h2>Model Fabrication Requests</h2>
+                    <p class="intro-text">This page displays a list of fabrication requests for generating code based on your model. You can add a new request, view details of completed requests, and download fabrication results.</p>
                 </div>
                 <div class="toolbar">
                     <button id="addButton" class="refresh-button add-button" title="Add Request">
@@ -830,9 +850,8 @@
                 event.target.style.display = "none";
             }
         };
-    }
-
-    function renderTable() {
+    }    function renderTable() {
+        console.log(`[Webview] renderTable() called at ${new Date().toISOString()}`);
         const table = document.getElementById("fabricationTable");
         table.innerHTML = "";
         
@@ -958,16 +977,18 @@
                                     document.getElementById("cancelCancel").addEventListener("click", function() {
                                         console.log("[Webview] User cancelled the cancel operation");
                                         document.body.removeChild(confirmModal);
-                                    });
-                                });
+                                    });                                });
                                 
-                                td.appendChild(button);                            } else if (isCompleted && !item.modelFabricationRequestIsCanceled) {
+                                td.appendChild(button);
+                            } else if (isCompleted && !item.modelFabricationRequestIsCanceled) {
                                 // Show Details button only for completed requests that aren't cancelled
                                 const button = document.createElement("button");
                                 button.className = "view-button";
                                 button.textContent = "Details";
                                 button.setAttribute("data-request-code", item.modelFabricationRequestCode);
-                                button.onclick = function(e) {
+                                
+                                // Use addEventListener instead of onclick for better control
+                                button.addEventListener("click", function(e) {
                                     e.preventDefault();
                                     e.stopPropagation(); // Prevent row click handler
                                     
@@ -982,7 +1003,8 @@
                                         command: "ModelFabricationFetchRequestDetails",
                                         requestCode: requestCode
                                     });
-                                };
+                                });
+                                
                                 td.appendChild(button);
                             } else {
                                 // For other cases, show no button
@@ -1141,16 +1163,17 @@
                 <span class="detail-value error-message">${data.modelFabricationRequestErrorMessage || "No specific error details available."}</span>
             `;
             detailsContent.appendChild(errorDiv);
-        }
-
-        // Add action buttons container if needed
+        }        // Add action buttons container if needed
         if (data.modelFabricationRequestIsCompleted) {
             const actionDiv = document.createElement("div");
             actionDiv.className = "action-container";
             
+            // Declare downloadButton outside the if block to make it available in the entire function scope
+            let downloadButton = null;
+            
             // Add download results button if request was successful
             if (data.modelFabricationRequestIsSuccessful && data.modelFabricationRequestResultUrl) {
-                const downloadButton = document.createElement("button");
+                downloadButton = document.createElement("button");
                 downloadButton.className = "download-button";
                 downloadButton.id = "downloadResultsButton";
                 downloadButton.textContent = "Download Results";
@@ -1203,10 +1226,11 @@
     
     /**
      * Shows a progress container for download in the modal.
-     */
-    function showDownloadProgressInModal() {
+     */    function showDownloadProgressInModal() {
         const progressContainer = document.getElementById("modal-progress-container");
-        if (!progressContainer) return;
+        if (!progressContainer) { 
+            return;
+        }
         
         progressContainer.className = "progress-container visible";
         progressContainer.innerHTML = `
@@ -1224,28 +1248,36 @@
     /**
      * Updates the download progress in the modal.
      * @param {number} percent - The percentage of download completed.
-     */
-    function updateDownloadProgressInModal(percent) {
+     */    function updateDownloadProgressInModal(percent) {
         const progressContainer = document.getElementById("modal-progress-container");
-        if (!progressContainer) return;
+        if (!progressContainer) { 
+            return;
+        }
         
         const progressBar = progressContainer.querySelector(".progress-bar");
-        if (progressBar) progressBar.style.width = `${percent}%`;
+        if (progressBar) { 
+            progressBar.style.width = `${percent}%`;
+        }
         
         const progressPercentage = progressContainer.querySelector(".progress-percentage");
-        if (progressPercentage) progressPercentage.textContent = `${percent}%`;
+        if (progressPercentage) { 
+            progressPercentage.textContent = `${percent}%`;
+        }
         
         const statusMessage = progressContainer.querySelector(".status-message");
-        if (statusMessage) statusMessage.textContent = `Downloading file... ${percent}% complete`;
+        if (statusMessage) { 
+            statusMessage.textContent = `Downloading file... ${percent}% complete`;
+        }
     }
     
     /**
      * Shows extraction progress in the modal.
      * @param {number} fileCount - The total number of files to extract.
-     */
-    function showExtractionProgressInModal(fileCount) {
+     */    function showExtractionProgressInModal(fileCount) {
         const progressContainer = document.getElementById("modal-progress-container");
-        if (!progressContainer) return;
+        if (!progressContainer) { 
+            return;
+        }
         
         progressContainer.innerHTML = `
             <div class="progress-title">Extracting Files</div>
@@ -1265,22 +1297,31 @@
      * @param {number} extracted - The number of files extracted.
      * @param {number} total - The total number of files to extract.
      * @param {number} percent - The percentage of extraction that is complete.
-     */
-    function updateExtractionProgressInModal(extracted, total, percent) {
+     */    function updateExtractionProgressInModal(extracted, total, percent) {
         const progressContainer = document.getElementById("modal-progress-container");
-        if (!progressContainer) return;
+        if (!progressContainer) { 
+            return; 
+        }
         
         const progressBar = progressContainer.querySelector(".progress-bar");
-        if (progressBar) progressBar.style.width = `${percent}%`;
+        if (progressBar) { 
+            progressBar.style.width = `${percent}%`; 
+        }
         
         const progressPercentage = progressContainer.querySelector(".progress-percentage");
-        if (progressPercentage) progressPercentage.textContent = `${percent}%`;
+        if (progressPercentage) { 
+            progressPercentage.textContent = `${percent}%`; 
+        }
         
         const progressFiles = progressContainer.querySelector(".progress-files");
-        if (progressFiles) progressFiles.textContent = `${extracted}/${total} files`;
+        if (progressFiles) { 
+            progressFiles.textContent = `${extracted}/${total} files`; 
+        }
         
         const statusMessage = progressContainer.querySelector(".status-message");
-        if (statusMessage) statusMessage.textContent = `Extracting files... ${percent}% complete`;
+        if (statusMessage) { 
+            statusMessage.textContent = `Extracting files... ${percent}% complete`; 
+        }
     }
     
     /**
