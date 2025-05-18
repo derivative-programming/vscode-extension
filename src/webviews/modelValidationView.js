@@ -582,10 +582,9 @@
         `;
         
         // Initial ready message
-        vscode.postMessage({ command: "modelValidationWebviewReady" });
-
-        // Attach refresh button handler
+        vscode.postMessage({ command: "modelValidationWebviewReady" });        // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
+            showSpinner(); // Show spinner when refresh button is clicked
             requestPage(pageNumber);
         };
         // Attach add button handler
@@ -850,6 +849,7 @@
     }
 
     function requestPage(page) {
+        showSpinner(); // Show spinner whenever new data is being requested
         vscode.postMessage({
             command: "modelValidationRequestPage",
             pageNumber: page,

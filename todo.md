@@ -6,7 +6,6 @@ model feature catalog view...]
 
 model validation request list...
 - add intro text to the top of the page under title
-- Add modal: switch add and cancel button locations
 - refresh button should show a spinner when clicked
 
 model change request list...
