@@ -13,23 +13,7 @@ model change request list...
 fabrication blueprint catalog view...
 - intro text should be under the title
 - use similar paging controls and page range display as the model validation request list.
-  
-model fabrication request list...
-- ✓ add intro text to the top of the page under title
-- ✓ details button is not working
  
-
-test change on all settings ..
-- project settings - done
-- lexicon - done
-- user stories - done
-- model feature catalog - done
-- model fabrication blueprint catalog - done
-- object details - settings tab - done
-- object details - properties tab
-- 
-
-   
   
 - model service request lists (validation, ai processing, fabrication)
     - page size dropdown

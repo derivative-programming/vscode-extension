@@ -9,9 +9,18 @@ Command: Fix Model Fabrication Request List Issues
 - Updated todo.md to mark both tasks as completed
 
 Command: Fixed downloadButton scope issue in Model Fabrication Details modal
+
+Command: Adding a data object should set the unsaved changes exist flag
+- Modified objectCommands.ts to call modelService.markUnsavedChanges() when adding a data object
+- Updated ai-agent-architecture-notes.md to document this change
 - Fixed ReferenceError: downloadButton is not defined error in showDetailsModal function
 - Moved downloadButton variable declaration outside the if block to make it accessible throughout the function scope
 - Initialized the variable with null to ensure proper condition checking
 - This allows the function to properly display and position buttons in the modal dialog
 - The details button now works correctly to show fabrication request information
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

@@ -106,14 +106,16 @@ export async function addObjectCommand(
         // Create new object following the schema; include parentObjectName if applicable.
         const newObject: any = { name: objectName };
         newObject.parentObjectName = (selectedParent && selectedParent.nsIndex !== -1) ? selectedParent.label.split(' (in ')[0] : "";
-        
-        // Add the new object into the chosen namespace's object array
+          // Add the new object into the chosen namespace's object array
         model.namespace[targetNsIndex].object.push(newObject);
         
-        // Save the updated model
-        await modelService.saveToFile(model);
+        // Mark that there are unsaved changes
+        modelService.markUnsavedChanges();
         
-        vscode.window.showInformationMessage(`Added new object: ${objectName}`);
+        // dont Save the updated model
+        // await modelService.saveToFile(model);
+        
+        // vscode.window.showInformationMessage(`Added new object: ${objectName}`);
         jsonTreeDataProvider.refresh();
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
