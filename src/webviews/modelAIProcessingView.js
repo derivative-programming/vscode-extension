@@ -602,10 +602,9 @@
                 <!-- Add Request Modal -->
                 <div id="addModal" class="modal">
                     <div class="modal-content">
-                        <h3>Add Processing Request</h3>
-                        <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
-                            <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Cancel button always on the right -->
-                            <button id="submitAdd" class="refresh-button">Add</button>
+                        <h3>Add Processing Request</h3>                        <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
+                            <button id="submitAdd" class="refresh-button">Add</button> <!-- Add button now on the left -->
+                            <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Cancel button now on the right -->
                         </div>
                     </div>
                 </div>
