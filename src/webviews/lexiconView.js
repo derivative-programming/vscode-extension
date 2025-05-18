@@ -18,6 +18,42 @@ let originalLexiconItems = [];
 // Track active panels to avoid duplicates
 const activePanels = new Map();
 
+// Track panel references for the single lexicon view
+const lexiconPanel = {
+    panel: null,
+    context: null,
+    modelService: null
+};
+
+/**
+ * Gets the reference to the lexicon view panel if it's open
+ * @returns {Object|null} The lexicon view panel info or null if not open
+ */
+function getLexiconPanel() {
+    if (activePanels.has('lexiconView')) {
+        return {
+            type: 'lexiconView',
+            context: lexiconPanel.context,
+            modelService: lexiconPanel.modelService
+        };
+    }
+    return null;
+}
+
+/**
+ * Closes the lexicon panel if it's open
+ */
+function closeLexiconPanel() {
+    console.log(`Closing lexicon panel if open`);
+    const panel = activePanels.get('lexiconView');
+    if (panel && !panel._disposed) {
+        panel.dispose();
+        activePanels.delete('lexiconView');
+    }
+    // Clean up lexiconPanel reference
+    lexiconPanel.panel = null;
+}
+
 /**
  * Shows a lexicon view in a webview
  * @param {Object} context The extension context
@@ -28,11 +64,13 @@ function showLexiconView(context, modelService) {
         // Use VS Code API from the imported context, not from a global vscode variable
         vscode.window.showErrorMessage("No project is currently loaded.");
         return;
-    }
-
-    // Create a consistent panel ID
+    }    // Create a consistent panel ID
     const panelId = 'lexiconView';
     console.log(`showLexiconView called (panelId: ${panelId})`);
+    
+    // Store reference to context and modelService
+    lexiconPanel.context = context;
+    lexiconPanel.modelService = modelService;
     
     // Check if panel already exists
     if (activePanels.has(panelId)) {
@@ -56,11 +94,13 @@ function showLexiconView(context, modelService) {
     // Track this panel
     console.log(`Adding new panel to activePanels with id: ${panelId}`);
     activePanels.set(panelId, panel);
+    lexiconPanel.panel = panel;
     
     // Remove from tracking when disposed
     panel.onDidDispose(() => {
         console.log(`Panel disposed, removing from tracking: ${panelId}`);
         activePanels.delete(panelId);
+        lexiconPanel.panel = null;
     });
 
     // Get the model data
@@ -417,5 +457,7 @@ function createHtmlContent(lexiconItems, errorMessage = null) {
 }
 
 module.exports = {
-    showLexiconView
+    showLexiconView,
+    getLexiconPanel,
+    closeLexiconPanel
 };

@@ -22,8 +22,8 @@ import { AuthService } from '../services/authService';
 import { getWebviewContent as getChangeRequestsViewHtml, showChangeRequestsListView } from '../webviews/changeRequestsListView';
 // Import showProjectSettings and related functions
 import { showProjectSettings, getProjectSettingsPanel, closeProjectSettingsPanel } from '../webviews/projectSettingsView';
-// Import showLexiconView
-import { showLexiconView } from '../webviews/lexiconView';
+// Import showLexiconView and related functions
+import { showLexiconView, getLexiconPanel, closeLexiconPanel } from '../webviews/lexiconView';
 // Import showUserStoriesView
 import { showUserStoriesView } from '../webviews/userStoriesView';
 import { registerModelValidationCommands } from './modelValidationCommands';
@@ -69,6 +69,9 @@ export function registerCommands(
             // Store reference to project settings panel if open
             const projectSettingsData = typeof getProjectSettingsPanel === "function" ? getProjectSettingsPanel() : null;
             
+            // Store reference to lexicon view panel if open
+            const lexiconData = typeof getLexiconPanel === "function" ? getLexiconPanel() : null;
+            
             // Close all open object details panels
             if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
                 objectDetailsView.closeAllPanels();
@@ -77,6 +80,11 @@ export function registerCommands(
             // Close project settings panel if open
             if (typeof closeProjectSettingsPanel === "function") {
                 closeProjectSettingsPanel();
+            }
+            
+            // Close lexicon view panel if open
+            if (typeof closeLexiconPanel === "function") {
+                closeLexiconPanel();
             }
             
             // Reload the model file into memory
@@ -100,10 +108,14 @@ export function registerCommands(
                     objectDetailsView.showObjectDetails(item, modelService);
                 }
             }
-            
-            // Reopen project settings panel if it was open
+              // Reopen project settings panel if it was open
             if (projectSettingsData && projectSettingsData.context && projectSettingsData.modelService) {
                 showProjectSettings(projectSettingsData.context, modelService);
+            }
+            
+            // Reopen lexicon view panel if it was open
+            if (lexiconData && lexiconData.context && lexiconData.modelService) {
+                showLexiconView(lexiconData.context, modelService);
             }
         })
     );// Register expand all top level items command using the dedicated handler
