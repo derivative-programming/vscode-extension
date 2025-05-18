@@ -116,12 +116,12 @@ export function registerModelFeatureCatalogCommands(
                             font-size: 1.3em;
                             font-weight: normal;
                             color: var(--vscode-editor-foreground);
-                        }
-                        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+                        }                        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
                         th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
                         th { background: var(--vscode-sideBar-background); cursor: pointer; font-weight: bold; }
                         tr:nth-child(even) { background: var(--vscode-sideBarSectionHeader-background); }
                         tr:hover { background-color: var(--vscode-list-hoverBackground); }
+                        tbody tr { cursor: pointer; }
                         #paging { margin: 1em 0; padding: 10px 0; text-align: center; }
                         button { 
                             margin: 0 4px; 

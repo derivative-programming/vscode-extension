@@ -175,10 +175,10 @@
         
         // Create table body
         const tbody = document.createElement("tbody");
-        
-        // Create rows for each item
+          // Create rows for each item
         if (featureData.items && featureData.items.length > 0) {
             featureData.items.forEach(item => {                const row = document.createElement("tr");
+                let checkbox = null;
                 
                 columns.forEach(col => {
                     const td = document.createElement("td");
@@ -188,7 +188,7 @@
                         const checkboxContainer = document.createElement("div");
                         checkboxContainer.className = "checkbox-container";
                         
-                        const checkbox = document.createElement("input");
+                        checkbox = document.createElement("input");
                         checkbox.type = "checkbox";
                         checkbox.dataset.feature = item.name;
                         
@@ -223,6 +223,24 @@
                     }
                     
                     row.appendChild(td);
+                });
+                
+                // Add click event to row that toggles the checkbox if not disabled
+                row.addEventListener("click", function(e) {
+                    // If the user clicked directly on the checkbox, don't do anything
+                    // as the checkbox's own change event will handle it
+                    if (e.target.type === "checkbox") {
+                        return;
+                    }
+                    
+                    // Only toggle if checkbox is not disabled
+                    if (checkbox && !checkbox.disabled) {
+                        checkbox.checked = !checkbox.checked;
+                        
+                        // Manually trigger the change event
+                        const changeEvent = new Event("change");
+                        checkbox.dispatchEvent(changeEvent);
+                    }
                 });
                 
                 tbody.appendChild(row);

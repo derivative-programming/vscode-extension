@@ -1,3 +1,9 @@
+Command: Implemented row click to toggle checkbox in Model Feature Catalog view
+- Modified renderTable function in modelFeatureCatalogView.js to add click event listeners to rows
+- Added logic to toggle checkboxes when clicking on a row (excluding clicks directly on checkboxes)
+- Added cursor: pointer CSS styling to table rows for better UX
+- Updated todo.md to mark the task as completed
+
 Command: Disabled alerts when bulk approving change requests
 - Modified approveSelectedChangeRequests function in changeRequestsListView.js to return silently without showing alert when no items are selected
 - Modified applyAllApprovedChangeRequests function in changeRequestsListView.js to return silently without showing alert when no items are available
@@ -183,5 +189,6 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Collapse all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

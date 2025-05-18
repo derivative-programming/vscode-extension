@@ -1,7 +1,7 @@
 Agent todo items...
      
 model feature catalog view...
-- click on row should check the checkbox
+- [✓] click on row should check the checkbox
 - selecting an item should set the unsaved changes flag
 - add intro text to the top of the page under title
 - use similar paging controls and page range display as the model validation request list.
