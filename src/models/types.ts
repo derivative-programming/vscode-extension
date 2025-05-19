@@ -59,9 +59,7 @@ export class JsonTreeItem extends vscode.TreeItem {
         public readonly contextValue?: string
     ) {
         super(label, collapsibleState);
-        this.contextValue = contextValue;
-
-        // If this is the DATA OBJECTS item, apply special styling
+        this.contextValue = contextValue;        // If this is the DATA OBJECTS item, apply special styling
         if (contextValue === 'dataObjects' && label === 'DATA OBJECTS') {
             // Use iconPath to give it a distinctive appearance
             this.iconPath = new vscode.ThemeIcon('database');
@@ -72,6 +70,15 @@ export class JsonTreeItem extends vscode.TreeItem {
             this.command = {
                 title: 'Show Details',
                 command: 'appdna.showDetails',
+                arguments: [this]
+            };
+        }
+        
+        // If the item represents a report, attach a command to show report details.
+        if (contextValue === 'reportItem') {
+            this.command = {
+                title: 'Show Report Details',
+                command: 'appdna.showReportDetails',
                 arguments: [this]
             };
         }

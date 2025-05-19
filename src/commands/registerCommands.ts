@@ -13,6 +13,7 @@ import { newProjectCommand, openProjectCommand, saveProjectCommand } from './pro
 import { startMCPServerCommand, stopMCPServerCommand } from './mcpCommands';
 import { startMCPHttpServerCommand, stopMCPHttpServerCommand } from './mcpHttpCommands';
 import * as objectDetailsView from '../webviews/objectDetailsView';
+import * as reportDetailsView from '../webviews/reportDetailsView';
 import { ModelService } from '../services/modelService';
 import { openModelExplorer } from '../webviews/modelExplorerView';
 import { showWelcomeView } from '../webviews/welcomeView';
@@ -29,6 +30,7 @@ import { showUserStoriesView, getUserStoriesPanel, closeUserStoriesPanel } from 
 import { registerModelValidationCommands } from './modelValidationCommands';
 import { registerModelAIProcessingCommands } from './modelAIProcessingCommands';
 import { registerModelFabricationCommands } from './modelFabricationCommands';
+import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
@@ -52,12 +54,13 @@ export function registerCommands(
         console.log("Unsaved changes indicator clicked");
     });
     context.subscriptions.push(unsavedChangesIndicatorCommand);
-    
-    // Register refresh command
+      // Register refresh command
     const refreshCommand = vscode.commands.registerCommand('appdna.refresh', () => {
         jsonTreeDataProvider.refresh();
     });
-    context.subscriptions.push(refreshCommand);    // Register refresh view command for the title bar button
+    context.subscriptions.push(refreshCommand);
+    
+    // Register refresh view command for the title bar button
     context.subscriptions.push(
         vscode.commands.registerCommand("appdna.refreshView", async () => {
             // Store references to any open object details panels before refreshing
@@ -78,11 +81,12 @@ export function registerCommands(
             
             // Store reference to fabrication blueprint catalog panel if open
             const fabricationBlueprintData = typeof getFabricationBlueprintCatalogPanel === "function" ? getFabricationBlueprintCatalogPanel() : null;
-            
-            // Close all open object details panels
+              // Close all open object details panels
             if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
                 objectDetailsView.closeAllPanels();
-            }            // Close project settings panel if open
+            }
+            
+            // Close project settings panel if open
             if (typeof closeProjectSettingsPanel === "function") {
                 closeProjectSettingsPanel();
             }
@@ -126,17 +130,17 @@ export function registerCommands(
             if (openPanelsToReopen.length > 0 && objectDetailsView) {
                 for (const item of openPanelsToReopen) {
                     objectDetailsView.showObjectDetails(item, modelService);
-                }
-            }
-              // Reopen project settings panel if it was open
+                }            }
+            
+            // Reopen project settings panel if it was open
             if (projectSettingsData && projectSettingsData.context && projectSettingsData.modelService) {
-                showProjectSettings(projectSettingsData.context, modelService);
-            }
-              // Reopen lexicon view panel if it was open
+                showProjectSettings(projectSettingsData.context, modelService);            }
+            
+            // Reopen lexicon view panel if it was open
             if (lexiconData && lexiconData.context && lexiconData.modelService) {
-                showLexiconView(lexiconData.context, modelService);
-            }
-              // Reopen user stories panel if it was open
+                showLexiconView(lexiconData.context, modelService);            }
+            
+            // Reopen user stories panel if it was open
             if (userStoriesData && userStoriesData.context && userStoriesData.modelService) {
                 showUserStoriesView(userStoriesData.context, modelService);
             }
@@ -148,14 +152,17 @@ export function registerCommands(
             // Reopen fabrication blueprint catalog panel if it was open
             if (fabricationBlueprintData && fabricationBlueprintData.context && fabricationBlueprintData.modelService) {
                 vscode.commands.executeCommand('appdna.fabricationBlueprintCatalog');
-            }
-        })
-    );// Register expand all top level items command using the dedicated handler
+            }        })
+    );
+    
+        // Register expand all top level items command using the dedicated handler
     context.subscriptions.push(
         vscode.commands.registerCommand("appdna.expandAllTopLevel", async () => {
             await expandAllTopLevelCommand(jsonTreeDataProvider);
         })
-    );    // Register collapse all top level items command using the dedicated handler
+    );
+    
+    // Register collapse all top level items command using the dedicated handler
     context.subscriptions.push(
         vscode.commands.registerCommand("appdna.collapseAllTopLevel", async () => {
             await collapseAllTopLevelCommand();
@@ -209,14 +216,14 @@ export function registerCommands(
             await saveProjectCommand(jsonTreeDataProvider);
         })
     );
-
+    
     // Register generate code command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.generateCode', async () => {
             await generateCodeCommand(appDNAFilePath, modelService);
         })
     );
-
+    
     // Register show details command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showDetails', (node: JsonTreeItem) => {
@@ -229,7 +236,7 @@ export function registerCommands(
             // Use the objectDetailsView implementation with modelService only
             objectDetailsView.showObjectDetails(node, modelService);
         })
-    );
+    );    
     
     // Register list all objects command
     context.subscriptions.push(
@@ -349,10 +356,10 @@ export function registerCommands(
             }
             
             // Show the project settings view
-            showProjectSettings(context, modelService);
-        })
+            showProjectSettings(context, modelService);        })
     );
-      // Register show lexicon command
+    
+    // Register show lexicon command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showLexicon', async () => {
             if (!modelService.isFileLoaded()) {
@@ -361,10 +368,10 @@ export function registerCommands(
             }
             
             // Show the lexicon view
-            showLexiconView(context, modelService);
-        })
+            showLexiconView(context, modelService);        })
     );
-      // Register show user stories command
+    
+    // Register show user stories command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showUserStories', async () => {
             if (!modelService.isFileLoaded()) {
@@ -396,16 +403,19 @@ export function registerCommands(
         vscode.commands.registerCommand('appdna.startMCPHttpServer', async () => {
             await startMCPHttpServerCommand();
         })
-    );
-    
-    // Register stop MCP HTTP server command
+    );    // Register stop MCP HTTP server command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.stopMCPHttpServer', async () => {
             await stopMCPHttpServerCommand();
         })
-    );    registerModelFabricationCommands(context, appDNAFilePath, modelService);
+    );
+    
+    registerModelFabricationCommands(context, appDNAFilePath, modelService);
     
     // Register fabrication blueprint catalog commands
     registerFabricationBlueprintCatalogCommands(context, appDNAFilePath, modelService);
+    
+    // Register report-related commands
+    registerReportCommands(context, modelService);
 
 }
