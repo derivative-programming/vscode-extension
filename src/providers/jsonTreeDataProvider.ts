@@ -140,16 +140,26 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 if (isLoggedIn) {
                     // Unlocked icon for logged-in state
                     modelServicesItem.iconPath = new vscode.ThemeIcon('globe');
-                } else {
-                    // Locked icon for logged-out state
+                } else {                // Locked icon for logged-out state
                     modelServicesItem.iconPath = new vscode.ThemeIcon('lock');
-                }                // Set tooltip to show login status
+                }
+                
+                // Set tooltip to show login status
                 modelServicesItem.tooltip = isLoggedIn ? 
                     "Connected to Model Services API" : 
                     "Authentication required to access Model Services";
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, MODEL SERVICES
-                return Promise.resolve([projectItem, dataObjectsItem, modelServicesItem]);
+                // Create REPORTS as a top-level item
+                const reportsItem = new JsonTreeItem(
+                    'REPORTS',
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    'reports'
+                );
+                reportsItem.iconPath = new vscode.ThemeIcon('book');
+                reportsItem.tooltip = "Model reports from all objects";
+                
+                // Return tree items in order: PROJECT, DATA OBJECTS, REPORTS, MODEL SERVICES
+                return Promise.resolve([projectItem, dataObjectsItem, reportsItem, modelServicesItem]);
             } else {
                 // File doesn't exist, show empty tree
                 return Promise.resolve([]);
@@ -263,8 +273,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 return Promise.resolve([]);
             }
         }
-        
-        // Handle child elements
+          // Handle child elements
         if (element?.contextValue === 'dataObjects' && fileExists) {
             try {
                 if (modelLoaded) {
@@ -308,6 +317,45 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 }
             } catch (error) {
                 console.error('Error reading objects:', error);
+                return Promise.resolve([]);
+            }
+        }
+          // Handle REPORTS as a top-level item
+        if (element?.contextValue === 'reports' && fileExists) {
+            try {
+                if (modelLoaded) {
+                    // Use ModelService to get all reports
+                    const allReports = this.modelService.getAllReports();
+                    if (allReports.length === 0) {                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No reports found',
+                                vscode.TreeItemCollapsibleState.None,
+                                'reportsEmpty'
+                            )
+                        ]);
+                    }
+                    
+                    return Promise.resolve(
+                        allReports.map((report: any, index: number) =>
+                            new JsonTreeItem(
+                                report.name || `Report ${index + 1}`,
+                                vscode.TreeItemCollapsibleState.None,
+                                'reportItem'
+                            )
+                        )
+                    );
+                } else {
+                    // If model isn't loaded, show placeholder
+                    return Promise.resolve([
+                        new JsonTreeItem(
+                            'Model not loaded',
+                            vscode.TreeItemCollapsibleState.None,
+                            'reportsEmpty'
+                        )
+                    ]);
+                }
+            } catch (error) {
+                console.error('Error reading reports:', error);
                 return Promise.resolve([]);
             }
         }
@@ -417,13 +465,13 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     /**
      * Expands all top-level items in the tree view
      * Used by the expandAllTopLevel command
-     */
-    expandAllItems(): void {
+     */    expandAllItems(): void {
         try {
             // Get the top-level items from the model
             const topLevelItems = [
                 'PROJECT',
                 'DATA OBJECTS',
+                'REPORTS',
                 'MODEL SERVICES'
             ];
             
@@ -451,9 +499,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         if (!element) {
             return Promise.resolve(null);
         }
-        
-        // Root-level items (PROJECT, DATA OBJECTS, MODEL SERVICES) have no parent
-        if (['PROJECT', 'DATA OBJECTS', 'MODEL SERVICES'].includes(element.label)) {
+          // Root-level items (PROJECT, DATA OBJECTS, REPORTS, MODEL SERVICES) have no parent
+        if (['PROJECT', 'DATA OBJECTS', 'REPORTS', 'MODEL SERVICES'].includes(element.label)) {
             return Promise.resolve(null);
         }
         
@@ -464,6 +511,14 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 'DATA OBJECTS',
                 vscode.TreeItemCollapsibleState.Collapsed,
                 'dataObjects'
+            ));
+        }
+          if (element.contextValue?.startsWith('report')) {
+            // If this is a report item, its parent is the REPORTS item
+            return Promise.resolve(new JsonTreeItem(
+                'REPORTS',
+                vscode.TreeItemCollapsibleState.Collapsed,
+                'reports'
             ));
         }
         

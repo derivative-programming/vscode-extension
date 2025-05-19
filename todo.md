@@ -3,7 +3,6 @@ Agent todo items...
 
 fabrication request list...
 - allow download of report on fabrication error. use modelFabricationRequestReportUrl
-- (COMPLETED) refresh button now shows a spinner like the model validation request list view refresh button
 
 
 model feature catalog view...]
@@ -38,7 +37,8 @@ change requests...
 
 - implement 'add property' 
 i need to handle the 'add property' button. I need to ask for the property name but i also need to give an option to allow the user to 'bulk add' multiple properties and give them a multi line textbox to add a property for each line entered. validation rules... 1. no spaces allowed in names. 2. alpha characters only.
- 
+
+✅ in the treeview, add REPORTS as a top-level item (peer of DATA OBJECTS)
 
 sub folders...
 - put a ".app_dna_" at the start of the folder names

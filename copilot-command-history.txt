@@ -19,6 +19,14 @@ Command: Fix Model Fabrication Request List Issues
 Command: Fixed downloadButton scope issue in Model Fabrication Details modal
 
 Command: Replace hardcoded projectCode with GUID when creating new model files
+
+Command: Modified REPORTS to be a top-level item in treeview
+- Moved REPORTS from being a child of DATA OBJECTS to a top-level item (peer of DATA OBJECTS)
+- Made REPORTS appear at the same level as PROJECT, DATA OBJECTS, and MODEL SERVICES
+- Updated parent-child relationship handling in getParent method
+- Updated expandAllItems method to include REPORTS in top-level items
+- Used book icon for the REPORTS item
+- Handled cases where model is not loaded or no reports exist
 - Modified addFileCommand() in objectCommands.ts to replace "123456" projectCode with a generated GUID
 - Ensured default structure case also includes a GUID for projectCode 
 - Used existing generateGuid() function that was already created in the file
@@ -51,4 +59,8 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Collapse all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
