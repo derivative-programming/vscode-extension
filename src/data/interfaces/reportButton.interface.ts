@@ -1,5 +1,6 @@
 /**
  * Interface for the Report Button schema structure
+ * Last modified: May 19, 2025
  */
 
 export interface ReportButtonSchema {
@@ -17,4 +18,5 @@ export interface ReportButtonSchema {
     destinationContextObjectName?: string;
     destinationTargetName?: string;
     accessKey?: string;
+    isAccessKeyAvailable?: string;
 }

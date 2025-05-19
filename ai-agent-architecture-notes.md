@@ -628,6 +628,41 @@ This pattern of presenting a workflow guide helps users understand the proper se
   4. The tree view is refreshed
   5. The project settings panel is reopened with fresh data using the stored reference
 
+## Report-Related Models and Interfaces
+
+### Report Schema Structure
+- The app-dna.schema.json file defines several report-related schemas:
+  - `report`: Defines the main report structure with visualization settings and metadata
+  - `reportButton`: Defines buttons that appear on report views 
+  - `reportParam`: Defines parameters that can be used for report filtering
+  - `reportColumn`: Defines columns that appear in report results
+
+### TypeScript Implementation
+- Each schema has corresponding TypeScript interfaces in the `src/data/interfaces` directory:
+  - `ReportSchema` in report.interface.ts
+  - `ReportButtonSchema` in reportButton.interface.ts
+  - `ReportParamSchema` in reportParam.interface.ts
+  - `ReportColumnSchema` in reportColumn.interface.ts
+
+- Each interface has a model implementation in the `src/data/models` directory:
+  - `ReportModel` implements `ReportSchema`
+  - `ReportButtonModel` implements `ReportButtonSchema`
+  - `ReportParamModel` implements `ReportParamSchema`
+  - `ReportColumnModel` implements `ReportColumnSchema`
+
+### Model Pattern
+- Models follow a consistent pattern with:
+  1. Properties matching the schema definition
+  2. Constructor that selectively copies properties from input data
+  3. Static `createEmpty()` method to instantiate an empty model
+  4. Static `fromJson()` method to create from JSON data
+  5. `toJson()` method to convert back to JSON, omitting undefined properties
+
+- This pattern ensures that:
+  - Properties are only included in the JSON output if they have values
+  - The schema structure is properly maintained
+  - Optional properties are handled correctly
+
 ## UI Patterns
 
 ### Webview Feedback Patterns

@@ -1,24 +1,5 @@
 Agent todo items...
     
-project code should be a new guid. set when creating new model.
-
-new objects...
-{
-  "name": "TestObj",
-  "parentObjectName": "Pac",
-  "prop": [
-    {
-      "name": "PacID",
-      "sqlServerDBDataType": "int",
-      "isFK": "true",
-      "isNotPublishedToSubscriptions": "true",
-      "isFKConstraintSuppressed": "false"
-    }
-  ],
-  "propSubscription": [],
-  "modelPkg": [],
-  "lookupItem": []
-}
 
 fabrication request list...
 - allow download of report on fabrication error. use modelFabricationRequestReportUrl
