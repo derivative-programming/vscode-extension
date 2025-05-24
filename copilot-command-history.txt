@@ -135,5 +135,22 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
+Command: Update report details view title and tabs to match object details view design
+- Updated report details view title format from "Report: {name}" to "Details for {name} Report" to match object details pattern
+- Replaced hard-coded CSS with VS Code theme variables for consistent styling
+- Updated tab structure to use data attributes instead of onclick handlers
+- Applied left-justified tabs styling matching object details view
+- Updated tab content styling to use VS Code theme colors
+- Enhanced tab labels to include counts (e.g., "Columns (5)")
+- Updated error page styling to use VS Code theme variables
+- Improved tab switching JavaScript to work with new data attribute structure
+- Result: Report details view now has consistent visual design with object details view
+
+Command: Complete report details view title consistency
+- Fixed remaining panel title inconsistency in both TypeScript and JavaScript report details view implementations
+- Updated reportDetailsView.ts panel title from "Report: ${item.label}" to "Details for ${item.label} Report"
+- Updated reports/reportDetailsView.js panel title from "Report: ${item.label}" to "Details for ${item.label} Report"
+- Verified that reports/components/templates/mainTemplate.js already has correct H1 title format
+- Both report details view implementations now have complete consistency with object details view design
+- All titles now follow the pattern: "Details for [name] [Type]" (e.g., "Details for Customer Report", "Details for Customer Data Object")
 Command: Expand all top level tree items in the AppDNA tree view

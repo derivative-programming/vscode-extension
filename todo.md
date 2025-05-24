@@ -109,16 +109,16 @@ save button... keyboard shortcut of 'ctrl-a S'.  adding db object is ctrl-a O
 
 project settings view...
 
-remove 'Root Settings' sub title
+copilot: remove 'Root Settings' sub title
 
-remove 'Namespace settings' sub title
+copilot: remove 'Namespace settings' sub title
 
  
 model ai processing request list....
 show spinner when loading the view
 
 model ai processing - details modal...
-'merge successful' button should not be clickable
+copilot: 'merge successful' button should not be clickable
 
 
 Model Feature catalog....
@@ -142,20 +142,20 @@ allow sort on selected checkbox column
  
 user story list view...
 
-move filter to left side of the page
+copilot: move filter to left side of the page
 
-move add, upload, and download buttons to the right side of the page
+copilot: move add, upload, and download buttons to the right side of the page
 
 
 
 
 add user story modal...
-secondary button color on cancel
+copilot: secondary button color on cancel
 
 
 Approve Selected Model Change Suggestions...
-cancel button to secondary button color
+copilot: cancel button to secondary button color
 
 
 Reject Selected Change Suggestions....
-cancel button to secondary button color
+copilot: cancel button to secondary button color

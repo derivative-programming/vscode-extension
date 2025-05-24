@@ -29,11 +29,10 @@ function showReportDetails(item, modelService) {
         activePanels.get(panelId).reveal(vscode.ViewColumn.One);
         return;
     }
-    
-    // Create webview panel
+      // Create webview panel
     const panel = vscode.window.createWebviewPanel(
         "reportDetails", 
-        `Report: ${item.label}`,
+        `Details for ${item.label} Report`,
         vscode.ViewColumn.One, 
         { 
             enableScripts: true,

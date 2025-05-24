@@ -18,11 +18,10 @@ export function showReportDetails(item: JsonTreeItem, modelService: any): void {
         // Create a normalized panel ID to ensure consistency
         const normalizedLabel = item.label.trim().toLowerCase();
         const panelId = `reportDetails-${normalizedLabel}`;
-        
-        // Create webview panel
+          // Create webview panel
         const panel = vscode.window.createWebviewPanel(
             "reportDetails", 
-            `Report: ${item.label}`,
+            `Details for ${item.label} Report`,
             vscode.ViewColumn.One, 
             { 
                 enableScripts: true,
@@ -42,61 +41,89 @@ export function showReportDetails(item: JsonTreeItem, modelService: any): void {
         } catch (error) {
             console.error(`Error retrieving report data: ${error}`);
         }
-        
-        // Generate styled tabs
-        const tabStyles = `
-            .tab-container {
-                border-bottom: 1px solid #ccc;
-                display: flex;
-                margin-bottom: 20px;
+          // Generate VS Code themed styles similar to object details view
+        const reportViewStyles = `
+            body {
+                font-family: var(--vscode-font-family);
+                color: var(--vscode-editor-foreground);
+                background-color: var(--vscode-editor-background);
+                padding: 15px;
+                margin: 0;
             }
+
+            /* Tabs styling - matches object details view */
+            .tabs {
+                display: flex;
+                justify-content: flex-start; /* Left-justified tabs */
+                border-bottom: 1px solid var(--vscode-editorGroup-border);
+                margin-bottom: 10px;
+            }
+
             .tab {
-                padding: 10px 20px;
+                padding: 10px 15px;
                 cursor: pointer;
                 border: 1px solid transparent;
                 border-bottom: none;
-                background-color: #f8f8f8;
-                margin-right: 5px;
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
+                background-color: var(--vscode-tab-inactiveBackground);
+                color: var(--vscode-tab-inactiveForeground);
             }
+
             .tab.active {
-                background-color: white;
-                border-color: #ccc;
-                border-bottom: 1px solid white;
-                margin-bottom: -1px;
+                background-color: var(--vscode-tab-activeBackground);
+                color: var(--vscode-tab-activeForeground);
+                border-color: var(--vscode-editorGroup-border);
             }
+
+            /* Tab content styling */
             .tab-content {
                 display: none;
-                padding: 20px;
-                border: 1px solid #ccc;
-                border-top: none;
+                padding: 15px;
+                background-color: var(--vscode-editor-background);
+                color: var(--vscode-editor-foreground);
+                border: 1px solid var(--vscode-editorGroup-border);
             }
+
             .tab-content.active {
                 display: block;
             }
+
+            /* Table styling with VS Code theme */
             table {
                 width: 100%;
                 border-collapse: collapse;
                 margin-bottom: 20px;
             }
+
             th, td {
-                text-align: left;
                 padding: 8px;
-                border-bottom: 1px solid #ddd;
+                text-align: left;
+                border-bottom: 1px solid var(--vscode-editorGroup-border);
             }
+
             th {
-                background-color: #f2f2f2;
+                background-color: var(--vscode-editor-lineHighlightBackground);
+                color: var(--vscode-editor-foreground);
+                font-weight: 600;
             }
+
             tr:hover {
-                background-color: #f5f5f5;
+                background-color: var(--vscode-list-hoverBackground);
             }
+
             .property-name {
                 font-weight: bold;
                 width: 30%;
             }
+
             .property-value {
                 width: 70%;
+            }
+
+            h1 {
+                color: var(--vscode-editor-foreground);
+                margin-bottom: 20px;
+                font-size: 1.5em;
+                font-weight: 600;
             }
         `;
           // Get the settings tab content
@@ -205,10 +232,27 @@ export function showReportDetails(item: JsonTreeItem, modelService: any): void {
             content += '</table>';
             return content;
         }
-        
-        // Script for tab switching
+          // Script for tab switching - matches object details view pattern
         const tabScript = `
-            function openTab(evt, tabName) {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Add click event listeners to all tabs
+                const tabs = document.querySelectorAll('.tab');
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        const tabName = this.getAttribute('data-tab');
+                        openTab(this, tabName);
+                    });
+                });
+                
+                // Set the first tab as active on load
+                if (tabs.length > 0) {
+                    const firstTab = tabs[0];
+                    const firstTabName = firstTab.getAttribute('data-tab');
+                    openTab(firstTab, firstTabName);
+                }
+            });
+            
+            function openTab(tabElement, tabName) {
                 // Hide all tab contents
                 const tabContents = document.getElementsByClassName('tab-content');
                 for (let i = 0; i < tabContents.length; i++) {
@@ -222,39 +266,41 @@ export function showReportDetails(item: JsonTreeItem, modelService: any): void {
                 }
                 
                 // Show the clicked tab content and mark tab as active
-                document.getElementById(tabName).classList.add('active');
-                evt.currentTarget.classList.add('active');
+                const targetContent = document.getElementById(tabName);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+                if (tabElement) {
+                    tabElement.classList.add('active');
+                }
             }
-            
-            // Set the first tab as active on load
-            document.addEventListener('DOMContentLoaded', function() {
-                document.querySelector('.tab').click();
-            });
-        `;
-          // Set HTML content with actual report data if found, or show error message
+        `;// Set HTML content with actual report data if found, or show error message
         if (reportData) {
-            // Report data found, show the full UI
+            // Calculate counts for tabs
+            const columnCount = reportData.reportColumn ? reportData.reportColumn.length : 0;
+            const buttonCount = reportData.reportButton ? reportData.reportButton.length : 0;
+            const paramCount = reportData.reportParam ? reportData.reportParam.length : 0;
+            
+            // Report data found, show the full UI with object details view styling
             panel.webview.html = `
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Report: ${item.label}</title>
+                    <title>Report Details: ${item.label}</title>
                     <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        h1 { color: #0078D7; margin-bottom: 20px; }
-                        ${tabStyles}
+                        ${reportViewStyles}
                     </style>
                 </head>
                 <body>
-                    <h1>Report: ${item.label}</h1>
+                    <h1>Details for ${item.label} Report</h1>
                     
-                    <div class="tab-container">
-                        <div class="tab active" onclick="openTab(event, 'settings')">Settings</div>
-                        <div class="tab" onclick="openTab(event, 'columns')">Columns</div>
-                        <div class="tab" onclick="openTab(event, 'buttons')">Buttons</div>
-                        <div class="tab" onclick="openTab(event, 'params')">Parameters</div>
+                    <div class="tabs">
+                        <div class="tab active" data-tab="settings">Settings</div>
+                        <div class="tab" data-tab="columns">Columns (${columnCount})</div>
+                        <div class="tab" data-tab="buttons">Buttons (${buttonCount})</div>
+                        <div class="tab" data-tab="params">Parameters (${paramCount})</div>
                     </div>
                     
                     <div id="settings" class="tab-content active">
@@ -276,45 +322,77 @@ export function showReportDetails(item: JsonTreeItem, modelService: any): void {
                     <script>${tabScript}</script>
                 </body>
                 </html>
-            `;
-        } else {
-            // Report data not found, show error message with troubleshooting info
+            `;        } else {
+            // Report data not found, show error message with VS Code themed styling
             panel.webview.html = `
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Report: ${item.label} - Not Found</title>
+                    <title>Report Details: ${item.label} - Not Found</title>
                     <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        h1 { color: #0078D7; margin-bottom: 20px; }
+                        body {
+                            font-family: var(--vscode-font-family);
+                            color: var(--vscode-editor-foreground);
+                            background-color: var(--vscode-editor-background);
+                            padding: 15px;
+                            margin: 0;
+                        }
+                        
+                        h1 {
+                            color: var(--vscode-editor-foreground);
+                            margin-bottom: 20px;
+                            font-size: 1.5em;
+                            font-weight: 600;
+                        }
+                        
                         .error-container { 
                             padding: 20px;
-                            background-color: #f8f8f8;
-                            border-left: 4px solid #e74c3c;
+                            background-color: var(--vscode-inputValidation-errorBackground);
+                            border-left: 4px solid var(--vscode-inputValidation-errorBorder);
+                            color: var(--vscode-inputValidation-errorForeground);
                             margin-bottom: 20px;
+                            border-radius: 3px;
                         }
+                        
                         .error-title {
-                            color: #e74c3c;
+                            color: var(--vscode-errorForeground);
                             margin-top: 0;
                         }
+                        
                         .tip {
                             padding: 15px;
-                            background-color: #f0f7fb;
-                            border-left: 4px solid #3498db;
+                            background-color: var(--vscode-inputValidation-infoBackground);
+                            border-left: 4px solid var(--vscode-inputValidation-infoBorder);
+                            color: var(--vscode-inputValidation-infoForeground);
+                            border-radius: 3px;
                         }
-                        h3 { margin-top: 25px; }
+                        
+                        h3 { 
+                            margin-top: 25px;
+                            color: var(--vscode-editor-foreground);
+                        }
+                        
                         code {
-                            background-color: #f1f1f1;
+                            background-color: var(--vscode-textCodeBlock-background);
+                            color: var(--vscode-textPreformat-foreground);
                             padding: 2px 5px;
                             border-radius: 3px;
-                            font-family: Consolas, monospace;
+                            font-family: var(--vscode-editor-font-family);
+                        }
+                        
+                        ul {
+                            color: var(--vscode-editor-foreground);
+                        }
+                        
+                        p {
+                            color: var(--vscode-editor-foreground);
                         }
                     </style>
                 </head>
                 <body>
-                    <h1>Report Details</h1>
+                    <h1>Details for ${item.label} Report</h1>
                     
                     <div class="error-container">
                         <h2 class="error-title">Report Not Found</h2>

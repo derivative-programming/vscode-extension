@@ -27,8 +27,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                         paramTableHeaders, paramTableRows,
                         columnModalHtml, buttonModalHtml, paramModalHtml,
                         clientScript) {
-    
-    return `<!DOCTYPE html>
+      return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -39,7 +38,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
     </style>
 </head>
 <body>
-    <h1>Report: ${report.name || 'Unknown Report'}</h1>
+    <h1>Details for ${report.name || 'Unknown Report'} Report</h1>
     
     <div class="tabs">
         <button class="tab active" data-tab="settings">Settings</button>

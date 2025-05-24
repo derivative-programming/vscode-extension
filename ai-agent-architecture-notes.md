@@ -322,6 +322,28 @@ This consistent pagination pattern is implemented across multiple views includin
 - Action buttons in tables have vertical spacing (margin-bottom) to prevent stacking
 - Buttons are displayed as block elements for better vertical alignment
 
+## UI Design Patterns
+
+### Webview Design Consistency
+- **Object Details View**: Uses template-based approach with proper VS Code theming
+  - Title format: "Details for {name} Data Object"
+  - Tabs are left-justified with VS Code theme variables
+  - Uses data attributes for tab switching
+  - Consistent CSS classes: .tabs, .tab, .tab.active, .tab-content
+  
+- **Report Details View**: Updated to match object details design pattern
+  - Title format: "Details for {name} Report" 
+  - Same tab styling and structure as object details
+  - Uses VS Code CSS variables for theming consistency
+  - Tab labels include counts (e.g., "Columns (5)")
+
+### Webview Styling Guidelines
+- Always use VS Code CSS variables for theming (--vscode-*)
+- Left-justify tabs for consistency
+- Use data attributes instead of onclick handlers for tab switching
+- Apply consistent title formats across different detail views
+- Use proper CSS classes for reusability
+
 ## Extension Points
 
 The model can be extended by:
