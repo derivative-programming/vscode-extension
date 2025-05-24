@@ -3,7 +3,6 @@ Agent todo items...
 
 fabrication request list...
 - allow download of report on fabrication error. use modelFabricationRequestReportUrl
-- show spinner when loading the view
 
 model feature catalog view...]
 - add intro text to the top of the page under title

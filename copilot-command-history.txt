@@ -172,3 +172,6 @@ Result: COMPLETED - Added showSpinner() call after ModelFabricationWebviewReady 
 - Now matches the pattern used in modelValidationView.js and modelAIProcessingView.js
 
 Date: May 24, 2025
+Command: Expand all top level tree items in the AppDNA tree view
+2 0 2 5 - 0 5 - 2 4 :   U s e r   r e q u e s t e d   t o   s w a p   b u t t o n   o r d e r   i n   C a n c e l   M o d e l   F a b r i c a t i o n   R e q u e s t   m o d a l   -   ' N o '   b u t t o n   s h o u l d   b e   t o   t h e   r i g h t   o f   ' Y e s '   b u t t o n  
+ 

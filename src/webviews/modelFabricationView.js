@@ -787,10 +787,11 @@
                 <!-- Add Request Modal -->
                 <div id="addModal" class="modal">
                     <div class="modal-content">
-                        <h3>Add Fabrication Request</h3>
-                        <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
-                            <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Cancel button always on the right -->
+                        <h3>Add Model Fabrication Request</h3>
+                        <label>Description:<br><input type="text" id="addDescription" /></label>                        
+                        <div class="modal-buttons"> <!-- Button container -->
                             <button id="submitAdd" class="refresh-button">Add</button>
+                            <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Cancel button always on the right -->
                         </div>
                     </div>
                 </div>
@@ -952,13 +953,12 @@
                                     // Create a VS Code-friendly confirmation modal instead of using browser confirm()
                                     const confirmModal = document.createElement("div");
                                     confirmModal.className = "modal";
-                                    confirmModal.style.display = "flex";
-                                    confirmModal.innerHTML = `
+                                    confirmModal.style.display = "flex";                                    confirmModal.innerHTML = `
                                         <div class="modal-content" style="width: 300px;">
-                                            <h3>Cancel Fabrication Request</h3>
-                                            <p>Are you sure you want to cancel this fabrication request?</p>                                            <div class="modal-buttons">
-                                                <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>
+                                            <h3>Cancel Model Fabrication Request</h3>
+                                            <p>Are you sure you want to cancel this model fabrication request?</p>                                            <div class="modal-buttons">
                                                 <button id="confirmCancel" class="refresh-button">Yes, Cancel</button>
+                                                <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>
                                             </div>
                                         </div>
                                     `;
