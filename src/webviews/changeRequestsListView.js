@@ -325,7 +325,7 @@
         if (filteredData.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>No matching change requests</h3>
+                    <h3>No matching change suggestions</h3>
                     <p>No change requests match your current filters.</p>
                 </div>`;
             return;
@@ -554,7 +554,7 @@
             return;
         }
         
-        showConfirmationModal(`Are you sure you want to approve all ${selectedCodes.length} selected change requests?`, () => {
+        showConfirmationModal(`Are you sure you want to approve all ${selectedCodes.length} selected change suggestions?`, () => {
             showSpinner();
             
             // Process each selected change request

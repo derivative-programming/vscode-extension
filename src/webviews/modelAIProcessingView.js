@@ -602,7 +602,7 @@
                 <!-- Add Request Modal -->
                 <div id="addModal" class="modal">
                     <div class="modal-content">
-                        <h3>Add Processing Request</h3>                        <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
+                        <h3>Add Model AI Processing Request</h3>                        <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
                             <button id="submitAdd" class="refresh-button">Add</button> <!-- Add button now on the left -->
                             <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Cancel button now on the right -->
                         </div>
@@ -611,7 +611,7 @@
                 <!-- Details Modal -->                <div id="detailsModal" class="modal">
                     <div class="modal-content details-modal-content">
                         <div class="modal-header">
-                            <h3>AI Processing Request Details</h3>
+                            <h3>Model AI Processing Request Details</h3>
                             <button id="closeDetails" class="close-button">&times;</button>
                         </div>
                         <div id="details-container">
@@ -770,9 +770,10 @@
                                     confirmModal.innerHTML = `
                                         <div class="modal-content" style="width: 300px;">
                                             <h3>Cancel Processing Request</h3>
-                                            <p>Are you sure you want to cancel this processing request?</p>                                            <div class="modal-buttons">
-                                                <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>
+                                            <p>Are you sure you want to cancel this processing request?</p>                                            
+                                            <div class="modal-buttons">
                                                 <button id="confirmCancel" class="refresh-button">Yes, Cancel</button>
+                                                <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>
                                             </div>
                                         </div>
                                     `;
@@ -938,10 +939,10 @@
 
         // Define which fields to display and their labels
         const fieldsToShow = [
-            { key: 'modelPrepRequestCode', label: 'Request Code' },
             { key: 'modelPrepRequestDescription', label: 'Description' },
             { key: 'modelPrepRequestRequestedUTCDateTime', label: 'Requested At', type: 'datetime' },
-            { key: 'status', label: 'Status', className: 'status-field' } // Calculated status
+            { key: 'status', label: 'Status', className: 'status-field' }, // Calculated status
+            { key: 'modelPrepRequestCode', label: 'Request Code' }
         ];
 
         // Render each field

@@ -136,7 +136,7 @@
                 if (message.exists) {
                     const changeRequestsButton = document.createElement('button');
                     changeRequestsButton.className = 'download-button';
-                    changeRequestsButton.textContent = 'View Change Requests';
+                    changeRequestsButton.textContent = 'View Model Change Suggestions';
                     changeRequestsButton.addEventListener('click', function() {
                         openChangeRequests(currentRequestCode);
                     });
@@ -555,7 +555,7 @@
                 </div>
                 <!-- Add Request Modal -->
                 <div id="addModal" class="modal">
-                    <div class="modal-content">                        <h3>Add Validation Request</h3>
+                    <div class="modal-content">                        <h3>Add Model Validation Request</h3>
                         <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
                             <button id="submitAdd" class="refresh-button">Add</button>
                             <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button>
@@ -566,7 +566,7 @@
                 <div id="detailsModal" class="modal">
                     <div class="modal-content details-modal-content">
                         <div class="modal-header">
-                            <h3>Validation Request Details</h3>
+                            <h3>Model Validation Request Details</h3>
                             <button id="closeDetails" class="close-button">&times;</button>
                         </div>
                         <div id="details-container">
@@ -717,7 +717,7 @@
                                     confirmModal.style.display = "flex";
                                     confirmModal.innerHTML = `
                                         <div class="modal-content" style="width: 300px;">
-                                            <h3>Cancel Validation Request</h3>                                            <p>Are you sure you want to cancel this validation request?</p>                                            <div class="modal-buttons">
+                                            <h3>Cancel Model Validation Request</h3>                                            <p>Are you sure you want to cancel this model validation request?</p>                                            <div class="modal-buttons">
                                                 <button id="confirmCancel" class="refresh-button">Yes, Cancel</button>
                                                 <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>
                                             </div>
@@ -915,10 +915,10 @@
 
         // Define which fields to display and their labels
         const fieldsToShow = [
-            { key: 'modelValidationRequestCode', label: 'Request Code' },
             { key: 'modelValidationRequestDescription', label: 'Description' },
             { key: 'modelValidationRequestRequestedUTCDateTime', label: 'Requested At', type: 'datetime' },
-            { key: 'status', label: 'Status', className: 'status-field' } // Calculated status
+            { key: 'status', label: 'Status', className: 'status-field' }, // Calculated status
+            { key: 'modelValidationRequestCode', label: 'Request Code' }
         ];
 
         // Render each field

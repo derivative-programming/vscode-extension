@@ -760,7 +760,7 @@ Alternate format: "As a [Role name], I want to [View all, view, add, update, del
                 <div id="addStoryError" class="error-message" style="display: none;"></div>
             </div>            <div class="modal-footer">
                 <button id="btnConfirmAddStory">Add</button>
-                <button id="btnCancelAddStory">Cancel</button>
+                <button id="btnCancelAddStory" >Cancel</button>
             </div>
         </div>
     </div>

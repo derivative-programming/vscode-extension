@@ -503,7 +503,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
             </div>
             
             <div class="change-requests-header">
-                <h1>Change Requests</h1>
+                <h1>Model Change Suggestions</h1>
                 <div>Validation Request: <span id="requestCodeDisplay" class="mono">${requestCode}</span></div>
             </div>            <div class="toolbar">
                 <div class="filter-controls">
@@ -552,10 +552,10 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
             <!-- Batch Reject Modal -->
             <div id="batchRejectModal" class="modal">
                 <div class="modal-content">
-                    <h3 class="modal-title">Reject Selected Change Requests</h3>
+                    <h3 class="modal-title">Reject Selected Change Suggestions</h3>
                     <div class="form-group">
                         <label for="batchRejectionReason">Rejection Reason:</label>
-                        <textarea id="batchRejectionReason" placeholder="Please provide a reason for rejecting the selected requests..."></textarea>
+                        <textarea id="batchRejectionReason" placeholder="Please provide a reason for rejecting the selected suggestions..."></textarea>
                     </div>                    <div class="form-actions">
                         <button id="confirmBatchReject" class="action-button reject">Confirm Reject</button>
                         <button id="cancelBatchReject" class="action-button">Cancel</button>
@@ -566,7 +566,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
             <!-- Confirmation Modal -->
             <div id="confirmModal" class="modal">
                 <div class="modal-content">
-                    <h3 class="modal-title">Confirm Action</h3>
+                    <h3 class="modal-title">Are you sure?</h3>
                     <div class="form-group">
                         <p id="confirmMessage"></p>
                     </div>                    <div class="form-actions">

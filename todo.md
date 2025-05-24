@@ -11,6 +11,7 @@ model feature catalog view...]
 
 model validation request list...
 - add intro text to the top of the page under title
+- show spinner when loading the view
 
 model change request list...
 - fix display of intro text.    
@@ -31,7 +32,7 @@ model validation rejection validaiton using an alert instead of validaiton error
 change requests...
 - on approval verify the old value is still the same. if not, show as 'out of date' in status
 - implement apply. if old value does not match the current value. reject with reason 'out of date'.
-- show note...  There is a difference between Model AI processing and Model Change Requests.  Model Change requests modify existing data in a model, while Model AI processing only adds data to a model.
+- show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
  
  
 
@@ -67,3 +68,94 @@ functions
         - get validation request details
         - show validation request details
         - show validation request change request list
+
+
+
+home page...
+
+ 
+
+step 1: create button to create a new model,  
+
+
+step 2: should be 'register or login to AppDNA Model Services'.   move all other later steps +1
+
+step 2: button  'View Model Feature Catalog' to show view, only show if model loaded
+
+step 3: button  'Request Model AI Processing' to show view, only show if model loaded
+
+step 4: button  'Request Model Validation' to show view, only show if model loaded
+
+
+
+step 5: button 'View Fabrication Blueprint Catalog' to show view, only show if model loaded
+
+step 6: button  'Request Model Fabrication' to show view, only show if model loaded
+
+ 
+
+
+left sidebar tree view...
+ 
+
+  
+test: switch location of expand and collapse
+
+ 
+ 
+
+save button... keyboard shortcut of 'ctrl-a S'.  adding db object is ctrl-a O
+ 
+
+project settings view...
+
+remove 'Root Settings' sub title
+
+remove 'Namespace settings' sub title
+
+ 
+model ai processing request list....
+show spinner when loading the view
+
+model ai processing - details modal...
+'merge successful' button should not be clickable
+
+
+Model Feature catalog....
+
+remove paging
+
+add a filter textbox
+
+allow sort on selected checkbox column
+
+
+
+fabrication blueprint catalog....
+
+remove paging
+
+add a filter textbox
+
+allow sort on selected checkbox column
+
+ 
+user story list view...
+
+move filter to left side of the page
+
+move add, upload, and download buttons to the right side of the page
+
+
+
+
+add user story modal...
+secondary button color on cancel
+
+
+Approve Selected Model Change Suggestions...
+cancel button to secondary button color
+
+
+Reject Selected Change Suggestions....
+cancel button to secondary button color

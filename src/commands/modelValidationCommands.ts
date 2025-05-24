@@ -193,7 +193,7 @@ export function registerModelValidationCommands(
                         console.log("[Extension] ADD API response status:", res2.status);
                         
                         // Check for unauthorized errors
-                        if (await handleApiError(context, res2, 'Failed to add validation request')) {
+                        if (await handleApiError(context, res2, 'Failed to add model validation request')) {
                             // If true, the error was handled (was a 401)
                             panel.webview.postMessage({ command: "modelValidationRequestFailed" });
                             return;
@@ -208,11 +208,11 @@ export function registerModelValidationCommands(
                         await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
                         console.log("[Extension] Data refresh complete after add.");
                     } catch (err) {
-                        console.error("[Extension] Failed to add validation request:", err);
+                        console.error("[Extension] Failed to add model validation request:", err);
                         // Notify webview that request failed
                         console.log("[Extension] Sending modelValidationRequestFailed to webview");
                         panel.webview.postMessage({ command: "modelValidationRequestFailed" });
-                        vscode.window.showErrorMessage('Failed to add validation request: ' + (err && err.message ? err.message : err));
+                        vscode.window.showErrorMessage('Failed to add model validation request: ' + (err && err.message ? err.message : err));
                     }
                 } else if (msg.command === 'modelValidationFetchValidationDetails') {
                     console.log("[Extension] Handling modelValidationFetchValidationDetails for code:", msg.requestCode);
@@ -519,7 +519,7 @@ export function registerModelValidationCommands(
                             headers: { 'Api-Key': apiKey }
                         });
                           // Check for unauthorized errors
-                        if (await handleApiError(context, response, 'Failed to cancel validation request')) {
+                        if (await handleApiError(context, response, 'Failed to cancel model validation request')) {
                             // If true, the error was handled (was a 401)
                             panel.webview.postMessage({ command: "modelValidationRequestFailed" });
                             return;
@@ -534,7 +534,7 @@ export function registerModelValidationCommands(
                         // Refresh the list after cancelling
                         await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);
                     } catch (error) {
-                        console.error("[Extension] Failed to cancel validation request:", error);
+                        console.error("[Extension] Failed to cancel model validation request:", error);
                         vscode.window.showErrorMessage(`Failed to cancel request: ${error.message}`);
                         panel.webview.postMessage({ command: "modelValidationRequestFailed" });
                     }
