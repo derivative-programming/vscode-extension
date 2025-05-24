@@ -16,7 +16,9 @@
     let totalRecords = 0;
     let currentRequestData = null;
     let currentRequestCode = null;
+    // Timer for auto-refresh functionality when processing/queued items exist
     let autoRefreshTimer = null;
+    // Time interval for auto-refresh (1 minute in milliseconds)
     const AUTO_REFRESH_INTERVAL = 60000; // 1 minute in milliseconds
     const columns = [
         { key: "modelPrepRequestRequestedUTCDateTime", label: "Requested At" },
@@ -39,6 +41,7 @@
     initializeUI();
 
     // Clean up resources when page is unloaded
+    // This ensures we don't leave timers running if the view is closed
     window.addEventListener("unload", function() {
         if (autoRefreshTimer) {
             clearInterval(autoRefreshTimer);
@@ -62,7 +65,7 @@
             renderPaging();
             // Hide spinner when data is set
             hideSpinner();
-            // Check if we should set up auto-refresh
+            // Check if we should set up auto-refresh based on current processing/queued items
             checkAndSetAutoRefresh();
         } else if (message.command === "processingRequestReceived" || message.command === "processingRequestFailed") {            console.log("[Webview] Handling", message.command);
             // Hide spinner when processing request is received or failed
@@ -1125,6 +1128,11 @@
 
     /**
      * Checks if there are any processing or queued items and sets up auto-refresh accordingly.
+     * This function examines the current data to determine if auto-refresh should be active.
+     * If any items are in a processing or queued state, it will:
+     *   1. Set up an interval to automatically refresh the page every minute
+     *   2. Display a visual indicator showing that auto-refresh is active
+     * If no items are processing/queued, it will clear any existing auto-refresh timer.
      */
     function checkAndSetAutoRefresh() {
         console.log("[Webview] Checking if auto-refresh should be active...");
@@ -1137,13 +1145,7 @@
         }
         
         // Check if there are any processing or queued items
-        let hasProcessingOrQueuedItems = processingData.some(item => {
-            // Item is queued if not started and not canceled
-            const isQueued = !item.modelPrepRequestIsStarted && !item.modelPrepRequestIsCanceled;
-            // Item is processing if started but not completed and not canceled
-            const isProcessing = item.modelPrepRequestIsStarted && !item.modelPrepRequestIsCompleted && !item.modelPrepRequestIsCanceled;
-            return isQueued || isProcessing;
-        });
+        let hasProcessingOrQueuedItems = processingData.some(isProcessingOrQueued);
         
         // Update auto-refresh indicator
         updateAutoRefreshIndicator(hasProcessingOrQueuedItems);
@@ -1157,9 +1159,26 @@
             }, AUTO_REFRESH_INTERVAL);
         }
     }
+    
+    /**
+     * Determines if an item is in a processing or queued state.
+     * @param {Object} item - The processing request item to check.
+     * @returns {boolean} True if the item is processing or queued, false otherwise.
+     */
+    function isProcessingOrQueued(item) {
+        // Item is queued if not started and not canceled
+        const isQueued = !item.modelPrepRequestIsStarted && !item.modelPrepRequestIsCanceled;
+        // Item is processing if started but not completed and not canceled
+        const isProcessing = item.modelPrepRequestIsStarted && !item.modelPrepRequestIsCompleted && !item.modelPrepRequestIsCanceled;
+        return isQueued || isProcessing;
+    }
 
     /**
      * Updates the auto-refresh indicator in the UI.
+     * Creates or updates a visual indicator to show users when auto-refresh is active,
+     * which helps them understand that the page is automatically updating.
+     * The indicator includes an animated spinning icon when active.
+     * 
      * @param {boolean} isActive - Whether auto-refresh is active.
      */
     function updateAutoRefreshIndicator(isActive) {
