@@ -163,4 +163,12 @@ Result: TASK ALREADY COMPLETE - The model validation view already has proper spi
 - Spinner overlay and CSS styling properly implemented
 - Follows same pattern as other similar views in the codebase
 
+Command: Add spinner when loading the fabrication request list view
+
+Result: COMPLETED - Added showSpinner() call after ModelFabricationWebviewReady message in modelFabricationView.js
+- Added missing showSpinner() call on line 812 (after webview ready message)
+- Spinner infrastructure was already properly implemented (showSpinner/hideSpinner functions, CSS, HTML)
+- hideSpinner() was already called when setFabricationData is received
+- Now matches the pattern used in modelValidationView.js and modelAIProcessingView.js
+
 Date: May 24, 2025

@@ -10,8 +10,7 @@ model feature catalog view...]
 - use similar paging controls and page range display as the model validation request list.
 
 model validation request list...
-- add intro text to the top of the page under title
-- show spinner when loading the view
+- add intro text to the top of the page under title 
 
 model change request list...
 - fix display of intro text.    

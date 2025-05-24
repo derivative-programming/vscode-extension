@@ -804,9 +804,13 @@
                 </div>
             </div>
         `;
+          // Initial ready message
+        vscode.postMessage({ command: "ModelFabricationWebviewReady" });
         
-        // Initial ready message
-        vscode.postMessage({ command: "ModelFabricationWebviewReady" });        // Attach refresh button handler
+        // Show spinner when initially loading the view
+        showSpinner();
+        
+        // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
             showSpinner(); // Show spinner when refresh button is clicked
             requestPage(pageNumber);
