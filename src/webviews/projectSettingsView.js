@@ -402,7 +402,6 @@ function getWebviewContent(panel, context, model, schema) {
         <p>Manage root-level project settings and namespace configuration.</p>
 
         <div class="settings-section">
-            <div class="section-title">Root Settings</div>
             <div id="rootSettings">
                 <!-- Will be populated dynamically -->
                 <div class="loading">Loading root settings...</div>
@@ -410,7 +409,6 @@ function getWebviewContent(panel, context, model, schema) {
         </div>
 
         <div class="settings-section">
-            <div class="section-title">Namespace Settings</div>
             <div id="namespaceSettings">
                 <!-- Will be populated dynamically -->
                 <div class="loading">Loading namespace settings...</div>
