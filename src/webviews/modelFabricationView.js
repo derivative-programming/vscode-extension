@@ -799,7 +799,7 @@
                 <div id="detailsModal" class="modal">
                     <div class="modal-content">
                         <button id="closeDetails" class="close-button">&times;</button>
-                        <h3>Fabrication Request Details</h3>
+                        <h3>Model Fabrication Request Details</h3>
                         <div id="detailsContent"></div>
                     </div>
                 </div>
