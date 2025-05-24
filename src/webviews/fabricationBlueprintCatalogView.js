@@ -3,19 +3,18 @@
 
 (function() {
     // Acquire the VS Code API
-    const vscode = acquireVsCodeApi();
-      // Keep track of the current state
+    const vscode = acquireVsCodeApi();    // Keep track of the current state
     let templateSetData = {
         items: [],
         pageNumber: 1,
-        itemCountPerPage: 100,
+        itemCountPerPage: 10,
         recordsTotal: 0,
         recordsFiltered: 0
     };
     
     // Keep track of pagination and sorting
     let pageNumber = 1;
-    let itemCountPerPage = 100; // Default to 100 items per page
+    let itemCountPerPage = 10; // Default to 10 items per page
     let orderByColumn = "title"; // Use title as default sort column
     let orderByDescending = false;
     let totalRecords = 0;
@@ -57,12 +56,11 @@
     window.addEventListener("message", function(event) {
         const message = event.data;
         console.log("[Webview] Received message:", message.command);
-        
-        if (message.command === "setTemplateSetData") {
+          if (message.command === "setTemplateSetData") {
             console.log("[Webview] Handling setTemplateSetData");
-            templateSetData = message.data || { items: [], pageNumber: 1, itemCountPerPage: 100, recordsTotal: 0 };
+            templateSetData = message.data || { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 };
             pageNumber = templateSetData.pageNumber || 1;
-            itemCountPerPage = templateSetData.itemCountPerPage || 100;
+            itemCountPerPage = templateSetData.itemCountPerPage || 10;
             orderByColumn = templateSetData.orderByColumnName || orderByColumn;
             orderByDescending = templateSetData.orderByDescending || false;
             totalRecords = templateSetData.recordsTotal || 0;
@@ -82,6 +80,24 @@
             console.log("[Webview] Template update success:", message.templateName, message.selected);
             hideSpinner();
             
+            // Ensure the selectedTemplates array is properly updated
+            if (message.selected) {
+                // Add template to selectedTemplates if not already present
+                const existingTemplate = selectedTemplates.find(t => t.name === message.templateName);
+                if (!existingTemplate) {
+                    selectedTemplates.push({
+                        name: message.templateName,
+                        isDisabled: "false"
+                    });
+                }
+            } else {
+                // Remove template from selectedTemplates
+                const templateIndex = selectedTemplates.findIndex(t => t.name === message.templateName);
+                if (templateIndex !== -1) {
+                    selectedTemplates.splice(templateIndex, 1);
+                }
+            }
+            
             // Find the checkbox for this template and update it (useful when multiple users are editing)
             const checkbox = document.querySelector(`input[data-template="${message.templateName}"]`);
             if (checkbox) {
@@ -94,9 +110,27 @@
             // Find the checkbox and revert its state
             const checkbox = document.querySelector(`input[data-template="${message.templateName}"]`);
             if (checkbox) {
-                // Get the current state from our selectedTemplates array
-                const isSelected = selectedTemplates.some(t => t.name === message.templateName);
-                checkbox.checked = isSelected;
+                // If template is disabled, it should be checked and disabled
+                if (message.reason === "disabled") {
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+                    checkbox.title = "This template is disabled and cannot be removed";
+                    
+                    // Ensure the disabled template is in selectedTemplates array
+                    const existingTemplate = selectedTemplates.find(t => t.name === message.templateName);
+                    if (!existingTemplate) {
+                        selectedTemplates.push({
+                            name: message.templateName,
+                            isDisabled: "true"
+                        });
+                    } else {
+                        existingTemplate.isDisabled = "true";
+                    }
+                } else {
+                    // Get the current state from our selectedTemplates array
+                    const isSelected = selectedTemplates.some(t => t.name === message.templateName);
+                    checkbox.checked = isSelected;
+                }
             }
         }
     });
@@ -214,10 +248,28 @@
                             checkbox.disabled = true;
                             checkbox.title = "This template is disabled and cannot be removed";
                         }
-                        
-                        // Handle checkbox change
+                          // Handle checkbox change
                         checkbox.addEventListener("change", function() {
                             const isChecked = this.checked;
+                            
+                            // Update the selectedTemplates array immediately to maintain state across page navigation
+                            if (isChecked) {
+                                // Add template to selectedTemplates if not already present
+                                const existingTemplate = selectedTemplates.find(t => t.name === item.name);
+                                if (!existingTemplate) {
+                                    selectedTemplates.push({
+                                        name: item.name,
+                                        isDisabled: "false" // Default to not disabled for newly selected templates
+                                    });
+                                }
+                            } else {
+                                // Remove template from selectedTemplates
+                                const templateIndex = selectedTemplates.findIndex(t => t.name === item.name);
+                                if (templateIndex !== -1) {
+                                    selectedTemplates.splice(templateIndex, 1);
+                                }
+                            }
+                            
                             showSpinner();
                             vscode.postMessage({
                                 command: "FabricationBlueprintCatalogToggleTemplate",
@@ -275,8 +327,7 @@
             }
         });
     }
-    
-    function renderPaging() {
+      function renderPaging() {
         const pagingDiv = document.getElementById("paging");
         if (!pagingDiv) {
             return;
@@ -284,125 +335,95 @@
         
         pagingDiv.innerHTML = "";
         
+        // Calculate total pages
+        const totalPages = Math.ceil(totalRecords / itemCountPerPage);
+        
+        // Update record info (similar to model feature catalog view)
+        const start = templateSetData.items && templateSetData.items.length ? (pageNumber - 1) * itemCountPerPage + 1 : 0;
+        const end = templateSetData.items && templateSetData.items.length ? Math.min(start + templateSetData.items.length - 1, totalRecords) : 0;
+        const recordInfoElement = document.getElementById("record-info");
+        if (recordInfoElement) {
+            recordInfoElement.textContent = 
+                templateSetData.items && templateSetData.items.length ? `Showing ${start} to ${end} of ${totalRecords} blueprints` : `No blueprints to display`;
+        }
+        
         if (totalRecords === 0) {
             return;
         }
         
-        // Calculate total pages
-        const totalPages = Math.ceil(totalRecords / itemCountPerPage);
-        
-        // Create paging controls similar to model validation view
+        // Create paging controls matching model feature catalog view style
         // First page button
-        const firstButton = document.createElement("button");
-        firstButton.textContent = "«";
-        firstButton.disabled = pageNumber <= 1;
-        firstButton.title = "First Page";
-        firstButton.addEventListener("click", () => {
-            if (pageNumber > 1) {
-                showSpinner();
-                vscode.postMessage({
-                    command: "FabricationBlueprintCatalogRequestPage",
-                    pageNumber: 1,
-                    itemCountPerPage: itemCountPerPage,
-                    orderByColumnName: orderByColumn,
-                    orderByDescending: orderByDescending
-                });
-            }
-        });
-        
-        // Previous button
-        const prevButton = document.createElement("button");
-        prevButton.textContent = "‹";
-        prevButton.disabled = pageNumber <= 1;
-        prevButton.title = "Previous Page";
-        prevButton.addEventListener("click", () => {
-            if (pageNumber > 1) {
-                showSpinner();
-                vscode.postMessage({
-                    command: "FabricationBlueprintCatalogRequestPage",
-                    pageNumber: pageNumber - 1,
-                    itemCountPerPage: itemCountPerPage,
-                    orderByColumnName: orderByColumn,
-                    orderByDescending: orderByDescending
-                });
-            }
-        });
-        
-        // Page info
-        const pageSpan = document.createElement("span");
-        pageSpan.textContent = ` Page ${pageNumber} of ${totalPages || 1} `;
-        
-        // Next button
-        const nextButton = document.createElement("button");
-        nextButton.textContent = "›";
-        nextButton.disabled = pageNumber >= totalPages;
-        nextButton.title = "Next Page";
-        nextButton.addEventListener("click", () => {
-            if (pageNumber < totalPages) {
-                showSpinner();
-                vscode.postMessage({
-                    command: "FabricationBlueprintCatalogRequestPage",
-                    pageNumber: pageNumber + 1,
-                    itemCountPerPage: itemCountPerPage,
-                    orderByColumnName: orderByColumn,
-                    orderByDescending: orderByDescending
-                });
-            }
-        });
-        
-        // Last page button
-        const lastButton = document.createElement("button");
-        lastButton.textContent = "»";
-        lastButton.disabled = pageNumber >= totalPages;
-        lastButton.title = "Last Page";
-        lastButton.addEventListener("click", () => {
-            if (pageNumber < totalPages) {
-                showSpinner();
-                vscode.postMessage({
-                    command: "FabricationBlueprintCatalogRequestPage",
-                    pageNumber: totalPages,
-                    itemCountPerPage: itemCountPerPage,
-                    orderByColumnName: orderByColumn,
-                    orderByDescending: orderByDescending
-                });
-            }
-        });
-        
-        // Items per page selector
-        const perPageSelect = document.createElement("select");
-        [10, 25, 50, 100].forEach(size => {
-            const option = document.createElement("option");
-            option.value = size;
-            option.textContent = size + " items per page";
-            option.selected = itemCountPerPage === size;
-            perPageSelect.appendChild(option);
-        });
-        
-        perPageSelect.addEventListener("change", () => {
-            itemCountPerPage = parseInt(perPageSelect.value);
+        const first = document.createElement("button");
+        first.textContent = "«";
+        first.disabled = pageNumber <= 1;
+        first.title = "First Page";
+        first.onclick = function () { 
             showSpinner();
             vscode.postMessage({
                 command: "FabricationBlueprintCatalogRequestPage",
-                pageNumber: 1, // Reset to first page
+                pageNumber: 1,
                 itemCountPerPage: itemCountPerPage,
                 orderByColumnName: orderByColumn,
                 orderByDescending: orderByDescending
             });
-        });
+        };
+        pagingDiv.appendChild(first);
         
-        // Count summary
-        const countSpan = document.createElement("span");
-        countSpan.textContent = ` (${templateSetData.items ? templateSetData.items.length : 0} of ${totalRecords} items) `;
+        // Previous button
+        const prev = document.createElement("button");
+        prev.textContent = "‹";
+        prev.disabled = pageNumber <= 1;
+        prev.title = "Previous Page";
+        prev.onclick = function () { 
+            showSpinner();
+            vscode.postMessage({
+                command: "FabricationBlueprintCatalogRequestPage",
+                pageNumber: pageNumber - 1,
+                itemCountPerPage: itemCountPerPage,
+                orderByColumnName: orderByColumn,
+                orderByDescending: orderByDescending
+            });
+        };
+        pagingDiv.appendChild(prev);
         
-        // Append all elements
-        pagingDiv.appendChild(firstButton);
-        pagingDiv.appendChild(prevButton);
-        pagingDiv.appendChild(pageSpan);
-        pagingDiv.appendChild(nextButton);
-        pagingDiv.appendChild(lastButton);
-        pagingDiv.appendChild(document.createTextNode(" | "));
-        pagingDiv.appendChild(perPageSelect);
-        pagingDiv.appendChild(countSpan);
+        // Page info
+        const info = document.createElement("span");
+        info.textContent = `Page ${pageNumber} of ${totalPages || 1}`;
+        pagingDiv.appendChild(info);
+        
+        // Next button
+        const next = document.createElement("button");
+        next.textContent = "›";
+        next.disabled = pageNumber >= totalPages;
+        next.title = "Next Page";
+        next.onclick = function () { 
+            showSpinner();
+            vscode.postMessage({
+                command: "FabricationBlueprintCatalogRequestPage",
+                pageNumber: pageNumber + 1,
+                itemCountPerPage: itemCountPerPage,
+                orderByColumnName: orderByColumn,
+                orderByDescending: orderByDescending
+            });
+        };
+        pagingDiv.appendChild(next);
+        
+        // Last page button
+        const last = document.createElement("button");
+        last.textContent = "»";
+        last.disabled = pageNumber >= totalPages;
+        last.title = "Last Page";
+        last.onclick = function () { 
+            showSpinner();
+            vscode.postMessage({
+                command: "FabricationBlueprintCatalogRequestPage",
+                pageNumber: totalPages,
+                itemCountPerPage: itemCountPerPage,
+                orderByColumnName: orderByColumn,
+                orderByDescending: orderByDescending
+            });
+        };
+        pagingDiv.appendChild(last);
     }
     
     function showSpinner() {

@@ -189,11 +189,24 @@ export function registerFabricationBlueprintCatalogCommands(
                         }
                         .refresh-button:hover {
                             background-color: var(--vscode-button-hoverBackground);
-                        }
-                        .header-actions {
+                        }                        .header-actions {
                             display: flex;
                             justify-content: flex-end;
                             margin-bottom: 10px;
+                        }
+                        .table-footer {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-top: 10px;
+                        }
+                        .table-footer-left {
+                            display: flex;
+                            align-items: center;
+                        }
+                        .table-footer-right {
+                            display: flex;
+                            align-items: center;
                         }
                     </style>                </head>
                 <body>
@@ -207,9 +220,15 @@ export function registerFabricationBlueprintCatalogCommands(
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             Refresh
                         </button>
+                    </div>                    <table id="blueprintCatalogTable"></table>
+                    <div class="table-footer">
+                        <div class="table-footer-left">
+                            <div id="paging"></div>
+                        </div>
+                        <div class="table-footer-right">
+                            <span id="record-info"></span>
+                        </div>
                     </div>
-                    <div id="paging"></div>
-                    <table id="blueprintCatalogTable"></table>
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
                         <div class="spinner"></div>
                     </div>
@@ -221,16 +240,15 @@ export function registerFabricationBlueprintCatalogCommands(
             // Handler for messages from the webview
             async function fetchAndSend(pageNumber: number, itemCountPerPage: number, orderByColumnName: string, orderByDescending: boolean) {
                 const authService = AuthService.getInstance();
-                const apiKey = await authService.getApiKey();
-                if (!apiKey) {
-                    panel.webview.postMessage({ command: 'setTemplateSetData', data: { items: [], pageNumber: 1, itemCountPerPage: 100, recordsTotal: 0 } });
+                const apiKey = await authService.getApiKey();                if (!apiKey) {
+                    panel.webview.postMessage({ command: 'setTemplateSetData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('You must be logged in to use Fabrication Blueprint Catalog.');
                     return;
                 }
                 
                 const params = [
                     'PageNumber=' + encodeURIComponent(pageNumber || 1),
-                    'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 100),
+                    'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 10),
                     'OrderByDescending=' + encodeURIComponent(orderByDescending ? 'true' : 'false')
                 ];
                 if (orderByColumnName) {
@@ -245,9 +263,8 @@ export function registerFabricationBlueprintCatalogCommands(
                         headers: { 'Api-Key': apiKey }
                     });
                     const data = await res.json();
-                    panel.webview.postMessage({ command: 'setTemplateSetData', data });
-                } catch (err) {
-                    panel.webview.postMessage({ command: 'setTemplateSetData', data: { items: [], pageNumber: 1, itemCountPerPage: 100, recordsTotal: 0 } });
+                    panel.webview.postMessage({ command: 'setTemplateSetData', data });                } catch (err) {
+                    panel.webview.postMessage({ command: 'setTemplateSetData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('Failed to fetch blueprint templates: ' + (err && err.message ? err.message : err));
                 }
             }
@@ -256,7 +273,7 @@ export function registerFabricationBlueprintCatalogCommands(
                 console.log("[Extension] Received message from webview:", msg.command);
                 if (msg.command === 'FabricationBlueprintCatalogWebviewReady') {
                     console.log("[Extension] Handling FabricationBlueprintCatalogWebviewReady");
-                    await fetchAndSend(1, 100, 'title', false);
+                    await fetchAndSend(1, 10, 'title', false);
                 } else if (msg.command === 'FabricationBlueprintCatalogRequestPage') {
                     console.log("[Extension] Handling FabricationBlueprintCatalogRequestPage:", msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
                     await fetchAndSend(msg.pageNumber, msg.itemCountPerPage, msg.orderByColumnName, msg.orderByDescending);
