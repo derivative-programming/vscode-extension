@@ -16,6 +16,8 @@
     let totalRecords = 0;
     let currentRequestData = null;
     let currentRequestCode = null;
+    let autoRefreshTimer = null;
+    const AUTO_REFRESH_INTERVAL = 60000; // 1 minute in milliseconds
     const columns = [
         { key: "modelPrepRequestRequestedUTCDateTime", label: "Requested At" },
         { key: "modelPrepRequestDescription", label: "Description" },
@@ -36,6 +38,14 @@
     // Set up the UI
     initializeUI();
 
+    // Clean up resources when page is unloaded
+    window.addEventListener("unload", function() {
+        if (autoRefreshTimer) {
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = null;
+        }
+    });
+
     // Event listeners
     window.addEventListener("message", function(event) {
         const message = event.data;
@@ -52,6 +62,8 @@
             renderPaging();
             // Hide spinner when data is set
             hideSpinner();
+            // Check if we should set up auto-refresh
+            checkAndSetAutoRefresh();
         } else if (message.command === "processingRequestReceived" || message.command === "processingRequestFailed") {            console.log("[Webview] Handling", message.command);
             // Hide spinner when processing request is received or failed
             hideSpinner();        
@@ -59,7 +71,8 @@
             console.log("[Webview] Request cancelled successfully, refreshing data");
             hideSpinner();
             // Refresh the current page after a successful cancel
-            requestPage(pageNumber);        
+            requestPage(pageNumber);
+            // After page refresh, checkAndSetAutoRefresh will be called
         } else if (message.command === "modelAIProcessingSetRootNodeProjectInfo") {
             const { projectName, projectVersionNumber } = message;
             let desc = "";
@@ -239,6 +252,7 @@
                     display: flex;
                     justify-content: flex-end;
                     margin-bottom: 10px;
+                    align-items: center;
                 }
                 .refresh-button {
                     background-color: var(--vscode-button-background);
@@ -255,6 +269,9 @@
                 }
                 .add-button {
                     margin-right: 8px;
+                }
+                #autoRefreshIndicator {
+                    margin-right: auto;
                 }                /* Modal styles */
                 .modal {
                     position: fixed;
@@ -479,6 +496,12 @@
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
+                
+                #autoRefreshIndicator .fa-sync-alt {
+                    animation: spin 4s linear infinite;
+                    display: inline-block;
+                    margin-right: 5px;
+                }
                   /* Details Modal Specific Styles */
                 .details-modal-content {
                     width: 600px;
@@ -635,6 +658,7 @@
             // Show spinner while refreshing data
             showSpinner();
             requestPage(pageNumber);
+            // Auto-refresh will be checked after data is loaded
         };// Attach add button handler
         document.getElementById("addButton").onclick = function() {
             // Fetch projectName and projectVersionNumber from extension
@@ -1097,5 +1121,71 @@
         });
         
         console.log("[Webview] Merge message posted to extension");
+    }
+
+    /**
+     * Checks if there are any processing or queued items and sets up auto-refresh accordingly.
+     */
+    function checkAndSetAutoRefresh() {
+        console.log("[Webview] Checking if auto-refresh should be active...");
+        
+        // Clear any existing timer
+        if (autoRefreshTimer) {
+            console.log("[Webview] Clearing existing auto-refresh timer");
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = null;
+        }
+        
+        // Check if there are any processing or queued items
+        let hasProcessingOrQueuedItems = processingData.some(item => {
+            // Item is queued if not started and not canceled
+            const isQueued = !item.modelPrepRequestIsStarted && !item.modelPrepRequestIsCanceled;
+            // Item is processing if started but not completed and not canceled
+            const isProcessing = item.modelPrepRequestIsStarted && !item.modelPrepRequestIsCompleted && !item.modelPrepRequestIsCanceled;
+            return isQueued || isProcessing;
+        });
+        
+        // Update auto-refresh indicator
+        updateAutoRefreshIndicator(hasProcessingOrQueuedItems);
+        
+        // If we have processing/queued items, set up auto-refresh timer
+        if (hasProcessingOrQueuedItems) {
+            console.log("[Webview] Processing or queued items found, setting up auto-refresh timer");
+            autoRefreshTimer = setInterval(() => {
+                console.log("[Webview] Auto-refreshing page due to processing/queued items");
+                requestPage(pageNumber);
+            }, AUTO_REFRESH_INTERVAL);
+        }
+    }
+
+    /**
+     * Updates the auto-refresh indicator in the UI.
+     * @param {boolean} isActive - Whether auto-refresh is active.
+     */
+    function updateAutoRefreshIndicator(isActive) {
+        // Find or create the indicator element
+        let indicator = document.getElementById("autoRefreshIndicator");
+        
+        if (!indicator) {
+            indicator = document.createElement("div");
+            indicator.id = "autoRefreshIndicator";
+            indicator.style.fontSize = "0.8em";
+            indicator.style.color = "var(--vscode-descriptionForeground)";
+            indicator.style.marginRight = "10px";
+            
+            // Insert before the refresh button
+            const toolbar = document.querySelector(".toolbar");
+            if (toolbar) {
+                toolbar.insertBefore(indicator, toolbar.firstChild);
+            }
+        }
+        
+        // Update indicator text based on active state
+        if (isActive) {
+            indicator.innerHTML = "<i class='fa fa-sync-alt'></i> Auto-refreshing every minute";
+            indicator.style.display = "block";
+        } else {
+            indicator.style.display = "none";
+        }
     }
 })();
