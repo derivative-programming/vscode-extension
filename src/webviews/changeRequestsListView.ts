@@ -292,6 +292,15 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     opacity: 0.9;
                 }
                 
+                .action-button.secondary {
+                    background-color: var(--vscode-button-secondaryBackground);
+                    color: var(--vscode-button-secondaryForeground);
+                }
+                
+                .action-button.secondary:hover {
+                    background-color: var(--vscode-button-secondaryHoverBackground);
+                }
+                
                 .action-button:disabled {
                     opacity: 0.5;
                     cursor: not-allowed;
@@ -544,7 +553,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                         <textarea id="rejectionReason" placeholder="Please provide a reason for rejection..."></textarea>
                     </div>                    <div class="form-actions">
                         <button id="confirmReject" class="action-button reject">Confirm Reject</button>
-                        <button id="cancelReject" class="action-button">Cancel</button>
+                        <button id="cancelReject" class="action-button secondary">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -558,7 +567,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                         <textarea id="batchRejectionReason" placeholder="Please provide a reason for rejecting the selected suggestions..."></textarea>
                     </div>                    <div class="form-actions">
                         <button id="confirmBatchReject" class="action-button reject">Confirm Reject</button>
-                        <button id="cancelBatchReject" class="action-button">Cancel</button>
+                        <button id="cancelBatchReject" class="action-button secondary">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -571,7 +580,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                         <p id="confirmMessage"></p>
                     </div>                    <div class="form-actions">
                         <button id="confirmAction" class="action-button">Confirm</button>
-                        <button id="cancelConfirm" class="action-button">Cancel</button>
+                        <button id="cancelConfirm" class="action-button secondary">Cancel</button>
                     </div>
                 </div>
             </div>
