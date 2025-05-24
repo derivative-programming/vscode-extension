@@ -606,6 +606,16 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
             background-color: var(--vscode-button-hoverBackground);
         }
         
+        /* Secondary button styling for cancel button */
+        #btnCancelAddStory {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+        
+        #btnCancelAddStory:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+        
         .error-message {
             color: var(--vscode-errorForeground);
             padding: 10px;
