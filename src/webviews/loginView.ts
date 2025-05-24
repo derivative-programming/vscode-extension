@@ -51,7 +51,7 @@ export async function showLoginView(context: vscode.ExtensionContext, onLoginSuc
                     
                     if (success) {
                         panel.webview.postMessage({ command: "loginSuccess" });
-                        vscode.window.showInformationMessage("Successfully logged in to AppDNA Model Services");
+                        // vscode.window.showInformationMessage("Successfully logged in to AppDNA Model Services");
                         
                         // Close the panel after successful login
                         setTimeout(() => {
@@ -81,7 +81,7 @@ export async function showLoginView(context: vscode.ExtensionContext, onLoginSuc
                 // Open registration URL in the default web browser
                 const registrationUrl = "https://secure.derivative-programming.com/ObjWF/Tac/TacRegister/f8324cfc-c6f9-4e92-bb88-a9e429d05e59";
                 vscode.env.openExternal(vscode.Uri.parse(registrationUrl));
-                vscode.window.showInformationMessage("Opening registration page in your browser");
+                // vscode.window.showInformationMessage("Opening registration page in your browser");
                 return;
 
             case "debugEmailValue":
@@ -219,7 +219,7 @@ function getLoginViewContent(): string {
             </div>
             <div id="errorMessage" class="error"></div>
             <div id="successMessage" class="success">Login successful! Redirecting...</div>            <div class="buttons">
-                <button type="button" id="cancelButton" class="secondary">Cancel</button>
+                <button type="button" id="cancelButton" class="secondary" style="visibility: hidden;">Cancel</button>
                 <button type="submit">Login</button>
             </div>
             <div class="register-link">
@@ -229,7 +229,7 @@ function getLoginViewContent(): string {
         
         <div class="terms">
             <p><strong>Terms of Service:</strong> By logging in, you agree that your models will be sent to AppDNA Model Services for processing.</p>
-            <p>This service is provided for amusement purposes only with no guarantees of accuracy or fitness for any particular purpose.</p>
+            <p>This service is provided for amusement purposes only with no guarantees of accuracy for any particular purpose.</p>
             <p>By using this service, you acknowledge that the provider accepts no liability for any damages, data loss, or other issues that may arise from using this service. You agree to indemnify and hold harmless the service provider from all claims.</p>
         </div>
         

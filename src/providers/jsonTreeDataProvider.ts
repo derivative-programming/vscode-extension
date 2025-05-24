@@ -435,7 +435,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 } else {
                     // Add login option
                     const loginItem = new JsonTreeItem(
-                        "Login to AppDNA Model Services",
+                        "Login",
                         vscode.TreeItemCollapsibleState.None,
                         'modelServiceLogin'
                     );
@@ -443,7 +443,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     loginItem.iconPath = new vscode.ThemeIcon('sign-in');
                     loginItem.command = {
                         command: 'appdna.loginModelServices',
-                        title: 'Login to AppDNA Model Services',
+                        title: 'Login',
                         arguments: []
                     };
                     

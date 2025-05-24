@@ -255,7 +255,7 @@ class WelcomePanel {
             <p>A graphical editor for AppDNA model files</p>
         </div>
 
-        <p>AppDNA accelerates your development process by generating high-quality code based on your project model. This extension provides powerful tools to create, edit, and process your model through AI-assisted validation and fabrication services. With a user-friendly interface and guided workflow, you can transform your project requirements into production-ready code in significantly less time than traditional development approaches.</p>
+        <p>AppDNA accelerates your development process by generating code based on your project model. This extension provides powerful tools to create, edit, and process your model through AI-assisted validation and fabrication services. With a user-friendly interface and guided workflow, you can transform your project requirements into code in significantly less time than traditional development approaches.</p>
 
         <div class="workflow-section">
             <h2>AppDNA Workflow</h2>
@@ -264,7 +264,7 @@ class WelcomePanel {
             <div class="workflow-container">
                 <div class="workflow-step">
                     <div class="workflow-step-number">1</div>
-                    <div class="workflow-step-title">Create a New Project Model</div>
+                    <div class="workflow-step-title">Create A New Project Model</div>
                     <div class="workflow-step-description">Start by creating a new AppDNA model file for your project.</div>
                     <div class="workflow-note">A model is held in a JSON file in your project.</div>
                 </div>
@@ -286,7 +286,7 @@ class WelcomePanel {
                     <div class="workflow-step-number">4</div>
                     <div class="workflow-step-title">Request Model Validation</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Validation service, download the results when complete, and approve and apply any change requests.</div>
-                    <div class="workflow-note">Model Validation Change Requests modify existing data in the model. It does not add new data to the model.</div>
+                    <div class="workflow-note">Model Validation Change Requests adds and modifies the model.</div>
                 </div>
 
                 <div class="workflow-step">
@@ -299,7 +299,7 @@ class WelcomePanel {
                     <div class="workflow-step-number">6</div>
                     <div class="workflow-step-title">Request Model Fabrication</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Fabrication service and download the fabrication results when complete.</div>
-                    <div class="workflow-note">In the fabrication_results folder, you will find generated source code. Copy what you need from here to your project source code folder.</div>                </div>
+                    <div class="workflow-note">In the fabrication_results folder, you will find generated files. Copy what you need from here to your project source code folder.</div>                </div>
             </div>
         </div>
     </div>

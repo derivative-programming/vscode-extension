@@ -126,3 +126,6 @@ Command: Improve error handling in Report Details View
 - Used conditional rendering to show either the full UI or error screen based on data availability
 - Applied CSS styling to make the error message clear and actionable
 Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view

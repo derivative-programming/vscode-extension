@@ -23,7 +23,7 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
     </style>
 </head>
 <body>
-    <h1>Details for ${object.name}</h1>
+    <h1>Details for ${object.name} Data Object</h1>
     
     <div class="tabs">
         <div class="tab active" data-tab="settings">Settings</div>

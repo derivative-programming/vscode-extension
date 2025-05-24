@@ -330,7 +330,7 @@ export function registerCommands(
             
             if (confirmed === "Yes") {
                 await authService.logout();
-                vscode.window.showInformationMessage("Logged out from Model Services");
+                // vscode.window.showInformationMessage("Logged out from Model Services");
                 
                 // Refresh the tree view to update icons and available services
                 jsonTreeDataProvider.refresh();

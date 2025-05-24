@@ -83,7 +83,7 @@
       }    },    "commands": [
       {
         "command": "appdna.addFile",
-        "title": "Add File",
+        "title": "New Project Model",
         "icon": "$(add)"
       },
       {
@@ -108,17 +108,17 @@
       },
       {
         "command": "appdna.saveFile",
-        "title": "Save File",
+        "title": "Save Model To File",
         "icon": "$(save)"
       },
       {
         "command": "appdna.refreshView",
-        "title": "Refresh View",
+        "title": "Refresh",
         "icon": "$(refresh)"
       },
       {
         "command": "appdna.showWelcome",
-        "title": "Show Welcome",
+        "title": "Welcome to AppDNA",
         "icon": "$(home)"
       },
       {
@@ -141,14 +141,14 @@
         "icon": "$(close)"
       },
       {
-        "command": "appdna.expandAllTopLevel",
-        "title": "Expand All Top Level",
-        "icon": "$(expand-all)"
+        "command": "appdna.collapseAllTopLevel",
+        "title": "Collapse Tree",
+        "icon": "$(collapse-all)"
       },
       {
-        "command": "appdna.collapseAllTopLevel",
-        "title": "Collapse All Top Level",
-        "icon": "$(collapse-all)"
+        "command": "appdna.expandAllTopLevel",
+        "title": "Expand Tree",
+        "icon": "$(expand-all)"
       }
     ],
     "keybindings": [
