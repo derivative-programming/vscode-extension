@@ -3,19 +3,18 @@
 
 (function() {
     // Acquire the VS Code API
-    const vscode = acquireVsCodeApi();
-      // Keep track of the current state
+    const vscode = acquireVsCodeApi();    // Keep track of the current state
     let featureData = {
         items: [],
         pageNumber: 1,
-        itemCountPerPage: 100,
+        itemCountPerPage: 10,
         recordsTotal: 0,
         recordsFiltered: 0
     };
     
     // Keep track of pagination and sorting
     let pageNumber = 1;
-    let itemCountPerPage = 100; // Default to 100 items per page
+    let itemCountPerPage = 10; // Default to 10 items per page
     let orderByColumn = "displayName"; // Use displayName as default sort column
     let orderByDescending = false;
     let totalRecords = 0;
@@ -60,9 +59,9 @@
         console.log("[Webview] Received message:", message.command);
         
         if (message.command === "setFeatureData") {
-            console.log("[Webview] Handling setFeatureData");            featureData = message.data || { items: [], pageNumber: 1, itemCountPerPage: 100, recordsTotal: 0 };
+            console.log("[Webview] Handling setFeatureData");            featureData = message.data || { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 };
             pageNumber = featureData.pageNumber || 1;
-            itemCountPerPage = featureData.itemCountPerPage || 100;
+            itemCountPerPage = featureData.itemCountPerPage || 10;
             orderByColumn = featureData.orderByColumnName || orderByColumn;
             orderByDescending = featureData.orderByDescending || false;
             totalRecords = featureData.recordsTotal || 0;
@@ -77,17 +76,33 @@
             selectedFeatures = message.selectedFeatures || [];
             
             // Update checkboxes in the table if table is already rendered
-            updateSelectedFeaturesInTable();
-        } else if (message.command === "ModelFeatureCatalogFeatureUpdateSuccess") {
+            updateSelectedFeaturesInTable();        } else if (message.command === "ModelFeatureCatalogFeatureUpdateSuccess") {
             console.log("[Webview] Feature update success:", message.featureName, message.selected);
             hideSpinner();
+            
+            // Update selectedFeatures array to reflect the successful change
+            if (message.selected) {
+                // Add feature to selectedFeatures if not already present
+                const existingFeature = selectedFeatures.find(f => f.name === message.featureName);
+                if (!existingFeature) {
+                    selectedFeatures.push({
+                        name: message.featureName,
+                        isCompleted: "false" // Default to not completed for newly selected features
+                    });
+                }
+            } else {
+                // Remove feature from selectedFeatures
+                const featureIndex = selectedFeatures.findIndex(f => f.name === message.featureName);
+                if (featureIndex !== -1) {
+                    selectedFeatures.splice(featureIndex, 1);
+                }
+            }
             
             // Find the checkbox for this feature and update it (useful when multiple users are editing)
             const checkbox = document.querySelector(`input[data-feature="${message.featureName}"]`);
             if (checkbox) {
                 checkbox.checked = message.selected;
-            }
-        } else if (message.command === "ModelFeatureCatalogFeatureUpdateFailed") {
+            }        } else if (message.command === "ModelFeatureCatalogFeatureUpdateFailed") {
             console.log("[Webview] Feature update failed:", message.featureName, message.reason);
             hideSpinner();
             
@@ -98,6 +113,17 @@
                 if (message.reason === "completed") {
                     checkbox.checked = true;
                     checkbox.disabled = true;
+                    
+                    // Ensure the completed feature is in selectedFeatures array
+                    const existingFeature = selectedFeatures.find(f => f.name === message.featureName);
+                    if (!existingFeature) {
+                        selectedFeatures.push({
+                            name: message.featureName,
+                            isCompleted: "true"
+                        });
+                    } else {
+                        existingFeature.isCompleted = "true";
+                    }
                 } else {
                     // Get the current state from our selectedFeatures array
                     const isSelected = selectedFeatures.some(f => f.name === message.featureName);
@@ -201,10 +227,28 @@
                             checkbox.disabled = true;
                             checkbox.title = "This feature is completed and cannot be removed";
                         }
-                        
-                        // Handle checkbox change
+                          // Handle checkbox change
                         checkbox.addEventListener("change", function() {
                             const isChecked = this.checked;
+                            
+                            // Update the selectedFeatures array immediately to maintain state across page navigation
+                            if (isChecked) {
+                                // Add feature to selectedFeatures if not already present
+                                const existingFeature = selectedFeatures.find(f => f.name === item.name);
+                                if (!existingFeature) {
+                                    selectedFeatures.push({
+                                        name: item.name,
+                                        isCompleted: "false" // Default to not completed for newly selected features
+                                    });
+                                }
+                            } else {
+                                // Remove feature from selectedFeatures
+                                const featureIndex = selectedFeatures.findIndex(f => f.name === item.name);
+                                if (featureIndex !== -1) {
+                                    selectedFeatures.splice(featureIndex, 1);
+                                }
+                            }
+                            
                             showSpinner();
                             vscode.postMessage({
                                 command: "ModelFeatureCatalogToggleFeature",
@@ -287,125 +331,95 @@
         
         pagingDiv.innerHTML = "";
         
+        // Calculate total pages
+        const totalPages = Math.ceil(totalRecords / itemCountPerPage);
+        
+        // Update record info (similar to model fabrication view)
+        const start = featureData.items && featureData.items.length ? (pageNumber - 1) * itemCountPerPage + 1 : 0;
+        const end = featureData.items && featureData.items.length ? Math.min(start + featureData.items.length - 1, totalRecords) : 0;
+        const recordInfoElement = document.getElementById("record-info");
+        if (recordInfoElement) {
+            recordInfoElement.textContent = 
+                featureData.items && featureData.items.length ? `Showing ${start} to ${end} of ${totalRecords} features` : `No features to display`;
+        }
+        
         if (totalRecords === 0) {
             return;
         }
         
-        // Calculate total pages
-        const totalPages = Math.ceil(totalRecords / itemCountPerPage);
-        
-        // Create paging controls similar to model validation view
+        // Create paging controls matching model fabrication view style
         // First page button
-        const firstButton = document.createElement("button");
-        firstButton.textContent = "«";
-        firstButton.disabled = pageNumber <= 1;
-        firstButton.title = "First Page";
-        firstButton.addEventListener("click", () => {
-            if (pageNumber > 1) {
-                showSpinner();
-                vscode.postMessage({
-                    command: "ModelFeatureCatalogRequestPage",
-                    pageNumber: 1,
-                    itemCountPerPage: itemCountPerPage,
-                    orderByColumnName: orderByColumn,
-                    orderByDescending: orderByDescending
-                });
-            }
-        });
-        
-        // Previous button
-        const prevButton = document.createElement("button");
-        prevButton.textContent = "‹";
-        prevButton.disabled = pageNumber <= 1;
-        prevButton.title = "Previous Page";
-        prevButton.addEventListener("click", () => {
-            if (pageNumber > 1) {
-                showSpinner();
-                vscode.postMessage({
-                    command: "ModelFeatureCatalogRequestPage",
-                    pageNumber: pageNumber - 1,
-                    itemCountPerPage: itemCountPerPage,
-                    orderByColumnName: orderByColumn,
-                    orderByDescending: orderByDescending
-                });
-            }
-        });
-        
-        // Page info
-        const pageSpan = document.createElement("span");
-        pageSpan.textContent = ` Page ${pageNumber} of ${totalPages || 1} `;
-        
-        // Next button
-        const nextButton = document.createElement("button");
-        nextButton.textContent = "›";
-        nextButton.disabled = pageNumber >= totalPages;
-        nextButton.title = "Next Page";
-        nextButton.addEventListener("click", () => {
-            if (pageNumber < totalPages) {
-                showSpinner();
-                vscode.postMessage({
-                    command: "ModelFeatureCatalogRequestPage",
-                    pageNumber: pageNumber + 1,
-                    itemCountPerPage: itemCountPerPage,
-                    orderByColumnName: orderByColumn,
-                    orderByDescending: orderByDescending
-                });
-            }
-        });
-        
-        // Last page button
-        const lastButton = document.createElement("button");
-        lastButton.textContent = "»";
-        lastButton.disabled = pageNumber >= totalPages;
-        lastButton.title = "Last Page";
-        lastButton.addEventListener("click", () => {
-            if (pageNumber < totalPages) {
-                showSpinner();
-                vscode.postMessage({
-                    command: "ModelFeatureCatalogRequestPage",
-                    pageNumber: totalPages,
-                    itemCountPerPage: itemCountPerPage,
-                    orderByColumnName: orderByColumn,
-                    orderByDescending: orderByDescending
-                });
-            }
-        });
-        
-        // Items per page selector
-        const perPageSelect = document.createElement("select");
-        [10, 25, 50, 100].forEach(size => {
-            const option = document.createElement("option");
-            option.value = size;
-            option.textContent = size + " items per page";
-            option.selected = itemCountPerPage === size;
-            perPageSelect.appendChild(option);
-        });
-        
-        perPageSelect.addEventListener("change", () => {
-            itemCountPerPage = parseInt(perPageSelect.value);
+        const first = document.createElement("button");
+        first.textContent = "«";
+        first.disabled = pageNumber <= 1;
+        first.title = "First Page";
+        first.onclick = function () { 
             showSpinner();
             vscode.postMessage({
                 command: "ModelFeatureCatalogRequestPage",
-                pageNumber: 1, // Reset to first page
+                pageNumber: 1,
                 itemCountPerPage: itemCountPerPage,
                 orderByColumnName: orderByColumn,
                 orderByDescending: orderByDescending
             });
-        });
+        };
+        pagingDiv.appendChild(first);
         
-        // Count summary
-        const countSpan = document.createElement("span");
-        countSpan.textContent = ` (${featureData.items ? featureData.items.length : 0} of ${totalRecords} items) `;
+        // Previous button
+        const prev = document.createElement("button");
+        prev.textContent = "‹";
+        prev.disabled = pageNumber <= 1;
+        prev.title = "Previous Page";
+        prev.onclick = function () { 
+            showSpinner();
+            vscode.postMessage({
+                command: "ModelFeatureCatalogRequestPage",
+                pageNumber: pageNumber - 1,
+                itemCountPerPage: itemCountPerPage,
+                orderByColumnName: orderByColumn,
+                orderByDescending: orderByDescending
+            });
+        };
+        pagingDiv.appendChild(prev);
         
-        // Append all elements
-        pagingDiv.appendChild(firstButton);
-        pagingDiv.appendChild(prevButton);
-        pagingDiv.appendChild(pageSpan);
-        pagingDiv.appendChild(nextButton);
-        pagingDiv.appendChild(lastButton);
-        pagingDiv.appendChild(document.createTextNode(" | "));
-        pagingDiv.appendChild(perPageSelect);
-        pagingDiv.appendChild(countSpan);
+        // Page info
+        const info = document.createElement("span");
+        info.textContent = `Page ${pageNumber} of ${totalPages || 1}`;
+        pagingDiv.appendChild(info);
+        
+        // Next button
+        const next = document.createElement("button");
+        next.textContent = "›";
+        next.disabled = pageNumber >= totalPages;
+        next.title = "Next Page";
+        next.onclick = function () { 
+            showSpinner();
+            vscode.postMessage({
+                command: "ModelFeatureCatalogRequestPage",
+                pageNumber: pageNumber + 1,
+                itemCountPerPage: itemCountPerPage,
+                orderByColumnName: orderByColumn,
+                orderByDescending: orderByDescending
+            });
+        };
+        pagingDiv.appendChild(next);
+        
+        // Last page button
+        const last = document.createElement("button");
+        last.textContent = "»";
+        last.disabled = pageNumber >= totalPages;
+        last.title = "Last Page";
+        last.onclick = function () { 
+            showSpinner();
+            vscode.postMessage({
+                command: "ModelFeatureCatalogRequestPage",
+                pageNumber: totalPages,
+                itemCountPerPage: itemCountPerPage,
+                orderByColumnName: orderByColumn,
+                orderByDescending: orderByDescending
+            });
+        };
+        pagingDiv.appendChild(last);
     }
     
     function showSpinner() {

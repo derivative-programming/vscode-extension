@@ -1,4 +1,3 @@
-// filepath: c:\VR\Source\DP\vscode-extension\src\commands\modelFeatureCatalogCommands.ts
 // Description: Handles registration of model feature catalog related commands.
 // Created: October 12, 2023
 
@@ -55,8 +54,7 @@ export function registerModelFeatureCatalogCommands(
     context: vscode.ExtensionContext,
     appDNAFilePath: string | null,
     modelService: ModelService
-): void {
-    // Register model feature catalog command
+): void {    // Register model feature catalog command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.modelFeatureCatalog', async () => {
             // Store references to context and modelService
@@ -97,11 +95,9 @@ export function registerModelFeatureCatalogCommands(
                 activePanels.delete(panelId);
                 featureCatalogPanel.panel = null;
             });
-
             const scriptUri = panel.webview.asWebviewUri(
                 vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'modelFeatureCatalogView.js')
             );
-
             panel.webview.html = `
                 <!DOCTYPE html>
                 <html lang="en">
@@ -109,9 +105,7 @@ export function registerModelFeatureCatalogCommands(
                     <meta charset="UTF-8">
                     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Model Feature Catalog</title>
-                    <style>
-                        body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
+                    <title>Model Feature Catalog</title>                    <style>                        body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
                         .validation-header {
                             padding: 10px 0;
                             border-bottom: 1px solid var(--vscode-panel-border);
@@ -122,8 +116,7 @@ export function registerModelFeatureCatalogCommands(
                             font-size: 1.3em;
                             font-weight: normal;
                             color: var(--vscode-editor-foreground);
-                        }
-                        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+                        }                        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
                         th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
                         th { background: var(--vscode-sideBar-background); cursor: pointer; font-weight: bold; }
                         tr:nth-child(even) { background: var(--vscode-sideBarSectionHeader-background); }
@@ -184,8 +177,7 @@ export function registerModelFeatureCatalogCommands(
                         @keyframes spin {
                             0% { transform: rotate(0deg); }
                             100% { transform: rotate(360deg); }
-                        }
-                        .refresh-button {
+                        }                        .refresh-button {
                             background-color: var(--vscode-button-background);
                             color: var(--vscode-button-foreground);
                             border: none;
@@ -197,8 +189,7 @@ export function registerModelFeatureCatalogCommands(
                         }
                         .refresh-button:hover {
                             background-color: var(--vscode-button-hoverBackground);
-                        }
-                        .header-actions {
+                        }                        .header-actions {
                             display: flex;
                             justify-content: flex-end;
                             margin-bottom: 10px;
@@ -218,12 +209,10 @@ export function registerModelFeatureCatalogCommands(
                             align-items: center;
                         }
                     </style>
-                </head>
-                <body>
+                </head>                <body>
                     <div class="validation-header">
                         <h2>Model Feature Catalog</h2>
-                    </div>
-                    <div class="header-actions">
+                    </div>                    <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             Refresh
                         </button>
@@ -244,13 +233,10 @@ export function registerModelFeatureCatalogCommands(
                 </body>
                 </html>
             `;
-
-            // Handler for messages from the webview
+              // Handler for messages from the webview
             async function fetchAndSend(pageNumber: number, itemCountPerPage: number, orderByColumnName: string, orderByDescending: boolean) {
                 const authService = require('../services/authService').AuthService.getInstance();
-                const apiKey = await authService.getApiKey();
-
-                if (!apiKey) {
+                const apiKey = await authService.getApiKey();                if (!apiKey) {
                     panel.webview.postMessage({ command: 'setFeatureData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('You must be logged in to use Model Feature Catalog.');
                     return;
@@ -266,17 +252,14 @@ export function registerModelFeatureCatalogCommands(
                 }
                 const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/model-features?' + params.join('&');
                 // Log the API call details
-                console.log("[DEBUG] Model Feature Catalog API called. URL:", url, "Options:", { headers: { 'Api-Key': '[REDACTED]' } });
-
-                try {
+                console.log("[DEBUG] Model Feature Catalog API called. URL:", url, "Options:", { headers: { 'Api-Key': '[REDACTED]' } });                try {
                     const res = await fetch(url, {
                         headers: { 'Api-Key': apiKey }
                     });
                     
                     // Check for unauthorized errors
                     if (await handleApiError(context, res, 'Failed to fetch model features')) {
-                        // If true, the error was handled (was a 401)
-                        panel.webview.postMessage({ 
+                        // If true, the error was handled (was a 401)                        panel.webview.postMessage({ 
                             command: 'setFeatureData', 
                             data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } 
                         });
@@ -284,16 +267,14 @@ export function registerModelFeatureCatalogCommands(
                     }
                     
                     const data = await res.json();
-                    panel.webview.postMessage({ command: 'setFeatureData', data });
-                } catch (err) {
+                    panel.webview.postMessage({ command: 'setFeatureData', data });                } catch (err) {
                     panel.webview.postMessage({ command: 'setFeatureData', data: { items: [], pageNumber: 1, itemCountPerPage: 10, recordsTotal: 0 } });
                     vscode.window.showErrorMessage('Failed to fetch model features: ' + (err && err.message ? err.message : err));
                 }
             }
             
             panel.webview.onDidReceiveMessage(async (msg) => {
-                console.log("[Extension] Received message from webview:", msg.command);
-                if (msg.command === 'ModelFeatureCatalogWebviewReady') {
+                console.log("[Extension] Received message from webview:", msg.command);                if (msg.command === 'ModelFeatureCatalogWebviewReady') {
                     console.log("[Extension] Handling ModelFeatureCatalogWebviewReady");
                     await fetchAndSend(1, 10, 'displayName', false);
                 } else if (msg.command === 'ModelFeatureCatalogRequestPage') {
@@ -370,8 +351,7 @@ export function registerModelFeatureCatalogCommands(
                             // Check if this feature already exists
                             const existingFeatureIndex = namespace.modelFeature.findIndex(f => f.name === msg.featureName);
                             
-                            if (existingFeatureIndex === -1) {
-                                // Feature doesn't exist, add it
+                            if (existingFeatureIndex === -1) {                                // Feature doesn't exist, add it
                                 const newFeature = new ModelFeatureModel({
                                     name: msg.featureName,
                                     description: msg.description || "",
@@ -411,10 +391,7 @@ export function registerModelFeatureCatalogCommands(
                                         }
                                     }
                                 }
-                            }
-                        }
-                        
-                        // Don't save the model yet, just keep changes in memory
+                            }                        }                        // Don't save the model yet, just keep changes in memory
                         // Since we're modifying the object returned by getCurrentModel() directly,
                         // the changes are already in memory in the ModelService
                         console.log("[Extension] Model updated in memory after feature toggle");
