@@ -156,7 +156,7 @@
             console.log("[Webview] Found merge button for success:", !!mergeButton);
             if (mergeButton) {
                 console.log("[Webview] Updating button to show merge success");
-                mergeButton.disabled = false;
+                mergeButton.disabled = true;
                 mergeButton.classList.add("success-download");
                 mergeButton.textContent = 'Merge Successful';
             } else {
