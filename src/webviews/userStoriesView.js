@@ -710,15 +710,15 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
     
     <div class="container">
         <div class="btn-container">
+            <div class="search-container">
+                <span class="search-label">Search:</span>
+                <input type="text" id="searchInput" placeholder="Filter user stories...">
+            </div>
             <div>
                 <button id="btnAddStory">Add User Story</button>
                 <input type="file" id="csvFileInput" class="csv-input" accept=".csv">
                 <button id="btnUploadCsv">Upload CSV</button>
                 <button id="btnDownloadCsv">Download CSV</button>
-            </div>
-            <div class="search-container">
-                <span class="search-label">Search:</span>
-                <input type="text" id="searchInput" placeholder="Filter user stories...">
             </div>
         </div>
         
