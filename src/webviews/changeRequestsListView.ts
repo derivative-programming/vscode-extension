@@ -268,6 +268,23 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                 .refresh-button:hover {
                     background-color: var(--vscode-button-secondaryHoverBackground);
                 }
+
+                .modal-button-secondary {
+                    background-color: var(--vscode-button-secondaryBackground);
+                    color: var(--vscode-button-secondaryForeground);
+                    border: none;
+                    padding: 4px 8px;
+                    cursor: pointer;
+                    border-radius: 2px;
+                    font-size: 0.9em;
+                    margin-bottom: 4px;
+                    display: block;
+                }
+
+                .modal-button-secondary:hover {
+                    background-color: var(--vscode-button-secondaryHoverBackground);
+                }
+                  
                   .action-button {
                     background-color: var(--vscode-button-background);
                     color: var(--vscode-button-foreground);
@@ -571,7 +588,7 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                         <p id="confirmMessage"></p>
                     </div>                    <div class="form-actions">
                         <button id="confirmAction" class="action-button">Confirm</button>
-                        <button id="cancelConfirm" class="action-button">Cancel</button>
+                        <button id="cancelConfirm" class="modal-button-secondary">Cancel</button>
                     </div>
                 </div>
             </div>
