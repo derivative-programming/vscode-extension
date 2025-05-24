@@ -3,7 +3,7 @@ Agent todo items...
 
 fabrication request list...
 - allow download of report on fabrication error. use modelFabricationRequestReportUrl
-
+- show spinner when loading the view
 
 model feature catalog view...]
 - add intro text to the top of the page under title
@@ -96,20 +96,13 @@ step 6: button  'Request Model Fabrication' to show view, only show if model loa
 
 left sidebar tree view...
  
-
-  
 test: switch location of expand and collapse
 
  
  
 
 save button... keyboard shortcut of 'ctrl-a S'.  adding db object is ctrl-a O
- 
- 
- 
-model ai processing request list....
-show spinner when loading the view
- 
+  
 
 Model Feature catalog....
 
