@@ -154,3 +154,5 @@ Command: Complete report details view title consistency
 - Both report details view implementations now have complete consistency with object details view design
 - All titles now follow the pattern: "Details for [name] [Type]" (e.g., "Details for Customer Report", "Details for Customer Data Object")
 Command: Expand all top level tree items in the AppDNA tree view
+
+May 24, 2025: model ai processing request list.... show spinner when loading the view

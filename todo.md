@@ -38,8 +38,7 @@ change requests...
 
 - implement 'add property' 
 i need to handle the 'add property' button. I need to ask for the property name but i also need to give an option to allow the user to 'bulk add' multiple properties and give them a multi line textbox to add a property for each line entered. validation rules... 1. no spaces allowed in names. 2. alpha characters only.
-
-✅ in the treeview, add REPORTS as a top-level item (peer of DATA OBJECTS)
+ 
 
 sub folders...
 - put a ".app_dna_" at the start of the folder names
@@ -106,20 +105,11 @@ test: switch location of expand and collapse
 
 save button... keyboard shortcut of 'ctrl-a S'.  adding db object is ctrl-a O
  
-
-project settings view...
-
-copilot: remove 'Root Settings' sub title
-
-copilot: remove 'Namespace settings' sub title
-
+ 
  
 model ai processing request list....
 show spinner when loading the view
-
-model ai processing - details modal...
-copilot: 'merge successful' button should not be clickable
-
+ 
 
 Model Feature catalog....
 
@@ -139,23 +129,4 @@ add a filter textbox
 
 allow sort on selected checkbox column
 
- 
-user story list view...
-
-copilot: move filter to left side of the page
-
-copilot: move add, upload, and download buttons to the right side of the page
-
-
-
-
-add user story modal...
-copilot: secondary button color on cancel
-
-
-Approve Selected Model Change Suggestions...
-copilot: cancel button to secondary button color
-
-
-Reject Selected Change Suggestions....
-copilot: cancel button to secondary button color
+  

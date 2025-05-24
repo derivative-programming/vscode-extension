@@ -624,10 +624,13 @@
                     </div>
                 </div>
             </div>
-        `;
+        `;        // Initial ready message
+        vscode.postMessage({ command: "ModelAIProcessingWebviewReady" });
         
-        // Initial ready message
-        vscode.postMessage({ command: "ModelAIProcessingWebviewReady" });        // Attach refresh button handler
+        // Show spinner when initially loading the view
+        showSpinner();
+        
+        // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
             // Show spinner while refreshing data
             showSpinner();
@@ -769,7 +772,7 @@
                                     confirmModal.style.display = "flex";
                                     confirmModal.innerHTML = `
                                         <div class="modal-content" style="width: 300px;">
-                                            <h3>Cancel Processing Request</h3>
+                                            <h3>Cancel Model AI Processing Request</h3>
                                             <p>Are you sure you want to cancel this processing request?</p>                                            
                                             <div class="modal-buttons">
                                                 <button id="confirmCancel" class="refresh-button">Yes, Cancel</button>
@@ -883,9 +886,8 @@
         last.title = "Last Page";
         last.onclick = function () { requestPage(totalPages); };
         paging.appendChild(last);
-    }
-
-    function requestPage(page) {
+    }    function requestPage(page) {
+        showSpinner(); // Show spinner whenever new data is being requested
         vscode.postMessage({
             command: "ModelAIProcessingRequestPage",
             pageNumber: page,
@@ -893,7 +895,7 @@
             orderByColumnName: orderByColumn,
             orderByDescending: orderByDescending
         });
-    }    // Details Modal Functions
+    }// Details Modal Functions
 
     /**
      * Shows the details modal and triggers a request to fetch AI processing details.
