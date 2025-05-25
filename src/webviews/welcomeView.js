@@ -337,18 +337,27 @@ class WelcomePanel {
                 vscode.postMessage({ command: "checkFileExists" });
             }
             
-            // Add event listeners to action cards
-            document.getElementById("create-new").addEventListener("click", () => {
-                vscode.postMessage({ command: "createNewFile" });
-            });
+            // Add event listeners to action cards if they exist
+            const createNew = document.getElementById("create-new");
+            if (createNew) {
+                createNew.addEventListener("click", () => {
+                    vscode.postMessage({ command: "createNewFile" });
+                });
+            }
             
-            document.getElementById("open-existing").addEventListener("click", () => {
-                vscode.postMessage({ command: "openExistingFile" });
-            });
+            const openExisting = document.getElementById("open-existing");
+            if (openExisting) {
+                openExisting.addEventListener("click", () => {
+                    vscode.postMessage({ command: "openExistingFile" });
+                });
+            }
             
-            document.getElementById("view-docs").addEventListener("click", () => {
-                vscode.postMessage({ command: "openDocumentation" });
-            });
+            const viewDocs = document.getElementById("view-docs");
+            if (viewDocs) {
+                viewDocs.addEventListener("click", () => {
+                    vscode.postMessage({ command: "openDocumentation" });
+                });
+            }
 
             // Add event listener for Create New Project Model button
             const createNewModelButton = document.getElementById("createNewModelButton");
