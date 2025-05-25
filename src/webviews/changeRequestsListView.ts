@@ -209,10 +209,8 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                 
                 .change-requests-header {
                     display: flex;
-                    justify-content: space-between;
-                    align-items: center;
+                    flex-direction: column;
                     padding: 10px 0;
-                    border-bottom: 1px solid var(--vscode-panel-border);
                     margin-bottom: 15px;
                 }
                 
@@ -220,6 +218,20 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     margin: 0;
                     font-size: 1.5em;
                     font-weight: normal;
+                    margin-bottom: 8px;
+                }
+                
+                .change-requests-header p {
+                    margin: 0 0 10px 0;
+                    color: var(--vscode-descriptionForeground);
+                }
+                
+                .change-requests-header hr {
+                    border: 0;
+                    height: 1px;
+                    background-color: var(--vscode-panel-border);
+                    margin: 0;
+                    width: 100%;
                 }
                 
                 .toolbar {
@@ -513,7 +525,9 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
             
             <div class="change-requests-header">
                 <h1>Model Change Suggestions</h1>
-                <div>Validation Request: <span id="requestCodeDisplay" class="mono">${requestCode}</span></div>
+                <p>Review and manage change suggestions to update your AppDNA model.</p>
+                <hr>
+                <div style="margin-top: 10px;">Validation Request: <span id="requestCodeDisplay" class="mono">${requestCode}</span></div>
             </div>            <div class="toolbar">
                 <div class="filter-controls">
                     <label for="statusFilter">Status:</label>

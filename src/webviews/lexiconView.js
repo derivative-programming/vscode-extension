@@ -205,9 +205,25 @@ function createHtmlContent(lexiconItems, errorMessage = null) {
                 }
                 
                 h1 {
-                    margin-bottom: 20px;
+                    margin-bottom: 8px;
                     font-weight: 500;
                     color: var(--vscode-editor-foreground);
+                }
+                
+                .header-container {
+                    margin-bottom: 20px;
+                }
+                
+                .subtitle {
+                    margin: 0 0 10px 0;
+                    color: var(--vscode-descriptionForeground);
+                }
+                
+                hr {
+                    border: 0;
+                    height: 1px;
+                    background-color: var(--vscode-panel-border);
+                    margin: 0 0 20px 0;
                 }
                 
                 .container {
@@ -301,7 +317,11 @@ function createHtmlContent(lexiconItems, errorMessage = null) {
             </style>
         </head>
         <body>
-            <h1>Lexicon</h1>
+            <div class="header-container">
+                <h1>Lexicon</h1>
+                <p class="subtitle">Edit display values for model lexicon items to customize terminology.</p>
+                <hr>
+            </div>
             
             ${errorMessage ? `<div class="error-message">${errorMessage}</div>` : ''}
             
