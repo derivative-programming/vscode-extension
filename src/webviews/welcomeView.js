@@ -1,12 +1,13 @@
 // filepath: c:\VR\Source\DP\vscode-extension\src\webviews\welcomeView.js
 // Welcome view component for the AppDNA extension
 // Created: May 4, 2025
-// Modified: May 17, 2025 - Removed Getting Started section
+// Modified: May 25, 2025 - Added login step after step 1
 
 "use strict";
 const vscode = require("vscode");
 const path = require("path");
 const fs = require("fs");
+const { AuthService } = require("../services/authService");
 
 /**
  * Shows a welcome view with getting started information
@@ -21,6 +22,10 @@ function showWelcomeView(context) {
 
     // Create and show the welcome panel
     const panel = new WelcomePanel(context.extensionUri);
+    
+    // Get authentication status and update the panel
+    const authService = AuthService.getInstance();
+    panel.updateLoginStatus(authService.isLoggedIn());
 }
 
 /**
@@ -29,9 +34,10 @@ function showWelcomeView(context) {
 class WelcomePanel {
     static currentPanel = undefined;
     static viewType = "appDnaWelcome";
-
+    
     constructor(extensionUri) {
         this.extensionUri = extensionUri;
+        this.isLoggedIn = false; // Default to not logged in
         this.panel = vscode.window.createWebviewPanel(
             WelcomePanel.viewType,
             "Welcome to AppDNA",
@@ -62,6 +68,9 @@ class WelcomePanel {
                     case "checkFileExists":
                         this._checkFileExists();
                         break;
+                    case "openLoginView":
+                        vscode.commands.executeCommand("appdna.loginModelServices");
+                        break;
                 }
             },
             undefined,
@@ -79,6 +88,18 @@ class WelcomePanel {
 
         // Set the current panel
         WelcomePanel.currentPanel = this;
+    }
+    
+    /**
+     * Updates login status and refreshes the view accordingly
+     * @param {boolean} isLoggedIn Whether user is logged in
+     */
+    updateLoginStatus(isLoggedIn) {
+        this.isLoggedIn = isLoggedIn;
+        this.panel.webview.postMessage({
+            command: "updateLoginStatus",
+            isLoggedIn: isLoggedIn
+        });
     }
 
     /**
@@ -294,32 +315,41 @@ class WelcomePanel {
 
                 <div class="workflow-step">
                     <div class="workflow-step-number">2</div>
+                    <div class="workflow-step-title">Register or Login to AppDNA Model Services</div>
+                    <div class="workflow-step-description">Create an account or sign in to access the AppDNA Model Services features.</div>
+                    <div class="workflow-note">Model Services provide AI processing, validation, and code generation capabilities.</div>
+                    <button id="loginButton" class="button">Register or Login</button>
+                    <div id="loggedInMessage" style="display: none; margin-top: 10px; color: var(--vscode-terminal-ansiGreen);">✓ You are logged in</div>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">3</div>
                     <div class="workflow-step-title">Add Model Features</div>
                     <div class="workflow-step-description">From Model Services, browse and select from a catalog of features to add to your model.</div>
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">3</div>
+                    <div class="workflow-step-number">4</div>
                     <div class="workflow-step-title">Request Model AI Processing</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model AI processing service and download the results when complete.</div>
                     <div class="workflow-note">AI processing adds data to the model. It does not change existing data in the model.</div>
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">4</div>
+                    <div class="workflow-step-number">5</div>
                     <div class="workflow-step-title">Request Model Validation</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions.</div>
                     <div class="workflow-note">Model Validation Change Requests adds and modifies the model.</div>
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">5</div>
+                    <div class="workflow-step-number">6</div>
                     <div class="workflow-step-title">Select Blueprint</div>
                     <div class="workflow-step-description">From Model Services, select Blueprint Selection to define the type of files you want to fabricate.</div>
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">6</div>
+                    <div class="workflow-step-number">7</div>
                     <div class="workflow-step-title">Request Model Fabrication</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Fabrication service and download the fabrication results when complete.</div>
                     <div class="workflow-note">In the fabrication_results folder, you will find generated files. Copy what you need from here to your project source code folder.</div>                </div>
@@ -366,6 +396,14 @@ class WelcomePanel {
                     vscode.postMessage({ command: "createNewFile" });
                 });
             }
+            
+            // Add event listener for Login button
+            const loginButton = document.getElementById("loginButton");
+            if (loginButton) {
+                loginButton.addEventListener("click", () => {
+                    vscode.postMessage({ command: "openLoginView" });
+                });
+            }
 
             // Check file existence initially and periodically update button state
             checkPlusSignVisibility();
@@ -377,6 +415,9 @@ class WelcomePanel {
                 switch (message.command) {
                     case 'fileExistsResult':
                         updateCreateButtonState(!message.fileExists);
+                        break;
+                    case 'updateLoginStatus':
+                        updateLoginButtonState(message.isLoggedIn);
                         break;
                 }
             });
@@ -393,6 +434,22 @@ class WelcomePanel {
                     } else {
                         createNewModelButton.title = "Create a new project model file";
                         createNewModelButton.classList.remove("button-disabled");
+                    }
+                }
+            }
+            
+            // Update login button state based on login status
+            function updateLoginButtonState(isLoggedIn) {
+                const loginButton = document.getElementById("loginButton");
+                const loggedInMessage = document.getElementById("loggedInMessage");
+                
+                if (loginButton && loggedInMessage) {
+                    if (isLoggedIn) {
+                        loginButton.style.display = "none";
+                        loggedInMessage.style.display = "block";
+                    } else {
+                        loginButton.style.display = "block";
+                        loggedInMessage.style.display = "none";
                     }
                 }
             }
