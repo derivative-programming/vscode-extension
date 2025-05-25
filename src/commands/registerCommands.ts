@@ -34,6 +34,7 @@ import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
+import { showFilterInputCommand, clearFilterCommand } from './filterTreeViewCommands';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -418,4 +419,16 @@ export function registerCommands(
     // Register report-related commands
     registerReportCommands(context, modelService);
 
+    // Register filter commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showFilter', async () => {
+            await showFilterInputCommand(jsonTreeDataProvider);
+        })
+    );
+    
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.clearFilter', () => {
+            clearFilterCommand(jsonTreeDataProvider);
+        })
+    );
 }
