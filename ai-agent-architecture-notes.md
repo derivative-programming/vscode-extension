@@ -699,6 +699,14 @@ This pattern of presenting a workflow guide helps users understand the proper se
   - Provides focused feedback without blocking the entire UI
   - Appropriate for operations like data refreshing or small updates
 
+- **Auto-Refresh Mechanism**: Used for views that need to monitor changing data
+  - Implemented in views that display processing items (e.g., modelAIProcessingView.js)
+  - Automatically refreshes data at regular intervals (typically every 60 seconds)
+  - Only activates when there are items in processing/queued states
+  - Visual indicator shows when auto-refresh is active
+  - Cleans up timers appropriately when view is closed or no more processing items exist
+  - Uses interval-based timing with configurable intervals (const AUTO_REFRESH_INTERVAL)
+
 - **Modal Progress**: Used for long-running operations displayed in modal dialogs
   - Includes progress bars with percentage indicators
   - Can display additional context like file counts for extraction operations
