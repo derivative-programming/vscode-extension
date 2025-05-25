@@ -200,6 +200,7 @@
                     font-size: 1.3em;
                     font-weight: normal;
                     color: var(--vscode-editor-foreground);
+                    margin-bottom: 15px;
                 }                /* Added toolbar styles for refresh button */
                 .toolbar {
                     display: flex;
@@ -553,10 +554,11 @@
                 </div>
                 <div class="validation-header">
                     <h2>Model Validation Requests</h2>
-                </div>
-                <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
-                    Submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions. Model Validation Change Requests adds and modifies the model.
-                </p>
+                    
+                    <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
+                        Submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions. Model Validation Change Requests adds and modifies the model.
+                    </p>
+                </div> 
                 <div class="toolbar">
                     <button id="addButton" class="refresh-button add-button" title="Add Request">
                         Add

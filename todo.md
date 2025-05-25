@@ -53,11 +53,7 @@ functions
 
 home page...
 
- 
-
-step 1: create button to create a new model,  
-
-
+  
 step 2: should be 'register or login to AppDNA Model Services'.   move all other later steps +1
 
 step 2: button  'View Model Feature Catalog' to show view, only show if model loaded

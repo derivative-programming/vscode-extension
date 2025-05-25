@@ -122,6 +122,7 @@ export function registerModelFeatureCatalogCommands(
                             font-size: 1.3em;
                             font-weight: normal;
                             color: var(--vscode-editor-foreground);
+                            margin-bottom: 15px;
                         }
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; }
                         th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
@@ -222,10 +223,10 @@ export function registerModelFeatureCatalogCommands(
                 <body>
                     <div class="validation-header">
                         <h2>Model Feature Catalog</h2>
+                        <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
+                            Browse and select from a catalog of features to add to your model.
+                        </p>
                     </div>
-                    <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
-                        Browse and select from a catalog of features to add to your model.
-                    </p>
                     <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             Refresh

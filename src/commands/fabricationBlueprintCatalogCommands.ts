@@ -115,6 +115,7 @@ export function registerFabricationBlueprintCatalogCommands(
                             margin: 0;
                             font-size: 1.3em;
                             font-weight: normal;
+                            margin-bottom: 15px;
                             color: var(--vscode-editor-foreground);
                         }
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; }
@@ -212,10 +213,11 @@ export function registerFabricationBlueprintCatalogCommands(
                 <body>
                     <div class="validation-header">
                         <h2>Fabrication Blueprint Catalog</h2>
-                    </div>
-                    <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
+                        <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
                         Select blueprints to define the types of files you want to fabricate. Selected blueprints will be included in your model.
                     </p>
+                    </div>
+                     
                     <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             Refresh
