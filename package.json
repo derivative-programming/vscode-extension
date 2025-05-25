@@ -69,6 +69,12 @@
           "when": "viewItem == dataObjects",
           "group": "inline",
           "icon": "$(add)"
+        },
+        {
+          "command": "appdna.showHierarchyDiagram",
+          "when": "viewItem =~ /dataObjects.*showHierarchy/",
+          "group": "inline",
+          "icon": "$(type-hierarchy)"
         }
       ]
     },
@@ -149,6 +155,11 @@
         "command": "appdna.expandAllTopLevel",
         "title": "Expand Tree",
         "icon": "$(expand-all)"
+      },
+      {
+        "command": "appdna.showHierarchyDiagram",
+        "title": "Show Hierarchy Diagram",
+        "icon": "$(type-hierarchy)"
       }
     ],
     "keybindings": [

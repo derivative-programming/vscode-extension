@@ -34,6 +34,7 @@ import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
+import { showHierarchyDiagram } from '../webviews/hierarchyView';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -418,4 +419,16 @@ export function registerCommands(
     // Register report-related commands
     registerReportCommands(context, modelService);
 
+    // Register show hierarchy diagram command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showHierarchyDiagram', async () => {
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+                return;
+            }
+            
+            // Show the hierarchy diagram view
+            await showHierarchyDiagram(context, modelService);
+        })
+    );
 }
