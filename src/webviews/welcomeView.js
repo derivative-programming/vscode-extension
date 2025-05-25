@@ -59,6 +59,9 @@ class WelcomePanel {
                     case "openDocumentation":
                         vscode.env.openExternal(vscode.Uri.parse("https://github.com/yourusername/appdna-extension"));
                         break;
+                    case "checkFileExists":
+                        this._checkFileExists();
+                        break;
                 }
             },
             undefined,
@@ -103,6 +106,21 @@ class WelcomePanel {
                 // Try to load the selected file
                 vscode.commands.executeCommand("appdna.openProject", fileUri[0].fsPath);
             }
+        });
+    }
+
+    /**
+     * Checks if the AppDNA file exists and sends the result back to the webview
+     */
+    _checkFileExists() {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        const modelFileName = workspaceFolder ? require('../utils/fileUtils').getModelFileNameFromConfig(workspaceFolder) : "app-dna.json";
+        const appDNAFilePath = workspaceFolder ? path.join(workspaceFolder, modelFileName) : null;
+        const fileExists = appDNAFilePath && fs.existsSync(appDNAFilePath);
+        
+        this.panel.webview.postMessage({
+            command: "fileExistsResult",
+            fileExists
         });
     }
 
@@ -191,6 +209,10 @@ class WelcomePanel {
         .button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+        .button-disabled, .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .workflow-container {
             margin-top: 20px;
         }
@@ -267,6 +289,7 @@ class WelcomePanel {
                     <div class="workflow-step-title">Create A New Project Model</div>
                     <div class="workflow-step-description">Start by creating a new AppDNA model file for your project.</div>
                     <div class="workflow-note">A model is held in a JSON file in your project.</div>
+                    <button id="createNewModelButton" class="button">Create A New Project Model</button>
                 </div>
 
                 <div class="workflow-step">
@@ -309,18 +332,70 @@ class WelcomePanel {
             // Acquire the VS Code API
             const vscode = acquireVsCodeApi();
             
-            // Add event listeners to action cards
-            document.getElementById("create-new").addEventListener("click", () => {
-                vscode.postMessage({ command: "createNewFile" });
+            // Check if the plus sign in the tree view is visible
+            function checkPlusSignVisibility() {
+                vscode.postMessage({ command: "checkFileExists" });
+            }
+            
+            // Add event listeners to action cards if they exist
+            const createNew = document.getElementById("create-new");
+            if (createNew) {
+                createNew.addEventListener("click", () => {
+                    vscode.postMessage({ command: "createNewFile" });
+                });
+            }
+            
+            const openExisting = document.getElementById("open-existing");
+            if (openExisting) {
+                openExisting.addEventListener("click", () => {
+                    vscode.postMessage({ command: "openExistingFile" });
+                });
+            }
+            
+            const viewDocs = document.getElementById("view-docs");
+            if (viewDocs) {
+                viewDocs.addEventListener("click", () => {
+                    vscode.postMessage({ command: "openDocumentation" });
+                });
+            }
+
+            // Add event listener for Create New Project Model button
+            const createNewModelButton = document.getElementById("createNewModelButton");
+            if (createNewModelButton) {
+                createNewModelButton.addEventListener("click", () => {
+                    vscode.postMessage({ command: "createNewFile" });
+                });
+            }
+
+            // Check file existence initially and periodically update button state
+            checkPlusSignVisibility();
+            setInterval(checkPlusSignVisibility, 1000);
+            
+            // Handle messages from the extension
+            window.addEventListener('message', event => {
+                const message = event.data;
+                switch (message.command) {
+                    case 'fileExistsResult':
+                        updateCreateButtonState(!message.fileExists);
+                        break;
+                }
             });
             
-            document.getElementById("open-existing").addEventListener("click", () => {
-                vscode.postMessage({ command: "openExistingFile" });
-            });
-            
-            document.getElementById("view-docs").addEventListener("click", () => {
-                vscode.postMessage({ command: "openDocumentation" });
-            });
+            // Update button state based on file existence
+            function updateCreateButtonState(enabled) {
+                const createNewModelButton = document.getElementById("createNewModelButton");
+                if (createNewModelButton) {
+                    createNewModelButton.disabled = !enabled;
+                    
+                    if (!enabled) {
+                        createNewModelButton.title = "Project model already exists";
+                        createNewModelButton.classList.add("button-disabled");
+                    } else {
+                        createNewModelButton.title = "Create a new project model file";
+                        createNewModelButton.classList.remove("button-disabled");
+                    }
+                }
+            }
         })();
     </script>
 </body>
