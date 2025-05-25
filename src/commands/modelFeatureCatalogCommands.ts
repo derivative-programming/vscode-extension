@@ -223,6 +223,9 @@ export function registerModelFeatureCatalogCommands(
                     <div class="validation-header">
                         <h2>Model Feature Catalog</h2>
                     </div>
+                    <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
+                        Browse and select from a catalog of features to add to your model.
+                    </p>
                     <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             Refresh
