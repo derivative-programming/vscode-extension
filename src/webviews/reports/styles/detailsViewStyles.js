@@ -46,6 +46,10 @@ function getDetailViewStyles() {
         
         .tab-content {
             display: none;
+            padding: 15px;
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            border: 1px solid var(--vscode-editorGroup-border);
         }
         
         .tab-content.active {
@@ -73,8 +77,8 @@ function getDetailViewStyles() {
         }
         
         input[type="text"], select, textarea {
-            width: 100%;
-            padding: 8px;
+            flex: 1;
+            padding: 5px;
             border: 1px solid var(--vscode-input-border);
             background-color: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
@@ -82,30 +86,23 @@ function getDetailViewStyles() {
             box-sizing: border-box;
         }
         
-        input[readonly], select[readonly], textarea[readonly] {
-            background-color: var(--vscode-input-placeholderForeground);
-            opacity: 0.7;
+        input[readonly], select[disabled], textarea[readonly] {
+            background-color: var(--vscode-input-disabledBackground, #e9e9e9);
+            color: var(--vscode-input-disabledForeground, #999);
+            opacity: 0.8;
             cursor: not-allowed;
         }
         
-        input[type="checkbox"] {
-            margin-right: 8px;
-        }
-        
-        .checkbox-container {
+        /* Form row styling */
+        .form-row {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
-        
-        .form-group {
-            margin-bottom: 16px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 4px;
-            font-weight: 600;
+
+        .form-row label {
+            flex: 0 0 150px;
+            font-weight: bold;
         }
         
         button {
@@ -123,49 +120,13 @@ function getDetailViewStyles() {
             background-color: var(--vscode-button-hoverBackground);
         }
         
-        .enable-checkbox {
-            display: inline-block;
-            width: auto;
-            margin-left: 10px;
-            vertical-align: middle;
-        }
-        
-        .property-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
+        .setting-checkbox {
             margin-left: 5px;
+            transform: scale(0.8);
+            cursor: pointer;
         }
         
-        .tooltip .tooltip-text {
-            visibility: hidden;
-            width: 200px;
-            background-color: var(--vscode-editorHoverWidget-background);
-            color: var(--vscode-editorHoverWidget-foreground);
-            text-align: left;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid var(--vscode-editorHoverWidget-border);
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-        
+        /* Modal Dialog Styling */
         .modal {
             display: none;
             position: fixed;
@@ -205,36 +166,8 @@ function getDetailViewStyles() {
         }
         
         /* Styles specific to report details */
-        .report-section {
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--vscode-panel-border);
-            padding-bottom: 10px;
-        }
-        
-        .section-title {
-            font-size: 1.2em;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        
-        .subsection {
-            padding-left: 20px;
-        }
-        
         .action-buttons {
             margin-top: 20px;
-        }
-        
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-        
-        @media (max-width: 768px) {
-            .grid-container {
-                grid-template-columns: 1fr;
-            }
         }
     `;
 }

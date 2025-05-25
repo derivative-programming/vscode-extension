@@ -34,18 +34,38 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         });
         
         // Settings tab functionality
-        document.querySelectorAll('.enable-checkbox').forEach(checkbox => {
+        document.querySelectorAll('.setting-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
-                const propertyName = this.getAttribute('data-property');
+                const propertyName = this.getAttribute('data-prop');
+                const isEnum = this.getAttribute('data-is-enum') === 'true';
                 const inputField = document.getElementById('setting-' + propertyName);
+                
+                // Don't allow unchecking of properties that already exist in the model
+                if (this.hasAttribute('data-originally-checked')) {
+                    this.checked = true;
+                    return;
+                }
                 
                 if (this.checked) {
                     // Enable the input field
-                    inputField.removeAttribute('readonly');
+                    if (isEnum) {
+                        inputField.disabled = false;
+                    } else {
+                        inputField.readOnly = false;
+                    }
+                    inputField.style.backgroundColor = 'var(--vscode-input-background)';
+                    inputField.style.color = 'var(--vscode-input-foreground)';
+                    inputField.style.opacity = '1';
                 } else {
-                    // Disable the input field and clear its value
-                    inputField.setAttribute('readonly', true);
-                    inputField.value = '';
+                    // Disable the input field
+                    if (isEnum) {
+                        inputField.disabled = true;
+                    } else {
+                        inputField.readOnly = true;
+                    }
+                    inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                    inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                    inputField.style.opacity = '0.8';
                 }
                 
                 // Send message to update the model
@@ -62,20 +82,74 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         
         // Handle input changes for settings
         document.querySelectorAll('[id^="setting-"]').forEach(input => {
-            input.addEventListener('change', function() {
-                const propertyName = this.id.replace('setting-', '');
-                const checkbox = document.getElementById('enable-setting-' + propertyName);
+            // For select elements, listen for change
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', function() {
+                    const propertyName = this.name;
+                    const checkbox = this.parentElement.querySelector('.setting-checkbox[data-prop="' + propertyName + '"]');
+                    
+                    if (checkbox && checkbox.checked) {
+                        // Send message to update the model
+                        vscode.postMessage({
+                            command: 'updateSettings',
+                            data: {
+                                property: propertyName,
+                                exists: true,
+                                value: this.value
+                            }
+                        });
+                    }
+                });
+            } else {
+                // For text inputs, listen for both input and change events
+                input.addEventListener('input', function() {
+                    const propertyName = this.name;
+                    const checkbox = this.parentElement.querySelector('.setting-checkbox[data-prop="' + propertyName + '"]');
+                    
+                    if (checkbox && checkbox.checked) {
+                        // Send message to update the model
+                        vscode.postMessage({
+                            command: 'updateSettings',
+                            data: {
+                                property: propertyName,
+                                exists: true,
+                                value: this.value
+                            }
+                        });
+                    }
+                });
                 
-                if (checkbox && checkbox.checked) {
-                    // Send message to update the model
-                    vscode.postMessage({
-                        command: 'updateSettings',
-                        data: {
-                            property: propertyName,
-                            exists: true,
-                            value: this.value
-                        }
-                    });
+                input.addEventListener('change', function() {
+                    const propertyName = this.name;
+                    const checkbox = this.parentElement.querySelector('.setting-checkbox[data-prop="' + propertyName + '"]');
+                    
+                    if (checkbox && checkbox.checked) {
+                        // Send message to update the model
+                        vscode.postMessage({
+                            command: 'updateSettings',
+                            data: {
+                                property: propertyName,
+                                exists: true,
+                                value: this.value
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        
+        // Initialize styling for readonly/disabled inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('[id^="setting-"]').forEach(input => {
+                const isReadOnly = input.readOnly || input.disabled;
+                if (isReadOnly) {
+                    input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                    input.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                    input.style.opacity = '0.8';
+                } else {
+                    input.style.backgroundColor = 'var(--vscode-input-background)';
+                    input.style.color = 'var(--vscode-input-foreground)';
+                    input.style.opacity = '1';
                 }
             });
         });
