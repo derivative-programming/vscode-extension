@@ -6,14 +6,14 @@
 (function () {
     // Get VS Code API
     const vscode = acquireVsCodeApi();
-    
-    // State management
+      // State management
     let fabricationData = [];
     let pageNumber = 1;
     let itemCountPerPage = 10;
     let orderByColumn = "ModelFabricationRequestRequestedUTCDateTime";
     let orderByDescending = true;
     let totalRecords = 0;
+    let currentRequestData = null; // Store current request data for modal operations
     const columns = [
         { key: "modelFabricationRequestRequestedUTCDateTime", label: "Requested At" },
         { key: "modelFabricationRequestDescription", label: "Description" },
@@ -396,6 +396,58 @@
             const downloadModal = document.getElementById('download-modal');
             if (downloadModal && downloadModal.style.display === 'block') {
                 updateExtractionProgressInModal(message.extracted, message.total, message.percent);
+            }
+        } else if (message.command === "modelFabricationReportExistsResult") {
+            console.log("[Webview] Report exists locally:", message.exists, "for request code:", message.requestCode);
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button:not(#downloadResultsButton)");
+            if (reportButton) {
+                reportButton.disabled = false;
+                // Update button text and action based on whether report exists locally
+                if (message.exists) {
+                    reportButton.textContent = 'View Report';
+                    reportButton.onclick = function() {
+                        vscode.postMessage({
+                            command: 'modelFabricationViewReport',
+                            requestCode: currentRequestData.modelFabricationRequestCode
+                        });
+                    };
+                } else {
+                    reportButton.textContent = 'Download Report';
+                    reportButton.onclick = function() {
+                        downloadErrorReport(currentRequestData.modelFabricationRequestCode);
+                    };
+                }
+            }
+        } else if (message.command === "modelFabricationReportDownloadStarted") {
+            console.log("[Webview] Report download started");
+            // Update the download button to show progress
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button:not(#downloadResultsButton)");
+            if (reportButton) {
+                reportButton.disabled = true;
+                reportButton.innerHTML = '<span class="spinner"></span> Downloading...';
+            }
+        } else if (message.command === "modelFabricationReportDownloadSuccess") {
+            console.log("[Webview] Report downloaded successfully");
+            // Update the download button to show success
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button:not(#downloadResultsButton)");
+            if (reportButton) {
+                reportButton.disabled = false;
+                reportButton.textContent = 'View Report';
+                // Change the button action to view the report instead of downloading it
+                reportButton.onclick = function() {
+                    vscode.postMessage({
+                        command: 'modelFabricationViewReport',
+                        requestCode: currentRequestData.modelFabricationRequestCode
+                    });
+                };
+            }
+        } else if (message.command === "modelFabricationReportDownloadError") {
+            console.log("[Webview] Report download error:", message.error);
+            // Update the download button to allow retry
+            const reportButton = document.querySelector("#detailsModal .action-container .download-button:not(#downloadResultsButton)");
+            if (reportButton) {
+                reportButton.disabled = false;
+                reportButton.textContent = 'Download Report';
             }
         }
     });
@@ -876,7 +928,7 @@
                 requestPage(1);
             };
             if (orderByColumn === col.key) {
-                th.textContent += orderByDescending ? " ▼" : " ▲";
+                th.textContent += " ▼";
             }
             headerRow.appendChild(th);
         });
@@ -1084,12 +1136,14 @@
     /**
      * Shows the details modal with the fabrication request data
      * @param {Object} data The fabrication request details
-     */
-    function showDetailsModal(data) {
+     */    function showDetailsModal(data) {
         if (!data) {
             console.error("[Webview] No data provided for details modal");
             return;
         }
+
+        // Store current request data for modal operations
+        currentRequestData = data;
 
         const detailsContent = document.getElementById("detailsContent");
         detailsContent.innerHTML = "";
@@ -1173,8 +1227,7 @@
             
             // Declare downloadButton outside the if block to make it available in the entire function scope
             let downloadButton = null;
-            
-            // Add download results button if request was successful
+              // Add download results button if request was successful
             if (data.modelFabricationRequestIsSuccessful && data.modelFabricationRequestResultUrl) {
                 downloadButton = document.createElement("button");
                 downloadButton.className = "download-button";
@@ -1196,6 +1249,22 @@
                     });
                 };
                 actionDiv.appendChild(downloadButton);
+            }
+            
+            // Add report download button if request failed and report URL is available
+            if (!data.modelFabricationRequestIsSuccessful && data.modelFabricationRequestReportUrl) {
+                // Add a placeholder button that will be updated after checking if the file exists
+                const reportButton = document.createElement("button");
+                reportButton.className = "download-button";
+                reportButton.textContent = "Checking...";
+                reportButton.disabled = true;
+                actionDiv.appendChild(reportButton);
+                
+                // Check if the report file already exists locally
+                vscode.postMessage({
+                    command: "modelFabricationCheckReportExists",
+                    requestCode: data.modelFabricationRequestCode
+                });
             }
               // Add close button to action container - inserting before the download button to ensure it appears on the right
             const closeButton = document.createElement("button");
@@ -1377,6 +1446,18 @@
         if (progressContainer) {
             progressContainer.className = "progress-container";
         }
+    }
+
+    /**
+     * Downloads the fabrication error report.
+     * @param {string} requestCode - The fabrication request code.
+     */
+    function downloadErrorReport(requestCode) {
+        vscode.postMessage({
+            command: 'modelFabricationDownloadReport',
+            requestCode: requestCode,
+            url: currentRequestData.modelFabricationRequestReportUrl
+        });
     }
 
     function requestPage(page) {

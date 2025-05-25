@@ -703,3 +703,34 @@ This pattern of presenting a workflow guide helps users understand the proper se
   - Includes progress bars with percentage indicators
   - Can display additional context like file counts for extraction operations
   - Maintains user context by keeping the operation visible until completion
+
+### Error Report Download Pattern
+
+#### Implementation Pattern for Report Downloads
+The extension uses a consistent pattern for downloading and viewing error reports across different request types (AI Processing, Validation, Fabrication):
+
+1. **Check Report Exists**: Before showing download/view button, check if report file exists locally
+   - Command: `{type}CheckReportExists` - Checks `.app_dna_{type}_reports/{filename}` directory
+   - Response: `{type}ReportExistsResult` with exists flag and requestCode
+
+2. **Download Report**: Downloads report from API and saves locally
+   - Command: `{type}DownloadReport` - Takes URL and requestCode parameters
+   - Uses AuthService.getApiKey() for authentication
+   - Saves to `.app_dna_{type}_reports/` directory with consistent naming
+   - Response: `{type}ReportDownloadStarted`, `{type}ReportDownloadSuccess`, or `{type}ReportDownloadError`
+
+3. **View Report**: Opens existing local report file in VS Code editor
+   - Command: `{type}ViewReport` - Takes requestCode parameter
+   - Opens file in new editor tab using vscode.window.showTextDocument()
+   - Response: `reportOpened` or `reportOpenError`
+
+#### Directory Structure for Reports
+- AI Processing: `.app_dna_ai_processing_reports/{requestCode}.txt`
+- Validation: `.app_dna_validation_reports/validation_report_{requestCode}.txt`
+- Fabrication: `.app_dna_fabrication_reports/fabrication_report_{requestCode}.txt`
+
+#### Webview Button Logic
+- Button shows "View Report" if file exists locally, "Download Report" if not
+- Button is disabled during download with progress indication
+- After successful download, button switches to "View Report" mode
+- Only shown when request failed AND has a report URL available

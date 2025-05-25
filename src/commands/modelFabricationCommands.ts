@@ -521,8 +521,7 @@ export function registerModelFabricationCommands(
                         console.error("[Extension] Failed to cancel fabrication request:", error);
                         vscode.window.showErrorMessage(`Failed to cancel request: ${error.message}`);
                         panel.webview.postMessage({ command: "ModelFabricationRequestFailed" });
-                    }
-                } else if (msg.command === 'ModelFabricationShowDetails') {
+                    }                } else if (msg.command === 'ModelFabricationShowDetails') {
                     console.log("[Extension] Handling ModelFabricationShowDetails for item:", msg.item);
                     if (!msg.item) {
                         vscode.window.showErrorMessage('Missing item data for details.');
@@ -530,8 +529,142 @@ export function registerModelFabricationCommands(
                     }
                     // Implement detailed view for the fabrication item if needed
                     vscode.window.showInformationMessage(`Viewing detailed information for fabrication request`);
+                } else if (msg.command === 'modelFabricationCheckReportExists') {
+                    console.log("[Extension] Checking if fabrication report exists locally for request code:", msg.requestCode);
+                    try {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        if (!workspaceFolders) {
+                            throw new Error('No workspace folder is open');
+                        }
+
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const fabricationDirPath = path.join(workspaceRoot, '.app_dna_fabrication_reports');
+                        const filePath = path.join(fabricationDirPath, `fabrication_report_${msg.requestCode}.txt`);
+                        
+                        const exists = fs.existsSync(filePath);
+                        console.log("[Extension] Fabrication report file status:", exists ? "Exists" : "Does not exist", "at path:", filePath);
+
+                        panel.webview.postMessage({
+                            command: 'modelFabricationReportExistsResult', 
+                            exists: exists,
+                            requestCode: msg.requestCode
+                        });
+                    } catch (error) {
+                        console.error("[Extension] Error checking if fabrication report exists:", error);
+                        panel.webview.postMessage({
+                            command: 'modelFabricationReportExistsResult', 
+                            exists: false,
+                            requestCode: msg.requestCode
+                        });
+                    }
+                } else if (msg.command === 'modelFabricationDownloadReport') {
+                    console.log("[Extension] Received download fabrication report request for URL:", msg.url);
+                    await downloadFabricationReport(panel, msg.url, msg.requestCode);
+                } else if (msg.command === 'modelFabricationViewReport') {
+                    console.log("[Extension] Opening existing fabrication report for request code:", msg.requestCode);
+                    await openFabricationReport(panel, msg.requestCode);
                 }
-            });
-        })
+            });        })
     );
+}
+
+/**
+ * Downloads a fabrication report from the API and saves it to a local file.
+ * @param panel The webview panel.
+ * @param url The URL of the report to download.
+ * @param requestCode The fabrication request code for naming the file.
+ */
+async function downloadFabricationReport(panel: vscode.WebviewPanel, url: string, requestCode: string) {
+    const authService = AuthService.getInstance();
+    const apiKey = await authService.getApiKey();
+
+    if (!apiKey) {
+        vscode.window.showErrorMessage('You must be logged in to download fabrication reports.');
+        panel.webview.postMessage({ command: 'modelFabricationReportDownloadError', error: 'Authentication required.' });
+        return;
+    }
+
+    if (!url) {
+        vscode.window.showErrorMessage('No report URL available for this fabrication request.');
+        panel.webview.postMessage({ command: 'modelFabricationReportDownloadError', error: 'No report URL available.' });
+        return;
+    }
+
+    // Notify the webview that download has started
+    panel.webview.postMessage({ command: 'modelFabricationReportDownloadStarted' });
+
+    try {
+        // Download the report content
+        console.log("[Extension] Downloading fabrication report from URL:", url);
+        const response = await fetch(url, {
+            headers: { 'Api-Key': apiKey }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API responded with status ${response.status}`);
+        }
+
+        // Get the report content as text
+        const reportContent = await response.text();
+
+        // Create fabrication reports directory if it doesn't exist
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const fabricationDirPath = path.join(workspaceRoot, '.app_dna_fabrication_reports');
+        
+        if (!fs.existsSync(fabricationDirPath)) {
+            fs.mkdirSync(fabricationDirPath, { recursive: true });
+        }
+
+        // Save the report content to a file
+        const filePath = path.join(fabricationDirPath, `fabrication_report_${requestCode}.txt`);
+        fs.writeFileSync(filePath, reportContent);        // Don't open the file automatically - let the user hit 'View Report' to open it
+        console.log("[Extension] Fabrication report downloaded and saved to:", filePath);
+        panel.webview.postMessage({ command: 'modelFabricationReportDownloadSuccess' });
+        vscode.window.showInformationMessage(`Fabrication report downloaded and saved to: ${filePath}`);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to download fabrication report:", error);
+        panel.webview.postMessage({ command: 'modelFabricationReportDownloadError', error: error.message });
+        vscode.window.showErrorMessage(`Failed to download fabrication report: ${error.message}`);
+    }
+}
+
+/**
+ * Opens an existing fabrication report file in the editor.
+ * @param panel The webview panel.
+ * @param requestCode The fabrication request code.
+ */
+async function openFabricationReport(panel: vscode.WebviewPanel, requestCode: string) {
+    try {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            throw new Error('No workspace folder is open');
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        const fabricationDirPath = path.join(workspaceRoot, '.app_dna_fabrication_reports');
+        const filePath = path.join(fabricationDirPath, `fabrication_report_${requestCode}.txt`);
+        
+        // Check if file exists before trying to open it
+        if (!fs.existsSync(filePath)) {
+            throw new Error('Fabrication report file does not exist');
+        }
+
+        // Open the file in a new editor tab
+        const fileUri = vscode.Uri.file(filePath);
+        const document = await vscode.workspace.openTextDocument(fileUri);
+        await vscode.window.showTextDocument(document, { viewColumn: vscode.ViewColumn.One });
+          panel.webview.postMessage({ command: 'reportOpened' });
+        console.log("[Extension] Fabrication report opened successfully:", filePath);
+        
+    } catch (error) {
+        console.error("[Extension] Failed to open fabrication report:", error);
+        panel.webview.postMessage({ command: 'reportOpenError', error: error.message });
+        vscode.window.showErrorMessage(`Failed to open fabrication report: ${error.message}`);
+    }
 }

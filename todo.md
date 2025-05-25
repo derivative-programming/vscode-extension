@@ -1,12 +1,11 @@
 Agent todo items...
     
 
-fabrication request list...
+fabrication request details modal...
 - allow download of report on fabrication error. use modelFabricationRequestReportUrl
 
-model feature catalog view...]
+model feature catalog view...
 - add intro text to the top of the page under title
-- use similar paging controls and page range display as the model validation request list.
 
 model validation request list...
 - add intro text to the top of the page under title 
@@ -15,12 +14,10 @@ model change request list...
 - fix display of intro text.    
  
 fabrication blueprint catalog view...
-- intro text should be under the title ✅ COMPLETED
-- use similar paging controls and page range display as the model validation request list. ✅ COMPLETED
+- intro text should be under the title 
  
   
 - model service request lists (validation, ai processing, fabrication)
-    - page size dropdown
     - if one is processing or queued on the page, auto refresh every minute.
 
 
@@ -104,8 +101,6 @@ save button... keyboard shortcut of 'ctrl-a S'.  adding db object is ctrl-a O
 
 Model Feature catalog....
 
-remove paging
-
 add a filter textbox
 
 allow sort on selected checkbox column
@@ -114,7 +109,6 @@ allow sort on selected checkbox column
 
 fabrication blueprint catalog....
 
-remove paging
 
 add a filter textbox
 
