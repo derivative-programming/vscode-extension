@@ -6,14 +6,17 @@
 (function () {
     // Get VS Code API
     const vscode = acquireVsCodeApi();
-    
-    // State management
+      // State management
     let validationData = [];
     let pageNumber = 1;
     let itemCountPerPage = 10;
     let orderByColumn = "ModelValidationRequestRequestedUTCDateTime";
     let orderByDescending = true;
     let totalRecords = 0;
+    // Timer for auto-refresh functionality when processing/queued items exist
+    let autoRefreshTimer = null;
+    // Time interval for auto-refresh (1 minute in milliseconds)
+    const AUTO_REFRESH_INTERVAL = 60000; // 1 minute in milliseconds
     const columns = [
         { key: "modelValidationRequestRequestedUTCDateTime", label: "Requested At" },
         { key: "modelValidationRequestDescription", label: "Description" },
@@ -29,10 +32,17 @@
     function hideSpinner() { 
         console.log("[Webview] hideSpinner called");
         document.getElementById("spinnerOverlay").style.display = "none"; 
-    }
-
-    // Set up the UI
+    }    // Set up the UI
     initializeUI();
+
+    // Clean up resources when page is unloaded
+    // This ensures we don't leave timers running if the view is closed
+    window.addEventListener("unload", function() {
+        if (autoRefreshTimer) {
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = null;
+        }
+    });
 
     // Event listeners
     window.addEventListener("message", function(event) {
@@ -45,20 +55,21 @@
             itemCountPerPage = message.data.itemCountPerPage || 10;
             orderByColumn = message.data.orderByColumnName || orderByColumn;
             orderByDescending = message.data.orderByDescending || false;
-            totalRecords = message.data.recordsTotal || 0;
-            renderTable();
+            totalRecords = message.data.recordsTotal || 0;            renderTable();
             renderPaging();
             // Hide spinner when data is set
             hideSpinner();
+            // Check if we should set up auto-refresh based on current processing/queued items
+            checkAndSetAutoRefresh();
         } else if (message.command === "modelValidationRequestReceived" || message.command === "modelValidationRequestFailed") {
             console.log("[Webview] Handling", message.command);
             // Hide spinner when validation request is received or failed
             hideSpinner();
         } else if (message.command === "modelValidationRequestCancelled") {
-            console.log("[Webview] Request cancelled successfully, refreshing data");
-            hideSpinner();
+            console.log("[Webview] Request cancelled successfully, refreshing data");            hideSpinner();
             // Refresh the current page after a successful cancel
             requestPage(pageNumber);
+            // After page refresh, checkAndSetAutoRefresh will be called
         } else if (message.command === "modelValidationSetValidationDetails") {
             console.log("[Webview] Received validation details data");
             renderDetailsInModal(message.data);
@@ -189,13 +200,12 @@
                     font-size: 1.3em;
                     font-weight: normal;
                     color: var(--vscode-editor-foreground);
-                }
-
-                /* Added toolbar styles for refresh button */
+                }                /* Added toolbar styles for refresh button */
                 .toolbar {
                     display: flex;
                     justify-content: flex-end;
                     margin-bottom: 10px;
+                    align-items: center;
                 }
                 .refresh-button {
                     background-color: var(--vscode-button-background);
@@ -212,6 +222,9 @@
                 }
                 .add-button {
                     margin-right: 8px;
+                }
+                #autoRefreshIndicator {
+                    margin-right: auto;
                 }
                 /* Modal styles */
                 .modal {
@@ -432,10 +445,15 @@
                     width: 30px;
                     height: 30px;
                     animation: spin 1s linear infinite;
-                }
-                @keyframes spin {
+                }                @keyframes spin {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
+                }
+                
+                #autoRefreshIndicator .fa-sync-alt {
+                    animation: spin 4s linear infinite;
+                    display: inline-block;
+                    margin-right: 5px;
                 }
                 
                 /* Details Modal Specific Styles */                .details-modal-content {
@@ -585,11 +603,12 @@
         
         // Show spinner when initially loading the view
         showSpinner();
-        
-        // Attach refresh button handler
+          // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
+            // Show spinner while refreshing data
             showSpinner(); // Show spinner when refresh button is clicked
             requestPage(pageNumber);
+            // Auto-refresh will be checked after data is loaded
         };
         // Attach add button handler
         document.getElementById("addButton").onclick = function() {
@@ -1036,9 +1055,7 @@
             requestCode: requestCode,
             url: currentRequestData.modelValidationRequestReportUrl
         });
-    }
-
-    /**
+    }    /**
      * Opens change requests for the specified validation request.
      * @param {string} requestCode - The validation request code.
      */
@@ -1047,5 +1064,87 @@
             command: 'modelValidationViewChangeRequests',
             requestCode: requestCode
         });
+    }
+
+    /**
+     * Checks if there are any processing or queued items and sets up auto-refresh accordingly.
+     * This function examines the current data to determine if auto-refresh should be active.
+     * If any items are in a processing or queued state, it will:
+     *   1. Set up an interval to automatically refresh the page every minute
+     *   2. Display a visual indicator showing that auto-refresh is active
+     * If no items are processing/queued, it will clear any existing auto-refresh timer.
+     */
+    function checkAndSetAutoRefresh() {
+        console.log("[Webview] Checking if auto-refresh should be active...");
+        
+        // Clear any existing timer
+        if (autoRefreshTimer) {
+            console.log("[Webview] Clearing existing auto-refresh timer");
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = null;
+        }
+        
+        // Check if there are any processing or queued items
+        let hasProcessingOrQueuedItems = validationData.some(isProcessingOrQueued);
+        
+        // Update auto-refresh indicator
+        updateAutoRefreshIndicator(hasProcessingOrQueuedItems);
+        
+        // If we have processing/queued items, set up auto-refresh timer
+        if (hasProcessingOrQueuedItems) {
+            console.log("[Webview] Processing or queued items found, setting up auto-refresh timer");
+            autoRefreshTimer = setInterval(() => {
+                console.log("[Webview] Auto-refreshing page due to processing/queued items");
+                requestPage(pageNumber);
+            }, AUTO_REFRESH_INTERVAL);
+        }
+    }
+    
+    /**
+     * Determines if an item is in a processing or queued state.
+     * @param {Object} item - The validation request item to check.
+     * @returns {boolean} True if the item is processing or queued, false otherwise.
+     */
+    function isProcessingOrQueued(item) {
+        // Item is queued if not started and not canceled
+        const isQueued = !item.modelValidationRequestIsStarted && !item.modelValidationRequestIsCanceled;
+        // Item is processing if started but not completed and not canceled
+        const isProcessing = item.modelValidationRequestIsStarted && !item.modelValidationRequestIsCompleted && !item.modelValidationRequestIsCanceled;
+        return isQueued || isProcessing;
+    }
+
+    /**
+     * Updates the auto-refresh indicator in the UI.
+     * Creates or updates a visual indicator to show users when auto-refresh is active,
+     * which helps them understand that the page is automatically updating.
+     * The indicator includes an animated spinning icon when active.
+     * 
+     * @param {boolean} isActive - Whether auto-refresh is active.
+     */
+    function updateAutoRefreshIndicator(isActive) {
+        // Find or create the indicator element
+        let indicator = document.getElementById("autoRefreshIndicator");
+        
+        if (!indicator) {
+            indicator = document.createElement("div");
+            indicator.id = "autoRefreshIndicator";
+            indicator.style.fontSize = "0.8em";
+            indicator.style.color = "var(--vscode-descriptionForeground)";
+            indicator.style.marginRight = "10px";
+            
+            // Insert before the refresh button
+            const toolbar = document.querySelector(".toolbar");
+            if (toolbar) {
+                toolbar.insertBefore(indicator, toolbar.firstChild);
+            }
+        }
+        
+        // Update indicator text based on active state
+        if (isActive) {
+            indicator.innerHTML = "<i class='fa fa-sync-alt'></i> Auto-refreshing every minute";
+            indicator.style.display = "block";
+        } else {
+            indicator.style.display = "none";
+        }
     }
 })();
