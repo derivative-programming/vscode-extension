@@ -350,8 +350,21 @@ function getWebviewContent(panel, context, model, schema) {
                 background-color: var(--vscode-editor-background);
             }
             h2 {
-                border-bottom: 1px solid var(--vscode-panel-border);
-                padding-bottom: 8px;
+                margin: 0 0 8px 0;
+                padding-bottom: 0;
+            }
+            .header-container {
+                margin-bottom: 20px;
+            }
+            .subtitle {
+                margin: 0 0 10px 0;
+                color: var(--vscode-descriptionForeground);
+            }
+            hr {
+                border: 0;
+                height: 1px;
+                background-color: var(--vscode-panel-border);
+                margin: 0 0 20px 0;
             }
             .settings-section {
                 margin-bottom: 20px;
@@ -398,8 +411,11 @@ function getWebviewContent(panel, context, model, schema) {
         </style>
     </head>
     <body>
-        <h2>Project Settings</h2>
-        <p>Manage root-level project settings and namespace configuration.</p>
+        <div class="header-container">
+            <h2>Project Settings</h2>
+            <p class="subtitle">Manage root-level project settings and namespace configuration.</p>
+            <hr>
+        </div>
 
         <div class="settings-section">
             <div id="rootSettings">

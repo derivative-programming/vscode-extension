@@ -526,9 +526,25 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
         }
         
         h1 {
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             font-weight: 500;
             color: var(--vscode-editor-foreground);
+        }
+        
+        .header-container {
+            margin-bottom: 20px;
+        }
+        
+        .subtitle {
+            margin: 0 0 10px 0;
+            color: var(--vscode-descriptionForeground);
+        }
+        
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: var(--vscode-panel-border);
+            margin: 0 0 20px 0;
         }
         
         .container {
@@ -713,7 +729,11 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
     </style>
 </head>
 <body>
-    <h1>User Stories</h1>
+    <div class="header-container">
+        <h1>User Stories</h1>
+        <p class="subtitle">Create and manage user stories that describe features and requirements.</p>
+        <hr>
+    </div>
     
     ${errorMessage ? '<div class="error-message">' + errorMessage + '</div>' : ''}
     <div id="messageContainer"></div>
