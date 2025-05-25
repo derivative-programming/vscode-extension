@@ -33,8 +33,37 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             });
         });
         
+        // Helper function to update input styles based on checkbox state
+        function updateInputStyle(inputElement, isChecked) {
+            if (!isChecked) {
+                inputElement.style.backgroundColor = "var(--vscode-input-disabledBackground, #e9e9e9)";
+                inputElement.style.color = "var(--vscode-input-disabledForeground, #999)";
+                inputElement.style.opacity = "0.8";
+            } else {
+                inputElement.style.backgroundColor = "var(--vscode-input-background)";
+                inputElement.style.color = "var(--vscode-input-foreground)";
+                inputElement.style.opacity = "1";
+            }
+        }
+        
         // Settings tab functionality
         document.querySelectorAll('.setting-checkbox').forEach(checkbox => {
+            const propertyName = checkbox.getAttribute('data-prop');
+            const isEnum = checkbox.getAttribute('data-is-enum') === 'true';
+            const inputField = document.getElementById('setting-' + propertyName);
+            
+            // Set initial state of the input field
+            if (inputField) {
+                if (isEnum) {
+                    inputField.disabled = !checkbox.checked;
+                } else {
+                    inputField.readOnly = !checkbox.checked;
+                }
+                
+                // Set initial styling based on checkbox state
+                updateInputStyle(inputField, checkbox.checked);
+            }
+            
             checkbox.addEventListener('change', function() {
                 const propertyName = this.getAttribute('data-prop');
                 const isEnum = this.getAttribute('data-is-enum') === 'true';
@@ -53,9 +82,19 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     } else {
                         inputField.readOnly = false;
                     }
-                    inputField.style.backgroundColor = 'var(--vscode-input-background)';
-                    inputField.style.color = 'var(--vscode-input-foreground)';
-                    inputField.style.opacity = '1';
+                    updateInputStyle(inputField, true);
+                    
+                    // Disable the checkbox to prevent unchecking
+                    this.disabled = true;
+                    this.setAttribute('data-originally-checked', 'true');
+                    
+                    // If the checkbox is checked, ensure we have a valid value for select elements
+                    if (isEnum && (!inputField.value || inputField.value === '')) {
+                        // For select elements with no value, select the first option
+                        if (inputField.options.length > 0) {
+                            inputField.value = inputField.options[0].value;
+                        }
+                    }
                 } else {
                     // Disable the input field
                     if (isEnum) {
@@ -63,9 +102,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     } else {
                         inputField.readOnly = true;
                     }
-                    inputField.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
-                    inputField.style.color = 'var(--vscode-input-disabledForeground, #999)';
-                    inputField.style.opacity = '0.8';
+                    updateInputStyle(inputField, false);
                 }
                 
                 // Send message to update the model
@@ -142,15 +179,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('[id^="setting-"]').forEach(input => {
                 const isReadOnly = input.readOnly || input.disabled;
-                if (isReadOnly) {
-                    input.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
-                    input.style.color = 'var(--vscode-input-disabledForeground, #999)';
-                    input.style.opacity = '0.8';
-                } else {
-                    input.style.backgroundColor = 'var(--vscode-input-background)';
-                    input.style.color = 'var(--vscode-input-foreground)';
-                    input.style.opacity = '1';
-                }
+                updateInputStyle(input, !isReadOnly);
             });
         });
         
