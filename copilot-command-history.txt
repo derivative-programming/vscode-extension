@@ -12,6 +12,21 @@ Command: Implement auto-refresh functionality for Model Validation request view
 - Finding: Auto-refresh functionality is already fully implemented in the Model Validation view
 - Status: No changes needed - the feature is already complete and working
 
+Command: Implement auto-refresh functionality for Model Fabrication request view  
+- Task: Add auto-refresh functionality similar to Model AI Processing and Model Validation views that activates when there are processing or queued requests, refreshes every minute, and displays "Auto-refreshing every minute" text with spinning icon
+- Investigation: Analyzed existing Model Fabrication view code in modelFabricationView.js
+- Finding: Auto-refresh functionality was NOT implemented in the Model Fabrication view
+- Implementation: Added complete auto-refresh functionality including:
+  * Added autoRefreshTimer variable and AUTO_REFRESH_INTERVAL constant (60000ms)
+  * Added checkAndSetAutoRefresh() function to manage timer setup/clearing
+  * Added isProcessingOrQueued() function to detect "Queued" and "Processing" states
+  * Added updateAutoRefreshIndicator() function for UI indicator with spinning icon
+  * Added CSS animations for spinning sync icon (#autoRefreshIndicator .fa-sync-alt)
+  * Added auto-refresh activation after data loads via checkAndSetAutoRefresh() call
+  * Added proper cleanup on window unload
+  * Added auto-refresh indicator container styling
+- Status: Complete - Model Fabrication view now has full auto-refresh functionality matching other views
+
 Command: Expand all top level tree items in the AppDNA tree view
 
 Command: Fix syntax errors in registerCommands.ts

@@ -1,9 +1,6 @@
 Agent todo items...
     
-
-fabrication request details modal...
-- allow download of report on fabrication error. use modelFabricationRequestReportUrl
-
+ 
 model feature catalog view...
 - add intro text to the top of the page under title
 
@@ -16,11 +13,7 @@ model change request list...
 fabrication blueprint catalog view...
 - intro text should be under the title 
  
-  
-- model service request lists (validation, ai processing, fabrication)
-    - if one is processing or queued on the page, auto refresh every minute.
-
-
+   
 model validation rejection validaiton using an alert instead of validaiton error text... Please provide a reason for rejection.
      
 

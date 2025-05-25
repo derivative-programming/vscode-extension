@@ -14,6 +14,10 @@
     let orderByDescending = true;
     let totalRecords = 0;
     let currentRequestData = null; // Store current request data for modal operations
+    // Timer for auto-refresh functionality when processing/queued items exist
+    let autoRefreshTimer = null;
+    // Time interval for auto-refresh (1 minute in milliseconds)
+    const AUTO_REFRESH_INTERVAL = 60000; // 1 minute in milliseconds
     const columns = [
         { key: "modelFabricationRequestRequestedUTCDateTime", label: "Requested At" },
         { key: "modelFabricationRequestDescription", label: "Description" },
@@ -277,10 +281,17 @@
             dlButton.disabled = false;
             dlButton.textContent = 'Retry Download';
         }
-    }
-
-    // Set up the UI
+    }    // Set up the UI
     initializeUI();
+
+    // Clean up resources when page is unloaded
+    // This ensures we don't leave timers running if the view is closed
+    window.addEventListener("unload", function() {
+        if (autoRefreshTimer) {
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = null;
+        }
+    });
 
     // Event listeners
     window.addEventListener("message", function(event) {
@@ -304,20 +315,21 @@
                     console.log("[Webview] Total records is also 0, likely no requests exist yet");
                 }
             }
-            
-            renderTable();
+              renderTable();
             renderPaging();
             // Hide spinner when data is set
             hideSpinner();
+            // Check if we should set up auto-refresh based on current processing/queued items
+            checkAndSetAutoRefresh();
         } else if (message.command === "ModelFabricationRequestReceived" || message.command === "ModelFabricationRequestFailed") {
             console.log("[Webview] Handling", message.command);
             // Hide spinner when fabrication request is received or failed
-            hideSpinner();
-        } else if (message.command === "ModelFabricationRequestCancelled") {
+            hideSpinner();        } else if (message.command === "ModelFabricationRequestCancelled") {
             console.log("[Webview] Request cancelled successfully, refreshing data");
             hideSpinner();
             // Refresh the current page after a successful cancel
             requestPage(pageNumber);
+            // After page refresh, checkAndSetAutoRefresh will be called
         } else if (message.command === "ModelFabricationRequestDetailsData") {
             // Handle receiving details for displaying in modal
             console.log("[Webview] Received details for modal:", message.data);
@@ -511,9 +523,11 @@
                 }
                 .refresh-button:hover {
                     background-color: var(--vscode-button-hoverBackground);
-                }
-                .add-button {
+                }                .add-button {
                     margin-right: 8px;
+                }
+                #autoRefreshIndicator {
+                    margin-right: auto;
                 }
                 /* Modal styles */
                 .modal {
@@ -739,10 +753,15 @@
                     width: 30px;
                     height: 30px;
                     animation: spin 1s linear infinite;
-                }
-                @keyframes spin {
+                }                @keyframes spin {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
+                }
+                
+                #autoRefreshIndicator .fa-sync-alt {
+                    animation: spin 4s linear infinite;
+                    display: inline-block;
+                    margin-right: 5px;
                 }
                 
                 /* Styles for details modal content */
@@ -1458,9 +1477,7 @@
             requestCode: requestCode,
             url: currentRequestData.modelFabricationRequestReportUrl
         });
-    }
-
-    function requestPage(page) {
+    }    function requestPage(page) {
         vscode.postMessage({
             command: "ModelFabricationRequestPage",
             pageNumber: page,
@@ -1468,5 +1485,99 @@
             orderByColumnName: orderByColumn,
             orderByDescending: orderByDescending
         });
+    }
+
+    /**
+     * Checks if there are any processing or queued items and sets up auto-refresh accordingly.
+     * This function examines the current data to determine if auto-refresh should be active.
+     * If any items are in a processing or queued state, it will:
+     *   1. Set up an interval to automatically refresh the page every minute
+     *   2. Display a visual indicator showing that auto-refresh is active
+     * If no items are processing/queued, it will clear any existing auto-refresh timer.
+     */
+    function checkAndSetAutoRefresh() {
+        console.log("[Webview] Checking if auto-refresh should be active...");
+        
+        // Clear any existing timer
+        if (autoRefreshTimer) {
+            console.log("[Webview] Clearing existing auto-refresh timer");
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = null;
+        }
+        
+        // Check if there are any processing or queued items
+        let hasProcessingOrQueuedItems = fabricationData.some(isProcessingOrQueued);
+        
+        // Update auto-refresh indicator
+        updateAutoRefreshIndicator(hasProcessingOrQueuedItems);
+        
+        // If we have processing/queued items, set up auto-refresh timer
+        if (hasProcessingOrQueuedItems) {
+            console.log("[Webview] Processing or queued items found, setting up auto-refresh timer");
+            autoRefreshTimer = setInterval(() => {
+                console.log("[Webview] Auto-refreshing page due to processing/queued items");
+                requestPage(pageNumber);
+            }, AUTO_REFRESH_INTERVAL);
+        }
+    }
+    
+    /**
+     * Determines if an item is in a processing or queued state.
+     * @param {Object} item - The fabrication request item to check.
+     * @returns {boolean} True if the item is processing or queued, false otherwise.
+     */
+    function isProcessingOrQueued(item) {
+        // Check if the item is cancelled first - cancelled items should not trigger auto-refresh
+        if (item.modelFabricationRequestIsCanceled) {
+            return false;
+        }
+        
+        // Check if queued (not started yet)
+        if (!item.modelFabricationRequestIsStarted) {
+            return true;
+        }
+        
+        // Check if processing (started but not completed)
+        if (item.modelFabricationRequestIsStarted && !item.modelFabricationRequestIsCompleted) {
+            return true;
+        }
+        
+        // All other states (completed successful, completed with error) don't need auto-refresh
+        return false;
+    }
+
+    /**
+     * Updates the auto-refresh indicator in the UI.
+     * Creates or updates a visual indicator to show users when auto-refresh is active,
+     * which helps them understand that the page is automatically updating.
+     * The indicator includes an animated spinning icon when active.
+     * 
+     * @param {boolean} isActive - Whether auto-refresh is active.
+     */
+    function updateAutoRefreshIndicator(isActive) {
+        // Find or create the indicator element
+        let indicator = document.getElementById("autoRefreshIndicator");
+        
+        if (!indicator) {
+            indicator = document.createElement("div");
+            indicator.id = "autoRefreshIndicator";
+            indicator.style.fontSize = "0.8em";
+            indicator.style.color = "var(--vscode-descriptionForeground)";
+            indicator.style.marginRight = "10px";
+            
+            // Insert before the refresh button
+            const toolbar = document.querySelector(".toolbar");
+            if (toolbar) {
+                toolbar.insertBefore(indicator, toolbar.firstChild);
+            }
+        }
+        
+        // Update indicator text based on active state
+        if (isActive) {
+            indicator.innerHTML = "<i class='fa fa-sync-alt'></i> Auto-refreshing every minute";
+            indicator.style.display = "block";
+        } else {
+            indicator.style.display = "none";
+        }
     }
 })();
