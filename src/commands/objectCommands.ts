@@ -8,9 +8,11 @@ import { JsonTreeItem } from '../models/types';
 import { validateAgainstSchema } from '../utils/schemaValidator';
 import { generateObjectCode } from '../generators/codeGenerator';
 import { ModelService } from '../services/modelService';
+// Import the Add Object Wizard webview
+const { showAddObjectWizard } = require('../webviews/addObjectWizardView');
 
 /**
- * Command handler for adding an object to the AppDNA JSON
+ * Command handler for adding an object to the AppDNA JSON using the wizard
  * @param appDNAFilePath Path to the app-dna.json file
  * @param jsonTreeDataProvider The tree data provider
  * @param modelService Optional ModelService instance
@@ -36,105 +38,9 @@ export async function addObjectCommand(
             await modelService.loadFile(appDNAFilePath);
         }
         
-        // Get the current model
-        const model = modelService.getCurrentModel();
-        if (!model) {
-            throw new Error("Failed to get current model");
-        }
+        // Show the add object wizard
+        showAddObjectWizard(modelService);
         
-        // Prompt for new object name
-        const objectName = await vscode.window.showInputBox({
-            placeHolder: 'Enter object name',
-            prompt: 'Enter a name for the new data object',
-            validateInput: (value) => value ? null : 'Object name cannot be empty'
-        });
-        if (!objectName) { return; }
-        
-        // Ensure root exists
-        if (!model.namespace) {
-            model.namespace = [];
-        }
-        
-        // If no namespaces exist, create a default namespace
-        if (model.namespace.length === 0) {
-            model.namespace.push({ name: "Default", object: [] });
-        }
-        
-        // Ensure each namespace has an "object" array
-        model.namespace.forEach((ns: any) => {
-            if (!ns.object) {
-                ns.object = [];
-            }
-        });
-
-        // Build list of existing objects from all namespaces
-        const parentCandidates: { label: string; nsIndex: number }[] = [];
-        model.namespace.forEach((ns: any, nsIndex: number) => {
-            if (ns.object) {
-                ns.object.forEach((obj: any) => {
-                    if (obj.name) {
-                        parentCandidates.push({ label: `${obj.name} (in ${ns.name})`, nsIndex });
-                    }
-                });
-            }
-        });
-        
-        // Remove the "None" option and use parentCandidates directly
-        const parentOptions = parentCandidates;
-        const selectedParent = await vscode.window.showQuickPick<{ label: string; nsIndex: number }>(
-            parentOptions,
-            { placeHolder: 'Select a parent object' }
-        );
-        
-        let targetNsIndex: number;
-        if (selectedParent) {
-            targetNsIndex = selectedParent.nsIndex;
-        } else {
-            // No parent selected: if only one namespace exists, choose it;
-            // otherwise, prompt user to choose a namespace.
-            if (model.namespace.length === 1) {
-                targetNsIndex = 0;
-            } else {
-                const nsSelection = await vscode.window.showQuickPick<{ label: string; nsIndex: number }>(
-                    model.namespace.map((ns: any, index: number) => ({ label: ns.name || `Namespace ${index+1}`, nsIndex: index })),
-                    { placeHolder: 'Select the target namespace to add the object' }
-                );
-                targetNsIndex = nsSelection ? nsSelection.nsIndex : 0;
-            }
-        }
-        
-        // Create new object following the schema; include parentObjectName if applicable.
-        const newObject: any = { name: objectName };
-        newObject.parentObjectName = (selectedParent && selectedParent.nsIndex !== -1) ? selectedParent.label.split(' (in ')[0] : "";
-        
-        // Add default properties to the new object
-        //create prop array
-        
-        const parentObjectIDProp = {
-            name: newObject.parentObjectName + "ID",
-            sqlServerDBDataType: "int",
-            isFK: "true",
-            isNotPublishedToSubscriptions: "true",
-            isFKConstraintSuppressed: "false"
-        };
-
-        newObject.prop = [];
-        newObject.prop.push(parentObjectIDProp);
-        newObject.propSubscription = [];
-        newObject.modelPkg = [];
-        newObject.lookupItem = [];
-        
-        // Add the new object into the chosen namespace's object array
-        model.namespace[targetNsIndex].object.push(newObject);
-        
-        // Mark that there are unsaved changes
-        modelService.markUnsavedChanges();
-        
-        // dont Save the updated model
-        // await modelService.saveToFile(model);
-        
-        // vscode.window.showInformationMessage(`Added new object: ${objectName}`);
-        jsonTreeDataProvider.refresh();
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         vscode.window.showErrorMessage(`Failed to add object: ${errorMessage}`);
