@@ -67,7 +67,7 @@
         {
           "command": "appdna.addObject",
           "when": "viewItem == dataObjects",
-          "group": "inline",
+          "group": "inline@1",
           "icon": "$(add)"
         }
       ]
