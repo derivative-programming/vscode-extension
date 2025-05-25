@@ -99,6 +99,20 @@
     function openRejectModal(changeRequestCode) {
         currentChangeRequestCode = changeRequestCode;
         rejectionReasonInput.value = '';
+        
+        // Clear any previous validation errors
+        const validationErrorElement = document.getElementById('rejectionValidationError');
+        if (validationErrorElement) {
+            validationErrorElement.textContent = '';
+        } else {
+            // Create validation error element if it doesn't exist
+            const formGroup = rejectionReasonInput.closest('.form-group');
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'rejectionValidationError';
+            errorDiv.className = 'validation-error';
+            formGroup.appendChild(errorDiv);
+        }
+        
         rejectModal.style.display = 'flex';
         rejectionReasonInput.focus();
     }
@@ -109,6 +123,12 @@
     function closeRejectModal() {
         rejectModal.style.display = 'none';
         currentChangeRequestCode = '';
+        
+        // Clear validation error if any
+        const validationErrorElement = document.getElementById('rejectionValidationError');
+        if (validationErrorElement) {
+            validationErrorElement.textContent = '';
+        }
     }
 
     /**
@@ -116,14 +136,18 @@
      */
     function submitRejection() {
         const reason = rejectionReasonInput.value.trim();
+        const validationErrorElement = document.getElementById('rejectionValidationError');
         
         if (!reason) {
-            vscode.postMessage({
-                command: 'showMessage',
-                type: 'error',
-                message: 'Please provide a reason for rejection.'
-            });
+            if (validationErrorElement) {
+                validationErrorElement.textContent = 'Please provide a reason for rejection.';
+            }
             return;
+        }
+        
+        // Clear validation error if any
+        if (validationErrorElement) {
+            validationErrorElement.textContent = '';
         }
         
         showSpinner();
@@ -607,6 +631,19 @@
         const batchRejectModal = document.getElementById('batchRejectModal');
         const batchRejectionReasonInput = document.getElementById('batchRejectionReason');
         
+        // Clear any previous validation errors
+        const validationErrorElement = document.getElementById('batchRejectionValidationError');
+        if (validationErrorElement) {
+            validationErrorElement.textContent = '';
+        } else {
+            // Create validation error element if it doesn't exist
+            const formGroup = batchRejectionReasonInput.closest('.form-group');
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'batchRejectionValidationError';
+            errorDiv.className = 'validation-error';
+            formGroup.appendChild(errorDiv);
+        }
+        
         // Clear previous input and show the modal
         batchRejectionReasonInput.value = '';
         batchRejectModal.style.display = 'flex';
@@ -619,6 +656,12 @@
     function closeBatchRejectModal() {
         const batchRejectModal = document.getElementById('batchRejectModal');
         batchRejectModal.style.display = 'none';
+        
+        // Clear validation error if any
+        const validationErrorElement = document.getElementById('batchRejectionValidationError');
+        if (validationErrorElement) {
+            validationErrorElement.textContent = '';
+        }
     }
       /**
      * Submits batch rejection with reason for all selected change requests.
@@ -626,14 +669,18 @@
     function submitBatchRejection() {
         const batchRejectionReasonInput = document.getElementById('batchRejectionReason');
         const reason = batchRejectionReasonInput.value.trim();
+        const validationErrorElement = document.getElementById('batchRejectionValidationError');
         
         if (!reason) {
-            vscode.postMessage({
-                command: 'showMessage',
-                type: 'error',
-                message: 'Please provide a reason for rejection.'
-            });
+            if (validationErrorElement) {
+                validationErrorElement.textContent = 'Please provide a reason for rejection.';
+            }
             return;
+        }
+        
+        // Clear validation error if any
+        if (validationErrorElement) {
+            validationErrorElement.textContent = '';
         }
         
         const selectedCodes = getSelectedUnprocessedChangeRequestCodes();
