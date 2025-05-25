@@ -223,6 +223,7 @@
                 
                 .processing-header {
                     padding: 10px 0;
+                    border-bottom: 1px solid var(--vscode-panel-border);
                     margin-bottom: 15px;
                 }
                 
@@ -231,19 +232,6 @@
                     font-size: 1.3em;
                     font-weight: normal;
                     color: var(--vscode-editor-foreground);
-                    margin-bottom: 8px;
-                }
-                
-                .processing-header p {
-                    margin: 0 0 10px 0;
-                    color: var(--vscode-descriptionForeground);
-                }
-                
-                .processing-header hr {
-                    border: 0;
-                    height: 1px;
-                    background-color: var(--vscode-panel-border);
-                    margin: 0;
                 }
 
                 /* Added toolbar styles for refresh button */
@@ -592,8 +580,7 @@
                     <div class="spinner"></div>                </div>
                 <div class="processing-header">
                     <h2>Model AI Processing Requests</h2>
-                    <p>Submit models for AI processing to enhance and expand your model's capabilities.</p>
-                    <hr>
+                    <p style="margin-top: 5px; font-size: 0.9em; color: var(--vscode-descriptionForeground);">AI processing adds data to the model. It does not change existing data in the model.</p>
                 </div>
                 <div class="toolbar">
                     <button id="addButton" class="refresh-button add-button" title="Add Request">

@@ -423,6 +423,7 @@
                 
                 .fabrication-header {
                     padding: 10px 0;
+                    border-bottom: 1px solid var(--vscode-panel-border);
                     margin-bottom: 15px;
                 }
                   .fabrication-header h2 {
@@ -430,19 +431,6 @@
                     font-size: 1.3em;
                     font-weight: normal;
                     color: var(--vscode-editor-foreground);
-                    margin-bottom: 8px;
-                }
-                
-                .fabrication-header p {
-                    margin: 0 0 10px 0;
-                    color: var(--vscode-descriptionForeground);
-                }
-                
-                .fabrication-header hr {
-                    border: 0;
-                    height: 1px;
-                    background-color: var(--vscode-panel-border);
-                    margin: 0;
                 }
                 
                 .intro-text {
@@ -777,8 +765,7 @@
                     <div class="spinner"></div>
                 </div>            <div class="fabrication-header">
                     <h2>Model Fabrication Requests</h2>
-                    <p>Submit models for fabrication to generate code files based on your model and selected blueprint.</p>
-                    <hr>
+                    <p class="intro-text">This page displays a list of fabrication requests for generating code based on your model. You can add a new request, view details of completed requests, and download fabrication results.</p>
                 </div>
                 <div class="toolbar">
                     <button id="addButton" class="refresh-button add-button" title="Add Request">
