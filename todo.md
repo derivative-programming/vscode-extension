@@ -10,14 +10,11 @@ model validation request list...
 fabrication blueprint catalog view...
 - intro text should be under the title and above the horizontal line
    
-model validation rejection validaiton using an alert instead of validaiton error text... Please provide a reason for rejection.
      
 
-change requests... ✅
-- ✅ on approval verify the old value is still the same. if not, show as 'out of date' in status
-- ✅ implement apply. if old value does not match the current value. reject with reason 'out of date'.
-- ✅ show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
- 
+change requests... 
+- show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
+- validation error test 'Please provide a reason for rejection.' to red
  
 
 - implement 'add property' 
@@ -76,10 +73,6 @@ step 5: button 'View Fabrication Blueprint Catalog' to show view, only show if m
 step 6: button  'Request Model Fabrication' to show view, only show if model loaded
 
  
- 
- 
- 
-
-save button... keyboard shortcut of 'ctrl-a S'.  adding db object is ctrl-a O
+  
    
   

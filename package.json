@@ -155,6 +155,10 @@
       {
         "command": "appdna.addObject",
         "key": "ctrl+a o"
+      },
+      {
+        "command": "appdna.saveFile",
+        "key": "ctrl+a s"
       }
     ]
   },
