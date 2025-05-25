@@ -2,25 +2,21 @@ Agent todo items...
     
  
 model feature catalog view...
-- add intro text to the top of the page under title
+- add intro text 'Browse and select from a catalog of features to add to your model.' to the top of the page under title
 
 model validation request list...
-- add intro text to the top of the page under title 
-
-model change request list...
-- fix display of intro text.    
+- add intro text 'Submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions. Model Validation Change Requests adds and modifies the model.'  to the top of the page under title 
  
 fabrication blueprint catalog view...
-- intro text should be under the title 
- 
+- intro text should be under the title and above the horizontal line
    
 model validation rejection validaiton using an alert instead of validaiton error text... Please provide a reason for rejection.
      
 
-change requests...
-- on approval verify the old value is still the same. if not, show as 'out of date' in status
-- implement apply. if old value does not match the current value. reject with reason 'out of date'.
-- show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
+change requests... ✅
+- ✅ on approval verify the old value is still the same. if not, show as 'out of date' in status
+- ✅ implement apply. if old value does not match the current value. reject with reason 'out of date'.
+- ✅ show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
  
  
 
@@ -80,31 +76,10 @@ step 5: button 'View Fabrication Blueprint Catalog' to show view, only show if m
 step 6: button  'Request Model Fabrication' to show view, only show if model loaded
 
  
-
-
-left sidebar tree view...
  
-test: switch location of expand and collapse
-
  
  
 
 save button... keyboard shortcut of 'ctrl-a S'.  adding db object is ctrl-a O
-  
-
-Model Feature catalog....
-
-add a filter textbox
-
-allow sort on selected checkbox column
-
-
-
-fabrication blueprint catalog....
-
-
-add a filter textbox
-
-allow sort on selected checkbox column
-
+   
   

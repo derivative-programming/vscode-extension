@@ -74,8 +74,7 @@ async function loadAndSendChangeRequests(panel: vscode.WebviewPanel, requestCode
             changeRequests = [];
             console.log("[Extension] No change requests found in file");
         }
-        
-        // Ensure each change request has required properties
+          // Ensure each change request has required properties
         changeRequests = changeRequests.map((cr: any) => {
             // Ensure we have required properties
             return {
@@ -93,6 +92,10 @@ async function loadAndSendChangeRequests(panel: vscode.WebviewPanel, requestCode
         });
         
         console.log(`[Extension] Loaded ${changeRequests.length} change requests from ${changeRequestsFilePath}`);
+        
+        // Validate pending change requests to check if they are out of date
+        changeRequests = await validatePendingChangeRequests(changeRequests, requestCode);
+        
         console.log("[Extension] First change request sample:", changeRequests.length > 0 ? JSON.stringify(changeRequests[0]) : "No change requests");
         
         // Send the data to the webview
@@ -160,6 +163,10 @@ export async function showChangeRequestsListView(context: vscode.ExtensionContex
                     await handleApplyChangeRequest(panel, message.requestCode, message.changeRequestCode);
                     return;                case 'applyAllChangeRequests':
                     await handleApplyAllChangeRequests(panel, message.requestCode);
+                    return;
+                    
+                case 'validatePendingChangeRequests':
+                    await handleValidatePendingChangeRequests(panel, message.requestCode);
                     return;
                     
                 case 'showMessage':
@@ -522,14 +529,13 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
             <div class="spinner-overlay" id="spinnerOverlay">
                 <div class="spinner"></div>
             </div>
-            
-            <div class="change-requests-header">
+              <div class="change-requests-header">
                 <h1>Model Change Suggestions</h1>
-                <p>Review and manage change suggestions to update your AppDNA model.</p>
+                <p>Review and manage change suggestions to update your AppDNA model. These suggestions are automatically validated against the current model state when loaded or when you click the Validate button.</p>
+                <p style="margin-top: 8px;"><strong>Note:</strong> Pending change suggestions with old values that no longer match the current model state will be automatically marked as "out of date".</p>
                 <hr>
                 <div style="margin-top: 10px;">Validation Request: <span id="requestCodeDisplay" class="mono">${requestCode}</span></div>
-            </div>            <div class="toolbar">
-                <div class="filter-controls">
+            </div><div class="toolbar">                <div class="filter-controls">
                     <label for="statusFilter">Status:</label>
                     <select id="statusFilter">
                         <option value="all">All</option>
@@ -541,6 +547,10 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     <button id="refreshButton" class="refresh-button" title="Refresh Data">
                         <i class="codicon codicon-refresh"></i>
                         <span>Refresh</span>
+                    </button>
+                    <button id="validateButton" class="refresh-button" title="Validate pending change requests against the current model">
+                        <i class="codicon codicon-check-all"></i>
+                        <span>Validate</span>
                     </button>
                 </div>
                 <div class="action-controls">
@@ -930,27 +940,48 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
                 console.log(`[Extension] Property not found at constructed path: ${constructedPath}, will be created`);
             }
         }
-        
-        // Verify the current value matches the old value from the change request
+          // Verify the current value's status against both old and new values
         if (currentValue !== undefined && JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
-            console.error(`[Extension] Value mismatch: Current value (${JSON.stringify(currentValue)}) ` + 
-                         `doesn't match expected old value (${JSON.stringify(oldValue)})`);
-            
-            // Mark as rejected with out of date reason
-            changeRequest.IsApproved = false;
-            changeRequest.IsRejected = true;
-            changeRequest.RejectionReason = "The property value has changed since this request was created. Changes are out of date.";
-            changeRequest.IsProcessed = true; // Mark as processed since we've handled it
-            
-            // Save the updated change requests file
-            fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
-            
-            // Reload and send updated data to the webview
-            await loadAndSendChangeRequests(panel, requestCode);
-            
-            // Show a warning message
-            vscode.window.showWarningMessage(`Change request ${changeRequestCode} rejected: Current model value doesn't match the expected old value`);
-            return;
+            // Check if the current value already matches the new value
+            if (JSON.stringify(currentValue) === JSON.stringify(newValue)) {
+                console.log(`[Extension] Change already applied: Current value (${JSON.stringify(currentValue)}) ` + 
+                           `already matches the new value (${JSON.stringify(newValue)})`);
+                
+                // Mark as applied since the value already matches what we want to change it to
+                changeRequest.IsApproved = true;
+                changeRequest.IsRejected = false;
+                changeRequest.IsProcessed = true; // Mark as processed since it's effectively applied
+                
+                // Save the updated change requests file
+                fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+                
+                // Reload and send updated data to the webview
+                await loadAndSendChangeRequests(panel, requestCode);
+                
+                // Show an info message
+                vscode.window.showInformationMessage(`Change request ${changeRequestCode} marked as applied: Model value already matches the new value`);
+                return;
+            } else {
+                // Current value doesn't match old value or new value
+                console.error(`[Extension] Value mismatch: Current value (${JSON.stringify(currentValue)}) ` + 
+                             `doesn't match expected old value (${JSON.stringify(oldValue)})`);
+                
+                // Mark as rejected with out of date reason
+                changeRequest.IsApproved = false;
+                changeRequest.IsRejected = true;
+                changeRequest.RejectionReason = "The property value has changed since this request was created. Changes are out of date.";
+                changeRequest.IsProcessed = true; // Mark as processed since we've handled it
+                
+                // Save the updated change requests file
+                fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
+                
+                // Reload and send updated data to the webview
+                await loadAndSendChangeRequests(panel, requestCode);
+                
+                // Show a warning message
+                vscode.window.showWarningMessage(`Change request ${changeRequestCode} rejected: Current model value doesn't match the expected old value`);
+                return;
+            }
         }
         
         // Apply the change based on how we found the property
@@ -1162,20 +1193,33 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
                         console.log(`[Extension] Property not found at constructed path: ${constructedPath}, will be created`);
                     }
                 }
-                
-                // Verify the current value matches the old value from the change request
+                  // Verify the current value matches the old value OR the new value
                 if (currentValue !== undefined && JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
-                    console.error(`[Extension] Value mismatch for change request ${changeRequest.Code}: ` + 
-                                 `Current value (${JSON.stringify(currentValue)}) ` + 
-                                 `doesn't match expected old value (${JSON.stringify(oldValue)})`);
-                    
-                    // Mark as rejected with out of date reason
-                    changeRequest.IsApproved = false;
-                    changeRequest.IsRejected = true;
-                    changeRequest.RejectionReason = "The property value has changed since this request was created. Changes are out of date.";
-                    changeRequest.IsProcessed = true; // Mark as processed since we've handled it
-                    rejectedCount++;
-                    continue;
+                    // Check if the current value already matches the new value
+                    if (JSON.stringify(currentValue) === JSON.stringify(newValue)) {
+                        console.log(`[Extension] Change already applied for request ${changeRequest.Code}: ` +
+                                    `Current value already matches the new value`);
+                                   
+                        // Mark as already applied
+                        changeRequest.IsApproved = true;
+                        changeRequest.IsRejected = false;
+                        changeRequest.IsProcessed = true; // Mark as processed
+                        appliedCount++;
+                        continue;
+                    } else {
+                        // Current value doesn't match either old or new value
+                        console.error(`[Extension] Value mismatch for change request ${changeRequest.Code}: ` + 
+                                     `Current value (${JSON.stringify(currentValue)}) ` + 
+                                     `doesn't match expected old value (${JSON.stringify(oldValue)})`);
+                        
+                        // Mark as rejected with out of date reason
+                        changeRequest.IsApproved = false;
+                        changeRequest.IsRejected = true;
+                        changeRequest.RejectionReason = "The property value has changed since this request was created. Changes are out of date.";
+                        changeRequest.IsProcessed = true; // Mark as processed since we've handled it
+                        rejectedCount++;
+                        continue;
+                    }
                 }
                 
                 // Apply the change based on how we found the property
@@ -1247,6 +1291,191 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
         console.error("[Extension] Failed to apply all change requests:", error);
         vscode.window.showErrorMessage(`Failed to apply all change requests: ${error.message}`);
         panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to apply all change requests: ${error.message}` });
+        // Ensure we notify the webview to hide the spinner
+        panel.webview.postMessage({ command: 'operationComplete' });
+    }
+}
+
+/**
+ * Validates pending change requests by checking if their old values still match the current model values.
+ * If old values don't match, marks the change requests as rejected with "out of date" reason.
+ * @param changeRequests Array of change requests to validate
+ * @param requestCode The validation request code
+ * @returns Updated array of change requests with validation results
+ */
+async function validatePendingChangeRequests(changeRequests: any[], requestCode: string): Promise<any[]> {
+    try {
+        // Import required utilities
+        const { XPathUtils } = require('../utils/xpathUtils');
+        const { ModelService } = require('../services/modelService');
+        const modelService = ModelService.getInstance();
+        
+        // Get the model file path
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            console.log("[Extension] No model file path available for validation");
+            return changeRequests;
+        }
+        
+        // Read the current model file
+        const modelFileContent = fs.readFileSync(modelFilePath, 'utf8');
+        const modelJson = JSON.parse(modelFileContent);
+        
+        let validationChanges = false;
+        
+        // Validate only pending change requests (not approved, rejected, or processed)
+        const pendingRequests = changeRequests.filter(cr => 
+            !cr.IsApproved && !cr.IsRejected && !cr.IsProcessed
+        );
+        
+        console.log(`[Extension] Validating ${pendingRequests.length} pending change requests`);
+        
+        for (const changeRequest of pendingRequests) {
+            try {
+                // Get property information from the change request
+                const modelXPath = changeRequest.ModelXPath || changeRequest.modelXPath;
+                const propertyPath = changeRequest.PropertyPath || changeRequest.propertyPath;
+                const propertyName = changeRequest.PropertyName || changeRequest.propertyName;
+                const oldValue = changeRequest.OldValue !== undefined ? changeRequest.OldValue : changeRequest.oldValue;
+                
+                // Skip validation if we don't have the necessary information
+                if (!modelXPath && !propertyPath && !propertyName) {
+                    console.log(`[Extension] Skipping validation for change request ${changeRequest.Code} - no property location info`);
+                    continue;
+                }
+                
+                let currentValue = null;
+                
+                // Try to get current value using same logic as apply functions
+                if (modelXPath) {
+                    console.log(`[Extension] Validating using ModelXPath: ${modelXPath}`);
+                    
+                    const result = XPathUtils.getValue(modelJson, modelXPath);
+                    if (result !== undefined) {
+                        const targetObject = Array.isArray(result) ? result[0] : result;
+                        
+                        if (targetObject && propertyName) {
+                            currentValue = targetObject[propertyName];
+                        } else if (!propertyName) {
+                            currentValue = targetObject;
+                        }
+                    }
+                } else if (propertyPath) {
+                    console.log(`[Extension] Validating using PropertyPath: ${propertyPath}`);
+                    currentValue = XPathUtils.getValue(modelJson, propertyPath);
+                } else if (propertyName) {
+                    const constructedPath = `root/${propertyName}`;
+                    console.log(`[Extension] Validating using constructed path: ${constructedPath}`);
+                    currentValue = XPathUtils.getValue(modelJson, constructedPath);
+                }
+                  // Get the new value from the change request
+                const newValue = changeRequest.NewValue !== undefined ? changeRequest.NewValue : changeRequest.newValue;
+                
+                // Compare current value with old value from change request
+                if (currentValue !== undefined && JSON.stringify(currentValue) !== JSON.stringify(oldValue)) {
+                    // Check if the current value matches the new value
+                    if (JSON.stringify(currentValue) === JSON.stringify(newValue)) {
+                        // Current value already matches the new value, mark as applied
+                        console.log(`[Extension] Change request ${changeRequest.Code} already applied: ` +
+                                   `Current value (${JSON.stringify(currentValue)}) ` +
+                                   `matches the new value (${JSON.stringify(newValue)})`);
+                        
+                        changeRequest.IsProcessed = true; // Mark as processed (applied)
+                        changeRequest.IsApproved = true;  // Auto-approve since it's effectively applied
+                        changeRequest.IsRejected = false; // Not rejected
+                        validationChanges = true;
+                        
+                        console.log(`[Extension] Marked change request ${changeRequest.Code} as applied`);
+                    } else {
+                        // Current value doesn't match old value or new value, mark as out of date
+                        console.log(`[Extension] Validation failed for change request ${changeRequest.Code}: ` +
+                                   `Current value (${JSON.stringify(currentValue)}) ` +
+                                   `doesn't match expected old value (${JSON.stringify(oldValue)}) ` +
+                                   `or new value (${JSON.stringify(newValue)})`);
+                        
+                        // Mark as rejected with out of date reason
+                        changeRequest.IsRejected = true;
+                        changeRequest.RejectionReason = "out of date";
+                        changeRequest.IsProcessed = true; // Mark as processed since we've handled it
+                        validationChanges = true;
+                        
+                        console.log(`[Extension] Marked change request ${changeRequest.Code} as out of date`);
+                    }
+                } else {
+                    console.log(`[Extension] Validation passed for change request ${changeRequest.Code}`);
+                }
+                
+            } catch (error) {
+                console.error(`[Extension] Error validating change request ${changeRequest.Code}:`, error);
+                // Don't reject on validation errors, just log them
+            }
+        }
+        
+        // If we made any validation changes, save the updated change requests file
+        if (validationChanges) {
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (workspaceFolders) {
+                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
+                
+                // Read the original file structure to preserve it
+                const originalFileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
+                let originalData = JSON.parse(originalFileContent);
+                
+                // Update the original data structure with our validated change requests
+                if (Array.isArray(originalData)) {
+                    originalData = changeRequests;
+                } else if (originalData.changeRequests && Array.isArray(originalData.changeRequests)) {
+                    originalData.changeRequests = changeRequests;
+                } else if (originalData.items && Array.isArray(originalData.items)) {
+                    originalData.items = changeRequests;
+                } else {
+                    // Find the array property and update it
+                    for (const key of Object.keys(originalData)) {
+                        if (Array.isArray(originalData[key])) {
+                            originalData[key] = changeRequests;
+                            break;
+                        }
+                    }
+                }
+                
+                // Save the updated file
+                fs.writeFileSync(changeRequestsFilePath, JSON.stringify(originalData, null, 2), 'utf8');
+                console.log(`[Extension] Saved validation results to ${changeRequestsFilePath}`);
+            }
+        }
+        
+        return changeRequests;
+        
+    } catch (error) {
+        console.error("[Extension] Error during change request validation:", error);
+        // Return original change requests if validation fails
+        return changeRequests;
+    }
+}
+
+/**
+ * Handles validating all pending change requests to check if they are out of date.
+ * @param panel The webview panel.
+ * @param requestCode The validation request code.
+ */
+async function handleValidatePendingChangeRequests(panel: vscode.WebviewPanel, requestCode: string) {
+    try {
+        console.log(`[Extension] Manual validation requested for request code: ${requestCode}`);
+        
+        // Reload and validate change requests
+        await loadAndSendChangeRequests(panel, requestCode);
+        
+        // Show completion message
+        vscode.window.showInformationMessage('Pending change requests have been validated.');
+        
+        // Notify webview that the operation is complete
+        panel.webview.postMessage({ command: 'operationComplete' });
+        
+    } catch (error) {
+        console.error("[Extension] Failed to validate pending change requests:", error);
+        vscode.window.showErrorMessage(`Failed to validate pending change requests: ${error.message}`);
+        panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to validate pending change requests: ${error.message}` });
         // Ensure we notify the webview to hide the spinner
         panel.webview.postMessage({ command: 'operationComplete' });
     }

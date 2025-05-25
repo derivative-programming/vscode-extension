@@ -1,6 +1,6 @@
 # AppDNA VS Code Extension Architecture Notes
 
-*Last updated: May 18, 2025*
+*Last updated: May 19, 2025*
 
 ## Overview
 The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
@@ -47,17 +47,20 @@ The Change Requests List View follows these UI organization principles:
 1. Filters (like Status dropdown) are positioned at the top-left of the page
 2. Batch operations that act on selected items (Approve Selected, Reject Selected) appear directly below the filters
 3. Global operations like "Apply All Approved" that don't depend on selection are positioned in the top-right action controls area
+4. The Validate button is placed with filter controls to allow manual validation of pending change requests
 
 This layout provides a logical separation of functionality:
-- Top area contains filtering and operations
+- Top area contains filtering, validation, and operations
 - Filter-related operations are close to the filters they work with
 - Selection-based operations are separate from global operations
+- Validation affects primarily pending requests and is a filter-related operation
 
 The HTML structure follows this pattern:
 ```html
 <div class="toolbar">
     <div class="filter-controls">
         <!-- Filter dropdowns and options -->
+        <!-- Refresh and Validate buttons -->
     </div>
     <div class="action-controls">
         <!-- Global actions -->
@@ -557,6 +560,9 @@ The code generator demonstrates the extension's end-to-end capabilities beyond j
   - "Apply All Approved" button to implement all approved changes
 - Row-level actions for individual change operations
 - Status filtering to view subsets of change requests
+- "Validate" button to manually check if pending change requests are still valid
+- Automatic validation of pending change requests when loading data
+- Auto-rejection of out-of-date change requests (when old values no longer match model)
 - Consistent table format with sortable columns
 - Word-wrapped cell content for better readability
 
@@ -587,13 +593,23 @@ The Change Requests List View supports flexible handling of property updates:
    - For existing properties, the current value is verified against the expected old value
    - If the values don't match, the change request is rejected as "out of date"
    - For non-existent properties, verification is skipped since there's no current value to check
+   - Validation happens automatically when loading change requests
+   - Validation can be triggered manually via the "Validate" button in the UI
+   - The validatePendingChangeRequests function in changeRequestsListView.ts performs the validation
 
 3. **Error Handling**
    - If the parent object can't be found, an error is thrown
    - If the property itself doesn't exist but its parent does, the property will be created
    - Detailed logging is provided to trace the property access and creation process
 
-This approach allows for both updating existing properties and adding new ones through the change request mechanism.
+4. **Validation Process**
+   - Gets the current model state from the file system
+   - For each pending change request, compares current value with old value
+   - If values don't match, automatically marks the request as rejected with reason "out of date"
+   - Updates the change request file on disk to persist validation results
+   - Only validates pending change requests (not approved, rejected, or processed ones)
+
+This approach allows for both updating existing properties and adding new ones through the change request mechanism while ensuring that changes are still valid against the current model state.
 
 ## Welcome View Architecture
 

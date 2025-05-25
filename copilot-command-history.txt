@@ -49,6 +49,25 @@ Command: Fixed downloadButton scope issue in Model Fabrication Details modal
 Command: Replace hardcoded projectCode with GUID when creating new model files
 
 Command: Modified REPORTS to be a top-level item in treeview
+
+Command: Implement validation for pending change requests in Model Change Request view
+- Added a "Validate" button to the toolbar UI to allow for manual validation of pending change requests
+- Added validatePendingRequests() function in JavaScript to send validation command to extension
+- Added event listener for the validate button click
+- Enhanced header description to explain validation process and "out of date" marking
+- Found that validation functionality was already implemented but needed UI exposure:
+  * validatePendingChangeRequests() in changeRequestsListView.ts performs validation
+  * handleValidatePendingChangeRequests() function handles manual validation calls
+  * loadAndSendChangeRequests() already includes automatic validation on load
+- The implementation now allows users to manually trigger validation anytime
+
+Command: Fix change request status display order for rejected items
+- Fixed an issue where change requests rejected as "out of date" were incorrectly showing as "Applied"
+- The problem was in the getStatusInfo() function order of checks in changeRequestsListView.js
+- Modified getStatusInfo() to check IsRejected status before IsProcessed status
+- Added comments explaining the correct status precedence order
+- This ensures that rejected change requests always show as "Rejected" with the proper reason
+- This fixes specifically the issue with validation marking items as "out of date" but showing as "Applied"
 - Moved REPORTS from being a child of DATA OBJECTS to a top-level item (peer of DATA OBJECTS)
 - Made REPORTS appear at the same level as PROJECT, DATA OBJECTS, and MODEL SERVICES
 - Updated parent-child relationship handling in getParent method
@@ -277,3 +296,6 @@ Command: Expand all top level tree items in the AppDNA tree view
  
  Command: Expand all top level tree items in the AppDNA tree view
 m o d e l v a l i d a t i o n   a u t o - r e f r e s h :   A d d i n g   a u t o - r e f r e s h   f u n c t i o n a l i t y   t o   M o d e l   V a l i d a t i o n   r e q u e s t   v i e w   s i m i l a r   t o   M o d e l   A I   P r o c e s s i n g   v i e w 
+Command: Implement validation for pending change requests in the model change request view to verify that the old value is still the current value in the model. If the old value doesn't match the current value, reject the change request with the reason "out of date".2 0 2 5 - 0 5 - 2 5   -   U s e r   r e q u e s t e d   i m p l e m e n t a t i o n   o f   v a l i d a t i o n   f o r   p e n d i n g   c h a n g e   r e q u e s t s   i n   m o d e l   c h a n g e   r e q u e s t   v i e w   t o   v e r i f y   o l d   v a l u e s   a r e   s t i l l   c u r r e n t   a n d   r e j e c t   o u t   o f   d a t e   r e q u e s t s 
+ 
+ Command: Expand all top level tree items in the AppDNA tree view

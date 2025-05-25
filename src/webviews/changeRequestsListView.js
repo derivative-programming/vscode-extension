@@ -2,11 +2,11 @@
 // Handles displaying and interacting with change requests in a webview.
 // Last modified: May 12, 2025
 
-(function() {
-    const vscode = acquireVsCodeApi();
+(function() {    const vscode = acquireVsCodeApi();
     const container = document.getElementById('changeRequestsContainer');
     const statusFilterSelect = document.getElementById('statusFilter');
     const refreshButton = document.getElementById('refreshButton');
+    const validateButton = document.getElementById('validateButton');
     const spinnerOverlay = document.getElementById('spinnerOverlay');
     const rejectModal = document.getElementById('rejectModal');
     const rejectionReasonInput = document.getElementById('rejectionReason');
@@ -42,11 +42,10 @@
                 hideSpinner(); // Hide spinner when any operation completes
                 break;
         }
-    });
-
-    // Set up event listeners
+    });    // Set up event listeners
     statusFilterSelect.addEventListener('change', renderChangeRequests);
     refreshButton.addEventListener('click', refreshData);
+    validateButton.addEventListener('click', validatePendingRequests);
     cancelRejectButton.addEventListener('click', closeRejectModal);
     confirmRejectButton.addEventListener('click', submitRejection);
     
@@ -144,6 +143,19 @@
         showSpinner();
         vscode.postMessage({
             command: 'webviewReady'
+        });
+    }
+    
+    /**
+     * Validates pending change requests against the current model state.
+     * This will check if the old values in pending requests still match the current model values.
+     * If values don't match, the request will be automatically rejected with "out of date" reason.
+     */
+    function validatePendingRequests() {
+        showSpinner();
+        vscode.postMessage({
+            command: 'validatePendingChangeRequests',
+            requestCode: currentRequestCode
         });
     }
 
@@ -266,17 +278,13 @@
         if (item.IsProcessed) { return 3; }
         if (item.IsApproved) { return 2; }
         return 1; // Pending
-    }
-
-    /**
+    }    /**
      * Determines the status text and badge class for a change request.
      * @param {Object} item The change request.
      * @returns {Object} The status text and badge class.
      */
     function getStatusInfo(item) {
-        if (item.IsProcessed) {
-            return { text: 'Applied', class: 'applied' };
-        }
+        // Check for rejection first, since rejected items are also marked as processed
         if (item.IsRejected) {
             return { 
                 text: 'Rejected', 
@@ -284,9 +292,15 @@
                 reason: item.RejectionReason || item.rejectionReason 
             };
         }
+        // Then check if it's processed (applied)
+        if (item.IsProcessed) {
+            return { text: 'Applied', class: 'applied' };
+        }
+        // Then check if it's approved
         if (item.IsApproved) {
             return { text: 'Approved', class: 'approved' };
         }
+        // Default is pending
         return { text: 'Pending', class: 'pending' };
     }
 

@@ -285,7 +285,7 @@ class WelcomePanel {
                 <div class="workflow-step">
                     <div class="workflow-step-number">4</div>
                     <div class="workflow-step-title">Request Model Validation</div>
-                    <div class="workflow-step-description">From Model Services, submit the model to the Model Validation service, download the results when complete, and approve and apply any change requests.</div>
+                    <div class="workflow-step-description">From Model Services, submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions.</div>
                     <div class="workflow-note">Model Validation Change Requests adds and modifies the model.</div>
                 </div>
 
