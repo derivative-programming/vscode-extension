@@ -32,6 +32,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     private treeView?: vscode.TreeView<JsonTreeItem>;
     // Original tree view title (without unsaved changes indicator)
     private originalTitle?: string;
+    // Current filter text for tree view items
+    private filterText: string = "";
       constructor(
         private readonly appDNAFilePath: string | null,
         private readonly modelService: ModelService
@@ -280,10 +282,31 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     // Use ModelService to get all objects
                     const allObjects = this.modelService.getAllObjects();
                     
-                    return Promise.resolve(
-                        allObjects.map((obj: any, index: number) =>
+                    // Apply filtering to objects
+                    const filteredObjects = allObjects.filter(obj => 
+                        this.applyFilter(obj.name || `Object ${allObjects.indexOf(obj) + 1}`)
+                    );
+                    
+                    // Check if we need to expand this when filter is active
+                    const collapsibleState = this.filterText
+                        ? vscode.TreeItemCollapsibleState.Expanded
+                        : vscode.TreeItemCollapsibleState.Collapsed;
+                    
+                    // If filtering is active and no results found, show message
+                    if (this.filterText && filteredObjects.length === 0) {
+                        return Promise.resolve([
                             new JsonTreeItem(
-                                obj.name || `Object ${index + 1}`,
+                                'No objects match filter',
+                                vscode.TreeItemCollapsibleState.None,
+                                'dataObjectsEmpty'
+                            )
+                        ]);
+                    }
+                    
+                    return Promise.resolve(
+                        filteredObjects.map((obj: any, index: number) =>
+                            new JsonTreeItem(
+                                obj.name || `Object ${allObjects.indexOf(obj) + 1}`,
                                 vscode.TreeItemCollapsibleState.None,
                                 'dataObjectItem'
                             )
@@ -326,7 +349,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 if (modelLoaded) {
                     // Use ModelService to get all reports
                     const allReports = this.modelService.getAllReports();
-                    if (allReports.length === 0) {                        return Promise.resolve([
+                    if (allReports.length === 0) {
+                        return Promise.resolve([
                             new JsonTreeItem(
                                 'No reports found',
                                 vscode.TreeItemCollapsibleState.None,
@@ -335,10 +359,31 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         ]);
                     }
                     
-                    return Promise.resolve(
-                        allReports.map((report: any, index: number) =>
+                    // Apply filtering to reports
+                    const filteredReports = allReports.filter(report => 
+                        this.applyFilter(report.name || `Report ${allReports.indexOf(report) + 1}`)
+                    );
+                    
+                    // Check if we need to expand this when filter is active
+                    const collapsibleState = this.filterText
+                        ? vscode.TreeItemCollapsibleState.Expanded
+                        : vscode.TreeItemCollapsibleState.Collapsed;
+                    
+                    // If filtering is active and no results found, show message
+                    if (this.filterText && filteredReports.length === 0) {
+                        return Promise.resolve([
                             new JsonTreeItem(
-                                report.name || `Report ${index + 1}`,
+                                'No reports match filter',
+                                vscode.TreeItemCollapsibleState.None,
+                                'reportsEmpty'
+                            )
+                        ]);
+                    }
+                    
+                    return Promise.resolve(
+                        filteredReports.map((report: any, index: number) =>
+                            new JsonTreeItem(
+                                report.name || `Report ${allReports.indexOf(report) + 1}`,
                                 vscode.TreeItemCollapsibleState.None,
                                 'reportItem'
                             )
@@ -642,5 +687,44 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             return this.modelService.getCurrentModel();
         }
         return this.jsonStructure;
+    }
+
+    /**
+     * Sets a filter for the tree view items
+     * @param filterText The text to filter nodes by
+     */
+    setFilter(filterText: string): void {
+        // Convert to lowercase for case-insensitive comparison
+        this.filterText = filterText.toLowerCase();
+        // Update context to indicate filter is active
+        vscode.commands.executeCommand('setContext', 'appDnaTreeViewFilterActive', !!this.filterText);
+        // Refresh the tree to apply the filter
+        this.refresh();
+    }
+
+    /**
+     * Clears the current filter
+     */
+    clearFilter(): void {
+        this.filterText = "";
+        // Update context to indicate filter is not active
+        vscode.commands.executeCommand('setContext', 'appDnaTreeViewFilterActive', false);
+        // Refresh the tree to show all items
+        this.refresh();
+    }
+
+    /**
+     * Checks if an item's label matches the current filter
+     * @param label The label to check against the filter
+     * @returns True if the label matches the filter or no filter is set
+     */
+    private applyFilter(label: string): boolean {
+        // If no filter is set, all items match
+        if (!this.filterText) {
+            return true;
+        }
+        
+        // Case-insensitive match of filter text within the label
+        return label.toLowerCase().includes(this.filterText);
     }
 }
