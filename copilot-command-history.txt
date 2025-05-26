@@ -173,7 +173,6 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree view
 Command: Update report details view title and tabs to match object details view design
 - Updated report details view title format from "Report: {name}" to "Details for {name} Report" to match object details pattern
 - Replaced hard-coded CSS with VS Code theme variables for consistent styling
@@ -299,3 +298,37 @@ m o d e l v a l i d a t i o n   a u t o - r e f r e s h :   A d d i n g   a u t 
 Command: Implement validation for pending change requests in the model change request view to verify that the old value is still the current value in the model. If the old value doesn't match the current value, reject the change request with the reason "out of date".2 0 2 5 - 0 5 - 2 5   -   U s e r   r e q u e s t e d   i m p l e m e n t a t i o n   o f   v a l i d a t i o n   f o r   p e n d i n g   c h a n g e   r e q u e s t s   i n   m o d e l   c h a n g e   r e q u e s t   v i e w   t o   v e r i f y   o l d   v a l u e s   a r e   s t i l l   c u r r e n t   a n d   r e j e c t   o u t   o f   d a t e   r e q u e s t s 
  
  Command: Expand all top level tree items in the AppDNA tree view
+
+Command: Fixed report details view settings tab editing functionality
+- Fixed the report settings tab to properly handle editable controls
+- Removed inappropriate 'readonly' attribute from select elements which was preventing them from being editable
+- Added initialization code to properly set up initial state of controls based on checkbox state
+- Ensured checkboxes properly enable and disable their controls
+- Improved checkbox handling to prevent unchecking already set properties (same as object details view)
+- Enhanced client script for settings tab with input validation and error handling
+- Result: Report details view settings tab now behaves the same as object details view settings tab
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+C o m m a n d :   t r o u b l e s h o o t   t r e e   v i e w   d a t a   o b j e c t s   a n d   p l u s   i c o n   i s s u e s 
+ 
+ c o m m a n d :   e x a m i n e   t r e e   v i e w   i s s u e s   f o r   V S   C o d e   e x t e n s i o n 
+ 
+ 
+Command: 2025-05-26 - Fix tree view data objects not showing and missing add button
+User reported that adding the 'show hierarchy button' broke the tree view - data objects not showing and plus icon button missing.
+
+Issue identified:
+- Tree data provider was setting contextValue to 'dataObjects' then appending ' showHierarchy' 
+- This changed contextValue from 'dataObjects' to 'dataObjects showHierarchy'
+- But the getChildren() condition was checking for exact equality: contextValue === 'dataObjects'
+- And package.json add button condition was checking: viewItem == dataObjects
+- Both conditions failed, so data objects weren't loaded and add button didn't show
+
+Solution implemented:
+1. Fixed JsonTreeItem creation to use 'dataObjects showHierarchy' as the initial contextValue
+2. Changed tree data provider condition to use contextValue?.includes('dataObjects')
+3. Changed package.json add button condition to use regex: viewItem =~ /dataObjects.*/
+
+Files modified:
+- src/providers/jsonTreeDataProvider.ts (lines 125-137 and 283)
+- package.json (line 78)Command: Expand all top level tree items in the AppDNA tree view
