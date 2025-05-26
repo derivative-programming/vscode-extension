@@ -262,6 +262,19 @@ This consistent pagination pattern is implemented across multiple views includin
 - Objects with properties, reports, workflows, etc.
 - TypeScript interfaces in `data/interfaces` match the schema structure
 
+## Schema Structure for Reports (Fixed 2025-05-26)
+
+The JSON schema file does not use separate `definitions` for report schemas. Instead, report schemas are defined inline within the nested object structure:
+
+- **Report properties**: `schema.properties.root.properties.namespace.items.properties.object.items.properties.report.items.properties`
+- **Report column properties**: `...report.items.properties.reportColumn.items.properties`
+- **Report button properties**: `...report.items.properties.reportButton.items.properties` 
+- **Report param properties**: `...report.items.properties.reportParam.items.properties`
+
+The schema loader functions in `src/webviews/reports/helpers/schemaLoader.js` needed to be updated to navigate these correct nested paths instead of looking for non-existent `schema.definitions.reportSchema` entries.
+
+This nested schema structure is different from how object schemas are likely structured, which explains why the object details view settings tab works but the report details view was broken.
+
 ### UI/UX Conventions
 - Schema descriptions are shown as tooltips
 - Enum properties are displayed as dropdowns
