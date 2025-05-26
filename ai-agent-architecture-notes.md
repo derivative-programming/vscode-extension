@@ -824,3 +824,22 @@ All detail view implementations must export:
 - `refreshAll()` - Refresh all open panels of this type
 - `getOpenPanelItems()` - Get list of items from open panels
 - `closeAllPanels()` - Close all panels of this type
+
+## Report Properties Filtering (Added 2025-05-26)
+
+The report details view settings tab filters out certain properties that should not be editable or visible to users. This is implemented in `src/webviews/reports/components/templates/settingsTabTemplate.js`:
+
+### Filtered Properties Include:
+- **Basic properties**: name, initobjectworkflowname
+- **Caching settings**: iscachingallowed, cacheexpirationinminutes
+- **Header/display settings**: isheaderlabelsvisible, isreportdetaillabelcolumnvisible, formintrotext
+- **Azure storage settings**: isazureblobstorageused, azuretablenameoverride, etc.
+- **Visualization properties**: All visualization* properties (40+ properties for charts, cards, folders, etc.)
+- **Advanced settings**: isignoredindocumentation, badgecountpropertyname, ispage
+
+### Implementation:
+- `getReportPropertiesToIgnore()` function returns array of 51 property names (lowercase)
+- Properties are filtered in the main template generation along with array properties (reportColumn, reportButton, reportParam)
+- Based on C# `GetReportPropertiesToIgnore()` method from the original codebase
+
+This ensures the settings tab only shows user-editable properties while hiding complex internal settings.

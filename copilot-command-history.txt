@@ -387,9 +387,9 @@ C o m m a n d :   A n a l y z e   a r c h i t e c t u r e   i n c o n s i s t e 
  
  C o m m a n d :   R e m o v e   T y p e S c r i p t   r e p o r t D e t a i s V i e w . t s   f i l e   t o   a v o i d   c o n f u s i o n 
  
- -   R e m o v e d   s r c / w e b v i e w s / r e p o r t D e t a i s V i e w . t s   a s   i t   w a s   r e d u n d a n t   a f t e r   i m p l e m t i n g   c o n s i s t e n t   a r c h i t e c t u r e 
+ -   R e m o v e d   sr c / w e b v i e w s / r e p o r t D e t a i s V i e w . t s   a s   i t   w a s   r e d u n d a n t   a f t e r   i m p l e m t i n g   c o n s i s t e n t   a r c h i t e c t u r e 
  
- -   A r c h i t e c t u r e   n o w   f u l l y   c o n s i s t e n t :   w r a p p e r   J S   f i l e s   - >   i m p l e m e n t a t i o n   J S   f i l e s   i n   s u b f o l d e r s 
+ -   A r c h i t e c t u r e   n o w   f u l l y   c o n s i s t e n t :   w r a p p e r   J S   f i l e s   - >   i m p l e m t a t i o n   J S   f i l e s   i n   s u b f o l d e r s 
  
 Command: Expand all top level tree items in the AppDNA tree view
 2025-05-26: Investigating empty settings tab in report details view - user reports nothing appears in the settings tab
