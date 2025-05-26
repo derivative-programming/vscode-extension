@@ -294,7 +294,7 @@ Command: Expand all top level tree items in the AppDNA tree view
 2 0 2 5 - 0 5 - 2 4 :   U s e r   r e q u e s t e d   t o   s w a p   b u t t o n   o r d e r   i n   C a n c e l   M o d e l   F a b r i c a t i o n   R e q u e s t   m o d a l   -   ' N o '   b u t t o n   s h o u l d   b e   t o   t h e   r i g h t   o f   ' Y e s '   b u t t o n 2 0 2 5 - 0 5 - 2 4   1 5 : 2 6 : 1 4   -   U s e r   r e q u e s t e d   i m p l e m e n t a t i o n   o f   e r r o r   r e p o r t   d o w n l o a d   f u n c t i o n a l i t y   f o r   m o d e l   f a b r i c a t i o n   r e q u e s t   d e t a i l s   m o d a l .   S h o u l d   w o r k   l i k e   M o d e l   A I   P r o c e s s i n g   w i t h   d o w n l o a d / v i e w   r e p o r t   b u t t o n   b e h a v i o r . 
  
  Command: Expand all top level tree items in the AppDNA tree view
-m o d e l v a l i d a t i o n   a u t o - r e f r e s h :   A d d i n g   a u t o - r e f r e s h   f u n c t i o n a l i t y   t o   M o d e l   V a l i d a t i o n   r e q u e s t   v i e w   s i m i l a r   t o   M o d e l   A I   P r o c e s s i n g   v i e w 
+m o d e l v a l i d a t i o n   a u t o - r e f r e s h :   A d d i n g   a u t o - r e f r e s h   f u n c t i o n a l i t y   to   M o d e l   V a l i d a t i o n   r e q u e s t   v i e w   s i m i l a r   t o   M o d e l   A I   P r o c e s s i n g   v i e w 
 Command: Implement validation for pending change requests in the model change request view to verify that the old value is still the current value in the model. If the old value doesn't match the current value, reject the change request with the reason "out of date".2 0 2 5 - 0 5 - 2 5   -   U s e r   r e q u e s t e d   i m p l e m e n t a t i o n   o f   v a l i d a t i o n   f o r   p e n d i n g   c h a n g e   r e q u e s t s   i n   m o d e l   c h a n g e   r e q u e s t   v i e w   t o   v e r i f y   o l d   v a l u e s   a r e   s t i l l   c u r r e n t   a n d   r e j e c t   o u t   o f   d a t e   r e q u e s t s 
  
  Command: Expand all top level tree items in the AppDNA tree view
@@ -332,3 +332,39 @@ Solution implemented:
 Files modified:
 - src/providers/jsonTreeDataProvider.ts (lines 125-137 and 283)
 - package.json (line 78)Command: Expand all top level tree items in the AppDNA tree view
+C o m m a n d :   w h a t   d o e s   t h e   o b j e c t   d a t a   h i e r a r c h y   v i e w   d o ? 
+ 
+ C o m m a n d :   i n v e s t i g a t e   w h y   h i e r a r c h y   v i e w   i s   no t   s h o w i n g   h i e r a r c h y 
+ 
+ C o m m a n d :   t r y   a g a i n   -   i n v e s t i g a t e   h i e r a r c h y   v i e w   n o t   s h o w i n g   h i e r a r c h y 
+ 
+Command: Describe what the hierarchy view uses in the model to determine the hierarchy
+User clarified: "just use the parentObjectName property. Don't use the childObject Array"
+- Confirmed that hierarchy determination should focus on parentObjectName property only
+- childObject array property is not the primary method for establishing hierarchy relationships
+
+Command: Make sure the code does not use the childObject array
+- Removing childObject array processing from buildObjectRelationships function in hierarchyView.js
+- Hierarchy determination will use only parentObjectName property as clarified by user
+
+Command: User reports still seeing no hierarchy - top level items have no parentObjectName or empty string parentObjectName
+- Need to investigate how hierarchy view handles root objects (those with no parent)
+- Root objects should appear at top level of hierarchy tree structure
+
+Command: User provided console logs showing hierarchy relationship building is working correctly
+- Building relationships for 10 objects successfully
+- Found proper parent-child relationships (Customer->Tac, CustomerRole->Customer, etc.)
+- Identified 'Pac' as root object (no parent)
+- However, there's a JavaScript syntax error: "Unexpected token 'function'" at line 100:17 in HTML
+- Need to investigate syntax error in the generated HTML that's preventing hierarchy display
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+
+Command: User still seeing no hierarchy, but progress made:
+- Console shows hierarchy relationships are building correctly 
+- Root object 'Pac' properly identified
+- All parent-child relationships established correctly
+- NEW ISSUE: JavaScript error "ReferenceError: i is not defined" at line 118:52
+- Error occurs in D3.js node selection: .data(nodes, d => d.id || (d.id = ++i))
+- Variable 'i' needs to be declared as a counter for unique node IDs
+Command: Expand all top level tree items in the AppDNA tree view
