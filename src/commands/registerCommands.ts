@@ -35,6 +35,7 @@ import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, close
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram } from '../webviews/hierarchyView';
+import { showFilterInputCommand, clearFilterCommand } from './filterTreeViewCommands';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -429,6 +430,20 @@ export function registerCommands(
             
             // Show the hierarchy diagram view
             await showHierarchyDiagram(context, modelService);
+        })
+    );
+          
+    // Register filter commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showFilter', async () => {
+            await showFilterInputCommand(jsonTreeDataProvider);
+        })
+    );
+    
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.clearFilter', () => {
+            clearFilterCommand(jsonTreeDataProvider);
+          
         })
     );
 }

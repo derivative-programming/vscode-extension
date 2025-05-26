@@ -58,6 +58,16 @@
           "group": "navigation"
         },
         {
+          "command": "appdna.showFilter",
+          "when": "view == appdna && appDnaFileExists",
+          "group": "navigation"
+        },
+        {
+          "command": "appdna.clearFilter",
+          "when": "view == appdna && appDnaFileExists && appDnaTreeViewFilterActive",
+          "group": "navigation"
+        },
+        {
           "command": "appdna.showWelcome",
           "when": "view == appdna",
           "group": "navigation@0"
@@ -67,7 +77,7 @@
         {
           "command": "appdna.addObject",
           "when": "viewItem == dataObjects",
-          "group": "inline",
+          "group": "inline@1",
           "icon": "$(add)"
         },
         {
@@ -160,6 +170,16 @@
         "command": "appdna.showHierarchyDiagram",
         "title": "Show Hierarchy Diagram",
         "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "appdna.showFilter",
+        "title": "Filter Tree View",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "appdna.clearFilter",
+        "title": "Clear Filter",
+        "icon": "$(clear-all)"
       }
     ],
     "keybindings": [
