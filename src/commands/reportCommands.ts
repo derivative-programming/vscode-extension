@@ -1,9 +1,13 @@
 // SEARCH_TAG: report commands for VS Code extension
 // Report-related command implementations.
+// Created: 2025-01-27
+// Last modified: 2025-01-27
 
 import * as vscode from 'vscode';
 import { JsonTreeItem } from '../models/types';
-import * as reportDetailsView from '../webviews/reportDetailsView';
+
+// Import from the JavaScript wrapper (following object details pattern)
+const reportDetailsView = require('../webviews/reportDetailsView');
 
 /**
  * Register all report-related commands

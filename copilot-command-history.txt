@@ -50,6 +50,19 @@ Command: Replace hardcoded projectCode with GUID when creating new model files
 
 Command: Modified REPORTS to be a top-level item in treeview
 
+Command: Clean up redundant TypeScript file to maintain architectural consistency
+- Analyzed architectural inconsistency between object details view and report details view
+- Found that report details view had mixed implementations (empty wrapper + TypeScript + JavaScript)
+- Fixed wrapper pattern by creating proper wrapper in reportDetailsView.js
+- Updated command registration to use JavaScript wrapper instead of TypeScript
+- Enhanced webpack configuration to include reports subfolder
+- Removing redundant reportDetailsView.ts file to complete architectural cleanup
+- Both views now follow consistent pattern: wrapper.js → subfolder/implementation.js
+
+Command: Remove redundant reportDetailsView.ts file that still exists
+- User pointed out that webviews/reportDetailsView.ts still exists despite previous cleanup attempt
+- Need to properly remove this file to complete the architectural consistency work
+
 Command: Implement validation for pending change requests in Model Change Request view
 - Added a "Validate" button to the toolbar UI to allow for manual validation of pending change requests
 - Added validatePendingRequests() function in JavaScript to send validation command to extension
@@ -368,3 +381,14 @@ Command: User still seeing no hierarchy, but progress made:
 - Error occurs in D3.js node selection: .data(nodes, d => d.id || (d.id = ++i))
 - Variable 'i' needs to be declared as a counter for unique node IDs
 Command: Expand all top level tree items in the AppDNA tree view
+
+[2025-05-26] Analyze architecture inconsistency between object details view and report details view - report details view settings tab is from webviews/reportdetailsview.ts but there is no webviews/objectdetailsview.ts
+C o m m a n d :   A n a l y z e   a r c h i t e c t u r e   i n c o n s i s t e n c y   b e t w e e n   o b j e c t   d e t a i l s   v i e w   a n d   r e p o r t   d e t a i l s   v i e w   -   r e p o r t   d e t a i l s   v i e w   s e t t i n g s   t a b   i s   f r o m   w e b v i e w s / r e p o r t d e t a i l s v i e w . t s   b u t   t h e r e   i s   n o   w e b v i e w s / o b j e c t d e t a i l s v i e w . t s 
+ 
+ C o m m a n d :   R e m o v e   T y p e S c r i p t   r e p o r t D e t a i l s V i e w . t s   f i l e   t o   a v o i d   c o n f u s i o n 
+ 
+ -   R e m o v e d   s r c / w e b v i e w s / r e p o r t D e t a i l s V i e w . t s   a s   i t   w a s   r e d u n d a n t   a f t e r   i m p l e m e n t i n g   c o n s i s t e n t   a r c h i t e c t u r e 
+ 
+ -   A r c h i t e c t u r e   n o w   f u l l y   c o n s i s t e n t :   w r a p p e r   J S   f i l e s   - >   i m p l e m e n t a t i o n   J S   f i l e s   i n   s u b f o l d e r s 
+ 
+ Command: Expand all top level tree items in the AppDNA tree view

@@ -99,6 +99,22 @@ The HTML structure follows this pattern:
   - Each service item can be clicked to toggle its status (start/stop)
 - Tree view has expandAll and collapseAll buttons in the title bar for easy navigation:
   - Expand button uses the VS Code built-in 'list.toggleAllExpanded' command with a fallback mechanism
+
+### Webview Architecture Pattern
+
+The extension follows a consistent wrapper pattern for webviews:
+
+- **Pattern**: `wrapper.js` → `subfolder/implementation.js`
+- **Object Details**: `objectDetailsView.js` → `objects/objectDetailsView.js`
+- **Report Details**: `reportDetailsView.js` → `reports/reportDetailsView.js`
+
+**Key characteristics:**
+- Wrapper files are in `src/webviews/` and delegate to subfolder implementations
+- Each implementation exports: `showDetails`, `refreshAll`, `getOpenPanelItems`, `closeAllPanels`
+- Commands import the wrapper (not the implementation directly)
+- Webpack copies both wrapper and subfolder files to build output
+- TypeScript commands use `require()` to import JavaScript wrappers
+- This pattern ensures consistent architecture and easier maintenance
   - Collapse button uses the VS Code built-in 'workbench.actions.treeView.appdna.collapseAll' command
   - Both commands have robust error handling and logging
   - The expandAllItems method in JsonTreeDataProvider provides additional programmatic control
@@ -758,3 +774,40 @@ The extension uses a consistent pattern for downloading and viewing error report
 - Button is disabled during download with progress indication
 - After successful download, button switches to "View Report" mode
 - Only shown when request failed AND has a report URL available
+
+# AppDNA VS Code Extension Architecture Notes
+
+## Webview Architecture Pattern
+
+### Consistent Architecture for Details Views
+Both object details and report details views now follow the same architectural pattern:
+
+**Pattern: Wrapper → Implementation in Subfolder**
+
+#### Object Details View:
+- `webviews/objectDetailsView.js` - Wrapper that imports from `./objects/objectDetailsView.js`
+- `webviews/objects/objectDetailsView.js` - Main implementation with full functionality
+- `webviews/objects/helpers/` - Helper modules (schemaLoader, objectDataHelper)
+- `webviews/objects/components/` - UI components (detailsViewGenerator)
+- Command registration: Uses the JavaScript wrapper
+
+#### Report Details View:
+- `webviews/reportDetailsView.js` - Wrapper that imports from `./reports/reportDetailsView.js`
+- `webviews/reports/reportDetailsView.js` - Main implementation with full functionality  
+- `webviews/reports/helpers/` - Helper modules (schemaLoader, reportDataHelper)
+- `webviews/reports/components/` - UI components (detailsViewGenerator)
+- `webviews/reportDetailsView.ts` - Backup TypeScript implementation (not used by default)
+- Command registration: Uses the JavaScript wrapper
+
+**Benefits of this pattern:**
+- Consistent architecture across all detail views
+- Modular organization with helpers and components in subfolders
+- Clear separation between wrapper and implementation
+- Easy to extend with new detail view types
+
+**Function exports required for consistency:**
+All detail view implementations must export:
+- `showDetails()` - Main function to display the view
+- `refreshAll()` - Refresh all open panels of this type
+- `getOpenPanelItems()` - Get list of items from open panels
+- `closeAllPanels()` - Close all panels of this type
