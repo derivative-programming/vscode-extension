@@ -10,6 +10,7 @@ const { getModalFunctionality } = require("./templates/modalFunctionality");
 const { getMainTemplate } = require("./templates/mainTemplate");
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
 const { getColumnsTableTemplate } = require("./templates/columnsTableTemplate");
+const { getColumnsListTemplate } = require("./templates/columnsListTemplate");
 const { getButtonsTableTemplate } = require("./templates/buttonsTableTemplate");
 const { getButtonsListTemplate } = require("./templates/buttonsListTemplate");
 const { getParamsTableTemplate } = require("./templates/paramsTableTemplate");
@@ -40,6 +41,9 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
     
     // Generate the columns tab content using templates
     const { columnTableHeaders, columnTableRows } = getColumnsTableTemplate(columns, reportColumnsSchema);
+    
+    // Generate the columns list view content
+    const columnListViewFields = getColumnsListTemplate(reportColumnsSchema);
     
     // Generate the buttons tab content using templates
     const { buttonTableHeaders, buttonTableRows } = getButtonsTableTemplate(buttons, reportButtonsSchema);
@@ -74,7 +78,7 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
         report, 
         columns.length, buttons.length, params.length,
         settingsHtml, 
-        columnTableHeaders, columnTableRows,
+        columnTableHeaders, columnTableRows, columnListViewFields,
         buttonTableHeaders, buttonTableRows, buttonListViewFields,
         paramTableHeaders, paramTableRows,
         columnModalHtml, buttonModalHtml, paramModalHtml,

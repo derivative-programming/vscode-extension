@@ -139,6 +139,15 @@ function showReportDetails(item, modelService) {
                         console.warn("Cannot update button: ModelService not available or report reference not found");
                     }
                     return;
+                    
+                case "updateColumn":
+                    if (modelService && reportReference) {
+                        // Update column properties directly on the report
+                        updateColumnDirectly(message.data, reportReference, modelService);
+                    } else {
+                        console.warn("Cannot update column: ModelService not available or report reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -356,6 +365,57 @@ function updateButtonDirectly(data, reportReference, modelService) {
         }
     } catch (error) {
         console.error("Error updating button directly:", error);
+    }
+}
+
+/**
+ * Updates column properties directly in the model
+ * @param {Object} data Data containing index, property, exists, and value
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ */
+function updateColumnDirectly(data, reportReference, modelService) {
+    try {
+        console.log("[DEBUG] updateColumnDirectly called for report");
+        console.log("[DEBUG] reportReference before update:", JSON.stringify(reportReference, null, 2));
+        
+        // Extract column information from the data
+        const { index, property, exists, value } = data;
+        console.log("[DEBUG] updateColumnDirectly received:", index, property, value, typeof value);
+        
+        if (typeof index === 'number' && property) {
+            // Ensure reportColumn array exists
+            if (!reportReference.reportColumn) {
+                reportReference.reportColumn = [];
+            }
+            
+            // Ensure the column at the specified index exists
+            if (!reportReference.reportColumn[index]) {
+                reportReference.reportColumn[index] = {};
+            }
+            
+            if (exists) {
+                // Add or update the property
+                reportReference.reportColumn[index][property] = value;
+            } else {
+                // Remove the property
+                delete reportReference.reportColumn[index][property];
+            }
+            
+            console.log("[DEBUG] reportReference after update:", JSON.stringify(reportReference, null, 2));
+            
+            // Mark that there are unsaved changes
+            if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                modelService.markUnsavedChanges();
+                console.log("[DEBUG] Model marked as having unsaved changes after column update");
+            } else {
+                console.warn("[DEBUG] modelService.markUnsavedChanges is not available");
+            }
+            
+            vscode.commands.executeCommand("appdna.refresh");
+        }
+    } catch (error) {
+        console.error("Error updating column directly:", error);
     }
 }
 
