@@ -85,6 +85,18 @@
           "when": "viewItem =~ /dataObjects.*showHierarchy/",
           "group": "inline",
           "icon": "$(type-hierarchy)"
+        },
+        {
+          "command": "appdna.showReportFilter",
+          "when": "viewItem =~ /reports.*showFilter/",
+          "group": "inline",
+          "icon": "$(filter)"
+        },
+        {
+          "command": "appdna.clearReportFilter",
+          "when": "viewItem =~ /reports.*showFilter/ && appDnaReportFilterActive",
+          "group": "inline",
+          "icon": "$(clear-all)"
         }
       ]
     },
@@ -179,6 +191,16 @@
       {
         "command": "appdna.clearFilter",
         "title": "Clear Filter",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "appdna.showReportFilter",
+        "title": "Filter Reports",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "appdna.clearReportFilter",
+        "title": "Clear Report Filter",
         "icon": "$(clear-all)"
       }
     ],
