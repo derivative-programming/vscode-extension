@@ -11,22 +11,24 @@ function getButtonsTableTemplate(buttons, reportButtonsSchema) {
     // Ensure buttons is always an array, even if undefined
     const safeButtons = Array.isArray(buttons) ? buttons : [];
     
-    // Create header columns for all button properties and sort them alphabetically
-    // Use a naming property as first column if available (buttonName, buttonText, or just name)
-    const buttonColumns = Object.keys(reportButtonsSchema).filter(key => 
-        key !== "buttonName" && key !== "buttonText" && key !== "name"
-    ).sort();
-    
     // Determine the primary identifying column - prefer buttonName, then buttonText, then name
-    let primaryColumn = "buttonName";
-    if (!reportButtonsSchema.buttonName && reportButtonsSchema.buttonText) {
+    let primaryColumn = null;
+    if (reportButtonsSchema.buttonName) {
+        primaryColumn = "buttonName";
+    } else if (reportButtonsSchema.buttonText) {
         primaryColumn = "buttonText";
-    } else if (!reportButtonsSchema.buttonName && !reportButtonsSchema.buttonText && reportButtonsSchema.name) {
+    } else if (reportButtonsSchema.name) {
         primaryColumn = "name";
     }
     
+    // Create header columns for all button properties and sort them alphabetically
+    // Exclude the primary column from the list as it will be added first
+    const buttonColumns = Object.keys(reportButtonsSchema).filter(key => 
+        key !== primaryColumn
+    ).sort();
+    
     // Add the primary column to the beginning if it exists in schema
-    if (reportButtonsSchema[primaryColumn]) {
+    if (primaryColumn) {
         buttonColumns.unshift(primaryColumn);
     }
 

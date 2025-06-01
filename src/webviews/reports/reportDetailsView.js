@@ -226,20 +226,97 @@ function closeAllPanels() {
 function updateModelDirectly(data, reportReference, modelService) {
     try {
         console.log("[DEBUG] updateModelDirectly called for report");
+        console.log("[DEBUG] data received:", JSON.stringify(data, null, 2));
         console.log("[DEBUG] reportReference before update:", JSON.stringify(reportReference, null, 2));
         
+        // Handle individual button property updates
+        if (data.type === 'button' && typeof data.index === 'number' && data.property) {
+            console.log("[DEBUG] Updating individual button property");
+            
+            // Ensure reportButton array exists
+            if (!Array.isArray(reportReference.reportButton)) {
+                reportReference.reportButton = [];
+            }
+            
+            // Ensure the button at the specified index exists
+            if (data.index >= 0 && data.index < reportReference.reportButton.length) {
+                const button = reportReference.reportButton[data.index];
+                
+                if (data.exists) {
+                    // Add or update the property
+                    button[data.property] = data.value;
+                    console.log("[DEBUG] Added/updated button property:", data.property, "=", data.value);
+                } else {
+                    // Remove the property
+                    delete button[data.property];
+                    console.log("[DEBUG] Removed button property:", data.property);
+                }
+            } else {
+                console.warn("[DEBUG] Button index out of range:", data.index, "array length:", reportReference.reportButton.length);
+            }
+        }
+        // Handle individual column property updates  
+        else if (data.type === 'column' && typeof data.index === 'number' && data.property) {
+            console.log("[DEBUG] Updating individual column property");
+            
+            // Ensure reportColumn array exists
+            if (!Array.isArray(reportReference.reportColumn)) {
+                reportReference.reportColumn = [];
+            }
+            
+            // Ensure the column at the specified index exists
+            if (data.index >= 0 && data.index < reportReference.reportColumn.length) {
+                const column = reportReference.reportColumn[data.index];
+                
+                if (data.exists) {
+                    // Add or update the property
+                    column[data.property] = data.value;
+                    console.log("[DEBUG] Added/updated column property:", data.property, "=", data.value);
+                } else {
+                    // Remove the property
+                    delete column[data.property];
+                    console.log("[DEBUG] Removed column property:", data.property);
+                }
+            } else {
+                console.warn("[DEBUG] Column index out of range:", data.index, "array length:", reportReference.reportColumn.length);
+            }
+        }
+        // Handle individual parameter property updates
+        else if (data.type === 'param' && typeof data.index === 'number' && data.property) {
+            console.log("[DEBUG] Updating individual parameter property");
+            
+            // Ensure reportParam array exists
+            if (!Array.isArray(reportReference.reportParam)) {
+                reportReference.reportParam = [];
+            }
+            
+            // Ensure the parameter at the specified index exists
+            if (data.index >= 0 && data.index < reportReference.reportParam.length) {
+                const param = reportReference.reportParam[data.index];
+                
+                if (data.exists) {
+                    // Add or update the property
+                    param[data.property] = data.value;
+                    console.log("[DEBUG] Added/updated parameter property:", data.property, "=", data.value);
+                } else {
+                    // Remove the property
+                    delete param[data.property];
+                    console.log("[DEBUG] Removed parameter property:", data.property);
+                }
+            } else {
+                console.warn("[DEBUG] Parameter index out of range:", data.index, "array length:", reportReference.reportParam.length);
+            }
+        }
         // Update columns if provided
-        if (data.columns) {
+        else if (data.columns) {
             reportReference.reportColumn = data.columns;
         }
-        
-        // Update buttons if provided
-        if (data.buttons) {
+        // Update buttons if provided (bulk update)
+        else if (data.buttons) {
             reportReference.reportButton = data.buttons;
         }
-        
         // Update parameters if provided
-        if (data.params) {
+        else if (data.params) {
             reportReference.reportParam = data.params;
         }
         
