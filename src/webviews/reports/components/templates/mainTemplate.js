@@ -72,20 +72,30 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
     
     <!-- Buttons Tab -->
     <div id="buttons" class="tab-content">
-        <div class="action-buttons">
-            <button id="add-button-btn">Add Button</button>
+        <div class="view-icons">
+            <div class="view-icons-left">
+                <span class="icon table-icon active" data-view="buttonTable">Table View</span>
+            </div>
+            <button id="add-button-btn" class="add-button-button">Add Button</button>
         </div>
-        
-        <table id="buttons-table">
-            <thead>
-                <tr>
-                    ${buttonTableHeaders}
-                </tr>
-            </thead>
-            <tbody>
-                ${buttonTableRows}
-            </tbody>
-        </table>
+
+        <div id="buttonTableView" class="view-content active">
+            ${report.error ? 
+                `<div class="error">${report.error}</div>` : 
+                `<div class="table-container">
+                    <table id="buttons-table">
+                        <thead>
+                            <tr>
+                                ${buttonTableHeaders}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${buttonTableRows}
+                        </tbody>
+                    </table>
+                </div>`
+            }
+        </div>
     </div>
     
     <!-- Parameters Tab -->

@@ -183,6 +183,109 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             });
         });
         
+        // --- BUTTON CHECKBOX FUNCTIONALITY ---
+        // Process each checkbox in the Buttons tab table view
+        document.querySelectorAll(".button-checkbox").forEach(checkbox => {
+            // Find the closest table cell (td) containing this checkbox
+            const tableCell = checkbox.closest("td");
+            if (!tableCell) return;
+            
+            // Find the input or select element within this same table cell
+            const inputElement = tableCell.querySelector("input[type='text'], select");
+            if (!inputElement) return;
+            
+            // Initial state setup
+            if (inputElement.tagName === "INPUT") {
+                inputElement.readOnly = !checkbox.checked;
+            } else if (inputElement.tagName === "SELECT") {
+                inputElement.disabled = !checkbox.checked;
+            }
+            
+            // Style based on checkbox state
+            updateInputStyle(inputElement, checkbox.checked);
+            
+            // Add event listener for checkbox state changes
+            checkbox.addEventListener("change", function() {
+                if (inputElement.tagName === "INPUT") {
+                    inputElement.readOnly = !this.checked;
+                } else if (inputElement.tagName === "SELECT") {
+                    inputElement.disabled = !this.checked;
+                }
+                updateInputStyle(inputElement, this.checked);
+                
+                // Disable the checkbox if it's checked to prevent unchecking
+                if (this.checked) {
+                    this.disabled = true;
+                    this.setAttribute("data-originally-checked", "true");
+                    
+                    // If the checkbox is checked, ensure we have a valid value
+                    if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === "")) {
+                        // For select elements with no value, select the first option
+                        if (inputElement.options.length > 0) {
+                            inputElement.value = inputElement.options[0].value;
+                        }
+                    }
+                    
+                    // Send update message to the extension for new property
+                    const propName = this.getAttribute('data-prop');
+                    const buttonIndex = this.getAttribute('data-index');
+                    vscode.postMessage({
+                        command: "updateModel",
+                        data: {
+                            type: 'button',
+                            index: parseInt(buttonIndex),
+                            property: propName,
+                            exists: true,
+                            value: inputElement.value
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Handle input changes for buttons table
+        document.querySelectorAll('#buttons-table input[type="text"], #buttons-table select').forEach(input => {
+            const handleInputChange = function() {
+                const row = this.closest('tr');
+                if (!row) return;
+                
+                const buttonIndex = row.getAttribute('data-index');
+                const propertyName = this.name;
+                const checkbox = this.parentElement.querySelector('.button-checkbox[data-prop="' + propertyName + '"]');
+                
+                if (checkbox && checkbox.checked) {
+                    // Send message to update the model
+                    vscode.postMessage({
+                        command: 'updateModel',
+                        data: {
+                            type: 'button',
+                            index: parseInt(buttonIndex),
+                            property: propertyName,
+                            exists: true,
+                            value: this.value
+                        }
+                    });
+                }
+            };
+            
+            // For select elements, listen for change
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', handleInputChange);
+            } else {
+                // For text inputs, listen for both input and change events
+                input.addEventListener('input', handleInputChange);
+                input.addEventListener('change', handleInputChange);
+            }
+        });
+        
+        // Initialize styles for buttons table inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('#buttons-table input[type="text"], #buttons-table select').forEach(input => {
+                const isReadOnly = input.readOnly || input.disabled;
+                updateInputStyle(input, !isReadOnly);
+            });
+        });
+        
         // --- COLUMNS FUNCTIONALITY ---
         // Add column button click handler
         document.getElementById('add-column-btn').addEventListener('click', function() {
