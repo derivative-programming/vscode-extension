@@ -16,7 +16,7 @@ import * as objectDetailsView from '../webviews/objectDetailsView';
 import * as reportDetailsView from '../webviews/reportDetailsView';
 import { ModelService } from '../services/modelService';
 import { openModelExplorer } from '../webviews/modelExplorerView';
-import { showWelcomeView } from '../webviews/welcomeView';
+import { showWelcomeView, WelcomePanel } from '../webviews/welcomeView';
 import { showLoginView } from '../webviews/loginView';
 import { AuthService } from '../services/authService';
 // Import showChangeRequestsListView and alias getWebviewContent
@@ -313,6 +313,12 @@ export function registerCommands(
                 // Refresh the tree view to update icons and available services
                 jsonTreeDataProvider.refresh();
                 vscode.commands.executeCommand('appdna.refreshView');
+                
+                // Update welcome view if it's currently open
+                if (WelcomePanel.currentPanel) {
+                    const authService = AuthService.getInstance();
+                    WelcomePanel.currentPanel.updateLoginStatus(authService.isLoggedIn());
+                }
             });
         })
     );
@@ -336,6 +342,11 @@ export function registerCommands(
                 
                 // Refresh the tree view to update icons and available services
                 jsonTreeDataProvider.refresh();
+                
+                // Update welcome view if it's currently open
+                if (WelcomePanel.currentPanel) {
+                    WelcomePanel.currentPanel.updateLoginStatus(false);
+                }
             }
         })
     );
