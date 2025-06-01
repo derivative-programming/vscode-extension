@@ -126,6 +126,32 @@ function getDetailViewStyles() {
             cursor: pointer;
         }
         
+        /* Control with checkbox container for table cells */
+        .control-with-checkbox {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .control-with-checkbox input[type="text"],
+        .control-with-checkbox select {
+            flex: 1;
+            min-width: 100px; /* Ensure minimum width for controls */
+        }
+
+        .control-with-checkbox input[type="checkbox"] {
+            margin-left: 5px;
+            flex: 0 0 auto;
+            transform: scale(0.8);
+            cursor: pointer;
+        }
+        
+        .button-checkbox {
+            margin-left: 5px;
+            transform: scale(0.8);
+            cursor: pointer;
+        }
+        
         /* Modal Dialog Styling */
         .modal {
             display: none;
