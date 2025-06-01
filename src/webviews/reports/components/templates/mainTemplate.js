@@ -15,6 +15,7 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
  * @param {string} buttonListViewFields HTML for the button list view form fields
  * @param {string} paramTableHeaders HTML for the param table headers
  * @param {string} paramTableRows HTML for the param table rows
+ * @param {string} paramListViewFields HTML for the param list view form fields
  * @param {string} columnModalHtml HTML for the column modal
  * @param {string} buttonModalHtml HTML for the button modal
  * @param {string} paramModalHtml HTML for the param modal
@@ -25,7 +26,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                         settingsHtml, 
                         columnTableHeaders, columnTableRows, columnListViewFields,
                         buttonTableHeaders, buttonTableRows, buttonListViewFields,
-                        paramTableHeaders, paramTableRows,
+                        paramTableHeaders, paramTableRows, paramListViewFields,
                         columnModalHtml, buttonModalHtml, paramModalHtml,
                         clientScript) {
       return `<!DOCTYPE html>
@@ -133,20 +134,41 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
     
     <!-- Parameters Tab -->
     <div id="params" class="tab-content">
-        <div class="action-buttons">
-            <button id="add-param-btn">Add Parameter</button>
+        <div class="view-icons">
+            <div class="view-icons-left">
+                <span class="icon table-icon active" data-view="table">Table View</span>
+                <span class="icon list-icon" data-view="list">List View</span>
+            </div>
+            <button id="add-param-btn" class="add-prop-button">Add Parameter</button>
         </div>
-        
-        <table id="params-table">
-            <thead>
-                <tr>
-                    ${paramTableHeaders}
-                </tr>
-            </thead>
-            <tbody>
-                ${paramTableRows}
-            </tbody>
-        </table>
+
+        <div id="tableView" class="view-content active">
+            <div class="table-container">
+                <table id="params-table">
+                    <thead>
+                        <tr>
+                            ${paramTableHeaders}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${paramTableRows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="listView" class="view-content">
+            <div class="list-container">
+                <select id="paramsList" size="10">
+                    ${(report.reportParam || []).map((param, index) => `<option value="${index}">${param.name || 'Unnamed Parameter'}</option>`).join('')}
+                </select>
+            </div>
+            <div id="paramDetailsContainer" class="details-container" style="display: none;">
+                <form id="paramDetailsForm">
+                    ${paramListViewFields}
+                </form>
+            </div>
+        </div>
     </div>
     
     <!-- Modal for adding/editing columns -->

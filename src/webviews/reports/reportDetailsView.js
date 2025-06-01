@@ -148,6 +148,15 @@ function showReportDetails(item, modelService) {
                         console.warn("Cannot update column: ModelService not available or report reference not found");
                     }
                     return;
+                    
+                case "updateParam":
+                    if (modelService && reportReference) {
+                        // Update param properties directly on the report
+                        updateParamDirectly(message.data, reportReference, modelService);
+                    } else {
+                        console.warn("Cannot update param: ModelService not available or report reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -416,6 +425,58 @@ function updateColumnDirectly(data, reportReference, modelService) {
         }
     } catch (error) {
         console.error("Error updating column directly:", error);
+    }
+}
+
+/**
+ * Updates parameter properties directly in the model
+ * @param {Object} data Data containing index, property, exists, and value
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ */
+function updateParamDirectly(data, reportReference, modelService) {
+    try {
+        if (reportReference) {
+            console.log("[DEBUG] updateParamDirectly called for report");
+            const { index, property, exists, value } = data;
+            
+            // Log what we're receiving
+            console.log("[DEBUG] updateParamDirectly received:", index, property, value, typeof value);
+            
+            // Ensure reportParam array exists
+            if (!reportReference.reportParam) {
+                reportReference.reportParam = [];
+            }
+            
+            // Ensure the param at the index exists
+            if (index >= 0 && index < reportReference.reportParam.length) {
+                const param = reportReference.reportParam[index];
+                
+                if (exists) {
+                    // Set or update the property
+                    param[property] = value;
+                    console.log(`[DEBUG] Set param[${index}].${property} = ${value}`);
+                } else {
+                    // Remove the property
+                    delete param[property];
+                    console.log(`[DEBUG] Removed param[${index}].${property}`);
+                }
+                
+                console.log(`[DEBUG] Param after update:`, param);
+            }
+            
+            // Mark as having unsaved changes using the modelService
+            if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                modelService.markUnsavedChanges();
+                console.log("[DEBUG] Marked unsaved changes via modelService");
+            } else {
+                console.warn("[DEBUG] modelService.markUnsavedChanges is not available");
+            }
+            
+            vscode.commands.executeCommand("appdna.refresh");
+        }
+    } catch (error) {
+        console.error("Error updating param directly:", error);
     }
 }
 

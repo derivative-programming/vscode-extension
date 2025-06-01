@@ -229,6 +229,13 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             if (columnsList && columnDetailsContainer && (!columnsList.value || columnsList.value === "")) {
                 columnDetailsContainer.style.display = 'none';
             }
+            
+            // Initialize params list view - hide details if no param is selected
+            const paramsList = document.getElementById('paramsList');
+            const paramDetailsContainer = document.getElementById('paramDetailsContainer');
+            if (paramsList && paramDetailsContainer && (!paramsList.value || paramsList.value === "")) {
+                paramDetailsContainer.style.display = 'none';
+            }
         });
         
         // --- BUTTONS TAB FUNCTIONALITY ---
@@ -851,6 +858,227 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         }
         
         // --- PARAMETERS FUNCTIONALITY ---
+        // Parameter list change handler for list view
+        const paramsList = document.getElementById('paramsList');
+        const paramDetailsContainer = document.getElementById('paramDetailsContainer');
+        if (paramsList && paramDetailsContainer) {
+            paramsList.addEventListener('change', (event) => {
+                const selectedIndex = event.target.value;
+                const param = currentParams[selectedIndex];
+
+                // Show param details container when an item is selected
+                paramDetailsContainer.style.display = 'block';
+
+                // Update form fields with param values
+                Object.keys(${JSON.stringify(paramSchema)}).forEach(paramKey => {
+                    if (paramKey === 'name') return; // Skip name field as it's in the list
+                    
+                    const fieldId = 'param' + paramKey;
+                    const field = document.getElementById(fieldId);
+                    const checkbox = document.getElementById(fieldId + 'Editable');
+                    
+                    if (field && checkbox) {
+                        // Check if property exists and is not null or undefined
+                        const propertyExists = param.hasOwnProperty(paramKey) && param[paramKey] !== null && param[paramKey] !== undefined;
+                        
+                        if (field.tagName === 'SELECT') {
+                            field.value = propertyExists ? param[paramKey] : '';
+                            field.disabled = !propertyExists;
+                        } else {
+                            field.value = propertyExists ? param[paramKey] : '';
+                            field.readOnly = !propertyExists;
+                        }
+                        
+                        checkbox.checked = propertyExists;
+                        
+                        // If the property exists, disable the checkbox to prevent unchecking
+                        if (propertyExists) {
+                            checkbox.disabled = true;
+                            checkbox.setAttribute('data-originally-checked', 'true');
+                        } else {
+                            checkbox.disabled = false;
+                            checkbox.removeAttribute('data-originally-checked');
+                        }
+                        
+                        updateInputStyle(field, checkbox.checked);
+                    }
+                });
+            });
+            
+            // Initialize toggle editable behavior for param list view form fields
+            Object.keys(${JSON.stringify(paramSchema)}).forEach(paramKey => {
+                if (paramKey === 'name') return;
+                
+                const fieldId = 'param' + paramKey;
+                const field = document.getElementById(fieldId);
+                const checkbox = document.getElementById(fieldId + 'Editable');
+                
+                if (field && checkbox) {
+                    // Set initial state
+                    updateInputStyle(field, checkbox.checked);
+                    
+                    // Add event listener for checkbox state changes
+                    checkbox.addEventListener('change', function() {
+                        if (field.tagName === 'INPUT') {
+                            field.readOnly = !this.checked;
+                        } else if (field.tagName === 'SELECT') {
+                            field.disabled = !this.checked;
+                        }
+                        updateInputStyle(field, this.checked);
+                        
+                        // Disable the checkbox if it's checked to prevent unchecking
+                        if (this.checked) {
+                            this.disabled = true;
+                            this.setAttribute('data-originally-checked', 'true');
+                            
+                            // If the checkbox is checked, ensure we have a valid value
+                            if (field.tagName === 'SELECT' && (!field.value || field.value === "")) {
+                                // For select elements with no value, select the first option
+                                if (field.options.length > 0) {
+                                    field.selectedIndex = 0;
+                                }
+                            }
+                        }
+                        
+                        // Update the param in the model when checkbox changes
+                        const selectedIndex = paramsList.value;
+                        if (selectedIndex !== '' && selectedIndex >= 0) {
+                            vscode.postMessage({
+                                command: 'updateParam',
+                                data: {
+                                    index: parseInt(selectedIndex),
+                                    property: paramKey,
+                                    exists: this.checked,
+                                    value: this.checked ? field.value : undefined
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Add event listener for field value changes
+                    field.addEventListener('input', function() {
+                        if (checkbox.checked) {
+                            const selectedIndex = paramsList.value;
+                            if (selectedIndex !== '' && selectedIndex >= 0) {
+                                vscode.postMessage({
+                                    command: 'updateParam',
+                                    data: {
+                                        index: parseInt(selectedIndex),
+                                        property: paramKey,
+                                        exists: true,
+                                        value: this.value
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Parameter checkbox functionality for table view similar to properties tab
+        document.querySelectorAll('.param-checkbox').forEach(checkbox => {
+            const propName = checkbox.getAttribute('data-prop');
+            const index = checkbox.getAttribute('data-index');
+            
+            // Find the input element within the same table cell
+            const tableCell = checkbox.closest('td');
+            if (!tableCell) return;
+            
+            const inputElement = tableCell.querySelector('input[type="text"], select');
+            if (!inputElement) return;
+            
+            // Set initial state
+            if (inputElement.tagName === 'INPUT') {
+                inputElement.readOnly = !checkbox.checked;
+            } else if (inputElement.tagName === 'SELECT') {
+                inputElement.disabled = !checkbox.checked;
+            }
+            
+            updateInputStyle(inputElement, checkbox.checked);
+            
+            checkbox.addEventListener('change', function() {
+                // Don't allow unchecking of properties that already exist in the model
+                if (this.hasAttribute('data-originally-checked')) {
+                    this.checked = true;
+                    return;
+                }
+                
+                if (this.checked) {
+                    // Enable the input field
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = false;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = false;
+                    }
+                    updateInputStyle(inputElement, true);
+                    
+                    // Disable the checkbox to prevent unchecking
+                    this.disabled = true;
+                    this.setAttribute('data-originally-checked', 'true');
+                    
+                    // If the checkbox is checked, ensure we have a valid value for select elements
+                    if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === '')) {
+                        // For select elements with no value, select the first option
+                        if (inputElement.options.length > 0) {
+                            inputElement.value = inputElement.options[0].value;
+                        }
+                    }
+                } else {
+                    // Disable the input field
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = true;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = true;
+                    }
+                    updateInputStyle(inputElement, false);
+                }
+                
+                // Send message to update the model
+                vscode.postMessage({
+                    command: 'updateParam',
+                    data: {
+                        index: parseInt(index),
+                        property: propName,
+                        exists: this.checked,
+                        value: this.checked ? inputElement.value : null
+                    }
+                });
+            });
+        });
+        
+        // Handle input changes for params table
+        document.querySelectorAll('#params-table input[type="text"], #params-table select').forEach(input => {
+            const updateParam = () => {
+                const tableCell = input.closest('td');
+                if (!tableCell) return;
+                
+                const checkbox = tableCell.querySelector('.param-checkbox');
+                if (!checkbox || !checkbox.checked) return;
+                
+                const propName = checkbox.getAttribute('data-prop');
+                const index = checkbox.getAttribute('data-index');
+                
+                // Send message to update the model
+                vscode.postMessage({
+                    command: 'updateParam',
+                    data: {
+                        index: parseInt(index),
+                        property: propName,
+                        exists: true,
+                        value: input.value
+                    }
+                });
+            };
+            
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', updateParam);
+            } else {
+                input.addEventListener('input', updateParam);
+                input.addEventListener('change', updateParam);
+            }
+        });
+        
         // Add parameter button click handler
         document.getElementById('add-param-btn').addEventListener('click', function() {
             // Reset form and show modal for adding a new parameter
