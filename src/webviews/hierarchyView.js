@@ -220,8 +220,7 @@ async function getWebviewContent(context, allObjects) {
             </div>
         </div>
 
-        <script>
-            (function() {
+        <script>            (function() {
                 // Get VS Code API
                 const vscode = acquireVsCodeApi();
                 
@@ -233,6 +232,7 @@ async function getWebviewContent(context, allObjects) {
                 let svg;
                 let g;
                 let zoom;
+                let i = 0; // Counter for unique node IDs
                 let diagonal = d3.linkHorizontal()
                     .x(d => d.y)
                     .y(d => d.x);
@@ -248,23 +248,29 @@ async function getWebviewContent(context, allObjects) {
                 // Node size
                 const nodeWidth = 150;
                 const nodeHeight = 30;
-                
-                // Distance between levels
+                  // Distance between levels
                 const levelDistance = 250;
                 
                 // Initialize the diagram
                 function initDiagram() {
                     // Create hierarchy from data
                     if (objectData.length === 0) {
-                        document.getElementById('diagram').innerHTML = '<div style="text-align: center; padding-top: 50px;">No objects found with parent-child relationships.</div>';
+                        document.getElementById('diagram').innerHTML = '<div style="text-align: center; padding-top: 50px;">No objects found to display in hierarchy.</div>';
                         return;
                     }
+                    
+                    // Debug: Log all objects to console
+                    console.log('All objects:', objectData);
                     
                     // Find the root objects (those without parents or with parent not found in the list)
                     let rootObjects = objectData.filter(obj => !obj.parentName || !objectData.find(o => o.name === obj.parentName));
                     
+                    // Debug: Log root objects
+                    console.log('Root objects found:', rootObjects);
+                    
                     if (rootObjects.length === 0) {
                         // If no root object found, use the first object as root
+                        console.log('No root objects found, using first object as root');
                         rootObjects = [objectData[0]];
                     }
                     
@@ -656,67 +662,64 @@ async function getWebviewContent(context, allObjects) {
  */
 function buildObjectRelationships(objects) {
     if (!objects || !Array.isArray(objects) || objects.length === 0) {
+        console.log('No objects provided to buildObjectRelationships');
         return [];
     }
     
+    console.log('Building relationships for', objects.length, 'objects');
+    
     // Create a map of objects by name for quick lookup
     const objectMap = new Map();
-    
-    // First pass: populate the map
+      // First pass: populate the map
     objects.forEach(obj => {
         if (obj.name) {
+            // Treat empty strings and whitespace-only strings as null (no parent)
+            const parentName = obj.parentObjectName && obj.parentObjectName.trim() ? obj.parentObjectName.trim() : null;
+            
             objectMap.set(obj.name, {
                 name: obj.name,
                 id: obj.id || `obj_${Math.random().toString(36).substr(2, 9)}`,
-                parentName: obj.parentObjectName || null,
+                parentName: parentName,
                 children: [],
                 details: {
                     properties: obj.prop ? obj.prop.map(p => ({ name: p.name, value: p.value })) : [],
-                    parentName: obj.parentObjectName || null,
+                    parentName: parentName,
                     children: []
                 }
             });
         }
-    });
-    
-    // Second pass: build parent-child relationships
+    });    // Second pass: build parent-child relationships using only parentObjectName property
     objectMap.forEach(obj => {
         if (obj.parentName && objectMap.has(obj.parentName)) {
             const parent = objectMap.get(obj.parentName);
             parent.children.push(obj);
             parent.details.children.push({ name: obj.name, id: obj.id });
-        }
-    });
-    
-    // Also consider explicit childObject arrays
-    objects.forEach(obj => {
-        if (obj.name && obj.childObject && Array.isArray(obj.childObject)) {
-            const parentObj = objectMap.get(obj.name);
-            
-            if (parentObj) {
-                obj.childObject.forEach(child => {
-                    if (child.name && objectMap.has(child.name)) {
-                        const childObj = objectMap.get(child.name);
-                        
-                        // Only add if not already a child
-                        if (!parentObj.children.find(c => c.name === childObj.name)) {
-                            parentObj.children.push(childObj);
-                            parentObj.details.children.push({ name: childObj.name, id: childObj.id });
-                            
-                            // Set parent relationship if not already set
-                            if (!childObj.parentName) {
-                                childObj.parentName = parentObj.name;
-                                childObj.details.parentName = parentObj.name;
-                            }
-                        }
-                    }
-                });
-            }
+            console.log(`Added ${obj.name} as child of ${parent.name}`);
+        } else if (obj.parentName) {
+            console.log(`Parent '${obj.parentName}' not found for object '${obj.name}'`);
+        } else {
+            console.log(`Object '${obj.name}' has no parent - will be root object`);
         }
     });
     
     // Convert map values to array
-    return Array.from(objectMap.values());
+    const result = Array.from(objectMap.values());
+    console.log('Final relationship data:', result);
+    return result;
+}
+
+/**
+ * Gets the current hierarchy panel data if open
+ * @returns {Object|null} Object with context and modelService if panel is open, null otherwise
+ */
+function getHierarchyPanel() {
+    if (currentPanel && !currentPanel._disposed) {
+        return {
+            context: currentContext,
+            modelService: null // modelService is passed to showHierarchyDiagram, not stored globally
+        };
+    }
+    return null;
 }
 
 /**
@@ -731,5 +734,6 @@ function closeHierarchyView() {
 
 module.exports = {
     showHierarchyDiagram,
-    closeHierarchyView
+    closeHierarchyView,
+    getHierarchyPanel
 };

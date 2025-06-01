@@ -122,19 +122,16 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 // Set a project icon for the PROJECT item
                 projectItem.iconPath = new vscode.ThemeIcon('project');
                 projectItem.tooltip = "Project settings and configuration";
-                
-                const dataObjectsItem = new JsonTreeItem(
+                  const dataObjectsItem = new JsonTreeItem(
                     'DATA OBJECTS',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'dataObjects'
+                    'dataObjects showHierarchy'
                 );
                 
                 // Set a database icon for the DATA OBJECTS item
                 dataObjectsItem.iconPath = new vscode.ThemeIcon('database');
                 
-                // Add hierarchy diagram button
-                dataObjectsItem.contextValue += " showHierarchy";
-                dataObjectsItem.tooltip = "Data Objects (click to expand, right-click for options)";                // Create MODEL SERVICES item with appropriate icon based on login status
+                dataObjectsItem.tooltip = "Data Objects (click to expand, right-click for options)";// Create MODEL SERVICES item with appropriate icon based on login status
                 const isLoggedIn = this.authService.isLoggedIn();
                 const modelServicesItem = new JsonTreeItem(
                     'MODEL SERVICES',
@@ -278,9 +275,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 console.error('Error reading project settings:', error);
                 return Promise.resolve([]);
             }
-        }
-          // Handle child elements
-        if (element?.contextValue === 'dataObjects' && fileExists) {
+        }        // Handle child elements
+        if (element?.contextValue?.includes('dataObjects') && fileExists) {
             try {
                 if (modelLoaded) {
                     // Use ModelService to get all objects

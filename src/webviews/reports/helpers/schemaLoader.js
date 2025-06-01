@@ -88,14 +88,16 @@ function loadSchema() {
  */
 function getReportSchemaProperties(schema) {
     try {
-        // Find report schema definition
-        if (!schema.definitions || !schema.definitions.reportSchema) {
-            console.error("Report schema not found in schema definitions");
+        // Navigate to report schema: root > namespace > object > report > items > properties
+        const reportSchema = schema?.properties?.root?.properties?.namespace?.items?.properties?.object?.items?.properties?.report?.items?.properties;
+        
+        if (!reportSchema) {
+            console.error("Report schema not found in expected path: properties.root.properties.namespace.items.properties.object.items.properties.report.items.properties");
             return {};
         }
         
-        // Return properties object from report schema
-        return schema.definitions.reportSchema.properties || {};
+        console.log("Successfully loaded report schema properties, found", Object.keys(reportSchema).length, "properties");
+        return reportSchema;
     } catch (error) {
         console.error("Error getting report schema properties:", error);
         return {};
@@ -109,13 +111,16 @@ function getReportSchemaProperties(schema) {
  */
 function getReportColumnsSchema(schema) {
     try {
-        // Find reportColumn schema definition
-        if (!schema.definitions || !schema.definitions.reportColumnSchema) {
-            console.error("ReportColumn schema not found in schema definitions");
+        // Navigate to reportColumn schema: root > namespace > object > report > items > properties > reportColumn > items > properties
+        const reportColumnSchema = schema?.properties?.root?.properties?.namespace?.items?.properties?.object?.items?.properties?.report?.items?.properties?.reportColumn?.items?.properties;
+        
+        if (!reportColumnSchema) {
+            console.error("ReportColumn schema not found in expected path");
             return {};
         }
         
-        return schema.definitions.reportColumnSchema.properties || {};
+        console.log("Successfully loaded reportColumn schema properties, found", Object.keys(reportColumnSchema).length, "properties");
+        return reportColumnSchema;
     } catch (error) {
         console.error("Error getting reportColumn schema:", error);
         return {};
@@ -129,13 +134,16 @@ function getReportColumnsSchema(schema) {
  */
 function getReportButtonsSchema(schema) {
     try {
-        // Find reportButton schema definition
-        if (!schema.definitions || !schema.definitions.reportButtonSchema) {
-            console.error("ReportButton schema not found in schema definitions");
+        // Navigate to reportButton schema: root > namespace > object > report > items > properties > reportButton > items > properties
+        const reportButtonSchema = schema?.properties?.root?.properties?.namespace?.items?.properties?.object?.items?.properties?.report?.items?.properties?.reportButton?.items?.properties;
+        
+        if (!reportButtonSchema) {
+            console.error("ReportButton schema not found in expected path");
             return {};
         }
         
-        return schema.definitions.reportButtonSchema.properties || {};
+        console.log("Successfully loaded reportButton schema properties, found", Object.keys(reportButtonSchema).length, "properties");
+        return reportButtonSchema;
     } catch (error) {
         console.error("Error getting reportButton schema:", error);
         return {};
@@ -149,13 +157,16 @@ function getReportButtonsSchema(schema) {
  */
 function getReportParamsSchema(schema) {
     try {
-        // Find reportParam schema definition
-        if (!schema.definitions || !schema.definitions.reportParamSchema) {
-            console.error("ReportParam schema not found in schema definitions");
+        // Navigate to reportParam schema: root > namespace > object > report > items > properties > reportParam > items > properties
+        const reportParamSchema = schema?.properties?.root?.properties?.namespace?.items?.properties?.object?.items?.properties?.report?.items?.properties?.reportParam?.items?.properties;
+        
+        if (!reportParamSchema) {
+            console.error("ReportParam schema not found in expected path");
             return {};
         }
         
-        return schema.definitions.reportParamSchema.properties || {};
+        console.log("Successfully loaded reportParam schema properties, found", Object.keys(reportParamSchema).length, "properties");
+        return reportParamSchema;
     } catch (error) {
         console.error("Error getting reportParam schema:", error);
         return {};
