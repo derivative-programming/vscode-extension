@@ -461,5 +461,6 @@ class WelcomePanel {
 }
 
 module.exports = {
-    showWelcomeView
+    showWelcomeView,
+    WelcomePanel
 };
