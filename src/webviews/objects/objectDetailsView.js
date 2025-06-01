@@ -33,7 +33,7 @@ function showObjectDetails(item, modelService) {
     // Create webview panel
     const panel = vscode.window.createWebviewPanel(
         "objectDetails", 
-        `Details for ${item.label}`,
+        `Details for ${item.label} Data Object`,
         vscode.ViewColumn.One, 
         { 
             enableScripts: true,

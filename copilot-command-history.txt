@@ -299,3 +299,10 @@ m o d e l v a l i d a t i o n   a u t o - r e f r e s h :   A d d i n g   a u t 
 Command: Implement validation for pending change requests in the model change request view to verify that the old value is still the current value in the model. If the old value doesn't match the current value, reject the change request with the reason "out of date".2 0 2 5 - 0 5 - 2 5   -   U s e r   r e q u e s t e d   i m p l e m e n t a t i o n   o f   v a l i d a t i o n   f o r   p e n d i n g   c h a n g e   r e q u e s t s   i n   m o d e l   c h a n g e   r e q u e s t   v i e w   t o   v e r i f y   o l d   v a l u e s   a r e   s t i l l   c u r r e n t   a n d   r e j e c t   o u t   o f   d a t e   r e q u e s t s 
  
  Command: Expand all top level tree items in the AppDNA tree view
+
+Command: Fix object details view tab title
+- Updated panel title in src/webviews/objects/objectDetailsView.js from "Details for ${item.label}" to "Details for ${item.label} Data Object"
+- This ensures consistency with the report details view pattern: "Details for [name] [Type]"
+- Made minimal surgical change affecting only line 36 of objectDetailsView.js
+- Verified compilation success and change is minimal (1 line changed)
+- Pattern now matches: "Details for Customer Data Object" (for objects) and "Details for Customer Report" (for reports)
