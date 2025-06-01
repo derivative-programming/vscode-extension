@@ -720,6 +720,20 @@ function buildObjectRelationships(objects) {
 }
 
 /**
+ * Gets the current hierarchy panel data if open
+ * @returns {Object|null} Object with context and modelService if panel is open, null otherwise
+ */
+function getHierarchyPanel() {
+    if (currentPanel && !currentPanel._disposed) {
+        return {
+            context: currentContext,
+            modelService: null // modelService is passed to showHierarchyDiagram, not stored globally
+        };
+    }
+    return null;
+}
+
+/**
  * Closes the hierarchy view panel
  */
 function closeHierarchyView() {
@@ -731,5 +745,6 @@ function closeHierarchyView() {
 
 module.exports = {
     showHierarchyDiagram,
-    closeHierarchyView
+    closeHierarchyView,
+    getHierarchyPanel
 };
