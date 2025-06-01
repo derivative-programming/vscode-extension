@@ -564,7 +564,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             return Promise.resolve(new JsonTreeItem(
                 'DATA OBJECTS',
                 vscode.TreeItemCollapsibleState.Collapsed,
-                'dataObjects'
+                'dataObjects showHierarchy'
             ));
         }
           if (element.contextValue?.startsWith('report')) {
@@ -572,7 +572,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             return Promise.resolve(new JsonTreeItem(
                 'REPORTS',
                 vscode.TreeItemCollapsibleState.Collapsed,
-                'reports'
+                'reports showFilter'
             ));
         }
         
