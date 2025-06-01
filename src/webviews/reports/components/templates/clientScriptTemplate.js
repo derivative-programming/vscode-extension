@@ -33,6 +33,40 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             });
         });
         
+        // View switching functionality for buttons tab
+        const viewIconsContainer = document.querySelector('.view-icons');
+        if (viewIconsContainer) {
+            viewIconsContainer.addEventListener('click', (event) => {
+                // Check if the clicked element is an icon or a child of an icon
+                const iconElement = event.target.closest('.icon');
+                if (!iconElement) return;
+                const view = iconElement.getAttribute('data-view');
+                console.log('Switching to view:', view);
+                
+                // Update active state of icons
+                document.querySelectorAll('.view-icons .icon').forEach(icon => {
+                    icon.classList.remove('active');
+                });
+                iconElement.classList.add('active');
+                
+                // Hide all views
+                document.querySelectorAll('.view-content').forEach(content => {
+                    content.style.display = 'none';
+                    content.classList.remove('active');
+                });
+                
+                // Show selected view
+                const viewElement = document.getElementById(view + 'View'); 
+                if (viewElement) {
+                    viewElement.style.display = 'block';
+                    viewElement.classList.add('active');
+                    console.log('Activated view:', view + 'View');
+                } else {
+                    console.error('View not found:', view + 'View');
+                }
+            });
+        }
+        
         // Helper function to update input styles based on checkbox state
         function updateInputStyle(inputElement, isChecked) {
             if (!isChecked) {
@@ -367,6 +401,124 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         }
         
         // --- BUTTONS FUNCTIONALITY ---
+        // Button list change handler for list view
+        const buttonsList = document.getElementById('buttonsList');
+        const buttonDetailsContainer = document.getElementById('buttonDetailsContainer');
+        if (buttonsList && buttonDetailsContainer) {
+            buttonsList.addEventListener('change', (event) => {
+                const selectedIndex = event.target.value;
+                const button = currentButtons[selectedIndex];
+
+                // Show button details container when an item is selected
+                buttonDetailsContainer.style.display = 'block';
+
+                // Update form fields with button values
+                Object.keys(${JSON.stringify(buttonSchema)}).forEach(buttonKey => {
+                    if (buttonKey === 'buttonName') return; // Skip buttonName field as it's in the list
+                    
+                    const fieldId = 'button' + buttonKey;
+                    const field = document.getElementById(fieldId);
+                    const checkbox = document.getElementById(fieldId + 'Editable');
+                    
+                    if (field && checkbox) {
+                        // Check if property exists and is not null or undefined
+                        const propertyExists = button.hasOwnProperty(buttonKey) && button[buttonKey] !== null && button[buttonKey] !== undefined;
+                        
+                        if (field.tagName === 'SELECT') {
+                            field.value = propertyExists ? button[buttonKey] : '';
+                            field.disabled = !propertyExists;
+                        } else {
+                            field.value = propertyExists ? button[buttonKey] : '';
+                            field.readOnly = !propertyExists;
+                        }
+                        
+                        checkbox.checked = propertyExists;
+                        
+                        // If the property exists, disable the checkbox to prevent unchecking
+                        if (propertyExists) {
+                            checkbox.disabled = true;
+                            checkbox.setAttribute('data-originally-checked', 'true');
+                        } else {
+                            checkbox.disabled = false;
+                            checkbox.removeAttribute('data-originally-checked');
+                        }
+                        
+                        updateInputStyle(field, checkbox.checked);
+                    }
+                });
+            });
+            
+            // Initialize toggle editable behavior for button list view form fields
+            Object.keys(${JSON.stringify(buttonSchema)}).forEach(buttonKey => {
+                if (buttonKey === 'buttonName') return;
+                
+                const fieldId = 'button' + buttonKey;
+                const field = document.getElementById(fieldId);
+                const checkbox = document.getElementById(fieldId + 'Editable');
+                
+                if (field && checkbox) {
+                    // Set initial state
+                    updateInputStyle(field, checkbox.checked);
+                    
+                    // Add event listener for checkbox state changes
+                    checkbox.addEventListener('change', function() {
+                        if (field.tagName === 'INPUT') {
+                            field.readOnly = !this.checked;
+                        } else if (field.tagName === 'SELECT') {
+                            field.disabled = !this.checked;
+                        }
+                        updateInputStyle(field, this.checked);
+                        
+                        // Disable the checkbox if it's checked to prevent unchecking
+                        if (this.checked) {
+                            this.disabled = true;
+                            this.setAttribute('data-originally-checked', 'true');
+                            
+                            // If the checkbox is checked, ensure we have a valid value
+                            if (field.tagName === 'SELECT' && (!field.value || field.value === "")) {
+                                // For select elements with no value, select the first option
+                                if (field.options.length > 0) {
+                                    field.selectedIndex = 0;
+                                }
+                            }
+                        }
+                        
+                        // Update the button in the model when checkbox changes
+                        const selectedIndex = buttonsList.value;
+                        if (selectedIndex !== '' && selectedIndex >= 0) {
+                            vscode.postMessage({
+                                command: 'updateButton',
+                                data: {
+                                    index: parseInt(selectedIndex),
+                                    property: buttonKey,
+                                    exists: this.checked,
+                                    value: this.checked ? field.value : undefined
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Add event listener for field value changes
+                    field.addEventListener('input', function() {
+                        if (checkbox.checked) {
+                            const selectedIndex = buttonsList.value;
+                            if (selectedIndex !== '' && selectedIndex >= 0) {
+                                vscode.postMessage({
+                                    command: 'updateButton',
+                                    data: {
+                                        index: parseInt(selectedIndex),
+                                        property: buttonKey,
+                                        exists: true,
+                                        value: this.value
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+        
         // Add button button click handler
         document.getElementById('add-button-btn').addEventListener('click', function() {
             // Reset form and show modal for adding a new button
@@ -420,7 +572,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             });
             
             // Ensure required fields are set
-            if (!newButton.name) {
+            if (!newButton.buttonName) {
                 alert('Button name is required!');
                 return;
             }
@@ -428,9 +580,27 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             if (currentEditingIndex >= 0) {
                 // Update existing button
                 currentButtons[currentEditingIndex] = newButton;
+                
+                // Update the corresponding option in the buttons list
+                const buttonsList = document.getElementById('buttonsList');
+                if (buttonsList) {
+                    const option = buttonsList.options[currentEditingIndex];
+                    if (option) {
+                        option.textContent = newButton.buttonName || newButton.name || 'Unnamed Button';
+                    }
+                }
             } else {
                 // Add new button
                 currentButtons.push(newButton);
+                
+                // Add to buttons list in list view
+                const buttonsList = document.getElementById('buttonsList');
+                if (buttonsList) {
+                    const option = document.createElement('option');
+                    option.value = currentButtons.length - 1;
+                    option.textContent = newButton.buttonName || newButton.name || 'Unnamed Button';
+                    buttonsList.appendChild(option);
+                }
             }
             
             // Send message to update the model

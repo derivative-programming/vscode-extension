@@ -12,6 +12,7 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
  * @param {string} columnTableRows HTML for the column table rows
  * @param {string} buttonTableHeaders HTML for the button table headers
  * @param {string} buttonTableRows HTML for the button table rows
+ * @param {string} buttonListViewFields HTML for the button list view form fields
  * @param {string} paramTableHeaders HTML for the param table headers
  * @param {string} paramTableRows HTML for the param table rows
  * @param {string} columnModalHtml HTML for the column modal
@@ -23,7 +24,7 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
 function getMainTemplate(report, columnCount, buttonCount, paramCount, 
                         settingsHtml, 
                         columnTableHeaders, columnTableRows,
-                        buttonTableHeaders, buttonTableRows,
+                        buttonTableHeaders, buttonTableRows, buttonListViewFields,
                         paramTableHeaders, paramTableRows,
                         columnModalHtml, buttonModalHtml, paramModalHtml,
                         clientScript) {
@@ -72,20 +73,41 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
     
     <!-- Buttons Tab -->
     <div id="buttons" class="tab-content">
-        <div class="action-buttons">
-            <button id="add-button-btn">Add Button</button>
+        <div class="view-icons">
+            <div class="view-icons-left">
+                <span class="icon table-icon active" data-view="table">Table View</span>
+                <span class="icon list-icon" data-view="list">List View</span>
+            </div>
+            <button id="add-button-btn" class="add-prop-button">Add Button</button>
         </div>
-        
-        <table id="buttons-table">
-            <thead>
-                <tr>
-                    ${buttonTableHeaders}
-                </tr>
-            </thead>
-            <tbody>
-                ${buttonTableRows}
-            </tbody>
-        </table>
+
+        <div id="tableView" class="view-content active">
+            <div class="table-container">
+                <table id="buttons-table">
+                    <thead>
+                        <tr>
+                            ${buttonTableHeaders}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${buttonTableRows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="listView" class="view-content">
+            <div class="list-container">
+                <select id="buttonsList" size="10">
+                    ${(report.reportButton || []).map((button, index) => `<option value="${index}">${button.buttonName || 'Unnamed Button'}</option>`).join('')}
+                </select>
+            </div>
+            <div id="buttonDetailsContainer" class="details-container" style="display: none;">
+                <form id="buttonDetailsForm">
+                    ${buttonListViewFields}
+                </form>
+            </div>
+        </div>
     </div>
     
     <!-- Parameters Tab -->
