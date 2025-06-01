@@ -477,20 +477,18 @@ async function getWebviewContent(context, allObjects) {
                 
                 // Zoom in
                 function zoomIn() {
-                    const currentTransform = d3.zoomTransform(d3.select('#diagram svg').node());
                     d3.select('#diagram svg')
                         .transition()
                         .duration(300)
-                        .call(zoom.transform, currentTransform.scale(currentTransform.k * 1.2));
+                        .call(zoom.scaleBy, 1.2);
                 }
                 
                 // Zoom out
                 function zoomOut() {
-                    const currentTransform = d3.zoomTransform(d3.select('#diagram svg').node());
                     d3.select('#diagram svg')
                         .transition()
                         .duration(300)
-                        .call(zoom.transform, currentTransform.scale(currentTransform.k / 1.2));
+                        .call(zoom.scaleBy, 1 / 1.2);
                 }
                 
                 // Reset zoom
