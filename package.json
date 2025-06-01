@@ -73,10 +73,9 @@
           "group": "navigation@0"
         }
       ],
-      "view/item/context": [
-        {
+      "view/item/context": [        {
           "command": "appdna.addObject",
-          "when": "viewItem == dataObjects",
+          "when": "viewItem =~ /dataObjects.*/",
           "group": "inline@1",
           "icon": "$(add)"
         },

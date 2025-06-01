@@ -1,3 +1,26 @@
+Command: model fabrication request details - fix display as results are downloaded
+
+COMPLETED: Fixed multiple issues with fabrication request download/unzip progress display:
+
+ROOT CAUSE: Multiple conflicting function definitions and inconsistent element targeting caused progress display to fail.
+
+FIXES APPLIED:
+1. ✅ Function Call Fix: Fixed `updateDownloadProgressInModal(message.percent)` to call correct `updateModalDownloadProgress(percent)` function
+2. ✅ Modal Targeting Fix: Updated all progress functions to target `detailsModal` instead of non-existent `download-modal`  
+3. ✅ Removed Duplicates: Eliminated conflicting duplicate function definitions (118 lines removed)
+4. ✅ Consistent Container Usage: Updated all functions to use existing `modal-progress-container` instead of creating new ones
+5. ✅ Fixed Display Checks: Updated modal visibility checks to use `display === 'flex'` for detailsModal
+6. ✅ Proper Cleanup: Updated downloadComplete/downloadError to properly hide progress using class-based visibility
+
+KEY TECHNICAL DETAILS:
+- All progress functions now consistently target the existing `modal-progress-container` element
+- Message handlers correctly check for `detailsModal` with `display === 'flex'`
+- Progress display uses class-based visibility (`progress-container visible`) instead of creating/removing elements
+- Eliminated all references to non-existent `download-modal` element
+- Functions work with the modal structure created in showDetailsModal() function
+
+RESULT: Download and extraction progress now displays correctly with accurate status updates.
+
 Command: Review and update report-related interfaces and models
 - Examined all report-related interfaces in src/data/interfaces/ against app-dna.schema.json
 - Reviewed ReportButtonSchema, ReportParamSchema, ReportColumnSchema, and ReportSchema
@@ -8,6 +31,15 @@ Command: Review and update report-related interfaces and models
 
 Command: Implement auto-refresh functionality for Model Validation request view
 - Task: Add auto-refresh functionality similar to Model AI Processing view that activates when there are processing or queued requests, refreshes every minute, and displays "Auto-refreshing every minute" text with spinning icon
+
+Command: report details view refresh on model file update
+- Issue: When the model file is updated, object details views get refreshed (close and reopen) but report details views do not
+- Created wrapper file src/webviews/reportDetailsView.js to import from reports subfolder (matching object details pattern)
+- Added report details view refresh logic to registerCommands.ts appdna.refreshView command:
+  - Store open report panels before refresh using getOpenPanelItems()
+  - Close all report panels during refresh using closeAllPanels()  
+  - Reopen report panels with fresh data using showReportDetails()
+- Changes follow exact same pattern as existing object details view refresh logic
 - Investigation: Analyzed existing Model Validation view code in modelValidationView.js
 - Finding: Auto-refresh functionality is already fully implemented in the Model Validation view
 - Status: No changes needed - the feature is already complete and working
@@ -49,6 +81,19 @@ Command: Fixed downloadButton scope issue in Model Fabrication Details modal
 Command: Replace hardcoded projectCode with GUID when creating new model files
 
 Command: Modified REPORTS to be a top-level item in treeview
+
+Command: Clean up redundant TypeScript file to maintain architectural consistency
+- Analyzed architectural inconsistency between object details view and report details view
+- Found that report details view had mixed implementations (empty wrapper + TypeScript + JavaScript)
+- Fixed wrapper pattern by creating proper wrapper in reportDetailsView.js
+- Updated command registration to use JavaScript wrapper instead of TypeScript
+- Enhanced webpack configuration to include reports subfolder
+- Removing redundant reportDetailsView.ts file to complete architectural cleanup
+- Both views now follow consistent pattern: wrapper.js → subfolder/implementation.js
+
+Command: Remove redundant reportDetailsView.ts file that still exists
+- User pointed out that webviews/reportDetailsView.ts still exists despite previous cleanup attempt
+- Need to properly remove this file to complete the architectural consistency work
 
 Command: Implement validation for pending change requests in Model Change Request view
 - Added a "Validate" button to the toolbar UI to allow for manual validation of pending change requests
@@ -164,7 +209,6 @@ Command: Improve error handling in Report Details View
 - Included technical details to help diagnose the issue (item label, context value, model load status)
 - Used conditional rendering to show either the full UI or error screen based on data availability
 - Applied CSS styling to make the error message clear and actionable
-Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
@@ -295,10 +339,10 @@ Command: Expand all top level tree items in the AppDNA tree view
 2 0 2 5 - 0 5 - 2 4 :   U s e r   r e q u e s t e d   t o   s w a p   b u t t o n   o r d e r   i n   C a n c e l   M o d e l   F a b r i c a t i o n   R e q u e s t   m o d a l   -   ' N o '   b u t t o n   s h o u l d   b e   t o   t h e   r i g h t   o f   ' Y e s '   b u t t o n 2 0 2 5 - 0 5 - 2 4   1 5 : 2 6 : 1 4   -   U s e r   r e q u e s t e d   i m p l e m e n t a t i o n   o f   e r r o r   r e p o r t   d o w n l o a d   f u n c t i o n a l i t y   f o r   m o d e l   f a b r i c a t i o n   r e q u e s t   d e t a i l s   m o d a l .   S h o u l d   w o r k   l i k e   M o d e l   A I   P r o c e s s i n g   w i t h   d o w n l o a d / v i e w   r e p o r t   b u t t o n   b e h a v i o r . 
  
  Command: Expand all top level tree items in the AppDNA tree view
-m o d e l v a l i d a t i o n   a u t o - r e f r e s h :   A d d i n g   a u t o - r e f r e s h   f u n c t i o n a l i t y   t o   M o d e l   V a l i d a t i o n   r e q u e s t   v i e w   s i m i l a r   t o   M o d e l   A I   P r o c e s s i n g   v i e w 
-Command: Implement validation for pending change requests in the model change request view to verify that the old value is still the current value in the model. If the old value doesn't match the current value, reject the change request with the reason "out of date".2 0 2 5 - 0 5 - 2 5   -   U s e r   r e q u e s t e d   i m p l e m e n t a t i o n   o f   v a l i d a t i o n   f o r   p e n d i n g   c h a n g e   r e q u e s t s   i n   m o d e l   c h a n g e   r e q u e s t   v i e w   t o   v e r i f y   o l d   v a l u e s   a r e   s t i l l   c u r r e n t   a n d   r e j e c t   o u t   o f   d a t e   r e q u e s t s 
- 
- Command: Expand all top level tree items in the AppDNA tree view
+m o d e l v a l i d a t i o n   a u t o - r e f r e s h :   A d d i n g   a u t o - r e f r e s h   f u n c t i o n a l i t y   to   M o d e l   V a l i d a t i o n   r e q u e s t   v i e w   s i m i l a r   t o   M o d e l   A I   P r o c e s s i n g   v i e w 
+Command: Implement validation for pending change requests in the model change request view to verify that the old value is still the current value in the model. If the old value doesn't match the current value, reject the change request with the reason "out of date".2 0 2 5 - 0 5 - 2 5   -   U s e r   r e q u e s t e d   i m p l e m e n t a t i o n   o f   v a l i d a t i o n   f o r   p e n d i n g   c h a n g e   r e q u e s t s   i n   m o d e l   c h a n g e   r e q u e s t   v i e w   t o   v e r i f y   o l d   v a l u e s   a r e   s t i l l   c u r r e n t   a n d   r e j e c t   o u t   o f   d a t e   r e q u e s t s
+  
+ Command: Expand all top level tree items in the AppDNA tree view 
 
 Command: treeview - report filter button
 - Added showReportFilterInputCommand and clearReportFilterCommand functions to filterTreeViewCommands.ts
@@ -312,4 +356,106 @@ Command: treeview - report filter button
 - Filter button works similar to top-level filter but only affects report sub-items under REPORTS node
 
 Command: treeview - report filter button
-- Added showReportFilterInputCommand and clearReportFilterCommand functions to filterTreeViewCommands.ts
+- Added showReportFilterInputCommand and clearReportFilterCommand functions to filterTreeViewCommands.ts 
+
+Command: Fix Add Object Wizard step indicator color contrast issue
+- Identified poor contrast issue where active step has dark blue background with black text
+- Located problematic CSS in src/webviews/addObjectWizardView.js line 328-330  
+- Added color: var(--vscode-button-foreground); to .progress-step.active CSS rule
+- Change follows VS Code design patterns and matches other UI elements in the codebase
+- Minimal surgical fix: added 1 line, deleted 0 lines
+- Fixes readability issue described in issue #43 
+
+ Command: Expand all top level tree items in the AppDNA tree view 
+
+Command: Fix object details view tab title
+- Updated panel title in src/webviews/objects/objectDetailsView.js from "Details for ${item.label}" to "Details for ${item.label} Data Object"
+- This ensures consistency with the report details view pattern: "Details for [name] [Type]"
+- Made minimal surgical change affecting only line 36 of objectDetailsView.js
+- Verified compilation success and change is minimal (1 line changed)
+- Pattern now matches: "Details for Customer Data Object" (for objects) and "Details for Customer Report" (for reports) 
+
+Command: Fixed report details view settings tab editing functionality
+- Fixed the report settings tab to properly handle editable controls
+- Removed inappropriate 'readonly' attribute from select elements which was preventing them from being editable
+- Added initialization code to properly set up initial state of controls based on checkbox state
+- Ensured checkboxes properly enable and disable their controls
+- Improved checkbox handling to prevent unchecking already set properties (same as object details view)
+- Enhanced client script for settings tab with input validation and error handling
+- Result: Report details view settings tab now behaves the same as object details view settings tab
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+C o m m a n d :   t r o u b l e s h o o t   t r e e   v i e w   d a t a   o b j e c t s   a n d   p l u s   i c o n   i s s u e s 
+ 
+ c o m m a n d :   e x a m i n e   t r e e   v i e w   i s s u e s   f o r   V S   C o d e   e x t e n s i o n 
+ 
+ 
+Command: 2025-05-26 - Fix tree view data objects not showing and missing add button
+User reported that adding the 'show hierarchy button' broke the tree view - data objects not showing and plus icon button missing.
+
+Issue identified:
+- Tree data provider was setting contextValue to 'dataObjects' then appending ' showHierarchy' 
+- This changed contextValue from 'dataObjects' to 'dataObjects showHierarchy'
+- But the getChildren() condition was checking for exact equality: contextValue === 'dataObjects'
+- And package.json add button condition was checking: viewItem == dataObjects
+- Both conditions failed, so data objects weren't loaded and add button didn't show
+
+Solution implemented:
+1. Fixed JsonTreeItem creation to use 'dataObjects showHierarchy' as the initial contextValue
+2. Changed tree data provider condition to use contextValue?.includes('dataObjects')
+3. Changed package.json add button condition to use regex: viewItem =~ /dataObjects.*/
+
+Files modified:
+- src/providers/jsonTreeDataProvider.ts (lines 125-137 and 283)
+- package.json (line 78)Command: Expand all top level tree items in the AppDNA tree view
+C o m m a n d :   w h a t   d o e s   t h e   o b j e c t   d a t a   h i e r a r c h y   v i e w   d o ? 
+ 
+ C o m m a n d :   i n v e s t i g a t e   w h y   h i e r a r c h y   v i e w   i s   no t   s h o w i n g   h i e r a r c h y 
+ 
+ C o m m a n d :   t r y   a g a i n   -   i n v e s t i g a t e   h i e r a r c h y   v i e w   n o t   s h o w i n g   h i e r a r c h y 
+ 
+Command: Describe what the hierarchy view uses in the model to determine the hierarchy
+User clarified: "just use the parentObjectName property. Don't use the childObject Array"
+- Confirmed that hierarchy determination should focus on parentObjectName property only
+- childObject array property is not the primary method for establishing hierarchy relationships
+
+Command: Make sure the code does not use the childObject array
+- Removing childObject array processing from buildObjectRelationships function in hierarchyView.js
+- Hierarchy determination will use only parentObjectName property as clarified by user
+
+Command: User reports still seeing no hierarchy - top level items have no parentObjectName or empty string parentObjectName
+- Need to investigate how hierarchy view handles root objects (those with no parent)
+- Root objects should appear at top level of hierarchy tree structure
+
+Command: User provided console logs showing hierarchy relationship building is working correctly
+- Building relationships for 10 objects successfully
+- Found proper parent-child relationships (Customer->Tac, CustomerRole->Customer, etc.)
+- Identified 'Pac' as root object (no parent)
+- However, there's a JavaScript syntax error: "Unexpected token 'function'" at line 100:17 in HTML
+- Need to investigate syntax error in the generated HTML that's preventing hierarchy display
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+
+Command: User still seeing no hierarchy, but progress made:
+- Console shows hierarchy relationships are building correctly 
+- Root object 'Pac' properly identified
+- All parent-child relationships established correctly
+- NEW ISSUE: JavaScript error "ReferenceError: i is not defined" at line 118:52
+- Error occurs in D3.js node selection: .data(nodes, d => d.id || (d.id = ++i))
+- Variable 'i' needs to be declared as a counter for unique node IDs
+Command: Expand all top level tree items in the AppDNA tree view
+
+[2025-05-26] Analyze architecture inconsistency between object details view and report details view - report details view settings tab is from webviews/reportdetailsview.ts but there is no webviews/objectdetailsview.ts
+C o m m a n d :   A n a l y z e   a r c h i t e c t u r e   i n c o n s i s t e n c y   b e t w e e n   o b j e c t   d e t a i l s   v i e w   a n d   r e p o r t   d e t a i l s   v i e w   -   r e p o r t   d e t a i l s   v i e w   s e t t i n g s   t a b   i s   f r o m   w e b v i e w s / r e p o r t d e t a i s v i e w . t s   b u t   t h e r e   i s   n o   w e b v i e w s / o b j e c t d e t a i s v i e w . t s 
+ 
+ C o m m a n d :   R e m o v e   T y p e S c r i p t   r e p o r t D e t a i s V i e w . t s   f i l e   t o   a v o i d   c o n f u s i o n 
+ 
+ -   R e m o v e d   sr c / w e b v i e w s / r e p o r t D e t a i s V i e w . t s   a s   i t   w a s   r e d u n d a n t   a f t e r   i m p l e m t i n g   c o n s i s t e n t   a r c h i t e c t u r e 
+ 
+ -   A r c h i t e c t u r e   n o w   f u l l y   c o n s i s t e n t :   w r a p p e r   J S   f i l e s   - >   i m p l e m t a t i o n   J S   f i l e s   i n   s u b f o l d e r s 
+ 
+Command: Expand all top level tree items in the AppDNA tree view
+2025-05-26: Investigating empty settings tab in report details view - user reports nothing appears in the settings tab
+Command: Expand all top level tree items in the AppDNA tree view
+2025-05-26: Fixed empty settings tab in report details view - issue was schema loader functions looking for non-existent schema.definitions.reportSchema paths. Updated to use correct nested schema paths: properties.root.properties.namespace.items.properties.object.items.properties.report.items.properties
+   

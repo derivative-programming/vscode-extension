@@ -39,9 +39,16 @@
 
     function updateModalDownloadProgress(percent) {
         console.log(`[Webview] Modal: Updating download progress to ${percent}%`);
-        const progressBar = document.querySelector('#download-modal .progress-bar');
-        const percentText = document.querySelector('#download-modal .progress-percentage');
-        const statusMsg = document.querySelector('#download-modal .status-message');
+        const progressContainer = document.getElementById("modal-progress-container");
+        
+        if (!progressContainer) {
+            console.warn("[Webview] Modal: Cannot find progress container");
+            return;
+        }
+        
+        const progressBar = progressContainer.querySelector('.progress-bar');
+        const percentText = progressContainer.querySelector('.progress-percentage');
+        const statusMsg = progressContainer.querySelector('.status-message');
         
         if (progressBar) {
             progressBar.style.width = `${percent}%`;
@@ -59,24 +66,14 @@
 
     function showDownloadProgressInModal() {
         console.log("[Webview] Modal: Creating download progress UI");
-        const modalContent = document.querySelector('#download-modal .modal-content');
+        const progressContainer = document.getElementById("modal-progress-container");
         
-        if (!modalContent) {
-            console.warn("[Webview] Modal: Cannot find modal content element");
+        if (!progressContainer) {
+            console.warn("[Webview] Modal: Cannot find progress container element");
             return;
         }
         
-        // Clear any existing progress elements
-        const existingProgress = modalContent.querySelector('.progress-container');
-        if (existingProgress) {
-            existingProgress.remove();
-        }
-        
-        // Create progress container
-        const progressContainer = document.createElement('div');
-        progressContainer.className = 'progress-container visible';
-        progressContainer.id = 'download-progress-container';
-        
+        progressContainer.className = "progress-container visible";
         progressContainer.innerHTML = `
             <div class="progress-title">Downloading Fabrication Results</div>
             <div class="progress-bar-container">
@@ -88,36 +85,19 @@
             <div class="status-message">Starting download...</div>
         `;
         
-        // Add the progress container to the modal
-        modalContent.appendChild(progressContainer);
-        
-        // Force DOM update
-        setTimeout(() => {
-            const progressElement = document.getElementById('download-progress-container');
-            console.log("[Webview] Modal: Progress UI created, container:", progressElement ? "found" : "not found");
-        }, 10);
+        console.log("[Webview] Modal: Download progress UI created");
     }
 
     function showExtractionProgressInModal(fileCount) {
         console.log("[Webview] Modal: Creating extraction progress UI, files:", fileCount);
-        const modalContent = document.querySelector('#download-modal .modal-content');
+        const progressContainer = document.getElementById("modal-progress-container");
         
-        if (!modalContent) {
-            console.warn("[Webview] Modal: Cannot find modal content element");
+        if (!progressContainer) {
+            console.warn("[Webview] Modal: Cannot find progress container element");
             return;
         }
         
-        // Remove download progress if it exists
-        const downloadProgress = modalContent.querySelector('#download-progress-container');
-        if (downloadProgress) {
-            downloadProgress.remove();
-        }
-        
-        // Create extraction progress container
-        const progressContainer = document.createElement('div');
-        progressContainer.className = 'progress-container visible';
-        progressContainer.id = 'extraction-progress-container';
-        
+        progressContainer.className = "progress-container visible";
         progressContainer.innerHTML = `
             <div class="progress-title">Extracting Files</div>
             <div class="progress-bar-container">
@@ -130,23 +110,22 @@
             <div class="status-message">Starting extraction...</div>
         `;
         
-        // Add the progress container to the modal
-        modalContent.appendChild(progressContainer);
+        console.log("[Webview] Modal: Extraction progress UI created");
     }
 
     function updateExtractionProgressInModal(extracted, total, percent) {
         console.log(`[Webview] Modal: Updating extraction progress: ${percent}% (${extracted}/${total} files)`);
-        const modalContent = document.querySelector('#download-modal .modal-content');
+        const progressContainer = document.getElementById("modal-progress-container");
         
-        if (!modalContent) {
-            console.warn("[Webview] Modal: Cannot find modal content for extraction update");
+        if (!progressContainer) {
+            console.warn("[Webview] Modal: Cannot find progress container for extraction update");
             return;
         }
         
-        const progressBar = modalContent.querySelector('#extraction-progress-container .progress-bar');
-        const percentText = modalContent.querySelector('#extraction-progress-container .progress-percentage');
-        const filesText = modalContent.querySelector('#extraction-progress-container .progress-files');
-        const statusMsg = modalContent.querySelector('#extraction-progress-container .status-message');
+        const progressBar = progressContainer.querySelector('.progress-bar');
+        const percentText = progressContainer.querySelector('.progress-percentage');
+        const filesText = progressContainer.querySelector('.progress-files');
+        const statusMsg = progressContainer.querySelector('.status-message');
         
         if (progressBar) {
             progressBar.style.width = `${percent}%`;
@@ -167,22 +146,21 @@
 
     function downloadComplete() {
         console.log("[Webview] Modal: downloadComplete() called. Cleaning UI and showing success.");
-        const modalContent = document.querySelector('#download-modal .modal-content');
+        const modalContent = document.querySelector('#detailsModal .modal-content');
 
         if (!modalContent) {
-            console.warn("[Webview] Modal: Cannot find #download-modal .modal-content for cleanup.");
+            console.warn("[Webview] Modal: Cannot find #detailsModal .modal-content for cleanup.");
             return;
         }
 
-        // 1. Aggressively remove the main progress display area
-        const mainProgressContainer = modalContent.querySelector('#modal-progress-container');
+        // 1. Hide and clear the main progress display area
+        const mainProgressContainer = document.getElementById("modal-progress-container");
         if (mainProgressContainer) {
-            console.log("[Webview] Clearing, hiding, and removing #modal-progress-container.");
+            console.log("[Webview] Clearing and hiding #modal-progress-container.");
             mainProgressContainer.innerHTML = ''; // Clear content to stop any lingering updates
-            mainProgressContainer.style.display = 'none'; // Explicitly hide
-            mainProgressContainer.remove(); // Remove from DOM
+            mainProgressContainer.className = "progress-container"; // Remove 'visible' class to hide
         } else {
-            console.log("[Webview] #modal-progress-container not found for removal.");
+            console.log("[Webview] #modal-progress-container not found for cleanup.");
         }
 
         // 2. Remove any other potential old/rogue progress containers (belt and suspenders)
@@ -251,15 +229,18 @@
     
     function downloadError(errorMessage) {
         console.log("[Webview] Modal: Download error:", errorMessage);
-        const modalContent = document.querySelector('#download-modal .modal-content');
+        const modalContent = document.querySelector('#detailsModal .modal-content');
         
         if (!modalContent) {
             return;
         }
         
-        // Remove any progress containers
-        const progressContainers = modalContent.querySelectorAll('.progress-container');
-        progressContainers.forEach(container => container.remove());
+        // Hide the progress container
+        const progressContainer = document.getElementById("modal-progress-container");
+        if (progressContainer) {
+            progressContainer.innerHTML = '';
+            progressContainer.className = "progress-container"; // Remove 'visible' class
+        }
         
         // Show error message
         const errorElement = document.createElement('div');
@@ -338,7 +319,8 @@
         } else if (message.command === "modelFabricationDownloadProgress") {
             // Update download progress
             console.log("[Webview] Download progress:", message.percent);
-            updateDownloadProgressInModal(message.percent);        } else if (message.command === "modelFabricationExtractionStarted") {
+            updateModalDownloadProgress(message.percent);
+        } else if (message.command === "modelFabricationExtractionStarted") {
             // Show extraction progress
             console.log("[Webview] Extraction started, file count:", message.fileCount);
             showExtractionProgressInModal(message.fileCount);
@@ -359,19 +341,19 @@
             updateExtractionProgressInModal(message.extracted, message.total, message.percent);
         } else if (message.command === "modelFabricationResultDownloadSuccess") {
             console.log("[Webview] Received modelFabricationResultDownloadSuccess event.");
-            const downloadModal = document.getElementById('download-modal');
-            if (downloadModal && downloadModal.style.display === 'block') {
-                console.log("[Webview] Download modal is visible. Executing downloadComplete().");
+            const detailsModal = document.getElementById('detailsModal');
+            if (detailsModal && detailsModal.style.display === 'flex') {
+                console.log("[Webview] Details modal is visible. Executing downloadComplete().");
                 downloadComplete(); // This function now handles all modal UI updates for success.
             } else {
-                console.log("[Webview] Download modal is not visible or not found. Cannot run downloadComplete().");
+                console.log("[Webview] Details modal is not visible or not found. Cannot run downloadComplete().");
             }
             hideSpinner(); // Hide any global spinner.
         } else if (message.command === "modelFabricationResultDownloadError") {
             console.log("[Webview] Download error:", message.error);
             // Update modal UI for download error if visible
-            const downloadModal = document.getElementById('download-modal');
-            if (downloadModal && downloadModal.style.display === 'block') {
+            const detailsModal = document.getElementById('detailsModal');
+            if (detailsModal && detailsModal.style.display === 'flex') {
                 downloadError(message.error);
             }
             updateButtonAfterError();
@@ -380,8 +362,8 @@
             console.log("[Webview] Received download started event");
             
             // If we're in details modal, show progress there
-            const downloadModal = document.getElementById('download-modal');
-            if (downloadModal && downloadModal.style.display === 'block') {
+            const detailsModal = document.getElementById('detailsModal');
+            if (detailsModal && detailsModal.style.display === 'flex') {
                 showDownloadProgressInModal();
             }
         } else if (message.command === 'modelFabricationDownloadProgress') {
@@ -389,24 +371,24 @@
             console.log(`[Webview] Received download progress update: ${percent}%`);
             
             // If we're in details modal, update progress there
-            const downloadModal = document.getElementById('download-modal');
-            if (downloadModal && downloadModal.style.display === 'block') {
+            const detailsModal = document.getElementById('detailsModal');
+            if (detailsModal && detailsModal.style.display === 'flex') {
                 updateModalDownloadProgress(percent);
             }
         } else if (message.command === 'modelFabricationExtractionStarted') {
             console.log(`[Webview] Received extraction started event, files: ${message.fileCount}`);
             
             // If we're in details modal, show extraction progress there
-            const downloadModal = document.getElementById('download-modal');
-            if (downloadModal && downloadModal.style.display === 'block') {
+            const detailsModal = document.getElementById('detailsModal');
+            if (detailsModal && detailsModal.style.display === 'flex') {
                 showExtractionProgressInModal(message.fileCount);
             }
         } else if (message.command === 'modelFabricationExtractionProgress') {
             console.log(`[Webview] Received extraction progress: ${message.percent}% (${message.extracted}/${message.total})`);
             
             // If we're in details modal, update extraction progress there
-            const downloadModal = document.getElementById('download-modal');
-            if (downloadModal && downloadModal.style.display === 'block') {
+            const detailsModal = document.getElementById('detailsModal');
+            if (detailsModal && detailsModal.style.display === 'flex') {
                 updateExtractionProgressInModal(message.extracted, message.total, message.percent);
             }
         } else if (message.command === "modelFabricationReportExistsResult") {
@@ -1313,106 +1295,6 @@
 
         // Display the modal
         document.getElementById("detailsModal").style.display = "flex";
-    }
-    
-    /**
-     * Shows a progress container for download in the modal.
-     */    function showDownloadProgressInModal() {
-        const progressContainer = document.getElementById("modal-progress-container");
-        if (!progressContainer) { 
-            return;
-        }
-        
-        progressContainer.className = "progress-container visible";
-        progressContainer.innerHTML = `
-            <div class="progress-title">Downloading Fabrication Results</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" style="width: 0%"></div>
-            </div>
-            <div class="progress-info">
-                <span class="progress-percentage">0%</span>
-            </div>
-            <div class="status-message">Starting download...</div>
-        `;
-    }
-    
-    /**
-     * Updates the download progress in the modal.
-     * @param {number} percent - The percentage of download completed.
-     */    function updateDownloadProgressInModal(percent) {
-        const progressContainer = document.getElementById("modal-progress-container");
-        if (!progressContainer) { 
-            return;
-        }
-        
-        const progressBar = progressContainer.querySelector(".progress-bar");
-        if (progressBar) { 
-            progressBar.style.width = `${percent}%`;
-        }
-        
-        const progressPercentage = progressContainer.querySelector(".progress-percentage");
-        if (progressPercentage) { 
-            progressPercentage.textContent = `${percent}%`;
-        }
-        
-        const statusMessage = progressContainer.querySelector(".status-message");
-        if (statusMessage) { 
-            statusMessage.textContent = `Downloading file... ${percent}% complete`;
-        }
-    }
-    
-    /**
-     * Shows extraction progress in the modal.
-     * @param {number} fileCount - The total number of files to extract.
-     */    function showExtractionProgressInModal(fileCount) {
-        const progressContainer = document.getElementById("modal-progress-container");
-        if (!progressContainer) { 
-            return;
-        }
-        
-        progressContainer.innerHTML = `
-            <div class="progress-title">Extracting Files</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" style="width: 0%"></div>
-            </div>
-            <div class="progress-info">
-                <span class="progress-percentage">0%</span>
-                <span class="progress-files">0/${fileCount} files</span>
-            </div>
-            <div class="status-message">Starting extraction...</div>
-        `;
-    }
-    
-    /**
-     * Updates the extraction progress in the modal.
-     * @param {number} extracted - The number of files extracted.
-     * @param {number} total - The total number of files to extract.
-     * @param {number} percent - The percentage of extraction that is complete.
-     */    function updateExtractionProgressInModal(extracted, total, percent) {
-        const progressContainer = document.getElementById("modal-progress-container");
-        if (!progressContainer) { 
-            return; 
-        }
-        
-        const progressBar = progressContainer.querySelector(".progress-bar");
-        if (progressBar) { 
-            progressBar.style.width = `${percent}%`; 
-        }
-        
-        const progressPercentage = progressContainer.querySelector(".progress-percentage");
-        if (progressPercentage) { 
-            progressPercentage.textContent = `${percent}%`; 
-        }
-        
-        const progressFiles = progressContainer.querySelector(".progress-files");
-        if (progressFiles) { 
-            progressFiles.textContent = `${extracted}/${total} files`; 
-        }
-        
-        const statusMessage = progressContainer.querySelector(".status-message");
-        if (statusMessage) { 
-            statusMessage.textContent = `Extracting files... ${percent}% complete`; 
-        }
     }
     
     /**

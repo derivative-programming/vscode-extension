@@ -327,6 +327,7 @@ function generateWizardHTML(allObjects) {
                 }
                 .progress-step.active {
                     background-color: var(--vscode-button-background);
+                    color: var(--vscode-button-foreground);
                 }
                 .success-message {
                     color: var(--vscode-charts-green);
