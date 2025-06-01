@@ -1,6 +1,33 @@
 # AppDNA VS Code Extension Architecture Notes
 
-*Last updated: May 19, 2025*
+# AppDNA VS Code Extension Architecture Notes
+
+*Last updated: June 01, 2025*
+
+## Report Details View List and Table Views (Added 2025-06-01)
+
+The report details view now supports both list and table views for the buttons tab, following the same pattern as object details properties tab:
+
+### Implementation Pattern:
+- **Table View**: Shows all buttons in a table format with inline editing (original functionality)
+- **List View**: Shows button names in a list on the left, with detailed editing form on the right when selected
+- **View Switching**: Icons allow users to toggle between table and list views
+- **Consistent UI**: Matches the object details design patterns and VS Code theming
+
+### Key Files:
+- `buttonsListTemplate.js`: Generates list view form fields for button properties
+- `mainTemplate.js`: Updated to include view switching icons and list view structure  
+- `clientScriptTemplate.js`: Handles view switching logic and list interaction
+- `detailsViewStyles.js`: Added CSS for view icons, list container, and form layout
+
+### Features Added:
+- Button selection from list shows detailed editing form
+- Checkbox toggles for property existence with proper validation
+- Real-time model updates when changes are made
+- Proper initialization and state management
+- Consistent styling with existing UI patterns
+
+This implementation demonstrates the modular template approach used throughout the extension for maintaining consistency across different webview components.
 
 ## Overview
 The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
