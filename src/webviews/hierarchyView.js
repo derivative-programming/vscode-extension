@@ -112,6 +112,7 @@ async function getWebviewContent(context, allObjects) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Object Hierarchy Diagram</title>
+        <link rel="stylesheet" href="https://unpkg.com/@vscode/codicons@latest/dist/codicon.css" />
         <style>
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
@@ -205,8 +206,8 @@ async function getWebviewContent(context, allObjects) {
                 </div>
                 <button id="expand-all" class="button">Expand All</button>
                 <button id="collapse-all" class="button">Collapse All</button>
-                <button id="zoom-in" class="button">+</button>
-                <button id="zoom-out" class="button">-</button>
+                <button id="zoom-in" class="button"><i class="codicon codicon-zoom-in"></i></button>
+                <button id="zoom-out" class="button"><i class="codicon codicon-zoom-out"></i></button>
                 <button id="reset-zoom" class="button">Reset</button>
             </div>
             <div class="diagram-container">

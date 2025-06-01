@@ -8,6 +8,7 @@ const vscode = require("vscode");
 const path = require("path");
 const fs = require("fs");
 const { AuthService } = require("../services/authService");
+const { ModelService } = require("../services/modelService");
 
 /**
  * Shows a welcome view with getting started information
@@ -68,8 +69,26 @@ class WelcomePanel {
                     case "checkFileExists":
                         this._checkFileExists();
                         break;
+                    case "checkModelLoaded":
+                        this._checkModelLoaded();
+                        break;
                     case "openLoginView":
                         vscode.commands.executeCommand("appdna.loginModelServices");
+                        break;
+                    case "showModelFeatureCatalog":
+                        vscode.commands.executeCommand("appdna.modelFeatureCatalog");
+                        break;
+                    case "showModelAIProcessing":
+                        vscode.commands.executeCommand("appdna.modelAIProcessing");
+                        break;
+                    case "showModelValidation":
+                        vscode.commands.executeCommand("appdna.modelValidation");
+                        break;
+                    case "showFabricationBlueprintCatalog":
+                        vscode.commands.executeCommand("appdna.fabricationBlueprintCatalog");
+                        break;
+                    case "showModelFabrication":
+                        vscode.commands.executeCommand("appdna.modelFabrication");
                         break;
                 }
             },
@@ -142,6 +161,19 @@ class WelcomePanel {
         this.panel.webview.postMessage({
             command: "fileExistsResult",
             fileExists
+        });
+    }
+
+    /**
+     * Checks if a model is currently loaded and sends the result back to the webview
+     */
+    _checkModelLoaded() {
+        const modelService = ModelService.getInstance();
+        const modelLoaded = modelService.isFileLoaded();
+        
+        this.panel.webview.postMessage({
+            command: "modelLoadedResult",
+            modelLoaded
         });
     }
 
@@ -326,6 +358,7 @@ class WelcomePanel {
                     <div class="workflow-step-number">3</div>
                     <div class="workflow-step-title">Add Model Features</div>
                     <div class="workflow-step-description">From Model Services, browse and select from a catalog of features to add to your model.</div>
+                    <button id="viewModelFeatureCatalogButton" class="button" style="display: none;">View Model Feature Catalog</button>
                 </div>
 
                 <div class="workflow-step">
@@ -333,6 +366,7 @@ class WelcomePanel {
                     <div class="workflow-step-title">Request Model AI Processing</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model AI processing service and download the results when complete.</div>
                     <div class="workflow-note">AI processing adds data to the model. It does not change existing data in the model.</div>
+                    <button id="requestModelAIProcessingButton" class="button" style="display: none;">Request Model AI Processing</button>
                 </div>
 
                 <div class="workflow-step">
@@ -340,19 +374,23 @@ class WelcomePanel {
                     <div class="workflow-step-title">Request Model Validation</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions.</div>
                     <div class="workflow-note">Model Validation Change Requests adds and modifies the model.</div>
+                    <button id="requestModelValidationButton" class="button" style="display: none;">Request Model Validation</button>
                 </div>
 
                 <div class="workflow-step">
                     <div class="workflow-step-number">6</div>
                     <div class="workflow-step-title">Select Blueprint</div>
                     <div class="workflow-step-description">From Model Services, select Blueprint Selection to define the type of files you want to fabricate.</div>
+                    <button id="viewFabricationBlueprintCatalogButton" class="button" style="display: none;">View Fabrication Blueprint Catalog</button>
                 </div>
 
                 <div class="workflow-step">
                     <div class="workflow-step-number">7</div>
                     <div class="workflow-step-title">Request Model Fabrication</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Fabrication service and download the fabrication results when complete.</div>
-                    <div class="workflow-note">In the fabrication_results folder, you will find generated files. Copy what you need from here to your project source code folder.</div>                </div>
+                    <div class="workflow-note">In the fabrication_results folder, you will find generated files. Copy what you need from here to your project source code folder.</div>
+                    <button id="requestModelFabricationButton" class="button" style="display: none;">Request Model Fabrication</button>
+                </div>
             </div>
         </div>
     </div>
@@ -365,6 +403,11 @@ class WelcomePanel {
             // Check if the plus sign in the tree view is visible
             function checkPlusSignVisibility() {
                 vscode.postMessage({ command: "checkFileExists" });
+            }
+
+            // Check if a model is currently loaded
+            function checkModelLoadedStatus() {
+                vscode.postMessage({ command: "checkModelLoaded" });
             }
             
             // Add event listeners to action cards if they exist
@@ -405,9 +448,49 @@ class WelcomePanel {
                 });
             }
 
-            // Check file existence initially and periodically update button state
+            // Add event listeners for model-dependent buttons
+            const viewModelFeatureCatalogButton = document.getElementById("viewModelFeatureCatalogButton");
+            if (viewModelFeatureCatalogButton) {
+                viewModelFeatureCatalogButton.addEventListener("click", () => {
+                    vscode.postMessage({ command: "showModelFeatureCatalog" });
+                });
+            }
+
+            const requestModelAIProcessingButton = document.getElementById("requestModelAIProcessingButton");
+            if (requestModelAIProcessingButton) {
+                requestModelAIProcessingButton.addEventListener("click", () => {
+                    vscode.postMessage({ command: "showModelAIProcessing" });
+                });
+            }
+
+            const requestModelValidationButton = document.getElementById("requestModelValidationButton");
+            if (requestModelValidationButton) {
+                requestModelValidationButton.addEventListener("click", () => {
+                    vscode.postMessage({ command: "showModelValidation" });
+                });
+            }
+
+            const viewFabricationBlueprintCatalogButton = document.getElementById("viewFabricationBlueprintCatalogButton");
+            if (viewFabricationBlueprintCatalogButton) {
+                viewFabricationBlueprintCatalogButton.addEventListener("click", () => {
+                    vscode.postMessage({ command: "showFabricationBlueprintCatalog" });
+                });
+            }
+
+            const requestModelFabricationButton = document.getElementById("requestModelFabricationButton");
+            if (requestModelFabricationButton) {
+                requestModelFabricationButton.addEventListener("click", () => {
+                    vscode.postMessage({ command: "showModelFabrication" });
+                });
+            }
+
+            // Check file existence and model loading status initially and periodically update button state
             checkPlusSignVisibility();
-            setInterval(checkPlusSignVisibility, 1000);
+            checkModelLoadedStatus();
+            setInterval(() => {
+                checkPlusSignVisibility();
+                checkModelLoadedStatus();
+            }, 1000);
             
             // Handle messages from the extension
             window.addEventListener('message', event => {
@@ -415,6 +498,9 @@ class WelcomePanel {
                 switch (message.command) {
                     case 'fileExistsResult':
                         updateCreateButtonState(!message.fileExists);
+                        break;
+                    case 'modelLoadedResult':
+                        updateModelDependentButtonsState(message.modelLoaded);
                         break;
                     case 'updateLoginStatus':
                         updateLoginButtonState(message.isLoggedIn);
@@ -452,6 +538,28 @@ class WelcomePanel {
                         loggedInMessage.style.display = "none";
                     }
                 }
+            }
+
+            // Update model-dependent buttons state based on whether a model is loaded
+            function updateModelDependentButtonsState(modelLoaded) {
+                const modelDependentButtons = [
+                    "viewModelFeatureCatalogButton",
+                    "requestModelAIProcessingButton",
+                    "requestModelValidationButton",
+                    "viewFabricationBlueprintCatalogButton",
+                    "requestModelFabricationButton"
+                ];
+
+                modelDependentButtons.forEach(buttonId => {
+                    const button = document.getElementById(buttonId);
+                    if (button) {
+                        if (modelLoaded) {
+                            button.style.display = "block";
+                        } else {
+                            button.style.display = "none";
+                        }
+                    }
+                });
             }
         })();
     </script>

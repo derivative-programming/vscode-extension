@@ -31,7 +31,7 @@ model fabrication download...
  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
 
 model fabrication request details...
-- display the fabrication request code under the status.
+- ✅ display the fabrication request code under the status.
 
 MCP server
 - implement MCP server in the extension that the copilot agent can connect to.

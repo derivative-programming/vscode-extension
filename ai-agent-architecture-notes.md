@@ -1,7 +1,5 @@
 # AppDNA VS Code Extension Architecture Notes
-
-# AppDNA VS Code Extension Architecture Notes
-
+ 
 *Last updated: June 01, 2025*
 
 ## Report Details View List and Table Views (Added 2025-06-01)
@@ -28,6 +26,8 @@ The report details view now supports both list and table views for the buttons t
 - Consistent styling with existing UI patterns
 
 This implementation demonstrates the modular template approach used throughout the extension for maintaining consistency across different webview components.
+ 
+*Last updated: June 1, 2025* 
 
 ## Overview
 The AppDNA VS Code extension provides a graphical interface for editing, validating, and managing AppDNA model files (JSON) using a dynamic UI generated from an external JSON schema. This document contains key architectural observations to help quickly understand the codebase.
@@ -398,6 +398,12 @@ When the model file is updated externally, the extension automatically refreshes
 ## UI Design Patterns
 
 ### Webview Design Consistency
+
+- All webviews use VS Code's CSS variables for consistent theming
+- VS Code codicons are available in webviews by including: `<link rel="stylesheet" href="https://unpkg.com/@vscode/codicons@latest/dist/codicon.css" />`
+- Use codicon classes like `<i class="codicon codicon-zoom-in"></i>` for consistent iconography
+- Icons should be used instead of text symbols (e.g., use zoom-in/zoom-out icons instead of +/- text)
+- Buttons follow VS Code styling with proper hover states and theming variables
 - **Object Details View**: Uses template-based approach with proper VS Code theming
   - Title format: "Details for {name} Data Object"
   - Tabs are left-justified with VS Code theme variables
@@ -884,6 +890,21 @@ The report details view settings tab filters out certain properties that should 
 - Based on C# `GetReportPropertiesToIgnore()` method from the original codebase
 
 This ensures the settings tab only shows user-editable properties while hiding complex internal settings.
+
+## Model Fabrication Request Details Enhancement (Added 2025-12-19)
+
+Enhanced the Model Fabrication Request Details modal to display the request code, bringing it in line with the Model Validation Request Details modal.
+
+### Changes Made:
+- Added `modelFabricationRequestCode` field to the details modal in `src/webviews/modelFabricationView.js`
+- Field is displayed with label "Request Code" positioned after the Status field
+- Uses existing field rendering logic for consistent formatting and HTML escaping
+- Follows the same pattern as the Model Validation view for consistency
+
+### Implementation Details:
+- Field added to `fieldsToShow` array in the `showDetailsModal` function
+- No special handling required - uses default text rendering with HTML escaping
+- Minimal change: only one line added to existing array definition
 
 ## Data Object Filter Functionality (Added 2025-06-01)
 
