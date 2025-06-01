@@ -536,24 +536,20 @@
                 
                 .detail-item {
                     margin-bottom: 15px;
+                    display: flex;
+                    align-items: baseline;
                 }
                 
                 .detail-label {
-                    font-weight: bold;
+                    flex: 0 0 120px;
+                    font-weight: 600;
                     color: var(--vscode-descriptionForeground);
-                    display: block;
-                    margin-bottom: 5px;
                 }
                 
                 .detail-value {
-                    font-family: var(--vscode-editor-font-family);
+                    flex: 1;
                     white-space: pre-wrap;
                     word-wrap: break-word;
-                    background-color: var(--vscode-input-background);
-                    padding: 5px 8px;
-                    border-radius: 3px;
-                    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
-                    display: block;
                 }
                 
                 .loading-message {
