@@ -162,7 +162,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const reportsItem = new JsonTreeItem(
                     'REPORTS',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'reports showFilter'
+                    'reports showReportFilter'
                 );
                 reportsItem.iconPath = new vscode.ThemeIcon('book');
                 reportsItem.tooltip = "Model reports from all objects (click to expand, right-click for options)";
@@ -347,10 +347,9 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             } catch (error) {
                 console.error('Error reading objects:', error);
                 return Promise.resolve([]);
-            }
-        }
+            }        }
           // Handle REPORTS as a top-level item
-        if (element?.contextValue === 'reports' && fileExists) {
+        if (element?.contextValue?.includes('reports') && fileExists) {
             try {
                 if (modelLoaded) {
                     // Use ModelService to get all reports
@@ -570,7 +569,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             return Promise.resolve(new JsonTreeItem(
                 'REPORTS',
                 vscode.TreeItemCollapsibleState.Collapsed,
-                'reports showFilter'
+                'reports showReportFilter'
             ));
         }
         

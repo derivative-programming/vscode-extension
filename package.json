@@ -87,13 +87,13 @@
         },
         {
           "command": "appdna.showReportFilter",
-          "when": "viewItem =~ /reports.*showFilter/",
+          "when": "viewItem =~ /reports.*showReportFilter/",
           "group": "inline",
           "icon": "$(filter)"
         },
         {
           "command": "appdna.clearReportFilter",
-          "when": "viewItem =~ /reports.*showFilter/ && appDnaReportFilterActive",
+          "when": "viewItem =~ /reports.*showReportFilter/ && appDnaReportFilterActive",
           "group": "inline",
           "icon": "$(clear-all)"
         }

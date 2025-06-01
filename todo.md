@@ -6,20 +6,15 @@ treeview...
 
 obj hierarchy view...
 - refresh button should recalculate hierarchy.
-- (copilot assigned) zoom in and zoom out buttons are having issues. when you use one of them, the other stops working.
 - zoom in and zoom out buttons should have icons on buttons.
-
-object details view...
-- (copilot assigned) tab title shows 'Details for <object name>'.  Should be 'Details for <object name> Data Object'.
+ 
 
 report details view...
 - (copilot assigned) when model file is updated, refresh the report details view. we do this with the object details view now.
 - (copilot assigned) report details buttons tab should work similar to the object details 'properties' tab
 - report details columns tab should work similar to the object details 'properties' tab
 - report details parameters tab should work similar to the object details 'properties' tab
-
-Add data object wizard view...
-- (copilot assigned) fix dark blue color.
+ 
 
 
 filter report items...
@@ -44,13 +39,6 @@ model fabrication download...
 model fabrication request details...
 - (copilot assigned) fix display when downloading results.
 - display the fabrication request code under the status.
-
-model validation request details...
-- (copilot assigned) show text instead of text boxes, similar to the fabrication request details view.
-
-
-model ai processing request details...
-- (copilot assigned) show text instead of text boxes, similar to the fabrication request details view.
 
 MCP server
 - implement MCP server in the extension that the copilot agent can connect to.
@@ -77,9 +65,7 @@ functions
 
 
 home page...
-
-  
-(copilot assigned) step 2: should watch for login event and refresh the welcome view
+ 
 
 step 3: button  'View Model Feature Catalog' to show view, only show if model loaded
 
