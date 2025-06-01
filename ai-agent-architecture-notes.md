@@ -858,6 +858,21 @@ The report details view settings tab filters out certain properties that should 
 
 This ensures the settings tab only shows user-editable properties while hiding complex internal settings.
 
+## Model Fabrication Request Details Enhancement (Added 2025-12-19)
+
+Enhanced the Model Fabrication Request Details modal to display the request code, bringing it in line with the Model Validation Request Details modal.
+
+### Changes Made:
+- Added `modelFabricationRequestCode` field to the details modal in `src/webviews/modelFabricationView.js`
+- Field is displayed with label "Request Code" positioned after the Status field
+- Uses existing field rendering logic for consistent formatting and HTML escaping
+- Follows the same pattern as the Model Validation view for consistency
+
+### Implementation Details:
+- Field added to `fieldsToShow` array in the `showDetailsModal` function
+- No special handling required - uses default text rendering with HTML escaping
+- Minimal change: only one line added to existing array definition
+
 ## Data Object Filter Functionality (Added 2025-06-01)
 
 The data object tree view now includes filter functionality similar to the report filter, allowing users to filter data objects by name in a case-insensitive manner.

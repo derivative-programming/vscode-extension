@@ -1153,7 +1153,8 @@
         const fieldsToShow = [
             { key: "modelFabricationRequestDescription", label: "Description" },
             { key: "modelFabricationRequestRequestedUTCDateTime", label: "Requested At", type: "datetime" },
-            { key: "status", label: "Status", className: "status-field" } 
+            { key: "status", label: "Status", className: "status-field" },
+            { key: "modelFabricationRequestCode", label: "Request Code" }
         ];
 
         fieldsToShow.forEach(field => {
