@@ -810,13 +810,13 @@ This pattern of presenting a workflow guide helps users understand the proper se
 The extension uses a consistent pattern for downloading and viewing error reports across different request types (AI Processing, Validation, Fabrication):
 
 1. **Check Report Exists**: Before showing download/view button, check if report file exists locally
-   - Command: `{type}CheckReportExists` - Checks `.app_dna_{type}_reports/{filename}` directory
+   - Command: `{type}CheckReportExists` - Checks `.app_dna/{type}_reports/{filename}` directory
    - Response: `{type}ReportExistsResult` with exists flag and requestCode
 
 2. **Download Report**: Downloads report from API and saves locally
    - Command: `{type}DownloadReport` - Takes URL and requestCode parameters
    - Uses AuthService.getApiKey() for authentication
-   - Saves to `.app_dna_{type}_reports/` directory with consistent naming
+   - Saves to `.app_dna/{type}_reports/` directory with consistent naming
    - Response: `{type}ReportDownloadStarted`, `{type}ReportDownloadSuccess`, or `{type}ReportDownloadError`
 
 3. **View Report**: Opens existing local report file in VS Code editor
@@ -825,9 +825,9 @@ The extension uses a consistent pattern for downloading and viewing error report
    - Response: `reportOpened` or `reportOpenError`
 
 #### Directory Structure for Reports
-- AI Processing: `.app_dna_ai_processing_reports/{requestCode}.txt`
-- Validation: `.app_dna_validation_reports/validation_report_{requestCode}.txt`
-- Fabrication: `.app_dna_fabrication_reports/fabrication_report_{requestCode}.txt`
+- AI Processing: `.app_dna/ai_processing_reports/{requestCode}.txt`
+- Validation: `.app_dna/validation_reports/validation_report_{requestCode}.txt`
+- Fabrication: `.app_dna/fabrication_reports/fabrication_report_{requestCode}.txt`
 
 #### Webview Button Logic
 - Button shows "View Report" if file exists locally, "Download Report" if not

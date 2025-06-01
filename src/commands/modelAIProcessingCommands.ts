@@ -8,6 +8,7 @@ import * as path from 'path';
 import JSZip from 'jszip';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService';
+import { getWorkspaceRoot, getAIProcessingReportsPath, getCompatibleFilePath } from '../utils/appDnaFolderUtils';
 
 // Local helper function to handle API errors with panel/UI updates
 function handleApiError(error: any, panel: vscode.WebviewPanel, errorCommand: string, defaultData: any = {}): void {
@@ -350,14 +351,9 @@ export function registerModelAIProcessingCommands(
                     }                } else if (msg.command === 'modelAIProcessingCheckReportExists') {
                     console.log("[Extension] Checking if report exists locally for request code:", msg.requestCode);
                     try {
-                        const workspaceFolders = vscode.workspace.workspaceFolders;
-                        if (!workspaceFolders) {
-                            throw new Error('No workspace folder is open');
-                        }
-
-                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-                        const processingDirPath = path.join(workspaceRoot, '.app_dna_ai_processing_reports');
-                        const filePath = path.join(processingDirPath, `${msg.requestCode}.txt`);
+                        const workspaceRoot = getWorkspaceRoot();
+                        const aiProcessingReportsPath = getAIProcessingReportsPath(workspaceRoot);
+                        const filePath = getCompatibleFilePath(workspaceRoot, '.app_dna_ai_processing_reports', aiProcessingReportsPath, `${msg.requestCode}.txt`);
                         
                         const exists = fs.existsSync(filePath);
                         
@@ -590,18 +586,9 @@ async function downloadAIProcessingReport(panel: vscode.WebviewPanel, url: strin
         // Get the report content as text
         const reportContent = await response.text();
 
-        // Create AI processing reports directory if it doesn't exist
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error('No workspace folder is open');
-        }
-
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const processingDirPath = path.join(workspaceRoot, '.app_dna_ai_processing_reports');
-        
-        if (!fs.existsSync(processingDirPath)) {
-            fs.mkdirSync(processingDirPath, { recursive: true });
-        }
+        // Create AI processing reports directory if it doesn't exist using new .app_dna structure
+        const workspaceRoot = getWorkspaceRoot();
+        const processingDirPath = getAIProcessingReportsPath(workspaceRoot);
 
         // Save the report content to a file
         const filePath = path.join(processingDirPath, `${requestCode}.txt`);
@@ -624,14 +611,9 @@ async function downloadAIProcessingReport(panel: vscode.WebviewPanel, url: strin
  */
 async function openAIProcessingReport(panel: vscode.WebviewPanel, requestCode: string) {
     try {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error('No workspace folder is open');
-        }
-
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const processingDirPath = path.join(workspaceRoot, '.app_dna_ai_processing_reports');
-        const filePath = path.join(processingDirPath, `${requestCode}.txt`);
+        const workspaceRoot = getWorkspaceRoot();
+        const aiProcessingReportsPath = getAIProcessingReportsPath(workspaceRoot);
+        const filePath = getCompatibleFilePath(workspaceRoot, '.app_dna_ai_processing_reports', aiProcessingReportsPath, `${requestCode}.txt`);
         
         // Check if file exists before trying to open it
         if (!fs.existsSync(filePath)) {

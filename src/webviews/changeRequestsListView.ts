@@ -5,6 +5,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getWorkspaceRoot, getValidationChangeRequestsPath, getCompatibleFilePath } from '../utils/appDnaFolderUtils';
 
 /**
  * Loads change requests from a JSON file and sends them to the webview.
@@ -13,14 +14,9 @@ import * as path from 'path';
  */
 async function loadAndSendChangeRequests(panel: vscode.WebviewPanel, requestCode: string) {
     try {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error('No workspace folder is open');
-        }
-
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        // CORRECTED: Ensure this path matches where change requests are saved
-        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
+        const workspaceRoot = getWorkspaceRoot();
+        const validationChangeRequestsPath = getValidationChangeRequestsPath(workspaceRoot);
+        const changeRequestsFilePath = getCompatibleFilePath(workspaceRoot, 'validation_change_requests', validationChangeRequestsPath, `${requestCode}.json`);
         
         // Check if file exists
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -631,13 +627,9 @@ function getNonce() {
  */
 async function handleApproveChangeRequest(panel: vscode.WebviewPanel, requestCode: string, changeRequestCode: string) {
     try {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error('No workspace folder is open');
-        }
-
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
+        const workspaceRoot = getWorkspaceRoot();
+        const validationChangeRequestsPath = getValidationChangeRequestsPath(workspaceRoot);
+        const changeRequestsFilePath = getCompatibleFilePath(workspaceRoot, 'validation_change_requests', validationChangeRequestsPath, `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -705,13 +697,9 @@ async function handleApproveChangeRequest(panel: vscode.WebviewPanel, requestCod
  */
 async function handleRejectChangeRequest(panel: vscode.WebviewPanel, requestCode: string, changeRequestCode: string, reason?: string) {
     try {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error('No workspace folder is open');
-        }
-
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
+        const workspaceRoot = getWorkspaceRoot();
+        const validationChangeRequestsPath = getValidationChangeRequestsPath(workspaceRoot);
+        const changeRequestsFilePath = getCompatibleFilePath(workspaceRoot, 'validation_change_requests', validationChangeRequestsPath, `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -783,13 +771,9 @@ async function handleRejectChangeRequest(panel: vscode.WebviewPanel, requestCode
  */
 async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode: string, changeRequestCode: string) {
     try {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error('No workspace folder is open');
-        }
-
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
+        const workspaceRoot = getWorkspaceRoot();
+        const validationChangeRequestsPath = getValidationChangeRequestsPath(workspaceRoot);
+        const changeRequestsFilePath = getCompatibleFilePath(workspaceRoot, 'validation_change_requests', validationChangeRequestsPath, `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -1045,13 +1029,9 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
  */
 async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestCode: string) {
     try {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error('No workspace folder is open');
-        }
-
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
+        const workspaceRoot = getWorkspaceRoot();
+        const validationChangeRequestsPath = getValidationChangeRequestsPath(workspaceRoot);
+        const changeRequestsFilePath = getCompatibleFilePath(workspaceRoot, 'validation_change_requests', validationChangeRequestsPath, `${requestCode}.json`);
         
         // Read file contents
         if (!fs.existsSync(changeRequestsFilePath)) {
@@ -1413,10 +1393,9 @@ async function validatePendingChangeRequests(changeRequests: any[], requestCode:
         
         // If we made any validation changes, save the updated change requests file
         if (validationChanges) {
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            if (workspaceFolders) {
-                const workspaceRoot = workspaceFolders[0].uri.fsPath;
-                const changeRequestsFilePath = path.join(workspaceRoot, 'validation_change_requests', `${requestCode}.json`);
+            const workspaceRoot = getWorkspaceRoot();
+            const validationChangeRequestsPath = getValidationChangeRequestsPath(workspaceRoot);
+            const changeRequestsFilePath = getCompatibleFilePath(workspaceRoot, 'validation_change_requests', validationChangeRequestsPath, `${requestCode}.json`);
                 
                 // Read the original file structure to preserve it
                 const originalFileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
