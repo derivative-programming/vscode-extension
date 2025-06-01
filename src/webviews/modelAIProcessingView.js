@@ -548,6 +548,8 @@
                 
                 .detail-value {
                     flex: 1;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
                 }
                 
                 .loading-message {
