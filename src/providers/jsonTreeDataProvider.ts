@@ -44,6 +44,9 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         this.mcpServer = MCPServer.getInstance();
         this.mcpHttpServer = MCPHttpServer.getInstance();
         
+        // Initialize context values
+        vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', false);
+        
         // Register to server status changes to update the tree view
         this.mcpServer.onStatusChange(isRunning => {
             // Refresh the tree view when server status changes
