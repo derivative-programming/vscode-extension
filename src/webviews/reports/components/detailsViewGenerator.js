@@ -14,6 +14,7 @@ const { getColumnsListTemplate } = require("./templates/columnsListTemplate");
 const { getButtonsTableTemplate } = require("./templates/buttonsTableTemplate");
 const { getButtonsListTemplate } = require("./templates/buttonsListTemplate");
 const { getParamsTableTemplate } = require("./templates/paramsTableTemplate");
+const { getParamsListTemplate } = require("./templates/paramsListTemplate");
 const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
 
 /**
@@ -54,6 +55,9 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
     // Generate the params tab content using templates
     const { paramTableHeaders, paramTableRows } = getParamsTableTemplate(params, reportParamsSchema);
     
+    // Generate the params list view content
+    const paramListViewFields = getParamsListTemplate(reportParamsSchema);
+    
     // Generate column modal HTML
     const columnModalHtml = getColumnModalHtml(reportColumnsSchema);
     
@@ -80,7 +84,7 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
         settingsHtml, 
         columnTableHeaders, columnTableRows, columnListViewFields,
         buttonTableHeaders, buttonTableRows, buttonListViewFields,
-        paramTableHeaders, paramTableRows,
+        paramTableHeaders, paramTableRows, paramListViewFields,
         columnModalHtml, buttonModalHtml, paramModalHtml,
         clientScript + modalJs
     );
