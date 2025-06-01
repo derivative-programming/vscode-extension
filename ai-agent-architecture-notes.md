@@ -276,6 +276,20 @@ This consistent pagination pattern is implemented across multiple views includin
 
 ## Special Patterns
 
+### File Refresh Mechanism (2025-01-06)
+When the model file is updated externally, the extension automatically refreshes all open views:
+- File watcher in `extension.ts` triggers the `"appdna.refreshView"` command
+- Command in `registerCommands.ts` handles the refresh logic:
+  1. Stores references to all open panels (object details, report details, etc.)
+  2. Closes all open panels
+  3. Reloads the model file from disk
+  4. Reopens all previously open panels with fresh data
+- Both object details views and report details views follow the same pattern:
+  - `getOpenPanelItems()` - gets currently open panels
+  - `closeAllPanels()` - closes all panels  
+  - `showObjectDetails()`/`showReportDetails()` - reopens panels with fresh data
+- Wrapper files in `src/webviews/` import the actual implementations from subdirectories
+
 1. **Dynamic UI Generation**:
    - Schema is loaded and parsed to discover all possible properties
    - UI elements are generated based on property types (enum → dropdown)

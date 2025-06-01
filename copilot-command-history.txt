@@ -8,6 +8,15 @@ Command: Review and update report-related interfaces and models
 
 Command: Implement auto-refresh functionality for Model Validation request view
 - Task: Add auto-refresh functionality similar to Model AI Processing view that activates when there are processing or queued requests, refreshes every minute, and displays "Auto-refreshing every minute" text with spinning icon
+
+Command: report details view refresh on model file update
+- Issue: When the model file is updated, object details views get refreshed (close and reopen) but report details views do not
+- Created wrapper file src/webviews/reportDetailsView.js to import from reports subfolder (matching object details pattern)
+- Added report details view refresh logic to registerCommands.ts appdna.refreshView command:
+  - Store open report panels before refresh using getOpenPanelItems()
+  - Close all report panels during refresh using closeAllPanels()  
+  - Reopen report panels with fresh data using showReportDetails()
+- Changes follow exact same pattern as existing object details view refresh logic
 - Investigation: Analyzed existing Model Validation view code in modelValidationView.js
 - Finding: Auto-refresh functionality is already fully implemented in the Model Validation view
 - Status: No changes needed - the feature is already complete and working
