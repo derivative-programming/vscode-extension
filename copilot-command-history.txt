@@ -318,7 +318,17 @@ Command: Expand all top level tree items in the AppDNA tree view
  Command: Expand all top level tree items in the AppDNA tree view
 m o d e l v a l i d a t i o n   a u t o - r e f r e s h :   A d d i n g   a u t o - r e f r e s h   f u n c t i o n a l i t y   to   M o d e l   V a l i d a t i o n   r e q u e s t   v i e w   s i m i l a r   t o   M o d e l   A I   P r o c e s s i n g   v i e w 
 Command: Implement validation for pending change requests in the model change request view to verify that the old value is still the current value in the model. If the old value doesn't match the current value, reject the change request with the reason "out of date".2 0 2 5 - 0 5 - 2 5   -   U s e r   r e q u e s t e d   i m p l e m e n t a t i o n   o f   v a l i d a t i o n   f o r   p e n d i n g   c h a n g e   r e q u e s t s   i n   m o d e l   c h a n g e   r e q u e s t   v i e w   t o   v e r i f y   o l d   v a l u e s   a r e   s t i l l   c u r r e n t   a n d   r e j e c t   o u t   o f   d a t e   r e q u e s t s
- 
+  
+ Command: Expand all top level tree items in the AppDNA tree view
+
+Command: Fix Add Object Wizard step indicator color contrast issue
+- Identified poor contrast issue where active step has dark blue background with black text
+- Located problematic CSS in src/webviews/addObjectWizardView.js line 328-330  
+- Added color: var(--vscode-button-foreground); to .progress-step.active CSS rule
+- Change follows VS Code design patterns and matches other UI elements in the codebase
+- Minimal surgical fix: added 1 line, deleted 0 lines
+- Fixes readability issue described in issue #43 
+
  Command: Expand all top level tree items in the AppDNA tree view 
 
 Command: Fix object details view tab title
@@ -411,4 +421,4 @@ Command: Expand all top level tree items in the AppDNA tree view
 2025-05-26: Investigating empty settings tab in report details view - user reports nothing appears in the settings tab
 Command: Expand all top level tree items in the AppDNA tree view
 2025-05-26: Fixed empty settings tab in report details view - issue was schema loader functions looking for non-existent schema.definitions.reportSchema paths. Updated to use correct nested schema paths: properties.root.properties.namespace.items.properties.object.items.properties.report.items.properties
- 
+  
