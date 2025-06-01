@@ -4,13 +4,13 @@ Agent todo items...
 
 obj hierarchy view...
 - refresh button should recalculate hierarchy.
-- zoom in and zoom out buttons should have icons on buttons.
  
 
 report details view...
-- (copilot assigned) report details buttons tab should work similar to the object details 'properties' tab
-- report details columns tab should work similar to the object details 'properties' tab
-- report details parameters tab should work similar to the object details 'properties' tab
+
+- (copilot agent) report details view - columns tab should work similar to the object details view 'properties' tab, including the list and table view options
+
+- report details view - parameters tab should work similar to the object details view 'properties' tab, including the list and table view options
  
  
 
@@ -29,9 +29,7 @@ sub folders...
       
 model fabrication download...
  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
-
-model fabrication request details...
-- ✅ display the fabrication request code under the status.
+ 
 
 MCP server
 - implement MCP server in the extension that the copilot agent can connect to.
@@ -54,19 +52,4 @@ functions
         - get validation request details
         - show validation request details
         - show validation request change request list
-
-
-
-home page...
- 
-
-step 3: button  'View Model Feature Catalog' to show its view, only show if model loaded
-
-step 4: button  'Request Model AI Processing' to show its view, only show if model loaded
-
-step 5: button  'Request Model Validation' to show its view, only show if model loaded
-
-step 6: button 'View Fabrication Blueprint Catalog' to show its view, only show if model loaded
-
-step 7: button  'Request Model Fabrication' to show its view, only show if model loaded
 

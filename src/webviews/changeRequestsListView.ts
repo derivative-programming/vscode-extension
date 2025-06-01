@@ -1390,38 +1390,36 @@ async function validatePendingChangeRequests(changeRequests: any[], requestCode:
                 // Don't reject on validation errors, just log them
             }
         }
-        
-        // If we made any validation changes, save the updated change requests file
+          // If we made any validation changes, save the updated change requests file
         if (validationChanges) {
             const workspaceRoot = getWorkspaceRoot();
             const validationChangeRequestsPath = getValidationChangeRequestsPath(workspaceRoot);
             const changeRequestsFilePath = getCompatibleFilePath(workspaceRoot, 'validation_change_requests', validationChangeRequestsPath, `${requestCode}.json`);
-                
-                // Read the original file structure to preserve it
-                const originalFileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
-                let originalData = JSON.parse(originalFileContent);
-                
-                // Update the original data structure with our validated change requests
-                if (Array.isArray(originalData)) {
-                    originalData = changeRequests;
-                } else if (originalData.changeRequests && Array.isArray(originalData.changeRequests)) {
-                    originalData.changeRequests = changeRequests;
-                } else if (originalData.items && Array.isArray(originalData.items)) {
-                    originalData.items = changeRequests;
-                } else {
-                    // Find the array property and update it
-                    for (const key of Object.keys(originalData)) {
-                        if (Array.isArray(originalData[key])) {
-                            originalData[key] = changeRequests;
-                            break;
-                        }
+            
+            // Read the original file structure to preserve it
+            const originalFileContent = fs.readFileSync(changeRequestsFilePath, 'utf8');
+            let originalData = JSON.parse(originalFileContent);
+            
+            // Update the original data structure with our validated change requests
+            if (Array.isArray(originalData)) {
+                originalData = changeRequests;
+            } else if (originalData.changeRequests && Array.isArray(originalData.changeRequests)) {
+                originalData.changeRequests = changeRequests;
+            } else if (originalData.items && Array.isArray(originalData.items)) {
+                originalData.items = changeRequests;
+            } else {
+                // Find the array property and update it
+                for (const key of Object.keys(originalData)) {
+                    if (Array.isArray(originalData[key])) {
+                        originalData[key] = changeRequests;
+                        break;
                     }
                 }
-                
-                // Save the updated file
-                fs.writeFileSync(changeRequestsFilePath, JSON.stringify(originalData, null, 2), 'utf8');
-                console.log(`[Extension] Saved validation results to ${changeRequestsFilePath}`);
             }
+            
+            // Save the updated file
+            fs.writeFileSync(changeRequestsFilePath, JSON.stringify(originalData, null, 2), 'utf8');
+            console.log(`[Extension] Saved validation results to ${changeRequestsFilePath}`);
         }
         
         return changeRequests;

@@ -1,10 +1,22 @@
-// src/utils/appDnaFolderUtils.ts
+﻿// src/utils/appDnaFolderUtils.ts
 // Utilities for managing the .app_dna folder structure
 // Created: 2025-01-27
 
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+
+/**
+ * Gets the workspace root path
+ * @returns The workspace root path or throws an error if no workspace is open
+ */
+export function getWorkspaceRoot(): string {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+        throw new Error('No workspace folder is open');
+    }
+    return workspaceFolders[0].uri.fsPath;
+}
 
 /**
  * Ensures the .app_dna folder exists in the workspace
@@ -105,20 +117,4 @@ export function getCompatibleFilePath(workspaceRoot: string, oldRelativePath: st
     
     // Otherwise return new path
     return newFilePath;
-}
-
-/**
- * Gets the path to the fabrication reports directory, creating it if necessary
- * @param workspaceRoot The root path of the workspace
- * @returns The path to the fabrication reports directory
- */
-export function getFabricationReportsPath(workspaceRoot: string): string {
-    const appDnaFolderPath = ensureAppDnaFolder(workspaceRoot);
-    const fabricationReportsPath = path.join(appDnaFolderPath, 'fabrication_reports');
-    
-    if (!fs.existsSync(fabricationReportsPath)) {
-        fs.mkdirSync(fabricationReportsPath, { recursive: true });
-    }
-    
-    return fabricationReportsPath;
 }
