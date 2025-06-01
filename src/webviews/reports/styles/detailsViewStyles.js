@@ -56,6 +56,85 @@ function getDetailViewStyles() {
             display: block;
         }
         
+        .view-icons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        
+        .view-icons-left {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .icon {
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+
+        .icon.active {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+
+        .view-content {
+            display: none;
+        }
+        
+        .view-content.active {
+            display: block;
+        }
+        
+        .list-container {
+            width: 100%;
+            max-width: 300px;
+            margin-right: 20px;
+            display: inline-block;
+            vertical-align: top;
+        }
+        
+        .list-container select {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+        }
+        
+        .details-container {
+            display: inline-block;
+            vertical-align: top;
+            width: calc(100% - 320px);
+            min-width: 400px;
+        }
+        
+        .add-prop-button {
+            margin-left: auto;
+            padding: 6px 12px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .add-prop-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .form-row {
+            margin-bottom: 15px;
+        }
+        
+        .form-row label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;

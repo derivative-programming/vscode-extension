@@ -215,6 +215,13 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 const isReadOnly = input.readOnly || input.disabled;
                 updateInputStyle(input, !isReadOnly);
             });
+            
+            // Initialize button list view - hide details if no button is selected
+            const buttonsList = document.getElementById('buttonsList');
+            const buttonDetailsContainer = document.getElementById('buttonDetailsContainer');
+            if (buttonsList && buttonDetailsContainer && (!buttonsList.value || buttonsList.value === "")) {
+                buttonDetailsContainer.style.display = 'none';
+            }
         });
         
         // --- BUTTONS TAB FUNCTIONALITY ---
