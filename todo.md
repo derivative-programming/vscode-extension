@@ -3,23 +3,32 @@ Agent todo items...
   
 treeview...
 
- 
-obj heiararchy view...
-- refresh when model changes
 
+obj hierarchy view...
+- refresh button should recalculate hierarchy.
+- (copilot assigned) zoom in and zoom out buttons are having issues. when you use one of them, the other stops working.
+- zoom in and zoom out buttons should have icons on buttons.
+
+object details view...
+- (copilot assigned) tab title shows 'Details for <object name>'.  Should be 'Details for <object name> Data Object'.
+
+report details view...
+- (copilot assigned) when model file is updated, refresh the report details view. we do this with the object details view now.
+- (copilot assigned) report details buttons tab should work similar to the object details 'properties' tab
+- report details columns tab should work similar to the object details 'properties' tab
+- report details parameters tab should work similar to the object details 'properties' tab
 
 Add data object wizard view...
-- fix dark blue color.
-- refresh button should recalculate heirarchy.
+- (copilot assigned) fix dark blue color.
 
 
-fitler reprot items...
-On Report Title treeview item add a filter icon button. On click, show a textbox to filter the treeview by name.  The filter should be case insensitive and should match any part of the name.  The filter should be applied to all nodes in the treeview, including sub-nodes.  The filter should be cleared when the user clicks the 'Clear Filter' button.
+filter report items...
+(copilot assigned) On Report Title treeview item add a filter icon button. On click, show a textbox to filter the treeview by name.  The filter should be case insensitive and should match any part of the name.  The filter should be applied to all nodes in the treeview, including sub-nodes.  The filter should be cleared when the user clicks the 'Clear Filter' button.
 
 
 change requests... 
 - show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
-- validation error test 'Please provide a reason for rejection.' to red
+- validation error text 'Please provide a reason for rejection.' to red
  
 
 - implement 'add property' 
@@ -31,6 +40,17 @@ sub folders...
       
 model fabrication download...
  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
+
+model fabrication request details...
+- (copilot assigned) fix display when downloading results.
+- display the fabrication request code under the status.
+
+model validation request details...
+- (copilot assigned) show text instead of text boxes, similar to the fabrication request details view.
+
+
+model ai processing request details...
+- (copilot assigned) show text instead of text boxes, similar to the fabrication request details view.
 
 MCP server
 - implement MCP server in the extension that the copilot agent can connect to.
@@ -59,20 +79,15 @@ functions
 home page...
 
   
-step 2: should watch for login event and refresh the welcome view
+(copilot assigned) step 2: should watch for login event and refresh the welcome view
 
-step 2: button  'View Model Feature Catalog' to show view, only show if model loaded
+step 3: button  'View Model Feature Catalog' to show view, only show if model loaded
 
-step 3: button  'Request Model AI Processing' to show view, only show if model loaded
+step 4: button  'Request Model AI Processing' to show view, only show if model loaded
 
-step 4: button  'Request Model Validation' to show view, only show if model loaded
+step 5: button  'Request Model Validation' to show view, only show if model loaded
 
+step 6: button 'View Fabrication Blueprint Catalog' to show view, only show if model loaded
 
+step 7: button  'Request Model Fabrication' to show view, only show if model loaded
 
-step 5: button 'View Fabrication Blueprint Catalog' to show view, only show if model loaded
-
-step 6: button  'Request Model Fabrication' to show view, only show if model loaded
-
- 
-  
-   

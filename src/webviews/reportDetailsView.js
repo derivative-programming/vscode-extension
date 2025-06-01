@@ -1,7 +1,3 @@
-// Report details view wrapper - delegates to the reports subfolder implementation
-// Created: 2025-01-27
-// Last modified: 2025-01-27
-
 "use strict";
 
 // Import the report details view from the reports subfolder
@@ -13,15 +9,35 @@ const { showReportDetails, refreshAll, getOpenPanelItems, closeAllPanels } = req
  * @param {Object} modelService ModelService instance
  */
 function showReportDetailsWrapper(item, modelService) {
-    console.log(`Report details wrapper called for ${item.label}`);
-    // Pass parameters to the implementation
-    showReportDetails(item, modelService);
+    return showReportDetails(item, modelService);
 }
 
-// Export the functions to maintain compatibility with existing code
+/**
+ * Refreshes all open report details webviews with the latest model data
+ */
+function refreshAllWrapper() {
+    return refreshAll();
+}
+
+/**
+ * Gets an array of items from all open panels
+ * @returns {Array} Array of items from open panels
+ */
+function getOpenPanelItemsWrapper() {
+    return getOpenPanelItems();
+}
+
+/**
+ * Closes all currently open report details panels
+ */
+function closeAllPanelsWrapper() {
+    return closeAllPanels();
+}
+
+// Export the wrapper functions
 module.exports = {
     showReportDetails: showReportDetailsWrapper,
-    refreshAll,
-    getOpenPanelItems,
-    closeAllPanels
+    refreshAll: refreshAllWrapper,
+    getOpenPanelItems: getOpenPanelItemsWrapper,
+    closeAllPanels: closeAllPanelsWrapper
 };
