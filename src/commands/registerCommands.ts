@@ -34,7 +34,7 @@ import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
-import { showHierarchyDiagram } from '../webviews/hierarchyView';
+import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
 import { showFilterInputCommand, clearFilterCommand } from './filterTreeViewCommands';
 
 /**
@@ -83,6 +83,9 @@ export function registerCommands(
             
             // Store reference to fabrication blueprint catalog panel if open
             const fabricationBlueprintData = typeof getFabricationBlueprintCatalogPanel === "function" ? getFabricationBlueprintCatalogPanel() : null;
+            
+            // Store reference to hierarchy view panel if open
+            const hierarchyData = typeof getHierarchyPanel === "function" ? getHierarchyPanel() : null;
               // Close all open object details panels
             if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
                 objectDetailsView.closeAllPanels();
@@ -111,6 +114,11 @@ export function registerCommands(
             // Close fabrication blueprint catalog panel if open
             if (typeof closeFabricationBlueprintCatalogPanel === "function") {
                 closeFabricationBlueprintCatalogPanel();
+            }
+            
+            // Close hierarchy view panel if open
+            if (typeof closeHierarchyView === "function") {
+                closeHierarchyView();
             }
             
             // Reload the model file into memory
@@ -154,6 +162,11 @@ export function registerCommands(
             // Reopen fabrication blueprint catalog panel if it was open
             if (fabricationBlueprintData && fabricationBlueprintData.context && fabricationBlueprintData.modelService) {
                 vscode.commands.executeCommand('appdna.fabricationBlueprintCatalog');
+            }
+            
+            // Reopen hierarchy view panel if it was open
+            if (hierarchyData && hierarchyData.context) {
+                showHierarchyDiagram(hierarchyData.context, modelService);
             }        })
     );
     
