@@ -1,0 +1,45 @@
+2025-01-27: Implemented .app_dna folder structure for reports and change requests (Issue #71)
+
+Command: Implement a ".app_dna" folder
+- Create .app_dna folder if it doesn't exist
+- Move validation_reports under .app_dna folder  
+- Move validation_change_requests under .app_dna folder
+- Move .app_dna_ai_processing_reports under .app_dna folder and rename to ai_processing_reports
+- Also implemented fabrication_reports migration for consistency
+
+Changes made:
+1. Created src/utils/appDnaFolderUtils.ts with utility functions:
+   - ensureAppDnaFolder() - Creates .app_dna directory
+   - getValidationReportsPath() - Returns .app_dna/validation_reports path
+   - getValidationChangeRequestsPath() - Returns .app_dna/validation_change_requests path  
+   - getAIProcessingReportsPath() - Returns .app_dna/ai_processing_reports path
+   - getFabricationReportsPath() - Returns .app_dna/fabrication_reports path
+   - getCompatibleFilePath() - Backwards compatibility for existing files
+   - getWorkspaceRoot() - Gets workspace root path
+
+2. Updated src/commands/modelValidationCommands.ts:
+   - Modified all file path references to use new .app_dna structure
+   - Added backwards compatibility to find existing files in old locations
+
+3. Updated src/commands/modelAIProcessingCommands.ts:
+   - Modified all file path references to use .app_dna/ai_processing_reports
+   - Added backwards compatibility for .app_dna_ai_processing_reports files
+
+4. Updated src/commands/modelFabricationCommands.ts:
+   - Modified all file path references to use .app_dna/fabrication_reports
+   - Added backwards compatibility for .app_dna_fabrication_reports files
+
+5. Updated src/webviews/changeRequestsListView.ts:
+   - Modified all change request file path references to use new structure
+   - Updated all functions that read/write change request files
+
+6. Updated ai-agent-architecture-notes.md:
+   - Updated directory structure documentation to reflect new paths
+
+Testing: Created comprehensive tests that verify:
+- .app_dna folder creation works correctly
+- Backwards compatibility maintained for existing files
+- New files automatically use new .app_dna structure  
+- All report types (validation, AI processing, fabrication) work correctly
+
+Result: Fully functional .app_dna folder implementation with backwards compatibility.
