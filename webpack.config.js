@@ -67,14 +67,17 @@ const extensionConfig = {
         exclude: /node_modules/
       }
     ]
-  },
-  plugins: [
+  },  plugins: [
     // Add CopyWebpackPlugin to copy webview files
     new CopyWebpackPlugin({
       patterns: [
         { 
           from: 'src/webviews/objects',
           to: 'webviews/objects' 
+        },
+        { 
+          from: 'src/webviews/reports',
+          to: 'webviews/reports' 
         }
       ]
     })

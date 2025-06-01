@@ -2,18 +2,87 @@
 const { formatLabel } = require("../../helpers/reportDataHelper");
 
 /**
+ * Gets the list of report properties that should not be editable or visible on the settings tab
+ * Based on C# GetReportPropertiesToIgnore() method
+ * @returns {Array<string>} Array of property names to ignore (lowercase)
+ */
+function getReportPropertiesToIgnore() {
+    return [
+        "name",
+        "initobjectworkflowname",
+        "iscachingallowed",
+        "cacheexpirationinminutes",
+        "badgecountpropertyname",
+        "isheaderlabelsvisible",
+        "isreportdetaillabelcolumnvisible",
+        "formintrotext",
+        "isignoredindocumentation",
+        "isazureblobstorageused",
+        "azuretablenameoverride",
+        "isazuretableprimarykeycolumndatetime",
+        "visualizationgridgroupbycolumnname",
+        "visualizationgridgroupbyinfotextcolumnname",
+        "visualizationpiechartslicevaluecolumnname",
+        "visualizationpiechartslicedescriptioncolumnname",
+        "visualizationlinechartutcdatetimecolumnname",
+        "visualizationlinechartvaluecolumnname",
+        "visualizationlinechartdescriptioncolumnname",
+        "isvisualizationlinechartgridhorizlinehidden",
+        "isvisualizationlinechartgridverticallinehidden",
+        "isvisualizationlinechartlegendhidden",
+        "isvisualizationlinechartstairlines",
+        "visualizationlinechartgridverticalmaxvalue",
+        "visualizationlinechartgridverticalminvalue",
+        "visualizationlinechartgridverticalstepvalue",
+        "isvisualizationlinechartverticallabelshidden",
+        "visualizationlinechartgridverticaltitle",
+        "visualizationlinechartgridhorizontitle",
+        "visualizationlinechartgridverticalmaxvallabel",
+        "visualizationlinechartgridverticalminvallabel",
+        "isvisualizationlinechartgridverticalmaxdynamic",
+        "visualizationflowchartsourcenodecodecolumnname",
+        "visualizationflowchartsourcenodedescriptioncolumnname",
+        "visualizationflowchartsourcenodecolorcolumnname",
+        "visualizationflowchartflowdescriptioncolumnname",
+        "visualizationflowchartdestinationnodecodecolumnname",
+        "visualizationcardviewtitlecolumn",
+        "visualizationcardviewdescriptioncolumn",
+        "visualizationcardviewisimmageavailable",
+        "visualizationcardviewimagecolumn",
+        "visualizationcardviewgroupbycolumnname",
+        "visualizationcardviewgroupbyinfotextcolumnname",
+        "visualizationfolderidcolumnname",
+        "visualizationfoldernamecolumnname",
+        "visualizationfolderparentidcolumnname",
+        "visualizationfolderisfoldercolumnname",
+        "visualizationfolderisdragdropallowed",
+        "visualizationfolderdragdropeventcontextobjectname",
+        "visualizationfolderdragdropeventtargetname",
+        "ispage"
+    ];
+}
+
+/**
  * Generates the HTML for the settings tab
  * @param {Object} report The report data excluding complex properties
  * @param {Object} reportSchemaProps The report schema properties
  * @returns {string} HTML for the settings tab
  */
 function getSettingsTabTemplate(report, reportSchemaProps) {
+    const propertiesToIgnore = getReportPropertiesToIgnore();
+    
     return Object.entries(reportSchemaProps)
         .filter(([prop, schema]) => {
             // Skip array properties as they have their own tabs
             if (prop === 'reportColumn' || prop === 'reportButton' || prop === 'reportParam') {
                 return false;
             }
+            
+            // Skip properties that should not be editable or visible
+            if (propertiesToIgnore.includes(prop.toLowerCase())) {
+                return false;
+            }
+            
             return true;
         })
         .sort((a, b) => a[0].localeCompare(b[0])) // Sort alphabetically by property name
@@ -55,5 +124,6 @@ function getSettingsTabTemplate(report, reportSchemaProps) {
 }
 
 module.exports = {
-    getSettingsTabTemplate
+    getSettingsTabTemplate,
+    getReportPropertiesToIgnore
 };
