@@ -23,7 +23,7 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
  */
 function getMainTemplate(report, columnCount, buttonCount, paramCount, 
                         settingsHtml, 
-                        columnTableHeaders, columnTableRows,
+                        columnTableHeaders, columnTableRows, columnListViewFields,
                         buttonTableHeaders, buttonTableRows, buttonListViewFields,
                         paramTableHeaders, paramTableRows,
                         columnModalHtml, buttonModalHtml, paramModalHtml,
@@ -55,20 +55,41 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
     
     <!-- Columns Tab -->
     <div id="columns" class="tab-content">
-        <div class="action-buttons">
-            <button id="add-column-btn">Add Column</button>
+        <div class="view-icons">
+            <div class="view-icons-left">
+                <span class="icon table-icon active" data-view="table">Table View</span>
+                <span class="icon list-icon" data-view="list">List View</span>
+            </div>
+            <button id="add-column-btn" class="add-prop-button">Add Column</button>
         </div>
-        
-        <table id="columns-table">
-            <thead>
-                <tr>
-                    ${columnTableHeaders}
-                </tr>
-            </thead>
-            <tbody>
-                ${columnTableRows}
-            </tbody>
-        </table>
+
+        <div id="tableView" class="view-content active">
+            <div class="table-container">
+                <table id="columns-table">
+                    <thead>
+                        <tr>
+                            ${columnTableHeaders}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${columnTableRows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="listView" class="view-content">
+            <div class="list-container">
+                <select id="columnsList" size="10">
+                    ${(report.reportColumn || []).map((column, index) => `<option value="${index}">${column.name || 'Unnamed Column'}</option>`).join('')}
+                </select>
+            </div>
+            <div id="columnDetailsContainer" class="details-container" style="display: none;">
+                <form id="columnDetailsForm">
+                    ${columnListViewFields}
+                </form>
+            </div>
+        </div>
     </div>
     
     <!-- Buttons Tab -->
