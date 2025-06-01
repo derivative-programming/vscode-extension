@@ -90,10 +90,21 @@
           "when": "viewItem =~ /reports.*showReportFilter/",
           "group": "inline",
           "icon": "$(filter)"
-        },
-        {
+        },        {
           "command": "appdna.clearReportFilter",
           "when": "viewItem =~ /reports.*showReportFilter/ && appDnaReportFilterActive",
+          "group": "inline",
+          "icon": "$(clear-all)"
+        },
+        {
+          "command": "appdna.showDataObjectFilter",
+          "when": "viewItem =~ /dataObjects.*showDataObjectFilter/",
+          "group": "inline",
+          "icon": "$(filter)"
+        },
+        {
+          "command": "appdna.clearDataObjectFilter",
+          "when": "viewItem =~ /dataObjects.*showDataObjectFilter/ && appDnaDataObjectFilterActive",
           "group": "inline",
           "icon": "$(clear-all)"
         }
@@ -196,10 +207,19 @@
         "command": "appdna.showReportFilter",
         "title": "Filter Reports",
         "icon": "$(filter)"
-      },
-      {
+      },      {
         "command": "appdna.clearReportFilter",
         "title": "Clear Report Filter",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "appdna.showDataObjectFilter",
+        "title": "Filter Data Objects",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "appdna.clearDataObjectFilter",
+        "title": "Clear Data Object Filter",
         "icon": "$(clear-all)"
       }
     ],

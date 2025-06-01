@@ -71,3 +71,37 @@ export async function showReportFilterInputCommand(treeDataProvider: JsonTreeDat
 export function clearReportFilterCommand(treeDataProvider: JsonTreeDataProvider): void {
     treeDataProvider.clearReportFilter();
 }
+
+/**
+ * Shows a filter input box to filter only the data object items by name
+ * @param treeDataProvider The tree data provider to apply the data object filter to
+ */
+export async function showDataObjectFilterInputCommand(treeDataProvider: JsonTreeDataProvider): Promise<void> {
+    // Show input box to enter filter text
+    const filterText = await vscode.window.showInputBox({
+        placeHolder: 'Filter data objects by name (case insensitive)',
+        prompt: 'Enter text to filter data object items',
+        value: '',
+    });
+
+    // If user cancels or provides empty text, don't apply filter
+    if (filterText === undefined) {
+        return;
+    }
+
+    if (filterText === '') {
+        // If empty text is provided, clear the filter
+        clearDataObjectFilterCommand(treeDataProvider);
+    } else {
+        // Apply the data object filter
+        treeDataProvider.setDataObjectFilter(filterText);
+    }
+}
+
+/**
+ * Clears the current data object filter from the tree view
+ * @param treeDataProvider The tree data provider to clear the data object filter from
+ */
+export function clearDataObjectFilterCommand(treeDataProvider: JsonTreeDataProvider): void {
+    treeDataProvider.clearDataObjectFilter();
+}

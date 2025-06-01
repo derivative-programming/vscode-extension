@@ -35,7 +35,7 @@ import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, close
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
-import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand } from './filterTreeViewCommands';
+import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand } from './filterTreeViewCommands';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -494,12 +494,24 @@ export function registerCommands(
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showReportFilter', async () => {
             await showReportFilterInputCommand(jsonTreeDataProvider);
-        })
-    );
+        })    );
     
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.clearReportFilter', () => {
             clearReportFilterCommand(jsonTreeDataProvider);
+        })
+    );
+    
+    // Register data object filter commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showDataObjectFilter', async () => {
+            await showDataObjectFilterInputCommand(jsonTreeDataProvider);
+        })
+    );
+    
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.clearDataObjectFilter', () => {
+            clearDataObjectFilterCommand(jsonTreeDataProvider);
         })
     );
 }

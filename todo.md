@@ -1,8 +1,6 @@
 Agent todo items...
     
-  
-treeview...
-
+   
 
 obj hierarchy view...
 - refresh button should recalculate hierarchy.
@@ -10,15 +8,11 @@ obj hierarchy view...
  
 
 report details view...
-- (copilot assigned) when model file is updated, refresh the report details view. we do this with the object details view now.
 - (copilot assigned) report details buttons tab should work similar to the object details 'properties' tab
 - report details columns tab should work similar to the object details 'properties' tab
 - report details parameters tab should work similar to the object details 'properties' tab
  
-
-
-filter report items...
-(copilot assigned) On Report Title treeview item add a filter icon button. On click, show a textbox to filter the treeview by name.  The filter should be case insensitive and should match any part of the name.  The filter should be applied to all nodes in the treeview, including sub-nodes.  The filter should be cleared when the user clicks the 'Clear Filter' button.
+ 
 
 
 change requests... 
@@ -37,7 +31,6 @@ model fabrication download...
  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
 
 model fabrication request details...
-- (copilot assigned) fix display when downloading results.
 - display the fabrication request code under the status.
 
 MCP server
@@ -67,13 +60,13 @@ functions
 home page...
  
 
-step 3: button  'View Model Feature Catalog' to show view, only show if model loaded
+step 3: button  'View Model Feature Catalog' to show its view, only show if model loaded
 
-step 4: button  'Request Model AI Processing' to show view, only show if model loaded
+step 4: button  'Request Model AI Processing' to show its view, only show if model loaded
 
-step 5: button  'Request Model Validation' to show view, only show if model loaded
+step 5: button  'Request Model Validation' to show its view, only show if model loaded
 
-step 6: button 'View Fabrication Blueprint Catalog' to show view, only show if model loaded
+step 6: button 'View Fabrication Blueprint Catalog' to show its view, only show if model loaded
 
-step 7: button  'Request Model Fabrication' to show view, only show if model loaded
+step 7: button  'Request Model Fabrication' to show its view, only show if model loaded
 

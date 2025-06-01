@@ -31,11 +31,12 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     // Reference to the tree view
     private treeView?: vscode.TreeView<JsonTreeItem>;
     // Original tree view title (without unsaved changes indicator)
-    private originalTitle?: string;
-    // Current filter text for tree view items
+    private originalTitle?: string;    // Current filter text for tree view items
     private filterText: string = "";
     // Current filter text for report items only
     private reportFilterText: string = "";
+    // Current filter text for data object items only
+    private dataObjectFilterText: string = "";
       constructor(
         private readonly appDNAFilePath: string | null,
         private readonly modelService: ModelService
@@ -43,9 +44,9 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         this.authService = AuthService.getInstance();
         this.mcpServer = MCPServer.getInstance();
         this.mcpHttpServer = MCPHttpServer.getInstance();
-        
-        // Initialize context values
+          // Initialize context values
         vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', false);
+        vscode.commands.executeCommand('setContext', 'appDnaDataObjectFilterActive', false);
         
         // Register to server status changes to update the tree view
         this.mcpServer.onStatusChange(isRunning => {
@@ -126,11 +127,10 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 
                 // Set a project icon for the PROJECT item
                 projectItem.iconPath = new vscode.ThemeIcon('project');
-                projectItem.tooltip = "Project settings and configuration";
-                  const dataObjectsItem = new JsonTreeItem(
+                projectItem.tooltip = "Project settings and configuration";                  const dataObjectsItem = new JsonTreeItem(
                     'DATA OBJECTS',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'dataObjects showHierarchy'
+                    'dataObjects showHierarchy showDataObjectFilter'
                 );
                 
                 // Set a database icon for the DATA OBJECTS item
@@ -287,19 +287,19 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 if (modelLoaded) {
                     // Use ModelService to get all objects
                     const allObjects = this.modelService.getAllObjects();
-                    
-                    // Apply filtering to objects
-                    const filteredObjects = allObjects.filter(obj => 
-                        this.applyFilter(obj.name || `Object ${allObjects.indexOf(obj) + 1}`)
-                    );
+                      // Apply filtering to objects (both global filter and data object-specific filter)
+                    const filteredObjects = allObjects.filter(obj => {
+                        const objectName = obj.name || `Object ${allObjects.indexOf(obj) + 1}`;
+                        return this.applyFilter(objectName) && this.applyDataObjectFilter(objectName);
+                    });
                     
                     // Check if we need to expand this when filter is active
-                    const collapsibleState = this.filterText
+                    const collapsibleState = (this.filterText || this.dataObjectFilterText)
                         ? vscode.TreeItemCollapsibleState.Expanded
                         : vscode.TreeItemCollapsibleState.Collapsed;
                     
                     // If filtering is active and no results found, show message
-                    if (this.filterText && filteredObjects.length === 0) {
+                    if ((this.filterText || this.dataObjectFilterText) && filteredObjects.length === 0) {
                         return Promise.resolve([
                             new JsonTreeItem(
                                 'No objects match filter',
@@ -756,9 +756,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', false);
         // Refresh the tree to show all reports
         this.refresh();
-    }
-
-    /**
+    }    /**
      * Checks if a report's label matches the current report filter
      * @param label The label to check against the report filter
      * @returns True if the label matches the report filter or no report filter is set
@@ -771,5 +769,44 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         
         // Case-insensitive match of report filter text within the label
         return label.toLowerCase().includes(this.reportFilterText);
+    }
+
+    /**
+     * Sets a filter for only the data object items
+     * @param filterText The text to filter data object nodes by
+     */
+    setDataObjectFilter(filterText: string): void {
+        // Convert to lowercase for case-insensitive comparison
+        this.dataObjectFilterText = filterText.toLowerCase();
+        // Update context to indicate data object filter is active
+        vscode.commands.executeCommand('setContext', 'appDnaDataObjectFilterActive', !!this.dataObjectFilterText);
+        // Refresh the tree to apply the filter
+        this.refresh();
+    }
+
+    /**
+     * Clears the current data object filter
+     */
+    clearDataObjectFilter(): void {
+        this.dataObjectFilterText = "";
+        // Update context to indicate data object filter is not active
+        vscode.commands.executeCommand('setContext', 'appDnaDataObjectFilterActive', false);
+        // Refresh the tree to show all data objects
+        this.refresh();
+    }
+
+    /**
+     * Checks if a data object's label matches the current data object filter
+     * @param label The label to check against the data object filter
+     * @returns True if the label matches the data object filter or no data object filter is set
+     */
+    private applyDataObjectFilter(label: string): boolean {
+        // If no data object filter is set, all data objects match
+        if (!this.dataObjectFilterText) {
+            return true;
+        }
+        
+        // Case-insensitive match of data object filter text within the label
+        return label.toLowerCase().includes(this.dataObjectFilterText);
     }
 }

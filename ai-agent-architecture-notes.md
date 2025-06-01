@@ -857,3 +857,37 @@ The report details view settings tab filters out certain properties that should 
 - Based on C# `GetReportPropertiesToIgnore()` method from the original codebase
 
 This ensures the settings tab only shows user-editable properties while hiding complex internal settings.
+
+## Data Object Filter Functionality (Added 2025-06-01)
+
+The data object tree view now includes filter functionality similar to the report filter, allowing users to filter data objects by name in a case-insensitive manner.
+
+### Implementation Components:
+
+1. **Filter Commands** (`src/commands/filterTreeViewCommands.ts`):
+   - `showDataObjectFilterInputCommand()`: Shows input box for filter text
+   - `clearDataObjectFilterCommand()`: Clears the current data object filter
+
+2. **Tree Data Provider** (`src/providers/jsonTreeDataProvider.ts`):
+   - `dataObjectFilterText` property: Stores current filter text
+   - `setDataObjectFilter()`: Sets filter and updates context
+   - `clearDataObjectFilter()`: Clears filter and updates context
+   - `applyDataObjectFilter()`: Case-insensitive filter matching logic
+
+3. **Command Registration** (`src/commands/registerCommands.ts`):
+   - `appdna.showDataObjectFilter`: Triggers filter input dialog
+   - `appdna.clearDataObjectFilter`: Clears active filter
+
+4. **UI Configuration** (`package.json`):
+   - Menu items with filter and clear-all icons
+   - Context-aware visibility using `appDnaDataObjectFilterActive`
+   - `showDataObjectFilter` context value on DATA OBJECTS tree item
+
+### Features:
+- **Case-insensitive filtering**: Matches any part of the data object name
+- **Clear functionality**: Dedicated clear button when filter is active
+- **Auto-expand**: Tree automatically expands when filter is applied
+- **Visual feedback**: Filter and clear icons in tree view context menu
+- **State management**: Proper context tracking for filter active state
+
+The filter functionality integrates seamlessly with the existing tree view architecture and provides a consistent user experience similar to the report filter.
