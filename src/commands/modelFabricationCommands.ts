@@ -7,7 +7,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import JSZip from 'jszip';
 import { ModelService } from '../services/modelService';
-import { AuthService } from '../services/authService'; // Assuming AuthService is in services
+import { AuthService } from '../services/authService';
+import { getWorkspaceRoot, getFabricationReportsPath, getCompatibleFilePath } from '../utils/appDnaFolderUtils'; // Assuming AuthService is in services
 import { handleApiError } from '../utils/apiErrorHandler';
 
 // Track active panels to avoid duplicates
@@ -532,14 +533,9 @@ export function registerModelFabricationCommands(
                 } else if (msg.command === 'modelFabricationCheckReportExists') {
                     console.log("[Extension] Checking if fabrication report exists locally for request code:", msg.requestCode);
                     try {
-                        const workspaceFolders = vscode.workspace.workspaceFolders;
-                        if (!workspaceFolders) {
-                            throw new Error('No workspace folder is open');
-                        }
-
-                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-                        const fabricationDirPath = path.join(workspaceRoot, '.app_dna_fabrication_reports');
-                        const filePath = path.join(fabricationDirPath, `fabrication_report_${msg.requestCode}.txt`);
+                        const workspaceRoot = getWorkspaceRoot();
+                        const fabricationReportsPath = getFabricationReportsPath(workspaceRoot);
+                        const filePath = getCompatibleFilePath(workspaceRoot, '.app_dna_fabrication_reports', fabricationReportsPath, `fabrication_report_${msg.requestCode}.txt`);
                         
                         const exists = fs.existsSync(filePath);
                         console.log("[Extension] Fabrication report file status:", exists ? "Exists" : "Does not exist", "at path:", filePath);
@@ -607,18 +603,9 @@ async function downloadFabricationReport(panel: vscode.WebviewPanel, url: string
         // Get the report content as text
         const reportContent = await response.text();
 
-        // Create fabrication reports directory if it doesn't exist
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error('No workspace folder is open');
-        }
-
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const fabricationDirPath = path.join(workspaceRoot, '.app_dna_fabrication_reports');
-        
-        if (!fs.existsSync(fabricationDirPath)) {
-            fs.mkdirSync(fabricationDirPath, { recursive: true });
-        }
+        // Create fabrication reports directory if it doesn't exist using new .app_dna structure
+        const workspaceRoot = getWorkspaceRoot();
+        const fabricationDirPath = getFabricationReportsPath(workspaceRoot);
 
         // Save the report content to a file
         const filePath = path.join(fabricationDirPath, `fabrication_report_${requestCode}.txt`);
@@ -641,14 +628,9 @@ async function downloadFabricationReport(panel: vscode.WebviewPanel, url: string
  */
 async function openFabricationReport(panel: vscode.WebviewPanel, requestCode: string) {
     try {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error('No workspace folder is open');
-        }
-
-        const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const fabricationDirPath = path.join(workspaceRoot, '.app_dna_fabrication_reports');
-        const filePath = path.join(fabricationDirPath, `fabrication_report_${requestCode}.txt`);
+        const workspaceRoot = getWorkspaceRoot();
+        const fabricationReportsPath = getFabricationReportsPath(workspaceRoot);
+        const filePath = getCompatibleFilePath(workspaceRoot, '.app_dna_fabrication_reports', fabricationReportsPath, `fabrication_report_${requestCode}.txt`);
         
         // Check if file exists before trying to open it
         if (!fs.existsSync(filePath)) {

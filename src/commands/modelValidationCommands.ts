@@ -9,6 +9,7 @@ import JSZip from 'jszip';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService'; // Assuming AuthService is in services
 import { handleApiError } from '../utils/apiErrorHandler';
+import { getWorkspaceRoot, getValidationReportsPath, getValidationChangeRequestsPath, getCompatibleFilePath } from '../utils/appDnaFolderUtils';
 
 // Track active panels to avoid duplicates
 const activePanels = new Map<string, vscode.WebviewPanel>();
@@ -290,13 +291,10 @@ export function registerModelValidationCommands(
                     }
                     
                     try {
-                        // Check if report file exists in the workspace
-                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                        if (!workspaceFolder) {
-                            throw new Error('No workspace folder found');
-                        }
-                        
-                        const reportPath = path.join(workspaceFolder.uri.fsPath, 'validation_reports', `validation_report_${msg.requestCode}.html`);
+                        // Check if report file exists in the workspace using new .app_dna structure
+                        const workspaceRoot = getWorkspaceRoot();
+                        const validationReportsPath = getValidationReportsPath(workspaceRoot);
+                        const reportPath = getCompatibleFilePath(workspaceRoot, 'validation_reports', validationReportsPath, `validation_report_${msg.requestCode}.html`);
                         const exists = fs.existsSync(reportPath);
                         
                         console.log("[Extension] Report exists:", exists, "for path:", reportPath);
@@ -327,14 +325,10 @@ export function registerModelValidationCommands(
                     }
                     
                     try {
-                        // Check if change requests file exists in the workspace
-                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                        if (!workspaceFolder) {
-                            throw new Error('No workspace folder found');
-                        }
-                        
-                        // CORRECTED: Filename should be <requestCode>.json directly in validation_change_requests folder
-                        const changeRequestsPath = path.join(workspaceFolder.uri.fsPath, 'validation_change_requests', `${msg.requestCode}.json`);
+                        // Check if change requests file exists in the workspace using new .app_dna structure
+                        const workspaceRoot = getWorkspaceRoot();
+                        const validationChangeRequestsPath = getValidationChangeRequestsPath(workspaceRoot);
+                        const changeRequestsPath = getCompatibleFilePath(workspaceRoot, 'validation_change_requests', validationChangeRequestsPath, `${msg.requestCode}.json`);
                         const exists = fs.existsSync(changeRequestsPath);
                         
                         console.log("[Extension] Change requests file check. Path:", changeRequestsPath, "Exists:", exists);
@@ -374,16 +368,9 @@ export function registerModelValidationCommands(
                             throw new Error('Authentication required');
                         }
                         
-                        // Create directory for reports if it doesn't exist
-                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                        if (!workspaceFolder) {
-                            throw new Error('No workspace folder found');
-                        }
-                        
-                        const reportsDir = path.join(workspaceFolder.uri.fsPath, 'validation_reports');
-                        if (!fs.existsSync(reportsDir)) {
-                            fs.mkdirSync(reportsDir, { recursive: true });
-                        }
+                        // Create directory for reports if it doesn't exist using new .app_dna structure
+                        const workspaceRoot = getWorkspaceRoot();
+                        const reportsDir = getValidationReportsPath(workspaceRoot);
                         
                         // Download the report
                         const response = await fetch(msg.url, {
@@ -408,10 +395,7 @@ export function registerModelValidationCommands(
                             const jsonStartIndex = startIndex + startMarker.length;
                             const jsonContent = reportContent.substring(jsonStartIndex, endIndex).trim();
                             
-                            const changeRequestsDirPath = path.join(workspaceFolder.uri.fsPath, 'validation_change_requests');
-                            if (!fs.existsSync(changeRequestsDirPath)) {
-                                fs.mkdirSync(changeRequestsDirPath, { recursive: true });
-                            }
+                            const changeRequestsDirPath = getValidationChangeRequestsPath(workspaceRoot);
                             
                             try {
                                 JSON.parse(jsonContent); // Validate JSON
@@ -460,13 +444,11 @@ export function registerModelValidationCommands(
                     }
                     
                     try {
-                        // Open existing report
-                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                        if (!workspaceFolder) {
-                            throw new Error('No workspace folder found');
-                        }
+                        // Open existing report using new .app_dna structure
+                        const workspaceRoot = getWorkspaceRoot();
+                        const validationReportsPath = getValidationReportsPath(workspaceRoot);
+                        const reportPath = getCompatibleFilePath(workspaceRoot, 'validation_reports', validationReportsPath, `validation_report_${msg.requestCode}.html`);
                         
-                        const reportPath = path.join(workspaceFolder.uri.fsPath, 'validation_reports', `validation_report_${msg.requestCode}.html`);
                         if (!fs.existsSync(reportPath)) {
                             throw new Error('Report file not found');
                         }
