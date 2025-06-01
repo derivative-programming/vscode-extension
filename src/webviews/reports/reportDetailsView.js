@@ -130,6 +130,15 @@ function showReportDetails(item, modelService) {
                         console.warn("Cannot update settings: ModelService not available or report reference not found");
                     }
                     return;
+                    
+                case "updateButton":
+                    if (modelService && reportReference) {
+                        // Update button properties directly on the report
+                        updateButtonDirectly(message.data, reportReference, modelService);
+                    } else {
+                        console.warn("Cannot update button: ModelService not available or report reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -296,6 +305,57 @@ function updateSettingsDirectly(data, reportReference, modelService) {
         }
     } catch (error) {
         console.error("Error updating settings directly:", error);
+    }
+}
+
+/**
+ * Updates button properties directly in the model
+ * @param {Object} data Data containing index, property, exists, and value
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ */
+function updateButtonDirectly(data, reportReference, modelService) {
+    try {
+        console.log("[DEBUG] updateButtonDirectly called for report");
+        console.log("[DEBUG] reportReference before update:", JSON.stringify(reportReference, null, 2));
+        
+        // Extract button information from the data
+        const { index, property, exists, value } = data;
+        console.log("[DEBUG] updateButtonDirectly received:", index, property, value, typeof value);
+        
+        if (typeof index === 'number' && property) {
+            // Ensure reportButton array exists
+            if (!reportReference.reportButton) {
+                reportReference.reportButton = [];
+            }
+            
+            // Ensure the button at the specified index exists
+            if (!reportReference.reportButton[index]) {
+                reportReference.reportButton[index] = {};
+            }
+            
+            if (exists) {
+                // Add or update the property
+                reportReference.reportButton[index][property] = value;
+            } else {
+                // Remove the property
+                delete reportReference.reportButton[index][property];
+            }
+            
+            console.log("[DEBUG] reportReference after update:", JSON.stringify(reportReference, null, 2));
+            
+            // Mark that there are unsaved changes
+            if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                modelService.markUnsavedChanges();
+                console.log("[DEBUG] Model marked as having unsaved changes after button update");
+            } else {
+                console.warn("[DEBUG] modelService.markUnsavedChanges is not available");
+            }
+            
+            vscode.commands.executeCommand("appdna.refresh");
+        }
+    } catch (error) {
+        console.error("Error updating button directly:", error);
     }
 }
 
