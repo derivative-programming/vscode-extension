@@ -34,6 +34,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     private originalTitle?: string;
     // Current filter text for tree view items
     private filterText: string = "";
+    // Current filter text for report items only
+    private reportFilterText: string = "";
       constructor(
         private readonly appDNAFilePath: string | null,
         private readonly modelService: ModelService
@@ -41,6 +43,9 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         this.authService = AuthService.getInstance();
         this.mcpServer = MCPServer.getInstance();
         this.mcpHttpServer = MCPHttpServer.getInstance();
+        
+        // Initialize context values
+        vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', false);
         
         // Register to server status changes to update the tree view
         this.mcpServer.onStatusChange(isRunning => {
@@ -132,6 +137,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 dataObjectsItem.iconPath = new vscode.ThemeIcon('database');
                 
                 dataObjectsItem.tooltip = "Data Objects (click to expand, right-click for options)";// Create MODEL SERVICES item with appropriate icon based on login status
+              
                 const isLoggedIn = this.authService.isLoggedIn();
                 const modelServicesItem = new JsonTreeItem(
                     'MODEL SERVICES',
@@ -156,10 +162,10 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const reportsItem = new JsonTreeItem(
                     'REPORTS',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'reports'
+                    'reports showFilter'
                 );
                 reportsItem.iconPath = new vscode.ThemeIcon('book');
-                reportsItem.tooltip = "Model reports from all objects";
+                reportsItem.tooltip = "Model reports from all objects (click to expand, right-click for options)";
                 
                 // Return tree items in order: PROJECT, DATA OBJECTS, REPORTS, MODEL SERVICES
                 return Promise.resolve([projectItem, dataObjectsItem, reportsItem, modelServicesItem]);
@@ -359,18 +365,19 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         ]);
                     }
                     
-                    // Apply filtering to reports
-                    const filteredReports = allReports.filter(report => 
-                        this.applyFilter(report.name || `Report ${allReports.indexOf(report) + 1}`)
-                    );
+                    // Apply filtering to reports (both global filter and report-specific filter)
+                    const filteredReports = allReports.filter(report => {
+                        const reportName = report.name || `Report ${allReports.indexOf(report) + 1}`;
+                        return this.applyFilter(reportName) && this.applyReportFilter(reportName);
+                    });
                     
                     // Check if we need to expand this when filter is active
-                    const collapsibleState = this.filterText
+                    const collapsibleState = (this.filterText || this.reportFilterText)
                         ? vscode.TreeItemCollapsibleState.Expanded
                         : vscode.TreeItemCollapsibleState.Collapsed;
                     
                     // If filtering is active and no results found, show message
-                    if (this.filterText && filteredReports.length === 0) {
+                    if ((this.filterText || this.reportFilterText) && filteredReports.length === 0) {
                         return Promise.resolve([
                             new JsonTreeItem(
                                 'No reports match filter',
@@ -555,7 +562,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             return Promise.resolve(new JsonTreeItem(
                 'DATA OBJECTS',
                 vscode.TreeItemCollapsibleState.Collapsed,
-                'dataObjects'
+                'dataObjects showHierarchy'
             ));
         }
           if (element.contextValue?.startsWith('report')) {
@@ -563,7 +570,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             return Promise.resolve(new JsonTreeItem(
                 'REPORTS',
                 vscode.TreeItemCollapsibleState.Collapsed,
-                'reports'
+                'reports showFilter'
             ));
         }
         
@@ -726,5 +733,44 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         
         // Case-insensitive match of filter text within the label
         return label.toLowerCase().includes(this.filterText);
+    }
+
+    /**
+     * Sets a filter for only the report items
+     * @param filterText The text to filter report nodes by
+     */
+    setReportFilter(filterText: string): void {
+        // Convert to lowercase for case-insensitive comparison
+        this.reportFilterText = filterText.toLowerCase();
+        // Update context to indicate report filter is active
+        vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', !!this.reportFilterText);
+        // Refresh the tree to apply the filter
+        this.refresh();
+    }
+
+    /**
+     * Clears the current report filter
+     */
+    clearReportFilter(): void {
+        this.reportFilterText = "";
+        // Update context to indicate report filter is not active
+        vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', false);
+        // Refresh the tree to show all reports
+        this.refresh();
+    }
+
+    /**
+     * Checks if a report's label matches the current report filter
+     * @param label The label to check against the report filter
+     * @returns True if the label matches the report filter or no report filter is set
+     */
+    private applyReportFilter(label: string): boolean {
+        // If no report filter is set, all reports match
+        if (!this.reportFilterText) {
+            return true;
+        }
+        
+        // Case-insensitive match of report filter text within the label
+        return label.toLowerCase().includes(this.reportFilterText);
     }
 }
