@@ -10,6 +10,7 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
  * @param {string} settingsHtml HTML content for the settings tab
  * @param {string} columnTableHeaders HTML for the column table headers
  * @param {string} columnTableRows HTML for the column table rows
+ * @param {string} columnListViewFields HTML for the column list view form fields
  * @param {string} buttonTableHeaders HTML for the button table headers
  * @param {string} buttonTableRows HTML for the button table rows
  * @param {string} buttonListViewFields HTML for the button list view form fields
@@ -41,22 +42,20 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
 </head>
 <body>
     <h1>Details for ${report.name || 'Unknown Report'} Report</h1>
-    
-    <div class="tabs">
-        <button class="tab active" data-tab="settings">Settings</button>
-        <button class="tab" data-tab="columns">Columns (${columnCount})</button>
-        <button class="tab" data-tab="buttons">Buttons (${buttonCount})</button>
-        <button class="tab" data-tab="params">Parameters (${paramCount})</button>
+      <div class="tabs">
+        <div class="tab active" data-tab="settings">Settings</div>
+        <div class="tab" data-tab="columns">Columns (${columnCount})</div>
+        <div class="tab" data-tab="buttons">Buttons (${buttonCount})</div>
+        <div class="tab" data-tab="params">Parameters (${paramCount})</div>
     </div>
     
     <!-- Settings Tab -->
     <div id="settings" class="tab-content active">
         ${settingsHtml}
     </div>
-    
-    <!-- Columns Tab -->
+      <!-- Columns Tab -->
     <div id="columns" class="tab-content">
-        <div class="view-icons">
+        <div class="view-icons" data-tab="columns">
             <div class="view-icons-left">
                 <span class="icon table-icon active" data-view="table">Table View</span>
                 <span class="icon list-icon" data-view="list">List View</span>
@@ -64,7 +63,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             <button id="add-column-btn" class="add-prop-button">Add Column</button>
         </div>
 
-        <div id="tableView" class="view-content active">
+        <div id="columnsTableView" class="view-content active">
             <div class="table-container">
                 <table id="columns-table">
                     <thead>
@@ -79,7 +78,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             </div>
         </div>
 
-        <div id="listView" class="view-content">
+        <div id="columnsListView" class="view-content">
             <div class="list-container">
                 <select id="columnsList" size="10">
                     ${(report.reportColumn || []).map((column, index) => `<option value="${index}">${column.name || 'Unnamed Column'}</option>`).join('')}
@@ -92,10 +91,9 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             </div>
         </div>
     </div>
-    
-    <!-- Buttons Tab -->
+      <!-- Buttons Tab -->
     <div id="buttons" class="tab-content">
-        <div class="view-icons">
+        <div class="view-icons" data-tab="buttons">
             <div class="view-icons-left">
                 <span class="icon table-icon active" data-view="table">Table View</span>
                 <span class="icon list-icon" data-view="list">List View</span>
@@ -103,7 +101,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             <button id="add-button-btn" class="add-prop-button">Add Button</button>
         </div>
 
-        <div id="tableView" class="view-content active">
+        <div id="buttonsTableView" class="view-content active">
             <div class="table-container">
                 <table id="buttons-table">
                     <thead>
@@ -118,7 +116,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             </div>
         </div>
 
-        <div id="listView" class="view-content">
+        <div id="buttonsListView" class="view-content">
             <div class="list-container">
                 <select id="buttonsList" size="10">
                     ${(report.reportButton || []).map((button, index) => `<option value="${index}">${button.buttonName || 'Unnamed Button'}</option>`).join('')}
@@ -131,10 +129,9 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             </div>
         </div>
     </div>
-    
-    <!-- Parameters Tab -->
+      <!-- Parameters Tab -->
     <div id="params" class="tab-content">
-        <div class="view-icons">
+        <div class="view-icons" data-tab="params">
             <div class="view-icons-left">
                 <span class="icon table-icon active" data-view="table">Table View</span>
                 <span class="icon list-icon" data-view="list">List View</span>
@@ -142,7 +139,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             <button id="add-param-btn" class="add-prop-button">Add Parameter</button>
         </div>
 
-        <div id="tableView" class="view-content active">
+        <div id="paramsTableView" class="view-content active">
             <div class="table-container">
                 <table id="params-table">
                     <thead>
@@ -157,7 +154,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             </div>
         </div>
 
-        <div id="listView" class="view-content">
+        <div id="paramsListView" class="view-content">
             <div class="list-container">
                 <select id="paramsList" size="10">
                     ${(report.reportParam || []).map((param, index) => `<option value="${index}">${param.name || 'Unnamed Parameter'}</option>`).join('')}

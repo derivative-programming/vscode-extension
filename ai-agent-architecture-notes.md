@@ -1,6 +1,33 @@
 # AppDNA VS Code Extension Architecture Notes
  
-*Last updated: June 01, 2025*
+*Last updated: June 08, 2025*
+
+## Report Details View Fixes (Added 2025-06-08)
+
+Fixed critical issues in the report details view that were preventing it from working correctly:
+
+### Issues Fixed:
+
+1. **Duplicate HTML IDs**: The main template was using duplicate IDs (`tableView`, `listView`) across different tabs (columns, buttons, params), which caused JavaScript conflicts. 
+   - **Solution**: Changed to unique IDs per tab: `columnsTableView`, `buttonsTableView`, `paramsTableView`, etc.
+
+2. **View Switching Logic**: Updated the client script to handle tab-aware view switching since each tab now has unique view IDs.
+   - **Solution**: Modified event handler to detect the current tab and build the correct view ID dynamically.
+
+3. **Inconsistent Tab Elements**: Report template used `<button class="tab">` while object template used `<div class="tab">`.
+   - **Solution**: Standardized on `<div class="tab">` elements for consistency.
+
+4. **Missing Parameter in Function Signature**: The `getMainTemplate` function was missing the `columnListViewFields` parameter.
+   - **Solution**: Added the missing parameter to the function signature to match the calling convention.
+
+### Architecture Improvements:
+- Added `data-tab` attributes to view-icons containers to enable tab-aware view switching
+- Updated client script to use event delegation for better view switching reliability
+- Ensured consistent patterns between object and report details views
+
+### Key Files Modified:
+- `src/webviews/reports/components/templates/mainTemplate.js`: Fixed duplicate IDs and tab elements
+- `src/webviews/reports/components/templates/clientScriptTemplate.js`: Updated view switching logic
 
 ## Report Details View List and Table Views (Added 2025-06-01)
 

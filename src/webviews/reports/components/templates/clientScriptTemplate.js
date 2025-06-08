@@ -32,40 +32,45 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 document.getElementById(tabId).classList.add('active');
             });
         });
-        
-        // View switching functionality for buttons tab
-        const viewIconsContainer = document.querySelector('.view-icons');
-        if (viewIconsContainer) {
-            viewIconsContainer.addEventListener('click', (event) => {
-                // Check if the clicked element is an icon or a child of an icon
-                const iconElement = event.target.closest('.icon');
-                if (!iconElement) return;
-                const view = iconElement.getAttribute('data-view');
-                console.log('Switching to view:', view);
-                
-                // Update active state of icons
-                document.querySelectorAll('.view-icons .icon').forEach(icon => {
-                    icon.classList.remove('active');
-                });
-                iconElement.classList.add('active');
-                
-                // Hide all views
-                document.querySelectorAll('.view-content').forEach(content => {
+          // View switching functionality for each tab
+        document.addEventListener('click', (event) => {
+            // Check if the clicked element is a view icon
+            const iconElement = event.target.closest('.icon');
+            if (!iconElement) return;
+            
+            const view = iconElement.getAttribute('data-view');
+            const viewIconsContainer = iconElement.closest('.view-icons');
+            const currentTab = viewIconsContainer ? viewIconsContainer.getAttribute('data-tab') : null;
+            
+            console.log('Switching to view:', view, 'in tab:', currentTab);
+            
+            if (!currentTab) return;
+            
+            // Update active state of icons within this tab
+            viewIconsContainer.querySelectorAll('.icon').forEach(icon => {
+                icon.classList.remove('active');
+            });
+            iconElement.classList.add('active');
+            
+            // Hide all views in the current tab
+            const currentTabContent = document.getElementById(currentTab);
+            if (currentTabContent) {
+                currentTabContent.querySelectorAll('.view-content').forEach(content => {
                     content.style.display = 'none';
                     content.classList.remove('active');
                 });
                 
-                // Show selected view
-                const viewElement = document.getElementById(view + 'View'); 
+                // Show selected view in the current tab
+                const viewElement = document.getElementById(currentTab + view.charAt(0).toUpperCase() + view.slice(1) + 'View');
                 if (viewElement) {
                     viewElement.style.display = 'block';
                     viewElement.classList.add('active');
-                    console.log('Activated view:', view + 'View');
+                    console.log('Activated view:', currentTab + view.charAt(0).toUpperCase() + view.slice(1) + 'View');
                 } else {
-                    console.error('View not found:', view + 'View');
+                    console.error('View not found:', currentTab + view.charAt(0).toUpperCase() + view.slice(1) + 'View');
                 }
-            });
-        }
+            }
+        });
         
         // Helper function to update input styles based on checkbox state
         function updateInputStyle(inputElement, isChecked) {
