@@ -2,6 +2,31 @@
  
 *Last updated: June 08, 2025*
 
+## Font Consistency Fix (Added 2025-06-08)
+
+Fixed font inconsistency between the lexicon view and project settings view:
+
+### Issue:
+- Project settings view was using `var(--vscode-editor-font-family)` 
+- All other webviews (including lexicon view) use `var(--vscode-font-family)`
+- This caused visual inconsistency between different views
+
+### Solution:
+- Changed project settings view to use `var(--vscode-font-family)` for consistency
+- Single line change in `/src/webviews/projectSettingsView.js` line 349
+- Verified all other webviews use the same standard font property
+
+### Key Learning:
+- **Font Standards**: All webviews should use `var(--vscode-font-family)` for body font
+- **Consistency Check**: When styling webviews, grep for existing font-family usage to maintain consistency
+- **VS Code CSS Variables**: `var(--vscode-font-family)` is the standard, not `var(--vscode-editor-font-family)`
+
+### Build Verification:
+- Webpack compilation successful
+- TypeScript compilation passes
+- ESLint clean (no new warnings)
+- Minimal change: 1 line modified across 1 file
+
 ## Report Details View Property Hiding (Added 2025-06-08)
 
 Implemented comprehensive property hiding functionality across all report details view tabs to improve UI usability:
