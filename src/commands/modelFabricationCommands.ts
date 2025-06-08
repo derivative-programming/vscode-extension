@@ -156,6 +156,13 @@ export function registerModelFabricationCommands(
                             projectVersionNumber: ''
                         });
                     }
+                } else if (msg.command === 'modelFabricationCheckUnsavedChanges') {
+                    // Check if model has unsaved changes
+                    const hasUnsavedChanges = modelService && modelService.hasUnsavedChangesInMemory();
+                    panel.webview.postMessage({
+                        command: 'modelFabricationUnsavedChangesStatus',
+                        hasUnsavedChanges: hasUnsavedChanges || false
+                    });
                 } else if (msg.command === 'ModelFabricationAddRequest') {
                     console.log("[Extension] Handling ModelFabricationAddRequest:", msg.data);
                     // Retrieve API key for authenticated call
