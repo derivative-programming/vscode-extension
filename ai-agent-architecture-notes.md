@@ -928,6 +928,38 @@ The report details view settings tab filters out certain properties that should 
 
 This ensures the settings tab only shows user-editable properties while hiding complex internal settings.
 
+## Column Properties Filtering (Added 2025-06-08)
+
+Added functionality to hide specific column properties in the report details view columns tab to improve usability and focus on relevant properties.
+
+### Hidden Properties:
+The following column properties are now hidden from the columns tab views:
+- `buttondestinationcontextobjectname`
+- `maxwidth`
+- `datetimedisplayformat`
+- `iscolumnsummetricavailable`
+- `issummarydisplayed`
+- `isconditionallydisplayed`
+- `isbuttonclickedonrowclick`
+- `buttonbadgecountpropertyname`
+- `isformfooter`
+- `isencrypted`
+
+### Implementation:
+- Created `getColumnPropertiesToHide()` function in `columnsTableTemplate.js` 
+- Applied filtering in all three column property displays:
+  - Table view (`columnsTableTemplate.js`)
+  - List view (`columnsListTemplate.js`) 
+  - Modal dialog (`columnModalTemplate.js`)
+- Properties are filtered case-insensitively during schema processing
+- Follows same pattern as settings tab property filtering
+
+### Benefits:
+- Cleaner, more focused UI for column editing
+- Reduces cognitive load by hiding advanced/internal properties
+- Maintains consistency with existing property filtering patterns
+- Easy to extend for additional properties if needed
+
 ## Model Fabrication Request Details Enhancement (Added 2025-12-19)
 
 Enhanced the Model Fabrication Request Details modal to display the request code, bringing it in line with the Model Validation Request Details modal.
@@ -942,72 +974,3 @@ Enhanced the Model Fabrication Request Details modal to display the request code
 - Field added to `fieldsToShow` array in the `showDetailsModal` function
 - No special handling required - uses default text rendering with HTML escaping
 - Minimal change: only one line added to existing array definition
-
-## Data Object Filter Functionality (Added 2025-06-01)
-
-The data object tree view now includes filter functionality similar to the report filter, allowing users to filter data objects by name in a case-insensitive manner.
-
-### Implementation Components:
-
-1. **Filter Commands** (`src/commands/filterTreeViewCommands.ts`):
-   - `showDataObjectFilterInputCommand()`: Shows input box for filter text
-   - `clearDataObjectFilterCommand()`: Clears the current data object filter
-
-2. **Tree Data Provider** (`src/providers/jsonTreeDataProvider.ts`):
-   - `dataObjectFilterText` property: Stores current filter text
-   - `setDataObjectFilter()`: Sets filter and updates context
-   - `clearDataObjectFilter()`: Clears filter and updates context
-   - `applyDataObjectFilter()`: Case-insensitive filter matching logic
-
-3. **Command Registration** (`src/commands/registerCommands.ts`):
-   - `appdna.showDataObjectFilter`: Triggers filter input dialog
-   - `appdna.clearDataObjectFilter`: Clears active filter
-
-4. **UI Configuration** (`package.json`):
-   - Menu items with filter and clear-all icons
-   - Context-aware visibility using `appDnaDataObjectFilterActive`
-   - `showDataObjectFilter` context value on DATA OBJECTS tree item
-
-### Features:
-- **Case-insensitive filtering**: Matches any part of the data object name
-- **Clear functionality**: Dedicated clear button when filter is active
-- **Auto-expand**: Tree automatically expands when filter is applied
-- **Visual feedback**: Filter and clear icons in tree view context menu
-- **State management**: Proper context tracking for filter active state
-
-The filter functionality integrates seamlessly with the existing tree view architecture and provides a consistent user experience similar to the report filter.
-
-## UI Layout Differences Between Object and Report Details Views
-
-**Issue**: Report details view list views were showing form fields below the listbox instead of to the right side (June 8, 2025)
-
-**Root Cause**: Different CSS layout approaches between object details and report details:
-
-- **Object Details (Correct)**: Uses `float: left` with percentage widths (30% list, 65% details) and clearfix
-- **Report Details (Fixed)**: Was using `inline-block` with fixed max-width which could wrap to new line
-
-**Solution**: Updated report details styles to match object details layout:
-```css
-.list-container {
-    width: 30%;
-    float: left;
-    padding-right: 15px;
-}
-
-.details-container {
-    width: 65%;
-    float: left;
-}
-
-/* Clear fix for floating elements */
-.view-content:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-```
-
-**Files Modified**: 
-- `src/webviews/reports/styles/detailsViewStyles.js`
-
-This ensures consistent side-by-side layout (listbox on left, form controls on right) across all detail views.

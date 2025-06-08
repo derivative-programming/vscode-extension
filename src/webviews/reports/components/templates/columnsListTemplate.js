@@ -1,14 +1,24 @@
 "use strict";
 
+// Import required helpers
+const { formatLabel } = require("../../helpers/reportDataHelper");
+const { getColumnPropertiesToHide } = require("./columnsTableTemplate");
+
 /**
  * Generates the columns list view HTML content
  * @param {Object} reportColumnsSchema Schema properties for column items
  * @returns {string} HTML content for list view fields
  */
 function getColumnsListTemplate(reportColumnsSchema) {
+    // Get properties to hide
+    const propertiesToHide = getColumnPropertiesToHide();
+    
     // Create header columns for all column properties and sort them alphabetically
     // Make sure 'name' is always the first column if it exists
-    const columnColumns = Object.keys(reportColumnsSchema).filter(key => key !== "name").sort();
+    // Filter out properties that should be hidden
+    const columnColumns = Object.keys(reportColumnsSchema)
+        .filter(key => key !== "name" && !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
     if (reportColumnsSchema.hasOwnProperty("name")) {
         columnColumns.unshift("name");
     }
@@ -47,12 +57,8 @@ function getColumnsListTemplate(reportColumnsSchema) {
             <label for="${fieldId}" ${tooltip}>${formatLabel(columnKey)}:</label>
             ${inputField}
             <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" style="margin-left: 5px; transform: scale(0.8);">
-        </div>`;
-    }).join("");
+        </div>`;    }).join("");
 }
-
-// Import required helpers
-const { formatLabel } = require("../../helpers/reportDataHelper");
 
 module.exports = {
     getColumnsListTemplate

@@ -2,6 +2,25 @@
 const { formatLabel } = require("../../helpers/reportDataHelper");
 
 /**
+ * Gets the list of column properties that should be hidden in the columns tab
+ * @returns {Array<string>} Array of property names to hide (lowercase)
+ */
+function getColumnPropertiesToHide() {
+    return [
+        "buttondestinationcontextobjectname",
+        "maxwidth",
+        "datetimedisplayformat",
+        "iscolumnsummetricavailable",
+        "issummarydisplayed",
+        "isconditionallydisplayed",
+        "isbuttonclickedonrowclick",
+        "buttonbadgecountpropertyname",
+        "isformfooter",
+        "isencrypted"
+    ];
+}
+
+/**
  * Generates the HTML for the columns table
  * @param {Array} columns The report columns data
  * @param {Object} reportColumnsSchema The column schema properties
@@ -11,9 +30,15 @@ function getColumnsTableTemplate(columns, reportColumnsSchema) {
     // Ensure columns is always an array, even if undefined
     const safeColumns = Array.isArray(columns) ? columns : [];
     
+    // Get properties to hide
+    const propertiesToHide = getColumnPropertiesToHide();
+    
     // Create header columns for all column properties and sort them alphabetically
     // Make sure 'name' is always the first column if it exists
-    const columnColumns = Object.keys(reportColumnsSchema).filter(key => key !== "name").sort();
+    // Filter out properties that should be hidden
+    const columnColumns = Object.keys(reportColumnsSchema)
+        .filter(key => key !== "name" && !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
     if (reportColumnsSchema.hasOwnProperty("name")) {
         columnColumns.unshift("name");
     }
@@ -83,5 +108,6 @@ function getColumnsTableTemplate(columns, reportColumnsSchema) {
 }
 
 module.exports = {
-    getColumnsTableTemplate
+    getColumnsTableTemplate,
+    getColumnPropertiesToHide
 };

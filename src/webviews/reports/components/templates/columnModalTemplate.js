@@ -1,5 +1,6 @@
 "use strict";
 const { formatLabel } = require("../../helpers/reportDataHelper");
+const { getColumnPropertiesToHide } = require("./columnsTableTemplate");
 
 /**
  * Generates HTML for the column modal
@@ -7,8 +8,13 @@ const { formatLabel } = require("../../helpers/reportDataHelper");
  * @returns {string} HTML for the column modal
  */
 function getColumnModalHtml(reportColumnsSchema) {
-    // Sort properties alphabetically
-    const sortedProps = Object.keys(reportColumnsSchema).sort();
+    // Get properties to hide
+    const propertiesToHide = getColumnPropertiesToHide();
+    
+    // Sort properties alphabetically and filter out hidden properties
+    const sortedProps = Object.keys(reportColumnsSchema)
+        .filter(prop => !propertiesToHide.includes(prop.toLowerCase()))
+        .sort();
     
     // Generate form groups for each property
     const formGroups = sortedProps.map(prop => {
