@@ -199,7 +199,6 @@ function getDetailViewStyles() {
 
         .copy-props-button {
             margin-top: 10px;
-            width: 100%;
             font-size: 12px;
             padding: 4px 8px;
         }
