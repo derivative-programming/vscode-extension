@@ -2,6 +2,33 @@
  
 *Last updated: June 08, 2025*
 
+## Report Details View Property Hiding (Added 2025-06-08)
+
+Implemented comprehensive property hiding functionality across all report details view tabs to improve UI usability:
+
+### Properties Hidden:
+- **Columns Tab**: 10 properties hidden (buttondestinationcontextobjectname, maxwidth, datetimedisplayformat, iscolumnsummetricavailable, issummarydisplayed, isconditionallydisplayed, isbuttonclickedonrowclick, buttonbadgecountpropertyname, isformfooter, isencrypted)
+- **Buttons Tab**: 1 property hidden (destinationContextObjectName)
+- **Parameters Tab**: 7 properties hidden (name, fkobjectname, isfk, isfklookup, fklistorderby, isunknownlookupallowed, defaultvalue)
+
+### Implementation Details:
+- Created helper functions in each template: `getColumnPropertiesToHide()`, `getButtonPropertiesToHide()`, `getParamPropertiesToHide()`
+- Applied filtering to all view types: table view, list view, and modal dialog
+- Used case-insensitive property name comparison for robust filtering
+- Maintained alphabetical sorting of remaining visible properties
+- Preserved existing functionality while hiding specified properties
+
+### Key Files Modified:
+- `columnsTableTemplate.js`, `columnsListTemplate.js`, `columnModalTemplate.js`: Column property filtering
+- `buttonsTableTemplate.js`, `buttonsListTemplate.js`, `buttonModalTemplate.js`: Button property filtering  
+- `paramsTableTemplate.js`, `paramsListTemplate.js`, `paramModalTemplate.js`: Parameter property filtering
+
+### Architecture Benefits:
+- Consistent filtering pattern across all template types
+- Easy to maintain and extend (properties to hide are centralized in helper functions)
+- No impact on underlying data model - only affects UI display
+- Compilation verified with no errors
+
 ## Report Details View Fixes (Added 2025-06-08)
 
 Fixed critical issues in the report details view that were preventing it from working correctly:
@@ -959,6 +986,27 @@ The following column properties are now hidden from the columns tab views:
 - Reduces cognitive load by hiding advanced/internal properties
 - Maintains consistency with existing property filtering patterns
 - Easy to extend for additional properties if needed
+
+## Button Properties Filtering (Added 2025-06-08)
+
+Added functionality to hide the `destinationContextObjectName` property in the report details view buttons tab to improve usability.
+
+### Hidden Properties:
+- `destinationContextObjectName` - Hidden from buttons tab views
+
+### Implementation:
+- Created `getButtonPropertiesToHide()` function in `buttonsTableTemplate.js` 
+- Applied filtering in all three button property displays:
+  - Table view (`buttonsTableTemplate.js`)
+  - List view (`buttonsListTemplate.js`) 
+  - Modal dialog (`buttonModalTemplate.js`)
+- Properties are filtered case-insensitively during schema processing
+- Follows same pattern as column and settings tab property filtering
+
+### Benefits:
+- Cleaner, more focused UI for button editing
+- Consistent with column property filtering approach
+- Easy to extend for additional button properties if needed
 
 ## Model Fabrication Request Details Enhancement (Added 2025-12-19)
 

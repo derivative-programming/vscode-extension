@@ -2,6 +2,16 @@
 const { formatLabel } = require("../../helpers/reportDataHelper");
 
 /**
+ * Gets the list of button properties that should be hidden in the buttons tab
+ * @returns {Array<string>} Array of property names to hide (lowercase)
+ */
+function getButtonPropertiesToHide() {
+    return [
+        "destinationcontextobjectname"
+    ];
+}
+
+/**
  * Generates the HTML for the buttons table
  * @param {Array} buttons The report buttons data
  * @param {Object} reportButtonsSchema The button schema properties
@@ -11,9 +21,15 @@ function getButtonsTableTemplate(buttons, reportButtonsSchema) {
     // Ensure buttons is always an array, even if undefined
     const safeButtons = Array.isArray(buttons) ? buttons : [];
     
+    // Get properties to hide
+    const propertiesToHide = getButtonPropertiesToHide();
+    
     // Create header columns for all button properties and sort them alphabetically
     // Make sure 'buttonName' is always the first column if it exists
-    const buttonColumns = Object.keys(reportButtonsSchema).filter(key => key !== "buttonName").sort();
+    // Filter out properties that should be hidden
+    const buttonColumns = Object.keys(reportButtonsSchema)
+        .filter(key => key !== "buttonName" && !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
     if (reportButtonsSchema.hasOwnProperty("buttonName")) {
         buttonColumns.unshift("buttonName");
     }
@@ -83,5 +99,6 @@ function getButtonsTableTemplate(buttons, reportButtonsSchema) {
 }
 
 module.exports = {
-    getButtonsTableTemplate
+    getButtonsTableTemplate,
+    getButtonPropertiesToHide
 };

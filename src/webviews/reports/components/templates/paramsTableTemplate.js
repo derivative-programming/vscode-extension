@@ -2,6 +2,22 @@
 const { formatLabel } = require("../../helpers/reportDataHelper");
 
 /**
+ * Gets the list of parameter properties that should be hidden in the parameters tab
+ * @returns {Array<string>} Array of property names to hide (lowercase)
+ */
+function getParamPropertiesToHide() {
+    return [
+        "name",
+        "fkobjectname",
+        "isfk",
+        "isfklookup",
+        "fklistorderby",
+        "isunknownlookupallowed",
+        "defaultvalue"
+    ];
+}
+
+/**
  * Generates the HTML for the parameters table
  * @param {Array} params The report parameters data
  * @param {Object} reportParamsSchema The parameter schema properties
@@ -11,10 +27,16 @@ function getParamsTableTemplate(params, reportParamsSchema) {
     // Ensure params is always an array, even if undefined
     const safeParams = Array.isArray(params) ? params : [];
     
+    // Get properties to hide
+    const propertiesToHide = getParamPropertiesToHide();
+    
     // Create header columns for all param properties and sort them alphabetically
     // Make sure 'name' is always the first column if it exists
-    const paramColumns = Object.keys(reportParamsSchema).filter(key => key !== "name").sort();
-    if (reportParamsSchema.hasOwnProperty("name")) {
+    // Filter out properties that should be hidden
+    const paramColumns = Object.keys(reportParamsSchema)
+        .filter(key => key !== "name" && !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
+    if (reportParamsSchema.hasOwnProperty("name") && !propertiesToHide.includes("name")) {
         paramColumns.unshift("name");
     }
 
@@ -83,5 +105,6 @@ function getParamsTableTemplate(params, reportParamsSchema) {
 }
 
 module.exports = {
-    getParamsTableTemplate
+    getParamsTableTemplate,
+    getParamPropertiesToHide
 };

@@ -1,5 +1,6 @@
 "use strict";
 const { formatLabel } = require("../../helpers/reportDataHelper");
+const { getButtonPropertiesToHide } = require("./buttonsTableTemplate");
 
 /**
  * Generates HTML for the button modal
@@ -7,8 +8,13 @@ const { formatLabel } = require("../../helpers/reportDataHelper");
  * @returns {string} HTML for the button modal
  */
 function getButtonModalHtml(reportButtonsSchema) {
-    // Sort properties alphabetically
-    const sortedProps = Object.keys(reportButtonsSchema).sort();
+    // Get properties to hide
+    const propertiesToHide = getButtonPropertiesToHide();
+    
+    // Sort properties alphabetically and filter out hidden properties
+    const sortedProps = Object.keys(reportButtonsSchema)
+        .filter(prop => !propertiesToHide.includes(prop.toLowerCase()))
+        .sort();
     
     // Generate form groups for each property
     const formGroups = sortedProps.map(prop => {

@@ -1,15 +1,25 @@
 "use strict";
 
+// Import required helpers
+const { formatLabel } = require("../../helpers/reportDataHelper");
+const { getParamPropertiesToHide } = require("./paramsTableTemplate");
+
 /**
  * Generates the parameters list view HTML content
  * @param {Object} reportParamsSchema Schema properties for parameter items
  * @returns {string} HTML content for list view fields
  */
 function getParamsListTemplate(reportParamsSchema) {
+    // Get properties to hide
+    const propertiesToHide = getParamPropertiesToHide();
+    
     // Create header columns for all param properties and sort them alphabetically
     // Make sure 'name' is always the first column if it exists
-    const paramColumns = Object.keys(reportParamsSchema).filter(key => key !== "name").sort();
-    if (reportParamsSchema.hasOwnProperty("name")) {
+    // Filter out properties that should be hidden
+    const paramColumns = Object.keys(reportParamsSchema)
+        .filter(key => key !== "name" && !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
+    if (reportParamsSchema.hasOwnProperty("name") && !propertiesToHide.includes("name")) {
         paramColumns.unshift("name");
     }
 
@@ -51,9 +61,7 @@ function getParamsListTemplate(reportParamsSchema) {
     }).join("");
 }
 
-// Import required helpers
-const { formatLabel } = require("../../helpers/reportDataHelper");
-
 module.exports = {
-    getParamsListTemplate
+    getParamsListTemplate,
+    getParamPropertiesToHide
 };

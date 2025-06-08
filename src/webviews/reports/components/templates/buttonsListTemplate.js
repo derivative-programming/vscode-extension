@@ -1,14 +1,24 @@
 "use strict";
 
+// Import required helpers
+const { formatLabel } = require("../../helpers/reportDataHelper");
+const { getButtonPropertiesToHide } = require("./buttonsTableTemplate");
+
 /**
  * Generates the buttons list view HTML content
  * @param {Object} reportButtonsSchema Schema properties for button items
  * @returns {string} HTML content for list view fields
  */
 function getButtonsListTemplate(reportButtonsSchema) {
+    // Get properties to hide
+    const propertiesToHide = getButtonPropertiesToHide();
+    
     // Create header columns for all button properties and sort them alphabetically
     // Make sure 'buttonName' is always the first column if it exists
-    const buttonColumns = Object.keys(reportButtonsSchema).filter(key => key !== "buttonName").sort();
+    // Filter out properties that should be hidden
+    const buttonColumns = Object.keys(reportButtonsSchema)
+        .filter(key => key !== "buttonName" && !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
     if (reportButtonsSchema.hasOwnProperty("buttonName")) {
         buttonColumns.unshift("buttonName");
     }
@@ -47,12 +57,8 @@ function getButtonsListTemplate(reportButtonsSchema) {
             <label for="${fieldId}" ${tooltip}>${formatLabel(buttonKey)}:</label>
             ${inputField}
             <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" style="margin-left: 5px; transform: scale(0.8);">
-        </div>`;
-    }).join("");
+        </div>`;    }).join("");
 }
-
-// Import required helpers
-const { formatLabel } = require("../../helpers/reportDataHelper");
 
 module.exports = {
     getButtonsListTemplate

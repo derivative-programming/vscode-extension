@@ -1,5 +1,6 @@
 "use strict";
 const { formatLabel } = require("../../helpers/reportDataHelper");
+const { getParamPropertiesToHide } = require("./paramsTableTemplate");
 
 /**
  * Generates HTML for the parameter modal
@@ -7,8 +8,13 @@ const { formatLabel } = require("../../helpers/reportDataHelper");
  * @returns {string} HTML for the parameter modal
  */
 function getParamModalHtml(reportParamsSchema) {
-    // Sort properties alphabetically
-    const sortedProps = Object.keys(reportParamsSchema).sort();
+    // Get properties to hide
+    const propertiesToHide = getParamPropertiesToHide();
+    
+    // Filter out hidden properties and sort remaining properties alphabetically
+    const sortedProps = Object.keys(reportParamsSchema)
+        .filter(key => !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
     
     // Generate form groups for each property
     const formGroups = sortedProps.map(prop => {
@@ -76,5 +82,6 @@ function getParamModalHtml(reportParamsSchema) {
 }
 
 module.exports = {
-    getParamModalHtml
+    getParamModalHtml,
+    getParamPropertiesToHide
 };
