@@ -72,6 +72,9 @@ class WelcomePanel {
                     case "checkModelLoaded":
                         this._checkModelLoaded();
                         break;
+                    case "checkBlueprintStatus":
+                        this._checkBlueprintStatus();
+                        break;
                     case "openLoginView":
                         vscode.commands.executeCommand("appdna.loginModelServices");
                         break;
@@ -174,6 +177,24 @@ class WelcomePanel {
         this.panel.webview.postMessage({
             command: "modelLoadedResult",
             modelLoaded
+        });
+    }
+
+    /**
+     * Checks if blueprints are selected in the model and sends the result back to the webview
+     */
+    _checkBlueprintStatus() {
+        const modelService = ModelService.getInstance();
+        const rootModel = modelService.getCurrentModel();
+        let blueprintsSelected = false;
+        
+        if (rootModel && rootModel.templateSet && Array.isArray(rootModel.templateSet)) {
+            blueprintsSelected = rootModel.templateSet.length > 0;
+        }
+        
+        this.panel.webview.postMessage({
+            command: "blueprintStatusResult",
+            blueprintsSelected
         });
     }
 
@@ -400,6 +421,10 @@ class WelcomePanel {
             // Acquire the VS Code API
             const vscode = acquireVsCodeApi();
             
+            // Track current state
+            let currentModelLoaded = false;
+            let currentBlueprintsSelected = false;
+            
             // Check if the plus sign in the tree view is visible
             function checkPlusSignVisibility() {
                 vscode.postMessage({ command: "checkFileExists" });
@@ -408,6 +433,11 @@ class WelcomePanel {
             // Check if a model is currently loaded
             function checkModelLoadedStatus() {
                 vscode.postMessage({ command: "checkModelLoaded" });
+            }
+
+            // Check if blueprints are selected in the model
+            function checkBlueprintStatus() {
+                vscode.postMessage({ command: "checkBlueprintStatus" });
             }
             
             // Add event listeners to action cards if they exist
@@ -487,9 +517,11 @@ class WelcomePanel {
             // Check file existence and model loading status initially and periodically update button state
             checkPlusSignVisibility();
             checkModelLoadedStatus();
+            checkBlueprintStatus();
             setInterval(() => {
                 checkPlusSignVisibility();
                 checkModelLoadedStatus();
+                checkBlueprintStatus();
             }, 1000);
             
             // Handle messages from the extension
@@ -500,7 +532,12 @@ class WelcomePanel {
                         updateCreateButtonState(!message.fileExists);
                         break;
                     case 'modelLoadedResult':
-                        updateModelDependentButtonsState(message.modelLoaded);
+                        currentModelLoaded = message.modelLoaded;
+                        updateModelDependentButtonsState(currentModelLoaded, currentBlueprintsSelected);
+                        break;
+                    case 'blueprintStatusResult':
+                        currentBlueprintsSelected = message.blueprintsSelected;
+                        updateModelDependentButtonsState(currentModelLoaded, currentBlueprintsSelected);
                         break;
                     case 'updateLoginStatus':
                         updateLoginButtonState(message.isLoggedIn);
@@ -541,13 +578,12 @@ class WelcomePanel {
             }
 
             // Update model-dependent buttons state based on whether a model is loaded
-            function updateModelDependentButtonsState(modelLoaded) {
+            function updateModelDependentButtonsState(modelLoaded, blueprintsSelected) {
                 const modelDependentButtons = [
                     "viewModelFeatureCatalogButton",
                     "requestModelAIProcessingButton",
                     "requestModelValidationButton",
-                    "viewFabricationBlueprintCatalogButton",
-                    "requestModelFabricationButton"
+                    "viewFabricationBlueprintCatalogButton"
                 ];
 
                 modelDependentButtons.forEach(buttonId => {
@@ -560,6 +596,26 @@ class WelcomePanel {
                         }
                     }
                 });
+
+                // Handle the fabrication button separately as it requires blueprint selection
+                const fabricationButton = document.getElementById("requestModelFabricationButton");
+                if (fabricationButton) {
+                    if (modelLoaded) {
+                        fabricationButton.style.display = "block";
+                        
+                        if (blueprintsSelected) {
+                            fabricationButton.disabled = false;
+                            fabricationButton.classList.remove("button-disabled");
+                            fabricationButton.title = "Request Model Fabrication";
+                        } else {
+                            fabricationButton.disabled = true;
+                            fabricationButton.classList.add("button-disabled");
+                            fabricationButton.title = "Select blueprints first before requesting fabrication";
+                        }
+                    } else {
+                        fabricationButton.style.display = "none";
+                    }
+                }
             }
         })();
     </script>
