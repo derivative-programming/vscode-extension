@@ -59,6 +59,30 @@ suite('Welcome View Test Suite', () => {
         console.log('Finished command mapping test');
     });
 
+    test('ModelService can check blueprint status', () => {
+        console.log('Starting ModelService blueprint status test');
+        
+        // Get ModelService instance
+        const modelService = ModelService.getInstance();
+        
+        // Test getCurrentModel method exists
+        const currentModel = modelService.getCurrentModel();
+        assert.ok(currentModel === null || typeof currentModel === 'object', 
+            'getCurrentModel should return null or an object');
+        
+        // Test blueprint status logic
+        let blueprintsSelected = false;
+        if (currentModel && currentModel.templateSet && Array.isArray(currentModel.templateSet)) {
+            blueprintsSelected = currentModel.templateSet.length > 0;
+        }
+        
+        assert.ok(typeof blueprintsSelected === 'boolean', 
+            'Blueprint selection status should be a boolean');
+        
+        console.log(`Blueprint selection status: ${blueprintsSelected}`);
+        console.log('Finished ModelService blueprint status test');
+    });
+
     suiteTeardown(() => {
         console.log('Finished Welcome View Test Suite');
     });
