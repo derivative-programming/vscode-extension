@@ -151,6 +151,13 @@ export function registerModelAIProcessingCommands(
                             projectVersionNumber: ''
                         });
                     }
+                } else if (msg.command === 'modelAIProcessingCheckUnsavedChanges') {
+                    // Check if model has unsaved changes
+                    const hasUnsavedChanges = modelService && modelService.hasUnsavedChangesInMemory();
+                    panel.webview.postMessage({
+                        command: 'modelAIProcessingUnsavedChangesStatus',
+                        hasUnsavedChanges: hasUnsavedChanges || false
+                    });
                 } else if (msg.command === 'ModelAIProcessingAddRequest') {
                     console.log("[Extension] Handling ModelAIProcessingAddRequest:", msg.data);
                     // Retrieve API key for authenticated call

@@ -141,6 +141,13 @@ export function registerModelValidationCommands(
                             projectVersionNumber: ''
                         });
                     }
+                } else if (msg.command === 'modelValidationCheckUnsavedChanges') {
+                    // Check if model has unsaved changes
+                    const hasUnsavedChanges = modelService && modelService.hasUnsavedChangesInMemory();
+                    panel.webview.postMessage({
+                        command: 'modelValidationUnsavedChangesStatus',
+                        hasUnsavedChanges: hasUnsavedChanges || false
+                    });
                 } else if (msg.command === 'modelValidationWebviewReady') {
                     console.log("[Extension] Handling modelValidationWebviewReady");
                     await fetchAndSend(1, 10, 'modelValidationRequestRequestedUTCDateTime', true);

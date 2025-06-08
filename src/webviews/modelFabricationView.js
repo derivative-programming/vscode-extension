@@ -335,6 +335,14 @@
                 desc = "Version: " + projectVersionNumber;
             }
             document.getElementById("addDescription").value = desc;
+        } else if (message.command === "modelFabricationUnsavedChangesStatus") {
+            console.log("[Webview] Received unsaved changes status:", message.hasUnsavedChanges);
+            const warningElement = document.getElementById("unsavedChangesWarning");
+            if (message.hasUnsavedChanges) {
+                warningElement.style.display = "block";
+            } else {
+                warningElement.style.display = "none";
+            }
         } else if (message.command === "modelFabricationExtractionProgress") {
             // Update extraction progress
             console.log("[Webview] Extraction progress:", message.percent, `(${message.extracted}/${message.total})`);
@@ -564,6 +572,18 @@
                 }
                 .modal-button-secondary:hover {
                     background-color: var(--vscode-button-secondaryHoverBackground);
+                }
+                
+                /* Unsaved changes warning styles */
+                .unsaved-changes-warning {
+                    background-color: var(--vscode-inputValidation-errorBackground, #ff6b6b);
+                    color: var(--vscode-inputValidation-errorForeground, white);
+                    padding: 8px 12px;
+                    margin-bottom: 15px;
+                    border-radius: 3px;
+                    border: 1px solid var(--vscode-inputValidation-errorBorder, #ff4757);
+                    font-weight: 500;
+                    display: none; /* Initially hidden */
                 }
                 
                 .fabrication-content {
@@ -841,6 +861,9 @@
                 <div id="addModal" class="modal">
                     <div class="modal-content">
                         <h3>Add Model Fabrication Request</h3>
+                        <div id="unsavedChangesWarning" class="unsaved-changes-warning">
+                            You have unsaved changes in your model. Please save your changes before requesting model services.
+                        </div>
                         <label>Description:<br><input type="text" id="addDescription" /></label>                        
                         <div class="modal-buttons"> <!-- Button container -->
                             <button id="submitAdd" class="refresh-button">Add</button>
@@ -868,10 +891,13 @@
         document.getElementById("refreshButton").onclick = function() {
             showSpinner(); // Show spinner when refresh button is clicked
             requestPage(pageNumber);
-        };// Attach add button handler
+        };
+        // Attach add button handler
         document.getElementById("addButton").onclick = function() {
             // Fetch projectName and projectVersionNumber from extension
             vscode.postMessage({ command: "modelFabricationGetRootNodeProjectInfo" });
+            // Check for unsaved changes
+            vscode.postMessage({ command: "modelFabricationCheckUnsavedChanges" });
             document.getElementById("addModal").style.display = "flex";
             document.getElementById("addDescription").focus(); // Focus input on open
         };

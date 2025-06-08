@@ -87,6 +87,14 @@
                 desc = "Version: " + projectVersionNumber;
             }
             document.getElementById("addDescription").value = desc;
+        } else if (message.command === "modelAIProcessingUnsavedChangesStatus") {
+            console.log("[Webview] Received unsaved changes status:", message.hasUnsavedChanges);
+            const warningElement = document.getElementById("unsavedChangesWarning");
+            if (message.hasUnsavedChanges) {
+                warningElement.style.display = "block";
+            } else {
+                warningElement.style.display = "none";
+            }
         } else if (message.command === "ModelAIProcessingRequestDetailsData") {
             console.log("[Webview] Received details for modal:", message.data);
             renderDetailsInModal(message.data);
@@ -324,6 +332,18 @@
                 }
                 .modal-button-secondary:hover {
                     background-color: var(--vscode-button-secondaryHoverBackground);
+                }
+                
+                /* Unsaved changes warning styles */
+                .unsaved-changes-warning {
+                    background-color: var(--vscode-inputValidation-errorBackground, #ff6b6b);
+                    color: var(--vscode-inputValidation-errorForeground, white);
+                    padding: 8px 12px;
+                    margin-bottom: 15px;
+                    border-radius: 3px;
+                    border: 1px solid var(--vscode-inputValidation-errorBorder, #ff4757);
+                    font-weight: 500;
+                    display: none; /* Initially hidden */
                 }
                 
                 .processing-content {
@@ -624,7 +644,11 @@
                 <!-- Add Request Modal -->
                 <div id="addModal" class="modal">
                     <div class="modal-content">
-                        <h3>Add Model AI Processing Request</h3>                        <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
+                        <h3>Add Model AI Processing Request</h3>
+                        <div id="unsavedChangesWarning" class="unsaved-changes-warning">
+                            You have unsaved changes in your model. Please save your changes before requesting model services.
+                        </div>
+                        <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
                             <button id="submitAdd" class="refresh-button">Add</button> <!-- Add button now on the left -->
                             <button id="cancelAdd" class="refresh-button modal-button-secondary">Cancel</button> <!-- Cancel button now on the right -->
                         </div>
@@ -658,10 +682,13 @@
             showSpinner();
             requestPage(pageNumber);
             // Auto-refresh will be checked after data is loaded
-        };// Attach add button handler
+        };
+        // Attach add button handler
         document.getElementById("addButton").onclick = function() {
             // Fetch projectName and projectVersionNumber from extension
             vscode.postMessage({ command: "modelAIProcessingGetRootNodeProjectInfo" });
+            // Check for unsaved changes
+            vscode.postMessage({ command: "modelAIProcessingCheckUnsavedChanges" });
             document.getElementById("addModal").style.display = "flex";
             document.getElementById("addDescription").focus(); // Focus input on open
         };
