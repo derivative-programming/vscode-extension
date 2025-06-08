@@ -1,7 +1,7 @@
 Agent todo items...
     
 
-
+move up/down enable setting should be recalculated after every move
 
 
 copilot:model services....
@@ -10,11 +10,6 @@ copilot:model services....
     - Add Model Validation Request
     - Add Model Fabrication Request
 
-
-copilot:report details view...
-- on columns tab list view, under the list, show a 'Move Up' button that will move the selected item up in the list and move the model's corresponding array item up in the array. Add a 'Move Down' button that will move the selected item down in the list and move the model's corresponding array item down in the array.
-- on buttons tab list view, under the list, show a 'Move Up' button that will move the selected item up in the list and move the model's corresponding array item up in the array. Add a 'Move Down' button that will move the selected item down in the list and move the model's corresponding array item down in the array.
-- on parameters tab list view, under the list, show a 'Move Up' button that will move the selected item up in the list and move the model's corresponding array item up in the array. Add a 'Move Down' button that will move the selected item down in the list and move the model's corresponding array item down in the array.
 
 
 copilot:report details view...

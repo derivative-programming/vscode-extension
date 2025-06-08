@@ -577,7 +577,7 @@
                 /* Unsaved changes warning styles */
                 .unsaved-changes-warning {
                     background-color: var(--vscode-inputValidation-errorBackground, #ff6b6b);
-                    color: var(--vscode-inputValidation-errorForeground, white);
+                    // color: var(--vscode-inputValidation-errorForeground, white);
                     padding: 8px 12px;
                     margin-bottom: 15px;
                     border-radius: 3px;

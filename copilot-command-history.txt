@@ -7,3 +7,4 @@
 - Added button state management to disable buttons when not applicable
 - Created comprehensive tests to validate all functionality
 - Files modified: mainTemplate.js, clientScriptTemplate.js, reportDetailsView.js, detailsViewStyles.js
+Command: Expand all top level tree items in the AppDNA tree view
