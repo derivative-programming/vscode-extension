@@ -197,6 +197,13 @@ function getDetailViewStyles() {
             background-color: var(--vscode-button-hoverBackground);
         }
 
+        .copy-props-button {
+            margin-top: 10px;
+            width: 100%;
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+
         /* List and details container */
         .list-container {
             width: 30%;

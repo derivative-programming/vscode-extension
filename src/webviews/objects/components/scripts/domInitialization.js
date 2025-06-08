@@ -47,6 +47,58 @@ function getDOMInitialization() {
             const fieldId = 'prop' + propKey;
             toggleEditable(fieldId + 'Editable', fieldId);
         });
+        
+        // Set up copy button functionality
+        const copyPropsButton = document.getElementById('copyPropsButton');
+        if (copyPropsButton) {
+            copyPropsButton.addEventListener('click', () => {
+                try {
+                    // Get all property names from the list
+                    const propsList = document.getElementById('propsList');
+                    if (!propsList) return;
+                    
+                    const propertyList = [];
+                    for (let i = 0; i < propsList.options.length; i++) {
+                        propertyList.push(propsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = propertyList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Properties copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyPropsButton.textContent;
+                            copyPropsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyPropsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy properties: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyPropsButton.textContent;
+                        copyPropsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyPropsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying properties: ', err);
+                }
+            });
+        }
     });
     `;
 }
