@@ -57,13 +57,13 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
     <div id="columns" class="tab-content">
         <div class="view-icons" data-tab="columns">
             <div class="view-icons-left">
-                <span class="icon table-icon active" data-view="table">Table View</span>
-                <span class="icon list-icon" data-view="list">List View</span>
+                <span class="icon list-icon active" data-view="list">List View</span>
+                <span class="icon table-icon" data-view="table">Table View</span>
             </div>
             <button id="add-column-btn" class="add-prop-button">Add Column</button>
         </div>
 
-        <div id="columnsTableView" class="view-content active">
+        <div id="columnsTableView" class="view-content">
             <div class="table-container">
                 <table id="columns-table">
                     <thead>
@@ -78,7 +78,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             </div>
         </div>
 
-        <div id="columnsListView" class="view-content">
+        <div id="columnsListView" class="view-content active">
             <div class="list-container">
                 <select id="columnsList" size="10">
                     ${(report.reportColumn || []).map((column, index) => `<option value="${index}">${column.name || 'Unnamed Column'}</option>`).join('')}
@@ -95,13 +95,13 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
     <div id="buttons" class="tab-content">
         <div class="view-icons" data-tab="buttons">
             <div class="view-icons-left">
-                <span class="icon table-icon active" data-view="table">Table View</span>
-                <span class="icon list-icon" data-view="list">List View</span>
+                <span class="icon list-icon active" data-view="list">List View</span>
+                <span class="icon table-icon" data-view="table">Table View</span>
             </div>
             <button id="add-button-btn" class="add-prop-button">Add Button</button>
         </div>
 
-        <div id="buttonsTableView" class="view-content active">
+        <div id="buttonsTableView" class="view-content">
             <div class="table-container">
                 <table id="buttons-table">
                     <thead>
@@ -116,7 +116,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             </div>
         </div>
 
-        <div id="buttonsListView" class="view-content">
+        <div id="buttonsListView" class="view-content active">
             <div class="list-container">
                 <select id="buttonsList" size="10">
                     ${(report.reportButton || []).map((button, index) => `<option value="${index}">${button.buttonName || 'Unnamed Button'}</option>`).join('')}
@@ -133,13 +133,13 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
     <div id="params" class="tab-content">
         <div class="view-icons" data-tab="params">
             <div class="view-icons-left">
-                <span class="icon table-icon active" data-view="table">Table View</span>
-                <span class="icon list-icon" data-view="list">List View</span>
+                <span class="icon list-icon active" data-view="list">List View</span>
+                <span class="icon table-icon" data-view="table">Table View</span>
             </div>
             <button id="add-param-btn" class="add-prop-button">Add Parameter</button>
         </div>
 
-        <div id="paramsTableView" class="view-content active">
+        <div id="paramsTableView" class="view-content">
             <div class="table-container">
                 <table id="params-table">
                     <thead>
@@ -154,7 +154,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             </div>
         </div>
 
-        <div id="paramsListView" class="view-content">
+        <div id="paramsListView" class="view-content active">
             <div class="list-container">
                 <select id="paramsList" size="10">
                     ${(report.reportParam || []).map((param, index) => `<option value="${index}">${param.name || 'Unnamed Parameter'}</option>`).join('')}
