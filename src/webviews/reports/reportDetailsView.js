@@ -157,6 +157,33 @@ function showReportDetails(item, modelService) {
                         console.warn("Cannot update param: ModelService not available or report reference not found");
                     }
                     return;
+                    
+                case "moveColumn":
+                    if (modelService && reportReference) {
+                        // Move column in the array
+                        moveColumnInArray(message.data, reportReference, modelService);
+                    } else {
+                        console.warn("Cannot move column: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "moveButton":
+                    if (modelService && reportReference) {
+                        // Move button in the array
+                        moveButtonInArray(message.data, reportReference, modelService);
+                    } else {
+                        console.warn("Cannot move button: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "moveParam":
+                    if (modelService && reportReference) {
+                        // Move param in the array
+                        moveParamInArray(message.data, reportReference, modelService);
+                    } else {
+                        console.warn("Cannot move param: ModelService not available or report reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -477,6 +504,141 @@ function updateParamDirectly(data, reportReference, modelService) {
         }
     } catch (error) {
         console.error("Error updating param directly:", error);
+    }
+}
+
+/**
+ * Moves a column in the reportColumn array
+ * @param {Object} data Data containing fromIndex and toIndex
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ */
+function moveColumnInArray(data, reportReference, modelService) {
+    try {
+        console.log("[DEBUG] moveColumnInArray called");
+        
+        const { fromIndex, toIndex } = data;
+        console.log("[DEBUG] Moving column from index", fromIndex, "to index", toIndex);
+        
+        if (!reportReference.reportColumn || !Array.isArray(reportReference.reportColumn)) {
+            console.warn("[DEBUG] reportColumn array does not exist");
+            return;
+        }
+        
+        const array = reportReference.reportColumn;
+        
+        // Validate indices
+        if (fromIndex < 0 || fromIndex >= array.length || toIndex < 0 || toIndex >= array.length) {
+            console.warn("[DEBUG] Invalid indices for move operation");
+            return;
+        }
+        
+        // Move the item
+        const itemToMove = array.splice(fromIndex, 1)[0];
+        array.splice(toIndex, 0, itemToMove);
+        
+        console.log("[DEBUG] Column moved successfully");
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log("[DEBUG] Marked unsaved changes after column move");
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error moving column:", error);
+    }
+}
+
+/**
+ * Moves a button in the reportButton array
+ * @param {Object} data Data containing fromIndex and toIndex
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ */
+function moveButtonInArray(data, reportReference, modelService) {
+    try {
+        console.log("[DEBUG] moveButtonInArray called");
+        
+        const { fromIndex, toIndex } = data;
+        console.log("[DEBUG] Moving button from index", fromIndex, "to index", toIndex);
+        
+        if (!reportReference.reportButton || !Array.isArray(reportReference.reportButton)) {
+            console.warn("[DEBUG] reportButton array does not exist");
+            return;
+        }
+        
+        const array = reportReference.reportButton;
+        
+        // Validate indices
+        if (fromIndex < 0 || fromIndex >= array.length || toIndex < 0 || toIndex >= array.length) {
+            console.warn("[DEBUG] Invalid indices for move operation");
+            return;
+        }
+        
+        // Move the item
+        const itemToMove = array.splice(fromIndex, 1)[0];
+        array.splice(toIndex, 0, itemToMove);
+        
+        console.log("[DEBUG] Button moved successfully");
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log("[DEBUG] Marked unsaved changes after button move");
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error moving button:", error);
+    }
+}
+
+/**
+ * Moves a parameter in the reportParam array
+ * @param {Object} data Data containing fromIndex and toIndex
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ */
+function moveParamInArray(data, reportReference, modelService) {
+    try {
+        console.log("[DEBUG] moveParamInArray called");
+        
+        const { fromIndex, toIndex } = data;
+        console.log("[DEBUG] Moving param from index", fromIndex, "to index", toIndex);
+        
+        if (!reportReference.reportParam || !Array.isArray(reportReference.reportParam)) {
+            console.warn("[DEBUG] reportParam array does not exist");
+            return;
+        }
+        
+        const array = reportReference.reportParam;
+        
+        // Validate indices
+        if (fromIndex < 0 || fromIndex >= array.length || toIndex < 0 || toIndex >= array.length) {
+            console.warn("[DEBUG] Invalid indices for move operation");
+            return;
+        }
+        
+        // Move the item
+        const itemToMove = array.splice(fromIndex, 1)[0];
+        array.splice(toIndex, 0, itemToMove);
+        
+        console.log("[DEBUG] Param moved successfully");
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log("[DEBUG] Marked unsaved changes after param move");
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error moving param:", error);
     }
 }
 

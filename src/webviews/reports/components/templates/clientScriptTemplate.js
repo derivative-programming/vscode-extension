@@ -1317,6 +1317,172 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 }
             });
         }
+        
+        // --- MOVE UP/DOWN FUNCTIONALITY ---
+        
+        // Helper function to move an item in a select list and update model
+        function moveListItem(listId, arrayName, direction) {
+            const selectElement = document.getElementById(listId);
+            if (!selectElement || selectElement.selectedIndex === -1) {
+                return; // No item selected
+            }
+            
+            const selectedIndex = selectElement.selectedIndex;
+            const newIndex = direction === 'up' ? selectedIndex - 1 : selectedIndex + 1;
+            
+            // Check bounds
+            if (newIndex < 0 || newIndex >= selectElement.options.length) {
+                return; // Already at first/last position
+            }
+            
+            // Move the option in the select list
+            const selectedOption = selectElement.options[selectedIndex];
+            const targetOption = selectElement.options[newIndex];
+            
+            // Swap the options
+            const tempText = selectedOption.text;
+            const tempValue = selectedOption.value;
+            
+            selectedOption.text = targetOption.text;
+            selectedOption.value = targetOption.value;
+            
+            targetOption.text = tempText;
+            targetOption.value = tempValue;
+            
+            // Update selection to follow the moved item
+            selectElement.selectedIndex = newIndex;
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'move' + arrayName.charAt(0).toUpperCase() + arrayName.slice(1),
+                data: {
+                    fromIndex: selectedIndex,
+                    toIndex: newIndex
+                }
+            });
+        }
+        
+        // Set up move up/down functionality for columns
+        const moveUpColumnsButton = document.getElementById('moveUpColumnsButton');
+        const moveDownColumnsButton = document.getElementById('moveDownColumnsButton');
+        
+        if (moveUpColumnsButton) {
+            moveUpColumnsButton.addEventListener('click', () => {
+                moveListItem('columnsList', 'column', 'up');
+            });
+        }
+        
+        if (moveDownColumnsButton) {
+            moveDownColumnsButton.addEventListener('click', () => {
+                moveListItem('columnsList', 'column', 'down');
+            });
+        }
+        
+        // Set up move up/down functionality for buttons
+        const moveUpButtonsButton = document.getElementById('moveUpButtonsButton');
+        const moveDownButtonsButton = document.getElementById('moveDownButtonsButton');
+        
+        if (moveUpButtonsButton) {
+            moveUpButtonsButton.addEventListener('click', () => {
+                moveListItem('buttonsList', 'button', 'up');
+            });
+        }
+        
+        if (moveDownButtonsButton) {
+            moveDownButtonsButton.addEventListener('click', () => {
+                moveListItem('buttonsList', 'button', 'down');
+            });
+        }
+        
+        // Set up move up/down functionality for parameters
+        const moveUpParamsButton = document.getElementById('moveUpParamsButton');
+        const moveDownParamsButton = document.getElementById('moveDownParamsButton');
+        
+        if (moveUpParamsButton) {
+            moveUpParamsButton.addEventListener('click', () => {
+                moveListItem('paramsList', 'param', 'up');
+            });
+        }
+        
+        if (moveDownParamsButton) {
+            moveDownParamsButton.addEventListener('click', () => {
+                moveListItem('paramsList', 'param', 'down');
+            });
+        }
+        
+        // Helper function to update move button states based on selection
+        function updateMoveButtonStates() {
+            // Update columns move buttons
+            const columnsList = document.getElementById('columnsList');
+            const moveUpColumns = document.getElementById('moveUpColumnsButton');
+            const moveDownColumns = document.getElementById('moveDownColumnsButton');
+            
+            if (columnsList && moveUpColumns && moveDownColumns) {
+                const selectedIndex = columnsList.selectedIndex;
+                const hasSelection = selectedIndex !== -1;
+                const isFirst = selectedIndex === 0;
+                const isLast = selectedIndex === columnsList.options.length - 1;
+                
+                moveUpColumns.disabled = !hasSelection || isFirst;
+                moveDownColumns.disabled = !hasSelection || isLast;
+            }
+            
+            // Update buttons move buttons
+            const buttonsList = document.getElementById('buttonsList');
+            const moveUpButtons = document.getElementById('moveUpButtonsButton');
+            const moveDownButtons = document.getElementById('moveDownButtonsButton');
+            
+            if (buttonsList && moveUpButtons && moveDownButtons) {
+                const selectedIndex = buttonsList.selectedIndex;
+                const hasSelection = selectedIndex !== -1;
+                const isFirst = selectedIndex === 0;
+                const isLast = selectedIndex === buttonsList.options.length - 1;
+                
+                moveUpButtons.disabled = !hasSelection || isFirst;
+                moveDownButtons.disabled = !hasSelection || isLast;
+            }
+            
+            // Update params move buttons
+            const paramsList = document.getElementById('paramsList');
+            const moveUpParams = document.getElementById('moveUpParamsButton');
+            const moveDownParams = document.getElementById('moveDownParamsButton');
+            
+            if (paramsList && moveUpParams && moveDownParams) {
+                const selectedIndex = paramsList.selectedIndex;
+                const hasSelection = selectedIndex !== -1;
+                const isFirst = selectedIndex === 0;
+                const isLast = selectedIndex === paramsList.options.length - 1;
+                
+                moveUpParams.disabled = !hasSelection || isFirst;
+                moveDownParams.disabled = !hasSelection || isLast;
+            }
+        }
+        
+        // Add event listeners to update move button states when selection changes
+        const columnsList = document.getElementById('columnsList');
+        if (columnsList) {
+            columnsList.addEventListener('change', updateMoveButtonStates);
+        }
+        
+        const buttonsList = document.getElementById('buttonsList');
+        if (buttonsList) {
+            buttonsList.addEventListener('change', updateMoveButtonStates);
+        }
+        
+        const paramsList = document.getElementById('paramsList');
+        if (paramsList) {
+            paramsList.addEventListener('change', updateMoveButtonStates);
+        }
+        
+        // Initialize move button states on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMoveButtonStates();
+        });
+        
+        // Also update move button states after existing functionality
+        if (typeof updateMoveButtonStates === 'function') {
+            setTimeout(updateMoveButtonStates, 100);
+        }
     `;
 }
 
