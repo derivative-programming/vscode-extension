@@ -194,7 +194,7 @@
             padding: 10px;
             background-color: var(--vscode-terminal-ansiGreen, rgba(137, 209, 133, 0.1));
             border-left: 3px solid var(--vscode-testing-iconPassed, #89D185);
-            color: var(--vscode-editor-foreground);
+            color: var(--vscode-editor-background);
             display: block !important; 
         `;
         successMessage.textContent = 'Fabrication results have been downloaded and extracted successfully.';
@@ -1323,7 +1323,7 @@
             padding: 10px;
             background-color: var(--vscode-terminal-ansiGreen, rgba(137, 209, 133, 0.1));
             border-left: 3px solid var(--vscode-testing-iconPassed, #89D185);
-            color: var(--vscode-editor-foreground);
+            color: var(--vscode-editor-background);
         `;
         successMessage.textContent = "Fabrication results have been downloaded and extracted successfully.";
         

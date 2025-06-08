@@ -1,6 +1,36 @@
 Agent todo items...
     
 
+project settings...
+- copilot:differnt font used that lexicon view?
+
+copilot:data object details view...
+- on properties tab, show 'list view' button to the left of the 'table view' button. Display list view by default.
+- on properties tab list view, under the list, show a 'Copy' button that will copy the list of items to the clipboard in a format that can be pasted into a text editor.
+
+
+copilot:report details view...
+- on columns tab, show 'list view' button to the left of the 'table view' button. Display list view by default.
+- on buttons tab, show 'list view' button to the left of the 'table view' button. Display list view by default.
+- on parameters tab, show 'list view' button to the left of the 'table view' button. Display list view by default.
+
+report details view...
+- on columns tab list view, under the list, show a 'Copy' button that will copy the list of items to the clipboard in a format that can be pasted into a text editor.
+- on buttons tab list view, under the list, show a 'Copy' button that will copy the list of items to the clipboard in a format that can be pasted into a text editor.
+- on parameters tab list view, under the list, show a 'Copy' button that will copy the list of items to the clipboard in a format that can be pasted into a text editor.
+
+
+report details view...
+- on columns tab list view, under the list, show a 'Move Up' button that will move the selected item up in the list and move the model's corresponding array item up in the array. Add a 'Move Down' button that will move the selected item down in the list and move the model's corresponding array item down in the array.
+- on buttons tab list view, under the list, show a 'Move Up' button that will move the selected item up in the list and move the model's corresponding array item up in the array. Add a 'Move Down' button that will move the selected item down in the list and move the model's corresponding array item down in the array.
+- on parameters tab list view, under the list, show a 'Move Up' button that will move the selected item up in the list and move the model's corresponding array item up in the array. Add a 'Move Down' button that will move the selected item down in the list and move the model's corresponding array item down in the array.
+
+
+report details view...
+- on columns tab list view, under the list, show a 'Reverse' button. THis should reverse the order of the items in the list and reverse the model's corresponding array.
+- on buttons tab list view, under the list, show a 'Reverse' button. THis should reverse the order of the items in the list and reverse the model's corresponding array.
+- on parameters tab list view, under the list, show a 'Reverse' button. THis should reverse the order of the items in the list and reverse the model's corresponding array.
+
 allow log if issues in extension. 
 - on github?
 
@@ -12,19 +42,10 @@ welcome...
 obj hierarchy view...
 - refresh button should recalculate hierarchy.
  
-model fabrication req details...
+copilot:model fabrication req details...
 - 'Fabrication results have been downloaded and extracted successfully.' is in green background with black text. hard to read
 
-
-report details view...
-- test all tabs
-    - settings
-    - columns
-    - buttons
-    - params
-
-- report details view - parameters tab should work similar to the object details view 'properties' tab, including the list and table view options
-
+ 
 
 change requests... 
 - on approve all, show processing animation while all are processed
