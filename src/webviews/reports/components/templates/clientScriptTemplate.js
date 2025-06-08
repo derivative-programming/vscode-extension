@@ -1161,6 +1161,162 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Close the modal
             document.getElementById('param-modal').style.display = 'none';
         }
+        // --- COPY FUNCTIONALITY ---
+        // Set up copy button functionality for columns list
+        const copyColumnsButton = document.getElementById('copyColumnsButton');
+        if (copyColumnsButton) {
+            copyColumnsButton.addEventListener('click', () => {
+                try {
+                    // Get all column names from the list
+                    const columnsList = document.getElementById('columnsList');
+                    if (!columnsList) return;
+                    
+                    const columnList = [];
+                    for (let i = 0; i < columnsList.options.length; i++) {
+                        columnList.push(columnsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = columnList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Columns copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyColumnsButton.textContent;
+                            copyColumnsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyColumnsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy columns: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyColumnsButton.textContent;
+                        copyColumnsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyColumnsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying columns: ', err);
+                }
+            });
+        }
+
+        // Set up copy button functionality for buttons list
+        const copyButtonsButton = document.getElementById('copyButtonsButton');
+        if (copyButtonsButton) {
+            copyButtonsButton.addEventListener('click', () => {
+                try {
+                    // Get all button names from the list
+                    const buttonsList = document.getElementById('buttonsList');
+                    if (!buttonsList) return;
+                    
+                    const buttonList = [];
+                    for (let i = 0; i < buttonsList.options.length; i++) {
+                        buttonList.push(buttonsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = buttonList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Buttons copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyButtonsButton.textContent;
+                            copyButtonsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyButtonsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy buttons: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyButtonsButton.textContent;
+                        copyButtonsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButtonsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying buttons: ', err);
+                }
+            });
+        }
+
+        // Set up copy button functionality for parameters list
+        const copyParamsButton = document.getElementById('copyParamsButton');
+        if (copyParamsButton) {
+            copyParamsButton.addEventListener('click', () => {
+                try {
+                    // Get all parameter names from the list
+                    const paramsList = document.getElementById('paramsList');
+                    if (!paramsList) return;
+                    
+                    const paramList = [];
+                    for (let i = 0; i < paramsList.options.length; i++) {
+                        paramList.push(paramsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = paramList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Parameters copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyParamsButton.textContent;
+                            copyParamsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyParamsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy parameters: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyParamsButton.textContent;
+                        copyParamsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyParamsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying parameters: ', err);
+                }
+            });
+        }
     `;
 }
 
