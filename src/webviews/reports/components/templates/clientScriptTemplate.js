@@ -1403,6 +1403,67 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 moveListItem('paramsList', 'param', 'down');
             });
         }
+        
+        // --- REVERSE FUNCTIONALITY ---
+        
+        // Helper function to reverse a list and update model
+        function reverseList(listId, arrayName) {
+            const selectElement = document.getElementById(listId);
+            if (!selectElement || selectElement.options.length <= 1) {
+                return; // Nothing to reverse
+            }
+            
+            // Remember current selection
+            const selectedIndex = selectElement.selectedIndex;
+            const selectedValue = selectedIndex >= 0 ? selectElement.options[selectedIndex].value : null;
+            
+            // Reverse the options in the select list
+            const options = Array.from(selectElement.options);
+            selectElement.innerHTML = '';
+            
+            // Add options in reverse order
+            for (let i = options.length - 1; i >= 0; i--) {
+                selectElement.appendChild(options[i]);
+                // Update the value to reflect new position
+                options[i].value = options.length - 1 - i;
+            }
+            
+            // Update selection - if an item was selected, select the same item in its new position
+            if (selectedValue !== null) {
+                const newIndex = options.length - 1 - parseInt(selectedValue);
+                selectElement.selectedIndex = newIndex;
+            }
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'reverse' + arrayName.charAt(0).toUpperCase() + arrayName.slice(1),
+                data: {}
+            });
+        }
+        
+        // Set up reverse functionality for columns
+        const reverseColumnsButton = document.getElementById('reverseColumnsButton');
+        if (reverseColumnsButton) {
+            reverseColumnsButton.addEventListener('click', () => {
+                reverseList('columnsList', 'column');
+            });
+        }
+        
+        // Set up reverse functionality for buttons
+        const reverseButtonsButton = document.getElementById('reverseButtonsButton');
+        if (reverseButtonsButton) {
+            reverseButtonsButton.addEventListener('click', () => {
+                reverseList('buttonsList', 'button');
+            });
+        }
+        
+        // Set up reverse functionality for parameters
+        const reverseParamsButton = document.getElementById('reverseParamsButton');
+        if (reverseParamsButton) {
+            reverseParamsButton.addEventListener('click', () => {
+                reverseList('paramsList', 'param');
+            });
+        }
           // Helper function to update move button states based on selection
         function updateMoveButtonStates() {
             // Update columns move buttons

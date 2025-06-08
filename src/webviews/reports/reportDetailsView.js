@@ -184,6 +184,33 @@ function showReportDetails(item, modelService) {
                         console.warn("Cannot move param: ModelService not available or report reference not found");
                     }
                     return;
+                    
+                case "reverseColumn":
+                    if (modelService && reportReference) {
+                        // Reverse column array
+                        reverseColumnArray(reportReference, modelService);
+                    } else {
+                        console.warn("Cannot reverse columns: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "reverseButton":
+                    if (modelService && reportReference) {
+                        // Reverse button array
+                        reverseButtonArray(reportReference, modelService);
+                    } else {
+                        console.warn("Cannot reverse buttons: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "reverseParam":
+                    if (modelService && reportReference) {
+                        // Reverse param array
+                        reverseParamArray(reportReference, modelService);
+                    } else {
+                        console.warn("Cannot reverse params: ModelService not available or report reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -639,6 +666,123 @@ function moveParamInArray(data, reportReference, modelService) {
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error moving param:", error);
+    }
+}
+
+/**
+ * Reverses the reportColumn array
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ */
+function reverseColumnArray(reportReference, modelService) {
+    try {
+        console.log("[DEBUG] reverseColumnArray called");
+        
+        if (!reportReference.reportColumn || !Array.isArray(reportReference.reportColumn)) {
+            console.warn("[DEBUG] reportColumn array does not exist");
+            return;
+        }
+        
+        const array = reportReference.reportColumn;
+        
+        if (array.length <= 1) {
+            console.log("[DEBUG] Array has 1 or fewer items, nothing to reverse");
+            return;
+        }
+        
+        // Reverse the array
+        array.reverse();
+        
+        console.log("[DEBUG] Column array reversed successfully");
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log("[DEBUG] Marked unsaved changes after column reverse");
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error reversing column array:", error);
+    }
+}
+
+/**
+ * Reverses the reportButton array
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ */
+function reverseButtonArray(reportReference, modelService) {
+    try {
+        console.log("[DEBUG] reverseButtonArray called");
+        
+        if (!reportReference.reportButton || !Array.isArray(reportReference.reportButton)) {
+            console.warn("[DEBUG] reportButton array does not exist");
+            return;
+        }
+        
+        const array = reportReference.reportButton;
+        
+        if (array.length <= 1) {
+            console.log("[DEBUG] Array has 1 or fewer items, nothing to reverse");
+            return;
+        }
+        
+        // Reverse the array
+        array.reverse();
+        
+        console.log("[DEBUG] Button array reversed successfully");
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log("[DEBUG] Marked unsaved changes after button reverse");
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error reversing button array:", error);
+    }
+}
+
+/**
+ * Reverses the reportParam array
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ */
+function reverseParamArray(reportReference, modelService) {
+    try {
+        console.log("[DEBUG] reverseParamArray called");
+        
+        if (!reportReference.reportParam || !Array.isArray(reportReference.reportParam)) {
+            console.warn("[DEBUG] reportParam array does not exist");
+            return;
+        }
+        
+        const array = reportReference.reportParam;
+        
+        if (array.length <= 1) {
+            console.log("[DEBUG] Array has 1 or fewer items, nothing to reverse");
+            return;
+        }
+        
+        // Reverse the array
+        array.reverse();
+        
+        console.log("[DEBUG] Param array reversed successfully");
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log("[DEBUG] Marked unsaved changes after param reverse");
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error reversing param array:", error);
     }
 }
 
