@@ -87,6 +87,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                     <button id="copyColumnsButton" class="copy-props-button">Copy</button>
                     <button id="moveUpColumnsButton" class="move-button">Move Up</button>
                     <button id="moveDownColumnsButton" class="move-button">Move Down</button>
+                    <button id="reverseColumnsButton" class="reverse-button">Reverse</button>
                 </div>
             </div>
             <div id="columnDetailsContainer" class="details-container" style="display: none;">
@@ -130,6 +131,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                     <button id="copyButtonsButton" class="copy-props-button">Copy</button>
                     <button id="moveUpButtonsButton" class="move-button">Move Up</button>
                     <button id="moveDownButtonsButton" class="move-button">Move Down</button>
+                    <button id="reverseButtonsButton" class="reverse-button">Reverse</button>
                 </div>
             </div>
             <div id="buttonDetailsContainer" class="details-container" style="display: none;">
@@ -173,6 +175,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                     <button id="copyParamsButton" class="copy-props-button">Copy</button>
                     <button id="moveUpParamsButton" class="move-button">Move Up</button>
                     <button id="moveDownParamsButton" class="move-button">Move Down</button>
+                    <button id="reverseParamsButton" class="reverse-button">Reverse</button>
                 </div>
             </div>
             <div id="paramDetailsContainer" class="details-container" style="display: none;">
