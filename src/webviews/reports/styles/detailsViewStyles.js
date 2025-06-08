@@ -89,13 +89,10 @@ function getDetailViewStyles() {
         .view-content.active {
             display: block;
         }
-        
-        .list-container {
-            width: 100%;
-            max-width: 300px;
-            margin-right: 20px;
-            display: inline-block;
-            vertical-align: top;
+          .list-container {
+            width: 30%;
+            float: left;
+            padding-right: 15px;
         }
         
         .list-container select {
@@ -103,12 +100,16 @@ function getDetailViewStyles() {
             height: 200px;
             margin-bottom: 10px;
         }
+          .details-container {
+            width: 65%;
+            float: left;
+        }
         
-        .details-container {
-            display: inline-block;
-            vertical-align: top;
-            width: calc(100% - 320px);
-            min-width: 400px;
+        /* Clear fix for floating elements */
+        .view-content:after {
+            content: "";
+            display: table;
+            clear: both;
         }
         
         .add-prop-button {

@@ -153,6 +153,16 @@ The HTML structure follows this pattern:
   - Each service item can be clicked to toggle its status (start/stop)
 - Tree view has expandAll and collapseAll buttons in the title bar for easy navigation:
   - Expand button uses the VS Code built-in 'list.toggleAllExpanded' command with a fallback mechanism
+  - Collapse button uses the VS Code built-in 'workbench.actions.treeView.appdna.collapseAll' command
+  - Both commands have robust error handling and logging
+  - The expandAllItems method in JsonTreeDataProvider provides additional programmatic control
+- Unsaved changes indicator in the tree view:
+  - Circle icon appears directly next to "AppDNA" in the tree view title when there are unsaved changes
+  - JsonTreeDataProvider dynamically updates the tree view title to include/remove the indicator
+  - Uses VS Code context variable 'appDnaHasUnsavedChanges' internally
+  - JsonTreeDataProvider polls ModelService every second to detect changes in status
+  - Original title is preserved when there are no unsaved changes
+  - Both commands log actions to the command history file using commandLog utility
 
 ### Webview Architecture Pattern
 
@@ -966,3 +976,38 @@ The data object tree view now includes filter functionality similar to the repor
 - **State management**: Proper context tracking for filter active state
 
 The filter functionality integrates seamlessly with the existing tree view architecture and provides a consistent user experience similar to the report filter.
+
+## UI Layout Differences Between Object and Report Details Views
+
+**Issue**: Report details view list views were showing form fields below the listbox instead of to the right side (June 8, 2025)
+
+**Root Cause**: Different CSS layout approaches between object details and report details:
+
+- **Object Details (Correct)**: Uses `float: left` with percentage widths (30% list, 65% details) and clearfix
+- **Report Details (Fixed)**: Was using `inline-block` with fixed max-width which could wrap to new line
+
+**Solution**: Updated report details styles to match object details layout:
+```css
+.list-container {
+    width: 30%;
+    float: left;
+    padding-right: 15px;
+}
+
+.details-container {
+    width: 65%;
+    float: left;
+}
+
+/* Clear fix for floating elements */
+.view-content:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+```
+
+**Files Modified**: 
+- `src/webviews/reports/styles/detailsViewStyles.js`
+
+This ensures consistent side-by-side layout (listbox on left, form controls on right) across all detail views.
