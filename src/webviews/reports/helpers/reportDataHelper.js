@@ -7,46 +7,24 @@
  */
 function formatLabel(label) {
     if (!label) {
-        return '';
+        return "";
     }
-    
-    // Handle specific cases for acronyms that should stay together
-    // For example: "DNAApp" → "DNA App", not "D N A App"
-    const replacements = [
-        { pattern: 'DNA', replacement: 'DNA' },
-        { pattern: 'API', replacement: 'API' },
-        { pattern: 'URL', replacement: 'URL' },
-        { pattern: 'UI', replacement: 'UI' },
-        { pattern: 'SQL', replacement: 'SQL' },
-        { pattern: 'HTTP', replacement: 'HTTP' },
-        { pattern: 'XML', replacement: 'XML' },
-        { pattern: 'JSON', replacement: 'JSON' },
-        { pattern: 'HTML', replacement: 'HTML' },
-        { pattern: 'CSS', replacement: 'CSS' },
-        { pattern: 'JS', replacement: 'JS' },
-        { pattern: 'UUID', replacement: 'UUID' },
-        { pattern: 'ID', replacement: 'ID' }
-    ];
-    
-    // Temporarily replace known acronyms with placeholders
-    let tempLabel = label;
-    replacements.forEach((item, index) => {
-        tempLabel = tempLabel.replace(new RegExp(item.pattern, 'g'), `__PLACEHOLDER_${index}__`);
-    });
-    
-    // Add space before capital letters
-    const formattedText = tempLabel
-        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-        .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
-        .trim(); // Trim any extra spaces
-    
-    // Restore the acronyms
-    let finalText = formattedText;
-    replacements.forEach((item, index) => {
-        finalText = finalText.replace(new RegExp(`__PLACEHOLDER_${index}__`, 'g'), item.replacement);
-    });
-    
-    return finalText;
+
+    // Use regex for a more robust approach to handle various cases including acronyms
+    let result = label
+        // Insert space before a capital letter followed by a lowercase letter (e.g., AppDna -> App Dna)
+        .replace(/([A-Z])([a-z])/g, " $1$2")
+        // Insert space before a capital letter that is preceded by a lowercase letter or digit (e.g., appDNA -> app DNA, test1DNA -> test1 DNA)
+        .replace(/([a-z\d])([A-Z])/g, "$1 $2")
+        // Insert space before a sequence of capital letters followed by a lowercase letter (handles acronym followed by word, e.g. DNAApp -> DNA App)
+        .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+        // Add space between letter and digit: TestA1 -> Test A 1
+        .replace(/([A-Za-z])(\d)/g, "$1 $2");
+
+    // Capitalize the first letter and trim whitespace
+    result = result.charAt(0).toUpperCase() + result.slice(1).trim();
+
+    return result;
 }
 
 module.exports = {
