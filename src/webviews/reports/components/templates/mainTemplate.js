@@ -83,6 +83,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                 <select id="columnsList" size="10">
                     ${(report.reportColumn || []).map((column, index) => `<option value="${index}">${column.name || 'Unnamed Column'}</option>`).join('')}
                 </select>
+                <button id="copyColumnsButton" class="copy-props-button">Copy</button>
             </div>
             <div id="columnDetailsContainer" class="details-container" style="display: none;">
                 <form id="columnDetailsForm">
@@ -121,6 +122,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                 <select id="buttonsList" size="10">
                     ${(report.reportButton || []).map((button, index) => `<option value="${index}">${button.buttonName || 'Unnamed Button'}</option>`).join('')}
                 </select>
+                <button id="copyButtonsButton" class="copy-props-button">Copy</button>
             </div>
             <div id="buttonDetailsContainer" class="details-container" style="display: none;">
                 <form id="buttonDetailsForm">
@@ -159,6 +161,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                 <select id="paramsList" size="10">
                     ${(report.reportParam || []).map((param, index) => `<option value="${index}">${param.name || 'Unnamed Parameter'}</option>`).join('')}
                 </select>
+                <button id="copyParamsButton" class="copy-props-button">Copy</button>
             </div>
             <div id="paramDetailsContainer" class="details-container" style="display: none;">
                 <form id="paramDetailsForm">
