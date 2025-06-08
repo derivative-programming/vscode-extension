@@ -220,24 +220,21 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 const isReadOnly = input.readOnly || input.disabled;
                 updateInputStyle(input, !isReadOnly);
             });
-            
-            // Initialize button list view - hide details if no button is selected
-            const buttonsList = document.getElementById('buttonsList');
-            const buttonDetailsContainer = document.getElementById('buttonDetailsContainer');
+              // Initialize button list view - hide details if no button is selected
+            let buttonsList = document.getElementById('buttonsList');
+            let buttonDetailsContainer = document.getElementById('buttonDetailsContainer');
             if (buttonsList && buttonDetailsContainer && (!buttonsList.value || buttonsList.value === "")) {
                 buttonDetailsContainer.style.display = 'none';
             }
-            
-            // Initialize column list view - hide details if no column is selected
-            const columnsList = document.getElementById('columnsList');
-            const columnDetailsContainer = document.getElementById('columnDetailsContainer');
+              // Initialize column list view - hide details if no column is selected
+            let columnsList = document.getElementById('columnsList');
+            let columnDetailsContainer = document.getElementById('columnDetailsContainer');
             if (columnsList && columnDetailsContainer && (!columnsList.value || columnsList.value === "")) {
                 columnDetailsContainer.style.display = 'none';
             }
-            
-            // Initialize params list view - hide details if no param is selected
-            const paramsList = document.getElementById('paramsList');
-            const paramDetailsContainer = document.getElementById('paramDetailsContainer');
+              // Initialize params list view - hide details if no param is selected
+            let paramsList = document.getElementById('paramsList');
+            let paramDetailsContainer = document.getElementById('paramDetailsContainer');
             if (paramsList && paramDetailsContainer && (!paramsList.value || paramsList.value === "")) {
                 paramDetailsContainer.style.display = 'none';
             }
@@ -347,10 +344,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             }
         });
         
-        // --- COLUMNS FUNCTIONALITY ---
-        // Column list change handler for list view
-        const columnsList = document.getElementById('columnsList');
-        const columnDetailsContainer = document.getElementById('columnDetailsContainer');
+        // --- COLUMNS FUNCTIONALITY ---        // Column list change handler for list view
+        columnsList = document.getElementById('columnsList');
+        columnDetailsContainer = document.getElementById('columnDetailsContainer');
         if (columnsList && columnDetailsContainer) {
             columnsList.addEventListener('change', (event) => {
                 const selectedIndex = event.target.value;
@@ -646,11 +642,10 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Close the modal
             document.getElementById('column-modal').style.display = 'none';
         }
-        
-        // --- BUTTONS FUNCTIONALITY ---
+          // --- BUTTONS FUNCTIONALITY ---
         // Button list change handler for list view
-        const buttonsList = document.getElementById('buttonsList');
-        const buttonDetailsContainer = document.getElementById('buttonDetailsContainer');
+        buttonsList = document.getElementById('buttonsList');
+        buttonDetailsContainer = document.getElementById('buttonDetailsContainer');
         if (buttonsList && buttonDetailsContainer) {
             buttonsList.addEventListener('change', (event) => {
                 const selectedIndex = event.target.value;
@@ -862,10 +857,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             document.getElementById('button-modal').style.display = 'none';
         }
         
-        // --- PARAMETERS FUNCTIONALITY ---
-        // Parameter list change handler for list view
-        const paramsList = document.getElementById('paramsList');
-        const paramDetailsContainer = document.getElementById('paramDetailsContainer');
+        // --- PARAMETERS FUNCTIONALITY ---        // Parameter list change handler for list view
+        paramsList = document.getElementById('paramsList');
+        paramDetailsContainer = document.getElementById('paramDetailsContainer');
         if (paramsList && paramDetailsContainer) {
             paramsList.addEventListener('change', (event) => {
                 const selectedIndex = event.target.value;
@@ -1409,11 +1403,10 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 moveListItem('paramsList', 'param', 'down');
             });
         }
-        
-        // Helper function to update move button states based on selection
+          // Helper function to update move button states based on selection
         function updateMoveButtonStates() {
             // Update columns move buttons
-            const columnsList = document.getElementById('columnsList');
+            columnsList = document.getElementById('columnsList');
             const moveUpColumns = document.getElementById('moveUpColumnsButton');
             const moveDownColumns = document.getElementById('moveDownColumnsButton');
             
@@ -1426,9 +1419,8 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 moveUpColumns.disabled = !hasSelection || isFirst;
                 moveDownColumns.disabled = !hasSelection || isLast;
             }
-            
-            // Update buttons move buttons
-            const buttonsList = document.getElementById('buttonsList');
+              // Update buttons move buttons
+            buttonsList = document.getElementById('buttonsList');
             const moveUpButtons = document.getElementById('moveUpButtonsButton');
             const moveDownButtons = document.getElementById('moveDownButtonsButton');
             
@@ -1441,9 +1433,8 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 moveUpButtons.disabled = !hasSelection || isFirst;
                 moveDownButtons.disabled = !hasSelection || isLast;
             }
-            
-            // Update params move buttons
-            const paramsList = document.getElementById('paramsList');
+              // Update params move buttons
+            paramsList = document.getElementById('paramsList');
             const moveUpParams = document.getElementById('moveUpParamsButton');
             const moveDownParams = document.getElementById('moveDownParamsButton');
             
@@ -1457,19 +1448,18 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 moveDownParams.disabled = !hasSelection || isLast;
             }
         }
-        
-        // Add event listeners to update move button states when selection changes
-        const columnsList = document.getElementById('columnsList');
+          // Add event listeners to update move button states when selection changes
+        columnsList = document.getElementById('columnsList');
         if (columnsList) {
             columnsList.addEventListener('change', updateMoveButtonStates);
         }
         
-        const buttonsList = document.getElementById('buttonsList');
+        buttonsList = document.getElementById('buttonsList');
         if (buttonsList) {
             buttonsList.addEventListener('change', updateMoveButtonStates);
         }
         
-        const paramsList = document.getElementById('paramsList');
+        paramsList = document.getElementById('paramsList');
         if (paramsList) {
             paramsList.addEventListener('change', updateMoveButtonStates);
         }
