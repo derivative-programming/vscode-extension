@@ -346,7 +346,7 @@ function getWebviewContent(panel, context, model, schema) {
             body {
                 padding: 20px;
                 color: var(--vscode-editor-foreground);
-                font-family: var(--vscode-editor-font-family);
+                font-family: var(--vscode-font-family);
                 background-color: var(--vscode-editor-background);
             }
             h2 {
