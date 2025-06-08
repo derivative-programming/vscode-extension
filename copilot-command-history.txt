@@ -1,0 +1,9 @@
+2025-06-08: Implemented Move Up and Move Down buttons for report details view
+- Added Move Up/Down buttons to columns, buttons, and parameters tabs list views
+- Implemented client-side moveListItem() function to handle UI updates and messaging
+- Added message handlers (moveColumn, moveButton, moveParam) in reportDetailsView.js
+- Added array manipulation functions to reorder items in model arrays
+- Added CSS styles for button layout and disabled states
+- Added button state management to disable buttons when not applicable
+- Created comprehensive tests to validate all functionality
+- Files modified: mainTemplate.js, clientScriptTemplate.js, reportDetailsView.js, detailsViewStyles.js

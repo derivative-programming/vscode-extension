@@ -2,6 +2,30 @@
  
 *Last updated: June 08, 2025*
 
+## Move Up/Down Functionality for Report Details View (Added 2025-06-08)
+
+Added Move Up and Move Down buttons for reordering items in the report details view list tabs.
+
+### Features:
+- Move Up/Down buttons for columns, buttons, and parameters tabs in list view mode
+- Buttons are automatically disabled when no item is selected or item is at first/last position
+- Visual feedback with proper enabled/disabled button states
+- Model arrays are updated correctly with proper error handling
+- Changes are marked as unsaved and view refreshes automatically
+
+### Implementation:
+- **HTML Template** (`mainTemplate.js`): Added buttons in `.list-buttons` containers next to Copy buttons
+- **CSS Styles** (`detailsViewStyles.js`): Added flex layout for button containers and disabled button states
+- **Client Script** (`clientScriptTemplate.js`): Added `moveListItem()` function and button state management
+- **Message Handlers** (`reportDetailsView.js`): Added `moveColumn`, `moveButton`, `moveParam` command handlers
+- **Array Operations**: Uses `array.splice()` to move items between indices in reportColumn, reportButton, reportParam arrays
+
+### User Experience:
+- Intuitive placement next to existing Copy functionality
+- Clear visual feedback for available actions
+- Consistent behavior across all three list view tabs
+- Immediate visual updates in the UI when items are moved
+
 ## Font Consistency Fix (Added 2025-06-08)
 
 Fixed font inconsistency between the lexicon view and project settings view:
