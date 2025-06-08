@@ -8,13 +8,13 @@
     "projectName": "Your Project",
     "projectCode": "123456",
     "projectVersionNumber": "1.0",
-    "isDatabaseAuditColumnsCreated": "true",
-    "isInternalObjectApiCreated": "true",
-    "isBasicAuthenticationIncluded": "true",
+    "isDatabaseAuditColumnsCreated": "false",
+    "isInternalObjectApiCreated": "false",
+    "isBasicAuthenticationIncluded": "false",
     "databaseTableNamePrefix": "",
     "suppressUsingDatabaseDeclarationInScripts": "false",
     "suppressFillObjLookupTableScripts": "false",
-    "isValidationMissesLogged": "true",
+    "isValidationMissesLogged": "false",
     "namespace": [
       {
         "name": "Core",
