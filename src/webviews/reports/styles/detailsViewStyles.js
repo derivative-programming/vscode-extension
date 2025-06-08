@@ -275,6 +275,37 @@ function getDetailViewStyles() {
         .action-buttons {
             margin-top: 20px;
         }
+        
+        /* List buttons container */
+        .list-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .copy-props-button,
+        .move-button {
+            padding: 6px 12px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .copy-props-button:hover,
+        .move-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .move-button:disabled {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
     `;
 }
 
