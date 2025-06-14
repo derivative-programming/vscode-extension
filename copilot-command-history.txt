@@ -27,6 +27,12 @@
 - Added button state management to disable buttons when not applicable
 - Created comprehensive tests to validate all functionality
 - Files modified: mainTemplate.js, clientScriptTemplate.js, reportDetailsView.js, detailsViewStyles.js
+Command: Fix unsaved changes flag when adding properties to data objects
+- Added propertyAdded event dispatch in addNewProperty function to trigger model update
+- Leverages existing event handler that calls updateModel command which marks unsaved changes
+- Minimal change: one line added to dispatch CustomEvent('propertyAdded')
+- Files modified: propertyManagement.js
+ 
 
 2025-12-19: Updated data object wizard per issue requirements
 - Removed "PascalCase name" placeholder from step 3 object name input field
@@ -36,6 +42,7 @@
 - Modified object creation success handler to open Data Object Details view for newly created object
 - File modified: src/webviews/addObjectWizardView.js
 Command: add data object wizard update
+
 Command: Expand all top level tree items in the AppDNA tree view
 
 2025-01-17: Added step 8 to welcome view workflow
