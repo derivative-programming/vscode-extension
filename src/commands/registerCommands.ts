@@ -17,6 +17,7 @@ import * as reportDetailsView from '../webviews/reportDetailsView';
 import { ModelService } from '../services/modelService';
 import { openModelExplorer } from '../webviews/modelExplorerView';
 import { showWelcomeView, WelcomePanel } from '../webviews/welcomeView';
+import { showHelpView } from '../webviews/helpView';
 import { showLoginView } from '../webviews/loginView';
 import { AuthService } from '../services/authService';
 // Import showChangeRequestsListView and alias getWebviewContent
@@ -332,6 +333,12 @@ export function registerCommands(
         showWelcomeView(context);
     });
     context.subscriptions.push(showWelcomeCommand);
+    
+    // Register show help view command
+    const showHelpCommand = vscode.commands.registerCommand('appdna.showHelp', () => {
+        showHelpView(context);
+    });
+    context.subscriptions.push(showHelpCommand);
     
     // Register login command for Model Services
     context.subscriptions.push(
