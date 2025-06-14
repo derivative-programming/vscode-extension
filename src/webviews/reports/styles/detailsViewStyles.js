@@ -308,6 +308,23 @@ function getDetailViewStyles() {
             cursor: not-allowed;
             opacity: 0.6;
         }
+        
+        /* Validation styles for forms */
+        .validation-error {
+            color: var(--vscode-errorForeground, #f44336);
+            font-size: 12px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            min-height: 16px;
+        }
+
+        .field-note {
+            color: var(--vscode-descriptionForeground, #999);
+            font-size: 11px;
+            margin-top: 3px;
+            margin-bottom: 5px;
+            font-style: italic;
+        }
     `;
 }
 

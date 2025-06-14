@@ -35,19 +35,52 @@ function getModalFunctionality() {
         function setupButtonModal() {
             const modal = document.getElementById("button-modal");
             const closeBtn = modal.querySelector(".close");
-            const cancelBtn = document.getElementById("cancel-button-btn");
-            const form = document.getElementById("button-form");
+            const editCancelBtn = document.getElementById("cancel-button-btn");
+            const addCancelBtn = document.getElementById("add-button-cancel-btn");
+            const editForm = document.getElementById("button-form");
+            const addSaveBtn = document.getElementById("add-button-save-btn");
             
-            // Close modal on clicking X or Cancel
+            // Close modal on clicking X
             closeBtn.onclick = () => { modal.style.display = "none"; };
-            cancelBtn.onclick = () => { modal.style.display = "none"; };
             
-            // Handle form submission
-            form.onsubmit = (e) => {
-                e.preventDefault();
-                saveButtonChanges();
-            };
+            // Close modal on clicking Cancel buttons
+            if (editCancelBtn) {
+                editCancelBtn.onclick = () => { modal.style.display = "none"; };
+            }
+            if (addCancelBtn) {
+                addCancelBtn.onclick = () => { modal.style.display = "none"; };
+            }
+            
+            // Handle edit form submission
+            if (editForm) {
+                editForm.onsubmit = (e) => {
+                    e.preventDefault();
+                    saveButtonChanges();
+                };
+            }
+            
+            // Handle add button save
+            if (addSaveBtn) {
+                addSaveBtn.onclick = () => {
+                    const buttonName = document.getElementById("button-name-input").value.trim();
+                    const errorElement = document.getElementById("button-name-validation-error");
+                    
+                    // Clear any previous errors first
+                    errorElement.textContent = "";
+                    
+                    // The actual validation will be done in the client script
+                    // where current buttons data is available
+                    // Just trigger a custom event to handle the validation and saving
+                    const event = new CustomEvent('addButtonRequested', { 
+                        detail: { buttonName: buttonName, errorElement: errorElement } 
+                    });
+                    document.dispatchEvent(event);
+                };
+            }
         }
+        
+        // Note: validateButtonName function is defined in client script where 
+        // currentButtons data is available
         
         // Modal functionality for parameters
         function setupParamModal() {
