@@ -1,5 +1,37 @@
 # AppDNA VS Code Extension Architecture Notes
    
+## Data Object Settings Tab - Parent Object Name Read-Only Field (Added 2025-06-14)
+
+Implemented requirement to make the 'Parent Object Name' textbox always read-only in the data object details view settings tab.
+
+### Problem:
+- The `parentObjectName` field in the settings tab was editable when the property existed in the object
+- User requirement was to make this field always read-only regardless of property existence
+
+### Solution:
+- Modified `src/webviews/objects/components/templates/settingsTabTemplate.js` 
+- Added conditional logic: `const isReadonly = !propertyExists || key === "parentObjectName"`
+- Applied this logic to the input field template to force readonly attribute
+
+### Technical Details:
+- **File Modified**: `src/webviews/objects/components/templates/settingsTabTemplate.js`
+- **Change Type**: Minimal - Added 3 lines, removed 1 line (net +2 lines)
+- **Logic**: The field is now readonly if either the property doesn't exist OR if it's specifically the `parentObjectName` field
+- **Consistency**: Other fields maintain their original behavior (editable when property exists)
+
+### Testing Verified:
+- Property exists with value: Field shows value and is readonly ✅
+- Property doesn't exist: Field is empty and readonly ✅  
+- Property is null: Field is empty and readonly ✅
+- Property is empty string: Field is empty and readonly ✅
+- Other fields unaffected: Description field remains editable when appropriate ✅
+
+### Benefits:
+- Prevents accidental modification of parent object relationships
+- Maintains data integrity in object hierarchy
+- Consistent with read-only styling (different background via CSS)
+- No impact on existing functionality for other fields
+
 *Last updated: December 21, 2024*
 
 ## Report Details View Reverse Button Height Fix (Added 2024-12-21)

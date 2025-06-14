@@ -1,5 +1,12 @@
- 
- 
+2025-06-14: Make the 'Parent Object Name' textbox read-only in data object details view settings tab
+- Modified src/webviews/objects/components/templates/settingsTabTemplate.js
+- Added logic to make parentObjectName field always readonly regardless of property existence
+- Added isReadonly variable that checks (!propertyExists || key === "parentObjectName")
+- Comprehensive testing confirmed all scenarios work: existing value, missing property, null value, empty string
+- Other fields remain unaffected (description, name still editable when appropriate)
+- Minimal change: 3 lines added, 1 line removed, net +2 lines
+- Compilation and linting successful with no new issues
+
 2025-06-14: Add object selection in tree view after creating data objects via wizard
 - Added selectDataObject method to JsonTreeDataProvider to select objects by name
 - Registered appdna.selectDataObject command in registerCommands.ts
