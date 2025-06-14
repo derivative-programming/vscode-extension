@@ -1,3 +1,13 @@
+2025-06-08: Add public repository links to Welcome and Login views
+- Added footer section with GitHub repository link to welcomeView.js  
+- Added footer section with GitHub repository link to loginView.ts
+- Added consistent CSS styling for footer using VS Code theme variables
+- Repository link (https://github.com/derivative-programming/vscode-extension) opens in new tab
+- Verified changes compile successfully and pass linting
+- Created custom test to validate footer links are properly included
+- Minimal changes: 20 lines added to each file, 0 lines deleted
+- Files modified: welcomeView.js, loginView.ts
+
 2025-06-08: Implemented Move Up and Move Down buttons for report details view
 - Added Move Up/Down buttons to columns, buttons, and parameters tabs list views
 - Implemented client-side moveListItem() function to handle UI updates and messaging
