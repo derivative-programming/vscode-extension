@@ -1,4 +1,16 @@
  
+2025-12-24: Add Help view with GitHub links and issue reporting information
+- Created src/webviews/helpView.js with help content and GitHub repository links
+- Added showHelpView command registration in registerCommands.ts
+- Added help command definition in package.json with question mark icon
+- Added help button to tree view positioned to the left of welcome button (navigation@-1)
+- Help view includes:
+  - Link to GitHub repository for learning more
+  - Information about logging issues on GitHub with direct link
+  - Quick tips for using the extension
+- Minimal changes: 1 new file created, small additions to existing files
+- Files modified: src/webviews/helpView.js (new), src/commands/registerCommands.ts, package.json
+
 2025-06-08: Add public repository links to Welcome and Login views
 - Added footer section with GitHub repository link to welcomeView.js  
 - Added footer section with GitHub repository link to loginView.ts

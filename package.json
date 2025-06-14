@@ -68,6 +68,11 @@
           "group": "navigation"
         },
         {
+          "command": "appdna.showHelp",
+          "when": "view == appdna",
+          "group": "navigation@-1"
+        },
+        {
           "command": "appdna.showWelcome",
           "when": "view == appdna",
           "group": "navigation@0"
@@ -158,6 +163,11 @@
         "command": "appdna.showWelcome",
         "title": "Welcome to AppDNA",
         "icon": "$(home)"
+      },
+      {
+        "command": "appdna.showHelp",
+        "title": "Help",
+        "icon": "$(question)"
       },
       {
         "command": "appdna.startMCPServer",
