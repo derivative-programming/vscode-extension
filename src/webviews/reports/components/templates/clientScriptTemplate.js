@@ -1346,6 +1346,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Update selection to follow the moved item
             selectElement.selectedIndex = newIndex;
             
+            // Update move button states for the new position
+            updateMoveButtonStates();
+            
             // Send message to update the model
             vscode.postMessage({
                 command: 'move' + arrayName.charAt(0).toUpperCase() + arrayName.slice(1),
@@ -1433,6 +1436,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 const newIndex = options.length - 1 - parseInt(selectedValue);
                 selectElement.selectedIndex = newIndex;
             }
+            
+            // Update move button states for the new position
+            updateMoveButtonStates();
             
             // Send message to update the model
             vscode.postMessage({
