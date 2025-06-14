@@ -1,5 +1,37 @@
 # AppDNA VS Code Extension Architecture Notes
    
+## Data Object Settings Tab - Parent Object Name Read-Only Field (Added 2025-06-14)
+
+Implemented requirement to make the 'Parent Object Name' textbox always read-only in the data object details view settings tab.
+
+### Problem:
+- The `parentObjectName` field in the settings tab was editable when the property existed in the object
+- User requirement was to make this field always read-only regardless of property existence
+
+### Solution:
+- Modified `src/webviews/objects/components/templates/settingsTabTemplate.js` 
+- Added conditional logic: `const isReadonly = !propertyExists || key === "parentObjectName"`
+- Applied this logic to the input field template to force readonly attribute
+
+### Technical Details:
+- **File Modified**: `src/webviews/objects/components/templates/settingsTabTemplate.js`
+- **Change Type**: Minimal - Added 3 lines, removed 1 line (net +2 lines)
+- **Logic**: The field is now readonly if either the property doesn't exist OR if it's specifically the `parentObjectName` field
+- **Consistency**: Other fields maintain their original behavior (editable when property exists)
+
+### Testing Verified:
+- Property exists with value: Field shows value and is readonly ✅
+- Property doesn't exist: Field is empty and readonly ✅  
+- Property is null: Field is empty and readonly ✅
+- Property is empty string: Field is empty and readonly ✅
+- Other fields unaffected: Description field remains editable when appropriate ✅
+
+### Benefits:
+- Prevents accidental modification of parent object relationships
+- Maintains data integrity in object hierarchy
+- Consistent with read-only styling (different background via CSS)
+- No impact on existing functionality for other fields
+
 *Last updated: December 21, 2024*
 
 ## Report Details View Reverse Button Height Fix (Added 2024-12-21)
@@ -953,6 +985,34 @@ The Change Requests List View supports flexible handling of property updates:
    - Only validates pending change requests (not approved, rejected, or processed ones)
 
 This approach allows for both updating existing properties and adding new ones through the change request mechanism while ensuring that changes are still valid against the current model state.
+
+## Property Name Length Validation (Added 2025-01-14)
+
+Enhanced the property validation in the Add Property modal to enforce a 100 character limit on property names.
+
+### Issue:
+- Data object property names needed a maximum length constraint to prevent overly long property names
+- The existing validation only checked for empty names, valid format (letters/numbers), and uniqueness
+
+### Solution:
+- Added length validation to the `validatePropertyName` function in `propertyModalFunctionality.js`
+- The validation now checks `name.length > 100` and returns appropriate error message
+- Length check is positioned after empty check but before format check for logical validation order
+
+### Implementation Details:
+- **File modified**: `src/webviews/objects/components/templates/propertyModalFunctionality.js`
+- **Change**: Added `if (name.length > 100) { return "Property name cannot exceed 100 characters"; }`
+- **Validation order**: Empty → Length → Format → Uniqueness
+- **Works for**: Both single property addition and bulk property addition modes
+- **Testing**: Created isolated test cases to verify 100 character limit enforcement
+
+### Validation Rules (Complete):
+1. Property name cannot be empty
+2. Property name cannot exceed 100 characters
+3. Property name must start with a letter and contain only letters and numbers
+4. Property name must be unique (not already exist)
+
+*Last updated: January 14, 2025*
 
 ## Welcome View Architecture
 

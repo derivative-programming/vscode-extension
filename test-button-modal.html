@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Button Name Validation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+        input { padding: 5px; margin: 5px; width: 300px; }
+        button { padding: 8px 15px; margin: 5px; }
+        .char-count { font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Button Name Validation Test</h1>
+    
+    <div class="test-section">
+        <h3>Test Button Name Validation</h3>
+        <input type="text" id="button-name-input" placeholder="Enter button name" maxlength="150">
+        <div class="char-count">Characters: <span id="char-count">0</span>/100</div>
+        <button onclick="testValidation()">Validate</button>
+        <div id="validation-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Quick Tests</h3>
+        <button onclick="testCase('ValidButton')">Valid Name</button>
+        <button onclick="testCase('')">Empty Name</button>
+        <button onclick="testCase('a'.repeat(100))">100 Characters</button>
+        <button onclick="testCase('a'.repeat(101))">101 Characters</button>
+        <button onclick="testCase('123Invalid')">Invalid Format</button>
+        <button onclick="testCase('Invalid Name')">With Spaces</button>
+    </div>
+
+    <script>
+        // Mock current buttons for testing
+        const currentButtons = [
+            { buttonName: 'ExistingButton' },
+            { buttonName: 'AnotherButton' }
+        ];
+
+        // Copy the validation function from clientScriptTemplate.js
+        function validateButtonName(name) {
+            if (!name) {
+                return "Button name cannot be empty";
+            }
+            if (name.length > 100) {
+                return "Button name cannot exceed 100 characters";
+            }
+            if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
+                return "Button name must start with a letter and contain only letters and numbers";
+            }
+            // Check if button with this name already exists
+            if (currentButtons.some(button => button.buttonName === name)) {
+                return "Button with this name already exists";
+            }
+            return null; // Valid
+        }
+
+        function testValidation() {
+            const input = document.getElementById('button-name-input');
+            const result = document.getElementById('validation-result');
+            const name = input.value.trim();
+            
+            const validationError = validateButtonName(name);
+            
+            if (validationError) {
+                result.innerHTML = `<div class="error">❌ ${validationError}</div>`;
+            } else {
+                result.innerHTML = `<div class="success">✅ Valid button name</div>`;
+            }
+        }
+
+        function testCase(testName) {
+            const input = document.getElementById('button-name-input');
+            input.value = testName;
+            updateCharCount();
+            testValidation();
+        }
+
+        function updateCharCount() {
+            const input = document.getElementById('button-name-input');
+            const count = document.getElementById('char-count');
+            count.textContent = input.value.length;
+            
+            if (input.value.length > 100) {
+                count.style.color = 'red';
+            } else if (input.value.length > 90) {
+                count.style.color = 'orange';
+            } else {
+                count.style.color = '#666';
+            }
+        }
+
+        // Add event listeners
+        document.getElementById('button-name-input').addEventListener('input', updateCharCount);
+        document.getElementById('button-name-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testValidation();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,3 +1,26 @@
+ 
+ 
+2025-06-14: Make the 'Parent Object Name' textbox read-only in data object details view settings tab
+- Modified src/webviews/objects/components/templates/settingsTabTemplate.js
+- Added logic to make parentObjectName field always readonly regardless of property existence
+- Added isReadonly variable that checks (!propertyExists || key === "parentObjectName")
+- Comprehensive testing confirmed all scenarios work: existing value, missing property, null value, empty string
+- Other fields remain unaffected (description, name still editable when appropriate)
+- Minimal change: 3 lines added, 1 line removed, net +2 lines
+- Compilation and linting successful with no new issues
+ 
+ 
+ 
+ 
+2025-01-14: Add property validation - add property name length limit of 100 characters
+- Added length validation to validatePropertyName function in propertyModalFunctionality.js
+- Validation now checks if property name exceeds 100 characters and returns appropriate error
+- Works for both single property addition and bulk property addition modes
+- Updated validation order: Empty → Length → Format → Uniqueness
+- Created isolated test cases to verify the 100 character limit enforcement
+- Updated ai-agent-architecture-notes.md to document the validation enhancement
+- Minimal changes: 3 lines added, 0 lines deleted
+   
 
 2025-06-14: Add object selection in tree view after creating data objects via wizard
 - Added selectDataObject method to JsonTreeDataProvider to select objects by name
@@ -7,7 +30,7 @@
 - Added 300ms delay to allow tree refresh before selection
 - Verified compilation and basic functionality with mock tests
 - Minimal changes: ~50 lines added across 3 files, 0 lines deleted
-
+ 
 2025-06-14: Fix button name validation to disallow numbers in report details view
 - Updated validation regex from /^[a-zA-Z][a-zA-Z0-9]*$/ to /^[a-zA-Z]+$/ (alpha only)
 - Changed error message to "Button name must contain only letters (no numbers or spaces)"
@@ -15,6 +38,15 @@
 - Verified validation with comprehensive test cases (valid/invalid names)
 - Built and tested successfully - no compilation errors
 - Minimal change: 2 lines modified in clientScriptTemplate.js
+ 
+2025-01-XX: Add maximum length validation (100 characters) to data object wizard name
+- Added max length validation to validateName case in addObjectWizardView.js
+- Validation triggers before other format checks (after empty check)
+- Updated UI input note to inform users about 100 character limit
+- Tested validation logic with standalone test covering edge cases
+- Verified compilation, linting, and no existing functionality broken
+- Minimal changes: 11 lines added, 1 line modified in single file
+ 
 - Files modified: jsonTreeDataProvider.ts, registerCommands.ts, addObjectWizardView.js
 
 2025-12-24: Add Help view with GitHub links and issue reporting information
