@@ -1,3 +1,23 @@
+ 
+2025-06-08: Add public repository links to Welcome and Login views
+- Added footer section with GitHub repository link to welcomeView.js  
+- Added footer section with GitHub repository link to loginView.ts
+- Added consistent CSS styling for footer using VS Code theme variables
+- Repository link (https://github.com/derivative-programming/vscode-extension) opens in new tab
+- Verified changes compile successfully and pass linting
+- Created custom test to validate footer links are properly included
+- Minimal changes: 20 lines added to each file, 0 lines deleted
+- Files modified: welcomeView.js, loginView.ts
+ 
+2024-12-20: Fixed move button states not updating after move operations in report details view
+- Issue: Move up/down buttons' enabled/disabled states were not being updated after move operations
+- Root cause: updateMoveButtonStates() function was not called after moveListItem() and reverseList() operations
+- Solution: Added calls to updateMoveButtonStates() after selection changes in both functions
+- Files modified: src/webviews/reports/components/templates/clientScriptTemplate.js (6 lines added)
+- Result: Move buttons now correctly enable/disable based on the new position after moves
+- Verified: Build successful, lint clean, minimal surgical change
+ 
+
 2025-06-08: Implemented Move Up and Move Down buttons for report details view
 - Added Move Up/Down buttons to columns, buttons, and parameters tabs list views
 - Implemented client-side moveListItem() function to handle UI updates and messaging
@@ -12,8 +32,25 @@ Command: Fix unsaved changes flag when adding properties to data objects
 - Leverages existing event handler that calls updateModel command which marks unsaved changes
 - Minimal change: one line added to dispatch CustomEvent('propertyAdded')
 - Files modified: propertyManagement.js
+ 
+
+2025-12-19: Updated data object wizard per issue requirements
+- Removed "PascalCase name" placeholder from step 3 object name input field
+- Added guidance note below input: "Use PascalCase naming (example: ToDoItem). No spaces allowed. Alpha characters only."
+- Added CSS styling for input note with VS Code theming (.input-note class)
+- Imported showObjectDetails function from objectDetailsView 
+- Modified object creation success handler to open Data Object Details view for newly created object
+- File modified: src/webviews/addObjectWizardView.js
+Command: add data object wizard update
 
 Command: Expand all top level tree items in the AppDNA tree view
+
+2025-01-17: Added step 8 to welcome view workflow
+- Added new workflow step 8: "Manual Model Editing"
+- Step description: "Manually make any changes you like to the model, then go back to step 4."
+- Added workflow note explaining how to use AppDNA tree view or directly edit JSON file
+- Creates iterative workflow where users can manually edit model and re-run AI processing
+- Files modified: welcomeView.js
 
 2025-01-06: Implemented Reverse buttons for report details view
 - Added Reverse buttons to columns, buttons, and parameters tabs list views

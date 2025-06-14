@@ -203,6 +203,22 @@ function getLoginViewContent(): string {
         .terms p {
             margin: 5px 0;
         }
+        .footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--vscode-panel-border);
+            text-align: center;
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
+        }
+        .footer a {
+            color: var(--vscode-textLink-foreground);
+            text-decoration: none;
+        }
+        .footer a:hover {
+            color: var(--vscode-textLink-activeForeground);
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -236,6 +252,10 @@ function getLoginViewContent(): string {
         <div class="info">
             <p>Service URL: ${apiUrl}</p>
             <p>Login to access code generation and other model services.</p>
+        </div>
+        
+        <div class="footer">
+            <p>Learn more about this extension on <a href="https://github.com/derivative-programming/vscode-extension" target="_blank">GitHub</a></p>
         </div>
     </div>
 
