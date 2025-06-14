@@ -102,3 +102,6 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Added array reverse functions (reverseColumnArray, reverseButtonArray, reverseParamArray) to reverse model arrays
 - Follows existing patterns for minimal changes without modifying working functionality
 - Files modified: mainTemplate.js, clientScriptTemplate.js, reportDetailsView.js
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view

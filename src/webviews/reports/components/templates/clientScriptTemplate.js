@@ -1082,7 +1082,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         document.getElementById('add-param-btn').addEventListener('click', function() {
             // Reset form and show modal for adding a new parameter
             document.getElementById('param-form').reset();
-            document.querySelector('#param-modal .modal-title').textContent = 'Add Parameter';
+            document.querySelector('#param-modal .modal-title').textContent = 'Add Filter';
             currentEditingIndex = -1;
             document.getElementById('param-modal').style.display = 'block';
         });

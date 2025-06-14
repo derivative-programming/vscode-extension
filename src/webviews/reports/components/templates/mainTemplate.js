@@ -148,7 +148,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                 <span class="icon list-icon active" data-view="list">List View</span>
                 <span class="icon table-icon" data-view="table">Table View</span>
             </div>
-            <button id="add-param-btn" class="add-prop-button">Add Parameter</button>
+            <button id="add-param-btn" class="add-prop-button">Add Filter</button>
         </div>
 
         <div id="paramsTableView" class="view-content">

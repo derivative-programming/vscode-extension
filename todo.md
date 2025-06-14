@@ -1,48 +1,42 @@
 Agent todo items...
-    
 
-move up/down enable setting should be recalculated after every move
+data object details view settings tab...
+- 'Parent Object Name' textbox to read only
 
+data object details view properties tab...
+- add a object name search modal. for 'fk object name' 
 
-copilot:model services....
-- show alert at top of view if unsaved changes exist
-    - Add Model AI Processing Request
-    - Add Model Validation Request
-    - Add Model Fabrication Request
+make extension repo public
 
 
-
-copilot:report details view...
-- on columns tab list view, under the list, show a 'Reverse' button. THis should reverse the order of the items in the list and reverse the model's corresponding array.
-- on buttons tab list view, under the list, show a 'Reverse' button. THis should reverse the order of the items in the list and reverse the model's corresponding array.
-- on parameters tab list view, under the list, show a 'Reverse' button. THis should reverse the order of the items in the list and reverse the model's corresponding array.
-
-allow log if issues in extension. 
-- on github?
-
-
-welcome...
-- show link to open source link of extension on github
-
-obj hierarchy view...
-- refresh button should recalculate hierarchy.
-
+object details view...
+- lookup item list
+    -buttons ... add, move up, move down
+    - list
+    - properties... customIntProp1Value, description, displayName, isActive.
+    - add button... modal, allow single or bulk.
+ 
 test 'add' buttons...
 - data object details - properties tab
 - report details - columns tab
 - report details - buttons tab
 - report details - parameters tab
- 
+  
 
 change requests... 
 - on approve all, show processing animation while all are processed
 - show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
 - validation error text 'Please provide a reason for rejection.' to red
  
+ 
 
-- implement 'add property' 
-i need to handle the 'add property' button. I need to ask for the property name but i also need to give an option to allow the user to 'bulk add' multiple properties and give them a multi line textbox to add a property for each line entered. validation rules... 1. no spaces allowed in names. 2. alpha characters only.
-  
+
+copilot:- 'add column' button should display a modal similar to the 'add data object property' modal.  Don't use the same.
+
+
+issue:- 'add filter' button should display a modal similar to the 'add data object property' modal.  Don't use the same.
+
+issue:- 'add button' button should just show a 'name' field. show a note under the textbox that asks the user to use Pascal case. (Example... ToDoItem).  No spaces are allowed in names. Alpha characters only.
       
 model fabrication download...
  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
@@ -70,3 +64,58 @@ functions
         - show validation request details
         - show validation request change request list
 
+add report...
+- grid
+- detail
+- API Get
+- Navigation
+
+add db object...
+- general
+- lookup
+
+
+
+update welcome...
+If we can create a model of your application, then we can generate a large amount of source code automatically. The source code generated can be for many different language (.net, python, etc.) and for many diffierent application types (Web, IOS App, Android App, Augmented Reality App, Virtual Reality App, etc.). Once generated, you can pull in any of the generated source code you like into your own source code repository.  
+
+Step 3. text...
+- Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
+ 
+
+
+examples...
+{
+    "name": "TestLookup",
+    "parentObjectName": "Pac",
+    "prop": [
+        {
+        "name": "PacID",
+        "sqlServerDBDataType": "int",
+        "isFK": "true",
+        "isNotPublishedToSubscriptions": "true",
+        "isFKConstraintSuppressed": "false"
+        }
+    ],
+    "propSubscription": [],
+    "modelPkg": [],
+    "lookupItem": []
+}
+
+{
+"name": "TestObj",
+"parentObjectName": "Pac",
+"prop": [
+    {
+    "name": "PacID",
+    "sqlServerDBDataType": "int",
+    "isFK": "true",
+    "isNotPublishedToSubscriptions": "true",
+    "isFKConstraintSuppressed": "false"
+    }
+],
+"propSubscription": [],
+"modelPkg": [],
+"lookupItem": []
+}
+ 

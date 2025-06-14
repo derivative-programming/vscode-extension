@@ -195,7 +195,7 @@ function showAddObjectWizard(modelService) {
                             panel.webview.postMessage({ 
                                 command: "nameValidation", 
                                 isValid: false, 
-                                message: "Object name must be in PascalCase (start with uppercase letter)"
+                                message: "Object name must be in pascal case (example... ToDoItem)"
                             });
                             return;
                         }
@@ -408,7 +408,7 @@ function generateWizardHTML(allObjects) {
                 <div class="form-group">
                     <label for="objectName">Enter object name:</label>
                     <input type="text" id="objectName">
-                    <div class="input-note">Use PascalCase naming (example: ToDoItem). No spaces allowed. Alpha characters only.</div>
+                    <div class="input-note">Use pascal case naming (example: ToDoItem). No spaces allowed. Alpha characters only.</div>
                     <div class="validation-message" id="nameValidationMessage"></div>
                 </div>
                 <div class="button-container">
