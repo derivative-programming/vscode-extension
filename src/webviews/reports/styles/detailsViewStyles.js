@@ -231,8 +231,7 @@ function getDetailViewStyles() {
             transform: scale(0.8);
             cursor: pointer;
         }
-        
-        /* Modal Dialog Styling */
+          /* Modal Dialog Styling */
         .modal {
             display: none;
             position: fixed;
@@ -243,6 +242,8 @@ function getDetailViewStyles() {
             height: 100%;
             overflow: auto;
             background-color: rgba(0,0,0,0.4);
+            align-items: center;
+            justify-content: center;
         }
         
         .modal-content {
@@ -252,10 +253,12 @@ function getDetailViewStyles() {
             padding: 20px;
             border: 1px solid var(--vscode-panel-border);
             width: 50%;
+            max-width: 600px;
             border-radius: 5px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
-        
-        .close {
+          .close {
             color: var(--vscode-descriptionForeground);
             float: right;
             font-size: 28px;
@@ -264,6 +267,18 @@ function getDetailViewStyles() {
         }
         
         .close:hover {
+            color: var(--vscode-foreground);
+        }
+        
+        .close-button {
+            color: var(--vscode-descriptionForeground);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-button:hover {
             color: var(--vscode-foreground);
         }
         
@@ -316,13 +331,62 @@ function getDetailViewStyles() {
             margin-top: 5px;
             margin-bottom: 10px;
             min-height: 16px;
-        }
-
-        .field-note {
+        }        .field-note {
             color: var(--vscode-descriptionForeground, #999);
             font-size: 11px;
             margin-top: 3px;
             margin-bottom: 5px;
+            font-style: italic;
+        }
+
+        /* Grid container for modal forms */
+        .grid-container {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Textarea styling */
+        textarea {
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 3px;
+            padding: 8px;
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            resize: vertical;
+            min-height: 80px;
+        }        textarea:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder);
+        }
+
+        /* Modal form styling - override horizontal form-row for vertical layout */
+        .modal .form-row {
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .modal .form-row label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            flex: none;
+        }
+
+        .modal .form-row input[type="text"],
+        .modal .form-row textarea {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .modal .field-note {
+            display: block;
+            margin-top: 5px;
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
             font-style: italic;
         }
     `;

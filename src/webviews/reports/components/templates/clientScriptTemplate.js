@@ -18,8 +18,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         let currentButtons = ${JSON.stringify(buttons)};
         let currentParams = ${JSON.stringify(params)};
         let currentEditingIndex = -1;
-        
-        // Add Column Modal Template Function
+          // Add Column Modal Template Function
         function getAddColumnModalHtml() {
             return "" +
         "<div class='modal-content'>" +
@@ -28,17 +27,11 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             "<div class='tabs'>" +
                 "<div class='tab active' data-tab='singleAdd'>Single Column</div>" +
                 "<div class='tab' data-tab='bulkAdd'>Bulk Add</div>" +
-            "</div>" +
-            "<div id='singleAdd' class='tab-content active'>" +
+            "</div>" +            "<div id='singleAdd' class='tab-content active'>" +
                 "<div class='form-row'>" +
                     "<label for='columnName'>Column Name:</label>" +
                     "<input type='text' id='columnName'>" +
-                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only.</div>" +
-                "</div>" +
-                "<div class='form-row'>" +
-                    "<label for='columnHeaderText'>Header Text:</label>" +
-                    "<input type='text' id='columnHeaderText'>" +
-                    "<div class='field-note'>Display text for the column header (Example: \\"First Name\\").</div>" +
+                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>" +
                 "</div>" +
                 "<div id='singleValidationError' class='validation-error'></div>" +
                 "<button id='addSingleColumn'>Add Column</button>" +
@@ -47,10 +40,40 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 "<div class='form-row'>" +
                     "<label for='bulkColumns'>Column Names (one per line):</label>" +
                     "<textarea id='bulkColumns' rows='5'></textarea>" +
-                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Header text will be auto-generated from the column name.</div>" +
+                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Header text will be auto-generated from the column name. Maximum 100 characters.</div>" +
                 "</div>" +
                 "<div id='bulkValidationError' class='validation-error'></div>" +
                 "<button id='addBulkColumns'>Add Columns</button>" +
+            "</div>" +
+        "</div>";
+        }
+          // Add Parameter Modal Template Function
+        function getAddParamModalHtml() {
+            return "" +
+        "<div class='modal-content'>" +
+            "<span class='close-button'>&times;</span>" +
+            "<h2>Add Filter</h2>" +
+            "<div class='tabs'>" +
+                "<div class='tab active' data-tab='singleAdd'>Single Filter</div>" +
+                "<div class='tab' data-tab='bulkAdd'>Bulk Add</div>" +
+            "</div>" +
+            "<div id='singleAdd' class='tab-content active'>" +
+                "<div class='form-row'>" +
+                    "<label for='paramName'>Filter Name:</label>" +
+                    "<input type='text' id='paramName'>" +
+                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>" +
+                "</div>" +
+                "<div id='singleValidationError' class='validation-error'></div>" +
+                "<button id='addSingleParam'>Add Filter</button>" +
+            "</div>" +
+            "<div id='bulkAdd' class='tab-content'>" +
+                "<div class='form-row'>" +
+                    "<label for='bulkParams'>Filter Names (one per line):</label>" +
+                    "<textarea id='bulkParams' rows='5'></textarea>" +
+                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>" +
+                "</div>" +
+                "<div id='bulkValidationError' class='validation-error'></div>" +
+                "<button id='addBulkParams'>Add Filters</button>" +
             "</div>" +
         "</div>";
         }
@@ -671,9 +694,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                         }
                     });
                 });
-            });
-            
-            // Close modal when clicking the x button
+            });            // Close modal when clicking the x button
             modal.querySelector(".close-button").addEventListener("click", function() {
                 document.body.removeChild(modal);
             });
@@ -684,11 +705,13 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     document.body.removeChild(modal);
                 }
             });
-            
-            // Validate column name
+              // Validate column name
             function validateColumnName(name) {
                 if (!name) {
                     return "Column name cannot be empty";
+                }
+                if (name.length > 100) {
+                    return "Column name cannot exceed 100 characters";
                 }
                 if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
                     return "Column name must start with a letter and contain only letters and numbers";
@@ -706,11 +729,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 return columnName.replace(/([a-z])([A-Z])/g, '$1 $2')
                                 .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
             }
-            
-            // Add single column
+              // Add single column
             document.getElementById("addSingleColumn").addEventListener("click", function() {
                 const columnName = document.getElementById("columnName").value.trim();
-                const headerText = document.getElementById("columnHeaderText").value.trim();
                 const errorElement = document.getElementById("singleValidationError");
                 
                 const validationError = validateColumnName(columnName);
@@ -719,11 +740,11 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     return;
                 }
                 
-                // Use provided header text or generate from column name
-                const finalHeaderText = headerText || generateHeaderText(columnName);
+                // Generate header text from column name
+                const headerText = generateHeaderText(columnName);
                 
                 // Add the new column
-                addNewColumn(columnName, finalHeaderText);
+                addNewColumn(columnName, headerText);
                 
                 // Close the modal
                 document.body.removeChild(modal);
@@ -1347,15 +1368,157 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 input.addEventListener('change', updateParam);
             }
         });
-        
-        // Add parameter button click handler
+          // Add parameter button click handler
         document.getElementById('add-param-btn').addEventListener('click', function() {
-            // Reset form and show modal for adding a new parameter
-            document.getElementById('param-form').reset();
-            document.querySelector('#param-modal .modal-title').textContent = 'Add Filter';
-            currentEditingIndex = -1;
-            document.getElementById('param-modal').style.display = 'block';
+            // Use the new add parameter modal instead of the edit modal
+            createAddParamModal();
         });
+        
+        // Function to add a new parameter (called from add parameter modal)
+        function addNewParam(paramName) {
+            const newParam = {
+                name: paramName
+            };
+            
+            // Add to current parameters array
+            currentParams.push(newParam);
+            
+            // Add to parameters list in list view
+            const paramsList = document.getElementById('paramsList');
+            if (paramsList) {
+                const option = document.createElement('option');
+                option.value = currentParams.length - 1;
+                option.textContent = paramName;
+                paramsList.appendChild(option);
+            }
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    params: currentParams
+                }
+            });
+            
+            // Note: Table view will be automatically updated on next page refresh
+            // To immediately refresh table view, a full re-render would be needed
+        }
+        
+        // Function to create and show the Add Parameter modal
+        function createAddParamModal() {
+            // Create modal dialog for adding parameters
+            const modal = document.createElement("div");
+            modal.className = "modal";
+            
+            // Import the modal HTML template
+            const modalContent = getAddParamModalHtml();
+            
+            // Set the modal content
+            modal.innerHTML = modalContent;
+            document.body.appendChild(modal);
+            
+            // Show the modal
+            setTimeout(() => {
+                modal.style.display = "flex";
+            }, 10);
+            
+            // Tab switching in modal
+            modal.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    // Update active tab
+                    modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    // Update visible tab content
+                    modal.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Close modal when clicking the x button
+            modal.querySelector(".close-button").addEventListener("click", function() {
+                document.body.removeChild(modal);
+            });
+            
+            // Close modal when clicking outside the modal content
+            modal.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+            
+            // Validate parameter name
+            function validateParamName(name) {
+                if (!name) {
+                    return "Filter name cannot be empty";
+                }
+                if (name.length > 100) {
+                    return "Filter name cannot exceed 100 characters";
+                }
+                if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
+                    return "Filter name must start with a letter and contain only letters and numbers";
+                }
+                if (currentParams.some(param => param.name === name)) {
+                    return "Filter with this name already exists";
+                }
+                return null; // Valid
+            }
+            
+            // Add single parameter
+            document.getElementById("addSingleParam").addEventListener("click", function() {
+                const paramName = document.getElementById("paramName").value.trim();
+                const errorElement = document.getElementById("singleValidationError");
+                
+                const validationError = validateParamName(paramName);
+                if (validationError) {
+                    errorElement.textContent = validationError;
+                    return;
+                }
+                
+                // Add the new parameter
+                addNewParam(paramName);
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            });
+            
+            // Add bulk parameters
+            document.getElementById("addBulkParams").addEventListener("click", function() {
+                const bulkParams = document.getElementById("bulkParams").value;
+                const paramNames = bulkParams.split("\\n").map(name => name.trim()).filter(name => name);
+                const errorElement = document.getElementById("bulkValidationError");
+                
+                // Validate all parameter names
+                const errors = [];
+                const validParams = [];
+                
+                paramNames.forEach(name => {
+                    const validationError = validateParamName(name);
+                    if (validationError) {
+                        errors.push("\\"" + name + "\\": " + validationError);
+                    } else {
+                        validParams.push(name);
+                    }
+                });
+                
+                if (errors.length > 0) {
+                    errorElement.innerHTML = errors.join("<br>");
+                    return;
+                }
+                
+                // Add all valid parameters
+                validParams.forEach(name => {
+                    addNewParam(name);
+                });
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            });
+        }
         
         // Edit parameter button click handlers
         document.querySelectorAll('.edit-param-btn').forEach(button => {

@@ -77,8 +77,7 @@ If we can create a model of your application, then we can generate a large amoun
 
 Step 3. text...
 - Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
- 
-report button names do not allow numbers
+
 
 max length validation rules?
 100 chars by default... report col, rpt filter.

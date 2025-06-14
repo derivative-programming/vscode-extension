@@ -12,17 +12,11 @@ function getAddColumnModalHtml() {
     <div class="tabs">
         <div class="tab active" data-tab="singleAdd">Single Column</div>
         <div class="tab" data-tab="bulkAdd">Bulk Add</div>
-    </div>
-    <div id="singleAdd" class="tab-content active">
+    </div>    <div id="singleAdd" class="tab-content active">
         <div class="form-row">
             <label for="columnName">Column Name:</label>
             <input type="text" id="columnName">
-            <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only.</div>
-        </div>
-        <div class="form-row">
-            <label for="columnHeaderText">Header Text:</label>
-            <input type="text" id="columnHeaderText">
-            <div class="field-note">Display text for the column header (Example: "First Name").</div>
+            <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>
         </div>
         <div id="singleValidationError" class="validation-error"></div>
         <button id="addSingleColumn">Add Column</button>
@@ -31,7 +25,7 @@ function getAddColumnModalHtml() {
         <div class="form-row">
             <label for="bulkColumns">Column Names (one per line):</label>
             <textarea id="bulkColumns" rows="5"></textarea>
-            <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Header text will be auto-generated from the column name.</div>
+            <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Header text will be auto-generated from the column name. Maximum 100 characters.</div>
         </div>
         <div id="bulkValidationError" class="validation-error"></div>
         <button id="addBulkColumns">Add Columns</button>

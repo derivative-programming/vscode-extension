@@ -176,3 +176,86 @@ June 14, 2025: Update button name validation in report details view to prevent n
 - Modified validateButtonName function in src/webviews/reports/components/templates/clientScriptTemplate.js
 - Changed regex from /^[a-zA-Z][a-zA-Z0-9]*$/ to /^[a-zA-Z][a-zA-Z]*$/ to only allow letters
 - Updated validation error message to reflect the new requirement
+
+2025-06-14: Fixed display issues with 'add column' modal on report details page column tab
+- Fixed close button class from 'close-button' to 'close' to match existing CSS
+- Added grid-container and action-buttons divs for proper modal layout structure
+- Enhanced modal CSS with flexbox centering, max-width/height, and scroll support
+- Updated clientScriptTemplate.js and addColumnModalFunctionality.js for correct close button selector
+- Added missing grid-container styles and improved textarea styling in detailsViewStyles.js
+- Modal now displays properly with consistent VS Code theme styling and responsive behavior
+- All changes compiled successfully without errors
+
+2025-06-14: Updated the report details view 'add column' modal to match the object details view 'add property' modal design and functionality
+- Modified src/webviews/reports/components/templates/addColumnModalTemplate.js:
+  * Changed close button class from "close" to "close-button" to match object modal
+  * Removed "modal-title" class and action-buttons wrapper for cleaner structure
+  * Simplified form structure to match object modal layout
+  * Added character limit information to field notes (maximum 100 characters)
+- Modified src/webviews/reports/components/templates/clientScriptTemplate.js:
+  * Updated close button selector from ".close" to ".close-button"
+  * Updated modal HTML template to match new structure
+  * Added character limit validation (100 characters max) to validateColumnName function
+  * Updated field notes to include character limit information
+- Modified src/webviews/reports/components/templates/addColumnModalFunctionality.js:
+  * Added character limit validation for consistency (even though not currently used)
+- Modified src/webviews/reports/styles/detailsViewStyles.js:
+  * Added .close-button and .close-button:hover styles to match .close styles
+  * Ensures both close button class names work with the same styling
+- The modal now has consistent styling, validation, and functionality with the object property modal
+- Both modals support single and bulk add operations with proper validation and user feedback
+
+Command: 'Header Text:' property shouldnt be in the 'add column' modal
+
+2025-06-14: Removed the 'Header Text:' property from the 'add column' modal to simplify it and match the object 'add property' modal design
+- Modified src/webviews/reports/components/templates/addColumnModalTemplate.js:
+  * Removed the Header Text input field and its associated form-row
+  * Removed the field note explaining header text usage
+  * Simplified the modal to only have Column Name input like the object property modal
+- Modified src/webviews/reports/components/templates/clientScriptTemplate.js:
+  * Removed Header Text field from the inline HTML template
+  * Updated addSingleColumn event handler to not try to get headerText input value
+  * Changed logic to always auto-generate header text from column name using generateHeaderText()
+- Modified src/webviews/reports/components/templates/addColumnModalFunctionality.js:
+  * Updated for consistency (even though not currently used)
+  * Removed header text input handling and made it auto-generate only
+- The modal now has a simpler interface matching the object property modal design
+- Header text is automatically generated from column name using PascalCase to space-separated conversion
+Command: Expand all top level tree items in the AppDNA tree view
+
+Command: the label, textbox, and note text are on the same line on both the single column tab and bulk add columns tab. They should be vertical, one over the other
+
+2025-06-14: Fixed the layout of the add column modal so label, textbox, and note text are stacked vertically instead of appearing on the same line
+- Modified src/webviews/reports/styles/detailsViewStyles.js:
+  * Added modal-specific form styling to override the horizontal flexbox layout
+  * Added `.modal .form-row` with `display: block` to stack elements vertically
+  * Added `.modal .form-row label` with `display: block` and proper margins
+  * Added `.modal .form-row input[type="text"]` and `.modal .form-row textarea` with full width
+  * Added `.modal .field-note` styling for proper spacing and appearance
+  * The modal forms now display with vertical layout: label at top, input in middle, field note at bottom
+- The existing horizontal `.form-row` styles remain for non-modal forms (table editing, etc.)
+- Modal forms now have proper vertical spacing and alignment consistent with VS Code design patterns
+Command: Expand all top level tree items in the AppDNA tree view
+
+Command: The 'add filter' modal should work similar to the 'add column' modal
+
+2025-06-14: Making the 'add filter' modal work similar to the 'add column' modal with consistent design and functionality
+- Modified src/webviews/reports/components/templates/addFilterModalTemplate.js:
+  * Created template file for add filter modal, similar to add column modal
+  * Added single/bulk add tabs and corresponding form rows
+  * Included parameter name input with Pascal case instructions
+  * Added character limit information (100 characters max)
+  * Integrated with clientScriptTemplate.js for modal handling
+- Modified src/webviews/reports/components/templates/clientScriptTemplate.js:
+  * Updated add-param-btn handler to use new createAddParamModal()
+  * Added addNewParam function to handle adding new parameters/filters
+  * Integrated createAddParamModal function for full modal functionality
+  * Updated getAddParamModalHtml function to use "Filter" terminology
+- Modified src/webviews/reports/components/templates/addFilterModalFunctionality.js:
+  * Created functionality file for add filter modal
+  * Included tab switching, validation, and event handling
+  * Added parameter name validation (length, format, uniqueness)
+  * Supported single and bulk parameter addition
+- Updated detailsViewGenerator.js to import addFilterModalTemplate
+- All changes maintain the vertical stacking layout per user requirements
+- Add filter modal now has consistent design and functionality with add column modal

@@ -40,9 +40,8 @@ function createAddColumnModal() {
             });
         });
     });
-    
-    // Close modal when clicking the x button
-    modal.querySelector(".close-button").addEventListener("click", function() {
+      // Close modal when clicking the x button
+    modal.querySelector(".close").addEventListener("click", function() {
         document.body.removeChild(modal);
     });
     
@@ -52,11 +51,13 @@ function createAddColumnModal() {
             document.body.removeChild(modal);
         }
     });
-    
-    // Validate column name
+      // Validate column name
     function validateColumnName(name) {
         if (!name) {
             return "Column name cannot be empty";
+        }
+        if (name.length > 100) {
+            return "Column name cannot exceed 100 characters";
         }
         if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
             return "Column name must start with a letter and contain only letters and numbers";
@@ -74,11 +75,9 @@ function createAddColumnModal() {
         return columnName.replace(/([a-z])([A-Z])/g, '$1 $2')
                         .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
     }
-    
-    // Add single column
+      // Add single column
     document.getElementById("addSingleColumn").addEventListener("click", function() {
         const columnName = document.getElementById("columnName").value.trim();
-        const headerText = document.getElementById("columnHeaderText").value.trim();
         const errorElement = document.getElementById("singleValidationError");
         
         const validationError = validateColumnName(columnName);
@@ -87,11 +86,11 @@ function createAddColumnModal() {
             return;
         }
         
-        // Use provided header text or generate from column name
-        const finalHeaderText = headerText || generateHeaderText(columnName);
+        // Generate header text from column name
+        const headerText = generateHeaderText(columnName);
         
         // Add the new column
-        addNewColumn(columnName, finalHeaderText);
+        addNewColumn(columnName, headerText);
         
         // Close the modal
         document.body.removeChild(modal);

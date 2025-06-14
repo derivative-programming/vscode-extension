@@ -1355,3 +1355,27 @@ Enhanced the Model Fabrication Request Details modal to display the request code
 - Field added to `fieldsToShow` array in the `showDetailsModal` function
 - No special handling required - uses default text rendering with HTML escaping
 - Minimal change: only one line added to existing array definition
+
+## Add Column Modal Display Issues Fixed (2025-06-14)
+
+Fixed multiple display issues with the "Add Column" modal on the report details page column tab:
+
+### Issues Fixed:
+1. **Close Button Class Mismatch**: Changed `close-button` class to `close` to match existing CSS styling
+2. **Modal Structure**: Added `grid-container` div and `action-buttons` div for proper layout consistency with other modals
+3. **Modal Display**: Enhanced modal CSS with flexbox centering, max-width, max-height, and scroll support
+4. **Form Layout**: Improved form structure with proper grid container and organized action buttons
+
+### Files Modified:
+- `addColumnModalTemplate.js`: Updated HTML structure and class names
+- `clientScriptTemplate.js`: Fixed close button event listener selector
+- `addColumnModalFunctionality.js`: Fixed close button selector (consistency)
+- `detailsViewStyles.js`: Added missing grid-container styles and improved modal CSS
+
+### Technical Details:
+- Modal now uses consistent CSS classes matching other modals in the application
+- Added proper grid layout for better form organization
+- Enhanced modal responsive behavior with max dimensions and overflow handling
+- Fixed close button functionality with correct CSS selector
+
+The modal now displays properly with consistent styling and proper responsive behavior.
