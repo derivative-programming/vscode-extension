@@ -128,6 +128,11 @@ function showAddObjectWizard(modelService) {
                         // Refresh the tree view
                         vscode.commands.executeCommand("appdna.refresh");
                         
+                        // Select the newly created object in the tree view (after a short delay to allow refresh)
+                        setTimeout(() => {
+                            vscode.commands.executeCommand("appdna.selectDataObject", objectName);
+                        }, 300);
+                        
                         // Show success message and close the wizard
                         panel.webview.postMessage({ command: "objectCreated", objectName });
                         

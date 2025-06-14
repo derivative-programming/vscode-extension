@@ -1,4 +1,15 @@
  
+ 
+2025-06-14: Add object selection in tree view after creating data objects via wizard
+- Added selectDataObject method to JsonTreeDataProvider to select objects by name
+- Registered appdna.selectDataObject command in registerCommands.ts
+- Modified addObjectWizardView.js to call tree selection after object creation  
+- Tree selection expands DATA OBJECTS section and selects the newly created object
+- Added 300ms delay to allow tree refresh before selection
+- Verified compilation and basic functionality with mock tests
+- Minimal changes: ~50 lines added across 3 files, 0 lines deleted
+- Files modified: jsonTreeDataProvider.ts, registerCommands.ts, addObjectWizardView.js
+
 2025-12-24: Add Help view with GitHub links and issue reporting information
 - Created src/webviews/helpView.js with help content and GitHub repository links
 - Added showHelpView command registration in registerCommands.ts
@@ -10,6 +21,7 @@
   - Quick tips for using the extension
 - Minimal changes: 1 new file created, small additions to existing files
 - Files modified: src/webviews/helpView.js (new), src/commands/registerCommands.ts, package.json
+
 
 2025-06-08: Add public repository links to Welcome and Login views
 - Added footer section with GitHub repository link to welcomeView.js  

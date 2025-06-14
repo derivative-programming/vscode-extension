@@ -1,5 +1,27 @@
 # AppDNA VS Code Extension Architecture Notes
-  
+   
+*Last updated: June 14, 2025*
+
+## Tree View Object Selection Enhancement (Added 2025-06-14)
+
+Added functionality to automatically select newly created data objects in the tree view after creation via the Add Object Wizard.
+
+### Changes Made:
+- **JsonTreeDataProvider** (`jsonTreeDataProvider.ts`): Added `selectDataObject(objectName)` method to programmatically select objects in tree view
+- **Command Registration** (`registerCommands.ts`): Registered `appdna.selectDataObject` command that calls the provider method
+- **Add Object Wizard** (`addObjectWizardView.js`): Added call to selection command after object creation with 300ms delay
+
+### Implementation Details:
+- **Tree Selection Process**: Expands DATA OBJECTS section first, then selects specific object with focus
+- **Timing**: Uses setTimeout with 300ms delay to allow tree refresh to complete before selection
+- **Error Handling**: Graceful error handling if tree view is not available or selection fails
+- **VS Code Integration**: Uses native tree view reveal API with select, focus, and expand options
+
+### Benefits:
+- Improved user experience: Users can immediately see their newly created object in the tree
+- Consistent with VS Code UX patterns for item selection after creation
+- No impact on existing functionality - purely additive enhancement
+
 *Last updated: December 24, 2024*
 
 ## Help View Implementation (Added 2024-12-24)
@@ -28,7 +50,7 @@ Added a Help view accessible from the tree view to provide users with quick acce
 - **User Support**: Easy access to help without leaving VS Code
 - **Issue Reporting**: Streamlined path for users to report bugs or request features
 - **Documentation Access**: Quick link to comprehensive GitHub documentation
-- **Minimal Overhead**: Lightweight implementation with no external dependencies
+- **Minimal Overhead**: Lightweight implementation with no external dependencies 
 
 ## Property Modal UI Enhancement (Added 2025-12-20)
 

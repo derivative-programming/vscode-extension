@@ -204,6 +204,17 @@ export function registerCommands(
         })
     );
 
+    // Register select data object command
+    context.subscriptions.push(
+        vscode.commands.registerCommand("appdna.selectDataObject", async (objectName: string) => {
+            if (typeof objectName === 'string') {
+                await jsonTreeDataProvider.selectDataObject(objectName);
+            } else {
+                console.error('selectDataObject command requires object name as string parameter');
+            }
+        })
+    );
+
     // Register edit command
     const editCommand = vscode.commands.registerCommand('appdna.editObject', (node: JsonTreeItem) => {
         openJsonEditor(context, node.label);
