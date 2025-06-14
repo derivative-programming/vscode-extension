@@ -58,6 +58,9 @@ function createPropertyModal() {
         if (!name) {
             return "Property name cannot be empty";
         }
+        if (name.length > 100) {
+            return "Property name cannot exceed 100 characters";
+        }
         if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
             return "Property name must start with a letter and contain only letters and numbers";
         }
