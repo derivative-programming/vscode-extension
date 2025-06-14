@@ -1,5 +1,5 @@
 # AppDNA VS Code Extension Architecture Notes
- 
+  
 *Last updated: December 20, 2025*
 
 ## Property Modal UI Enhancement (Added 2025-12-20)
@@ -23,6 +23,33 @@ Updated the Add Property modal to use Pascal case instructions instead of placeh
 - Visual example (ToDoItem) demonstrates proper Pascal case format
 - Consistent instructions across both single and bulk add modes
 - Maintains existing validation behavior and error messaging
+ 
+*Last updated: December 20, 2024*
+
+## Report Details View Move Button States Fix (Added 2024-12-20)
+
+Fixed an issue where move up/down button states were not being updated after move operations in the report details view.
+
+### Problem:
+- In the columns, buttons, and parameters tabs list views, move up/down buttons enable/disable based on selected item position
+- When a list item was clicked, move button states were updated correctly 
+- However, after clicking move up/down buttons, the move button states were not updated for the new position
+- This left buttons in incorrect enabled/disabled states after moves
+
+### Solution:
+- Added calls to `updateMoveButtonStates()` after move operations in `clientScriptTemplate.js`:
+  - After `selectElement.selectedIndex = newIndex;` in `moveListItem()` function
+  - After selection updates in `reverseList()` function
+- Now move buttons correctly reflect whether the newly positioned item can be moved further
+
+### Files Modified:
+- `src/webviews/reports/components/templates/clientScriptTemplate.js`: Added 6 lines calling `updateMoveButtonStates()`
+
+### Key Learning:
+- When implementing move/reorder functionality, always update UI states after position changes
+- The `updateMoveButtonStates()` function was already properly implemented but not being called at the right times
+- Minimal fix: just 2 function calls added to existing move operation logic
+ 
 
 ## Move Up/Down Functionality for Report Details View (Added 2025-06-08)
 
@@ -72,6 +99,38 @@ Fixed font inconsistency between the lexicon view and project settings view:
 - TypeScript compilation passes
 - ESLint clean (no new warnings)
 - Minimal change: 1 line modified across 1 file
+
+## Property Management Unsaved Changes Fix (Added 2025-01-14)
+
+Fixed the missing unsaved changes flag when properties are added to data objects through the property management modal.
+
+### Issue:
+- When users added properties via the "Add Property" modal, the unsaved changes flag was not being set
+- The `addNewProperty` function was only updating local webview data but not triggering model updates
+
+### Solution:
+- Added `document.dispatchEvent(new CustomEvent('propertyAdded'))` to the `addNewProperty` function
+- Leveraged existing event infrastructure:
+  - `saveSubmitHandlers.js` already had a listener for `propertyAdded` events
+  - The listener calls `vscode.postMessage` with `updateModel` command
+  - `updateModelDirectly` in `objectDetailsView.js` calls `modelService.markUnsavedChanges()`
+
+### Implementation Details:
+- Minimal change: 1 line added to `propertyManagement.js`
+- Works for both single and bulk property additions
+- Follows existing patterns used throughout the codebase
+- No breaking changes to existing functionality
+
+### Key Files Modified:
+- `src/webviews/objects/components/scripts/propertyManagement.js`: Added event dispatch
+
+### Architecture Pattern:
+This fix demonstrates the event-driven communication pattern between webview JavaScript and the extension:
+1. UI action in webview (add property)
+2. Custom event dispatched (`propertyAdded`)
+3. Event handler sends message to extension (`updateModel` command)
+4. Extension updates model and marks unsaved changes
+5. Tree view updates to show unsaved changes indicator
 
 ## Report Details View Property Hiding (Added 2025-06-08)
 

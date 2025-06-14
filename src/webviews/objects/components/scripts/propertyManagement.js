@@ -76,6 +76,9 @@ function getPropertyManagementFunctions() {
         
         // Update the properties counter in the tab label
         updatePropertiesCounter();
+        
+        // Dispatch propertyAdded event to trigger model update and mark unsaved changes
+        document.dispatchEvent(new CustomEvent('propertyAdded'));
     }
     
     // Function to update the properties counter in the tab label
