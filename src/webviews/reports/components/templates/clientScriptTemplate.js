@@ -763,10 +763,16 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         
         // Add button button click handler
         document.getElementById('add-button-btn').addEventListener('click', function() {
-            // Reset form and show modal for adding a new button
-            document.getElementById('button-form').reset();
+            // Show the add button form and hide the edit form
+            document.getElementById('add-button-form').style.display = 'block';
+            document.getElementById('button-form').style.display = 'none';
             document.querySelector('#button-modal .modal-title').textContent = 'Add Button';
-            currentEditingIndex = -1;
+            
+            // Clear the input and any validation errors
+            document.getElementById('button-name-input').value = '';
+            document.getElementById('button-name-validation-error').textContent = '';
+            
+            // Show the modal
             document.getElementById('button-modal').style.display = 'block';
         });
         
@@ -783,6 +789,10 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             const button = currentButtons[index];
             currentEditingIndex = index;
             
+            // Show the edit form and hide the add form
+            document.getElementById('button-form').style.display = 'block';
+            document.getElementById('add-button-form').style.display = 'none';
+            
             // Reset form and fill with button data
             const form = document.getElementById('button-form');
             form.reset();
@@ -798,6 +808,36 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Update modal title and show
             document.querySelector('#button-modal .modal-title').textContent = 'Edit Button';
             document.getElementById('button-modal').style.display = 'block';
+        }
+        
+        // Function to add a new button (called from add button modal)
+        function addNewButton(buttonName) {
+            const newButton = {
+                buttonName: buttonName
+            };
+            
+            // Add to current buttons array
+            currentButtons.push(newButton);
+            
+            // Add to buttons list in list view
+            const buttonsList = document.getElementById('buttonsList');
+            if (buttonsList) {
+                const option = document.createElement('option');
+                option.value = currentButtons.length - 1;
+                option.textContent = buttonName;
+                buttonsList.appendChild(option);
+            }
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    buttons: currentButtons
+                }
+            });
+            
+            // Note: Table view will be automatically updated on next page refresh
+            // To immediately refresh table view, a full re-render would be needed
         }
         
         // Function to save button changes

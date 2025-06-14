@@ -16,7 +16,7 @@ function getButtonModalHtml(reportButtonsSchema) {
         .filter(prop => !propertiesToHide.includes(prop.toLowerCase()))
         .sort();
     
-    // Generate form groups for each property
+    // Generate form groups for each property (for edit mode)
     const formGroups = sortedProps.map(prop => {
         const schema = reportButtonsSchema[prop];
         const propLabel = formatLabel(prop);
@@ -61,13 +61,29 @@ function getButtonModalHtml(reportButtonsSchema) {
         `;
     });
     
-    // Return the full modal HTML
+    // Return the full modal HTML with both add and edit forms
     return `
         <div id="button-modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <h2 class="modal-title">Edit Button</h2>
-                <form id="button-form">
+                
+                <!-- Add Button Form (simplified) -->
+                <div id="add-button-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="button-name-input">Button Name:</label>
+                        <input type="text" id="button-name-input" placeholder="">
+                        <div class="field-note">Use Pascal case (Example: ToDoItem). No spaces are allowed in names. Alpha characters only.</div>
+                    </div>
+                    <div id="button-name-validation-error" class="validation-error"></div>
+                    <div class="action-buttons">
+                        <button type="button" id="add-button-save-btn">Add Button</button>
+                        <button type="button" id="add-button-cancel-btn">Cancel</button>
+                    </div>
+                </div>
+                
+                <!-- Edit Button Form (full schema) -->
+                <form id="button-form" style="display: none;">
                     <div class="grid-container">
                         ${formGroups.join('')}
                     </div>

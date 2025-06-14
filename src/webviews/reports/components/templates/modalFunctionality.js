@@ -35,18 +35,69 @@ function getModalFunctionality() {
         function setupButtonModal() {
             const modal = document.getElementById("button-modal");
             const closeBtn = modal.querySelector(".close");
-            const cancelBtn = document.getElementById("cancel-button-btn");
-            const form = document.getElementById("button-form");
+            const editCancelBtn = document.getElementById("cancel-button-btn");
+            const addCancelBtn = document.getElementById("add-button-cancel-btn");
+            const editForm = document.getElementById("button-form");
+            const addSaveBtn = document.getElementById("add-button-save-btn");
             
-            // Close modal on clicking X or Cancel
+            // Close modal on clicking X
             closeBtn.onclick = () => { modal.style.display = "none"; };
-            cancelBtn.onclick = () => { modal.style.display = "none"; };
             
-            // Handle form submission
-            form.onsubmit = (e) => {
-                e.preventDefault();
-                saveButtonChanges();
-            };
+            // Close modal on clicking Cancel buttons
+            if (editCancelBtn) {
+                editCancelBtn.onclick = () => { modal.style.display = "none"; };
+            }
+            if (addCancelBtn) {
+                addCancelBtn.onclick = () => { modal.style.display = "none"; };
+            }
+            
+            // Handle edit form submission
+            if (editForm) {
+                editForm.onsubmit = (e) => {
+                    e.preventDefault();
+                    saveButtonChanges();
+                };
+            }
+            
+            // Handle add button save
+            if (addSaveBtn) {
+                addSaveBtn.onclick = () => {
+                    const buttonName = document.getElementById("button-name-input").value.trim();
+                    const errorElement = document.getElementById("button-name-validation-error");
+                    
+                    // Validate button name
+                    const validationError = validateButtonName(buttonName);
+                    if (validationError) {
+                        errorElement.textContent = validationError;
+                        return;
+                    }
+                    
+                    // Clear any previous errors
+                    errorElement.textContent = "";
+                    
+                    // Add the new button
+                    addNewButton(buttonName);
+                    
+                    // Close the modal
+                    modal.style.display = "none";
+                };
+            }
+        }
+        
+        // Validate button name (PascalCase, alpha only, no spaces)
+        function validateButtonName(name) {
+            if (!name) {
+                return "Button name cannot be empty";
+            }
+            if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
+                return "Button name must start with a letter and contain only letters and numbers";
+            }
+            // Check if button with this name already exists
+            const existingButtons = reportData.reportButton || [];
+            if (existingButtons.some(button => button.buttonName === name)) {
+                return "Button with this name already exists";
+            }
+            return null; // Valid
         }
         
         // Modal functionality for parameters
