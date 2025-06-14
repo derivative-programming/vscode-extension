@@ -1,5 +1,4 @@
- 
- 
+
 2025-06-14: Add object selection in tree view after creating data objects via wizard
 - Added selectDataObject method to JsonTreeDataProvider to select objects by name
 - Registered appdna.selectDataObject command in registerCommands.ts
@@ -8,6 +7,14 @@
 - Added 300ms delay to allow tree refresh before selection
 - Verified compilation and basic functionality with mock tests
 - Minimal changes: ~50 lines added across 3 files, 0 lines deleted
+
+2025-06-14: Fix button name validation to disallow numbers in report details view
+- Updated validation regex from /^[a-zA-Z][a-zA-Z0-9]*$/ to /^[a-zA-Z]+$/ (alpha only)
+- Changed error message to "Button name must contain only letters (no numbers or spaces)"
+- Modal note already correctly stated "Alpha characters only" requirement
+- Verified validation with comprehensive test cases (valid/invalid names)
+- Built and tested successfully - no compilation errors
+- Minimal change: 2 lines modified in clientScriptTemplate.js
 - Files modified: jsonTreeDataProvider.ts, registerCommands.ts, addObjectWizardView.js
 
 2025-12-24: Add Help view with GitHub links and issue reporting information
