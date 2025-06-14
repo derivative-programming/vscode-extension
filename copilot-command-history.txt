@@ -1,4 +1,18 @@
  
+Command: Report details view - add column modal update
+
+2025-12-20: Created add column modal similar to add data object property modal
+- Created addColumnModalTemplate.js with single/bulk column addition tabs
+- Integrated modal functionality directly into clientScriptTemplate.js for browser execution
+- Updated add column button to use new modal instead of existing edit modal
+- Added validation for Pascal case column names and uniqueness checking
+- Modal focuses on essential fields: name (required) and headerText (optional, auto-generated)
+- Maintains separation from existing edit column functionality
+- Added createAddColumnModal function with tab switching, validation, and event handling
+- Files created: addColumnModalTemplate.js, addColumnModalFunctionality.js (kept for reference)
+- Files modified: detailsViewGenerator.js, mainTemplate.js, clientScriptTemplate.js
+- All changes compiled successfully and passed linting
+
  
 2025-06-14: Add object selection in tree view after creating data objects via wizard
 - Added selectDataObject method to JsonTreeDataProvider to select objects by name

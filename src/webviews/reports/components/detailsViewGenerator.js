@@ -5,7 +5,6 @@ const { formatLabel } = require("../helpers/reportDataHelper");
 const { getDetailViewStyles } = require("../styles/detailsViewStyles");
 const { getColumnModalHtml } = require("./templates/columnModalTemplate");
 const { getAddColumnModalHtml } = require("./templates/addColumnModalTemplate");
-const { getAddColumnModalFunctionality } = require("./templates/addColumnModalFunctionality");
 const { getButtonModalHtml } = require("./templates/buttonModalTemplate");
 const { getParamModalHtml } = require("./templates/paramModalTemplate");
 const { getModalFunctionality } = require("./templates/modalFunctionality");
@@ -75,9 +74,6 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
     // Generate modal functionality
     const modalJs = getModalFunctionality();
     
-    // Generate add column modal functionality
-    const addColumnModalJs = getAddColumnModalFunctionality();
-    
     // Generate client-side JavaScript
     const clientScript = getClientScriptTemplate(
         columns, buttons, params, 
@@ -94,7 +90,7 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
         buttonTableHeaders, buttonTableRows, buttonListViewFields,
         paramTableHeaders, paramTableRows, paramListViewFields,
         columnModalHtml, addColumnModalHtml, buttonModalHtml, paramModalHtml,
-        clientScript + modalJs + addColumnModalJs
+        clientScript + modalJs
     );
 }
 
