@@ -1,5 +1,6 @@
 "use strict";
 const vscode = require("vscode");
+const { showObjectDetails } = require("./objects/objectDetailsView");
 
 // Track the active wizard panel to avoid duplicates
 let activeWizardPanel = null;
@@ -129,6 +130,10 @@ function showAddObjectWizard(modelService) {
                         
                         // Show success message and close the wizard
                         panel.webview.postMessage({ command: "objectCreated", objectName });
+                        
+                        // Open the Data Object Details view for the newly created object
+                        const mockTreeItem = { label: objectName };
+                        showObjectDetails(mockTreeItem, modelService);
                         
                         // If successful, close the panel after a short delay to allow the user to see the success message
                         setTimeout(() => {
@@ -301,6 +306,12 @@ function generateWizardHTML(allObjects) {
                     margin-top: 5px;
                     min-height: 18px;
                 }
+                .input-note {
+                    color: var(--vscode-descriptionForeground);
+                    font-size: 12px;
+                    margin-top: 3px;
+                    font-style: italic;
+                }
                 .search-container {
                     position: relative;
                     margin-bottom: 10px;
@@ -391,7 +402,8 @@ function generateWizardHTML(allObjects) {
                 <h2>Step 3: Object Name</h2>
                 <div class="form-group">
                     <label for="objectName">Enter object name:</label>
-                    <input type="text" id="objectName" placeholder="PascalCase name">
+                    <input type="text" id="objectName">
+                    <div class="input-note">Use PascalCase naming (example: ToDoItem). No spaces allowed. Alpha characters only.</div>
                     <div class="validation-message" id="nameValidationMessage"></div>
                 </div>
                 <div class="button-container">

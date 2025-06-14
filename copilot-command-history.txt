@@ -27,6 +27,15 @@
 - Added button state management to disable buttons when not applicable
 - Created comprehensive tests to validate all functionality
 - Files modified: mainTemplate.js, clientScriptTemplate.js, reportDetailsView.js, detailsViewStyles.js
+
+2025-12-19: Updated data object wizard per issue requirements
+- Removed "PascalCase name" placeholder from step 3 object name input field
+- Added guidance note below input: "Use PascalCase naming (example: ToDoItem). No spaces allowed. Alpha characters only."
+- Added CSS styling for input note with VS Code theming (.input-note class)
+- Imported showObjectDetails function from objectDetailsView 
+- Modified object creation success handler to open Data Object Details view for newly created object
+- File modified: src/webviews/addObjectWizardView.js
+Command: add data object wizard update
 Command: Expand all top level tree items in the AppDNA tree view
 
 2025-01-17: Added step 8 to welcome view workflow
