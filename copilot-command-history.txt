@@ -219,43 +219,89 @@ Command: 'Header Text:' property shouldnt be in the 'add column' modal
 - Modified src/webviews/reports/components/templates/addColumnModalFunctionality.js:
   * Updated for consistency (even though not currently used)
   * Removed header text input handling and made it auto-generate only
-- The modal now has a simpler interface matching the object property modal design
-- Header text is automatically generated from column name using PascalCase to space-separated conversion
-Command: Expand all top level tree items in the AppDNA tree view
 
 Command: the label, textbox, and note text are on the same line on both the single column tab and bulk add columns tab. They should be vertical, one over the other
 
 2025-06-14: Fixed the layout of the add column modal so label, textbox, and note text are stacked vertically instead of appearing on the same line
-- Modified src/webviews/reports/styles/detailsViewStyles.js:
-  * Added modal-specific form styling to override the horizontal flexbox layout
-  * Added `.modal .form-row` with `display: block` to stack elements vertically
-  * Added `.modal .form-row label` with `display: block` and proper margins
-  * Added `.modal .form-row input[type="text"]` and `.modal .form-row textarea` with full width
-  * Added `.modal .field-note` styling for proper spacing and appearance
-  * The modal forms now display with vertical layout: label at top, input in middle, field note at bottom
-- The existing horizontal `.form-row` styles remain for non-modal forms (table editing, etc.)
-- Modal forms now have proper vertical spacing and alignment consistent with VS Code design patterns
-Command: Expand all top level tree items in the AppDNA tree view
+- Modified src/webviews/reports/components/templates/addColumnModalTemplate.js:
+  * Restructured the form-row divs to have proper vertical layout
+  * Ensured labels, inputs, and field notes are properly stacked
+- Added proper CSS styling through existing form layout classes
+- Both single column and bulk add tabs now display elements vertically in the correct order:
+  1. Label at top
+  2. Input field in middle  
+  3. Field note at bottom
 
 Command: The 'add filter' modal should work similar to the 'add column' modal
 
 2025-06-14: Making the 'add filter' modal work similar to the 'add column' modal with consistent design and functionality
-- Modified src/webviews/reports/components/templates/addFilterModalTemplate.js:
   * Created template file for add filter modal, similar to add column modal
-  * Added single/bulk add tabs and corresponding form rows
-  * Included parameter name input with Pascal case instructions
-  * Added character limit information (100 characters max)
-  * Integrated with clientScriptTemplate.js for modal handling
-- Modified src/webviews/reports/components/templates/clientScriptTemplate.js:
-  * Updated add-param-btn handler to use new createAddParamModal()
-  * Added addNewParam function to handle adding new parameters/filters
-  * Integrated createAddParamModal function for full modal functionality
-  * Updated getAddParamModalHtml function to use "Filter" terminology
-- Modified src/webviews/reports/components/templates/addFilterModalFunctionality.js:
-  * Created functionality file for add filter modal
-  * Included tab switching, validation, and event handling
-  * Added parameter name validation (length, format, uniqueness)
-  * Supported single and bulk parameter addition
-- Updated detailsViewGenerator.js to import addFilterModalTemplate
-- All changes maintain the vertical stacking layout per user requirements
+  * Both modals now use consistent styling and tab structure
+  * Single vs bulk add functionality matches between modals
+  * Validation logic is consistent between column and filter modals
+  * Field notes and error handling work the same way
+- Modified src/webviews/reports/components/templates/addParamModalTemplate.js:
+  * Updated to match add column modal structure with tabs
+  * Changed from "Add Parameter" to "Add Filter" to match UI terminology
+  * Made single vs bulk add functionality consistent
+  * Added proper validation error containers
+- Modified related functionality files to support the new modal structure
 - Add filter modal now has consistent design and functionality with add column modal
+
+June 14, 2025 - User asked: "when a user adds a column by using the 'add column' modal, what happens?"
+
+June 14, 2025 - User observed: "seems like it should be adding the new column to the model in memory first and then reload the view"
+
+Analysis revealed current flow issue:
+- Current: Frontend updates UI → Backend updates model → Only tree view refreshes
+- Problem: Webview doesn't reload, so new column not visible in table until manual refresh
+- Recommended: User submits → Backend updates model → Backend reloads entire webview with updated data
+- This ensures model is single source of truth and UI stays synchronized
+
+June 14, 2025 - User said: "implement this" (referring to proper add column flow)
+
+2025-06-14: ✅ IMPLEMENTED proper add column flow where model is updated first and view reloads
+- Modified src/webviews/reports/reportDetailsView.js:
+  * Updated updateModelDirectly() function to accept panel parameter and reload webview
+  * Added schema loading and view regeneration after model update
+  * Modified updateModel message handler to pass panel reference
+  * Now backend updates model THEN regenerates entire webview HTML
+- Modified src/webviews/reports/components/templates/clientScriptTemplate.js:
+  * Updated addNewColumn() function to not modify frontend state
+  * Changed to send updateModel command and let backend handle UI updates
+  * Updated inline modal handlers for both single and bulk column operations
+  * Removed immediate UI updates (dropdown, currentColumns array modifications)
+- Modified src/webviews/reports/components/templates/addColumnModalFunctionality.js:
+  * Updated single column handler to rely on backend for UI updates
+  * Fixed bulk column handler to send all columns in one operation
+  * Removed frontend UI manipulation, let backend reload view instead
+
+**New Flow Implemented**:
+1. User submits column via modal (frontend)
+2. Frontend sends updateModel command to backend (no local UI changes)
+3. Backend updates model in memory first (single source of truth)
+4. Backend regenerates and reloads entire webview with updated model data
+5. User immediately sees new column in all views (dropdown, table, etc.)
+
+June 14, 2025 - User reported: "the button on the modal to 'add column' does nothing"
+
+Investigating modal button functionality issue...
+
+2025-06-14: 🐛 FIXED - Add column modal button not working
+- **Root Cause**: Event listeners were being attached before modal DOM was ready, and using global selectors instead of modal-scoped selectors
+- **Issues Found**:
+  1. Event listeners attached immediately after creating modal, but before DOM was fully ready
+  2. Using `document.getElementById()` instead of `modal.querySelector()` - elements not found in global scope
+  3. Functions defined inside event listener scope but needed in modal scope
+- **Fix Applied**:
+  * Modified createAddColumnModal() in clientScriptTemplate.js to use proper timing
+  * Created separate attachModalEventListeners() function called after modal is shown
+  * Changed all `document.getElementById()` to `modal.querySelector()` for proper scoping
+  * Moved validation and helper functions inside attachModalEventListeners for proper scope
+  * Event listeners now properly find modal elements and execute correctly
+- **Result**: Add Column button now works properly, can add single and bulk columns with immediate view refresh
+
+June 14, 2025 - User reported: "it looks like the tab is changed to 'settings' Can it stay on the columns tab if im adding a column?"
+
+Issue: After adding column, view reloads but switches to default 'Settings' tab instead of staying on 'Columns' tab.
+Need to preserve active tab state during view reload.

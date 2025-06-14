@@ -8,7 +8,9 @@ make extension repo public
 
 
 object details view...
+- hide setting 'is lookup'
 - lookup item list
+    only show if is lookup object
     -buttons ... add, move up, move down
     - list
     - properties... customIntProp1Value, description, displayName, isActive.
@@ -26,13 +28,7 @@ change requests...
 - show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
 - validation error text 'Please provide a reason for rejection.' to red
  
- 
-
-
-- 'add column' button modal needs work.
-
-
-- 'add filter' button should display a modal similar to the 'add data object property' modal.  Don't use the same.
+  
  
 model fabrication download...
  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
@@ -78,12 +74,14 @@ If we can create a model of your application, then we can generate a large amoun
 Step 3. text...
 - Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
 
+val error...'It is not necessary to have Lookup in the name'
 
 max length validation rules?
 100 chars by default... report col, rpt filter.
 50... lookup item names
 
 examples...
+this...
 {
     "name": "TestLookup",
     "parentObjectName": "Pac",
@@ -100,11 +98,42 @@ examples...
     "modelPkg": [],
     "lookupItem": []
 }
+win app...
+{
+    "isLookup": "true",
+    "lookupItem": [
+        {
+        "description": "",
+        "displayName": "",
+        "isActive": "true",
+        "name": "Unknown"
+        }
+    ],
+    "modelPkg": [],
+    "name": "TestLookip",
+    "parentObjectName": "Pac",
+    "prop": [
+        {
+        "isFK": "true",
+        "isFKConstraintSuppressed": "false",
+        "isFKLookup": "true",
+        "isNotPublishedToSubscriptions": "true",
+        "name": "PacID",
+        "sqlServerDBDataType": "int"
+        }
+    ],
+    "propSubscription": []
+    },
 
+
+this...
 {
 "name": "TestObj",
 "parentObjectName": "Pac",
 "prop": [
+    {
+    "name": "NewProp"
+    },
     {
     "name": "PacID",
     "sqlServerDBDataType": "int",
@@ -117,4 +146,23 @@ examples...
 "modelPkg": [],
 "lookupItem": []
 }
- 
+win app....
+{
+"lookupItem": [],
+"modelPkg": [],
+"name": "TestObj",
+"parentObjectName": "Pac",
+"prop": [
+    {
+    "name": "NewProp"
+    },
+    {
+    "isFK": "true",
+    "isFKConstraintSuppressed": "false",
+    "isNotPublishedToSubscriptions": "true",
+    "name": "PacID",
+    "sqlServerDBDataType": "int"
+    }
+],
+"propSubscription": []
+}

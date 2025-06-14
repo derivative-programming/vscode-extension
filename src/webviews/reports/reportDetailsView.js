@@ -112,11 +112,10 @@ function showReportDetails(item, modelService) {
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(
         message => {
-            switch (message.command) {
-                case "updateModel":
+            switch (message.command) {                case "updateModel":
                     if (modelService && reportReference) {
-                        // Directly update the model instance
-                        updateModelDirectly(message.data, reportReference, modelService);
+                        // Directly update the model instance and reload the webview
+                        updateModelDirectly(message.data, reportReference, modelService, panel);
                     } else {
                         console.warn("Cannot update model directly: ModelService not available or report reference not found");
                     }
@@ -299,12 +298,13 @@ function closeAllPanels() {
 }
 
 /**
- * Updates report data directly in the ModelService instance
+ * Updates report data directly in the ModelService instance and reloads the webview
  * @param {Object} data The data to update
  * @param {Object} reportReference Direct reference to the report in the model
  * @param {Object} modelService The ModelService instance
+ * @param {Object} panel The webview panel to reload (optional)
  */
-function updateModelDirectly(data, reportReference, modelService) {
+function updateModelDirectly(data, reportReference, modelService, panel = null) {
     try {
         console.log("[DEBUG] updateModelDirectly called for report");
         console.log("[DEBUG] reportReference before update:", JSON.stringify(reportReference, null, 2));
@@ -332,7 +332,28 @@ function updateModelDirectly(data, reportReference, modelService) {
             console.log("[DEBUG] Model marked as having unsaved changes");
         }
         
-        // Just refresh the tree view to reflect any visible changes
+        // Reload the webview with updated model data
+        if (panel && !panel._disposed) {
+            console.log("[DEBUG] Reloading webview with updated model data");
+            
+            // Get schema for regenerating the HTML
+            const schema = loadSchema();
+            const reportSchemaProps = getReportSchemaProperties(schema);
+            const reportColumnsSchema = getReportColumnsSchema(schema);
+            const reportButtonsSchema = getReportButtonsSchema(schema);
+            const reportParamsSchema = getReportParamsSchema(schema);
+            
+            // Regenerate and update the webview HTML with updated model data
+            panel.webview.html = generateDetailsView(
+                reportReference, 
+                reportSchemaProps, 
+                reportColumnsSchema, 
+                reportButtonsSchema, 
+                reportParamsSchema
+            );
+        }
+        
+        // Refresh the tree view to reflect any visible changes
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error updating model directly:", error);

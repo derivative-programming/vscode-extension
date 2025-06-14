@@ -629,39 +629,28 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Use the new add column modal instead of the edit modal
             createAddColumnModal();
         });
-        
-        // Function to add a new column (called from add column modal)
+          // Function to add a new column (called from add column modal)
         function addNewColumn(columnName, headerText) {
             const newColumn = {
                 name: columnName,
                 headerText: headerText
             };
             
-            // Add to current columns array
-            currentColumns.push(newColumn);
+            // Add to current columns array for immediate backend update
+            const updatedColumns = [...currentColumns, newColumn];
             
-            // Add to columns list in list view
-            const columnsList = document.getElementById('columnsList');
-            if (columnsList) {
-                const option = document.createElement('option');
-                option.value = currentColumns.length - 1;
-                option.textContent = columnName;
-                columnsList.appendChild(option);
-            }
-            
-            // Send message to update the model
+            // Send message to update the model - backend will reload the view
             vscode.postMessage({
                 command: 'updateModel',
                 data: {
-                    columns: currentColumns
+                    columns: updatedColumns
                 }
             });
             
-            // Note: Table view will be automatically updated on next page refresh
-            // To immediately refresh table view, a full re-render would be needed
+            // Note: View will be automatically reloaded by backend after model update
+            // No need to update frontend UI here - backend will regenerate entire view
         }
-        
-        // Function to create and show the Add Column modal
+          // Function to create and show the Add Column modal
         function createAddColumnModal() {
             // Create modal dialog for adding columns
             const modal = document.createElement("div");
@@ -674,11 +663,18 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             modal.innerHTML = modalContent;
             document.body.appendChild(modal);
             
-            // Show the modal
+            // Wait for DOM to be ready before attaching event listeners
             setTimeout(() => {
+                // Show the modal
                 modal.style.display = "flex";
+                
+                // Attach event listeners after modal is in DOM and visible
+                attachModalEventListeners(modal);
             }, 10);
-            
+        }
+        
+        // Function to attach event listeners to the modal
+        function attachModalEventListeners(modal) {
             // Tab switching in modal
             modal.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -698,14 +694,13 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             modal.querySelector(".close-button").addEventListener("click", function() {
                 document.body.removeChild(modal);
             });
-            
-            // Close modal when clicking outside the modal content
+              // Close modal when clicking outside the modal content
             modal.addEventListener("click", function(event) {
                 if (event.target === modal) {
                     document.body.removeChild(modal);
                 }
             });
-              // Validate column name
+              // Validate column name function
             function validateColumnName(name) {
                 if (!name) {
                     return "Column name cannot be empty";
@@ -729,10 +724,11 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 return columnName.replace(/([a-z])([A-Z])/g, '$1 $2')
                                 .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
             }
-              // Add single column
-            document.getElementById("addSingleColumn").addEventListener("click", function() {
-                const columnName = document.getElementById("columnName").value.trim();
-                const errorElement = document.getElementById("singleValidationError");
+            
+            // Add single column button event listener
+            modal.querySelector("#addSingleColumn").addEventListener("click", function() {
+                const columnName = modal.querySelector("#columnName").value.trim();
+                const errorElement = modal.querySelector("#singleValidationError");
                 
                 const validationError = validateColumnName(columnName);
                 if (validationError) {
@@ -743,18 +739,18 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 // Generate header text from column name
                 const headerText = generateHeaderText(columnName);
                 
-                // Add the new column
+                // Add the new column - backend will reload view
                 addNewColumn(columnName, headerText);
                 
                 // Close the modal
                 document.body.removeChild(modal);
             });
             
-            // Add bulk columns
-            document.getElementById("addBulkColumns").addEventListener("click", function() {
-                const bulkColumns = document.getElementById("bulkColumns").value;
+            // Add bulk columns button event listener
+            modal.querySelector("#addBulkColumns").addEventListener("click", function() {
+                const bulkColumns = modal.querySelector("#bulkColumns").value;
                 const columnNames = bulkColumns.split("\\n").map(name => name.trim()).filter(name => name);
-                const errorElement = document.getElementById("bulkValidationError");
+                const errorElement = modal.querySelector("#bulkValidationError");
                 
                 // Validate all column names
                 const errors = [];
@@ -774,10 +770,21 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     return;
                 }
                 
-                // Add all valid columns
-                validColumns.forEach(name => {
-                    const headerText = generateHeaderText(name);
-                    addNewColumn(name, headerText);
+                // Add all valid columns at once
+                const newColumns = validColumns.map(name => ({
+                    name: name,
+                    headerText: generateHeaderText(name)
+                }));
+                
+                // Add all columns in one operation
+                const updatedColumns = [...currentColumns, ...newColumns];
+                
+                // Send message to update the model - backend will reload the view
+                vscode.postMessage({
+                    command: 'updateModel',
+                    data: {
+                        columns: updatedColumns
+                    }
                 });
                 
                 // Close the modal

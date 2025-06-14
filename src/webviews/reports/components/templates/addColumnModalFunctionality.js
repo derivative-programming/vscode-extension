@@ -74,8 +74,7 @@ function createAddColumnModal() {
         // Handle cases like "FirstName" -> "First Name", "AppDNA" -> "App DNA"
         return columnName.replace(/([a-z])([A-Z])/g, '$1 $2')
                         .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
-    }
-      // Add single column
+    }    // Add single column
     document.getElementById("addSingleColumn").addEventListener("click", function() {
         const columnName = document.getElementById("columnName").value.trim();
         const errorElement = document.getElementById("singleValidationError");
@@ -89,7 +88,7 @@ function createAddColumnModal() {
         // Generate header text from column name
         const headerText = generateHeaderText(columnName);
         
-        // Add the new column
+        // Add the new column - backend will reload view
         addNewColumn(columnName, headerText);
         
         // Close the modal
@@ -118,12 +117,21 @@ function createAddColumnModal() {
         if (errors.length > 0) {
             errorElement.innerHTML = errors.join("<br>");
             return;
-        }
+        }        // Add all valid columns at once
+        const newColumns = validColumns.map(name => ({
+            name: name,
+            headerText: generateHeaderText(name)
+        }));
         
-        // Add all valid columns
-        validColumns.forEach(name => {
-            const headerText = generateHeaderText(name);
-            addNewColumn(name, headerText);
+        // Add all columns in one operation
+        const updatedColumns = [...currentColumns, ...newColumns];
+        
+        // Send message to update the model - backend will reload the view
+        vscode.postMessage({
+            command: 'updateModel',
+            data: {
+                columns: updatedColumns
+            }
         });
         
         // Close the modal

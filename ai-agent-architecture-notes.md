@@ -1379,3 +1379,63 @@ Fixed multiple display issues with the "Add Column" modal on the report details 
 - Fixed close button functionality with correct CSS selector
 
 The modal now displays properly with consistent styling and proper responsive behavior.
+
+## Add Column Modal Flow (June 14, 2025)
+
+When a user clicks "Add Column" and uses the add column modal, the following sequence occurs:
+
+### Frontend Process (In Report Details View)
+
+1. **Modal Display**: User clicks "Add Column" button which triggers `createAddColumnModal()` function
+2. **User Input**: Modal presents two tabs:
+   - Single Column: User enters one column name
+   - Bulk Add: User enters multiple column names (one per line)
+3. **Validation**: Before submission, column names are validated:
+   - Cannot be empty
+   - Maximum 100 characters
+   - Must start with letter, contain only letters/numbers (PascalCase)
+   - Must be unique (not already exist in current columns)
+4. **Header Text Generation**: Header text is auto-generated from column name using `generateHeaderText()`:
+   - Converts PascalCase to space-separated words
+   - "FirstName" becomes "First Name"
+   - "AppDNA" becomes "App DNA"
+5. **Submit to Backend**: Frontend sends `updateModel` command with new column data (no local UI updates)
+
+### Backend Process (Model Update)
+
+6. **Message to Extension**: Webview sends `updateModel` command with new columns data
+7. **Direct Model Update**: `updateModelDirectly()` function in reportDetailsView.js:
+   - Updates `reportReference.reportColumn` array directly with new columns
+   - Each column object contains: `{ name: columnName, headerText: headerText }`
+8. **Change Tracking**: ModelService marks model as having unsaved changes
+9. **View Reload**: Backend regenerates entire webview HTML with updated model data
+10. **UI Refresh**: Tree view is refreshed and webview shows new column immediately
+
+### Current Issue & Recommended Fix
+
+**✅ IMPLEMENTED**: The proper flow where model is updated first and view is reloaded:
+1. User submits column via modal
+2. Send `updateModel` command to backend (no frontend updates)
+3. Backend updates model in memory
+4. Backend regenerates and reloads the entire webview with updated model data
+5. User immediately sees new column in all views (dropdown, table, etc.)
+
+This ensures the model is the single source of truth and the UI stays synchronized.
+
+### Data Structure
+
+The new column is added to the report's `reportColumn` array as:
+```javascript
+{
+    name: "FirstName",           // User input (PascalCase)
+    headerText: "First Name"     // Auto-generated display text
+}
+```
+
+### Key Files Involved
+
+- `addColumnModalTemplate.js`: Modal HTML template
+- `addColumnModalFunctionality.js`: Modal behavior and validation
+- `clientScriptTemplate.js`: Frontend column management and `addNewColumn()` function
+- `reportDetailsView.js`: Backend handling of `updateModel` command via `updateModelDirectly()`
+- ModelService: Change tracking and persistence
