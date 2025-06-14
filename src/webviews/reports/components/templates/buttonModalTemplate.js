@@ -69,11 +69,10 @@ function getButtonModalHtml(reportButtonsSchema) {
                 <h2 class="modal-title">Edit Button</h2>
                 
                 <!-- Add Button Form (simplified) -->
-                <div id="add-button-form" style="display: none;">
-                    <div class="form-group">
+                <div id="add-button-form" style="display: none;">                    <div class="form-group">
                         <label for="button-name-input">Button Name:</label>
                         <input type="text" id="button-name-input" placeholder="">
-                        <div class="field-note">Use Pascal case (Example: ToDoItem). No spaces are allowed in names. Alpha characters only.</div>
+                        <div class="field-note">Use Pascal case (Example: ButtonName). No spaces or numbers are allowed in names. Letters only.</div>
                     </div>
                     <div id="button-name-validation-error" class="validation-error"></div>
                     <div class="action-buttons">

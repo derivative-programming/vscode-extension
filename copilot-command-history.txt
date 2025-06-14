@@ -169,3 +169,10 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
+
+Command: In the report details view report button tab on add button modal do not allow numbers in a button name
+
+June 14, 2025: Update button name validation in report details view to prevent numbers in button names
+- Modified validateButtonName function in src/webviews/reports/components/templates/clientScriptTemplate.js
+- Changed regex from /^[a-zA-Z][a-zA-Z0-9]*$/ to /^[a-zA-Z][a-zA-Z]*$/ to only allow letters
+- Updated validation error message to reflect the new requirement

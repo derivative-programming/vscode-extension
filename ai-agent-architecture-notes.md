@@ -1,5 +1,31 @@
 # AppDNA VS Code Extension Architecture Notes
    
+## Report Button Name Validation - No Numbers Allowed (Added 2025-06-14)
+
+Implemented requirement to prevent numbers in button names when adding new buttons in the report details view.
+
+### Problem:
+- The button name validation in the report details view allowed numbers in button names
+- User requirement was to restrict button names to letters only (no numbers)
+
+### Solution:
+- Modified the `validateButtonName` function in `src/webviews/reports/components/templates/clientScriptTemplate.js`
+- Changed regex from `/^[a-zA-Z][a-zA-Z0-9]*$/` to `/^[a-zA-Z][a-zA-Z]*$/`
+- Updated error message to clarify that numbers are not allowed
+- Updated the UI guidance text in button modal template
+
+### Technical Details:
+- **Primary File Modified**: `src/webviews/reports/components/templates/clientScriptTemplate.js`
+  - Updated `validateButtonName` function regex and error message
+- **Secondary File Modified**: `src/webviews/reports/components/templates/buttonModalTemplate.js`
+  - Updated field note text from "Alpha characters only" to "Letters only"
+- **Test File Updated**: `test-button-validation.js`
+  - Updated test cases to expect validation errors for names containing numbers
+  - Added specific test cases for names with numbers
+- **Location**: Report Details View → Button Tab → Add Button Modal
+- **User Impact**: Button names can now only contain letters (A-Z, a-z), no numbers or special characters
+
+   
 ## Data Object Settings Tab - Parent Object Name Read-Only Field (Added 2025-06-14)
 
 Implemented requirement to make the 'Parent Object Name' textbox always read-only in the data object details view settings tab.

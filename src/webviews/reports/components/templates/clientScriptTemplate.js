@@ -999,8 +999,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             document.querySelector('#button-modal .modal-title').textContent = 'Edit Button';
             document.getElementById('button-modal').style.display = 'block';
         }
-        
-        // Validate button name (PascalCase, alpha only, no spaces)
+          // Validate button name (PascalCase, alpha only, no spaces, no numbers)
         function validateButtonName(name) {
             if (!name) {
                 return "Button name cannot be empty";
@@ -1009,8 +1008,8 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             if (name.length > 100) {
                 return "Button name cannot exceed 100 characters";
             }
-            if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
-                return "Button name must start with a letter and contain only letters and numbers";
+            if (!/^[a-zA-Z][a-zA-Z]*$/.test(name)) {
+                return "Button name must start with a letter and contain only letters (no numbers)";
 
             }
             // Check if button with this name already exists

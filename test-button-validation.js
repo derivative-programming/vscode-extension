@@ -11,8 +11,8 @@ function validateButtonName(name, currentButtons = []) {
     if (name.length > 100) {
         return "Button name cannot exceed 100 characters";
     }
-    if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
-        return "Button name must start with a letter and contain only letters and numbers";
+    if (!/^[a-zA-Z][a-zA-Z]*$/.test(name)) {
+        return "Button name must start with a letter and contain only letters (no numbers)";
     }
     // Check if button with this name already exists
     if (currentButtons.some(button => button.buttonName === name)) {
@@ -28,13 +28,16 @@ console.log('');
 const testCases = [
     { name: '', expected: 'Button name cannot be empty' },
     { name: 'ValidButton', expected: null },
-    { name: 'Another123', expected: null },
+    { name: 'Another123', expected: 'Button name must start with a letter and contain only letters (no numbers)' },
+    { name: 'AnotherButton', expected: null },
     { name: 'a'.repeat(100), expected: null }, // exactly 100 characters
     { name: 'a'.repeat(101), expected: 'Button name cannot exceed 100 characters' }, // 101 characters
     { name: 'Very'.repeat(25) + 'Name', expected: 'Button name cannot exceed 100 characters' }, // 104 characters
-    { name: '123Invalid', expected: 'Button name must start with a letter and contain only letters and numbers' },
-    { name: 'Invalid Name', expected: 'Button name must start with a letter and contain only letters and numbers' },
-    { name: 'Invalid-Name', expected: 'Button name must start with a letter and contain only letters and numbers' },
+    { name: '123Invalid', expected: 'Button name must start with a letter and contain only letters (no numbers)' },
+    { name: 'Invalid Name', expected: 'Button name must start with a letter and contain only letters (no numbers)' },
+    { name: 'Invalid-Name', expected: 'Button name must start with a letter and contain only letters (no numbers)' },
+    { name: 'ButtonWith1Number', expected: 'Button name must start with a letter and contain only letters (no numbers)' },
+    { name: 'Button2', expected: 'Button name must start with a letter and contain only letters (no numbers)' },
 ];
 
 // Test unique names
