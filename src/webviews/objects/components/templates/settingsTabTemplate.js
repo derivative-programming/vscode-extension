@@ -43,12 +43,12 @@ function getSettingsTabTemplate(object, objectSchemaProps) {
                         
                         return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
                     }).join("")}
-                </select>`;
-            } else {
+                </select>`;            } else {
                 // Generate text input for non-enum values
                 // Make parentObjectName always readonly
-                const isReadonly = !propertyExists || key === "parentObjectName";
-                inputField = `<input type="text" id="${key}" name="${key}" value="${propertyExists ? object[key] : ""}" ${tooltip} ${isReadonly ? "readonly" : ""}>`;
+                const isParentObjectName = key === "parentObjectName";
+                const readonlyAttr = isParentObjectName ? "readonly disabled" : (!propertyExists ? "readonly" : "");
+                inputField = `<input type="text" id="${key}" name="${key}" value="${propertyExists ? object[key] : ""}" ${tooltip} ${readonlyAttr}>`;
             }
             
             // If the property exists, add a data attribute to indicate it was originally checked

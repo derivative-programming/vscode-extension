@@ -221,11 +221,13 @@ function getSaveSubmitHandlers() {
         settingsCheckboxes.forEach(checkbox => {
             const key = checkbox.getAttribute('data-prop');
             const field = checkbox.parentElement.querySelector('[name="' + key + '"]');
-            if (!key || !field) return;
-            checkbox.addEventListener('change', function() {
+            if (!key || !field) return;            checkbox.addEventListener('change', function() {
                 if (checkbox.checked) {
-                    field.readOnly = false;
-                    field.disabled = false;
+                    // Don't allow parentObjectName to be editable even when checkbox is checked
+                    if (key !== 'parentObjectName') {
+                        field.readOnly = false;
+                        field.disabled = false;
+                    }
                     field.style.backgroundColor = 'var(--vscode-input-background)';
                     field.style.color = 'var(--vscode-input-foreground)';
                     field.style.opacity = '1';

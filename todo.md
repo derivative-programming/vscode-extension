@@ -31,13 +31,11 @@ change requests...
  
 
 
-copilot:- 'add column' button should display a modal similar to the 'add data object property' modal.  Don't use the same.
+- 'add column' button modal needs work.
 
 
-issue:- 'add filter' button should display a modal similar to the 'add data object property' modal.  Don't use the same.
-
-issue:- 'add button' button should just show a 'name' field. show a note under the textbox that asks the user to use Pascal case. (Example... ToDoItem).  No spaces are allowed in names. Alpha characters only.
-      
+- 'add filter' button should display a modal similar to the 'add data object property' modal.  Don't use the same.
+ 
 model fabrication download...
  When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
  
@@ -82,7 +80,11 @@ If we can create a model of your application, then we can generate a large amoun
 Step 3. text...
 - Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
  
+report button names do not allow numbers
 
+max length validation rules?
+100 chars by default... report col, rpt filter.
+50... lookup item names
 
 examples...
 {
