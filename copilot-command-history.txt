@@ -9,6 +9,13 @@
 - Files modified: mainTemplate.js, clientScriptTemplate.js, reportDetailsView.js, detailsViewStyles.js
 Command: Expand all top level tree items in the AppDNA tree view
 
+2025-01-17: Added step 8 to welcome view workflow
+- Added new workflow step 8: "Manual Model Editing"
+- Step description: "Manually make any changes you like to the model, then go back to step 4."
+- Added workflow note explaining how to use AppDNA tree view or directly edit JSON file
+- Creates iterative workflow where users can manually edit model and re-run AI processing
+- Files modified: welcomeView.js
+
 2025-01-06: Implemented Reverse buttons for report details view
 - Added Reverse buttons to columns, buttons, and parameters tabs list views
 - Implemented client-side reverseList() function to handle UI updates and messaging

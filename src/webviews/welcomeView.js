@@ -412,6 +412,13 @@ class WelcomePanel {
                     <div class="workflow-note">In the fabrication_results folder, you will find generated files. Copy what you need from here to your project source code folder.</div>
                     <button id="requestModelFabricationButton" class="button" style="display: none;">Request Model Fabrication</button>
                 </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">8</div>
+                    <div class="workflow-step-title">Manual Model Editing</div>
+                    <div class="workflow-step-description">Manually make any changes you like to the model, then go back to step 4.</div>
+                    <div class="workflow-note">Use the AppDNA tree view or directly edit the JSON file to make custom modifications to your model before re-running AI processing.</div>
+                </div>
             </div>
         </div>
     </div>
