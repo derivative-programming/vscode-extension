@@ -285,7 +285,8 @@ function getDetailViewStyles() {
         }
         
         .copy-props-button,
-        .move-button {
+        .move-button,
+        .reverse-button {
             padding: 6px 12px;
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
@@ -296,7 +297,8 @@ function getDetailViewStyles() {
         }
         
         .copy-props-button:hover,
-        .move-button:hover {
+        .move-button:hover,
+        .reverse-button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
         
