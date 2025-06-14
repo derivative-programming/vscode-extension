@@ -809,4 +809,52 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         // Case-insensitive match of data object filter text within the label
         return label.toLowerCase().includes(this.dataObjectFilterText);
     }
+
+    /**
+     * Selects a data object in the tree view by name
+     * @param objectName The name of the object to select
+     */
+    async selectDataObject(objectName: string): Promise<void> {
+        if (!this.treeView) {
+            console.error('Tree view not available for selection');
+            return;
+        }
+
+        try {
+            // First, ensure the DATA OBJECTS section is expanded
+            const dataObjectsItem = new JsonTreeItem(
+                'DATA OBJECTS',
+                vscode.TreeItemCollapsibleState.Collapsed,
+                'dataObjects showHierarchy'
+            );
+
+            // Expand the DATA OBJECTS section
+            await this.treeView.reveal(dataObjectsItem, { 
+                select: false, 
+                focus: false, 
+                expand: 1 
+            });
+
+            // Small delay to allow expansion to complete
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Create the tree item for the specific object
+            const objectItem = new JsonTreeItem(
+                objectName,
+                vscode.TreeItemCollapsibleState.None,
+                'dataObjectItem'
+            );
+
+            // Select and reveal the object
+            await this.treeView.reveal(objectItem, { 
+                select: true, 
+                focus: true, 
+                expand: false 
+            });
+
+            console.log(`Successfully selected object '${objectName}' in tree view`);
+        } catch (error) {
+            console.error(`Failed to select object '${objectName}' in tree view:`, error);
+        }
+    }
 }
