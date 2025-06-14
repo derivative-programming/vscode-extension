@@ -954,6 +954,34 @@ The Change Requests List View supports flexible handling of property updates:
 
 This approach allows for both updating existing properties and adding new ones through the change request mechanism while ensuring that changes are still valid against the current model state.
 
+## Property Name Length Validation (Added 2025-01-14)
+
+Enhanced the property validation in the Add Property modal to enforce a 100 character limit on property names.
+
+### Issue:
+- Data object property names needed a maximum length constraint to prevent overly long property names
+- The existing validation only checked for empty names, valid format (letters/numbers), and uniqueness
+
+### Solution:
+- Added length validation to the `validatePropertyName` function in `propertyModalFunctionality.js`
+- The validation now checks `name.length > 100` and returns appropriate error message
+- Length check is positioned after empty check but before format check for logical validation order
+
+### Implementation Details:
+- **File modified**: `src/webviews/objects/components/templates/propertyModalFunctionality.js`
+- **Change**: Added `if (name.length > 100) { return "Property name cannot exceed 100 characters"; }`
+- **Validation order**: Empty → Length → Format → Uniqueness
+- **Works for**: Both single property addition and bulk property addition modes
+- **Testing**: Created isolated test cases to verify 100 character limit enforcement
+
+### Validation Rules (Complete):
+1. Property name cannot be empty
+2. Property name cannot exceed 100 characters
+3. Property name must start with a letter and contain only letters and numbers
+4. Property name must be unique (not already exist)
+
+*Last updated: January 14, 2025*
+
 ## Welcome View Architecture
 
 The Welcome View provides an entry point for new users to understand the extension's capabilities and workflow:
