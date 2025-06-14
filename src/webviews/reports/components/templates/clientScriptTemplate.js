@@ -19,6 +19,42 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         let currentParams = ${JSON.stringify(params)};
         let currentEditingIndex = -1;
         
+        // Add Column Modal Template Function
+        function getAddColumnModalHtml() {
+            return \`
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Add Column</h2>
+            <div class="tabs">
+                <div class="tab active" data-tab="singleAdd">Single Column</div>
+                <div class="tab" data-tab="bulkAdd">Bulk Add</div>
+            </div>
+            <div id="singleAdd" class="tab-content active">
+                <div class="form-row">
+                    <label for="columnName">Column Name:</label>
+                    <input type="text" id="columnName">
+                    <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only.</div>
+                </div>
+                <div class="form-row">
+                    <label for="columnHeaderText">Header Text:</label>
+                    <input type="text" id="columnHeaderText">
+                    <div class="field-note">Display text for the column header (Example: "First Name").</div>
+                </div>
+                <div id="singleValidationError" class="validation-error"></div>
+                <button id="addSingleColumn">Add Column</button>
+            </div>
+            <div id="bulkAdd" class="tab-content">
+                <div class="form-row">
+                    <label for="bulkColumns">Column Names (one per line):</label>
+                    <textarea id="bulkColumns" rows="5"></textarea>
+                    <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Header text will be auto-generated from the column name.</div>
+                </div>
+                <div id="bulkValidationError" class="validation-error"></div>
+                <button id="addBulkColumns">Add Columns</button>
+            </div>
+        </div>\`;
+        }
+        
         // Tab switching functionality
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -567,12 +603,40 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
 
         // Add column button click handler
         document.getElementById('add-column-btn').addEventListener('click', function() {
-            // Reset form and show modal for adding a new column
-            document.getElementById('column-form').reset();
-            document.querySelector('#column-modal .modal-title').textContent = 'Add Column';
-            currentEditingIndex = -1;
-            document.getElementById('column-modal').style.display = 'block';
+            // Use the new add column modal instead of the edit modal
+            createAddColumnModal();
         });
+        
+        // Function to add a new column (called from add column modal)
+        function addNewColumn(columnName, headerText) {
+            const newColumn = {
+                name: columnName,
+                headerText: headerText
+            };
+            
+            // Add to current columns array
+            currentColumns.push(newColumn);
+            
+            // Add to columns list in list view
+            const columnsList = document.getElementById('columnsList');
+            if (columnsList) {
+                const option = document.createElement('option');
+                option.value = currentColumns.length - 1;
+                option.textContent = columnName;
+                columnsList.appendChild(option);
+            }
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    columns: currentColumns
+                }
+            });
+            
+            // Note: Table view will be automatically updated on next page refresh
+            // To immediately refresh table view, a full re-render would be needed
+        }
         
         // Edit column button click handlers
         document.querySelectorAll('.edit-column-btn').forEach(button => {
