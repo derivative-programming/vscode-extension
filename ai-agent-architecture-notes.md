@@ -1,6 +1,30 @@
 # AppDNA VS Code Extension Architecture Notes
  
-*Last updated: June 08, 2025*
+*Last updated: December 20, 2024*
+
+## Report Details View Move Button States Fix (Added 2024-12-20)
+
+Fixed an issue where move up/down button states were not being updated after move operations in the report details view.
+
+### Problem:
+- In the columns, buttons, and parameters tabs list views, move up/down buttons enable/disable based on selected item position
+- When a list item was clicked, move button states were updated correctly 
+- However, after clicking move up/down buttons, the move button states were not updated for the new position
+- This left buttons in incorrect enabled/disabled states after moves
+
+### Solution:
+- Added calls to `updateMoveButtonStates()` after move operations in `clientScriptTemplate.js`:
+  - After `selectElement.selectedIndex = newIndex;` in `moveListItem()` function
+  - After selection updates in `reverseList()` function
+- Now move buttons correctly reflect whether the newly positioned item can be moved further
+
+### Files Modified:
+- `src/webviews/reports/components/templates/clientScriptTemplate.js`: Added 6 lines calling `updateMoveButtonStates()`
+
+### Key Learning:
+- When implementing move/reorder functionality, always update UI states after position changes
+- The `updateMoveButtonStates()` function was already properly implemented but not being called at the right times
+- Minimal fix: just 2 function calls added to existing move operation logic
 
 ## Move Up/Down Functionality for Report Details View (Added 2025-06-08)
 
