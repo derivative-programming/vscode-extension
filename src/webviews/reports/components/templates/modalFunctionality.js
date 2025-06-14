@@ -65,40 +65,22 @@ function getModalFunctionality() {
                     const buttonName = document.getElementById("button-name-input").value.trim();
                     const errorElement = document.getElementById("button-name-validation-error");
                     
-                    // Validate button name
-                    const validationError = validateButtonName(buttonName);
-                    if (validationError) {
-                        errorElement.textContent = validationError;
-                        return;
-                    }
-                    
-                    // Clear any previous errors
+                    // Clear any previous errors first
                     errorElement.textContent = "";
                     
-                    // Add the new button
-                    addNewButton(buttonName);
-                    
-                    // Close the modal
-                    modal.style.display = "none";
+                    // The actual validation will be done in the client script
+                    // where current buttons data is available
+                    // Just trigger a custom event to handle the validation and saving
+                    const event = new CustomEvent('addButtonRequested', { 
+                        detail: { buttonName: buttonName, errorElement: errorElement } 
+                    });
+                    document.dispatchEvent(event);
                 };
             }
         }
         
-        // Validate button name (PascalCase, alpha only, no spaces)
-        function validateButtonName(name) {
-            if (!name) {
-                return "Button name cannot be empty";
-            }
-            if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
-                return "Button name must start with a letter and contain only letters and numbers";
-            }
-            // Check if button with this name already exists
-            const existingButtons = reportData.reportButton || [];
-            if (existingButtons.some(button => button.buttonName === name)) {
-                return "Button with this name already exists";
-            }
-            return null; // Valid
-        }
+        // Note: validateButtonName function is defined in client script where 
+        // currentButtons data is available
         
         // Modal functionality for parameters
         function setupParamModal() {

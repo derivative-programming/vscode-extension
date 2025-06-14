@@ -810,6 +810,42 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             document.getElementById('button-modal').style.display = 'block';
         }
         
+        // Validate button name (PascalCase, alpha only, no spaces)
+        function validateButtonName(name) {
+            if (!name) {
+                return "Button name cannot be empty";
+            }
+            if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
+                return "Button name must start with a letter and contain only letters and numbers";
+            }
+            // Check if button with this name already exists
+            if (currentButtons.some(button => button.buttonName === name)) {
+                return "Button with this name already exists";
+            }
+            return null; // Valid
+        }
+        
+        // Handle add button validation and saving
+        document.addEventListener('addButtonRequested', function(event) {
+            const { buttonName, errorElement } = event.detail;
+            
+            // Validate button name
+            const validationError = validateButtonName(buttonName);
+            if (validationError) {
+                errorElement.textContent = validationError;
+                return;
+            }
+            
+            // Clear any previous errors
+            errorElement.textContent = "";
+            
+            // Add the new button
+            addNewButton(buttonName);
+            
+            // Close the modal
+            document.getElementById('button-modal').style.display = 'none';
+        });
+        
         // Function to add a new button (called from add button modal)
         function addNewButton(buttonName) {
             const newButton = {
