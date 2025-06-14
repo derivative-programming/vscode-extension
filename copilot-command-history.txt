@@ -1,5 +1,5 @@
  
- 
+
 2025-06-14: Add object selection in tree view after creating data objects via wizard
 - Added selectDataObject method to JsonTreeDataProvider to select objects by name
 - Registered appdna.selectDataObject command in registerCommands.ts
@@ -8,6 +8,14 @@
 - Added 300ms delay to allow tree refresh before selection
 - Verified compilation and basic functionality with mock tests
 - Minimal changes: ~50 lines added across 3 files, 0 lines deleted
+
+2025-01-XX: Add maximum length validation (100 characters) to data object wizard name
+- Added max length validation to validateName case in addObjectWizardView.js
+- Validation triggers before other format checks (after empty check)
+- Updated UI input note to inform users about 100 character limit
+- Tested validation logic with standalone test covering edge cases
+- Verified compilation, linting, and no existing functionality broken
+- Minimal changes: 11 lines added, 1 line modified in single file
 - Files modified: jsonTreeDataProvider.ts, registerCommands.ts, addObjectWizardView.js
 
 2025-12-24: Add Help view with GitHub links and issue reporting information
