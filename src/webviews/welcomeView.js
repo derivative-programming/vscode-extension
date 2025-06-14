@@ -342,6 +342,22 @@ class WelcomePanel {
             border-left: 3px solid var(--vscode-button-background);            padding-left: 10px;
             margin-top: 5px;
         }
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid var(--vscode-panel-border);
+            text-align: center;
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
+        }
+        .footer a {
+            color: var(--vscode-textLink-foreground);
+            text-decoration: none;
+        }
+        .footer a:hover {
+            color: var(--vscode-textLink-activeForeground);
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -413,6 +429,10 @@ class WelcomePanel {
                     <button id="requestModelFabricationButton" class="button" style="display: none;">Request Model Fabrication</button>
                 </div>
             </div>
+        </div>
+        
+        <div class="footer">
+            <p>Learn more about this extension on <a href="https://github.com/derivative-programming/vscode-extension" target="_blank">GitHub</a></p>
         </div>
     </div>
 
