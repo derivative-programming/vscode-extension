@@ -131,6 +131,50 @@ Updated the Add Property modal to use Pascal case instructions instead of placeh
  
 *Last updated: December 20, 2024*
 
+## Add Column Modal Implementation (Added 2025-12-20)
+
+Created a new "Add Column" modal for the report details view that's similar to the "Add Data Object Property" modal but tailored specifically for columns.
+
+### Key Features:
+- **Dual Interface**: Single column addition and bulk addition tabs
+- **Essential Fields**: Focuses on `name` (required) and `headerText` (optional, auto-generated)  
+- **Validation**: Pascal case naming, uniqueness checking, required field validation
+- **Auto-Generation**: Header text automatically generated from column name (e.g., "FirstName" → "First Name")
+- **Bulk Support**: Add multiple columns at once with one name per line
+
+### Implementation Details:
+- **Template Structure**: Created `addColumnModalTemplate.js` with tab-based interface similar to property modal
+- **Functionality Integration**: Embedded modal functions directly in `clientScriptTemplate.js` for browser execution
+- **Button Integration**: Modified add column button to use new modal instead of existing edit modal
+- **Separation of Concerns**: Maintains distinction between adding new columns vs. editing existing ones
+
+### Files Created:
+- `addColumnModalTemplate.js`: Modal HTML template with single/bulk tabs
+- `addColumnModalFunctionality.js`: Standalone functionality (kept for reference)
+
+### Files Modified:
+- `detailsViewGenerator.js`: Added imports and integration for new modal template
+- `mainTemplate.js`: Updated function signature and modal rendering section
+- `clientScriptTemplate.js`: 
+  - Added `getAddColumnModalHtml()` function inline
+  - Added `createAddColumnModal()` function with full event handling
+  - Modified add column button handler to use new modal
+  - Added `addNewColumn()` helper function
+
+### Architecture Pattern:
+- **Modal Template**: HTML structure defined in separate template file for maintainability
+- **Inline Integration**: JavaScript functionality embedded directly in client script for browser execution
+- **Event-Driven**: Uses DOM events for validation, submission, and modal management
+- **Data Validation**: Client-side validation with user-friendly error messages
+
+### User Experience:
+- **Familiar Interface**: Consistent with existing property modal design patterns
+- **Clear Guidance**: Field notes explain naming conventions and requirements
+- **Immediate Feedback**: Real-time validation with specific error messages
+- **Flexible Input**: Choice between single column creation or bulk operations
+
+*Last updated: December 20, 2024*
+
 ## Report Details View Move Button States Fix (Added 2024-12-20)
 
 Fixed an issue where move up/down button states were not being updated after move operations in the report details view.
