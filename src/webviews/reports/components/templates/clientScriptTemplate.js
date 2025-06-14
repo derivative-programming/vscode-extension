@@ -815,8 +815,8 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             if (!name) {
                 return "Button name cannot be empty";
             }
-            if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
-                return "Button name must start with a letter and contain only letters and numbers";
+            if (!/^[a-zA-Z]+$/.test(name)) {
+                return "Button name must contain only letters (no numbers or spaces)";
             }
             // Check if button with this name already exists
             if (currentButtons.some(button => button.buttonName === name)) {
