@@ -1,3 +1,4 @@
+ 
 2025-06-08: Add public repository links to Welcome and Login views
 - Added footer section with GitHub repository link to welcomeView.js  
 - Added footer section with GitHub repository link to loginView.ts
@@ -7,6 +8,15 @@
 - Created custom test to validate footer links are properly included
 - Minimal changes: 20 lines added to each file, 0 lines deleted
 - Files modified: welcomeView.js, loginView.ts
+ 
+2024-12-20: Fixed move button states not updating after move operations in report details view
+- Issue: Move up/down buttons' enabled/disabled states were not being updated after move operations
+- Root cause: updateMoveButtonStates() function was not called after moveListItem() and reverseList() operations
+- Solution: Added calls to updateMoveButtonStates() after selection changes in both functions
+- Files modified: src/webviews/reports/components/templates/clientScriptTemplate.js (6 lines added)
+- Result: Move buttons now correctly enable/disable based on the new position after moves
+- Verified: Build successful, lint clean, minimal surgical change
+ 
 
 2025-06-08: Implemented Move Up and Move Down buttons for report details view
 - Added Move Up/Down buttons to columns, buttons, and parameters tabs list views
