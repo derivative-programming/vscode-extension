@@ -46,7 +46,9 @@ function getSettingsTabTemplate(object, objectSchemaProps) {
                 </select>`;
             } else {
                 // Generate text input for non-enum values
-                inputField = `<input type="text" id="${key}" name="${key}" value="${propertyExists ? object[key] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
+                // Make parentObjectName always readonly
+                const isReadonly = !propertyExists || key === "parentObjectName";
+                inputField = `<input type="text" id="${key}" name="${key}" value="${propertyExists ? object[key] : ""}" ${tooltip} ${isReadonly ? "readonly" : ""}>`;
             }
             
             // If the property exists, add a data attribute to indicate it was originally checked
