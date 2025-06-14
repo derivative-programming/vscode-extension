@@ -1,5 +1,5 @@
 # AppDNA VS Code Extension Architecture Notes
-  
+   
 *Last updated: June 14, 2025*
 
 ## Tree View Object Selection Enhancement (Added 2025-06-14)
@@ -21,6 +21,36 @@ Added functionality to automatically select newly created data objects in the tr
 - Improved user experience: Users can immediately see their newly created object in the tree
 - Consistent with VS Code UX patterns for item selection after creation
 - No impact on existing functionality - purely additive enhancement
+
+*Last updated: December 24, 2024*
+
+## Help View Implementation (Added 2024-12-24)
+
+Added a Help view accessible from the tree view to provide users with quick access to documentation and support resources.
+
+### Features:
+- **Webview Panel**: Simple, clean help interface similar to welcome view pattern
+- **GitHub Integration**: Direct links to repository and issues page
+- **Positioning**: Help button positioned to the left of welcome button in tree view
+- **VS Code Theming**: Uses consistent VS Code theme variables for appearance
+
+### Implementation:
+- **New Module** (`src/webviews/helpView.js`): Self-contained help view component following VS Code webview patterns
+- **Command Registration** (`registerCommands.ts`): Added `appdna.showHelp` command registration
+- **Package Configuration** (`package.json`): Added command definition with question mark icon and menu positioning
+- **Positioning Logic**: Uses `navigation@-1` group to appear left of welcome button (`navigation@0`)
+
+### UI Organization:
+- **Learn More Section**: Links to GitHub repository with descriptive text
+- **Report Issues Section**: Direct link to GitHub issues with reporting guidelines
+- **Quick Tips Section**: Basic usage tips for new users
+- **Professional Design**: Responsive layout with clear sections and consistent typography
+
+### Benefits:
+- **User Support**: Easy access to help without leaving VS Code
+- **Issue Reporting**: Streamlined path for users to report bugs or request features
+- **Documentation Access**: Quick link to comprehensive GitHub documentation
+- **Minimal Overhead**: Lightweight implementation with no external dependencies 
 
 ## Property Modal UI Enhancement (Added 2025-12-20)
 

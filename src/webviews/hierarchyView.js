@@ -76,6 +76,14 @@ async function showHierarchyDiagram(context, modelService) {
                     }
                     return;
                 
+                case 'refreshDiagram':
+                    // Handle refresh request by updating the webview with fresh data
+                    const refreshedObjects = modelService.getAllObjects();
+                    getWebviewContent(context, refreshedObjects).then(html => {
+                        currentPanel.webview.html = html;
+                    });
+                    return;
+                
                 case 'error':
                     vscode.window.showErrorMessage(message.message);
                     return;
@@ -209,6 +217,7 @@ async function getWebviewContent(context, allObjects) {
                 <button id="zoom-in" class="button"><i class="codicon codicon-zoom-in"></i></button>
                 <button id="zoom-out" class="button"><i class="codicon codicon-zoom-out"></i></button>
                 <button id="reset-zoom" class="button">Reset</button>
+                <button id="refresh" class="button" title="Refresh Diagram"><i class="codicon codicon-refresh"></i></button>
             </div>
             <div class="diagram-container">
                 <div id="diagram"></div>
@@ -314,6 +323,7 @@ async function getWebviewContent(context, allObjects) {
                     document.getElementById('zoom-in').addEventListener('click', zoomIn);
                     document.getElementById('zoom-out').addEventListener('click', zoomOut);
                     document.getElementById('reset-zoom').addEventListener('click', resetZoom);
+                    document.getElementById('refresh').addEventListener('click', refreshDiagram);
                     document.getElementById('close-detail').addEventListener('click', closeDetailPanel);
                     document.getElementById('show-full-details').addEventListener('click', showFullDetails);
                     document.getElementById('search').addEventListener('input', searchObjects);
@@ -586,6 +596,13 @@ async function getWebviewContent(context, allObjects) {
                         command: 'showObjectDetails',
                         objectId: selectedNode.data.id,
                         objectName: selectedNode.data.name
+                    });
+                }
+                
+                // Refresh the diagram with latest data
+                function refreshDiagram() {
+                    vscode.postMessage({
+                        command: 'refreshDiagram'
                     });
                 }
                 

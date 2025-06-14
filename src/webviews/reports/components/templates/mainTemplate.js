@@ -46,7 +46,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
         <div class="tab active" data-tab="settings">Settings</div>
         <div class="tab" data-tab="columns">Columns (${columnCount})</div>
         <div class="tab" data-tab="buttons">Buttons (${buttonCount})</div>
-        <div class="tab" data-tab="params">Parameters (${paramCount})</div>
+        <div class="tab" data-tab="params">Filters (${paramCount})</div>
     </div>
     
     <!-- Settings Tab -->
@@ -141,7 +141,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             </div>
         </div>
     </div>
-      <!-- Parameters Tab -->
+      <!-- Filters Tab -->
     <div id="params" class="tab-content">
         <div class="view-icons" data-tab="params">
             <div class="view-icons-left">

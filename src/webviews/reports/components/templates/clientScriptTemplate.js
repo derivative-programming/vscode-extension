@@ -1280,7 +1280,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     // Copy to clipboard using the modern Clipboard API
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(textToCopy).then(() => {
-                            console.log('Parameters copied to clipboard');
+                            console.log('Filters copied to clipboard');
                             // Provide visual feedback
                             const originalText = copyParamsButton.textContent;
                             copyParamsButton.textContent = 'Copied!';
