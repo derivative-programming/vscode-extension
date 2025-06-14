@@ -1,6 +1,29 @@
 # AppDNA VS Code Extension Architecture Notes
    
-*Last updated: June 14, 2025*
+*Last updated: December 21, 2024*
+
+## Report Details View Reverse Button Height Fix (Added 2024-12-21)
+
+Fixed an issue where the 'Reverse' button height didn't match the 'Copy' button height in the report details view list tabs.
+
+### Problem:
+- In the columns, buttons, and filters tabs list views, the Copy button had proper styling with padding `6px 12px`
+- The Reverse button used class `.reverse-button` but had no specific CSS, falling back to generic button styles with padding `8px 16px`
+- This made the Reverse button taller than the Copy button
+
+### Solution:
+- Added `.reverse-button` to existing CSS selectors in `detailsViewStyles.js`:
+  - Added to main button styles: `.copy-props-button, .move-button, .reverse-button`
+  - Added to hover styles: `.copy-props-button:hover, .move-button:hover, .reverse-button:hover`
+- Now all buttons in `.list-buttons` containers have consistent height with padding `6px 12px`
+
+### Files Modified:
+- `src/webviews/reports/styles/detailsViewStyles.js`: Added 2 lines to include `.reverse-button` in existing selectors
+
+### Benefits:
+- Consistent button heights across all list view actions
+- Improved visual design and user experience
+- Minimal change with no risk of breaking existing functionality
 
 ## Tree View Object Selection Enhancement (Added 2025-06-14)
 
