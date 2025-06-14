@@ -7,6 +7,14 @@
 - Added button state management to disable buttons when not applicable
 - Created comprehensive tests to validate all functionality
 - Files modified: mainTemplate.js, clientScriptTemplate.js, reportDetailsView.js, detailsViewStyles.js
+
+2025-12-20: Updated property modal to use Pascal case instructions instead of placeholder text
+- Removed placeholder text from property name input field and bulk add textarea
+- Added field-note divs with Pascal case instructions and example (ToDoItem)
+- Added CSS styling for field-note class with appropriate VS Code theming
+- Instructions specify no spaces allowed and alpha characters only
+- Files modified: propertyModalTemplate.js, detailsViewStyles.js
+
 Command: Expand all top level tree items in the AppDNA tree view
 
 2025-01-06: Implemented Reverse buttons for report details view
