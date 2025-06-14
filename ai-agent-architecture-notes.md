@@ -51,6 +51,38 @@ Fixed font inconsistency between the lexicon view and project settings view:
 - ESLint clean (no new warnings)
 - Minimal change: 1 line modified across 1 file
 
+## Property Management Unsaved Changes Fix (Added 2025-01-14)
+
+Fixed the missing unsaved changes flag when properties are added to data objects through the property management modal.
+
+### Issue:
+- When users added properties via the "Add Property" modal, the unsaved changes flag was not being set
+- The `addNewProperty` function was only updating local webview data but not triggering model updates
+
+### Solution:
+- Added `document.dispatchEvent(new CustomEvent('propertyAdded'))` to the `addNewProperty` function
+- Leveraged existing event infrastructure:
+  - `saveSubmitHandlers.js` already had a listener for `propertyAdded` events
+  - The listener calls `vscode.postMessage` with `updateModel` command
+  - `updateModelDirectly` in `objectDetailsView.js` calls `modelService.markUnsavedChanges()`
+
+### Implementation Details:
+- Minimal change: 1 line added to `propertyManagement.js`
+- Works for both single and bulk property additions
+- Follows existing patterns used throughout the codebase
+- No breaking changes to existing functionality
+
+### Key Files Modified:
+- `src/webviews/objects/components/scripts/propertyManagement.js`: Added event dispatch
+
+### Architecture Pattern:
+This fix demonstrates the event-driven communication pattern between webview JavaScript and the extension:
+1. UI action in webview (add property)
+2. Custom event dispatched (`propertyAdded`)
+3. Event handler sends message to extension (`updateModel` command)
+4. Extension updates model and marks unsaved changes
+5. Tree view updates to show unsaved changes indicator
+
 ## Report Details View Property Hiding (Added 2025-06-08)
 
 Implemented comprehensive property hiding functionality across all report details view tabs to improve UI usability:
