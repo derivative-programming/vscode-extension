@@ -16,7 +16,8 @@ function getPropertyModalHtml() {
     <div id="singleAdd" class="tab-content active">
         <div class="form-row">
             <label for="propName">Property Name:</label>
-            <input type="text" id="propName" placeholder="Enter property name">
+            <input type="text" id="propName">
+            <div class="field-note">Use Pascal case (Example: ToDoItem). No spaces are allowed in names. Alpha characters only.</div>
         </div>
         <div id="singleValidationError" class="validation-error"></div>
         <button id="addSingleProp">Add Property</button>
@@ -24,7 +25,8 @@ function getPropertyModalHtml() {
     <div id="bulkAdd" class="tab-content">
         <div class="form-row">
             <label for="bulkProps">Property Names (one per line):</label>
-            <textarea id="bulkProps" rows="5" placeholder="Enter property names (one per line)"></textarea>
+            <textarea id="bulkProps" rows="5"></textarea>
+            <div class="field-note">Use Pascal case (Example: ToDoItem). No spaces are allowed in names. Alpha characters only.</div>
         </div>
         <div id="bulkValidationError" class="validation-error"></div>
         <button id="addBulkProps">Add Properties</button>

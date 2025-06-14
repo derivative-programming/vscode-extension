@@ -285,6 +285,14 @@ function getDetailViewStyles() {
             min-height: 16px;
         }
 
+        .field-note {
+            color: var(--vscode-descriptionForeground, #999);
+            font-size: 11px;
+            margin-top: 3px;
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+
         /* Tabs within modal */
         .modal .tabs {
             border-bottom: 1px solid var(--vscode-editorGroup-border);

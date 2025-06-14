@@ -1,4 +1,28 @@
 # AppDNA VS Code Extension Architecture Notes
+  
+*Last updated: December 20, 2025*
+
+## Property Modal UI Enhancement (Added 2025-12-20)
+
+Updated the Add Property modal to use Pascal case instructions instead of placeholder text for better user guidance.
+
+### Changes Made:
+- **Template Updates** (`propertyModalTemplate.js`): Removed placeholder text from both single property input and bulk add textarea
+- **User Guidance**: Added field-note divs with clear Pascal case instructions and example (ToDoItem)
+- **CSS Styling** (`detailsViewStyles.js`): Added `.field-note` class with appropriate VS Code theming
+- **Consistency**: Applied changes to both single property and bulk add tabs
+
+### Implementation Details:
+- **Replaced**: `placeholder="Enter property name"` with instructional div
+- **Added**: "Use Pascal case (Example: ToDoItem). No spaces are allowed in names. Alpha characters only."
+- **Styling**: Field notes use `--vscode-descriptionForeground` with italic styling for subtle appearance
+- **Validation**: Existing validation rules `/^[a-zA-Z][a-zA-Z0-9]*$/` remain unchanged
+
+### User Experience:
+- Clear guidance on naming conventions without relying on placeholder text
+- Visual example (ToDoItem) demonstrates proper Pascal case format
+- Consistent instructions across both single and bulk add modes
+- Maintains existing validation behavior and error messaging
  
 *Last updated: December 20, 2024*
 
@@ -25,6 +49,7 @@ Fixed an issue where move up/down button states were not being updated after mov
 - When implementing move/reorder functionality, always update UI states after position changes
 - The `updateMoveButtonStates()` function was already properly implemented but not being called at the right times
 - Minimal fix: just 2 function calls added to existing move operation logic
+ 
 
 ## Move Up/Down Functionality for Report Details View (Added 2025-06-08)
 

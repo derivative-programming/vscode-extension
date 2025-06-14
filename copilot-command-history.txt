@@ -26,7 +26,15 @@
 - Added CSS styles for button layout and disabled states
 - Added button state management to disable buttons when not applicable
 - Created comprehensive tests to validate all functionality
-- Files modified: mainTemplate.js, clientScriptTemplate.js, reportDetailsView.js, detailsViewStyles.js
+- Files modified: mainTemplate.js, clientScriptTemplate.js, reportDetailsView.js, detailsViewStyles.js 
+
+2025-12-20: Updated property modal to use Pascal case instructions instead of placeholder text
+- Removed placeholder text from property name input field and bulk add textarea
+- Added field-note divs with Pascal case instructions and example (ToDoItem)
+- Added CSS styling for field-note class with appropriate VS Code theming
+- Instructions specify no spaces allowed and alpha characters only
+- Files modified: propertyModalTemplate.js, detailsViewStyles.js
+
 Command: Fix unsaved changes flag when adding properties to data objects
 - Added propertyAdded event dispatch in addNewProperty function to trigger model update
 - Leverages existing event handler that calls updateModel command which marks unsaved changes
@@ -42,6 +50,7 @@ Command: Fix unsaved changes flag when adding properties to data objects
 - Modified object creation success handler to open Data Object Details view for newly created object
 - File modified: src/webviews/addObjectWizardView.js
 Command: add data object wizard update
+
 
 Command: Expand all top level tree items in the AppDNA tree view
 
