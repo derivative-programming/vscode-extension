@@ -1,5 +1,14 @@
  
  
+2025-01-14: Add property validation - add property name length limit of 100 characters
+- Added length validation to validatePropertyName function in propertyModalFunctionality.js
+- Validation now checks if property name exceeds 100 characters and returns appropriate error
+- Works for both single property addition and bulk property addition modes
+- Updated validation order: Empty → Length → Format → Uniqueness
+- Created isolated test cases to verify the 100 character limit enforcement
+- Updated ai-agent-architecture-notes.md to document the validation enhancement
+- Minimal changes: 3 lines added, 0 lines deleted
+
 2025-06-14: Add object selection in tree view after creating data objects via wizard
 - Added selectDataObject method to JsonTreeDataProvider to select objects by name
 - Registered appdna.selectDataObject command in registerCommands.ts
