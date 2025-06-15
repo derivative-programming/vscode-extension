@@ -261,12 +261,6 @@ Enhanced user experience in the Object Hierarchy diagram by automatically focusi
 - Follows common UI patterns where search interfaces auto-focus on load
 - Improves workflow efficiency for users frequently searching in the hierarchy
 
-### Technical Details:
-- Minimal change of 3 lines added to existing codebase
-- No deletions or modifications to existing functionality
-- Focus is applied after DOM elements are fully initialized and event listeners are attached
-- Compatible with existing search functionality and keyboard navigation
-
 ## Object Hierarchy View - Enhanced Search Functionality (Updated 2025-06-15)
 
 Implemented advanced search features including exact match view centering and partial match highlighting for improved user experience.
@@ -373,6 +367,9 @@ Implemented requirement to make the 'Parent Object Name' textbox always read-onl
 ### Testing Verified:
 - Property exists with value: Field shows value and is readonly ✅
 - Property doesn't exist: Field is empty and readonly ✅  
+- Property is null: Field is empty and readonly ✅
+- Property is empty string: Field is empty and readonly ✅
+- Other fields unaffected: Description field remains editable when appropriate ✅
 
 ## Add Report Wizard Implementation (Added 2025-06-15)
 

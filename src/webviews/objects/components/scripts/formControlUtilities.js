@@ -41,8 +41,7 @@ function getFormControlUtilities() {
             inputElement.style.opacity = "1";
         }
     }
-    
-    // Update the toggleEditable function to ensure consistent behavior across all tabs and views
+      // Update the toggleEditable function to ensure consistent behavior across all tabs and views
     const toggleEditable = (checkboxId, inputId) => {
         const checkbox = document.getElementById(checkboxId);
         const input = document.getElementById(inputId);
@@ -62,6 +61,15 @@ function getFormControlUtilities() {
                 input.style.backgroundColor = 'var(--vscode-input-background)';
                 input.style.color = 'var(--vscode-input-foreground)';
                 input.style.opacity = '1';
+            }
+            
+            // Handle lookup button state for fKObjectName field
+            const controlContainer = input.parentElement;
+            if (controlContainer && controlContainer.classList.contains('control-with-button')) {
+                const lookupButton = controlContainer.querySelector('.lookup-button');
+                if (lookupButton) {
+                    lookupButton.disabled = !checkbox.checked;
+                }
             }
         };
 

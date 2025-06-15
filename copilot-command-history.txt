@@ -1,6 +1,3 @@
- 
- 
- 
 Command: Add report wizard step 4 focus and enter key handling
 
 2025-01-15: ✅ IMPLEMENTED - Add Report Wizard Step 4 UX improvements
@@ -919,4 +916,17 @@ Command: stopMCPServerCommand
 - ModelService consistently uses `markUnsavedChanges()` method throughout codebase
 - Standard pattern: `if (modelService && typeof modelService.markUnsavedChanges === 'function') { modelService.markUnsavedChanges(); }`
 - Fix ensures Add Report Wizard properly marks model as having unsaved changes when reports are created
-  
+
+Command: Fix object search button - missing icon and not clickable
+Date: June 15, 2025
+Status: Completed
+Issues Fixed:
+1. Missing codicon CSS - Added link to codicon CSS in mainTemplate.js
+2. Button not clickable - Updated saveSubmitHandlers.js to properly manage lookup button state during property selection
+3. Button state management - Enhanced property selection logic to enable/disable lookup button based on property existence
+
+Changes:
+- mainTemplate.js: Added codicon CSS link for search icon display
+- saveSubmitHandlers.js: Added lookup button state handling in property selection logic
+
+Command: Expand all top level tree items in the AppDNA tree view
