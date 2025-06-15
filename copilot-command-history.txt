@@ -573,7 +573,25 @@ All three modals (add column, add filter, add button) now follow the same robust
 All requirements from issue #144 have been successfully implemented and tested.
  
  
-Command: Add data object wizard focus and keyboard navigation enhancements
+Command: Add data object wizard step 2 focus fix
+
+January 15, 2025: Fixed the Add Object Wizard step 2 focus issue
+- **Problem**: Step 2 focus was not working correctly because focus was set before the form content was regenerated
+- **Root Cause**: 
+  * `showStep(2)` was called before `updateStep2Display()`
+  * This meant focus was set on the original `parentSearch` element
+  * Then `updateStep2Display()` replaced the form content, creating a new search input
+  * The focus was lost because it was set on the old element
+- **Solution**: 
+  * Reordered the calls in step 1 next button handler: call `updateStep2Display()` first, then `showStep(2)`
+  * Updated focus logic in `showStep()` to get fresh element with `document.getElementById('parentSearch')` instead of using stale `parentSearch` variable
+- **Changes Made**:
+  * Modified step 1 next button event handler to call `updateStep2Display()` before `showStep(2)`
+  * Updated step 2 focus logic to use `document.getElementById('parentSearch')` to get the current element
+- **Testing**: Created test file `/tmp/test-wizard-step2-focus.html` to verify focus behavior
+- **Impact**: Now when step 2 opens, focus correctly goes to the search textbox for both regular objects and lookup objects
+- **Files Modified**: `src/webviews/addObjectWizardView.js` (8 lines added, 6 removed)
+
  
 January 15, 2025: Enhanced the Add Object Wizard with focus management and keyboard navigation
 - **Step 1 Updates**:

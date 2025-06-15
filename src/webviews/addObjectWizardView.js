@@ -491,11 +491,11 @@ function generateWizardHTML(allObjects) {
                     
                     // Handle step 1 next button
                     step1NextBtn.addEventListener('click', () => {
-                        // Move to step 2
-                        showStep(2);
-                        
-                        // Update step 2 display based on lookup object selection
+                        // Update step 2 display based on lookup object selection first
                         updateStep2Display();
+                        
+                        // Then move to step 2
+                        showStep(2);
                     });
                     
                     // Function to update step 2 display based on lookup object selection
@@ -673,8 +673,10 @@ function generateWizardHTML(allObjects) {
                                 }
                             } else if (step === 2) {
                                 // Focus on the search parent objects textbox
-                                if (parentSearch) {
-                                    parentSearch.focus();
+                                // For regular objects, the search input is dynamically created, so we need to get it fresh
+                                const currentParentSearch = document.getElementById('parentSearch');
+                                if (currentParentSearch) {
+                                    currentParentSearch.focus();
                                 }
                             } else if (step === 3) {
                                 // Focus on the data object name textbox
