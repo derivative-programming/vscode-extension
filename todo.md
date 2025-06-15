@@ -8,11 +8,11 @@ Object Heirarchy diagram...
 - if the 'search objects' textbox value partially or exactly match any item in the heirarchy, then add a light green color to it.
 - option to hide lookup items
 - option to hide items not implemented
- 
+  
 
 
 Select FK Object modal...
-- accept button inactive until a object is selected
+copilot:- accept button inactive until a object is selected
  
 object details view...
 - read only setting 'is lookup'
@@ -175,14 +175,7 @@ win app....
 
   
 test step 2 if no role data obect
-
-add report wizard - step 3...
-copilot:- on click of enter, if the visualization type is selected, then move to the next step.
  
- 
-
-add report wizard - step 5...
-copilot:add max len validation on report title
 
 
 test:When completed, create a report item in the owner data object report array. Add the new report item to the treeview. Open the new report item in the report details view.

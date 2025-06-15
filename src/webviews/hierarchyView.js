@@ -173,10 +173,28 @@ async function getWebviewContent(context, allObjects) {
             }
             .node {
                 cursor: pointer;
-            }
-            .node rect {
+            }            .node rect {
                 stroke: var(--vscode-editor-foreground);
                 stroke-width: 1px;
+                /* Removed default fill - will be set by JavaScript */
+            }            .node.search-highlight rect {
+                fill: #00ff00 !important;  /* Bright green for exact matches */
+                stroke: #228b22 !important;  /* Forest green border */
+                stroke-width: 2px !important;
+            }
+            .node.search-partial rect {
+                fill: #90ee90 !important;  /* Light green for partial matches */
+                stroke: #32cd32 !important;  /* Lime green border */
+                stroke-width: 1px !important;
+            }.node.selected rect {
+                fill: var(--vscode-list-activeSelectionBackground) !important;
+                stroke: var(--vscode-list-activeSelectionForeground) !important;
+                stroke-width: 1.5px !important;
+            }
+            .node.collapsed rect {
+                fill: var(--vscode-panel-background);
+            }
+            .node.normal rect {
                 fill: var(--vscode-editor-background);
             }
             .node text {
@@ -214,8 +232,7 @@ async function getWebviewContent(context, allObjects) {
                 </div>
                 <button id="expand-all" class="button">Expand All</button>
                 <button id="collapse-all" class="button">Collapse All</button>
-                <button id="zoom-in" class="button"><i class="codicon codicon-zoom-in"></i></button>
-                <button id="zoom-out" class="button"><i class="codicon codicon-zoom-out"></i></button>
+                <button id="zoom-in" class="button"><i class="codicon codicon-zoom-in"></i></button>                <button id="zoom-out" class="button"><i class="codicon codicon-zoom-out"></i></button>
                 <button id="reset-zoom" class="button">Reset</button>
                 <button id="refresh" class="button" title="Refresh Diagram"><i class="codicon codicon-refresh"></i></button>
             </div>
@@ -322,8 +339,7 @@ async function getWebviewContent(context, allObjects) {
                     document.getElementById('collapse-all').addEventListener('click', collapseAll);
                     document.getElementById('zoom-in').addEventListener('click', zoomIn);
                     document.getElementById('zoom-out').addEventListener('click', zoomOut);
-                    document.getElementById('reset-zoom').addEventListener('click', resetZoom);
-                    document.getElementById('refresh').addEventListener('click', refreshDiagram);
+                    document.getElementById('reset-zoom').addEventListener('click', resetZoom);                    document.getElementById('refresh').addEventListener('click', refreshDiagram);
                     document.getElementById('close-detail').addEventListener('click', closeDetailPanel);
                     document.getElementById('show-full-details').addEventListener('click', showFullDetails);
                     document.getElementById('search').addEventListener('input', searchObjects);
@@ -351,11 +367,17 @@ async function getWebviewContent(context, allObjects) {
                     
                     // Update the nodes
                     const node = svg.selectAll('g.node')
-                        .data(nodes, d => d.id || (d.id = ++i));
-                    
-                    // Enter new nodes
+                        .data(nodes, d => d.id || (d.id = ++i));                    // Enter new nodes
                     const nodeEnter = node.enter().append('g')
-                        .attr('class', 'node')
+                        .attr('class', d => {
+                            let classes = 'node';
+                            if (d === selectedNode) classes += ' selected';
+                            else if (d.searchHighlight) classes += ' search-highlight';  // Exact match
+                            else if (d.searchPartial) classes += ' search-partial';     // Partial match
+                            else if (d._children) classes += ' collapsed';
+                            else classes += ' normal';
+                            return classes;
+                        })
                         .attr('transform', d => 'translate(' + source.y0 + ',' + source.x0 + ')')
                         .on('click', (event, d) => {
                             // Handle expand/collapse
@@ -373,15 +395,14 @@ async function getWebviewContent(context, allObjects) {
                             }
                             
                             update(d);
-                        });
-                    
-                    // Add rectangles for the nodes
+                        });                    // Add rectangles for the nodes
                     nodeEnter.append('rect')
                         .attr('width', nodeWidth)
                         .attr('height', nodeHeight)
                         .attr('y', -nodeHeight / 2)
                         .attr('rx', 5)
                         .attr('ry', 5);
+                        // Fill color is now handled by CSS classes
                     
                     // Add text labels
                     nodeEnter.append('text')
@@ -400,19 +421,37 @@ async function getWebviewContent(context, allObjects) {
                         })
                         .attr('class', 'expander')
                         .attr('text-anchor', 'middle');
-                    
-                    // Update position for existing nodes
+                      // Update position for existing nodes
                     const nodeUpdate = nodeEnter.merge(node);
                     
                     nodeUpdate.transition()
                         .duration(500)
                         .attr('transform', d => 'translate(' + d.y + ',' + d.x + ')');
+                      // Update CSS classes for all nodes (both new and existing)
+                    nodeUpdate.attr('class', d => {
+                        let classes = 'node';
+                        if (d === selectedNode) {
+                            classes += ' selected';
+                            console.log('Applying selected class to:', d.data.name);
+                        } else if (d.searchHighlight) {
+                            classes += ' search-highlight';  // Exact match
+                            console.log('Applying search-highlight class to:', d.data.name);
+                        } else if (d.searchPartial) {
+                            classes += ' search-partial';    // Partial match
+                            console.log('Applying search-partial class to:', d.data.name);
+                        } else if (d._children) {
+                            classes += ' collapsed';
+                        } else {
+                            classes += ' normal';
+                        }
+                        return classes;
+                    });
                     
-                    nodeUpdate.select('rect')
-                        .attr('fill', d => {
-                            if (d === selectedNode) return 'var(--vscode-list-activeSelectionBackground)';
-                            if (d.searchHighlight) return 'lightgreen';
-                            return d._children ? 'var(--vscode-panel-background)' : 'var(--vscode-editor-background)';
+                    // Update expander indicators for both new and existing nodes
+                    nodeUpdate.select('.expander')
+                        .text(d => {
+                            if (d === root) return '';
+                            return d._children ? '⊕' : d.children ? '⊖' : '';
                         });
                     
                     // Remove nodes that are no longer present
@@ -539,23 +578,36 @@ async function getWebviewContent(context, allObjects) {
                         .transition()
                         .duration(500)
                         .call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY));
-                }
-                
-                // Select a node and display its details
+                }                // Select a node and display its details
                 function selectNode(d) {
                     // Deselect previously selected node
-                    if (selectedNode) {
-                        d3.select(d3.select(selectedNode).node().parentNode)
-                            .select('rect')
-                            .attr('fill', selectedNode.searchHighlight ? 'lightgreen' : 
-                                  (selectedNode._children ? 'var(--vscode-panel-background)' : 'var(--vscode-editor-background)'));
+                    if (selectedNode) {                        // Find the DOM element for the previously selected node and update its class
+                        svg.selectAll('g.node')
+                            .filter(node => node === selectedNode)
+                            .attr('class', node => {
+                                let classes = 'node';
+                                if (node.searchHighlight) {
+                                    classes += ' search-highlight';  // Exact match
+                                } else if (node.searchPartial) {
+                                    classes += ' search-partial';    // Partial match
+                                } else if (node._children) {
+                                    classes += ' collapsed';
+                                } else {
+                                    classes += ' normal';
+                                }
+                                return classes;
+                            });
                     }
                     
                     // Select new node
                     selectedNode = d;
-                    d3.select(d3.select(d).node().parentNode)
-                        .select('rect')
-                        .attr('fill', 'var(--vscode-list-activeSelectionBackground)');
+                    
+                    // Find the DOM element for the newly selected node and apply selected class
+                    svg.selectAll('g.node')
+                        .filter(node => node === d)
+                        .attr('class', 'node selected');
+                    
+                    console.log('Selected node:', d.data.name);
                     
                     // Show details
                     showDetailPanel(d);
@@ -599,18 +651,29 @@ async function getWebviewContent(context, allObjects) {
                     
                     // Show the panel
                     panel.style.display = 'block';
-                }
-                
-                // Close detail panel
+                }                // Close detail panel
                 function closeDetailPanel() {
                     document.getElementById('detail-panel').style.display = 'none';
                     
                     // Deselect the node
-                    if (selectedNode) {
-                        d3.select(d3.select(selectedNode).node().parentNode)
-                            .select('rect')
-                            .attr('fill', selectedNode.searchHighlight ? 'lightgreen' : 
-                                  (selectedNode._children ? 'var(--vscode-panel-background)' : 'var(--vscode-editor-background)'));
+                    if (selectedNode) {                        // Find the DOM element for the selected node and restore its appropriate class
+                        svg.selectAll('g.node')
+                            .filter(node => node === selectedNode)
+                            .attr('class', node => {
+                                let classes = 'node';
+                                if (node.searchHighlight) {
+                                    classes += ' search-highlight';  // Exact match
+                                } else if (node.searchPartial) {
+                                    classes += ' search-partial';    // Partial match
+                                } else if (node._children) {
+                                    classes += ' collapsed';
+                                } else {
+                                    classes += ' normal';
+                                }
+                                return classes;
+                            });
+                        
+                        console.log('Deselected node:', selectedNode.data.name);
                         selectedNode = null;
                     }
                 }
@@ -632,10 +695,12 @@ async function getWebviewContent(context, allObjects) {
                         command: 'refreshDiagram'
                     });
                 }
-                
-                // Search for objects by name
+                  // Search for objects by name
                 function searchObjects() {
                     const searchText = document.getElementById('search').value.toLowerCase();
+                    
+                    // Debug logging
+                    console.log('Search text:', searchText);
                     
                     // If search is empty, reset to original view
                     if (!searchText) {
@@ -652,22 +717,31 @@ async function getWebviewContent(context, allObjects) {
                     clearSearchHighlights(root);
                     
                     let exactMatchNode = null;
+                    let matchCount = 0;
                     
                     // Find matching nodes and expand their path
                     function findAndExpandPath(d) {
                         let found = false;
-                        
-                        // Check if this node matches
+                          // Check if this node matches
                         const nodeName = d.data.name.toLowerCase();
                         if (nodeName.includes(searchText)) {
                             found = true;
+                            matchCount++;
                             
-                            // Mark for partial match highlighting
-                            d.searchHighlight = true;
-                            
-                            // Check for exact match
-                            if (nodeName === searchText && !exactMatchNode) {
-                                exactMatchNode = d;
+                            // Check for exact match vs partial match
+                            if (nodeName === searchText) {
+                                // Exact match - use bright green
+                                d.searchHighlight = true;
+                                d.searchPartial = false;
+                                if (!exactMatchNode) {
+                                    exactMatchNode = d;
+                                    console.log('Exact match found:', d.data.name);
+                                }
+                            } else {
+                                // Partial match - use light green
+                                d.searchHighlight = false;
+                                d.searchPartial = true;
+                                console.log('Partial match found:', d.data.name);
                             }
                         }
                         
@@ -689,22 +763,37 @@ async function getWebviewContent(context, allObjects) {
                         
                         return found;
                     }
-                    
-                    // Start the search from root
+                      // Start the search from root
                     findAndExpandPath(root);
+                    
+                    console.log('Total matches found:', matchCount);
+                    console.log('Exact match node:', exactMatchNode ? exactMatchNode.data.name : 'none');
+                    
+                    // Debug: Log all nodes with search highlighting
+                    const highlightedNodes = root.descendants().filter(d => d.searchHighlight);
+                    console.log('Nodes with searchHighlight property:', highlightedNodes.map(d => d.data.name));
                     
                     // Update the visualization
                     update(root);
+                      // Additional debug: After update, check DOM classes
+                    setTimeout(() => {
+                        const highlightElements = document.querySelectorAll('.node.search-highlight');
+                        console.log('DOM elements with search-highlight class:', highlightElements.length);
+                        highlightElements.forEach((el, i) => {
+                            const textEl = el.querySelector('text');
+                            const textContent = textEl ? textEl.textContent : 'no text';
+                            console.log('Highlighted element ' + i + ':', textContent);
+                        });
+                    }, 100);
                     
                     // Center view on exact match if found (but don't select it)
                     if (exactMatchNode && exactMatchNode !== root) {
                         centerViewOnNode(exactMatchNode);
                     }
-                }
-                
-                // Clear search highlights from all nodes
+                }                // Clear search highlights from all nodes
                 function clearSearchHighlights(d) {
                     d.searchHighlight = false;
+                    d.searchPartial = false;
                     d.searchSelected = false;
                     
                     // Clear children (both visible and hidden)

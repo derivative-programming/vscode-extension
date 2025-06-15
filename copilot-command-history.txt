@@ -1,5 +1,3 @@
- 
-
 Command: Data object view - settings tab update
 
 2025-01-17: ✅ IMPLEMENTED - Data Object Settings Tab Property Updates
@@ -1013,3 +1011,5 @@ Changes:
 
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
+
+2025-06-15: Remove 'test colors' button - search highlighting is now working
