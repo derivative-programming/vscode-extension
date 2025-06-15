@@ -434,6 +434,9 @@ function generateWizardHTML(allObjects) {
                 (function() {
                     const vscode = acquireVsCodeApi();
                     
+                    // Objects data passed from extension
+                    const allObjects = ${JSON.stringify(allObjects)};
+                    
                     // State management
                     let currentStep = 1;
                     let isLookupObject = null;
@@ -478,21 +481,76 @@ function generateWizardHTML(allObjects) {
                         });
                     });
                     
+                    // Handle step 1 keyboard navigation
+                    step1.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter' && !step1NextBtn.disabled) {
+                            event.preventDefault();
+                            step1NextBtn.click();
+                        }
+                    });
+                    
                     // Handle step 1 next button
                     step1NextBtn.addEventListener('click', () => {
                         // Move to step 2
                         showStep(2);
                         
-                        // If it's a lookup object, set parent to 'Pac' and disable selection
+                        // Update step 2 display based on lookup object selection
+                        updateStep2Display();
+                    });
+                    
+                    // Function to update step 2 display based on lookup object selection
+                    function updateStep2Display() {
                         if (isLookupObject) {
                             selectedParentObject = 'Pac';
                             parentSelectionForm.innerHTML = '<p>For lookup objects, the parent object is fixed to "Pac"</p>';
                             step2NextBtn.disabled = false;
                         } else {
-                            // For regular objects, enable parent selection
-                            step2NextBtn.disabled = !selectedParentObject;
+                            // For regular objects, restore parent selection
+                            parentSelectionForm.innerHTML = \`
+                                <label for="parentObject">Select a parent object:</label>
+                                <div class="search-container">
+                                    <input type="text" id="parentSearch" placeholder="Search parent objects...">
+                                </div>
+                                <select id="parentObject" size="10" style="height: 200px;">
+                                    \${allObjects.map(obj => \`<option value="\${obj.name}">\${obj.name}</option>\`).join('')}
+                                </select>
+                                <div class="validation-message" id="parentValidationMessage"></div>
+                            \`;
+                            
+                            // Re-setup event listeners for the new elements
+                            const newParentObjectSelect = document.getElementById('parentObject');
+                            const newParentSearch = document.getElementById('parentSearch');
+                            const newParentValidationMessage = document.getElementById('parentValidationMessage');
+                            
+                            if (newParentObjectSelect) {
+                                newParentObjectSelect.addEventListener('change', () => {
+                                    if (newParentObjectSelect.value) {
+                                        selectedParentObject = newParentObjectSelect.value;
+                                        step2NextBtn.disabled = false;
+                                        newParentValidationMessage.textContent = '';
+                                    } else {
+                                        selectedParentObject = null;
+                                        step2NextBtn.disabled = true;
+                                        newParentValidationMessage.textContent = 'Please select a parent object';
+                                    }
+                                });
+                            }
+                            
+                            if (newParentSearch) {
+                                newParentSearch.addEventListener('input', () => {
+                                    const searchValue = newParentSearch.value.toLowerCase();
+                                    Array.from(newParentObjectSelect.options).forEach(option => {
+                                        const optionText = option.text.toLowerCase();
+                                        option.style.display = optionText.includes(searchValue) ? '' : 'none';
+                                    });
+                                });
+                            }
+                            
+                            // Reset parent selection state
+                            selectedParentObject = null;
+                            step2NextBtn.disabled = true;
                         }
-                    });
+                    }
                     
                     // Handle parent object selection
                     if (parentObjectSelect) {
@@ -529,9 +587,25 @@ function generateWizardHTML(allObjects) {
                         showStep(3);
                     });
                     
+                    // Handle step 2 keyboard navigation
+                    step2.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter' && !step2NextBtn.disabled) {
+                            event.preventDefault();
+                            step2NextBtn.click();
+                        }
+                    });
+                    
                     // Handle step 3 navigation
                     step3BackBtn.addEventListener('click', () => {
                         showStep(2);
+                    });
+                    
+                    // Handle step 3 keyboard navigation
+                    step3.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter' && !createBtn.disabled) {
+                            event.preventDefault();
+                            createBtn.click();
+                        }
                     });
                     
                     // Handle object name input and validation
@@ -588,6 +662,27 @@ function generateWizardHTML(allObjects) {
                         // Show the requested step
                         document.getElementById('step' + step).classList.add('active');
                         currentStep = step;
+                        
+                        // Focus management for each step
+                        setTimeout(() => {
+                            if (step === 1) {
+                                // Focus on the 'Yes' radio button
+                                const yesRadio = document.querySelector('input[name="isLookup"][value="yes"]');
+                                if (yesRadio) {
+                                    yesRadio.focus();
+                                }
+                            } else if (step === 2) {
+                                // Focus on the search parent objects textbox
+                                if (parentSearch) {
+                                    parentSearch.focus();
+                                }
+                            } else if (step === 3) {
+                                // Focus on the data object name textbox
+                                if (objectNameInput) {
+                                    objectNameInput.focus();
+                                }
+                            }
+                        }, 100); // Small delay to ensure DOM is updated
                     }
                     
                     // Handle messages from the extension
@@ -618,6 +713,11 @@ function generateWizardHTML(allObjects) {
                                 break;
                         }
                     });
+                    
+                    // Set initial focus when the wizard loads
+                    setTimeout(() => {
+                        showStep(1); // This will trigger focus on the Yes radio button
+                    }, 100);
                 })();
             </script>
         </body>

@@ -22,6 +22,11 @@ function createPropertyModal() {
     // Show the modal
     setTimeout(() => {
         modal.style.display = "flex";
+        // Focus on the property name input for the initially active tab (single property)
+        const propNameInput = modal.querySelector("#propName");
+        if (propNameInput) {
+            propNameInput.focus();
+        }
     }, 10);
     
     // Tab switching in modal
@@ -38,6 +43,21 @@ function createPropertyModal() {
                     content.classList.add('active');
                 }
             });
+            
+            // Focus on the appropriate input based on the active tab
+            setTimeout(() => {
+                if (tabId === 'singleAdd') {
+                    const propNameInput = modal.querySelector("#propName");
+                    if (propNameInput) {
+                        propNameInput.focus();
+                    }
+                } else if (tabId === 'bulkAdd') {
+                    const bulkPropsInput = modal.querySelector("#bulkProps");
+                    if (bulkPropsInput) {
+                        bulkPropsInput.focus();
+                    }
+                }
+            }, 10);
         });
     });
     
@@ -120,6 +140,34 @@ function createPropertyModal() {
         // Close the modal
         document.body.removeChild(modal);
     });
+    
+    // Add Enter key handler for single property input
+    const propNameInput = modal.querySelector("#propName");
+    if (propNameInput) {
+        propNameInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent default Enter behavior
+                const addButton = modal.querySelector("#addSingleProp");
+                if (addButton && !addButton.disabled) {
+                    addButton.click(); // Trigger add property button click
+                }
+            }
+        });
+    }
+    
+    // Add Enter key handler for bulk properties textarea
+    const bulkPropsInput = modal.querySelector("#bulkProps");
+    if (bulkPropsInput) {
+        bulkPropsInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent default Enter behavior (adding newline)
+                const addButton = modal.querySelector("#addBulkProps");
+                if (addButton && !addButton.disabled) {
+                    addButton.click(); // Trigger add properties button click
+                }
+            }
+        });
+    }
 }`;
 }
 
