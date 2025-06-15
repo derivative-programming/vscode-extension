@@ -158,15 +158,39 @@ Enhanced user experience in the Object Hierarchy diagram by automatically focusi
 - Focus is applied after DOM elements are fully initialized and event listeners are attached
 - Compatible with existing search functionality and keyboard navigation
 
-## Object Hierarchy View - Enhanced Search Functionality (Added 2025-06-15)
+## Object Hierarchy View - Enhanced Search Functionality (Updated 2025-06-15)
 
-Implemented advanced search features including exact match focusing and partial match highlighting for improved user experience.
+Implemented advanced search features including exact match view centering and partial match highlighting for improved user experience.
 
 ### Features:
-1. **Exact Match Focus**: When search text exactly matches a node name, that node is automatically selected and focused
+1. **Exact Match Centering**: When search text exactly matches a node name, the view smoothly centers on that node WITHOUT selecting it
 2. **Partial Match Highlighting**: When search text partially or exactly matches node names, those nodes get light green background
 3. **Case Insensitive Search**: Search works regardless of case sensitivity
 4. **Search State Management**: Proper cleanup when search is cleared or changed
+
+### Implementation:
+- **File Modified**: `src/webviews/hierarchyView.js`
+- **Functions Enhanced**:
+  - `searchObjects()`: Modified exact match handling to center view instead of selecting node
+  - `centerViewOnNode()`: New function for smooth view centering using D3 zoom transforms
+  - `clearSearchHighlights()`: Continues to clean up search state
+  - `update()`: Unchanged node fill color logic for search highlighting
+
+### Technical Details:
+- Uses `node.searchHighlight` property to track nodes with partial matches
+- **New**: `centerViewOnNode()` function calculates viewport center and smoothly pans to target node
+- **Removed**: `node.searchSelected` property usage since exact matches are no longer selected
+- Light green color (`lightgreen`) used for partial match highlighting
+- **Changed behavior**: Exact matches center view with 500ms smooth transition instead of showing selection/details
+- Search uses `includes()` for partial matching and `===` for exact matching
+- 24 lines added, 8 lines removed - minimal surgical changes maintained
+
+### User Experience Benefits:
+- **Exact matches**: View smoothly centers on matched node without triggering selection or details panel
+- **Partial matches**: Clear visual feedback with light green highlighting remains unchanged
+- **Navigation**: Efficient centering on exact matches without manual scrolling
+- **Non-intrusive**: Exact matches don't open details panel or change selection state
+- Visual indicators remain until search is changed or cleared
 
 ### Implementation:
 - **File Modified**: `src/webviews/hierarchyView.js`
