@@ -188,6 +188,12 @@ function getPropertyManagementFunctions() {
                 inputElement.disabled = !checkbox.checked;
             }
             
+            // Initial state for lookup button
+            const lookupButton = tableCell.querySelector(".lookup-button");
+            if (lookupButton) {
+                lookupButton.disabled = !checkbox.checked;
+            }
+            
             // Style based on checkbox state
             updateInputStyle(inputElement, checkbox.checked);
             
@@ -199,6 +205,12 @@ function getPropertyManagementFunctions() {
                     inputElement.disabled = !this.checked;
                 }
                 updateInputStyle(inputElement, this.checked);
+                
+                // Handle lookup button state for fKObjectName field
+                const lookupButton = tableCell.querySelector(".lookup-button");
+                if (lookupButton) {
+                    lookupButton.disabled = !this.checked;
+                }
                 
                 // Disable the checkbox if it's checked to prevent unchecking
                 if (this.checked) {

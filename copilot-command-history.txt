@@ -433,3 +433,29 @@ All three modals (add column, add filter, add button) now follow the same robust
 2025-06-15: Add report wizard functionality with plus icon button on REPORT treeview item. Create 'Add Report Wizard' view with steps for owner data object selection, role selection (if Role data object exists), visualization type selection, target data object selection (for grid), report name and title input. Similar design to Add Data Object Wizard.
 Command: startMCPServerCommand
 Command: stopMCPServerCommand
+
+Command: data object details - properties tab - object lookup modal on 'fk object name'
+
+2024-12-27: Implemented magnifying glass icon button for fKObjectName field with object lookup modal
+- Created objectLookupModalTemplate.js with simple modal containing object list and Accept/Cancel buttons
+- Created objectLookupModalFunctionality.js with modal interactions, selection handling, and double-click support
+- Modified propertiesTableTemplate.js to add magnifying glass button for fKObjectName field using codicon search icon
+- Updated clientScriptTemplate.js to import new modal components and pass allObjects array from backend
+- Updated detailsViewGenerator.js to accept and pass allObjects parameter to client script
+- Updated objectDetailsView.js to get all objects from modelService and pass to view generator
+- Added lookup button CSS styling in detailsViewStyles.js with proper VS Code theme integration
+- Enhanced propertyManagement.js to manage lookup button enabled/disabled state based on checkbox
+- Added modal-specific styles for object list and button layout
+- Added DOM event handler in domInitialization.js for lookup button clicks
+- Implementation follows existing modal patterns and maintains consistency with codebase
+- Lookup button appears to the right of textbox and left of checkbox as specified
+- Modal pre-selects current value if present and updates textbox on Accept
+- Button is properly disabled when field checkbox is unchecked
+
+**Technical Implementation Details**:
+- Field name is `fKObjectName` (capital K) as defined in schema line 333
+- Uses `modelService.getAllObjects()` to populate object list
+- Button disabled state managed through checkbox change events
+- Modal supports both single-click + Accept and double-click for selection
+- Follows VS Code design patterns with proper theming and icon usage
+- Minimal changes approach - only added what's needed for this specific feature

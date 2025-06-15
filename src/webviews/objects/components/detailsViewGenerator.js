@@ -16,9 +16,10 @@ const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
  * @param {Object} object The object data to display
  * @param {Object} objectSchemaProps Schema properties for the object
  * @param {Object} propItemsSchema Schema properties for property items
+ * @param {Array} allObjects Array of all available objects for FK lookup
  * @returns {string} HTML content
  */
-function generateDetailsView(object, objectSchemaProps, propItemsSchema) {
+function generateDetailsView(object, objectSchemaProps, propItemsSchema, allObjects) {
     const props = object.prop || [];
     
     // Remove complex properties from settings
@@ -35,7 +36,7 @@ function generateDetailsView(object, objectSchemaProps, propItemsSchema) {
     const listViewFields = getPropertiesListTemplate(propItemsSchema);
     
     // Generate client-side JavaScript
-    const clientScript = getClientScriptTemplate(props, propItemsSchema, object.name);
+    const clientScript = getClientScriptTemplate(props, propItemsSchema, object.name, allObjects);
     
     // Combine all parts into the main template
     return getMainTemplate(object, props.length, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript);

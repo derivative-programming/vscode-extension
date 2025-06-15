@@ -61,6 +61,14 @@ function getPropertiesTableTemplate(props, propItemsSchema) {
                 inputField = `<input type="text" name="${propKey}" value="${propertyExists ? prop[propKey] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
             
+            // Add magnifying glass button for fKObjectName field
+            let lookupButton = "";
+            if (propKey === "fKObjectName") {
+                lookupButton = `<button type="button" class="lookup-button" data-prop="${propKey}" data-index="${index}" ${!propertyExists ? "disabled" : ""} title="Browse for FK Object">
+                    <span class="codicon codicon-search"></span>
+                </button>`;
+            }
+            
             // If the property exists, add a data attribute to indicate it was originally checked
             // and disable the checkbox to prevent unchecking
             const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
@@ -68,6 +76,7 @@ function getPropertiesTableTemplate(props, propItemsSchema) {
             return `<td>
                 <div class="control-with-checkbox">
                     ${inputField}
+                    ${lookupButton}
                     <input type="checkbox" class="prop-checkbox" data-prop="${propKey}" data-index="${index}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} title="Toggle property existence">
                 </div>
             </td>`;
