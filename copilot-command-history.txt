@@ -718,4 +718,31 @@ Command: stopMCPServerCommand
 - `src/webviews/reports/components/detailsViewGenerator.js`: Removed unused modal HTML generation and imports
 
 **Result**: Add Column and Add Filter sections no longer appear at bottom of tabs, but modals still work when buttons are clicked.
+
+2025-01-15: ✅ FIXED - Add Report Wizard markAsChanged method error
+
+**Issue**: Add Report Wizard showing error 'modelService.markAsChanged is not a function' in final step when creating reports.
+
+**Root Cause**: Method name mismatch in `addReportWizardView.js` line 118:
+- Code called: `modelService.markAsChanged()`  
+- Actual method: `modelService.markUnsavedChanges()`
+
+**Solution**: 
+- Changed `markAsChanged()` to `markUnsavedChanges()` in line 118 of addReportWizardView.js
+- Verified consistency with other files (reportDetailsView.js correctly uses markUnsavedChanges)
+- Minimal one-line fix that aligns with existing codebase patterns
+
+**Files Modified**:
+- `src/webviews/addReportWizardView.js` (1 line changed)
+
+**Validation**:
+- Created test scripts to validate issue and fix
+- Confirmed build and lint pass with no new issues  
+- Verified method name consistency across codebase
+- 1 line deleted, 1 line added (minimal change scope)
+
+**Technical Details**:
+- ModelService consistently uses `markUnsavedChanges()` method throughout codebase
+- Standard pattern: `if (modelService && typeof modelService.markUnsavedChanges === 'function') { modelService.markUnsavedChanges(); }`
+- Fix ensures Add Report Wizard properly marks model as having unsaved changes when reports are created
   

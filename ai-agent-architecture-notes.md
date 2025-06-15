@@ -300,6 +300,26 @@ Implemented a comprehensive Add Report Wizard for creating new reports from the 
 
 *Last updated: December 21, 2024*
 
+## Bug Fix: Add Report Wizard markAsChanged Issue (Fixed 2025-01-15)
+
+### Issue Fixed:
+- Add Report Wizard was calling non-existent `modelService.markAsChanged()` method
+- This caused "modelService.markAsChanged is not a function" error in final step of wizard
+
+### Root Cause:
+- Method name mismatch: code called `markAsChanged()` but ModelService only has `markUnsavedChanges()`
+- Other files in codebase correctly use `markUnsavedChanges()` (e.g., reportDetailsView.js)
+
+### Solution:
+- Changed line 118 in `addReportWizardView.js` from `markAsChanged()` to `markUnsavedChanges()`
+- Minimal one-line fix that aligns with existing codebase patterns
+- No functional changes, just corrected method name
+
+### Key Learning:
+- Always verify method names against actual service interfaces
+- The ModelService uses `markUnsavedChanges()` consistently throughout the codebase
+- Pattern is: `if (modelService && typeof modelService.markUnsavedChanges === 'function') { modelService.markUnsavedChanges(); }`
+
 ## Report Details View Reverse Button Height Fix (Added 2024-12-21)
 
 Fixed an issue where the 'Reverse' button height didn't match the 'Copy' button height in the report details view list tabs.
