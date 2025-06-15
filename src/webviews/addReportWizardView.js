@@ -543,7 +543,15 @@ function generateWizardHTML(allObjects, roleObjects) {
                     currentStep = stepNumber;
                     
                     // Focus management for each step
-                    setTimeout(() => {
+                    setTimeout(() => { 
+                        if (stepNumber === 2) {
+                            // Focus on the 'Required Role' dropdown when step 2 opens
+                            const roleRequired = document.getElementById('roleRequired');
+                            if (roleRequired) {
+                                roleRequired.focus();
+                            }
+                        } 
+                        
                         if (stepNumber === 1) {
                             // Focus on the owner data object dropdown
                             const ownerObjectSelect = document.getElementById('ownerObject');
@@ -552,6 +560,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                             }
                         }
                     }, 100); // Small delay to ensure DOM is updated
+                    
                 }
                 
                 function nextStep() {
@@ -621,6 +630,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                 
                 document.getElementById('step2BackBtn').addEventListener('click', previousStep);
                 document.getElementById('step2NextBtn').addEventListener('click', nextStep);
+                
+                // Handle step 2 keyboard navigation
+                document.getElementById('step2').addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && !document.getElementById('step2NextBtn').disabled) {
+                        event.preventDefault();
+                        document.getElementById('step2NextBtn').click();
+                    }
+                });
                 
                 // Step 3: Visualization Type Selection
                 document.querySelectorAll('.viz-option').forEach(option => {
