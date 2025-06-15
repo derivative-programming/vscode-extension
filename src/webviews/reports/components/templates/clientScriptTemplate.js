@@ -1691,6 +1691,12 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         
         // Function to attach event listeners to the button modal
         function attachButtonModalEventListeners(modal) {
+            // Focus on button name input when modal opens
+            const buttonNameInput = modal.querySelector("#buttonName");
+            if (buttonNameInput) {
+                buttonNameInput.focus();
+            }
+            
             // Close modal when clicking the x button
             modal.querySelector(".close-button").addEventListener("click", function() {
                 document.body.removeChild(modal);
@@ -1722,7 +1728,8 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             }
             
             // Add single button functionality
-            modal.querySelector("#addButton").addEventListener("click", function() {
+            const addButton = modal.querySelector("#addButton");
+            addButton.addEventListener("click", function() {
                 const buttonName = modal.querySelector("#buttonName").value.trim();
                 const errorElement = modal.querySelector("#buttonValidationError");
                 
@@ -1742,6 +1749,22 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 // Close the modal
                 document.body.removeChild(modal);
             });
+            
+            // Add enter key handling for button name input
+            if (buttonNameInput) {
+                buttonNameInput.addEventListener("keypress", function(e) {
+                    if (e.key === "Enter") {
+                        // Check if add button is enabled (no validation errors)
+                        const buttonName = buttonNameInput.value.trim();
+                        const validationError = validateButtonName(buttonName);
+                        
+                        // Only trigger click if button would be enabled (no validation errors)
+                        if (!validationError) {
+                            addButton.click();
+                        }
+                    }
+                });
+            }
         }
         // --- COPY FUNCTIONALITY ---
         // Set up copy button functionality for columns list
