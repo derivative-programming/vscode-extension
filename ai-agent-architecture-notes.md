@@ -1,5 +1,35 @@
 # AppDNA VS Code Extension Architecture Notes
 
+## Data Object Settings Tab - Property Hiding and Read-Only Updates (Added 2025-01-17)
+
+Implemented user requirements to hide specific settings and make 'is lookup' field read-only in the data object details view settings tab.
+
+### Requirements:
+- Hide 'is not implemented' setting (isNotImplemented)
+- Hide 'is full research database view allowed' setting (isFullResearchDatabaseViewAllowed)  
+- Hide 'cache individual recs' setting (cacheIndividualRecs)
+- Make 'is lookup' field read-only (isLookup)
+
+### Solution:
+Modified `src/webviews/objects/components/templates/settingsTabTemplate.js` to add property filtering and read-only logic following existing patterns in the codebase.
+
+### Technical Details:
+- **File Modified**: `src/webviews/objects/components/templates/settingsTabTemplate.js`
+- **Change Type**: Minimal - Added 8 lines, removed 2 lines (net +6 lines)
+- **Property Hiding**: Extended existing filter logic to exclude the 3 specified properties
+- **Read-Only Logic**: Added `isLookup` to enum dropdown disable condition (similar to existing `parentObjectName` pattern)
+
+### Implementation:
+1. **Property Filtering**: Added filter condition for the 3 properties to hide them completely
+2. **Read-Only Dropdown**: Modified enum handling to disable `isLookup` dropdown while still showing its current value
+3. **Consistent UX**: Followed existing patterns for property hiding and read-only fields
+
+### Testing Verified:
+- Properties are hidden: isNotImplemented, isFullResearchDatabaseViewAllowed, cacheIndividualRecs no longer appear ✅
+- isLookup field appears but is disabled (read-only) ✅
+- Build and lint successful with no new issues ✅
+- Other properties maintain their original behavior ✅
+
 ## Add Report Wizard Step 4 Focus and Enter Key Handling (Added 2025-01-15)
 
 ### Requirements:

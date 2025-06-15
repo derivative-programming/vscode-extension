@@ -1,3 +1,37 @@
+ 
+
+Command: Data object view - settings tab update
+
+2025-01-17: ✅ IMPLEMENTED - Data Object Settings Tab Property Updates
+
+**Issue**: Settings tab needed specific properties hidden and 'is lookup' made read-only
+- Hide 'is not implemented' setting (isNotImplemented)
+- Hide 'is full research database view allowed' setting (isFullResearchDatabaseViewAllowed)
+- Hide 'cache individual recs' setting (cacheIndividualRecs) 
+- Make 'is lookup' field read-only (isLookup)
+
+**Solution Applied**:
+- **Property Hiding**: Extended existing filter logic to exclude the 3 specified properties from appearing in settings tab
+- **Read-Only Dropdown**: Modified enum handling to disable `isLookup` dropdown while still showing current value
+- **Minimal Changes**: Added only 6 net lines of code following existing patterns
+
+**Technical Implementation**:
+- Modified filter condition in `getSettingsTabTemplate()` to hide the 3 properties
+- Added `isLookupField` check in enum section to disable the dropdown
+- Followed same pattern as existing `parentObjectName` read-only logic
+- Preserved all existing functionality for other properties
+
+**Files Modified**:
+- `src/webviews/objects/components/templates/settingsTabTemplate.js`: Added 8 lines, removed 2 lines (net +6)
+
+**Testing Results**:
+- ✅ Build successful (npm run compile)
+- ✅ Lint successful (no new issues)
+- ✅ Properties hidden completely from settings tab
+- ✅ isLookup appears but disabled (read-only)
+- ✅ Other properties maintain original behavior
+
+ 
 Command: Add report wizard step 4 focus and enter key handling
 
 2025-01-15: ✅ IMPLEMENTED - Add Report Wizard Step 4 UX improvements

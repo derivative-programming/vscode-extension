@@ -13,6 +13,10 @@ function getSettingsTabTemplate(object, objectSchemaProps) {
             if (key === "objectDocument" || key === "objectButton") {
                 return false;
             }
+            // Hide specific settings as requested
+            if (key === "isNotImplemented" || key === "isFullResearchDatabaseViewAllowed" || key === "cacheIndividualRecs") {
+                return false;
+            }
             // Keep other non-array properties that are not 'name'
             return desc.type !== "array" && key !== "name";
         })
@@ -33,8 +37,10 @@ function getSettingsTabTemplate(object, objectSchemaProps) {
             // Generate appropriate input field based on whether it has enum values
             let inputField = "";
             if (hasEnum) {
-                // Generate select dropdown for enum values - Always show options, but disable if property doesn't exist or is null/undefined
-                inputField = `<select id="${key}" name="${key}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
+                // Generate select dropdown for enum values - Always show options, but disable if property doesn't exist or is null/undefined or if it's isLookup
+                const isLookupField = key === "isLookup";
+                const shouldDisable = !propertyExists || isLookupField;
+                inputField = `<select id="${key}" name="${key}" ${tooltip} ${shouldDisable ? "disabled" : ""}>
                     ${desc.enum.map(option => {
                         // If it's a boolean enum and the property doesn't exist or is null/undefined, default to 'false'
                         const isSelected = isBooleanEnum && !propertyExists ? 
