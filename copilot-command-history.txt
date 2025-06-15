@@ -9,6 +9,18 @@ Command: Data object details view settings tab - make parent object name textbox
 - This ensures the parentObjectName textbox is always readonly regardless of property existence or checkbox state
 - Implementation now prevents any modification of parent object relationships in both HTML and JavaScript
 
+Command: Data object view - add property modal updates
+
+2025-12-19: Implemented focus and Enter key handling for data object view - add property modal
+- Modified src/webviews/objects/components/templates/propertyModalFunctionality.js
+- Added focus on property name textbox when modal opens (single property tab)
+- Added focus management when switching between tabs (single/bulk)
+- Added Enter key handler for single property input to trigger "Add Property" button
+- Added Enter key handler for bulk properties textarea to trigger "Add Properties" button
+- Both Enter handlers check if buttons are enabled before clicking
+- Implementation follows existing patterns from modelFabricationView.js and modelAIProcessingView.js
+- Changes ensure better user experience with keyboard navigation and quick input submission
+
 Command: Report details view - add column modal update
 
 2025-12-20: Created add column modal similar to add data object property modal
