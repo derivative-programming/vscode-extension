@@ -80,6 +80,38 @@ Enhanced user experience in the Object Hierarchy diagram by automatically focusi
 - Focus is applied after DOM elements are fully initialized and event listeners are attached
 - Compatible with existing search functionality and keyboard navigation
 
+## Object Hierarchy View - Enhanced Search Functionality (Added 2025-06-15)
+
+Implemented advanced search features including exact match focusing and partial match highlighting for improved user experience.
+
+### Features:
+1. **Exact Match Focus**: When search text exactly matches a node name, that node is automatically selected and focused
+2. **Partial Match Highlighting**: When search text partially or exactly matches node names, those nodes get light green background
+3. **Case Insensitive Search**: Search works regardless of case sensitivity
+4. **Search State Management**: Proper cleanup when search is cleared or changed
+
+### Implementation:
+- **File Modified**: `src/webviews/hierarchyView.js`
+- **Functions Enhanced**:
+  - `searchObjects()`: Added exact vs partial match tracking
+  - `clearSearchHighlights()`: New function for search state cleanup
+  - `update()`: Modified node fill color logic to include search highlighting
+  - `selectNode()` and `closeDetailPanel()`: Updated to preserve search highlighting
+
+### Technical Details:
+- Uses `node.searchHighlight` property to track nodes with partial matches
+- Uses `node.searchSelected` property to track if node was selected via search
+- Light green color (`lightgreen`) used for partial match highlighting
+- Selection highlighting (blue) takes priority over search highlighting for exact matches
+- Search uses `includes()` for partial matching and `===` for exact matching
+- 42 lines added, 3 lines removed - minimal change approach maintained
+
+### User Experience Benefits:
+- Immediate visual feedback for search results
+- Clear distinction between exact matches (focused) and partial matches (highlighted)
+- Efficient navigation to exact matches without manual scrolling
+- Visual indicators remain until search is changed or cleared
+
    
  
 ## Report Button Name Validation - No Numbers Allowed (Added 2025-06-14)

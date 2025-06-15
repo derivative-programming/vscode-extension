@@ -70,14 +70,26 @@ Command: report details view - add column modal updates
 **Testing**: Created manual test file at /tmp/test-column-modal.html to verify focus and keyboard behavior
  
  
-Command: Object Hierarchy diagram update - Focus on search textbox when opened
+Command: Object Hierarchy diagram updates - Enhanced search functionality with exact match focus and partial match highlighting
 
-2025-06-15: Added focus to search textbox when Object Hierarchy diagram opens
-- Modified src/webviews/hierarchyView.js to add focus() call to search input
-- Added `document.getElementById('search').focus();` in initDiagram() function after event listeners
-- This ensures the cursor is automatically placed in the search box when the hierarchy view opens
-- Minimal change of 3 lines added, no deletions
-- Change is applied after all initialization is complete for best user experience
+2025-06-15: Implemented enhanced search functionality for Object Hierarchy diagram
+- Modified src/webviews/hierarchyView.js to add exact match focusing and partial match highlighting
+- **Exact Match Focus**: When search text exactly matches a node name, that node is automatically selected and focused
+- **Partial Match Highlighting**: When search text partially or exactly matches node names, those nodes get light green background
+- **Search State Management**: Added proper cleanup of search highlights when search is cleared
+- **Updated Functions**:
+  * Enhanced searchObjects() function to track exact and partial matches separately
+  * Added clearSearchHighlights() function to clean up search state
+  * Modified update() function to apply light green highlighting for search matches
+  * Updated selectNode() and closeDetailPanel() functions to preserve search highlighting when selecting/deselecting nodes
+- **Technical Details**:
+  * Uses node.searchHighlight property to track partial matches
+  * Uses node.searchSelected property to track if node was selected via search
+  * Light green color ('lightgreen') used for partial match highlighting as requested
+  * Selection highlighting (blue) takes priority over search highlighting for focused exact matches
+  * Search is case-insensitive and works with contains matching
+- **Testing**: Created manual test file at /tmp/test-hierarchy-search.html to verify search behavior
+- Build and lint successful with no new issues introduced
  
 Command: Add User Story modal update - focus on story text textbox when opening modal
 

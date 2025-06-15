@@ -411,6 +411,7 @@ async function getWebviewContent(context, allObjects) {
                     nodeUpdate.select('rect')
                         .attr('fill', d => {
                             if (d === selectedNode) return 'var(--vscode-list-activeSelectionBackground)';
+                            if (d.searchHighlight) return 'lightgreen';
                             return d._children ? 'var(--vscode-panel-background)' : 'var(--vscode-editor-background)';
                         });
                     
@@ -525,7 +526,8 @@ async function getWebviewContent(context, allObjects) {
                     if (selectedNode) {
                         d3.select(d3.select(selectedNode).node().parentNode)
                             .select('rect')
-                            .attr('fill', d => d._children ? 'var(--vscode-panel-background)' : 'var(--vscode-editor-background)');
+                            .attr('fill', selectedNode.searchHighlight ? 'lightgreen' : 
+                                  (selectedNode._children ? 'var(--vscode-panel-background)' : 'var(--vscode-editor-background)'));
                     }
                     
                     // Select new node
@@ -586,7 +588,8 @@ async function getWebviewContent(context, allObjects) {
                     if (selectedNode) {
                         d3.select(d3.select(selectedNode).node().parentNode)
                             .select('rect')
-                            .attr('fill', d => d._children ? 'var(--vscode-panel-background)' : 'var(--vscode-editor-background)');
+                            .attr('fill', selectedNode.searchHighlight ? 'lightgreen' : 
+                                  (selectedNode._children ? 'var(--vscode-panel-background)' : 'var(--vscode-editor-background)'));
                         selectedNode = null;
                     }
                 }
@@ -615,6 +618,12 @@ async function getWebviewContent(context, allObjects) {
                     
                     // If search is empty, reset to original view
                     if (!searchText) {
+                        // Clear search highlighting and selection
+                        clearSearchHighlights(root);
+                        if (selectedNode && selectedNode.searchSelected) {
+                            selectedNode = null;
+                            closeDetailPanel();
+                        }
                         collapseAll();
                         return;
                     }
@@ -622,13 +631,27 @@ async function getWebviewContent(context, allObjects) {
                     // Collapse all first to start fresh
                     collapseAll();
                     
+                    // Clear previous search highlights
+                    clearSearchHighlights(root);
+                    
+                    let exactMatchNode = null;
+                    
                     // Find matching nodes and expand their path
                     function findAndExpandPath(d) {
                         let found = false;
                         
                         // Check if this node matches
-                        if (d.data.name.toLowerCase().includes(searchText)) {
+                        const nodeName = d.data.name.toLowerCase();
+                        if (nodeName.includes(searchText)) {
                             found = true;
+                            
+                            // Mark for partial match highlighting
+                            d.searchHighlight = true;
+                            
+                            // Check for exact match
+                            if (nodeName === searchText && !exactMatchNode) {
+                                exactMatchNode = d;
+                            }
                         }
                         
                         // Check children (both visible and hidden)
@@ -655,6 +678,22 @@ async function getWebviewContent(context, allObjects) {
                     
                     // Update the visualization
                     update(root);
+                    
+                    // Focus on exact match if found
+                    if (exactMatchNode && exactMatchNode !== root) {
+                        exactMatchNode.searchSelected = true;
+                        selectNode(exactMatchNode);
+                    }
+                }
+                
+                // Clear search highlights from all nodes
+                function clearSearchHighlights(d) {
+                    d.searchHighlight = false;
+                    d.searchSelected = false;
+                    
+                    // Clear children (both visible and hidden)
+                    const children = d.children || d._children || [];
+                    children.forEach(child => clearSearchHighlights(child));
                 }
                 
                 // Initialize when the window loads
