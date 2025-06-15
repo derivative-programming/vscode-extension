@@ -433,3 +433,24 @@ All three modals (add column, add filter, add button) now follow the same robust
 2025-06-15: Add report wizard functionality with plus icon button on REPORT treeview item. Create 'Add Report Wizard' view with steps for owner data object selection, role selection (if Role data object exists), visualization type selection, target data object selection (for grid), report name and title input. Similar design to Add Data Object Wizard.
 Command: startMCPServerCommand
 Command: stopMCPServerCommand
+
+2025-06-15: ✅ FIXED - Report details view display issue - Add Column and Add Filter sections embedded on all tabs
+
+**Issue**: Modal content for "Add Column" and "Add Filter" sections was appearing at the bottom of all tabs instead of being hidden until modal is opened.
+
+**Root Cause**: 
+- The `addColumnModalHtml` and `addParamModalHtml` templates were being included directly in the main template HTML without proper modal wrapper containers
+- These templates only returned `<div class="modal-content">` without the outer `<div class="modal">` wrapper that has `display: none` in CSS
+- The templates were redundant since clientScriptTemplate.js creates these modals dynamically
+
+**Solution Applied**:
+- Removed `addColumnModalHtml` and `addParamModalHtml` from mainTemplate.js (lines 192-193 and 201-202)
+- Updated mainTemplate.js function signature to remove unused parameters
+- Updated detailsViewGenerator.js to match new function signature and removed unused imports
+- Modal functionality is preserved via dynamic creation in clientScriptTemplate.js
+
+**Files Modified**:
+- `src/webviews/reports/components/templates/mainTemplate.js`: Removed modal HTML inclusions and updated function signature
+- `src/webviews/reports/components/detailsViewGenerator.js`: Removed unused modal HTML generation and imports
+
+**Result**: Add Column and Add Filter sections no longer appear at bottom of tabs, but modals still work when buttons are clicked.
