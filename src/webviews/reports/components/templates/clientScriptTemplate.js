@@ -110,10 +110,25 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     "<label for='bulkParams'>Filter Names (one per line):</label>" +
                     "<textarea id='bulkParams' rows='5'></textarea>" +
                     "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>" +
-                "</div>" +
-                "<div id='bulkValidationError' class='validation-error'></div>" +
+                "</div>" +                "<div id='bulkValidationError' class='validation-error'></div>" +
                 "<button id='addBulkParams'>Add Filters</button>" +
             "</div>" +
+        "</div>";
+        }
+        
+        // Add Button Modal Template Function
+        function getAddButtonModalHtml() {
+            return "" +
+        "<div class='modal-content'>" +
+            "<span class='close-button'>&times;</span>" +
+            "<h2>Add Button</h2>" +
+            "<div class='form-row'>" +
+                "<label for='buttonName'>Button Name:</label>" +
+                "<input type='text' id='buttonName'>" +
+                "<div class='field-note'>Use Pascal case (Example: SubmitButton). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>" +
+            "</div>" +
+            "<div id='buttonValidationError' class='validation-error'></div>" +
+            "<button id='addButton'>Add Button</button>" +
         "</div>";
         }
         
@@ -1025,20 +1040,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 }
             });
         }
-        
-        // Add button button click handler
+          // Add button button click handler - create new modal
         document.getElementById('add-button-btn').addEventListener('click', function() {
-            // Show the add button form and hide the edit form
-            document.getElementById('add-button-form').style.display = 'block';
-            document.getElementById('button-form').style.display = 'none';
-            document.querySelector('#button-modal .modal-title').textContent = 'Add Button';
-            
-            // Clear the input and any validation errors
-            document.getElementById('button-name-input').value = '';
-            document.getElementById('button-name-validation-error').textContent = '';
-            
-            // Show the modal
-            document.getElementById('button-modal').style.display = 'block';
+            createAddButtonModal();
         });
         
         // Edit button button click handlers
@@ -1072,77 +1076,31 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             
             // Update modal title and show
             document.querySelector('#button-modal .modal-title').textContent = 'Edit Button';
-            document.getElementById('button-modal').style.display = 'block';
-        }
-          // Validate button name (PascalCase, alpha only, no spaces, no numbers)
-        function validateButtonName(name) {
-            if (!name) {
-                return "Button name cannot be empty";
-            }
-
-            if (name.length > 100) {
-                return "Button name cannot exceed 100 characters";
-            }
-            if (!/^[a-zA-Z][a-zA-Z]*$/.test(name)) {
-                return "Button name must start with a letter and contain only letters (no numbers)";
-
-            }
-            // Check if button with this name already exists
-            if (currentButtons.some(button => button.buttonName === name)) {
-                return "Button with this name already exists";
-            }
-            return null; // Valid
-        }
-        
-        // Handle add button validation and saving
-        document.addEventListener('addButtonRequested', function(event) {
-            const { buttonName, errorElement } = event.detail;
-            
-            // Validate button name
-            const validationError = validateButtonName(buttonName);
-            if (validationError) {
-                errorElement.textContent = validationError;
-                return;
-            }
-            
-            // Clear any previous errors
-            errorElement.textContent = "";
-            
-            // Add the new button
-            addNewButton(buttonName);
-            
-            // Close the modal
-            document.getElementById('button-modal').style.display = 'none';
-        });
-        
-        // Function to add a new button (called from add button modal)
+            document.getElementById('button-modal').style.display = 'block';        }
+          // Function to add a new button (called from add button modal)
         function addNewButton(buttonName) {
             const newButton = {
                 buttonName: buttonName
             };
             
-            // Add to current buttons array
-            currentButtons.push(newButton);
+            // Add to current buttons array for immediate backend update
+            const updatedButtons = [...currentButtons, newButton];
             
-            // Add to buttons list in list view
-            const buttonsList = document.getElementById('buttonsList');
-            if (buttonsList) {
-                const option = document.createElement('option');
-                option.value = currentButtons.length - 1;
-                option.textContent = buttonName;
-                buttonsList.appendChild(option);
-            }
+            // Get the currently active tab to preserve it after reload
+            const activeTab = document.querySelector('.tab.active');
+            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'buttons';
             
-            // Send message to update the model
+            // Send message to update the model - backend will reload the view
             vscode.postMessage({
                 command: 'updateModel',
                 data: {
-                    buttons: currentButtons
+                    buttons: updatedButtons,
+                    preserveTab: currentTabId
                 }
             });
             
-            // Note: Table view will be automatically updated on next page refresh
-            // To immediately refresh table view, a full re-render would be needed
+            // Note: View will be automatically reloaded by backend after model update
+            // No need to update frontend UI here - backend will regenerate entire view
         }
         
         // Function to save button changes
@@ -1655,9 +1613,86 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     params: currentParams
                 }
             });
-            
-            // Close the modal
+              // Close the modal
             document.getElementById('param-modal').style.display = 'none';
+        }
+        
+        // Function to create and show the Add Button modal
+        function createAddButtonModal() {
+            // Create modal dialog for adding buttons
+            const modal = document.createElement("div");
+            modal.className = "modal";
+            
+            // Import the modal HTML template
+            const modalContent = getAddButtonModalHtml();
+            
+            // Set the modal content
+            modal.innerHTML = modalContent;
+            document.body.appendChild(modal);
+            
+            // Wait for DOM to be ready before attaching event listeners
+            setTimeout(() => {
+                // Show the modal
+                modal.style.display = "flex";
+                
+                // Attach event listeners after modal is in DOM and visible
+                attachButtonModalEventListeners(modal);
+            }, 10);
+        }
+        
+        // Function to attach event listeners to the button modal
+        function attachButtonModalEventListeners(modal) {
+            // Close modal when clicking the x button
+            modal.querySelector(".close-button").addEventListener("click", function() {
+                document.body.removeChild(modal);
+            });
+            
+            // Close modal when clicking outside the modal content
+            modal.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+            
+            // Validate button name function
+            function validateButtonName(name) {
+                if (!name) {
+                    return "Button name cannot be empty";
+                }
+                if (name.length > 100) {
+                    return "Button name cannot exceed 100 characters";
+                }
+                if (!/^[a-zA-Z][a-zA-Z]*$/.test(name)) {
+                    return "Button name must start with a letter and contain only letters (no numbers)";
+                }
+                // Check if button with this name already exists
+                if (currentButtons.some(button => button.buttonName === name)) {
+                    return "Button with this name already exists";
+                }
+                return null; // Valid
+            }
+            
+            // Add single button functionality
+            modal.querySelector("#addButton").addEventListener("click", function() {
+                const buttonName = modal.querySelector("#buttonName").value.trim();
+                const errorElement = modal.querySelector("#buttonValidationError");
+                
+                // Clear previous errors
+                errorElement.textContent = "";
+                
+                // Validate button name
+                const validationError = validateButtonName(buttonName);
+                if (validationError) {
+                    errorElement.textContent = validationError;
+                    return;
+                }
+                
+                // Add the new button
+                addNewButton(buttonName);
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            });
         }
         // --- COPY FUNCTIONALITY ---
         // Set up copy button functionality for columns list

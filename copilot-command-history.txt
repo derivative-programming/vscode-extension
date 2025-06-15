@@ -363,4 +363,69 @@ Implementing add filter modal with same functionality as add column modal:
   * Single vs bulk add functionality works correctly
   * Immediate visual feedback through view reload
 - **Result**: Add filter modal now works identically to add column modal with same UX patterns and reliability
-Command: Expand all top level tree items in the AppDNA tree view
+
+Command: Refactor add button modal to match improved add column/filter pattern
+
+June 15, 2025 - User requested: "now refactor the add button modal to follow the same backend-first pattern as the column and filter modals, but without bulk add functionality"
+
+Implementing add button modal improvements to match add column and add filter modals:
+- Update to backend-first approach (model updates first, then view reload)
+- Add tab preservation (stay on Buttons tab after adding)
+- Remove frontend state manipulation (no currentButtons array updates)
+- Remove bulk add functionality (single add only)
+- Follow same UX patterns as improved column/filter modals
+
+Current Issues with Add Button Modal:
+1. Updates frontend state directly (currentButtons.push)
+2. Manually updates UI elements (buttonsList dropdown)
+3. Doesn't preserve active tab after model update
+4. Uses older event pattern (custom events) instead of newer modal pattern
+
+Target Implementation:
+- addNewButton() function should only send updateModel command to backend
+- Include preserveTab parameter to stay on Buttons tab
+- Remove direct UI manipulation - let backend reload view
+- Use same modal creation pattern as addColumnModal and addParamModal
+- Single button add only (no bulk functionality needed)
+
+2025-06-15: ✅ IMPLEMENTED - Add button modal refactored to match improved column and filter patterns
+
+**Changes Applied**:
+- **Updated addNewButton() function**:
+  * Changed from updating frontend state to sending backend updates first  
+  * Added tab preservation (preserveTab parameter) to stay on Buttons tab
+  * Removed frontend UI manipulation (buttonsList dropdown updates, currentButtons array mods)
+  * Now follows same backend-first pattern as improved addNewColumn() and addNewParam()
+- **Created new Add Button modal system**:
+  * Added getAddButtonModalHtml() function with simple single-button-add UI (no bulk functionality)
+  * Created createAddButtonModal() function following same pattern as column/param modals
+  * Added attachButtonModalEventListeners() with proper scoped event handling
+  * Includes validation for Pascal case, alpha-only, uniqueness, and 100-char limit
+- **Removed legacy modal handling**:
+  * Removed old validateButtonName() function (duplicate)
+  * Removed addButtonRequested custom event listener pattern
+  * Replaced add button click handler to use new createAddButtonModal()
+- **Result**: Add button modal now works identically to add column and add filter modals:
+  * Model-first approach: backend updates model, then reloads view
+  * Tab preservation: users stay on Buttons tab when adding buttons  
+  * Proper validation and error handling
+  * Single button add functionality (no bulk needed as requested)
+  * Immediate visual feedback through view reload
+  * No frontend state divergence issues
+
+**Technical Implementation Details**:
+- Button modal template embedded in clientScriptTemplate.js like column/param templates
+- Uses same modal creation pattern with setTimeout for DOM readiness
+- Event listeners scoped to modal instance using modal.querySelector() 
+- Validation function local to modal scope to access currentButtons data
+- Follows exact same UX flow: user submits → backend updates model → view reloads → tab restored
+
+**Files Modified**:
+- clientScriptTemplate.js: Added getAddButtonModalHtml(), createAddButtonModal(), attachButtonModalEventListeners()
+- clientScriptTemplate.js: Updated addNewButton() to backend-first pattern
+- clientScriptTemplate.js: Removed legacy event handling code
+- Created addButtonModalTemplate.js: Standalone template file (for reference, embedded version used)
+
+**Compilation**: TypeScript compilation successful with no errors
+
+All three modals (add column, add filter, add button) now follow the same robust, backend-first pattern with tab preservation and consistent UX.
