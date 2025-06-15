@@ -725,6 +725,40 @@ January 15, 2025: Enhanced the Add Object Wizard with focus management and keybo
 - **Result**: Improved user experience with keyboard navigation and proper focus management throughout the wizard workflow
   
 2025-06-15: Add report wizard functionality with plus icon button on REPORT treeview item. Create 'Add Report Wizard' view with steps for owner data object selection, role selection (if Role data object exists), visualization type selection, target data object selection (for grid), report name and title input. Similar design to Add Data Object Wizard.
+ 
+2025-01-15: Add report wizard step 3 Enter key handling
+
+**Issue**: Add report wizard step 3 needed Enter key functionality to move to next step when visualization type is selected.
+
+**Problem**: Users had to click the Next button manually after selecting a visualization type. Enter key should trigger the next step for better keyboard navigation UX.
+
+**Solution Applied**:
+- **Enter key handling**: Added keydown event listener on step3 element that checks for 'Enter' key
+- **Smart validation**: Enter key only triggers Next button if it's not disabled (i.e., visualization is selected)
+- **Consistent patterns**: Follows exact same pattern as addObjectWizardView.js for step keyboard navigation
+- **Minimal change**: Only 8 lines added, no existing code modified
+
+**Technical Implementation**:
+- Added event listener: `document.getElementById('step3').addEventListener('keydown', function(event)`
+- Check conditions: `if (event.key === 'Enter' && !document.getElementById('step3NextBtn').disabled)`
+- Prevent default and trigger click: `event.preventDefault(); document.getElementById('step3NextBtn').click();`
+- Maintains existing navigation logic (grid vs non-grid visualization handling)
+
+**Files Modified**: 
+- `src/webviews/addReportWizardView.js` (8 lines added, 0 removed)
+
+**Testing & Validation**:
+- Created test file `/tmp/test-wizard-step3-enter.html` to verify functionality
+- TypeScript compilation successful with webpack (no errors)
+- ESLint passes (only pre-existing warnings in unrelated files)
+- No new git changes beyond intended modification
+
+**UX Improvements Delivered**:
+- Enter key now advances to next step when visualization is selected
+- Maintains all existing click-based functionality
+- Consistent keyboard navigation across all wizard steps
+- Better accessibility for keyboard users
+ 
 Command: add report wizard - step 1 update
 
 January 15, 2025: ✅ IMPLEMENTED - Add Report Wizard step 1 focus and Enter key handling
@@ -760,6 +794,7 @@ January 15, 2025: ✅ IMPLEMENTED - Add Report Wizard step 1 focus and Enter key
 - Users can select option and press Enter without needing mouse
 - Enter key gracefully ignored when no selection is made
 - Matches behavior of Add Object Wizard for consistency
+ 
 
 Command: startMCPServerCommand
  
