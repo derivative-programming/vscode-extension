@@ -899,6 +899,9 @@ Alternate format: "As a [Role name], I want to [View all, view, add, update, del
                 
                 // Show modal
                 addStoryModal.style.display = 'block';
+                
+                // Focus on the story text input for better user experience
+                storyTextInput.focus();
             });
             
             // Handle modal close button

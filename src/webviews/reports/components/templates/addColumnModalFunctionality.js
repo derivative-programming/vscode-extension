@@ -22,6 +22,11 @@ function createAddColumnModal() {
     // Show the modal
     setTimeout(() => {
         modal.style.display = "flex";
+        // Focus on the column name input when modal opens (single column tab is active by default)
+        const columnNameInput = modal.querySelector("#columnName");
+        if (columnNameInput) {
+            columnNameInput.focus();
+        }
     }, 10);
     
     // Tab switching in modal
@@ -38,10 +43,25 @@ function createAddColumnModal() {
                     content.classList.add('active');
                 }
             });
+            
+            // Set focus based on which tab is now active
+            setTimeout(() => {
+                if (tabId === 'singleAdd') {
+                    const columnNameInput = modal.querySelector("#columnName");
+                    if (columnNameInput) {
+                        columnNameInput.focus();
+                    }
+                } else if (tabId === 'bulkAdd') {
+                    const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
+                    if (bulkColumnsTextarea) {
+                        bulkColumnsTextarea.focus();
+                    }
+                }
+            }, 10);
         });
     });
       // Close modal when clicking the x button
-    modal.querySelector(".close").addEventListener("click", function() {
+    modal.querySelector(".close-button").addEventListener("click", function() {
         document.body.removeChild(modal);
     });
     
@@ -51,7 +71,37 @@ function createAddColumnModal() {
             document.body.removeChild(modal);
         }
     });
-      // Validate column name
+      
+    // Add Enter key handling for single column input
+    const columnNameInput = modal.querySelector("#columnName");
+    if (columnNameInput) {
+        columnNameInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent default Enter behavior
+                const addButton = modal.querySelector("#addSingleColumn");
+                if (addButton && !addButton.disabled) {
+                    addButton.click();
+                }
+            }
+        });
+    }
+    
+    // Add Enter key handling for bulk columns textarea (Enter submits, Shift+Enter for new line)
+    const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
+    if (bulkColumnsTextarea) {
+        bulkColumnsTextarea.addEventListener("keydown", function(event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault(); // Prevent default Enter behavior
+                const addButton = modal.querySelector("#addBulkColumns");
+                if (addButton && !addButton.disabled) {
+                    addButton.click();
+                }
+            }
+            // Shift+Enter will allow new line (default behavior)
+        });
+    }
+    
+    // Validate column name
     function validateColumnName(name) {
         if (!name) {
             return "Column name cannot be empty";
@@ -75,9 +125,9 @@ function createAddColumnModal() {
         return columnName.replace(/([a-z])([A-Z])/g, '$1 $2')
                         .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
     }    // Add single column
-    document.getElementById("addSingleColumn").addEventListener("click", function() {
-        const columnName = document.getElementById("columnName").value.trim();
-        const errorElement = document.getElementById("singleValidationError");
+    modal.querySelector("#addSingleColumn").addEventListener("click", function() {
+        const columnName = modal.querySelector("#columnName").value.trim();
+        const errorElement = modal.querySelector("#singleValidationError");
         
         const validationError = validateColumnName(columnName);
         if (validationError) {
@@ -96,10 +146,10 @@ function createAddColumnModal() {
     });
     
     // Add bulk columns
-    document.getElementById("addBulkColumns").addEventListener("click", function() {
-        const bulkColumns = document.getElementById("bulkColumns").value;
+    modal.querySelector("#addBulkColumns").addEventListener("click", function() {
+        const bulkColumns = modal.querySelector("#bulkColumns").value;
         const columnNames = bulkColumns.split("\\n").map(name => name.trim()).filter(name => name);
-        const errorElement = document.getElementById("bulkValidationError");
+        const errorElement = modal.querySelector("#bulkValidationError");
         
         // Validate all column names
         const errors = [];

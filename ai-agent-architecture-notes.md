@@ -1,5 +1,6 @@
 # AppDNA VS Code Extension Architecture Notes
 
+ 
 ## Add Button Modal Focus and Enter Key Handling (Added 2025-06-15)
 
 Implemented user experience improvements for the add button modal in the report details view.
@@ -57,6 +58,30 @@ if (buttonNameInput) {
 - No regressions in existing functionality
 
   
+ 
+## Object Hierarchy View - Auto Focus Search Box (Added 2025-06-15)
+
+Enhanced user experience in the Object Hierarchy diagram by automatically focusing the search input when the view opens.
+
+### Implementation:
+- **File Modified**: `src/webviews/hierarchyView.js`
+- **Location**: Added to `initDiagram()` function after event listener setup
+- **Change**: Added `document.getElementById('search').focus();` to automatically place cursor in search box
+- **Timing**: Focus is applied after all initialization is complete for best user experience
+
+### User Experience Improvement:
+- Users can immediately start typing to search objects without clicking on the search box first
+- Follows common UI patterns where search interfaces auto-focus on load
+- Improves workflow efficiency for users frequently searching in the hierarchy
+
+### Technical Details:
+- Minimal change of 3 lines added to existing codebase
+- No deletions or modifications to existing functionality
+- Focus is applied after DOM elements are fully initialized and event listeners are attached
+- Compatible with existing search functionality and keyboard navigation
+
+   
+ 
 ## Report Button Name Validation - No Numbers Allowed (Added 2025-06-14)
 
 Implemented requirement to prevent numbers in button names when adding new buttons in the report details view.
