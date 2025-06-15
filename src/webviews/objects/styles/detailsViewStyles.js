@@ -403,6 +403,23 @@ function getDetailViewStyles() {
             background-color: var(--vscode-list-activeSelectionBackground);
             color: var(--vscode-list-activeSelectionForeground);
         }
+
+        /* Disabled button styling for modal */
+        .modal-buttons button:disabled {
+            background-color: #464647 !important;
+            color: #888888 !important;
+            cursor: not-allowed !important;
+            opacity: 0.5 !important;
+            border: 1px solid #555555 !important;
+            box-shadow: none !important;
+        }
+
+        .modal-buttons button:disabled:hover {
+            background-color: #464647 !important;
+            color: #888888 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+        }
     `;
 }
 

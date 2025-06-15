@@ -29,9 +29,9 @@ function createObjectSearchModal(currentValue, targetInputElement) {
     // Populate the object list
     const objectList = modal.querySelector("#objectList");
     const acceptButton = modal.querySelector("#acceptObjectSelection");
-    
-    // Initially disable the accept button
+      // Initially disable the accept button
     acceptButton.disabled = true;
+    console.log("Object Search Modal: Accept button initially disabled:", acceptButton.disabled);
     
     // Get all available objects (this should be available from the main scope)
     let hasPreselectedOption = false;
@@ -52,28 +52,31 @@ function createObjectSearchModal(currentValue, targetInputElement) {
             }
         });
     }
-    
-    // Enable accept button if there's a pre-selected option
+      // Enable accept button if there's a pre-selected option
     if (hasPreselectedOption) {
         acceptButton.disabled = false;
-    }
-    
-    // Add event listener to enable/disable accept button based on selection
+        console.log("Object Search Modal: Accept button enabled due to pre-selection");
+    }    // Add event listener to enable/disable accept button based on selection
     objectList.addEventListener("change", function() {
-        const selectedOption = objectList.querySelector("option:checked");
-        acceptButton.disabled = !selectedOption;
+        acceptButton.disabled = objectList.selectedIndex === -1;
+        console.log("Object Search Modal: Selection changed, button disabled:", acceptButton.disabled);
+    });
+    
+    // Also handle click events to ensure button state updates on selection
+    objectList.addEventListener("click", function() {
+        acceptButton.disabled = objectList.selectedIndex === -1;
+        console.log("Object Search Modal: List clicked, button disabled:", acceptButton.disabled);
     });
     
     // Show the modal
     setTimeout(() => {
         modal.style.display = "flex";
     }, 10);
-    
-    // Handle Accept button
+      // Handle Accept button
     acceptButton.addEventListener("click", function() {
-        const selectedOption = objectList.querySelector("option:checked");
-        if (selectedOption && targetInputElement) {
-            targetInputElement.value = selectedOption.value;
+        if (objectList.selectedIndex !== -1 && targetInputElement) {
+            const selectedValue = objectList.options[objectList.selectedIndex].value;
+            targetInputElement.value = selectedValue;
             
             // Trigger change event to ensure any listeners are notified
             const changeEvent = new Event('change', { bubbles: true });

@@ -55,3 +55,22 @@ input[readonly], select[disabled] {
 .modal-buttons button[id*="Cancel" i] + button:not([id*="cancel" i]):not([id*="Cancel" i]) {
   order: 2;
 }
+
+/* Disabled button styling */
+button:disabled,
+.modal-buttons button:disabled {
+  background-color: #464647 !important;
+  color: #888888 !important;
+  cursor: not-allowed !important;
+  opacity: 0.5 !important;
+  border: 1px solid #555555 !important;
+  box-shadow: none !important;
+}
+
+button:disabled:hover,
+.modal-buttons button:disabled:hover {
+  background-color: #464647 !important;
+  color: #888888 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
