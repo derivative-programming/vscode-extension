@@ -1,3 +1,12 @@
+Command: Object Hierarchy diagram update - Focus on search textbox when opened
+
+2025-06-15: Added focus to search textbox when Object Hierarchy diagram opens
+- Modified src/webviews/hierarchyView.js to add focus() call to search input
+- Added `document.getElementById('search').focus();` in initDiagram() function after event listeners
+- This ensures the cursor is automatically placed in the search box when the hierarchy view opens
+- Minimal change of 3 lines added, no deletions
+- Change is applied after all initialization is complete for best user experience
+
 Command: Data object details view settings tab - make parent object name textbox read-only
 
 2025-06-14: Fixed parent object name textbox to be truly read-only in data object details view settings tab
