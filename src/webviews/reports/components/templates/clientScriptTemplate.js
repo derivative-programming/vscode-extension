@@ -728,6 +728,12 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 
                 // Attach event listeners after modal is in DOM and visible
                 attachModalEventListeners(modal);
+                
+                // Focus on the column name input when modal opens (single column tab is active by default)
+                const columnNameInput = modal.querySelector("#columnName");
+                if (columnNameInput) {
+                    columnNameInput.focus();
+                }
             }, 10);
         }
         
@@ -747,6 +753,21 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                             content.classList.add('active');
                         }
                     });
+                    
+                    // Set focus based on which tab is now active
+                    setTimeout(() => {
+                        if (tabId === 'singleAdd') {
+                            const columnNameInput = modal.querySelector("#columnName");
+                            if (columnNameInput) {
+                                columnNameInput.focus();
+                            }
+                        } else if (tabId === 'bulkAdd') {
+                            const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
+                            if (bulkColumnsTextarea) {
+                                bulkColumnsTextarea.focus();
+                            }
+                        }
+                    }, 10);
                 });
             });            // Close modal when clicking the x button
             modal.querySelector(".close-button").addEventListener("click", function() {
@@ -758,6 +779,35 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     document.body.removeChild(modal);
                 }
             });
+            
+            // Add Enter key handling for single column input
+            const columnNameInput = modal.querySelector("#columnName");
+            if (columnNameInput) {
+                columnNameInput.addEventListener("keypress", function(event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault(); // Prevent default Enter behavior
+                        const addButton = modal.querySelector("#addSingleColumn");
+                        if (addButton && !addButton.disabled) {
+                            addButton.click();
+                        }
+                    }
+                });
+            }
+            
+            // Add Enter key handling for bulk columns textarea (Enter submits, Shift+Enter for new line)
+            const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
+            if (bulkColumnsTextarea) {
+                bulkColumnsTextarea.addEventListener("keydown", function(event) {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault(); // Prevent default Enter behavior
+                        const addButton = modal.querySelector("#addBulkColumns");
+                        if (addButton && !addButton.disabled) {
+                            addButton.click();
+                        }
+                    }
+                    // Shift+Enter will allow new line (default behavior)
+                });
+            }
               // Validate column name function
             function validateColumnName(name) {
                 if (!name) {

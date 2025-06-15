@@ -1,6 +1,84 @@
 # AppDNA VS Code Extension Architecture Notes
 
  
+## Add Column Modal Focus and Enter Key Handling (Added 2025-12-20)
+
+### Requirements:
+- When single column tab opens, automatically focus on the 'column name' textbox
+- When bulk columns tab opens, automatically focus on the 'column name' textbox (bulk columns textarea)
+- On Enter key press in single column input, trigger the 'add column' button if it's enabled
+- On Enter key press in bulk columns textarea, trigger the 'add columns' button if it's enabled
+
+### Solution:
+Added focus and keyboard navigation functionality to the add column modal following the same patterns used by other modals in the application (property and parameter modals).
+
+### Technical Details:
+- **File Modified**: `src/webviews/reports/components/templates/clientScriptTemplate.js`
+- **Functions Updated**: `createAddColumnModal()` and `attachModalEventListeners(modal)`
+- **Changes Made**:
+  1. **Auto-focus on modal open**: Added `columnNameInput.focus()` when modal opens
+  2. **Tab-based focus management**: Added focus handling when switching between tabs
+  3. **Enter key handling for single column**: Added keypress event listener for Enter key
+  4. **Enter key handling for bulk columns**: Added keydown event listener with Shift+Enter support
+  5. **Smart validation**: Enter key only triggers action when buttons are not disabled
+  6. **Consistent UX**: Follows same patterns as property and parameter modals
+
+### Implementation:
+```javascript
+// Focus on column name input when modal opens (single column tab is active by default)
+const columnNameInput = modal.querySelector("#columnName");
+if (columnNameInput) {
+    columnNameInput.focus();
+}
+
+// Set focus based on which tab is now active during tab switching
+setTimeout(() => {
+    if (tabId === 'singleAdd') {
+        const columnNameInput = modal.querySelector("#columnName");
+        if (columnNameInput) {
+            columnNameInput.focus();
+        }
+    } else if (tabId === 'bulkAdd') {
+        const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
+        if (bulkColumnsTextarea) {
+            bulkColumnsTextarea.focus();
+        }
+    }
+}, 10);
+
+// Add Enter key handling for single column input
+columnNameInput.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        const addButton = modal.querySelector("#addSingleColumn");
+        if (addButton && !addButton.disabled) {
+            addButton.click();
+        }
+    }
+});
+
+// Add Enter key handling for bulk columns textarea (Enter submits, Shift+Enter for new line)
+bulkColumnsTextarea.addEventListener("keydown", function(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        const addButton = modal.querySelector("#addBulkColumns");
+        if (addButton && !addButton.disabled) {
+            addButton.click();
+        }
+    }
+    // Shift+Enter will allow new line (default behavior)
+});
+```
+
+### User Experience:
+- Modal opens with cursor immediately in the column name field (single column tab)
+- When switching to bulk tab, cursor moves to the bulk columns textarea
+- When switching back to single tab, cursor returns to the column name field
+- Users can type and press Enter to add column(s) without mouse interaction
+- Enter key is only active when button would be enabled (respects validation state)
+- Shift+Enter in bulk textarea allows multi-line input, regular Enter submits
+- Consistent with other add modals throughout the application
+
 ## Add Button Modal Focus and Enter Key Handling (Added 2025-06-15)
 
 Implemented user experience improvements for the add button modal in the report details view.
