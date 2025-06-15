@@ -1,4 +1,43 @@
  
+ 
+Command: Add column modal focus and enter key handling
+
+2025-12-20: ✅ IMPLEMENTED - Add column modal UX improvements
+
+**Issue**: Report details view add column modal needed focus and enter key handling
+- When modal opens, focus should be on the 'column name' textbox (single column tab)  
+- When bulk columns tab opens, focus should be on the 'column name' textbox (bulk columns textarea)
+- On Enter key press in single column input, trigger the 'add column' button if it's enabled
+- On Enter key press in bulk columns textarea, trigger the 'add columns' button if it's enabled
+
+**Solution Applied**:
+- **Auto-focus on modal open**: Added `columnNameInput.focus()` when modal opens (single column tab is active by default)
+- **Tab-based focus management**: Added focus handling when switching between tabs:
+  - Single Column tab: focuses on "#columnName" input  
+  - Bulk Add tab: focuses on "#bulkColumns" textarea
+- **Enter key handling for single column**: Added keypress event listener for Enter key that triggers the "Add Column" button if enabled
+- **Enter key handling for bulk columns**: Added keydown event listener for Enter key that triggers the "Add Columns" button if enabled, with Shift+Enter allowing new lines
+- **Smart validation**: Enter key only triggers action when buttons are not disabled
+- **Consistent patterns**: Follows same UX patterns as other modals in the application (property and parameter modals)
+
+**Technical Implementation**:
+- Modified `createAddColumnModal()` and `attachModalEventListeners()` functions in `clientScriptTemplate.js`
+- Added focus handling in modal display and tab switching logic
+- Added keypress event listener for single column input (keypress for text input)
+- Added keydown event listener for bulk columns textarea (keydown to properly handle Shift+Enter)
+- Uses existing validation functions for consistency
+- Only triggers button clicks when buttons are not disabled
+
+**Files Modified**:
+- `src/webviews/reports/components/templates/clientScriptTemplate.js`
+
+**Implementation Details**:
+- Focus is set using setTimeout to ensure DOM is ready after modal display  
+- Enter key uses keypress event for single input, keydown for textarea (to properly handle Shift+Enter)
+- Shift+Enter in bulk textarea allows new lines, regular Enter submits
+- All changes preserve existing functionality while adding the requested features
+- Button clicks are only triggered if buttons are not disabled
+
 Command: Add button modal focus and enter key handling
 
 2025-06-15: ✅ IMPLEMENTED - Add button modal UX improvements
