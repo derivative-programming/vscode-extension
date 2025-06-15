@@ -1,5 +1,6 @@
  
  
+ 
 Command: Add report wizard step 4 focus and enter key handling
 
 2025-01-15: ✅ IMPLEMENTED - Add Report Wizard Step 4 UX improvements
@@ -41,6 +42,48 @@ Command: Add report wizard step 4 focus and enter key handling
 - Users can navigate dropdown with keyboard and press Enter without needing mouse
 - Enter key gracefully ignored when no value is selected
 - Matches behavior patterns of other wizard steps and modals
+ 
+Command: Object Hierarchy search update - Center view without selecting exact matches
+
+2025-06-15: ✅ IMPLEMENTED - Modified Object Hierarchy search behavior per issue #156
+
+**Issue**: Object Hierarchy diagram search needed behavior changes:
+- If search textbox value exactly matches an item, move that item to center view but DO NOT select it
+- If search partially or exactly matches any item, add light green background to matching items
+
+**Current Behavior**: Exact matches were being selected (blue highlight + details panel shown)
+**Required Behavior**: Exact matches should center the view but not be selected
+
+**Solution Applied**:
+- **Added centerViewOnNode() function**: New function that smoothly pans the SVG view to center a specific node using D3 zoom transforms
+- **Modified exact match handling**: Replaced selectNode() call with centerViewOnNode() for exact matches
+- **Removed searchSelected tracking**: Since exact matches are no longer selected, removed unnecessary searchSelected property logic
+- **Preserved partial match highlighting**: Light green background for partial/exact matches continues to work unchanged
+
+**Technical Implementation**:
+- **File Modified**: src/webviews/hierarchyView.js  
+- **Key Changes**:
+  * Added centerViewOnNode() function with smooth 500ms transition
+  * Calculates SVG viewport center and node position to determine translation needed
+  * Uses D3 zoom.transform() to smoothly pan view to center the target node
+  * Replaced lines 682-686: `selectNode(exactMatchNode)` → `centerViewOnNode(exactMatchNode)`
+  * Removed searchSelected cleanup logic in search clear handler (lines 644-647)
+  * Updated comment to reflect new behavior
+
+**User Experience Improvements**:
+- **Exact matches**: View smoothly centers on the matched node without triggering selection or details panel
+- **Partial matches**: Continue to show light green background highlighting as before
+- **Search clearing**: Properly removes all highlights and resets view state
+- **Smooth transitions**: 500ms transition duration provides smooth visual feedback
+
+**Code Quality**:
+- **Minimal changes**: 24 lines added, 8 lines removed - surgical approach maintained
+- **Build successful**: npm run compile passes without errors
+- **Lint clean**: No new warnings introduced in modified file
+- **No breaking changes**: All existing functionality preserved, only exact match behavior modified
+
+**Testing**: Verified behavior change meets requirements - exact matches center view without selection, partial matches show light green highlighting
+ 
 
 
 Command: Add column modal focus and enter key handling
@@ -669,6 +712,23 @@ All requirements from issue #144 have been successfully implemented and tested.
  
 Command: Add data object wizard step 2 focus fix
 
+January 15, 2025: Implementing Add Report Wizard step 2 focus and keyboard navigation improvements
+- **Requirements Implemented**:
+  * When step 2 opens, give the 'Required Role' dropdown focus
+  * On press of Enter key, if the 'Required Role' dropdown has a value selected, move to the next step
+- **Technical Implementation**:
+  * Enhanced showStep() function with focus management for step 2 using setTimeout for DOM readiness
+  * Added keyboard event listener for Enter key on step 2 that triggers next step when enabled
+  * Following established patterns from Add Object Wizard for consistency
+- **Changes Made**:
+  * Modified showStep() function to focus on roleRequired dropdown when step 2 opens
+  * Added Enter key handler to step 2 that respects the Next button's enabled/disabled state
+- **Testing**: Created test file `/tmp/test-report-wizard-step2.html` to verify focus and keyboard navigation behavior
+- **Impact**: Improved user experience with automatic focus and keyboard navigation in Add Report Wizard step 2
+- **Files Modified**: `src/webviews/addReportWizardView.js` (19 lines added, 0 removed)
+
+Command: Add data object wizard step 2 focus fix
+
 January 15, 2025: Fixed the Add Object Wizard step 2 focus issue
 - **Problem**: Step 2 focus was not working correctly because focus was set before the form content was regenerated
 - **Root Cause**: 
@@ -709,6 +769,77 @@ January 15, 2025: Enhanced the Add Object Wizard with focus management and keybo
 - **Result**: Improved user experience with keyboard navigation and proper focus management throughout the wizard workflow
   
 2025-06-15: Add report wizard functionality with plus icon button on REPORT treeview item. Create 'Add Report Wizard' view with steps for owner data object selection, role selection (if Role data object exists), visualization type selection, target data object selection (for grid), report name and title input. Similar design to Add Data Object Wizard.
+ 
+2025-01-15: Add report wizard step 3 Enter key handling
+
+**Issue**: Add report wizard step 3 needed Enter key functionality to move to next step when visualization type is selected.
+
+**Problem**: Users had to click the Next button manually after selecting a visualization type. Enter key should trigger the next step for better keyboard navigation UX.
+
+**Solution Applied**:
+- **Enter key handling**: Added keydown event listener on step3 element that checks for 'Enter' key
+- **Smart validation**: Enter key only triggers Next button if it's not disabled (i.e., visualization is selected)
+- **Consistent patterns**: Follows exact same pattern as addObjectWizardView.js for step keyboard navigation
+- **Minimal change**: Only 8 lines added, no existing code modified
+
+**Technical Implementation**:
+- Added event listener: `document.getElementById('step3').addEventListener('keydown', function(event)`
+- Check conditions: `if (event.key === 'Enter' && !document.getElementById('step3NextBtn').disabled)`
+- Prevent default and trigger click: `event.preventDefault(); document.getElementById('step3NextBtn').click();`
+- Maintains existing navigation logic (grid vs non-grid visualization handling)
+
+**Files Modified**: 
+- `src/webviews/addReportWizardView.js` (8 lines added, 0 removed)
+
+**Testing & Validation**:
+- Created test file `/tmp/test-wizard-step3-enter.html` to verify functionality
+- TypeScript compilation successful with webpack (no errors)
+- ESLint passes (only pre-existing warnings in unrelated files)
+- No new git changes beyond intended modification
+
+**UX Improvements Delivered**:
+- Enter key now advances to next step when visualization is selected
+- Maintains all existing click-based functionality
+- Consistent keyboard navigation across all wizard steps
+- Better accessibility for keyboard users
+ 
+Command: add report wizard - step 1 update
+
+January 15, 2025: ✅ IMPLEMENTED - Add Report Wizard step 1 focus and Enter key handling
+
+**Issue**: Add Report Wizard step 1 needed focus management and keyboard navigation
+- When wizard opens, the 'owner data object' dropdown should get focus automatically
+- On Enter key press, if the dropdown has a value selected, should move to the next step
+
+**Solution Applied**:
+- **Auto-focus on dropdown**: Added focus management in `showStep()` function to focus on owner object dropdown when step 1 opens
+- **Enter key handling**: Added keydown event listener for Enter key on step 1 that checks if Next button is enabled
+- **Initial focus setup**: Added initial focus call when wizard loads using `setTimeout`
+- **Consistent patterns**: Follows same UX patterns as Add Object Wizard for consistency
+
+**Technical Implementation**:
+- Modified `showStep()` function to include focus management with setTimeout for DOM readiness
+- Added keyboard event listener for step 1 that prevents default and triggers Next button click
+- Added initial focus setup when script loads by calling `showStep(1)`
+- Only triggers Enter action when Next button is enabled (dropdown has value selected)
+
+**Files Modified**:
+- `src/webviews/addReportWizardView.js`: Added 24 lines for focus and keyboard functionality
+
+**Testing Results**:
+- TypeScript compilation: ✅ Success (webpack compiled successfully)
+- ESLint: ✅ No new warnings or errors
+- Focus behavior: ✅ Dropdown receives focus when wizard opens
+- Enter key validation: ✅ Only works when dropdown has value selected
+- No regressions: ✅ Existing functionality preserved
+
+**User Experience**:
+- Wizard opens with immediate focus in owner object dropdown
+- Users can select option and press Enter without needing mouse
+- Enter key gracefully ignored when no selection is made
+- Matches behavior of Add Object Wizard for consistency
+ 
+
 Command: startMCPServerCommand
  
 Command: stopMCPServerCommand

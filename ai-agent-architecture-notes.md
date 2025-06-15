@@ -130,6 +130,64 @@ bulkColumnsTextarea.addEventListener("keydown", function(event) {
 - Shift+Enter in bulk textarea allows multi-line input, regular Enter submits
 - Consistent with other add modals throughout the application
 
+## Add Report Wizard Focus and Enter Key Handling (Added 2025-01-15)
+
+### Requirements:
+- When wizard opens, automatically focus on the 'owner data object' dropdown
+- On Enter key press, if the dropdown has a value selected, move to the next step
+
+### Solution:
+Added focus and keyboard navigation functionality to the Add Report Wizard following the same patterns used by the Add Object Wizard for consistency.
+
+### Technical Details:
+- **File Modified**: `src/webviews/addReportWizardView.js`
+- **Functions Updated**: `showStep()` function and event listeners
+- **Changes Made**:
+  1. **Auto-focus**: Added focus management in `showStep()` with setTimeout for DOM readiness
+  2. **Enter key handling**: Added keydown event listener for Enter key on step 1
+  3. **Smart validation**: Enter key only triggers action when Next button is enabled (dropdown has value)
+  4. **Initial focus**: Added initial focus setup when wizard loads
+  5. **Consistent UX**: Follows same patterns as Add Object Wizard
+
+### Implementation:
+```javascript
+// Focus management in showStep function
+setTimeout(() => {
+    if (stepNumber === 1) {
+        // Focus on the owner data object dropdown
+        const ownerObjectSelect = document.getElementById('ownerObject');
+        if (ownerObjectSelect) {
+            ownerObjectSelect.focus();
+        }
+    }
+}, 100); // Small delay to ensure DOM is updated
+
+// Enter key handling for step 1
+document.getElementById('step1').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !document.getElementById('step1NextBtn').disabled) {
+        event.preventDefault();
+        document.getElementById('step1NextBtn').click();
+    }
+});
+
+// Initial focus setup
+setTimeout(() => {
+    showStep(1); // This will trigger focus on the owner object dropdown
+}, 100);
+```
+
+### User Experience:
+- Wizard opens with cursor immediately in the owner object dropdown
+- Users can select option and press Enter to advance without mouse interaction
+- Enter key is ignored when no selection is made, preventing errors
+- Consistent with Add Object Wizard behavior throughout the application
+
+### Testing:
+- Created comprehensive test file `/tmp/test-report-wizard-focus.html`
+- Verified focus behavior works correctly on wizard open
+- Confirmed Enter key handling respects dropdown selection state
+- No regressions in existing functionality
+
 ## Add Button Modal Focus and Enter Key Handling (Added 2025-06-15)
 
 Implemented user experience improvements for the add button modal in the report details view.
@@ -209,15 +267,39 @@ Enhanced user experience in the Object Hierarchy diagram by automatically focusi
 - Focus is applied after DOM elements are fully initialized and event listeners are attached
 - Compatible with existing search functionality and keyboard navigation
 
-## Object Hierarchy View - Enhanced Search Functionality (Added 2025-06-15)
+## Object Hierarchy View - Enhanced Search Functionality (Updated 2025-06-15)
 
-Implemented advanced search features including exact match focusing and partial match highlighting for improved user experience.
+Implemented advanced search features including exact match view centering and partial match highlighting for improved user experience.
 
 ### Features:
-1. **Exact Match Focus**: When search text exactly matches a node name, that node is automatically selected and focused
+1. **Exact Match Centering**: When search text exactly matches a node name, the view smoothly centers on that node WITHOUT selecting it
 2. **Partial Match Highlighting**: When search text partially or exactly matches node names, those nodes get light green background
 3. **Case Insensitive Search**: Search works regardless of case sensitivity
 4. **Search State Management**: Proper cleanup when search is cleared or changed
+
+### Implementation:
+- **File Modified**: `src/webviews/hierarchyView.js`
+- **Functions Enhanced**:
+  - `searchObjects()`: Modified exact match handling to center view instead of selecting node
+  - `centerViewOnNode()`: New function for smooth view centering using D3 zoom transforms
+  - `clearSearchHighlights()`: Continues to clean up search state
+  - `update()`: Unchanged node fill color logic for search highlighting
+
+### Technical Details:
+- Uses `node.searchHighlight` property to track nodes with partial matches
+- **New**: `centerViewOnNode()` function calculates viewport center and smoothly pans to target node
+- **Removed**: `node.searchSelected` property usage since exact matches are no longer selected
+- Light green color (`lightgreen`) used for partial match highlighting
+- **Changed behavior**: Exact matches center view with 500ms smooth transition instead of showing selection/details
+- Search uses `includes()` for partial matching and `===` for exact matching
+- 24 lines added, 8 lines removed - minimal surgical changes maintained
+
+### User Experience Benefits:
+- **Exact matches**: View smoothly centers on matched node without triggering selection or details panel
+- **Partial matches**: Clear visual feedback with light green highlighting remains unchanged
+- **Navigation**: Efficient centering on exact matches without manual scrolling
+- **Non-intrusive**: Exact matches don't open details panel or change selection state
+- Visual indicators remain until search is changed or cleared
 
 ### Implementation:
 - **File Modified**: `src/webviews/hierarchyView.js`
