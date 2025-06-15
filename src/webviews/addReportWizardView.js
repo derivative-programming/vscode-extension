@@ -628,6 +628,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                     }
                 });
                 
+                // Step 3: Handle keyboard navigation
+                document.getElementById('step3').addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && !document.getElementById('step3NextBtn').disabled) {
+                        event.preventDefault();
+                        document.getElementById('step3NextBtn').click();
+                    }
+                });
+                
                 // Step 4: Target Object Selection
                 document.getElementById('targetObject').addEventListener('change', function() {
                     selectedTargetObject = this.value;
