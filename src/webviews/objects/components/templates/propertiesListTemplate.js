@@ -35,15 +35,25 @@ function getPropertiesListTemplate(propItemsSchema) {
                     
                     return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
                 }).join("")}
-            </select>`;
-        } else {
+            </select>`;        } else {
             inputField = `<input type="text" id="${fieldId}" name="${propKey}" value="" ${tooltip} readonly>`;
+        }
+        
+        // Add magnifying glass button for fKObjectName field
+        let lookupButton = "";
+        if (propKey === "fKObjectName") {
+            lookupButton = `<button type="button" class="lookup-button" data-prop="${propKey}" data-field-id="${fieldId}" disabled title="Browse for FK Object">
+                <span class="codicon codicon-search"></span>
+            </button>`;
         }
         
         // Note: We'll dynamically set the disabled attribute for checked checkboxes in the JavaScript
         return `<div class="form-row">
             <label for="${fieldId}" ${tooltip}>${formatLabel(propKey)}:</label>
-            ${inputField}
+            <div class="control-with-button">
+                ${inputField}
+                ${lookupButton}
+            </div>
             <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" style="margin-left: 5px; transform: scale(0.8);">
         </div>`;
     }).join("");

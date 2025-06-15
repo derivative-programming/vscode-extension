@@ -1,5 +1,5 @@
 # AppDNA VS Code Extension Architecture Notes
-
+ 
 ## Add Report Wizard Step 3 Enhanced Enter Key Handling (Added 2025-01-15)
 
 ### Issue #174 Resolution:
@@ -41,6 +41,37 @@ option.addEventListener('keydown', function(event) {
 - Enter key advances to next step when visualization is selected
 - Clear visual feedback for keyboard navigation
 - Consistent with other wizard steps and VS Code accessibility standards
+ 
+## Data Object Settings Tab - Property Hiding and Read-Only Updates (Added 2025-01-17)
+
+Implemented user requirements to hide specific settings and make 'is lookup' field read-only in the data object details view settings tab.
+
+### Requirements:
+- Hide 'is not implemented' setting (isNotImplemented)
+- Hide 'is full research database view allowed' setting (isFullResearchDatabaseViewAllowed)  
+- Hide 'cache individual recs' setting (cacheIndividualRecs)
+- Make 'is lookup' field read-only (isLookup)
+
+### Solution:
+Modified `src/webviews/objects/components/templates/settingsTabTemplate.js` to add property filtering and read-only logic following existing patterns in the codebase.
+
+### Technical Details:
+- **File Modified**: `src/webviews/objects/components/templates/settingsTabTemplate.js`
+- **Change Type**: Minimal - Added 8 lines, removed 2 lines (net +6 lines)
+- **Property Hiding**: Extended existing filter logic to exclude the 3 specified properties
+- **Read-Only Logic**: Added `isLookup` to enum dropdown disable condition (similar to existing `parentObjectName` pattern)
+
+### Implementation:
+1. **Property Filtering**: Added filter condition for the 3 properties to hide them completely
+2. **Read-Only Dropdown**: Modified enum handling to disable `isLookup` dropdown while still showing its current value
+3. **Consistent UX**: Followed existing patterns for property hiding and read-only fields
+
+### Testing Verified:
+- Properties are hidden: isNotImplemented, isFullResearchDatabaseViewAllowed, cacheIndividualRecs no longer appear ✅
+- isLookup field appears but is disabled (read-only) ✅
+- Build and lint successful with no new issues ✅
+- Other properties maintain their original behavior ✅
+ 
 
 ## Add Report Wizard Step 4 Focus and Enter Key Handling (Added 2025-01-15)
 
@@ -303,12 +334,6 @@ Enhanced user experience in the Object Hierarchy diagram by automatically focusi
 - Follows common UI patterns where search interfaces auto-focus on load
 - Improves workflow efficiency for users frequently searching in the hierarchy
 
-### Technical Details:
-- Minimal change of 3 lines added to existing codebase
-- No deletions or modifications to existing functionality
-- Focus is applied after DOM elements are fully initialized and event listeners are attached
-- Compatible with existing search functionality and keyboard navigation
-
 ## Object Hierarchy View - Enhanced Search Functionality (Updated 2025-06-15)
 
 Implemented advanced search features including exact match view centering and partial match highlighting for improved user experience.
@@ -415,6 +440,9 @@ Implemented requirement to make the 'Parent Object Name' textbox always read-onl
 ### Testing Verified:
 - Property exists with value: Field shows value and is readonly ✅
 - Property doesn't exist: Field is empty and readonly ✅  
+- Property is null: Field is empty and readonly ✅
+- Property is empty string: Field is empty and readonly ✅
+- Other fields unaffected: Description field remains editable when appropriate ✅
 
 ## Add Report Wizard Implementation (Added 2025-06-15)
 

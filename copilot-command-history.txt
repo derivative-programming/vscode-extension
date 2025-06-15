@@ -1,5 +1,36 @@
  
- 
+
+Command: Data object view - settings tab update
+
+2025-01-17: ✅ IMPLEMENTED - Data Object Settings Tab Property Updates
+
+**Issue**: Settings tab needed specific properties hidden and 'is lookup' made read-only
+- Hide 'is not implemented' setting (isNotImplemented)
+- Hide 'is full research database view allowed' setting (isFullResearchDatabaseViewAllowed)
+- Hide 'cache individual recs' setting (cacheIndividualRecs) 
+- Make 'is lookup' field read-only (isLookup)
+
+**Solution Applied**:
+- **Property Hiding**: Extended existing filter logic to exclude the 3 specified properties from appearing in settings tab
+- **Read-Only Dropdown**: Modified enum handling to disable `isLookup` dropdown while still showing current value
+- **Minimal Changes**: Added only 6 net lines of code following existing patterns
+
+**Technical Implementation**:
+- Modified filter condition in `getSettingsTabTemplate()` to hide the 3 properties
+- Added `isLookupField` check in enum section to disable the dropdown
+- Followed same pattern as existing `parentObjectName` read-only logic
+- Preserved all existing functionality for other properties
+
+**Files Modified**:
+- `src/webviews/objects/components/templates/settingsTabTemplate.js`: Added 8 lines, removed 2 lines (net +6)
+
+**Testing Results**:
+- ✅ Build successful (npm run compile)
+- ✅ Lint successful (no new issues)
+- ✅ Properties hidden completely from settings tab
+- ✅ isLookup appears but disabled (read-only)
+- ✅ Other properties maintain original behavior
+
  
 Command: add report wizard - step 3 update
 
@@ -967,4 +998,18 @@ Command: stopMCPServerCommand
 - ModelService consistently uses `markUnsavedChanges()` method throughout codebase
 - Standard pattern: `if (modelService && typeof modelService.markUnsavedChanges === 'function') { modelService.markUnsavedChanges(); }`
 - Fix ensures Add Report Wizard properly marks model as having unsaved changes when reports are created
-  
+
+Command: Fix object search button - missing icon and not clickable
+Date: June 15, 2025
+Status: Completed
+Issues Fixed:
+1. Missing codicon CSS - Added link to codicon CSS in mainTemplate.js
+2. Button not clickable - Updated saveSubmitHandlers.js to properly manage lookup button state during property selection
+3. Button state management - Enhanced property selection logic to enable/disable lookup button based on property existence
+
+Changes:
+- mainTemplate.js: Added codicon CSS link for search icon display
+- saveSubmitHandlers.js: Added lookup button state handling in property selection logic
+
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view

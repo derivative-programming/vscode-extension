@@ -1,27 +1,27 @@
 "use strict";
 
 /**
- * objectLookupModalFunctionality.js  
- * Provides JavaScript functionality for the Object Lookup modal
+ * objectSearchModalFunctionality.js
+ * Provides JavaScript functionality for the Object Search modal
  * Created: 2024-12-27
  * Purpose: Handles modal interactions for selecting FK object names
  */
 
 /**
- * Creates the JavaScript functionality for the Object Lookup modal
+ * Creates the JavaScript functionality for the Object Search modal
  * @returns {string} JavaScript code as a string for the modal functionality
  */
-function getObjectLookupModalFunctionality() {
+function getObjectSearchModalFunctionality() {
     return `
-// Function to create and show the Object Lookup modal
-function createObjectLookupModal(currentValue, targetInputElement) {
+// Function to create and show the Object Search modal
+function createObjectSearchModal(currentValue, targetInputElement) {
     // Create modal dialog for selecting object
     const modal = document.createElement("div");
     modal.className = "modal";
     
     // Import the modal HTML template
-    const modalContent = getObjectLookupModalHtml();
-    
+    const modalContent = getObjectSearchModalHtml();
+
     // Set the modal content
     modal.innerHTML = modalContent;
     document.body.appendChild(modal);
@@ -91,5 +91,5 @@ function createObjectLookupModal(currentValue, targetInputElement) {
 }
 
 module.exports = {
-    getObjectLookupModalFunctionality
+    getObjectSearchModalFunctionality
 };

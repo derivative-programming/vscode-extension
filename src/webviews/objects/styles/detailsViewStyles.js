@@ -156,9 +156,7 @@ function getDetailViewStyles() {
             min-height: 24px;
             vertical-align: middle;
             display: inline-block;
-        }
-
-        /* Control with checkbox container */
+        }        /* Control with checkbox container */
         .control-with-checkbox {
             display: flex;
             align-items: center;
@@ -174,6 +172,19 @@ function getDetailViewStyles() {
         .control-with-checkbox input[type="checkbox"] {
             margin-left: 5px;
             flex: 0 0 auto;
+        }
+
+        /* Control with button container for list view */
+        .control-with-button {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .control-with-button input[type="text"],
+        .control-with-button select {
+            flex: 1;
+            min-width: 100px; /* Ensure minimum width for controls */
         }
 
         /* Lookup button styling */
@@ -360,7 +371,7 @@ function getDetailViewStyles() {
             margin-top: 10px;
         }
 
-        /* Object lookup modal specific styles */
+        /* Object Search modal specific styles */
         .modal-buttons {
             display: flex;
             gap: 10px;

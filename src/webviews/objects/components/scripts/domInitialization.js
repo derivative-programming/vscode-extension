@@ -31,9 +31,7 @@ function getDOMInitialization() {
         }
         
         // Initialize the behavior for all checkboxes
-        initializeToggleEditableBehavior();
-
-        // Set up lookup button event handlers for fKObjectName fields
+        initializeToggleEditableBehavior();        // Set up lookup button event handlers for fKObjectName fields
         document.addEventListener('click', (event) => {
             if (event.target.closest('.lookup-button')) {
                 const button = event.target.closest('.lookup-button');
@@ -42,10 +40,19 @@ function getDOMInitialization() {
                 const propKey = button.getAttribute('data-prop');
                 if (propKey === 'fKObjectName') {
                     // Find the corresponding input field
-                    const inputField = button.parentElement.querySelector('input[type="text"]');
+                    let inputField = button.parentElement.querySelector('input[type="text"]');
+                    
+                    // If not found (table view), try using data-field-id for list view
+                    if (!inputField) {
+                        const fieldId = button.getAttribute('data-field-id');
+                        if (fieldId) {
+                            inputField = document.getElementById(fieldId);
+                        }
+                    }
+                    
                     if (inputField) {
                         const currentValue = inputField.value;
-                        createObjectLookupModal(currentValue, inputField);
+                        createObjectSearchModal(currentValue, inputField);
                     }
                 }
             }
