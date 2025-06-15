@@ -543,15 +543,24 @@ function generateWizardHTML(allObjects, roleObjects) {
                     currentStep = stepNumber;
                     
                     // Focus management for each step
-                    setTimeout(() => {
+                    setTimeout(() => { 
                         if (stepNumber === 2) {
                             // Focus on the 'Required Role' dropdown when step 2 opens
                             const roleRequired = document.getElementById('roleRequired');
                             if (roleRequired) {
                                 roleRequired.focus();
                             }
+                        } 
+                        
+                        if (stepNumber === 1) {
+                            // Focus on the owner data object dropdown
+                            const ownerObjectSelect = document.getElementById('ownerObject');
+                            if (ownerObjectSelect) {
+                                ownerObjectSelect.focus();
+                            }
                         }
-                    }, 0);
+                    }, 100); // Small delay to ensure DOM is updated
+                    
                 }
                 
                 function nextStep() {
@@ -605,6 +614,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                 });
                 
                 document.getElementById('step1NextBtn').addEventListener('click', nextStep);
+                
+                // Handle step 1 keyboard navigation
+                document.getElementById('step1').addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' && !document.getElementById('step1NextBtn').disabled) {
+                        event.preventDefault();
+                        document.getElementById('step1NextBtn').click();
+                    }
+                });
                 
                 // Step 2: Role Selection
                 document.getElementById('roleRequired').addEventListener('change', function() {
@@ -788,6 +805,11 @@ function generateWizardHTML(allObjects, roleObjects) {
                     const messagesDiv = document.getElementById('messages');
                     messagesDiv.innerHTML = '<div class="' + type + '-message">' + message + '</div>';
                 }
+                
+                // Set initial focus when the wizard loads
+                setTimeout(() => {
+                    showStep(1); // This will trigger focus on the owner object dropdown
+                }, 100);
             </script>
         </body>
         </html>
