@@ -213,6 +213,46 @@ function showAddReportWizard(modelService) {
                     }
                     return;
                     
+                case "validateTitle":
+                    try {
+                        const { reportTitle } = message.data;
+                        
+                        // Validate title is not empty
+                        if (!reportTitle) {
+                            panel.webview.postMessage({ 
+                                command: "titleValidation", 
+                                isValid: false, 
+                                message: "Report title cannot be empty"
+                            });
+                            return;
+                        }
+                        
+                        // Validate title length does not exceed 100 characters
+                        if (reportTitle.length > 100) {
+                            panel.webview.postMessage({ 
+                                command: "titleValidation", 
+                                isValid: false, 
+                                message: "Report title cannot exceed 100 characters"
+                            });
+                            return;
+                        }
+                        
+                        // Title is valid
+                        panel.webview.postMessage({ 
+                            command: "titleValidation", 
+                            isValid: true, 
+                            message: "Report title is valid"
+                        });
+                        
+                    } catch (error) {
+                        panel.webview.postMessage({ 
+                            command: "titleValidation", 
+                            isValid: false, 
+                            message: "Error validating title"
+                        });
+                    }
+                    return;
+                    
                 case "getChildObjects":
                     try {
                         const { parentObjectName } = message.data;
@@ -516,6 +556,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                 <div class="form-group">
                     <label for="reportTitle">Report Title (max 100 characters):</label>
                     <input type="text" id="reportTitle" placeholder="Report Title">
+                    <div id="titleValidation" class="validation-message"></div>
                 </div>
                 <div class="button-container">
                     <button type="button" id="step5BackBtn" class="secondary-button">Back</button>
@@ -720,10 +761,21 @@ function generateWizardHTML(allObjects, roleObjects) {
                     generateReportName();
                 });
                 
+                // Helper function to update Create Report button state
+                function updateCreateButtonState() {
+                    const reportName = document.getElementById('reportName').value;
+                    const nameValidation = document.getElementById('nameValidation');
+                    const titleValidation = document.getElementById('titleValidation');
+                    
+                    const nameValid = nameValidation.classList.contains('valid');
+                    const titleValid = titleValidation.classList.contains('valid') || titleValidation.textContent === '';
+                    
+                    document.getElementById('createReportBtn').disabled = !reportName || !nameValid || !titleValid;
+                }
+                
                 // Step 5: Report Details
                 document.getElementById('reportName').addEventListener('input', function() {
                     const reportName = this.value;
-                    document.getElementById('createReportBtn').disabled = !reportName;
                     
                     if (reportName) {
                         vscode.postMessage({
@@ -733,6 +785,22 @@ function generateWizardHTML(allObjects, roleObjects) {
                     } else {
                         document.getElementById('nameValidation').textContent = '';
                         document.getElementById('nameValidation').className = 'validation-message';
+                        updateCreateButtonState();
+                    }
+                });
+                
+                document.getElementById('reportTitle').addEventListener('input', function() {
+                    const reportTitle = this.value;
+                    
+                    if (reportTitle) {
+                        vscode.postMessage({
+                            command: 'validateTitle',
+                            data: { reportTitle: reportTitle }
+                        });
+                    } else {
+                        document.getElementById('titleValidation').textContent = '';
+                        document.getElementById('titleValidation').className = 'validation-message';
+                        updateCreateButtonState();
                     }
                 });
                 
@@ -810,6 +878,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                             data: { reportName: generatedName }
                         });
                     }
+                    
+                    // Trigger title validation
+                    if (title) {
+                        vscode.postMessage({
+                            command: 'validateTitle',
+                            data: { reportTitle: title }
+                        });
+                    }
                 }
                 
                 // Handle messages from extension
@@ -827,7 +903,13 @@ function generateWizardHTML(allObjects, roleObjects) {
                             const validationElement = document.getElementById('nameValidation');
                             validationElement.textContent = message.message;
                             validationElement.className = 'validation-message ' + (message.isValid ? 'valid' : 'invalid');
-                            document.getElementById('createReportBtn').disabled = !message.isValid || !document.getElementById('reportName').value;
+                            updateCreateButtonState();
+                            break;
+                        case 'titleValidation':
+                            const titleValidationElement = document.getElementById('titleValidation');
+                            titleValidationElement.textContent = message.message;
+                            titleValidationElement.className = 'validation-message ' + (message.isValid ? 'valid' : 'invalid');
+                            updateCreateButtonState();
                             break;
                         case 'childObjects':
                             const targetSelect = document.getElementById('targetObject');
