@@ -770,6 +770,41 @@ This fix demonstrates the event-driven communication pattern between webview Jav
 4. Extension updates model and marks unsaved changes
 5. Tree view updates to show unsaved changes indicator
 
+## Select FK Object Modal Accept Button State Management (Added 2025-01-17)
+
+Implemented functionality to disable the 'Accept' button in the Select FK Object modal when no object is selected, improving user experience and preventing invalid submissions.
+
+### Requirements:
+- Disable 'Accept' button when no object is selected in the modal
+- Enable 'Accept' button when an object is selected
+- Handle pre-selection case (when currentValue matches existing object)
+- Prevent double-click from accepting when no selection exists
+
+### Solution:
+Modified `src/webviews/objects/components/templates/objectSearchModalFunctionality.js` to add button state management following existing patterns in the codebase.
+
+### Technical Details:
+- **File Modified**: `src/webviews/objects/components/templates/objectSearchModalFunctionality.js`
+- **Change Type**: Minimal - Added 22 lines, removed 4 lines (net +18 lines)
+- **Button State Logic**: Initially disable accept button, track pre-selection, enable/disable based on selection changes
+- **Event Handling**: Added 'change' event listener to objectList to update button state dynamically
+- **Safety Measures**: Updated accept button click handler to only proceed when selection exists, updated double-click handler to respect button state
+
+### Implementation:
+- Added initial button disable logic on modal creation
+- Added hasPreselectedOption tracking to enable button when currentValue matches an object
+- Added change event listener to enable/disable button based on selection state
+- Updated accept button click handler to only close modal when selection exists
+- Updated double-click handler to check button state before proceeding
+
+### Testing Verified:
+- Button is disabled when modal opens with no pre-selection
+- Button is enabled when modal opens with valid pre-selection
+- Button enables when user selects an option
+- Button disables when user clears selection
+- Double-click only works when button is enabled
+- Accept button only closes modal when valid selection exists
+
 ## Report Details View Property Hiding (Added 2025-06-08)
 
 Implemented comprehensive property hiding functionality across all report details view tabs to improve UI usability:
