@@ -33,6 +33,24 @@ function getDOMInitialization() {
         // Initialize the behavior for all checkboxes
         initializeToggleEditableBehavior();
 
+        // Set up lookup button event handlers for fKObjectName fields
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('.lookup-button')) {
+                const button = event.target.closest('.lookup-button');
+                if (button.disabled) return;
+                
+                const propKey = button.getAttribute('data-prop');
+                if (propKey === 'fKObjectName') {
+                    // Find the corresponding input field
+                    const inputField = button.parentElement.querySelector('input[type="text"]');
+                    if (inputField) {
+                        const currentValue = inputField.value;
+                        createObjectLookupModal(currentValue, inputField);
+                    }
+                }
+            }
+        });
+
         // Hide property details if no property is selected
         if (propsList && (!propsList.value || propsList.value === "")) {
             if (propertyDetailsContainer) {

@@ -92,8 +92,11 @@ function showObjectDetails(item, modelService) {
     const objectSchemaProps = getObjectSchemaProperties(schema);
     const propItemsSchema = getPropItemsSchema(schema);
     
+    // Get all objects for FK lookup
+    const allObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
+    
     // Set the HTML content with the full object data
-    panel.webview.html = generateDetailsView(objectData, objectSchemaProps, propItemsSchema);
+    panel.webview.html = generateDetailsView(objectData, objectSchemaProps, propItemsSchema, allObjects);
     
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(

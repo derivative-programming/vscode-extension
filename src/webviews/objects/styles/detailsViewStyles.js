@@ -176,6 +176,36 @@ function getDetailViewStyles() {
             flex: 0 0 auto;
         }
 
+        /* Lookup button styling */
+        .lookup-button {
+            margin-left: 3px;
+            margin-right: 2px;
+            padding: 2px 6px;
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: 1px solid var(--vscode-button-border);
+            border-radius: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 22px;
+        }
+
+        .lookup-button:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+
+        .lookup-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .lookup-button .codicon {
+            font-size: 14px;
+        }
+
         th {
             background-color: var(--vscode-editor-lineHighlightBackground);
             position: sticky;
@@ -328,6 +358,39 @@ function getDetailViewStyles() {
 
         .modal button {
             margin-top: 10px;
+        }
+
+        /* Object lookup modal specific styles */
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: flex-end;
+        }
+
+        .modal-buttons button {
+            margin-top: 0;
+        }
+
+        #objectList {
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border-radius: 2px;
+        }
+
+        #objectList option {
+            padding: 4px 8px;
+        }
+
+        #objectList option:hover,
+        #objectList option:focus {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+
+        #objectList option:checked {
+            background-color: var(--vscode-list-activeSelectionBackground);
+            color: var(--vscode-list-activeSelectionForeground);
         }
     `;
 }
