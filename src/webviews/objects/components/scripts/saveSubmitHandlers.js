@@ -44,8 +44,7 @@ function getSaveSubmitHandlers() {
                     checkbox.disabled = false;
                     checkbox.removeAttribute('data-originally-checked');
                 }
-                
-                if (!checkbox.checked) {
+                  if (!checkbox.checked) {
                     field.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
                     field.style.color = 'var(--vscode-input-disabledForeground, #999)';
                     field.style.opacity = '0.8';
@@ -53,6 +52,17 @@ function getSaveSubmitHandlers() {
                     field.style.backgroundColor = 'var(--vscode-input-background)';
                     field.style.color = 'var(--vscode-input-foreground)';
                     field.style.opacity = '1';
+                }
+                
+                // Handle lookup button state for fKObjectName field
+                if (propKey === 'fKObjectName') {
+                    const controlContainer = field.parentElement;
+                    if (controlContainer && controlContainer.classList.contains('control-with-button')) {
+                        const lookupButton = controlContainer.querySelector('.lookup-button');
+                        if (lookupButton) {
+                            lookupButton.disabled = !propertyExists;
+                        }
+                    }
                 }
             }
         });
