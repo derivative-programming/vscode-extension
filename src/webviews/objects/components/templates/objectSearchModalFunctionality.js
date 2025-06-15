@@ -28,8 +28,13 @@ function createObjectSearchModal(currentValue, targetInputElement) {
     
     // Populate the object list
     const objectList = modal.querySelector("#objectList");
+    const acceptButton = modal.querySelector("#acceptObjectSelection");
+    
+    // Initially disable the accept button
+    acceptButton.disabled = true;
     
     // Get all available objects (this should be available from the main scope)
+    let hasPreselectedOption = false;
     if (typeof allObjects !== 'undefined' && Array.isArray(allObjects)) {
         allObjects.forEach(obj => {
             if (obj.name) {
@@ -40,6 +45,7 @@ function createObjectSearchModal(currentValue, targetInputElement) {
                 // Pre-select if it matches current value
                 if (currentValue && obj.name === currentValue) {
                     option.selected = true;
+                    hasPreselectedOption = true;
                 }
                 
                 objectList.appendChild(option);
@@ -47,13 +53,24 @@ function createObjectSearchModal(currentValue, targetInputElement) {
         });
     }
     
+    // Enable accept button if there's a pre-selected option
+    if (hasPreselectedOption) {
+        acceptButton.disabled = false;
+    }
+    
+    // Add event listener to enable/disable accept button based on selection
+    objectList.addEventListener("change", function() {
+        const selectedOption = objectList.querySelector("option:checked");
+        acceptButton.disabled = !selectedOption;
+    });
+    
     // Show the modal
     setTimeout(() => {
         modal.style.display = "flex";
     }, 10);
     
     // Handle Accept button
-    modal.querySelector("#acceptObjectSelection").addEventListener("click", function() {
+    acceptButton.addEventListener("click", function() {
         const selectedOption = objectList.querySelector("option:checked");
         if (selectedOption && targetInputElement) {
             targetInputElement.value = selectedOption.value;
@@ -61,8 +78,10 @@ function createObjectSearchModal(currentValue, targetInputElement) {
             // Trigger change event to ensure any listeners are notified
             const changeEvent = new Event('change', { bubbles: true });
             targetInputElement.dispatchEvent(changeEvent);
+            
+            document.body.removeChild(modal);
         }
-        document.body.removeChild(modal);
+        // Note: If no option is selected, do nothing (button should be disabled anyway)
     });
     
     // Handle Cancel button  
@@ -82,9 +101,12 @@ function createObjectSearchModal(currentValue, targetInputElement) {
         }
     });
     
-    // Allow double-click on option to accept immediately
+    // Allow double-click on option to accept immediately (only if accept button is enabled)
     objectList.addEventListener("dblclick", function() {
-        modal.querySelector("#acceptObjectSelection").click();
+        const acceptButton = modal.querySelector("#acceptObjectSelection");
+        if (!acceptButton.disabled) {
+            acceptButton.click();
+        }
     });
 }
 `;
