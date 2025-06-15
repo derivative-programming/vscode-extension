@@ -520,6 +520,27 @@ async function getWebviewContent(context, allObjects) {
                         .call(zoom.transform, d3.zoomIdentity.translate(margin.left, margin.top));
                 }
                 
+                // Center view on a specific node
+                function centerViewOnNode(node) {
+                    if (!node) return;
+                    
+                    // Get the current dimensions of the SVG container
+                    const svgElement = d3.select('#diagram svg').node();
+                    const svgRect = svgElement.getBoundingClientRect();
+                    const centerX = svgRect.width / 2;
+                    const centerY = svgRect.height / 2;
+                    
+                    // Calculate translation needed to center the node
+                    const translateX = centerX - node.y - margin.left;
+                    const translateY = centerY - node.x - margin.top;
+                    
+                    // Apply the transform to center the node
+                    d3.select('#diagram svg')
+                        .transition()
+                        .duration(500)
+                        .call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY));
+                }
+                
                 // Select a node and display its details
                 function selectNode(d) {
                     // Deselect previously selected node
@@ -618,12 +639,8 @@ async function getWebviewContent(context, allObjects) {
                     
                     // If search is empty, reset to original view
                     if (!searchText) {
-                        // Clear search highlighting and selection
+                        // Clear search highlighting
                         clearSearchHighlights(root);
-                        if (selectedNode && selectedNode.searchSelected) {
-                            selectedNode = null;
-                            closeDetailPanel();
-                        }
                         collapseAll();
                         return;
                     }
@@ -679,10 +696,9 @@ async function getWebviewContent(context, allObjects) {
                     // Update the visualization
                     update(root);
                     
-                    // Focus on exact match if found
+                    // Center view on exact match if found (but don't select it)
                     if (exactMatchNode && exactMatchNode !== root) {
-                        exactMatchNode.searchSelected = true;
-                        selectNode(exactMatchNode);
+                        centerViewOnNode(exactMatchNode);
                     }
                 }
                 

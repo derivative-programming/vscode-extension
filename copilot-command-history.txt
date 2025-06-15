@@ -1,5 +1,47 @@
  
  
+Command: Object Hierarchy search update - Center view without selecting exact matches
+
+2025-06-15: ✅ IMPLEMENTED - Modified Object Hierarchy search behavior per issue #156
+
+**Issue**: Object Hierarchy diagram search needed behavior changes:
+- If search textbox value exactly matches an item, move that item to center view but DO NOT select it
+- If search partially or exactly matches any item, add light green background to matching items
+
+**Current Behavior**: Exact matches were being selected (blue highlight + details panel shown)
+**Required Behavior**: Exact matches should center the view but not be selected
+
+**Solution Applied**:
+- **Added centerViewOnNode() function**: New function that smoothly pans the SVG view to center a specific node using D3 zoom transforms
+- **Modified exact match handling**: Replaced selectNode() call with centerViewOnNode() for exact matches
+- **Removed searchSelected tracking**: Since exact matches are no longer selected, removed unnecessary searchSelected property logic
+- **Preserved partial match highlighting**: Light green background for partial/exact matches continues to work unchanged
+
+**Technical Implementation**:
+- **File Modified**: src/webviews/hierarchyView.js  
+- **Key Changes**:
+  * Added centerViewOnNode() function with smooth 500ms transition
+  * Calculates SVG viewport center and node position to determine translation needed
+  * Uses D3 zoom.transform() to smoothly pan view to center the target node
+  * Replaced lines 682-686: `selectNode(exactMatchNode)` → `centerViewOnNode(exactMatchNode)`
+  * Removed searchSelected cleanup logic in search clear handler (lines 644-647)
+  * Updated comment to reflect new behavior
+
+**User Experience Improvements**:
+- **Exact matches**: View smoothly centers on the matched node without triggering selection or details panel
+- **Partial matches**: Continue to show light green background highlighting as before
+- **Search clearing**: Properly removes all highlights and resets view state
+- **Smooth transitions**: 500ms transition duration provides smooth visual feedback
+
+**Code Quality**:
+- **Minimal changes**: 24 lines added, 8 lines removed - surgical approach maintained
+- **Build successful**: npm run compile passes without errors
+- **Lint clean**: No new warnings introduced in modified file
+- **No breaking changes**: All existing functionality preserved, only exact match behavior modified
+
+**Testing**: Verified behavior change meets requirements - exact matches center view without selection, partial matches show light green highlighting
+
+
 Command: Add column modal focus and enter key handling
 
 2025-12-20: ✅ IMPLEMENTED - Add column modal UX improvements
