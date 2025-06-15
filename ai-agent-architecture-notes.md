@@ -1,5 +1,62 @@
 # AppDNA VS Code Extension Architecture Notes
-   
+
+## Add Button Modal Focus and Enter Key Handling (Added 2025-06-15)
+
+Implemented user experience improvements for the add button modal in the report details view.
+
+### Requirements:
+- When modal opens, automatically focus on the 'button name' textbox
+- On Enter key press, trigger the 'add button' action if the button is enabled (input is valid)
+
+### Solution:
+Added focus and keyboard navigation functionality to the add button modal following the same patterns used by other modals in the application.
+
+### Technical Details:
+- **File Modified**: `src/webviews/reports/components/templates/clientScriptTemplate.js`
+- **Function Updated**: `attachButtonModalEventListeners(modal)`
+- **Changes Made**:
+  1. **Auto-focus**: Added `buttonNameInput.focus()` when modal opens
+  2. **Enter key handling**: Added keypress event listener for Enter key
+  3. **Smart validation**: Enter key only triggers action when input passes validation
+  4. **Consistent UX**: Follows same patterns as property and column modals
+
+### Implementation:
+```javascript
+// Focus on button name input when modal opens
+const buttonNameInput = modal.querySelector("#buttonName");
+if (buttonNameInput) {
+    buttonNameInput.focus();
+}
+
+// Add enter key handling for button name input
+if (buttonNameInput) {
+    buttonNameInput.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            const buttonName = buttonNameInput.value.trim();
+            const validationError = validateButtonName(buttonName);
+            
+            // Only trigger click if button would be enabled (no validation errors)
+            if (!validationError) {
+                addButton.click();
+            }
+        }
+    });
+}
+```
+
+### User Experience:
+- Modal opens with cursor immediately in the button name field
+- Users can type and press Enter to add button without mouse interaction
+- Enter key is ignored for invalid input, preventing errors
+- Consistent with other add modals throughout the application
+
+### Testing:
+- Created comprehensive test file `/tmp/test-button-modal-focus.html`
+- Verified focus behavior works correctly
+- Confirmed Enter key handling respects validation rules
+- No regressions in existing functionality
+
+  
 ## Report Button Name Validation - No Numbers Allowed (Added 2025-06-14)
 
 Implemented requirement to prevent numbers in button names when adding new buttons in the report details view.
