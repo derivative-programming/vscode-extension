@@ -429,3 +429,26 @@ Target Implementation:
 **Compilation**: TypeScript compilation successful with no errors
 
 All three modals (add column, add filter, add button) now follow the same robust, backend-first pattern with tab preservation and consistent UX.
+
+Command: Add data object wizard focus and keyboard navigation enhancements
+ 
+January 15, 2025: Enhanced the Add Object Wizard with focus management and keyboard navigation
+- **Step 1 Updates**:
+  * Added focus on 'Yes' radio button when step opens
+  * Added Enter key handler to trigger 'Next' button when enabled
+- **Step 2 Updates**:
+  * Added focus on 'search parent objects' textbox when step opens
+  * Added Enter key handler to trigger 'Next' button when enabled  
+  * Fixed step 2 display to properly update when returning from step 1 with changed value
+  * Enhanced step 2 to re-setup event listeners when parent selection form is regenerated
+- **Step 3 Updates**:
+  * Added focus on 'data object name' textbox when step opens
+  * Added Enter key handler to trigger 'Create Object' button when enabled
+- **Technical Implementation**:
+  * Enhanced showStep() function with focus management using setTimeout for DOM readiness
+  * Added keyboard event listeners for Enter key on each step
+  * Created updateStep2Display() function to handle lookup vs regular object display changes
+  * Added allObjects data to script scope for dynamic form generation
+  * Added initial focus setup when wizard loads
+- **Files Modified**: src/webviews/addObjectWizardView.js
+- **Result**: Improved user experience with keyboard navigation and proper focus management throughout the wizard workflow
