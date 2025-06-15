@@ -115,7 +115,7 @@ function showAddReportWizard(modelService) {
                         ownerObject.report.push(newReport);
                         
                         // Mark model as having unsaved changes
-                        modelService.markAsChanged();
+                        modelService.markUnsavedChanges();
                         
                         // Send success message
                         panel.webview.postMessage({ 
