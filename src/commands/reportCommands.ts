@@ -1,13 +1,35 @@
 // SEARCH_TAG: report commands for VS Code extension
 // Report-related command implementations.
 // Created: 2025-01-27
-// Last modified: 2025-01-27
+// Last modified: 2025-06-15
 
 import * as vscode from 'vscode';
 import { JsonTreeItem } from '../models/types';
 
 // Import from the JavaScript wrapper (following object details pattern)
 const reportDetailsView = require('../webviews/reportDetailsView');
+// Import the Add Report Wizard webview
+const { showAddReportWizard } = require('../webviews/addReportWizardView');
+
+/**
+ * Command handler for adding a report using the wizard
+ * @param modelService The ModelService instance
+ */
+export async function addReportCommand(modelService: any): Promise<void> {
+    if (!modelService || !modelService.isFileLoaded()) {
+        vscode.window.showErrorMessage('No model file is loaded. Please open or create a model file first.');
+        return;
+    }
+    
+    try {
+        // Show the add report wizard
+        showAddReportWizard(modelService);
+        
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        vscode.window.showErrorMessage(`Failed to open Add Report Wizard: ${errorMessage}`);
+    }
+}
 
 /**
  * Register all report-related commands
@@ -26,6 +48,13 @@ export function registerReportCommands(context: vscode.ExtensionContext, modelSe
 
             // Use the reportDetailsView implementation with modelService only
             reportDetailsView.showReportDetails(node, modelService);
+        })
+    );
+    
+    // Register the command to add a new report
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.addReport', () => {
+            addReportCommand(modelService);
         })
     );
 }

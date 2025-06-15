@@ -429,3 +429,7 @@ Target Implementation:
 **Compilation**: TypeScript compilation successful with no errors
 
 All three modals (add column, add filter, add button) now follow the same robust, backend-first pattern with tab preservation and consistent UX.
+
+2025-06-15: Add report wizard functionality with plus icon button on REPORT treeview item. Create 'Add Report Wizard' view with steps for owner data object selection, role selection (if Role data object exists), visualization type selection, target data object selection (for grid), report name and title input. Similar design to Add Data Object Wizard.
+Command: startMCPServerCommand
+Command: stopMCPServerCommand
