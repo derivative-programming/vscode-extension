@@ -389,6 +389,10 @@ function generateWizardHTML(allObjects, roleObjects) {
                 .viz-option:hover {
                     background-color: var(--vscode-list-hoverBackground);
                 }
+                .viz-option:focus {
+                    outline: 1px solid var(--vscode-focusBorder);
+                    outline-offset: 2px;
+                }
                 .viz-option.selected {
                     background-color: var(--vscode-list-activeSelectionBackground);
                     color: var(--vscode-list-activeSelectionForeground);
@@ -461,15 +465,15 @@ function generateWizardHTML(allObjects, roleObjects) {
                     Choose how you want the report data to be displayed.
                 </div>
                 <div class="form-group">
-                    <div class="viz-option" data-value="grid">
+                    <div class="viz-option" data-value="grid" tabindex="0">
                         <div class="viz-title">Table</div>
                         <div class="viz-description">Display data in a tabular format with rows and columns</div>
                     </div>
-                    <div class="viz-option" data-value="DetailTwoColumn">
+                    <div class="viz-option" data-value="DetailTwoColumn" tabindex="0">
                         <div class="viz-title">Navigation</div>
                         <div class="viz-description">Two-column detail view for navigation and content</div>
                     </div>
-                    <div class="viz-option" data-value="DetailThreeColumn">
+                    <div class="viz-option" data-value="DetailThreeColumn" tabindex="0">
                         <div class="viz-title">Detail</div>
                         <div class="viz-description">Three-column detail view for comprehensive information display</div>
                     </div>
@@ -549,6 +553,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                             const targetObjectDropdown = document.getElementById('targetObject');
                             if (targetObjectDropdown) {
                                 targetObjectDropdown.focus();
+                            }
+                        }
+                        
+                        if (stepNumber === 3) {
+                            // Focus on the step3 element to enable Enter key functionality
+                            const step3Element = document.getElementById('step3');
+                            if (step3Element) {
+                                step3Element.focus();
                             }
                         }
                         
@@ -658,6 +670,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                         selectedVisualization = this.dataset.value;
                         
                         document.getElementById('step3NextBtn').disabled = false;
+                    });
+                    
+                    // Add keyboard support for visualization options
+                    option.addEventListener('keydown', function(event) {
+                        if (event.key === ' ' || event.key === 'Enter') {
+                            event.preventDefault();
+                            this.click();
+                        }
                     });
                 });
                 

@@ -32,6 +32,54 @@ Command: Data object view - settings tab update
 - ✅ Other properties maintain original behavior
 
  
+Command: add report wizard - step 3 update
+
+2025-01-15: ✅ ENHANCED - Add Report Wizard Step 3 Enter Key and Keyboard Accessibility
+
+**Issue #174**: "add report wizard - step 3 update: on click of enter, if the visualization type is selected, then move to the next step."
+
+**Problem Analysis**: While basic Enter key handling existed, several accessibility and usability issues were discovered:
+1. Step 3 lacked focus management - no element received focus when step opened
+2. Visualization options were not keyboard accessible (missing tabindex)
+3. No keyboard selection support for visualization options
+4. Missing focus styles for visual feedback
+
+**Enhanced Solution Applied**:
+- **Focus Management**: Added step 3 focus in showStep() function to ensure Enter key works reliably
+- **Keyboard Accessibility**: Added tabindex="0" to all .viz-option elements for Tab navigation
+- **Keyboard Selection**: Added Space/Enter key handlers to select visualization options via keyboard
+- **Visual Feedback**: Added CSS :focus styles for clear keyboard navigation indication
+- **Accessibility Compliance**: Follows VS Code accessibility standards and extension guidelines
+
+**Technical Implementation**:
+- **Focus Management**: Added step 3 case in showStep() setTimeout block
+- **HTML Enhancement**: Added tabindex="0" to grid, DetailTwoColumn, DetailThreeColumn options
+- **Event Handlers**: Added keydown listeners supporting Space and Enter for option selection
+- **CSS Enhancement**: Added .viz-option:focus styles with VS Code theme variables
+
+**Files Modified**: 
+- `src/webviews/addReportWizardView.js` (23 lines added, 3 removed)
+
+**Testing & Validation**:
+- Created comprehensive test `/tmp/test-step3-enhanced.html`
+- TypeScript compilation: ✅ Success (webpack compiled successfully)
+- ESLint: ✅ No new warnings or errors (only pre-existing in xpathUtils.ts)
+- Focus behavior: ✅ Step gets focus when opened, enabling Enter key
+- Keyboard navigation: ✅ Tab through options, Space/Enter to select
+- Visual feedback: ✅ Clear focus indication with outline styles
+
+**User Experience Improvements**:
+- Step 3 opens with proper focus enabling immediate Enter key functionality
+- Full keyboard navigation support (Tab to options, Space/Enter to select, Enter to proceed)
+- Consistent accessibility with other wizard steps and VS Code design patterns
+- Clear visual feedback for keyboard users
+- Maintains all existing mouse-based functionality
+
+**Accessibility Standards Met**:
+- WCAG 2.1 keyboard accessibility guidelines
+- VS Code extension accessibility requirements
+- Consistent focus management patterns throughout wizard
+
 Command: Add report wizard step 4 focus and enter key handling
 
 2025-01-15: ✅ IMPLEMENTED - Add Report Wizard Step 4 UX improvements
