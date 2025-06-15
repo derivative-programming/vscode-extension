@@ -1,3 +1,13 @@
+Command: Add User Story modal update - focus on story text textbox when opening modal
+
+2025-12-20: Enhanced Add User Story modal to automatically focus on story text textarea
+- Modified src/webviews/userStoriesView.js line 904 to add storyTextInput.focus() after modal display
+- Follows existing pattern from modelAIProcessingView.js where input focus is set on modal open  
+- Minimal change: Added single line of code to improve user experience
+- Focus is set after modal display to ensure proper cursor placement
+- Created test case to verify focus functionality works correctly
+- Linting and compilation successful with no new issues
+
 Command: Data object details view settings tab - make parent object name textbox read-only
 
 2025-06-14: Fixed parent object name textbox to be truly read-only in data object details view settings tab
