@@ -1,4 +1,43 @@
  
+Command: Add button modal focus and enter key handling
+
+2025-06-15: ✅ IMPLEMENTED - Add button modal UX improvements
+
+**Issue**: Report details view add button modal needed focus and enter key handling
+- When modal opens, focus should be on the 'button name' textbox
+- On Enter key press, trigger the 'add button' button if it's enabled
+
+**Solution Applied**:
+- **Auto-focus on input**: Added `buttonNameInput.focus()` when modal opens
+- **Enter key handling**: Added keypress event listener for Enter key
+- **Smart validation**: Enter key only triggers action when input is valid (no validation errors)
+- **Consistent patterns**: Follows same UX patterns as other modals in the application
+
+**Technical Implementation**:
+- Modified `attachButtonModalEventListeners()` function in `clientScriptTemplate.js`
+- Added focus handling after modal is displayed
+- Added keypress event listener that respects validation state
+- Uses existing `validateButtonName()` function for consistency
+- Only triggers `addButton.click()` when input passes validation
+
+**Files Modified**:
+- `src/webviews/reports/components/templates/clientScriptTemplate.js`: Added 24 lines, modified 1 line
+- Added comprehensive test file to verify functionality works correctly
+
+**Testing Results**:
+- TypeScript compilation: ✅ Success
+- ESLint: ✅ No new warnings
+- Focus behavior: ✅ Works correctly
+- Enter key validation: ✅ Respects validation rules
+- No regressions: ✅ Existing functionality preserved
+
+**User Experience**:
+- Modal opens with immediate cursor focus in button name field
+- Users can type and press Enter without needing mouse
+- Invalid input gracefully ignored on Enter key
+- Matches behavior of other add modals in the application
+ 
+ 
 Command: report details view - add column modal updates
 
 2025-01-14: ✅ IMPLEMENTED - Focus and Enter key handling for add column modal
@@ -50,7 +89,7 @@ Command: Add User Story modal update - focus on story text textbox when opening 
 - Created test case to verify focus functionality works correctly
 - Linting and compilation successful with no new issues
  
- 
+  
 Command: Data object details view settings tab - make parent object name textbox read-only
 
 2025-06-14: Fixed parent object name textbox to be truly read-only in data object details view settings tab
