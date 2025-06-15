@@ -16,21 +16,21 @@
   "contributes": {
     "viewsContainers": {
       "activitybar": [
-        {
-          "id": "appdnaContainer",
+        {          "id": "appdnaContainer",
           "title": "AppDNA",
           "icon": "$(rocket)"
         }
       ]
-    },
-    "views": {
+    },    "views": {
       "appdnaContainer": [
         {
           "id": "appdna",
-          "name": "AppDNA"
+          "name": "AppDNA",
+          "icon": "$(book)"
         }
       ]
-    },    "menus": {
+    },
+    "menus": {
       "view/title": [
         {
           "command": "appdna.addFile",
@@ -85,6 +85,12 @@
           "icon": "$(add)"
         },
         {
+          "command": "appdna.addReport",
+          "when": "viewItem =~ /reports.*/",
+          "group": "inline@1",
+          "icon": "$(add)"
+        },
+        {
           "command": "appdna.showHierarchyDiagram",
           "when": "viewItem =~ /dataObjects.*showHierarchy/",
           "group": "inline",
@@ -115,16 +121,16 @@
         }
       ]
     },
-    "configuration": {
-      "title": "AppDNA",
+    "configuration": {      "title": "AppDNA",
       "properties": {
         "appDNA.modelServiceUrl": {
           "type": "string",
           "default": "https://modelservicesapi.derivative-programming.com",
           "description": "URL for the external model generation service"
         }
-      }    },    "commands": [
-      {
+      }
+    },
+    "commands": [      {
         "command": "appdna.addFile",
         "title": "New Project Model",
         "icon": "$(add)"
@@ -132,6 +138,11 @@
       {
         "command": "appdna.addObject",
         "title": "Add Object",
+        "icon": "$(add)"
+      },
+      {
+        "command": "appdna.addReport",
+        "title": "Add Report",
         "icon": "$(add)"
       },
       {

@@ -70,6 +70,54 @@ Implemented requirement to make the 'Parent Object Name' textbox always read-onl
 ### Testing Verified:
 - Property exists with value: Field shows value and is readonly ✅
 - Property doesn't exist: Field is empty and readonly ✅  
+
+## Add Report Wizard Implementation (Added 2025-06-15)
+
+Implemented a comprehensive Add Report Wizard for creating new reports from the REPORTS tree view item.
+
+### Problem:
+- Users needed a way to add new reports to data objects through a guided wizard interface
+- Required support for multiple report types and role-based authorization
+- Needed intelligent naming conventions and validation
+
+### Solution:
+- Created `src/webviews/addReportWizardView.js` - Complete wizard implementation following the Add Object Wizard pattern
+- Added `appdna.addReport` command to package.json and view context menu for reports tree items
+- Extended `src/commands/reportCommands.ts` with addReportCommand function
+- Integrated with existing ModelService for data manipulation and tree refresh
+
+### Architecture Pattern:
+- **Webview Implementation**: JavaScript-based wizard with multi-step navigation
+- **Command Registration**: Standard VS Code command pattern with context menu integration
+- **Model Integration**: Uses ModelService for object retrieval and report creation
+- **Tree Integration**: Automatically refreshes tree view and opens report details after creation
+
+### Wizard Flow:
+1. **Step 1: Owner Object Selection** - Select the data object that will own the report
+2. **Step 2: Role Selection** - Choose required role (if Role objects exist, otherwise skipped)
+3. **Step 3: Visualization Type** - Select from Table, Navigation, or Detail views
+4. **Step 4: Target Object** - Select target data object (for Table visualization only)
+5. **Step 5: Report Details** - Enter report name and title with validation
+
+### Technical Features:
+- **Smart Navigation**: Skips steps based on data availability and selections
+- **Intelligent Naming**: Auto-generates report names following [Owner][Role][Target][Type] convention
+- **Real-time Validation**: Name validation for uniqueness, format, and length constraints
+- **Dynamic UI**: Progress indicator, conditional field display, and contextual descriptions
+- **Role Detection**: Automatically detects Role objects and their lookup items
+- **Child Object Resolution**: Dynamically loads child objects for target selection
+
+### Files Modified/Created:
+- **NEW**: `src/webviews/addReportWizardView.js` - Main wizard implementation
+- **MODIFIED**: `src/commands/reportCommands.ts` - Added addReportCommand function
+- **MODIFIED**: `package.json` - Added command and menu item
+- **MODIFIED**: `copilot-command-history.txt` - Logged implementation
+
+### Integration Points:
+- **Tree View**: Plus icon button on REPORTS items triggers wizard
+- **Model Service**: Uses getAllObjects(), getAllReports(), and markAsChanged()
+- **Report Details**: Automatically opens created report in details view
+- **Validation**: Leverages existing ReportSchema interface for type safety
 - Property is null: Field is empty and readonly ✅
 - Property is empty string: Field is empty and readonly ✅
 - Other fields unaffected: Description field remains editable when appropriate ✅
