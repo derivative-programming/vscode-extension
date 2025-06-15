@@ -12,12 +12,51 @@
  * @returns {string} JavaScript code
  */
 function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonSchema, paramSchema, reportName) {
-    return `
-        // Store current data
+    return `        // Store current data
         let currentColumns = ${JSON.stringify(columns)};
         let currentButtons = ${JSON.stringify(buttons)};
         let currentParams = ${JSON.stringify(params)};
         let currentEditingIndex = -1;
+        
+        // Set up VS Code message listener for tab restoration
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (message.command === 'restoreTab') {
+                console.log('[DEBUG] Restoring tab:', message.tabId);
+                restoreActiveTab(message.tabId);
+            }
+        });        // Function to restore the active tab with retry logic
+        function restoreActiveTab(tabId) {
+            function attemptRestore() {
+                // Remove active class from all tabs and tab contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to the specified tab and its content
+                const targetTab = document.querySelector('.tab[data-tab="' + tabId + '"]');
+                const targetContent = document.getElementById(tabId);
+                
+                if (targetTab && targetContent) {
+                    targetTab.classList.add('active');
+                    targetContent.classList.add('active');
+                    console.log('[DEBUG] Successfully restored tab:', tabId);
+                    return true;
+                } else {
+                    console.warn('[DEBUG] Elements not ready yet for tab:', tabId);
+                    return false;
+                }
+            }
+            
+            // Try immediately first
+            if (!attemptRestore()) {
+                // If elements not found, wait for DOM to be ready and try again
+                setTimeout(() => {
+                    if (!attemptRestore()) {
+                        console.error('[DEBUG] Failed to restore tab after retry:', tabId);
+                    }
+                }, 50);
+            }
+        }
           // Add Column Modal Template Function
         function getAddColumnModalHtml() {
             return "" +
@@ -628,8 +667,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         document.getElementById('add-column-btn').addEventListener('click', function() {
             // Use the new add column modal instead of the edit modal
             createAddColumnModal();
-        });
-          // Function to add a new column (called from add column modal)
+        });        // Function to add a new column (called from add column modal)
         function addNewColumn(columnName, headerText) {
             const newColumn = {
                 name: columnName,
@@ -639,11 +677,16 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Add to current columns array for immediate backend update
             const updatedColumns = [...currentColumns, newColumn];
             
+            // Get the currently active tab to preserve it after reload
+            const activeTab = document.querySelector('.tab.active');
+            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'columns';
+            
             // Send message to update the model - backend will reload the view
             vscode.postMessage({
                 command: 'updateModel',
                 data: {
-                    columns: updatedColumns
+                    columns: updatedColumns,
+                    preserveTab: currentTabId
                 }
             });
             
@@ -775,15 +818,19 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     name: name,
                     headerText: generateHeaderText(name)
                 }));
-                
-                // Add all columns in one operation
+                  // Add all columns in one operation
                 const updatedColumns = [...currentColumns, ...newColumns];
+                
+                // Get the currently active tab to preserve it after reload
+                const activeTab = document.querySelector('.tab.active');
+                const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'columns';
                 
                 // Send message to update the model - backend will reload the view
                 vscode.postMessage({
                     command: 'updateModel',
                     data: {
-                        columns: updatedColumns
+                        columns: updatedColumns,
+                        preserveTab: currentTabId
                     }
                 });
                 

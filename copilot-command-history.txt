@@ -305,3 +305,35 @@ June 14, 2025 - User reported: "it looks like the tab is changed to 'settings' C
 
 Issue: After adding column, view reloads but switches to default 'Settings' tab instead of staying on 'Columns' tab.
 Need to preserve active tab state during view reload.
+
+2025-06-14: ✅ FIXED - Tab preservation when adding columns
+- **Issue**: After adding column, view reloaded but switched to default 'Settings' tab instead of staying on 'Columns' tab
+- **Root Cause**: View regeneration always defaults to first tab (Settings) without preserving user's current tab state
+- **Solution Implemented**:
+  1. **Frontend Changes**: Modified addNewColumn() function to detect current active tab and send preserveTab parameter
+  2. **Backend Changes**: Updated updateModelDirectly() to handle preserveTab parameter and send restoreTab message after view reload
+  3. **Tab Restoration**: Added message listener and restoreActiveTab() function to client script for tab restoration
+- **Technical Details**:
+  * Frontend detects active tab using `document.querySelector('.tab.active').getAttribute('data-tab')`
+  * Backend sends restoreTab message with 100ms delay after HTML regeneration
+  * Client script listens for restoreTab message and restores correct tab state
+  * Works for both single column and bulk column additions
+- **Files Modified**:
+  * clientScriptTemplate.js: Added tab detection, message listener, and restoration function
+  * reportDetailsView.js: Added preserveTab handling and restoreTab message sending
+- **Result**: Users stay on Columns tab when adding columns, maintaining better UX flow
+
+June 15, 2025 - User asked: "why the delay on preserving the tab?"
+
+**Answer about the delay**:
+The 100ms delay was needed because:
+1. `panel.webview.html = ...` triggers async DOM update in VS Code
+2. If restoreTab message sent immediately, DOM elements might not exist yet
+3. `document.querySelector()` would fail to find tab elements
+
+**Improved Implementation**:
+- Removed backend setTimeout delay
+- Added client-side retry logic in restoreActiveTab()
+- Tries immediately first, then retries after 50ms if elements not found
+- More robust and responsive than fixed 100ms delay
+- Handles timing issues at the client side where DOM state can be checked

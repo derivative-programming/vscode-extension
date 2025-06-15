@@ -331,8 +331,7 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
             modelService.markUnsavedChanges();
             console.log("[DEBUG] Model marked as having unsaved changes");
         }
-        
-        // Reload the webview with updated model data
+          // Reload the webview with updated model data
         if (panel && !panel._disposed) {
             console.log("[DEBUG] Reloading webview with updated model data");
             
@@ -342,8 +341,7 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
             const reportColumnsSchema = getReportColumnsSchema(schema);
             const reportButtonsSchema = getReportButtonsSchema(schema);
             const reportParamsSchema = getReportParamsSchema(schema);
-            
-            // Regenerate and update the webview HTML with updated model data
+              // Regenerate and update the webview HTML with updated model data
             panel.webview.html = generateDetailsView(
                 reportReference, 
                 reportSchemaProps, 
@@ -351,6 +349,17 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
                 reportButtonsSchema, 
                 reportParamsSchema
             );
+            
+            // If preserveTab was specified, restore the active tab
+            // We use a small delay to ensure the webview DOM is fully updated
+            if (data.preserveTab) {
+                console.log("[DEBUG] Preserving tab:", data.preserveTab);
+                // Alternative: Use setImmediate or just send immediately and let client handle timing
+                panel.webview.postMessage({
+                    command: 'restoreTab',
+                    tabId: data.preserveTab
+                });
+            }
         }
         
         // Refresh the tree view to reflect any visible changes
