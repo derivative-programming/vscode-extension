@@ -1430,6 +1430,12 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 
                 // Attach event listeners after modal is in DOM and visible
                 attachParamModalEventListeners(modal);
+                
+                // Focus on the parameter name input (single tab is active by default)
+                const paramNameInput = modal.querySelector("#paramName");
+                if (paramNameInput) {
+                    paramNameInput.focus();
+                }
             }, 10);
         }
         
@@ -1449,6 +1455,21 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                             content.classList.add('active');
                         }
                     });
+                    
+                    // Focus appropriate input based on active tab
+                    setTimeout(() => {
+                        if (tabId === 'singleAdd') {
+                            const paramNameInput = modal.querySelector("#paramName");
+                            if (paramNameInput) {
+                                paramNameInput.focus();
+                            }
+                        } else if (tabId === 'bulkAdd') {
+                            const bulkParamsInput = modal.querySelector("#bulkParams");
+                            if (bulkParamsInput) {
+                                bulkParamsInput.focus();
+                            }
+                        }
+                    }, 10);
                 });
             });
             
@@ -1546,6 +1567,34 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 
                 // Close the modal
                 document.body.removeChild(modal);
+            });
+            
+            // Add Enter key listener for single parameter input
+            modal.querySelector("#paramName").addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault(); // Prevent default Enter behavior
+                    const addButton = modal.querySelector("#addSingleParam");
+                    if (addButton && !addButton.disabled) {
+                        addButton.click(); // Trigger the add parameter button
+                    }
+                }
+            });
+            
+            // Add Enter key listener for bulk parameters textarea
+            modal.querySelector("#bulkParams").addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    // For textarea, we'll use a more sophisticated approach
+                    // Check if the input appears complete (no trailing newlines/spaces)
+                    const value = this.value.trim();
+                    if (value && !event.shiftKey) {
+                        event.preventDefault(); // Prevent default Enter behavior
+                        const addButton = modal.querySelector("#addBulkParams");
+                        if (addButton && !addButton.disabled) {
+                            addButton.click(); // Trigger the add parameters button
+                        }
+                    }
+                    // If Shift+Enter, allow normal newline behavior
+                }
             });
         }
         
