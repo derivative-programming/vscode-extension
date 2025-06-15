@@ -1,5 +1,56 @@
 # AppDNA VS Code Extension Architecture Notes
 
+## Add Report Wizard Step 4 Focus and Enter Key Handling (Added 2025-01-15)
+
+### Requirements:
+- When step 4 opens, automatically focus on the 'target data object' dropdown
+- On Enter key press, if dropdown has a value selected, move to the next step
+
+### Solution:
+Added focus and keyboard navigation functionality to the Add Report Wizard step 4 following the same patterns used by the Add Object Wizard and other modals in the application.
+
+### Technical Details:
+- **File Modified**: `src/webviews/addReportWizardView.js`
+- **Functions Updated**: `showStep()` function and event listener setup
+- **Changes Made**:
+  1. **Auto-focus on step open**: Added focus management to `showStep()` function
+  2. **Enter key handling**: Added keydown event listener for target object dropdown
+  3. **Smart validation**: Enter key only triggers action when dropdown has a value
+  4. **Consistent UX**: Follows same patterns as Add Object Wizard step focus management
+
+### Implementation:
+```javascript
+// Focus management in showStep function
+function showStep(stepNumber) {
+    // ... existing code ...
+    
+    // Focus management for each step
+    setTimeout(() => {
+        if (stepNumber === 4) {
+            // Focus on the target data object dropdown
+            const targetObjectDropdown = document.getElementById('targetObject');
+            if (targetObjectDropdown) {
+                targetObjectDropdown.focus();
+            }
+        }
+    }, 100);
+}
+
+// Enter key handling for target object dropdown
+document.getElementById('targetObject').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && this.value) {
+        event.preventDefault();
+        document.getElementById('step4NextBtn').click();
+    }
+});
+```
+
+### User Experience:
+- Step 4 opens with cursor immediately in the target data object dropdown
+- Users can navigate dropdown with keyboard and press Enter to proceed without mouse interaction
+- Enter key is ignored when no value is selected, preventing accidental navigation
+- Consistent with other wizard steps and modals throughout the application
+
  
 ## Add Column Modal Focus and Enter Key Handling (Added 2025-12-20)
 

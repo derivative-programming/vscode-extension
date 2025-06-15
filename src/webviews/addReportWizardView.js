@@ -541,6 +541,17 @@ function generateWizardHTML(allObjects, roleObjects) {
                     document.querySelector('.step-' + stepNumber).classList.add('active');
                     
                     currentStep = stepNumber;
+                    
+                    // Focus management for each step
+                    setTimeout(() => {
+                        if (stepNumber === 4) {
+                            // Focus on the target data object dropdown
+                            const targetObjectDropdown = document.getElementById('targetObject');
+                            if (targetObjectDropdown) {
+                                targetObjectDropdown.focus();
+                            }
+                        }
+                    }, 100);
                 }
                 
                 function nextStep() {
@@ -632,6 +643,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                 document.getElementById('targetObject').addEventListener('change', function() {
                     selectedTargetObject = this.value;
                     document.getElementById('step4NextBtn').disabled = !this.value;
+                });
+                
+                // Handle Enter key for step 4 target object dropdown
+                document.getElementById('targetObject').addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && this.value) {
+                        event.preventDefault();
+                        document.getElementById('step4NextBtn').click();
+                    }
                 });
                 
                 document.getElementById('step4BackBtn').addEventListener('click', previousStep);
