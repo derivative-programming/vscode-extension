@@ -1,5 +1,47 @@
 # AppDNA VS Code Extension Architecture Notes
 
+## Add Report Wizard Step 3 Enhanced Enter Key Handling (Added 2025-01-15)
+
+### Issue #174 Resolution:
+The report wizard step 3 needed complete Enter key functionality and keyboard accessibility improvements.
+
+### Problems Identified:
+1. **Missing Focus Management**: Step 3 didn't get focus when opened, making Enter key unreliable
+2. **Non-Keyboard Accessible Options**: Visualization options lacked tabindex and keyboard event handlers
+3. **Missing Focus Styles**: No visual indication when options were focused via keyboard
+
+### Solution Applied:
+- **Step 3 Focus Management**: Added focus on step3 element when step opens (like other steps)
+- **Keyboard Accessibility**: Added tabindex="0" to all visualization options
+- **Keyboard Event Handlers**: Added Space/Enter key support for selecting options
+- **Focus Styles**: Added CSS :focus styles for clear visual feedback
+
+### Technical Implementation:
+```javascript
+// Focus management in showStep function
+if (stepNumber === 3) {
+    const step3Element = document.getElementById('step3');
+    if (step3Element) {
+        step3Element.focus();
+    }
+}
+
+// Keyboard support for visualization options
+option.addEventListener('keydown', function(event) {
+    if (event.key === ' ' || event.key === 'Enter') {
+        event.preventDefault();
+        this.click();
+    }
+});
+```
+
+### User Experience:
+- Step 3 opens with proper focus enabling Enter key functionality
+- Users can Tab through visualization options and select with Space/Enter
+- Enter key advances to next step when visualization is selected
+- Clear visual feedback for keyboard navigation
+- Consistent with other wizard steps and VS Code accessibility standards
+
 ## Add Report Wizard Step 4 Focus and Enter Key Handling (Added 2025-01-15)
 
 ### Requirements:
