@@ -17,10 +17,9 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
  * @param {string} paramTableHeaders HTML for the param table headers
  * @param {string} paramTableRows HTML for the param table rows
  * @param {string} paramListViewFields HTML for the param list view form fields
- * @param {string} columnModalHtml HTML for the column modal * @param {string} addColumnModalHtml HTML for the add column modal
+ * @param {string} columnModalHtml HTML for the column modal
  * @param {string} buttonModalHtml HTML for the button modal
  * @param {string} paramModalHtml HTML for the param modal
- * @param {string} addParamModalHtml HTML for the add param modal
  * @param {string} clientScript JavaScript code for the client
  * @returns {string} Complete HTML document
  */
@@ -29,7 +28,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                         columnTableHeaders, columnTableRows, columnListViewFields,
                         buttonTableHeaders, buttonTableRows, buttonListViewFields,
                         paramTableHeaders, paramTableRows, paramListViewFields,
-                        columnModalHtml, addColumnModalHtml, buttonModalHtml, paramModalHtml, addParamModalHtml,
+                        columnModalHtml, buttonModalHtml, paramModalHtml,
                         clientScript) {
       return `<!DOCTYPE html>
 <html lang="en">
@@ -189,17 +188,11 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
       <!-- Modal for editing existing columns -->
     ${columnModalHtml}
     
-    <!-- Modal for adding new columns -->
-    ${addColumnModalHtml}
-    
     <!-- Modal for adding/editing buttons -->
     ${buttonModalHtml}
     
     <!-- Modal for editing existing parameters -->
     ${paramModalHtml}
-    
-    <!-- Modal for adding new parameters -->
-    ${addParamModalHtml}
     
     <script>
         // Initialize vscode messaging

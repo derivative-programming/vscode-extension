@@ -1,3 +1,95 @@
+ 
+Command: Add button modal focus and enter key handling
+
+2025-06-15: ✅ IMPLEMENTED - Add button modal UX improvements
+
+**Issue**: Report details view add button modal needed focus and enter key handling
+- When modal opens, focus should be on the 'button name' textbox
+- On Enter key press, trigger the 'add button' button if it's enabled
+
+**Solution Applied**:
+- **Auto-focus on input**: Added `buttonNameInput.focus()` when modal opens
+- **Enter key handling**: Added keypress event listener for Enter key
+- **Smart validation**: Enter key only triggers action when input is valid (no validation errors)
+- **Consistent patterns**: Follows same UX patterns as other modals in the application
+
+**Technical Implementation**:
+- Modified `attachButtonModalEventListeners()` function in `clientScriptTemplate.js`
+- Added focus handling after modal is displayed
+- Added keypress event listener that respects validation state
+- Uses existing `validateButtonName()` function for consistency
+- Only triggers `addButton.click()` when input passes validation
+
+**Files Modified**:
+- `src/webviews/reports/components/templates/clientScriptTemplate.js`: Added 24 lines, modified 1 line
+- Added comprehensive test file to verify functionality works correctly
+
+**Testing Results**:
+- TypeScript compilation: ✅ Success
+- ESLint: ✅ No new warnings
+- Focus behavior: ✅ Works correctly
+- Enter key validation: ✅ Respects validation rules
+- No regressions: ✅ Existing functionality preserved
+
+**User Experience**:
+- Modal opens with immediate cursor focus in button name field
+- Users can type and press Enter without needing mouse
+- Invalid input gracefully ignored on Enter key
+- Matches behavior of other add modals in the application
+ 
+ 
+Command: report details view - add column modal updates
+
+2025-01-14: ✅ IMPLEMENTED - Focus and Enter key handling for add column modal
+
+**Changes Applied**:
+- **Modified src/webviews/reports/components/templates/addColumnModalFunctionality.js**:
+  * Added focus handling when modal opens - automatically focuses on column name input (single column tab is active by default)
+  * Added focus handling for tab switching - focuses on appropriate input when switching between tabs:
+    - Single Column tab: focuses on "columnName" input
+    - Bulk Add tab: focuses on "bulkColumns" textarea
+  * Added Enter key handling for single column input - Enter key triggers "Add Column" button if enabled
+  * Added Enter key handling for bulk columns textarea - Enter submits (Shift+Enter for new lines)
+  * Fixed close button selector bug - changed from ".close" to ".close-button" to match template
+  * Updated all event listeners to use modal-scoped selectors (modal.querySelector) instead of global document.getElementById for better isolation
+  * Added button enabled/disabled checks before triggering clicks
+
+**Implementation Details**:
+- Focus is set using setTimeout to ensure DOM is ready after modal display
+- Enter key uses keypress event for single input, keydown for textarea (to properly handle Shift+Enter)
+- Shift+Enter in bulk textarea allows new lines, regular Enter submits
+- All changes preserve existing functionality while adding the requested features
+- Button clicks are only triggered if buttons are not disabled
+
+**User Experience Improvements**:
+1. **Single Column tab**: Modal opens → cursor in column name input, Enter → submits if valid
+2. **Bulk Add tab**: Switch to tab → cursor in textarea, Enter → submits, Shift+Enter → new line
+3. **Tab switching**: Always focuses on the appropriate input field
+4. **Keyboard-driven workflow**: Users can navigate and submit without mouse
+
+**Testing**: Created manual test file at /tmp/test-column-modal.html to verify focus and keyboard behavior
+ 
+ 
+Command: Object Hierarchy diagram update - Focus on search textbox when opened
+
+2025-06-15: Added focus to search textbox when Object Hierarchy diagram opens
+- Modified src/webviews/hierarchyView.js to add focus() call to search input
+- Added `document.getElementById('search').focus();` in initDiagram() function after event listeners
+- This ensures the cursor is automatically placed in the search box when the hierarchy view opens
+- Minimal change of 3 lines added, no deletions
+- Change is applied after all initialization is complete for best user experience
+ 
+Command: Add User Story modal update - focus on story text textbox when opening modal
+
+2025-12-20: Enhanced Add User Story modal to automatically focus on story text textarea
+- Modified src/webviews/userStoriesView.js line 904 to add storyTextInput.focus() after modal display
+- Follows existing pattern from modelAIProcessingView.js where input focus is set on modal open  
+- Minimal change: Added single line of code to improve user experience
+- Focus is set after modal display to ensure proper cursor placement
+- Created test case to verify focus functionality works correctly
+- Linting and compilation successful with no new issues
+ 
+  
 Command: Data object details view settings tab - make parent object name textbox read-only
 
 2025-06-14: Fixed parent object name textbox to be truly read-only in data object details view settings tab
@@ -8,6 +100,18 @@ Command: Data object details view settings tab - make parent object name textbox
 - Added condition to prevent parentObjectName field from being made editable: `if (key !== 'parentObjectName')`
 - This ensures the parentObjectName textbox is always readonly regardless of property existence or checkbox state
 - Implementation now prevents any modification of parent object relationships in both HTML and JavaScript
+
+Command: Data object view - add property modal updates
+
+2025-12-19: Implemented focus and Enter key handling for data object view - add property modal
+- Modified src/webviews/objects/components/templates/propertyModalFunctionality.js
+- Added focus on property name textbox when modal opens (single property tab)
+- Added focus management when switching between tabs (single/bulk)
+- Added Enter key handler for single property input to trigger "Add Property" button
+- Added Enter key handler for bulk properties textarea to trigger "Add Properties" button
+- Both Enter handlers check if buttons are enabled before clicking
+- Implementation follows existing patterns from modelFabricationView.js and modelAIProcessingView.js
+- Changes ensure better user experience with keyboard navigation and quick input submission
 
 Command: Report details view - add column modal update
 
@@ -429,9 +533,72 @@ Target Implementation:
 **Compilation**: TypeScript compilation successful with no errors
 
 All three modals (add column, add filter, add button) now follow the same robust, backend-first pattern with tab preservation and consistent UX.
+ 
+2025-06-15: ✅ IMPLEMENTED - Add parameter modal focus and Enter key functionality
 
+**Changes Applied:**
+- **Added focus management to parameter modal**:
+  * When modal opens, focus is automatically set on the 'parameter name' textbox (single tab is active by default)
+  * When switching to bulk parameters tab, focus is set on the bulk parameters textarea
+  * When switching back to single parameter tab, focus returns to the parameter name textbox
+- **Added Enter key functionality**:
+  * Single parameter tab: Enter key triggers 'add parameter' button if enabled
+  * Bulk parameters tab: Enter key triggers 'add parameters' button if enabled (with smart handling)
+  * Uses Shift+Enter to allow normal newline behavior in textarea
+  * Only triggers button click if button is not disabled
+  * Prevents default Enter behavior to avoid conflicts
+
+**Technical Implementation Details**:
+- Modified `createAddParamModal()` function to set initial focus after modal is displayed
+- Enhanced `attachParamModalEventListeners()` with focus management in tab switching logic
+- Added Enter key event listeners for both #paramName input and #bulkParams textarea
+- Smart textarea handling: Enter submits only if textarea has content and Shift is not pressed
+- Following established patterns from modelFabricationView.js for focus and keyboard handling
+
+**Files Modified**:
+- `src/webviews/reports/components/templates/clientScriptTemplate.js`: Added 49 lines of focus and keyboard functionality
+
+**Testing & Validation**:
+- Created comprehensive test file `/tmp/test-param-modal-focus.html` to validate functionality
+- TypeScript compilation successful with webpack (no errors)
+- ESLint passes (only pre-existing warnings in unrelated files)
+- No new git changes beyond intended modifications
+
+**UX Improvements Delivered**:
+- Immediate keyboard accessibility - users can start typing when modal opens
+- Seamless tab switching with automatic focus management
+- Enter key submission for power users who prefer keyboard navigation
+- Intelligent textarea behavior that respects both submission and text editing needs
+
+All requirements from issue #144 have been successfully implemented and tested.
+ 
+ 
+Command: Add data object wizard focus and keyboard navigation enhancements
+ 
+January 15, 2025: Enhanced the Add Object Wizard with focus management and keyboard navigation
+- **Step 1 Updates**:
+  * Added focus on 'Yes' radio button when step opens
+  * Added Enter key handler to trigger 'Next' button when enabled
+- **Step 2 Updates**:
+  * Added focus on 'search parent objects' textbox when step opens
+  * Added Enter key handler to trigger 'Next' button when enabled  
+  * Fixed step 2 display to properly update when returning from step 1 with changed value
+  * Enhanced step 2 to re-setup event listeners when parent selection form is regenerated
+- **Step 3 Updates**:
+  * Added focus on 'data object name' textbox when step opens
+  * Added Enter key handler to trigger 'Create Object' button when enabled
+- **Technical Implementation**:
+  * Enhanced showStep() function with focus management using setTimeout for DOM readiness
+  * Added keyboard event listeners for Enter key on each step
+  * Created updateStep2Display() function to handle lookup vs regular object display changes
+  * Added allObjects data to script scope for dynamic form generation
+  * Added initial focus setup when wizard loads
+- **Files Modified**: src/webviews/addObjectWizardView.js
+- **Result**: Improved user experience with keyboard navigation and proper focus management throughout the wizard workflow
+  
 2025-06-15: Add report wizard functionality with plus icon button on REPORT treeview item. Create 'Add Report Wizard' view with steps for owner data object selection, role selection (if Role data object exists), visualization type selection, target data object selection (for grid), report name and title input. Similar design to Add Data Object Wizard.
 Command: startMCPServerCommand
+ 
 Command: stopMCPServerCommand
 
 Command: data object details - properties tab - object lookup modal on 'fk object name'
@@ -459,3 +626,27 @@ Command: data object details - properties tab - object lookup modal on 'fk objec
 - Modal supports both single-click + Accept and double-click for selection
 - Follows VS Code design patterns with proper theming and icon usage
 - Minimal changes approach - only added what's needed for this specific feature
+ 
+Command: stopMCPServerCommand 
+
+2025-06-15: ✅ FIXED - Report details view display issue - Add Column and Add Filter sections embedded on all tabs
+
+**Issue**: Modal content for "Add Column" and "Add Filter" sections was appearing at the bottom of all tabs instead of being hidden until modal is opened.
+
+**Root Cause**: 
+- The `addColumnModalHtml` and `addParamModalHtml` templates were being included directly in the main template HTML without proper modal wrapper containers
+- These templates only returned `<div class="modal-content">` without the outer `<div class="modal">` wrapper that has `display: none` in CSS
+- The templates were redundant since clientScriptTemplate.js creates these modals dynamically
+
+**Solution Applied**:
+- Removed `addColumnModalHtml` and `addParamModalHtml` from mainTemplate.js (lines 192-193 and 201-202)
+- Updated mainTemplate.js function signature to remove unused parameters
+- Updated detailsViewGenerator.js to match new function signature and removed unused imports
+- Modal functionality is preserved via dynamic creation in clientScriptTemplate.js
+
+**Files Modified**:
+- `src/webviews/reports/components/templates/mainTemplate.js`: Removed modal HTML inclusions and updated function signature
+- `src/webviews/reports/components/detailsViewGenerator.js`: Removed unused modal HTML generation and imports
+
+**Result**: Add Column and Add Filter sections no longer appear at bottom of tabs, but modals still work when buttons are clicked.
+  

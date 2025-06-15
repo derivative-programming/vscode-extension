@@ -4,10 +4,8 @@
 const { formatLabel } = require("../helpers/reportDataHelper");
 const { getDetailViewStyles } = require("../styles/detailsViewStyles");
 const { getColumnModalHtml } = require("./templates/columnModalTemplate");
-const { getAddColumnModalHtml } = require("./templates/addColumnModalTemplate");
 const { getButtonModalHtml } = require("./templates/buttonModalTemplate");
 const { getParamModalHtml } = require("./templates/paramModalTemplate");
-const { getAddParamModalHtml } = require("./templates/addParamModalTemplate");
 const { getModalFunctionality } = require("./templates/modalFunctionality");
 const { getMainTemplate } = require("./templates/mainTemplate");
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
@@ -63,16 +61,11 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
     // Generate column modal HTML
     const columnModalHtml = getColumnModalHtml(reportColumnsSchema);
     
-    // Generate add column modal HTML
-    const addColumnModalHtml = getAddColumnModalHtml();
-    
     // Generate button modal HTML
     const buttonModalHtml = getButtonModalHtml(reportButtonsSchema);
-      // Generate param modal HTML
-    const paramModalHtml = getParamModalHtml(reportParamsSchema);
     
-    // Generate add param modal HTML
-    const addParamModalHtml = getAddParamModalHtml();
+    // Generate param modal HTML
+    const paramModalHtml = getParamModalHtml(reportParamsSchema);
     
     // Generate modal functionality
     const modalJs = getModalFunctionality();
@@ -92,7 +85,7 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
         columnTableHeaders, columnTableRows, columnListViewFields,
         buttonTableHeaders, buttonTableRows, buttonListViewFields,
         paramTableHeaders, paramTableRows, paramListViewFields,
-        columnModalHtml, addColumnModalHtml, buttonModalHtml, paramModalHtml, addParamModalHtml,
+        columnModalHtml, buttonModalHtml, paramModalHtml,
         clientScript + modalJs
     );
 }

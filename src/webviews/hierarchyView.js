@@ -327,6 +327,9 @@ async function getWebviewContent(context, allObjects) {
                     document.getElementById('close-detail').addEventListener('click', closeDetailPanel);
                     document.getElementById('show-full-details').addEventListener('click', showFullDetails);
                     document.getElementById('search').addEventListener('input', searchObjects);
+                    
+                    // Focus on the search input when the diagram loads
+                    document.getElementById('search').focus();
                 }
                 
                 // Update the diagram
