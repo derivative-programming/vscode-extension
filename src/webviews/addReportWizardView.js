@@ -543,7 +543,15 @@ function generateWizardHTML(allObjects, roleObjects) {
                     currentStep = stepNumber;
                     
                     // Focus management for each step
-                    setTimeout(() => { 
+                    setTimeout(() => {
+                        if (stepNumber === 4) {
+                            // Focus on the target data object dropdown
+                            const targetObjectDropdown = document.getElementById('targetObject');
+                            if (targetObjectDropdown) {
+                                targetObjectDropdown.focus();
+                            }
+                        }
+                        
                         if (stepNumber === 2) {
                             // Focus on the 'Required Role' dropdown when step 2 opens
                             const roleRequired = document.getElementById('roleRequired');
@@ -560,7 +568,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                             }
                         }
                     }, 100); // Small delay to ensure DOM is updated
-                    
+                     
                 }
                 
                 function nextStep() {
@@ -676,6 +684,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                 document.getElementById('targetObject').addEventListener('change', function() {
                     selectedTargetObject = this.value;
                     document.getElementById('step4NextBtn').disabled = !this.value;
+                });
+                
+                // Handle Enter key for step 4 target object dropdown
+                document.getElementById('targetObject').addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && this.value) {
+                        event.preventDefault();
+                        document.getElementById('step4NextBtn').click();
+                    }
                 });
                 
                 document.getElementById('step4BackBtn').addEventListener('click', previousStep);
