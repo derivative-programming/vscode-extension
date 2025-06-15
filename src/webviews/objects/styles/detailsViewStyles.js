@@ -371,7 +371,7 @@ function getDetailViewStyles() {
             margin-top: 10px;
         }
 
-        /* Object lookup modal specific styles */
+        /* Object Search modal specific styles */
         .modal-buttons {
             display: flex;
             gap: 10px;

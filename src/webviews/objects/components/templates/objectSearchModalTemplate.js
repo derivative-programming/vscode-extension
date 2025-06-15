@@ -1,17 +1,17 @@
 "use strict";
 
 /**
- * objectLookupModalTemplate.js
- * Generates the HTML content for the Object Lookup modal
+ * objectSearchModalTemplate.js
+ * Generates the HTML content for the Object Search modal
  * Created: 2024-12-27
  * Purpose: Provides a modal interface for selecting FK object names from available objects
  */
 
 /**
- * Generates the HTML content for the Object Lookup modal
+ * Generates the HTML content for the Object Search modal
  * @returns {string} HTML string for the modal content
  */
-function getObjectLookupModalHtml() {
+function getObjectSearchModalHtml() {
     return `
 <div class="modal-content">
     <span class="close-button">&times;</span>
@@ -31,5 +31,5 @@ function getObjectLookupModalHtml() {
 }
 
 module.exports = {
-    getObjectLookupModalHtml
+    getObjectSearchModalHtml
 };

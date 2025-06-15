@@ -3,8 +3,8 @@
 // Import required templates
 const { getPropertyModalHtml } = require("./propertyModalTemplate");
 const { getPropertyModalFunctionality } = require("./propertyModalFunctionality");
-const { getObjectLookupModalHtml } = require("./objectLookupModalTemplate");
-const { getObjectLookupModalFunctionality } = require("./objectLookupModalFunctionality");
+const { getObjectSearchModalHtml } = require("./objectSearchModalTemplate");
+const { getObjectSearchModalFunctionality } = require("./objectSearchModalFunctionality");
 
 // Import script modules
 const { getUIEventHandlers } = require("../scripts/uiEventHandlers");
@@ -42,16 +42,16 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects)
                     ${getPropertyModalHtml.toString().replace(/^function getPropertyModalHtml\(\) \{|\}$/g, '')}
                 }
 
-                // Helper function to get object lookup modal HTML
-                function getObjectLookupModalHtml() {
-                    ${getObjectLookupModalHtml.toString().replace(/^function getObjectLookupModalHtml\(\) \{|\}$/g, '')}
+                // Helper function to get object search modal HTML
+                function getObjectSearchModalHtml() {
+                    ${getObjectSearchModalHtml.toString().replace(/^function getObjectSearchModalHtml\(\) \{|\}$/g, '')}
                 }
 
                 // Import modal functionality
                 ${getPropertyModalFunctionality()}
 
-                // Import object lookup modal functionality
-                ${getObjectLookupModalFunctionality()}
+                // Import object search modal functionality
+                ${getObjectSearchModalFunctionality()}
 
                 // UI Event Handlers for tabs and view switching
                 ${getUIEventHandlers()}

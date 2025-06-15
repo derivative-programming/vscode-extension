@@ -1,8 +1,6 @@
 Agent todo items...
 
 
-data object details - properties tab...
-not working after copilot:- add a object name search modal. for 'fk object name' 
 
 make extension repo public
 
@@ -13,12 +11,11 @@ Object Heirarchy diagram...
  
 
 
+Select FK Object modal...
+- accept button inactive until a object is selected
  
 object details view...
-copilot:- read only setting 'is lookup'
-copilot:- hide 'is not implemented' setting
-copilot:- hide 'is full research db view allowed' setting
-copilot:- hide 'cache individual recs'
+- read only setting 'is lookup'
 - lookup item list
     only show if is lookup object
     -buttons ... add, move up, move down

@@ -52,7 +52,7 @@ function getDOMInitialization() {
                     
                     if (inputField) {
                         const currentValue = inputField.value;
-                        createObjectLookupModal(currentValue, inputField);
+                        createObjectSearchModal(currentValue, inputField);
                     }
                 }
             }

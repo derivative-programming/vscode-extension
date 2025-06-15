@@ -964,3 +964,4 @@ Changes:
 - saveSubmitHandlers.js: Added lookup button state handling in property selection logic
 
 Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
