@@ -158,7 +158,7 @@ function showAddObjectWizard(modelService) {
                     
                 case "validateName":
                     try {
-                        const { objectName } = message.data;
+                        const { objectName, isLookupObject } = message.data;
                         
                         // Validate name is not empty
                         if (!objectName) {
@@ -221,6 +221,16 @@ function showAddObjectWizard(modelService) {
                                 });
                                 return;
                             }
+                        }
+                        
+                        // Validate lookup object name doesn't contain "Lookup"
+                        if (isLookupObject && objectName.toLowerCase().includes('lookup')) {
+                            panel.webview.postMessage({ 
+                                command: "nameValidation", 
+                                isValid: false, 
+                                message: "It is not necessary to have Lookup in the name"
+                            });
+                            return;
                         }
                         
                         // Name is valid
@@ -619,7 +629,7 @@ function generateWizardHTML(allObjects) {
                         if (objectName) {
                             vscode.postMessage({
                                 command: 'validateName',
-                                data: { objectName }
+                                data: { objectName, isLookupObject }
                             });
                         } else {
                             nameIsValid = false;
