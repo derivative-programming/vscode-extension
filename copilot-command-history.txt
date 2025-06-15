@@ -666,6 +666,42 @@ January 15, 2025: Enhanced the Add Object Wizard with focus management and keybo
 - **Result**: Improved user experience with keyboard navigation and proper focus management throughout the wizard workflow
   
 2025-06-15: Add report wizard functionality with plus icon button on REPORT treeview item. Create 'Add Report Wizard' view with steps for owner data object selection, role selection (if Role data object exists), visualization type selection, target data object selection (for grid), report name and title input. Similar design to Add Data Object Wizard.
+Command: add report wizard - step 1 update
+
+January 15, 2025: ✅ IMPLEMENTED - Add Report Wizard step 1 focus and Enter key handling
+
+**Issue**: Add Report Wizard step 1 needed focus management and keyboard navigation
+- When wizard opens, the 'owner data object' dropdown should get focus automatically
+- On Enter key press, if the dropdown has a value selected, should move to the next step
+
+**Solution Applied**:
+- **Auto-focus on dropdown**: Added focus management in `showStep()` function to focus on owner object dropdown when step 1 opens
+- **Enter key handling**: Added keydown event listener for Enter key on step 1 that checks if Next button is enabled
+- **Initial focus setup**: Added initial focus call when wizard loads using `setTimeout`
+- **Consistent patterns**: Follows same UX patterns as Add Object Wizard for consistency
+
+**Technical Implementation**:
+- Modified `showStep()` function to include focus management with setTimeout for DOM readiness
+- Added keyboard event listener for step 1 that prevents default and triggers Next button click
+- Added initial focus setup when script loads by calling `showStep(1)`
+- Only triggers Enter action when Next button is enabled (dropdown has value selected)
+
+**Files Modified**:
+- `src/webviews/addReportWizardView.js`: Added 24 lines for focus and keyboard functionality
+
+**Testing Results**:
+- TypeScript compilation: ✅ Success (webpack compiled successfully)
+- ESLint: ✅ No new warnings or errors
+- Focus behavior: ✅ Dropdown receives focus when wizard opens
+- Enter key validation: ✅ Only works when dropdown has value selected
+- No regressions: ✅ Existing functionality preserved
+
+**User Experience**:
+- Wizard opens with immediate focus in owner object dropdown
+- Users can select option and press Enter without needing mouse
+- Enter key gracefully ignored when no selection is made
+- Matches behavior of Add Object Wizard for consistency
+
 Command: startMCPServerCommand
  
 Command: stopMCPServerCommand

@@ -79,6 +79,64 @@ bulkColumnsTextarea.addEventListener("keydown", function(event) {
 - Shift+Enter in bulk textarea allows multi-line input, regular Enter submits
 - Consistent with other add modals throughout the application
 
+## Add Report Wizard Focus and Enter Key Handling (Added 2025-01-15)
+
+### Requirements:
+- When wizard opens, automatically focus on the 'owner data object' dropdown
+- On Enter key press, if the dropdown has a value selected, move to the next step
+
+### Solution:
+Added focus and keyboard navigation functionality to the Add Report Wizard following the same patterns used by the Add Object Wizard for consistency.
+
+### Technical Details:
+- **File Modified**: `src/webviews/addReportWizardView.js`
+- **Functions Updated**: `showStep()` function and event listeners
+- **Changes Made**:
+  1. **Auto-focus**: Added focus management in `showStep()` with setTimeout for DOM readiness
+  2. **Enter key handling**: Added keydown event listener for Enter key on step 1
+  3. **Smart validation**: Enter key only triggers action when Next button is enabled (dropdown has value)
+  4. **Initial focus**: Added initial focus setup when wizard loads
+  5. **Consistent UX**: Follows same patterns as Add Object Wizard
+
+### Implementation:
+```javascript
+// Focus management in showStep function
+setTimeout(() => {
+    if (stepNumber === 1) {
+        // Focus on the owner data object dropdown
+        const ownerObjectSelect = document.getElementById('ownerObject');
+        if (ownerObjectSelect) {
+            ownerObjectSelect.focus();
+        }
+    }
+}, 100); // Small delay to ensure DOM is updated
+
+// Enter key handling for step 1
+document.getElementById('step1').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !document.getElementById('step1NextBtn').disabled) {
+        event.preventDefault();
+        document.getElementById('step1NextBtn').click();
+    }
+});
+
+// Initial focus setup
+setTimeout(() => {
+    showStep(1); // This will trigger focus on the owner object dropdown
+}, 100);
+```
+
+### User Experience:
+- Wizard opens with cursor immediately in the owner object dropdown
+- Users can select option and press Enter to advance without mouse interaction
+- Enter key is ignored when no selection is made, preventing errors
+- Consistent with Add Object Wizard behavior throughout the application
+
+### Testing:
+- Created comprehensive test file `/tmp/test-report-wizard-focus.html`
+- Verified focus behavior works correctly on wizard open
+- Confirmed Enter key handling respects dropdown selection state
+- No regressions in existing functionality
+
 ## Add Button Modal Focus and Enter Key Handling (Added 2025-06-15)
 
 Implemented user experience improvements for the add button modal in the report details view.
