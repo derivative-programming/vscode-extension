@@ -337,3 +337,30 @@ The 100ms delay was needed because:
 - Tries immediately first, then retries after 50ms if elements not found
 - More robust and responsive than fixed 100ms delay
 - Handles timing issues at the client side where DOM state can be checked
+
+June 15, 2025 - User requested: "The 'add filter' modal should work similar to this 'add column' modal"
+
+Implementing add filter modal with same functionality as add column modal:
+- Proper model updating (backend first, then view reload)
+- Tab preservation (stay on Filters tab after adding)
+- Same validation and user experience patterns
+
+2025-06-15: ✅ IMPLEMENTED - Add filter modal improvements to match add column modal
+- **Updated addNewParam() function**:
+  * Changed from updating frontend state to sending backend updates first
+  * Added tab preservation (preserveTab parameter) to stay on Filters tab
+  * Removed frontend UI manipulation (dropdown updates, currentParams array mods)
+  * Now follows same pattern as improved addNewColumn()
+- **Updated createAddParamModal() function**:
+  * Restructured to use proper timing with attachParamModalEventListeners()
+  * Changed from document.getElementById() to modal.querySelector() for scoped element selection
+  * Fixed event listener attachment timing issues
+  * Added proper bulk parameter handling with single backend update
+- **Improvements Applied**:
+  * Model-first approach: backend updates model, then reloads view
+  * Tab preservation: users stay on Filters tab when adding filters
+  * Proper validation and error handling
+  * Single vs bulk add functionality works correctly
+  * Immediate visual feedback through view reload
+- **Result**: Add filter modal now works identically to add column modal with same UX patterns and reliability
+Command: Expand all top level tree items in the AppDNA tree view

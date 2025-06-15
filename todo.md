@@ -7,6 +7,12 @@ data object details view properties tab...
 make extension repo public
 
 
+add report wizard...
+- owner object name
+- role required name
+- 
+
+
 object details view...
 - hide setting 'is lookup'
 - lookup item list
@@ -166,3 +172,4 @@ win app....
 ],
 "propSubscription": []
 }
+

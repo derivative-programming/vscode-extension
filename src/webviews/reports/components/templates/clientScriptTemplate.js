@@ -1427,38 +1427,32 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Use the new add parameter modal instead of the edit modal
             createAddParamModal();
         });
-        
-        // Function to add a new parameter (called from add parameter modal)
+          // Function to add a new parameter (called from add parameter modal)
         function addNewParam(paramName) {
             const newParam = {
                 name: paramName
             };
             
-            // Add to current parameters array
-            currentParams.push(newParam);
+            // Add to current parameters array for immediate backend update
+            const updatedParams = [...currentParams, newParam];
             
-            // Add to parameters list in list view
-            const paramsList = document.getElementById('paramsList');
-            if (paramsList) {
-                const option = document.createElement('option');
-                option.value = currentParams.length - 1;
-                option.textContent = paramName;
-                paramsList.appendChild(option);
-            }
+            // Get the currently active tab to preserve it after reload
+            const activeTab = document.querySelector('.tab.active');
+            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'params';
             
-            // Send message to update the model
+            // Send message to update the model - backend will reload the view
             vscode.postMessage({
                 command: 'updateModel',
                 data: {
-                    params: currentParams
+                    params: updatedParams,
+                    preserveTab: currentTabId
                 }
             });
             
-            // Note: Table view will be automatically updated on next page refresh
-            // To immediately refresh table view, a full re-render would be needed
+            // Note: View will be automatically reloaded by backend after model update
+            // No need to update frontend UI here - backend will regenerate entire view
         }
-        
-        // Function to create and show the Add Parameter modal
+          // Function to create and show the Add Parameter modal
         function createAddParamModal() {
             // Create modal dialog for adding parameters
             const modal = document.createElement("div");
@@ -1471,11 +1465,18 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             modal.innerHTML = modalContent;
             document.body.appendChild(modal);
             
-            // Show the modal
+            // Wait for DOM to be ready before attaching event listeners
             setTimeout(() => {
+                // Show the modal
                 modal.style.display = "flex";
+                
+                // Attach event listeners after modal is in DOM and visible
+                attachParamModalEventListeners(modal);
             }, 10);
-            
+        }
+        
+        // Function to attach event listeners to the parameter modal
+        function attachParamModalEventListeners(modal) {
             // Tab switching in modal
             modal.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -1505,7 +1506,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 }
             });
             
-            // Validate parameter name
+            // Validate parameter name function
             function validateParamName(name) {
                 if (!name) {
                     return "Filter name cannot be empty";
@@ -1522,10 +1523,10 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 return null; // Valid
             }
             
-            // Add single parameter
-            document.getElementById("addSingleParam").addEventListener("click", function() {
-                const paramName = document.getElementById("paramName").value.trim();
-                const errorElement = document.getElementById("singleValidationError");
+            // Add single parameter button event listener
+            modal.querySelector("#addSingleParam").addEventListener("click", function() {
+                const paramName = modal.querySelector("#paramName").value.trim();
+                const errorElement = modal.querySelector("#singleValidationError");
                 
                 const validationError = validateParamName(paramName);
                 if (validationError) {
@@ -1533,18 +1534,18 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     return;
                 }
                 
-                // Add the new parameter
+                // Add the new parameter - backend will reload view
                 addNewParam(paramName);
                 
                 // Close the modal
                 document.body.removeChild(modal);
             });
             
-            // Add bulk parameters
-            document.getElementById("addBulkParams").addEventListener("click", function() {
-                const bulkParams = document.getElementById("bulkParams").value;
+            // Add bulk parameters button event listener
+            modal.querySelector("#addBulkParams").addEventListener("click", function() {
+                const bulkParams = modal.querySelector("#bulkParams").value;
                 const paramNames = bulkParams.split("\\n").map(name => name.trim()).filter(name => name);
-                const errorElement = document.getElementById("bulkValidationError");
+                const errorElement = modal.querySelector("#bulkValidationError");
                 
                 // Validate all parameter names
                 const errors = [];
@@ -1564,9 +1565,25 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     return;
                 }
                 
-                // Add all valid parameters
-                validParams.forEach(name => {
-                    addNewParam(name);
+                // Add all valid parameters at once
+                const newParams = validParams.map(name => ({
+                    name: name
+                }));
+                
+                // Add all parameters in one operation
+                const updatedParams = [...currentParams, ...newParams];
+                
+                // Get the currently active tab to preserve it after reload
+                const activeTab = document.querySelector('.tab.active');
+                const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'params';
+                
+                // Send message to update the model - backend will reload the view
+                vscode.postMessage({
+                    command: 'updateModel',
+                    data: {
+                        params: updatedParams,
+                        preserveTab: currentTabId
+                    }
                 });
                 
                 // Close the modal
