@@ -231,10 +231,9 @@ function getSaveSubmitHandlers() {
         settingsCheckboxes.forEach(checkbox => {
             const key = checkbox.getAttribute('data-prop');
             const field = checkbox.parentElement.querySelector('[name="' + key + '"]');
-            if (!key || !field) return;            checkbox.addEventListener('change', function() {
-                if (checkbox.checked) {
-                    // Don't allow parentObjectName to be editable even when checkbox is checked
-                    if (key !== 'parentObjectName') {
+            if (!key || !field) return;            checkbox.addEventListener('change', function() {                if (checkbox.checked) {
+                    // Don't allow parentObjectName or isLookup to be editable even when checkbox is checked
+                    if (key !== 'parentObjectName' && key !== 'isLookup') {
                         field.readOnly = false;
                         field.disabled = false;
                     }

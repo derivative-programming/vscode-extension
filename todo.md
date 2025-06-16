@@ -10,9 +10,6 @@ Object Heirarchy diagram...
 - option to hide items not implemented
   
 
-
-Select FK Object modal...
-copilot:- accept button inactive until a object is selected
  
 object details view...
 - read only setting 'is lookup'

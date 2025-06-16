@@ -312,7 +312,7 @@ Command: Data object details view settings tab - make parent object name textbox
 - Enhanced readonly attribute to ensure it's always applied: `readonly disabled`
 - Fixed JavaScript in src/webviews/objects/components/scripts/saveSubmitHandlers.js that was overriding readonly
 - Added condition to prevent parentObjectName field from being made editable: `if (key !== 'parentObjectName')`
-- This ensures the parentObjectName textbox is always readonly regardless of property existence or checkbox state
+- This ensures the parentObjectName textbox is alwaysreadonly regardless of property existence or checkbox state
 - Implementation now prevents any modification of parent object relationships in both HTML and JavaScript
 
 Command: Data object view - add property modal updates
@@ -1013,3 +1013,6 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 
 2025-06-15: Remove 'test colors' button - search highlighting is now working
+
+2025-06-15: User asked about UI design choice between tabs on a treeview item view vs adding sub treeview items each with their own view
+Command: Expand all top level tree items in the AppDNA tree view

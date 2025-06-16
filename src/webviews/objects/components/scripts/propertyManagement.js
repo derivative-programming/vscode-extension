@@ -123,24 +123,34 @@ function getPropertyManagementFunctions() {
         document.querySelectorAll(".setting-checkbox").forEach(checkbox => {
             const propName = checkbox.getAttribute("data-prop");
             const inputElement = document.getElementById(propName);
-            
-            if (inputElement) {
-                // Initial state setup
-                if (inputElement.tagName === "INPUT") {
-                    inputElement.readOnly = !checkbox.checked;
-                } else if (inputElement.tagName === "SELECT") {
-                    inputElement.disabled = !checkbox.checked;
+              if (inputElement) {
+                // Initial state setup - ensure parentObjectName and isLookup are always disabled
+                if (propName === 'parentObjectName' || propName === 'isLookup') {
+                    if (inputElement.tagName === "INPUT") {
+                        inputElement.readOnly = true;
+                    } else if (inputElement.tagName === "SELECT") {
+                        inputElement.disabled = true;
+                    }
+                } else {
+                    // Normal behavior for other fields
+                    if (inputElement.tagName === "INPUT") {
+                        inputElement.readOnly = !checkbox.checked;
+                    } else if (inputElement.tagName === "SELECT") {
+                        inputElement.disabled = !checkbox.checked;
+                    }
                 }
-                
-                // Style based on checkbox state
+                  // Style based on checkbox state
                 updateInputStyle(inputElement, checkbox.checked);
                 
                 // Add event listener for checkbox state changes
                 checkbox.addEventListener("change", function() {
-                    if (inputElement.tagName === "INPUT") {
-                        inputElement.readOnly = !this.checked;
-                    } else if (inputElement.tagName === "SELECT") {
-                        inputElement.disabled = !this.checked;
+                    // Don't allow parentObjectName or isLookup to be editable even when checkbox is checked
+                    if (propName !== 'parentObjectName' && propName !== 'isLookup') {
+                        if (inputElement.tagName === "INPUT") {
+                            inputElement.readOnly = !this.checked;
+                        } else if (inputElement.tagName === "SELECT") {
+                            inputElement.disabled = !this.checked;
+                        }
                     }
                     updateInputStyle(inputElement, this.checked);
                     
