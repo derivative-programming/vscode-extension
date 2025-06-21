@@ -380,6 +380,11 @@ async function getWebviewContent(context, allObjects) {
                     // Initialize the visualization
                     update(root);
                     
+                    // Set initial view: zoom out by 10% and center 'All Objects' root node
+                    setTimeout(() => {
+                        setInitialView();
+                    }, 100);
+                    
                     // Add event listeners for buttons
                     document.getElementById('expand-all').addEventListener('click', expandAll);
                     document.getElementById('collapse-all').addEventListener('click', collapseAll);
@@ -663,7 +668,33 @@ async function getWebviewContent(context, allObjects) {
                         .transition()
                         .duration(500)
                         .call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY));
-                }                // Select a node and display its details
+                }
+                
+                // Set initial view: zoom out by 10% and center 'All Objects' root node
+                function setInitialView() {
+                    if (!root) return;
+                    
+                    // Get the current dimensions of the SVG container
+                    const svgElement = d3.select('#diagram svg').node();
+                    const svgRect = svgElement.getBoundingClientRect();
+                    const centerX = svgRect.width / 2;
+                    const centerY = svgRect.height / 2;
+                    
+                    // Calculate translation needed to center the root node ('All Objects')
+                    const translateX = centerX - root.y - margin.left;
+                    const translateY = centerY - root.x - margin.top;
+                    
+                    // Apply initial zoom (0.9 = 10% zoom out) and center the root node
+                    const initialScale = 0.9;
+                    d3.select('#diagram svg')
+                        .transition()
+                        .duration(500)
+                        .call(zoom.transform, d3.zoomIdentity
+                            .scale(initialScale)
+                            .translate(translateX, translateY));
+                }
+                
+                // Select a node and display its details
                 function selectNode(d) {
                     // Deselect previously selected node
                     if (selectedNode) {                        // Find the DOM element for the previously selected node and update its class
