@@ -197,7 +197,7 @@
             color: var(--vscode-editor-background);
             display: block !important; 
         `;
-        successMessage.textContent = 'Fabrication results have been downloaded and extracted successfully.';
+        successMessage.textContent = 'Fabrication results have been downloaded and extracted successfully. Fabrication results have been downloaded and extracted to the fabrication_results folder. Review the files and copy needed files to your project.';
         
         const actionContainer = modalContent.querySelector('.action-container');
         if (actionContainer) {
