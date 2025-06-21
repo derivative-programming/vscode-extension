@@ -850,7 +850,8 @@
         const start = validationData.length ? (pageNumber - 1) * itemCountPerPage + 1 : 0;
         const end = validationData.length ? Math.min(start + validationData.length - 1, totalRecords) : 0;
         document.getElementById("record-info").textContent = 
-            validationData.length ? `Showing ${start} to ${end} of ${totalRecords} requests` : `No validation requests to display`;
+            validationData.length === 0 ? `No validation requests to display` :
+            totalRecords > 1 ? `Showing ${start} to ${end} of ${totalRecords} requests` : "";
     }
 
     function renderPaging() {

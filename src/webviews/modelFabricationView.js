@@ -1114,7 +1114,8 @@
         const start = fabricationData.length ? (pageNumber - 1) * itemCountPerPage + 1 : 0;
         const end = fabricationData.length ? Math.min(start + fabricationData.length - 1, totalRecords) : 0;
         document.getElementById("record-info").textContent = 
-            fabricationData.length ? `Showing ${start} to ${end} of ${totalRecords} requests` : `No fabrication requests to display`;
+            fabricationData.length === 0 ? `No fabrication requests to display` :
+            totalRecords > 1 ? `Showing ${start} to ${end} of ${totalRecords} requests` : "";
     }
 
     function renderPaging() {
