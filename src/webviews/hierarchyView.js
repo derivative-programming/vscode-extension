@@ -207,20 +207,20 @@ async function getWebviewContent(context, allObjects) {
                 stroke: var(--vscode-editor-foreground);
                 stroke-width: 1px;
                 /* Removed default fill - will be set by JavaScript */
-            }            .node.search-highlight rect {
-                fill: #00ff00 !important;  /* Bright green for exact matches */
-                stroke: #228b22 !important;  /* Forest green border */
-                stroke-width: 2px !important;
+            }            .node.lookup rect {
+                fill: #ffa500 !important;  /* Light orange for lookup items */
+                stroke: #ff8c00 !important;  /* Dark orange border */
+                stroke-width: 1px !important;
             }
             .node.search-partial rect {
                 fill: #90ee90 !important;  /* Light green for partial matches */
                 stroke: #32cd32 !important;  /* Lime green border */
                 stroke-width: 1px !important;
             }
-            .node.lookup rect {
-                fill: #ffa500 !important;  /* Light orange for lookup items */
-                stroke: #ff8c00 !important;  /* Dark orange border */
-                stroke-width: 1px !important;
+            .node.search-highlight rect {
+                fill: #00ff00 !important;  /* Bright green for exact matches */
+                stroke: #228b22 !important;  /* Forest green border */
+                stroke-width: 2px !important;
             }
             .node.selected rect {
                 fill: var(--vscode-list-activeSelectionBackground) !important;
@@ -418,12 +418,17 @@ async function getWebviewContent(context, allObjects) {
                     const nodeEnter = node.enter().append('g')
                         .attr('class', d => {
                             let classes = 'node';
+                            
+                            // Always add lookup class if it's a lookup item
+                            if (d.data.isLookup) classes += ' lookup';
+                            
+                            // Add status classes with priority order
                             if (d === selectedNode) classes += ' selected';
                             else if (d.searchHighlight) classes += ' search-highlight';  // Exact match
                             else if (d.searchPartial) classes += ' search-partial';     // Partial match
-                            else if (d.data.isLookup) classes += ' lookup';  // Lookup items
                             else if (d._children) classes += ' collapsed';
                             else classes += ' normal';
+                            
                             return classes;
                         })
                         .attr('transform', d => 'translate(' + source.y0 + ',' + source.x0 + ')')
@@ -478,6 +483,14 @@ async function getWebviewContent(context, allObjects) {
                       // Update CSS classes for all nodes (both new and existing)
                     nodeUpdate.attr('class', d => {
                         let classes = 'node';
+                        
+                        // Always add lookup class if it's a lookup item
+                        if (d.data.isLookup) {
+                            classes += ' lookup';
+                            console.log('Applying lookup class to:', d.data.name);
+                        }
+                        
+                        // Add status classes with priority order
                         if (d === selectedNode) {
                             classes += ' selected';
                             console.log('Applying selected class to:', d.data.name);
@@ -487,9 +500,6 @@ async function getWebviewContent(context, allObjects) {
                         } else if (d.searchPartial) {
                             classes += ' search-partial';    // Partial match
                             console.log('Applying search-partial class to:', d.data.name);
-                        } else if (d.data.isLookup) {
-                            classes += ' lookup';  // Lookup items
-                            console.log('Applying lookup class to:', d.data.name);
                         } else if (d._children) {
                             classes += ' collapsed';
                         } else {
