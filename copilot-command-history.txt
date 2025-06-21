@@ -1264,3 +1264,5 @@ Command: Review refresh button on model feature catalog list - show icon only
 
 2025-06-21: Updated modelFeatureCatalogView.js to show a refresh icon (SVG) on the refresh button instead of text, with no blue background, for a modern and consistent UI in the model feature catalog view.
 
+Command: startMCPServerCommand
+Command: stopMCPServerCommand

@@ -174,26 +174,7 @@ add welcome step to update project settings view
 
 
 need to adjust datetimes to timezone in profile, or local computer timezone
-
-show button with refresh icon with no blue background instead of text 'Refresh' on 
-- model feature catalog view
-- the model ai processing requests view
-- model validation requests view
-- fabrication blueprint catalog view
-- model fabrication requests view 
-
-there is a faint box above the table that is not needed
-- the model ai processing requests view
-- model validation requests view
-- model fabrication requests view
- 
-
-show button with 'plus'' icon with no blue background instead of text 'add' on 
-- the model ai processing requests view
-- model validation requests view
-- model fabrication requests view 
- 
- 
+  
 
 cancel option on model ai processing request?
 

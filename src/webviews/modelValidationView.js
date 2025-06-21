@@ -319,7 +319,7 @@
                 
                 .table-container {
                     overflow: auto;
-                    border: 1px solid var(--vscode-panel-border);
+                    border: 0px solid var(--vscode-panel-border);
                     border-radius: 3px;
                     background-color: var(--vscode-editor-background);
                 }
