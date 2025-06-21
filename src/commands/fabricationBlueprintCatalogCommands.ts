@@ -102,9 +102,10 @@ export function registerFabricationBlueprintCatalogCommands(
                 <html lang="en">
                 <head>
                     <meta charset="UTF-8">
-                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource} https://unpkg.com;">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Fabrication Blueprint Catalog</title>                    <style>
+                    <title>Fabrication Blueprint Catalog</title>
+                    <link rel="stylesheet" href="https://unpkg.com/@vscode/codicons@latest/dist/codicon.css" />                    <style>
                         body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
                         .validation-header {
                             padding: 10px 0;
@@ -126,8 +127,8 @@ export function registerFabricationBlueprintCatalogCommands(
                         #paging { margin: 1em 0; padding: 10px 0; text-align: center; }
                         button { 
                             margin: 0 4px; 
-                            background-color: var(--vscode-button-background);
-                            color: var(--vscode-button-foreground);
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
                             border: none;
                             padding: 4px 8px;
                             cursor: pointer;
@@ -138,7 +139,7 @@ export function registerFabricationBlueprintCatalogCommands(
                             cursor: not-allowed;
                         }
                         button:hover:not(:disabled) {
-                            background-color: var(--vscode-button-hoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground);
                         }
                         .checkbox-container { text-align: center; }
                         input[type="checkbox"] { cursor: pointer; }
@@ -179,17 +180,17 @@ export function registerFabricationBlueprintCatalogCommands(
                             100% { transform: rotate(360deg); }
                         }
                         .refresh-button {
-                            background-color: var(--vscode-button-background);
-                            color: var(--vscode-button-foreground);
+                            background: transparent;
+                            color: var(--vscode-editor-foreground);
                             border: none;
                             padding: 4px 8px;
                             cursor: pointer;
-                            border-radius: 3px;
                             display: flex;
                             align-items: center;
+                            gap: 4px;
                         }
                         .refresh-button:hover {
-                            background-color: var(--vscode-button-hoverBackground);
+                            background-color: var(--vscode-toolbar-hoverBackground);
                         }                        .header-actions {
                             display: flex;
                             justify-content: flex-end;
@@ -220,6 +221,7 @@ export function registerFabricationBlueprintCatalogCommands(
                      
                     <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                            <i class="codicon codicon-refresh"></i>
                             Refresh
                         </button>
                     </div>                    <table id="blueprintCatalogTable"></table>

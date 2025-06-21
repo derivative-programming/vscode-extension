@@ -171,22 +171,58 @@ async function getWebviewContent(context, allObjects) {
             .button:hover {
                 background: var(--vscode-button-hoverBackground);
             }
+            .legend {
+                display: flex;
+                align-items: center;
+                margin-left: 15px;
+                font-size: 12px;
+            }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-right: 10px;
+            }
+            .legend-color {
+                width: 16px;
+                height: 16px;
+                border: 1px solid var(--vscode-editor-foreground);
+                margin-right: 5px;
+                border-radius: 2px;
+            }
+            .legend-color.lookup {
+                background-color: #ffa500;
+            }
+            .checkbox-control {
+                display: flex;
+                align-items: center;
+                margin-left: 15px;
+                font-size: 12px;
+            }
+            .checkbox-control input[type="checkbox"] {
+                margin-right: 5px;
+            }
             .node {
                 cursor: pointer;
             }            .node rect {
                 stroke: var(--vscode-editor-foreground);
                 stroke-width: 1px;
                 /* Removed default fill - will be set by JavaScript */
-            }            .node.search-highlight rect {
-                fill: #00ff00 !important;  /* Bright green for exact matches */
-                stroke: #228b22 !important;  /* Forest green border */
-                stroke-width: 2px !important;
+            }            .node.lookup rect {
+                fill: #ffa500 !important;  /* Light orange for lookup items */
+                stroke: #ff8c00 !important;  /* Dark orange border */
+                stroke-width: 1px !important;
             }
             .node.search-partial rect {
                 fill: #90ee90 !important;  /* Light green for partial matches */
                 stroke: #32cd32 !important;  /* Lime green border */
                 stroke-width: 1px !important;
-            }.node.selected rect {
+            }
+            .node.search-highlight rect {
+                fill: #00ff00 !important;  /* Bright green for exact matches */
+                stroke: #228b22 !important;  /* Forest green border */
+                stroke-width: 2px !important;
+            }
+            .node.selected rect {
                 fill: var(--vscode-list-activeSelectionBackground) !important;
                 stroke: var(--vscode-list-activeSelectionForeground) !important;
                 stroke-width: 1.5px !important;
@@ -235,6 +271,16 @@ async function getWebviewContent(context, allObjects) {
                 <button id="zoom-in" class="button"><i class="codicon codicon-zoom-in"></i></button>                <button id="zoom-out" class="button"><i class="codicon codicon-zoom-out"></i></button>
                 <button id="reset-zoom" class="button">Reset</button>
                 <button id="refresh" class="button" title="Refresh Diagram"><i class="codicon codicon-refresh"></i></button>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color lookup"></div>
+                        <span>Lookup Items</span>
+                    </div>
+                </div>
+                <div class="checkbox-control">
+                    <input type="checkbox" id="show-lookup" checked>
+                    <label for="show-lookup">Show Lookup Items</label>
+                </div>
             </div>
             <div class="diagram-container">
                 <div id="diagram"></div>
@@ -334,6 +380,11 @@ async function getWebviewContent(context, allObjects) {
                     // Initialize the visualization
                     update(root);
                     
+                    // Set initial view: zoom out by 10% and center 'All Objects' root node
+                    setTimeout(() => {
+                        setInitialView();
+                    }, 100);
+                    
                     // Add event listeners for buttons
                     document.getElementById('expand-all').addEventListener('click', expandAll);
                     document.getElementById('collapse-all').addEventListener('click', collapseAll);
@@ -343,6 +394,7 @@ async function getWebviewContent(context, allObjects) {
                     document.getElementById('close-detail').addEventListener('click', closeDetailPanel);
                     document.getElementById('show-full-details').addEventListener('click', showFullDetails);
                     document.getElementById('search').addEventListener('input', searchObjects);
+                    document.getElementById('show-lookup').addEventListener('change', toggleLookupItems);
                     
                     // Focus on the search input when the diagram loads
                     document.getElementById('search').focus();
@@ -371,11 +423,17 @@ async function getWebviewContent(context, allObjects) {
                     const nodeEnter = node.enter().append('g')
                         .attr('class', d => {
                             let classes = 'node';
+                            
+                            // Always add lookup class if it's a lookup item
+                            if (d.data.isLookup) classes += ' lookup';
+                            
+                            // Add status classes with priority order
                             if (d === selectedNode) classes += ' selected';
                             else if (d.searchHighlight) classes += ' search-highlight';  // Exact match
                             else if (d.searchPartial) classes += ' search-partial';     // Partial match
                             else if (d._children) classes += ' collapsed';
                             else classes += ' normal';
+                            
                             return classes;
                         })
                         .attr('transform', d => 'translate(' + source.y0 + ',' + source.x0 + ')')
@@ -430,6 +488,14 @@ async function getWebviewContent(context, allObjects) {
                       // Update CSS classes for all nodes (both new and existing)
                     nodeUpdate.attr('class', d => {
                         let classes = 'node';
+                        
+                        // Always add lookup class if it's a lookup item
+                        if (d.data.isLookup) {
+                            classes += ' lookup';
+                            console.log('Applying lookup class to:', d.data.name);
+                        }
+                        
+                        // Add status classes with priority order
                         if (d === selectedNode) {
                             classes += ' selected';
                             console.log('Applying selected class to:', d.data.name);
@@ -526,6 +592,30 @@ async function getWebviewContent(context, allObjects) {
                     update(root);
                 }
                 
+                // Toggle visibility of lookup items
+                function toggleLookupItems() {
+                    const showLookup = document.getElementById('show-lookup').checked;
+                    console.log('Toggle lookup items:', showLookup);
+                    
+                    // Apply visibility filter to all nodes
+                    svg.selectAll('g.node')
+                        .style('display', function(d) {
+                            if (!showLookup && d.data.isLookup) {
+                                return 'none';
+                            }
+                            return 'block';
+                        });
+                    
+                    // Also hide/show connecting links for hidden lookup nodes
+                    svg.selectAll('path.link')
+                        .style('display', function(d) {
+                            if (!showLookup && (d.source.data.isLookup || d.target.data.isLookup)) {
+                                return 'none';
+                            }
+                            return 'block';
+                        });
+                }
+                
                 // Collapse a node and its children
                 function collapse(d) {
                     if (d.children) {
@@ -578,7 +668,33 @@ async function getWebviewContent(context, allObjects) {
                         .transition()
                         .duration(500)
                         .call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY));
-                }                // Select a node and display its details
+                }
+                
+                // Set initial view: zoom out by 10% and center 'All Objects' root node
+                function setInitialView() {
+                    if (!root) return;
+                    
+                    // Get the current dimensions of the SVG container
+                    const svgElement = d3.select('#diagram svg').node();
+                    const svgRect = svgElement.getBoundingClientRect();
+                    const centerX = svgRect.width / 2;
+                    const centerY = svgRect.height / 2;
+                    
+                    // Calculate translation needed to center the root node ('All Objects')
+                    const translateX = centerX - root.y - margin.left;
+                    const translateY = centerY - root.x - margin.top;
+                    
+                    // Apply initial zoom (0.9 = 10% zoom out) and center the root node
+                    const initialScale = 0.9;
+                    d3.select('#diagram svg')
+                        .transition()
+                        .duration(500)
+                        .call(zoom.transform, d3.zoomIdentity
+                            .scale(initialScale)
+                            .translate(translateX, translateY));
+                }
+                
+                // Select a node and display its details
                 function selectNode(d) {
                     // Deselect previously selected node
                     if (selectedNode) {                        // Find the DOM element for the previously selected node and update its class
@@ -843,10 +959,12 @@ function buildObjectRelationships(objects) {
                 name: obj.name,
                 id: obj.id || `obj_${Math.random().toString(36).substr(2, 9)}`,
                 parentName: parentName,
+                isLookup: obj.isLookup === "true", // Convert string to boolean
                 children: [],
                 details: {
                     properties: obj.prop ? obj.prop.map(p => ({ name: p.name, value: p.value })) : [],
                     parentName: parentName,
+                    isLookup: obj.isLookup === "true",
                     children: []
                 }
             });

@@ -21,10 +21,10 @@
     // Time interval for auto-refresh (1 minute in milliseconds)
     const AUTO_REFRESH_INTERVAL = 60000; // 1 minute in milliseconds
     const columns = [
-        { key: "modelPrepRequestRequestedUTCDateTime", label: "Requested At" },
+        { key: "modelPrepRequestRequestedUTCDateTime", label: "Requested Date\\Time" },
         { key: "modelPrepRequestDescription", label: "Description" },
         { key: "status", label: "Status" },
-        { key: "viewDetails", label: "View" } // Added View column
+        { key: "viewDetails", label: "Actions" } // Added Actions column
     ];
 
     // Spinner control functions (moved to global scope within IIFE)
@@ -277,6 +277,19 @@
                 }
                 .refresh-button:hover {
                     background-color: var(--vscode-button-hoverBackground);
+                }
+                .refresh-only-button {
+                    background: transparent;
+                    color: var(--vscode-editor-foreground);
+                    border: none;
+                    padding: 4px 8px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                .refresh-only-button:hover {
+                    background-color: var(--vscode-toolbar-hoverBackground);
                 }
                 .add-button {
                     margin-right: 8px;
@@ -628,7 +641,8 @@
                     <button id="addButton" class="refresh-button add-button" title="Add Request">
                         Add
                     </button>
-                    <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                    <button id="refreshButton" class="refresh-only-button" title="Refresh Table">
+                        <i class="codicon codicon-refresh"></i>
                         Refresh
                     </button>
                 </div>
@@ -892,7 +906,7 @@
         const start = processingData.length ? (pageNumber - 1) * itemCountPerPage + 1 : 0;
         const end = processingData.length ? Math.min(start + processingData.length - 1, totalRecords) : 0;
         document.getElementById("record-info").textContent = 
-            processingData.length ? `Showing ${start} to ${end} of ${totalRecords} requests` : `No processing requests to display`;
+            totalRecords > 1 ? `Showing ${start} to ${end} of ${totalRecords} requests` : "";
     }
 
     function renderPaging() {
@@ -992,7 +1006,7 @@
         // Define which fields to display and their labels
         const fieldsToShow = [
             { key: 'modelPrepRequestDescription', label: 'Description' },
-            { key: 'modelPrepRequestRequestedUTCDateTime', label: 'Requested At', type: 'datetime' },
+            { key: 'modelPrepRequestRequestedUTCDateTime', label: 'Requested Date\\Time', type: 'datetime' },
             { key: 'status', label: 'Status', className: 'status-field' }, // Calculated status
             { key: 'modelPrepRequestCode', label: 'Request Code' }
         ];
