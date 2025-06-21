@@ -21,7 +21,7 @@
     // Time interval for auto-refresh (1 minute in milliseconds)
     const AUTO_REFRESH_INTERVAL = 60000; // 1 minute in milliseconds
     const columns = [
-        { key: "modelPrepRequestRequestedUTCDateTime", label: "Requested At" },
+        { key: "modelPrepRequestRequestedUTCDateTime", label: "Requested Date\\Time" },
         { key: "modelPrepRequestDescription", label: "Description" },
         { key: "status", label: "Status" },
         { key: "viewDetails", label: "View" } // Added View column
@@ -993,7 +993,7 @@
         // Define which fields to display and their labels
         const fieldsToShow = [
             { key: 'modelPrepRequestDescription', label: 'Description' },
-            { key: 'modelPrepRequestRequestedUTCDateTime', label: 'Requested At', type: 'datetime' },
+            { key: 'modelPrepRequestRequestedUTCDateTime', label: 'Requested Date\\Time', type: 'datetime' },
             { key: 'status', label: 'Status', className: 'status-field' }, // Calculated status
             { key: 'modelPrepRequestCode', label: 'Request Code' }
         ];

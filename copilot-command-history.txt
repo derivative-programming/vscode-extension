@@ -1,3 +1,15 @@
+Command: Fix fabrication blueprint catalog view paging buttons
+
+2025-06-21: ✅ IMPLEMENTED - Fixed paging button colors in fabrication blueprint catalog view
+
+**Issue**: Paging buttons were blue (primary style) instead of white (secondary style) like model fabrication view
+- Updated CSS in fabricationBlueprintCatalogCommands.ts HTML template
+- Changed from var(--vscode-button-background) to var(--vscode-button-secondaryBackground)
+- Changed from var(--vscode-button-foreground) to var(--vscode-button-secondaryForeground) 
+- Changed from var(--vscode-button-hoverBackground) to var(--vscode-button-secondaryHoverBackground)
+- Now matches model fabrication request list view styling
+- Only affected paging buttons, not action buttons like refresh button
+
 Command: Data object view - settings tab update
 
 2025-01-17: ✅ IMPLEMENTED - Data Object Settings Tab Property Updates
@@ -18,6 +30,35 @@ Command: Data object view - settings tab update
 - Added `isLookupField` check in enum section to disable the dropdown
 - Followed same pattern as existing `parentObjectName` read-only logic
 - Preserved all existing functionality for other properties
+
+---
+
+Command: Model fabrication request details modal - close icon fix
+
+2025-06-21: ✅ IMPLEMENTED - Modal Close Button Positioning Fix
+
+**Issue**: Model fabrication request details modal was missing X icon to close the modal
+- Close button existed but was not positioned correctly
+- Users could not see the X button to close the modal
+
+**Root Cause Analysis**:
+- X button (&times;) was already implemented in HTML
+- CSS styling was present for .close-button
+- Event handler was correctly configured
+- Missing `position: relative` on .modal-content parent container
+- Absolute positioning of close button required relative positioning context
+
+**Solution Applied**:
+- **Minimal Fix**: Added single line `position: relative;` to .modal-content CSS rule
+- **Consistency**: Aligned with other modal implementations (modelValidationView.js, modelAIProcessingView.js)
+- **No Breaking Changes**: Preserved all existing functionality
+
+**Technical Implementation**:
+- Modified .modal-content CSS in src/webviews/modelFabricationView.js
+- Added position: relative to enable absolute positioning context
+- Verified close button positioning: top: 10px, right: 10px
+- Confirmed event handler: closeDetails.onclick hides modal
+- Validated with comprehensive tests covering CSS, HTML, and JS functionality
 
 **Files Modified**:
 - `src/webviews/objects/components/templates/settingsTabTemplate.js`: Added 8 lines, removed 2 lines (net +6)
@@ -318,6 +359,41 @@ Command: Data object details view settings tab - make parent object name textbox
 Command: Data object view - add property modal updates
 
 2025-12-19: Implemented focus and Enter key handling for data object view - add property modal
+
+2025-12-20: ✅ IMPLEMENTED - Added lookup items enhancement per issue #182
+
+**Issue**: Object Hierarchy view needed enhancement for lookup items:
+- Show lookup items with a light orange color background
+- Show legend of light orange color background for lookup items  
+- Show checkbox option to hide lookup items
+- Lookup data objects have isLookup = true
+
+**Solution Applied**:
+- **Added light orange styling**: New `.node.lookup` CSS class with #ffa500 background color
+- **Enhanced data structure**: Modified `buildObjectRelationships` to include `isLookup` boolean property
+- **Updated node classification**: Modified both CSS class assignment sections to apply lookup styling when `d.data.isLookup` is true
+- **Added visual legend**: Shows orange color indicator for lookup items in toolbar
+- **Implemented toggle control**: Added "Show Lookup Items" checkbox with `toggleLookupItems` function
+- **Added filtering logic**: Hides/shows both lookup nodes and their connecting links based on checkbox state
+
+**Technical Implementation**:
+- **File Modified**: src/webviews/hierarchyView.js
+- **Key Changes**:
+  * Added `.node.lookup` CSS styling with light orange background (#ffa500)
+  * Modified `buildObjectRelationships()` to convert isLookup string to boolean
+  * Updated CSS class assignment logic in two locations (node enter and node update)
+  * Added legend HTML and checkbox control to toolbar
+  * Implemented `toggleLookupItems()` function for filtering
+  * Added event listener for checkbox changes
+- **Lines**: 78 lines added, 1 line removed - surgical approach maintained
+- **Build Status**: Compilation successful, no new lint warnings
+
+**User Experience**:
+- **Visual Distinction**: Lookup items now have distinctive light orange background
+- **Clear Legend**: Visual indicator shows what orange color represents
+- **Easy Toggle**: Simple checkbox to hide/show all lookup items at once
+- **Complete Filtering**: Both nodes and connecting links are hidden when lookup items are filtered out
+- **Priority Handling**: Selected and search highlighting takes priority over lookup styling
 - Modified src/webviews/objects/components/templates/propertyModalFunctionality.js
 - Added focus on property name textbox when modal opens (single property tab)
 - Added focus management when switching between tabs (single/bulk)
@@ -1019,5 +1095,43 @@ Command: Expand all top level tree items in the AppDNA tree view
 
 2025-06-15: User asked about UI design choice between tabs on a treeview item view vs adding sub treeview items each with their own view
 Command: Expand all top level tree items in the AppDNA tree view
-
+ 
 Fixed record info display logic for single item case - hide "Showing 1 to 1 of 1 requests" text when totalRecords = 1
+
+
+Command: Change 'Requested At' to 'Requested Date\Time' on model AI service lists and modals
+
+2025-01-27: ✅ IMPLEMENTED - Updated 'Requested At' labels to 'Requested Date\Time' across all model AI service views
+
+**Issue #186**: Change 'Requested At' to 'Requested Date\Time' on:
+- Model AI processing requests view column header and modal details
+- Model validation requests view column header and modal details  
+- Model fabrication requests view column header and modal details
+
+**Solution Applied**:
+- **Surgical text replacements**: Updated exactly 6 instances of "Requested At" to "Requested Date\Time"
+- **Files Modified**:
+  * `modelAIProcessingView.js`: Column header (line 24) and modal label (line 995)
+  * `modelValidationView.js`: Column header (line 21) and modal label (line 967)
+  * `modelFabricationView.js`: Column header (line 22) and modal label (line 1181)
+- **Minimal scope**: Only label text changes, no logic modifications
+- **Consistency**: Applied same label format across all three service types
+
+**Technical Implementation**:
+- Updated `columns` array definitions for table headers
+- Updated `fieldsToShow` array definitions for modal details
+- Preserved all existing functionality, validation, and styling
+- Build compilation successful with no regressions
+
+**Testing & Validation**:
+- Verified all 6 instances changed correctly using grep validation
+- Confirmed no remaining "Requested At" labels in target files
+- TypeScript compilation: ✅ Success (webpack compiled successfully)
+- No impact on existing functionality or other components
+
+**User Experience**:
+- Column headers now display "Requested Date\Time" instead of "Requested At"
+- Modal detail labels consistently show "Requested Date\Time" 
+- Uniform labeling across all model AI service views (Processing, Validation, Fabrication)
+- Clear indication that field contains both date and time information
+

@@ -18,7 +18,7 @@
     // Time interval for auto-refresh (1 minute in milliseconds)
     const AUTO_REFRESH_INTERVAL = 60000; // 1 minute in milliseconds
     const columns = [
-        { key: "modelValidationRequestRequestedUTCDateTime", label: "Requested At" },
+        { key: "modelValidationRequestRequestedUTCDateTime", label: "Requested Date\\Time" },
         { key: "modelValidationRequestDescription", label: "Description" },
         { key: "status", label: "Status" },
         { key: "viewDetails", label: "View" } // Added View column
@@ -965,7 +965,7 @@
         // Define which fields to display and their labels
         const fieldsToShow = [
             { key: 'modelValidationRequestDescription', label: 'Description' },
-            { key: 'modelValidationRequestRequestedUTCDateTime', label: 'Requested At', type: 'datetime' },
+            { key: 'modelValidationRequestRequestedUTCDateTime', label: 'Requested Date\\Time', type: 'datetime' },
             { key: 'status', label: 'Status', className: 'status-field' }, // Calculated status
             { key: 'modelValidationRequestCode', label: 'Request Code' }
         ];

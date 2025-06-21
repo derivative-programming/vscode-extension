@@ -19,7 +19,7 @@
     // Time interval for auto-refresh (1 minute in milliseconds)
     const AUTO_REFRESH_INTERVAL = 60000; // 1 minute in milliseconds
     const columns = [
-        { key: "modelFabricationRequestRequestedUTCDateTime", label: "Requested At" },
+        { key: "modelFabricationRequestRequestedUTCDateTime", label: "Requested Date\\Time" },
         { key: "modelFabricationRequestDescription", label: "Description" },
         { key: "status", label: "Status" },
         { key: "viewDetails", label: "View" } // Added View column
@@ -530,6 +530,7 @@
                     z-index: 1000;
                 }
                 .modal-content {
+                    position: relative;
                     background: var(--vscode-editor-background);
                     padding: 20px;
                     border-radius: 4px;
@@ -1179,7 +1180,7 @@
         // Define which fields to display and their labels
         const fieldsToShow = [
             { key: "modelFabricationRequestDescription", label: "Description" },
-            { key: "modelFabricationRequestRequestedUTCDateTime", label: "Requested At", type: "datetime" },
+            { key: "modelFabricationRequestRequestedUTCDateTime", label: "Requested Date\\Time", type: "datetime" },
             { key: "status", label: "Status", className: "status-field" },
             { key: "modelFabricationRequestCode", label: "Request Code" }
         ];
