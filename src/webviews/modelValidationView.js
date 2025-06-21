@@ -891,10 +891,15 @@
                                 // td.appendChild(button);
                             }
                         } else if (col.key === "modelValidationRequestRequestedUTCDateTime" && value) {
-                            // Format date nicely
+                            // Format date nicely with local time zone abbreviation
                             try {
-                                const date = new Date(value);
-                                td.textContent = date.toLocaleString();
+                                let dateValue = value;
+                                // If the value does not contain a timezone, treat as UTC by appending 'Z'
+                                if (typeof dateValue === "string" && !dateValue.match(/[zZ]|[+-]\d{2}:?\d{2}$/)) {
+                                    dateValue += "Z";
+                                }
+                                const date = new Date(dateValue);
+                                td.textContent = date.toLocaleString(undefined, { timeZoneName: 'short' });
                             } catch (e) {
                                 td.textContent = value || "";
                             }
@@ -1047,7 +1052,12 @@
                     displayValue = '<span class="detail-value">N/A</span>';
                 } else if (field.type === 'datetime') {
                     try {
-                        displayValue = `<span class="detail-value">${new Date(value).toLocaleString()}</span>`;
+                        // If the value does not end with 'Z' or contain a timezone, treat as UTC
+                        let dateValue = value;
+                        if (typeof dateValue === 'string' && !dateValue.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(dateValue)) {
+                            dateValue += 'Z';
+                        }
+                        displayValue = `<span class="detail-value">${new Date(dateValue).toLocaleString(undefined, { timeZoneName: 'short' })}</span>`;
                     } catch (e) {
                         displayValue = `<span class="detail-value">${value} (Invalid Date)</span>`;
                     }

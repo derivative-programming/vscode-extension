@@ -1155,10 +1155,15 @@
                                 // For other cases, show no button
                             }
                         } else if (col.key === "modelFabricationRequestRequestedUTCDateTime" && value) {
-                            // Format date nicely
+                            // Format date nicely with local time zone abbreviation
                             try {
-                                const date = new Date(value);
-                                td.textContent = date.toLocaleString();
+                                let dateValue = value;
+                                // If the value does not contain a timezone, treat as UTC by appending 'Z'
+                                if (typeof dateValue === "string" && !dateValue.match(/[zZ]|[+-]\d{2}:?\d{2}$/)) {
+                                    dateValue += "Z";
+                                }
+                                const date = new Date(dateValue);
+                                td.textContent = date.toLocaleString(undefined, { timeZoneName: 'short' });
                             } catch (e) {
                                 td.textContent = value || "";
                             }
@@ -1272,7 +1277,13 @@
                     displayValue = '<span class="detail-value">N/A</span>';
                 } else if (field.type === "datetime") {
                     try {
-                        displayValue = `<span class="detail-value">${new Date(value).toLocaleString()}</span>`;
+                        let dateStr = value;
+                        // If the string does not end with 'Z' or a timezone offset, treat as UTC
+                        if (typeof dateStr === "string" && !/Z$|[+-]\d{2}:?\d{2}$/.test(dateStr)) {
+                            dateStr += "Z";
+                        }
+                        const date = new Date(dateStr);
+                        displayValue = `<span class="detail-value">${date.toLocaleString(undefined, { timeZoneName: "short" })}</span>`;
                     } catch (e) {
                         displayValue = `<span class="detail-value">${value} (Invalid Date)</span>`;
                     }

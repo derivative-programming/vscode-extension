@@ -76,93 +76,7 @@ Step 3. text...
 
 max length validation rules?
 50... lookup item names
-
-examples...
-this...
-{
-    "name": "TestLookup",
-    "parentObjectName": "Pac",
-    "prop": [
-        {
-        "name": "PacID",
-        "sqlServerDBDataType": "int",
-        "isFK": "true",
-        "isNotPublishedToSubscriptions": "true",
-        "isFKConstraintSuppressed": "false"
-        }
-    ],
-    "propSubscription": [],
-    "modelPkg": [],
-    "lookupItem": []
-}
-win app...
-{
-    "isLookup": "true",
-    "lookupItem": [
-        {
-        "description": "",
-        "displayName": "",
-        "isActive": "true",
-        "name": "Unknown"
-        }
-    ],
-    "modelPkg": [],
-    "name": "TestLookip",
-    "parentObjectName": "Pac",
-    "prop": [
-        {
-        "isFK": "true",
-        "isFKConstraintSuppressed": "false",
-        "isFKLookup": "true",
-        "isNotPublishedToSubscriptions": "true",
-        "name": "PacID",
-        "sqlServerDBDataType": "int"
-        }
-    ],
-    "propSubscription": []
-    },
-
-
-this...
-{
-"name": "TestObj",
-"parentObjectName": "Pac",
-"prop": [
-    {
-    "name": "NewProp"
-    },
-    {
-    "name": "PacID",
-    "sqlServerDBDataType": "int",
-    "isFK": "true",
-    "isNotPublishedToSubscriptions": "true",
-    "isFKConstraintSuppressed": "false"
-    }
-],
-"propSubscription": [],
-"modelPkg": [],
-"lookupItem": []
-}
-win app....
-{
-"lookupItem": [],
-"modelPkg": [],
-"name": "TestObj",
-"parentObjectName": "Pac",
-"prop": [
-    {
-    "name": "NewProp"
-    },
-    {
-    "isFK": "true",
-    "isFKConstraintSuppressed": "false",
-    "isNotPublishedToSubscriptions": "true",
-    "name": "PacID",
-    "sqlServerDBDataType": "int"
-    }
-],
-"propSubscription": []
-}
+ 
 
   
 test step 2 if no role data obect
@@ -175,7 +89,7 @@ in the case where the model file is not foudn or deleted, set the flag showing t
  
 
 add welcome step to update project settings view
-   
+
 
 
 need to adjust datetimes to timezone in profile, or local computer timezone
