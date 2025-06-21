@@ -1092,3 +1092,39 @@ Command: Expand all top level tree items in the AppDNA tree view
 
 2025-06-15: User asked about UI design choice between tabs on a treeview item view vs adding sub treeview items each with their own view
 Command: Expand all top level tree items in the AppDNA tree view
+
+Command: Change 'Requested At' to 'Requested Date\Time' on model AI service lists and modals
+
+2025-01-27: ✅ IMPLEMENTED - Updated 'Requested At' labels to 'Requested Date\Time' across all model AI service views
+
+**Issue #186**: Change 'Requested At' to 'Requested Date\Time' on:
+- Model AI processing requests view column header and modal details
+- Model validation requests view column header and modal details  
+- Model fabrication requests view column header and modal details
+
+**Solution Applied**:
+- **Surgical text replacements**: Updated exactly 6 instances of "Requested At" to "Requested Date\Time"
+- **Files Modified**:
+  * `modelAIProcessingView.js`: Column header (line 24) and modal label (line 995)
+  * `modelValidationView.js`: Column header (line 21) and modal label (line 967)
+  * `modelFabricationView.js`: Column header (line 22) and modal label (line 1181)
+- **Minimal scope**: Only label text changes, no logic modifications
+- **Consistency**: Applied same label format across all three service types
+
+**Technical Implementation**:
+- Updated `columns` array definitions for table headers
+- Updated `fieldsToShow` array definitions for modal details
+- Preserved all existing functionality, validation, and styling
+- Build compilation successful with no regressions
+
+**Testing & Validation**:
+- Verified all 6 instances changed correctly using grep validation
+- Confirmed no remaining "Requested At" labels in target files
+- TypeScript compilation: ✅ Success (webpack compiled successfully)
+- No impact on existing functionality or other components
+
+**User Experience**:
+- Column headers now display "Requested Date\Time" instead of "Requested At"
+- Modal detail labels consistently show "Requested Date\Time" 
+- Uniform labeling across all model AI service views (Processing, Validation, Fabrication)
+- Clear indication that field contains both date and time information
