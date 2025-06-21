@@ -1,3 +1,27 @@
+ 
+Command: Project settings update - name field label
+
+2025-01-17: ✅ IMPLEMENTED - Project Settings Name Field Label Updates
+
+**Issue**: Update project settings view field labels and ordering
+- Change 'Name' setting textbox label to 'Root Namespace' and move under 'Project version number' setting
+- Change 'Namespace' setting textbox label to 'Secondary Namespace'
+
+**Solution**: Modified src/webviews/projectSettingsView.js:
+1. Updated renderRootSettings() to create custom property ordering placing 'name' after 'projectVersionNumber'
+2. Modified createPropertyRow() to handle special case for root 'name' property, displaying "Root Namespace:" label
+3. Changed hardcoded namespace name label from "Namespace:" to "Secondary Namespace:"
+
+**Files Changed**:
+- src/webviews/projectSettingsView.js
+
+**Testing**: 
+- Verified compilation succeeds
+- Verified linting passes  
+- Created manual test to verify label generation and ordering logic
+
+---
+
 Command: Fix fabrication blueprint catalog view paging buttons
 
 2025-06-21: ✅ IMPLEMENTED - Fixed paging button colors in fabrication blueprint catalog view

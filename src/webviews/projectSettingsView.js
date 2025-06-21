@@ -493,8 +493,29 @@ function getWebviewContent(panel, context, model, schema) {
                     return;
                 }
                 
-                // Create rows for each property
+                // Create a custom ordered list to put 'name' after 'projectVersionNumber'
+                const orderedProperties = [];
                 propertiesToDisplay.forEach(propName => {
+                    if (propName !== 'name') {
+                        orderedProperties.push(propName);
+                    }
+                });
+                
+                // Insert 'name' after 'projectVersionNumber' if both exist
+                const projectVersionIndex = orderedProperties.indexOf('projectVersionNumber');
+                const nameExists = propertiesToDisplay.includes('name');
+                if (nameExists) {
+                    if (projectVersionIndex !== -1) {
+                        // Insert 'name' after 'projectVersionNumber'
+                        orderedProperties.splice(projectVersionIndex + 1, 0, 'name');
+                    } else {
+                        // If 'projectVersionNumber' doesn't exist, add 'name' at the beginning
+                        orderedProperties.unshift('name');
+                    }
+                }
+                
+                // Create rows for each property in the custom order
+                orderedProperties.forEach(propName => {
                     const propSchema = rootSchema[propName];
                     const propValue = rootData.properties && rootData.properties[propName];
                     const propExists = rootData.properties && rootData.properties.hasOwnProperty(propName);
@@ -536,7 +557,7 @@ function getWebviewContent(panel, context, model, schema) {
                     
                     const nameLabel = document.createElement('div');
                     nameLabel.className = 'property-name';
-                    nameLabel.textContent = 'Namespace:';
+                    nameLabel.textContent = 'Secondary Namespace:';
                     nameLabel.title = "Namespace name cannot be empty";
                     nameRow.appendChild(nameLabel);
                     
@@ -622,7 +643,17 @@ function getWebviewContent(panel, context, model, schema) {
                 // Create the label
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'property-name';
-                nameDiv.textContent = formatPropertyName(propName) + ':';
+
+                
+                // Special case: change 'name' property label to 'Root Namespace' when in root section
+                let labelText;
+                if (section === 'root' && propName === 'name') {
+                    labelText = 'Root Namespace:';
+                } else {
+                    labelText = formatPropertyName(propName) + ':';
+                }
+                
+                nameDiv.textContent = labelText;
                 
                 // Add tooltip to label if there's a description
                 if (propSchema.description) {
