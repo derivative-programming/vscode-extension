@@ -347,6 +347,41 @@ Command: Data object details view settings tab - make parent object name textbox
 Command: Data object view - add property modal updates
 
 2025-12-19: Implemented focus and Enter key handling for data object view - add property modal
+
+2025-12-20: ✅ IMPLEMENTED - Added lookup items enhancement per issue #182
+
+**Issue**: Object Hierarchy view needed enhancement for lookup items:
+- Show lookup items with a light orange color background
+- Show legend of light orange color background for lookup items  
+- Show checkbox option to hide lookup items
+- Lookup data objects have isLookup = true
+
+**Solution Applied**:
+- **Added light orange styling**: New `.node.lookup` CSS class with #ffa500 background color
+- **Enhanced data structure**: Modified `buildObjectRelationships` to include `isLookup` boolean property
+- **Updated node classification**: Modified both CSS class assignment sections to apply lookup styling when `d.data.isLookup` is true
+- **Added visual legend**: Shows orange color indicator for lookup items in toolbar
+- **Implemented toggle control**: Added "Show Lookup Items" checkbox with `toggleLookupItems` function
+- **Added filtering logic**: Hides/shows both lookup nodes and their connecting links based on checkbox state
+
+**Technical Implementation**:
+- **File Modified**: src/webviews/hierarchyView.js
+- **Key Changes**:
+  * Added `.node.lookup` CSS styling with light orange background (#ffa500)
+  * Modified `buildObjectRelationships()` to convert isLookup string to boolean
+  * Updated CSS class assignment logic in two locations (node enter and node update)
+  * Added legend HTML and checkbox control to toolbar
+  * Implemented `toggleLookupItems()` function for filtering
+  * Added event listener for checkbox changes
+- **Lines**: 78 lines added, 1 line removed - surgical approach maintained
+- **Build Status**: Compilation successful, no new lint warnings
+
+**User Experience**:
+- **Visual Distinction**: Lookup items now have distinctive light orange background
+- **Clear Legend**: Visual indicator shows what orange color represents
+- **Easy Toggle**: Simple checkbox to hide/show all lookup items at once
+- **Complete Filtering**: Both nodes and connecting links are hidden when lookup items are filtered out
+- **Priority Handling**: Selected and search highlighting takes priority over lookup styling
 - Modified src/webviews/objects/components/templates/propertyModalFunctionality.js
 - Added focus on property name textbox when modal opens (single property tab)
 - Added focus management when switching between tabs (single/bulk)
