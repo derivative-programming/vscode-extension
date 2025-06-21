@@ -98,7 +98,10 @@ function showAddReportWizard(modelService) {
                         const newReport = {
                             name: reportName,
                             titleText: reportTitle,
-                            visualizationType: visualizationType
+                            visualizationType: visualizationType,
+                            reportColumn: [],
+                            reportButton: [],
+                            reportParam: []
                         };
                         
                         // Add optional properties based on wizard selections
@@ -116,6 +119,12 @@ function showAddReportWizard(modelService) {
                         
                         // Mark model as having unsaved changes
                         modelService.markUnsavedChanges();
+
+                        // Notify the webview of unsaved changes status
+                        panel.webview.postMessage({
+                            command: "modelValidationUnsavedChangesStatus",
+                            hasUnsavedChanges: modelService.hasUnsavedChangesInMemory()
+                        });
                         
                         // Send success message
                         panel.webview.postMessage({ 
@@ -128,7 +137,7 @@ function showAddReportWizard(modelService) {
                             panel.dispose();
                             
                             // Refresh the tree view
-                            vscode.commands.executeCommand('appdna.refreshView');
+                            vscode.commands.executeCommand('appdna.refresh');
                             
                             // Open the report details view
                             const reportNode = {

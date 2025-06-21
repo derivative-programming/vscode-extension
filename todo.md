@@ -19,7 +19,7 @@ object details view...
     - add button... modal, allow single or bulk.
  
 test 'add' buttons...
-- data object details - properties tab
+- ok:data object details - properties tab
 - add lookup item
 - report details - columns tab
 - report details - buttons tab
@@ -89,11 +89,7 @@ in the case where the model file is not foudn or deleted, set the flag showing t
  
 
 add welcome step to update project settings view
-
-
-
-need to adjust datetimes to timezone in profile, or local computer timezone
-  
+ 
 
 cancel option on model ai processing request?
 
