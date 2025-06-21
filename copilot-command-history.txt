@@ -525,6 +525,14 @@ June 14, 2025: Update button name validation in report details view to prevent n
 
 Command: 'Header Text:' property shouldnt be in the 'add column' modal
 
+June 21, 2025 - User requested: "model fabrication request details modal - download complete text" 
+
+Issue #205: Update the success message displayed after model fabrication results download completes.
+- Modified downloadComplete() function in src/webviews/modelFabricationView.js
+- Updated success message from: "Fabrication results have been downloaded and extracted successfully."
+- To: "Fabrication results have been downloaded and extracted successfully. Fabrication results have been downloaded and extracted to the fabrication_results folder. Review the files and copy needed files to your project."
+- This provides users with clearer guidance on where the files are located and what actions to take next
+
 2025-06-14: Removed the 'Header Text:' property from the 'add column' modal to simplify it and match the object 'add property' modal design
 - Modified src/webviews/reports/components/templates/addColumnModalTemplate.js:
   * Removed the Header Text input field and its associated form-row
