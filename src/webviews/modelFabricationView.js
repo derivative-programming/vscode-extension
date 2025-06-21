@@ -513,6 +513,19 @@
                 }
                 .refresh-button:hover {
                     background-color: var(--vscode-button-hoverBackground);
+                }
+                .refresh-only-button {
+                    background: transparent;
+                    color: var(--vscode-editor-foreground);
+                    border: none;
+                    padding: 4px 8px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                .refresh-only-button:hover {
+                    background-color: var(--vscode-toolbar-hoverBackground);
                 }                .add-button {
                     margin-right: 8px;
                 }
@@ -844,7 +857,8 @@
                     <button id="addButton" class="refresh-button add-button" title="Add Request">
                         Add
                     </button>
-                    <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                    <button id="refreshButton" class="refresh-only-button" title="Refresh Table">
+                        <i class="codicon codicon-refresh"></i>
                         Refresh
                     </button>
                 </div>

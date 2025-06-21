@@ -107,9 +107,10 @@ export function registerModelFeatureCatalogCommands(
                 <html lang="en">
                 <head>
                     <meta charset="UTF-8">
-                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource} https://unpkg.com;">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Model Feature Catalog</title>
+                    <link rel="stylesheet" href="https://unpkg.com/@vscode/codicons@latest/dist/codicon.css" />
                     <style>
                         body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
                         .validation-header {
@@ -187,17 +188,17 @@ export function registerModelFeatureCatalogCommands(
                             100% { transform: rotate(360deg); }
                         }
                         .refresh-button {
-                            background-color: var(--vscode-button-background);
-                            color: var(--vscode-button-foreground);
+                            background: transparent;
+                            color: var(--vscode-editor-foreground);
                             border: none;
                             padding: 4px 8px;
                             cursor: pointer;
-                            border-radius: 3px;
                             display: flex;
                             align-items: center;
+                            gap: 4px;
                         }
                         .refresh-button:hover {
-                            background-color: var(--vscode-button-hoverBackground);
+                            background-color: var(--vscode-toolbar-hoverBackground);
                         }
                         .header-actions {
                             display: flex;
@@ -229,6 +230,7 @@ export function registerModelFeatureCatalogCommands(
                     </div>
                     <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                            <i class="codicon codicon-refresh"></i>
                             Refresh
                         </button>
                     </div>
