@@ -18,7 +18,7 @@
     // Time interval for auto-refresh (1 minute in milliseconds)
     const AUTO_REFRESH_INTERVAL = 60000; // 1 minute in milliseconds
     const columns = [
-        { key: "modelValidationRequestRequestedUTCDateTime", label: "Requested At" },
+        { key: "modelValidationRequestRequestedUTCDateTime", label: "Requested Date\\Time" },
         { key: "modelValidationRequestDescription", label: "Description" },
         { key: "status", label: "Status" },
         { key: "viewDetails", label: "View" } // Added View column
@@ -228,6 +228,19 @@
                 }
                 .refresh-button:hover {
                     background-color: var(--vscode-button-hoverBackground);
+                }
+                .refresh-only-button {
+                    background: transparent;
+                    color: var(--vscode-editor-foreground);
+                    border: none;
+                    padding: 4px 8px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                .refresh-only-button:hover {
+                    background-color: var(--vscode-toolbar-hoverBackground);
                 }
                 .add-button {
                     margin-right: 8px;
@@ -577,7 +590,8 @@
                     <button id="addButton" class="refresh-button add-button" title="Add Request">
                         Add
                     </button>
-                    <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                    <button id="refreshButton" class="refresh-only-button" title="Refresh Table">
+                        <i class="codicon codicon-refresh"></i>
                         Refresh
                     </button>
                 </div>
@@ -964,7 +978,7 @@
         // Define which fields to display and their labels
         const fieldsToShow = [
             { key: 'modelValidationRequestDescription', label: 'Description' },
-            { key: 'modelValidationRequestRequestedUTCDateTime', label: 'Requested At', type: 'datetime' },
+            { key: 'modelValidationRequestRequestedUTCDateTime', label: 'Requested Date\\Time', type: 'datetime' },
             { key: 'status', label: 'Status', className: 'status-field' }, // Calculated status
             { key: 'modelValidationRequestCode', label: 'Request Code' }
         ];

@@ -390,8 +390,41 @@ Implemented advanced search features including exact match view centering and pa
 - Efficient navigation to exact matches without manual scrolling
 - Visual indicators remain until search is changed or cleared
 
-   
- 
+## Object Hierarchy View - Lookup Items Enhancement (Added 2025-12-20)
+
+Implemented visual distinction and filtering for lookup items in the object hierarchy diagram per issue #182.
+
+### Problem:
+- Lookup data objects (isLookup="true") were not visually distinct in the hierarchy view
+- No way to identify which objects were lookup items
+- No option to hide lookup items to focus on main data objects
+
+### Solution:
+- **Visual Distinction**: Added light orange background color for lookup items
+- **Legend**: Added visual legend showing orange color meaning 
+- **Filtering**: Added checkbox to hide/show lookup items
+- **Complete Integration**: Works with existing search and selection features
+
+### Implementation:
+- **File Modified**: `src/webviews/hierarchyView.js`
+- **Styling**: Added `.node.lookup` CSS class with #ffa500 background
+- **Data Processing**: Enhanced `buildObjectRelationships` to convert isLookup string to boolean
+- **Node Classification**: Updated CSS class assignment in both node enter and update sections
+- **UI Controls**: Added legend and checkbox to toolbar
+- **Filtering Logic**: Implemented `toggleLookupItems` function to hide/show nodes and links
+
+### Technical Details:
+- **Priority System**: selected > search-highlight > search-partial > lookup > collapsed > normal
+- **String Conversion**: Converts isLookup "true" string to boolean for easier JavaScript handling
+- **Complete Filtering**: Hides both lookup nodes and their connecting links when filtered
+- **Event Handling**: Added checkbox change listener to toggle visibility
+- **Console Logging**: Added debug logging for lookup class application
+
+### User Experience Benefits:
+- Clear visual identification of lookup vs. main data objects
+- Easy filtering to focus view on non-lookup objects
+- Maintains full functionality with search and selection features
+- Legend provides immediate understanding of color coding
 ## Report Button Name Validation - No Numbers Allowed (Added 2025-06-14)
 
 Implemented requirement to prevent numbers in button names when adding new buttons in the report details view.

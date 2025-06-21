@@ -558,6 +558,7 @@ function getWebviewContent(panel, context, model, schema) {
                     const nameLabel = document.createElement('div');
                     nameLabel.className = 'property-name';
                     nameLabel.textContent = 'Secondary Namespace:';
+                    nameLabel.title = "Namespace name cannot be empty";
                     nameRow.appendChild(nameLabel);
                     
                     const controlContainer = document.createElement('div');
@@ -642,6 +643,7 @@ function getWebviewContent(panel, context, model, schema) {
                 // Create the label
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'property-name';
+
                 
                 // Special case: change 'name' property label to 'Root Namespace' when in root section
                 let labelText;
@@ -652,6 +654,12 @@ function getWebviewContent(panel, context, model, schema) {
                 }
                 
                 nameDiv.textContent = labelText;
+                
+                // Add tooltip to label if there's a description
+                if (propSchema.description) {
+                    nameDiv.title = propSchema.description;
+                }
+                
                 row.appendChild(nameDiv);
                 
                 // Create the control container
