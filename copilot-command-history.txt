@@ -1186,10 +1186,16 @@ Changes:
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+
 2025-06-15: Remove 'test colors' button - search highlighting is now working
 
 2025-06-15: User asked about UI design choice between tabs on a treeview item view vs adding sub treeview items each with their own view
 Command: Expand all top level tree items in the AppDNA tree view
+ 
+Fixed record info display logic for single item case - hide "Showing 1 to 1 of 1 requests" text when totalRecords = 1
+
 
 Command: Change 'Requested At' to 'Requested Date\Time' on model AI service lists and modals
 
@@ -1226,3 +1232,4 @@ Command: Change 'Requested At' to 'Requested Date\Time' on model AI service list
 - Modal detail labels consistently show "Requested Date\Time" 
 - Uniform labeling across all model AI service views (Processing, Validation, Fabrication)
 - Clear indication that field contains both date and time information
+

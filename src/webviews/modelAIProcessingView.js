@@ -906,7 +906,7 @@
         const start = processingData.length ? (pageNumber - 1) * itemCountPerPage + 1 : 0;
         const end = processingData.length ? Math.min(start + processingData.length - 1, totalRecords) : 0;
         document.getElementById("record-info").textContent = 
-            processingData.length ? `Showing ${start} to ${end} of ${totalRecords} requests` : `No processing requests to display`;
+            totalRecords > 1 ? `Showing ${start} to ${end} of ${totalRecords} requests` : "";
     }
 
     function renderPaging() {
