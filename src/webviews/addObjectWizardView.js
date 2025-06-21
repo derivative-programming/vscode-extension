@@ -99,6 +99,29 @@ function showAddObjectWizard(modelService) {
                             parentObjectName: parentObjectName || ""
                         };
                         
+                        
+                        // Initialize additional arrays
+                        newObject.propSubscription = [];
+                        newObject.modelPkg = [];
+                        newObject.lookupItem = [];
+                        newObject.isLookup = "false"; // Default to false unless specified
+
+                        if (isLookupObject) {
+                            newObject.isLookup = String(isLookupObject);
+                        }
+
+                        if(newObject.isLookup === "true") {
+                            newObject.lookupItem = [
+                                {
+                                    "description": "",
+                                    "displayName": "",
+                                    "isActive": "true",
+                                    "name": "Unknown"
+                                }
+                            ];
+                        }
+
+                        
                         // Add properties based on the parent
                         if (parentObjectName) {
                             const parentObjectIDProp = {
@@ -108,16 +131,15 @@ function showAddObjectWizard(modelService) {
                                 isNotPublishedToSubscriptions: "true",
                                 isFKConstraintSuppressed: "false"
                             };
+
+                            if(newObject.isLookup === "true") {
+                                parentObjectIDProp.isFKLookup = "true";
+                            }
                             
                             newObject.prop = [parentObjectIDProp];
                         } else {
                             newObject.prop = [];
                         }
-                        
-                        // Initialize additional arrays
-                        newObject.propSubscription = [];
-                        newObject.modelPkg = [];
-                        newObject.lookupItem = [];
                         
                         // Add the object to the namespace
                         model.namespace[targetNsIndex].object.push(newObject);

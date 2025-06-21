@@ -4,6 +4,11 @@ Agent todo items...
 
 make extension repo public
 
+add buttton to plus sign buttons...
+- add data object property
+- add report column
+- add report parameter
+- add report button
  
 object details view...
 - lookup item list
@@ -57,8 +62,8 @@ add report...
 - Navigation
 
 add db object...
-- general
-- lookup
+- ok:general
+- ok:lookup
 
 
 
