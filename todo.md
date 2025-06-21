@@ -1,18 +1,16 @@
 Agent todo items...
 
-
+'there is no data provider registered....' on startup
 
 make extension repo public
 
 Object Heirarchy diagram...
-- if the 'search objects' textbox value partially or exactly match any item in the heirarchy, then add a light green color to it.
 - option to hide lookup items
 - option to hide items not implemented
   
 
  
 object details view...
-- read only setting 'is lookup'
 - lookup item list
     only show if is lookup object
     -buttons ... add, move up, move down
@@ -176,3 +174,43 @@ test step 2 if no role data obect
 
 
 test:When completed, create a report item in the owner data object report array. Add the new report item to the treeview. Open the new report item in the report details view.
+
+in the case where the model file is not foudn or deleted, set the flag showing the model is updated to false. should not be showing indicator that changes exist on the treeview title item
+ 
+
+add welcome step to update project settings view
+   
+
+
+need to adjust datetimes to timezone in profile, or local computer timezone
+
+copilot:show button with refresh icon with no blue background instead of text 'Refresh' on 
+- model feature catalog view
+- the model ai processing requests view
+- model validation requests view
+- fabrication blueprint catalog view
+- model fabrication requests view 
+
+there is a faint box above the table that is not needed
+- the model ai processing requests view
+- model validation requests view
+- model fabrication requests view
+ 
+
+copilot:show button with 'plus'' icon with no blue background instead of text 'add' on 
+- the model ai processing requests view
+- model validation requests view
+- model fabrication requests view 
+ 
+ 
+
+cancel option on model ai processing request?
+
+copilot:dont validate on model change request approval. 
+
+does 'validate all' work?  validate all when view comes up?
+
+
+normal users should not get legacy code
+ 
+  

@@ -11,9 +11,8 @@ import { getWorkspaceRoot, getValidationChangeRequestsPath, getCompatibleFilePat
  * Loads change requests from a JSON file and sends them to the webview.
  * @param panel The webview panel.
  * @param requestCode The validation request code used to find the change requests file.
- * @param performValidation Whether to perform validation on pending change requests. Defaults to true.
  */
-async function loadAndSendChangeRequests(panel: vscode.WebviewPanel, requestCode: string, performValidation: boolean = true) {
+async function loadAndSendChangeRequests(panel: vscode.WebviewPanel, requestCode: string) {
     try {
         const workspaceRoot = getWorkspaceRoot();
         const validationChangeRequestsPath = getValidationChangeRequestsPath(workspaceRoot);
@@ -90,13 +89,8 @@ async function loadAndSendChangeRequests(panel: vscode.WebviewPanel, requestCode
         
         console.log(`[Extension] Loaded ${changeRequests.length} change requests from ${changeRequestsFilePath}`);
         
-        // Validate pending change requests to check if they are out of date (only if requested)
-        if (performValidation) {
-            console.log("[Extension] Performing validation on pending change requests");
-            changeRequests = await validatePendingChangeRequests(changeRequests, requestCode);
-        } else {
-            console.log("[Extension] Skipping validation as requested");
-        }
+        // Validate pending change requests to check if they are out of date
+        changeRequests = await validatePendingChangeRequests(changeRequests, requestCode);
         
         console.log("[Extension] First change request sample:", changeRequests.length > 0 ? JSON.stringify(changeRequests[0]) : "No change requests");
         
@@ -677,8 +671,8 @@ async function handleApproveChangeRequest(panel: vscode.WebviewPanel, requestCod
         
         // Save the updated file
         fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
-          // Reload and send updated data to the webview (skip validation during approval)
-        await loadAndSendChangeRequests(panel, requestCode, false);
+          // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
         
         // Notify webview that the operation is complete
         panel.webview.postMessage({ command: 'operationComplete' });
@@ -752,8 +746,8 @@ async function handleRejectChangeRequest(panel: vscode.WebviewPanel, requestCode
         
         // Save the updated file
         fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
-          // Reload and send updated data to the webview (skip validation during rejection)
-        await loadAndSendChangeRequests(panel, requestCode, false);
+          // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
         
         // Notify webview that the operation is complete
         panel.webview.postMessage({ command: 'operationComplete' });
@@ -945,8 +939,8 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
                 // Save the updated change requests file
                 fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
                 
-                // Reload and send updated data to the webview (skip validation during apply)
-                await loadAndSendChangeRequests(panel, requestCode, false);
+                // Reload and send updated data to the webview
+                await loadAndSendChangeRequests(panel, requestCode);
                 
                 // Show an info message
                 vscode.window.showInformationMessage(`Change request ${changeRequestCode} marked as applied: Model value already matches the new value`);
@@ -965,8 +959,8 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
                 // Save the updated change requests file
                 fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
                 
-                // Reload and send updated data to the webview (skip validation during apply)
-                await loadAndSendChangeRequests(panel, requestCode, false);
+                // Reload and send updated data to the webview
+                await loadAndSendChangeRequests(panel, requestCode);
                 
                 // Show a warning message
                 vscode.window.showWarningMessage(`Change request ${changeRequestCode} rejected: Current model value doesn't match the expected old value`);
@@ -1015,8 +1009,8 @@ async function handleApplyChangeRequest(panel: vscode.WebviewPanel, requestCode:
         // Save the updated change requests file
         fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
         
-        // Reload and send updated data to the webview (skip validation during apply)
-        await loadAndSendChangeRequests(panel, requestCode, false);
+        // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
         
         // Show no success message
         // vscode.window.showInformationMessage(`Change request ${changeRequestCode} applied successfully`);
@@ -1257,8 +1251,8 @@ async function handleApplyAllChangeRequests(panel: vscode.WebviewPanel, requestC
         
         // Save the updated change requests file
         fs.writeFileSync(changeRequestsFilePath, JSON.stringify(changeRequestsData, null, 2), 'utf8');
-          // Reload and send updated data to the webview (skip validation during bulk apply)
-        await loadAndSendChangeRequests(panel, requestCode, false);
+          // Reload and send updated data to the webview
+        await loadAndSendChangeRequests(panel, requestCode);
         
         // Notify webview that the operation is complete
         panel.webview.postMessage({ command: 'operationComplete' });
