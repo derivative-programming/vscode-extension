@@ -22,7 +22,7 @@
         { key: "modelFabricationRequestRequestedUTCDateTime", label: "Requested Date\\Time" },
         { key: "modelFabricationRequestDescription", label: "Description" },
         { key: "status", label: "Status" },
-        { key: "viewDetails", label: "View" } // Added View column
+        { key: "viewDetails", label: "Actions" } // Added Actions column
     ];
 
     // Spinner control functions (moved to global scope within IIFE)

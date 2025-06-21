@@ -305,6 +305,26 @@ Command: Add button modal focus and enter key handling
 - Matches behavior of other add modals in the application
  
  
+Command: model ai processing request lists update... 'View' column header
+
+2025-06-21: ✅ IMPLEMENTED - Change 'View' column header to 'Actions'
+
+**Issue**: Change far right column header 'View' to 'Actions' on these views:
+- the model ai processing requests view
+- model validation requests view  
+- model fabrication requests view
+
+**Solution Applied**:
+- **Modified src/webviews/modelAIProcessingView.js**: Changed line 27 from `{ key: "viewDetails", label: "View" }` to `{ key: "viewDetails", label: "Actions" }`
+- **Modified src/webviews/modelValidationView.js**: Changed line 24 from `{ key: "viewDetails", label: "View" }` to `{ key: "viewDetails", label: "Actions" }`
+- **Modified src/webviews/modelFabricationView.js**: Changed line 25 from `{ key: "viewDetails", label: "View" }` to `{ key: "viewDetails", label: "Actions" }`
+
+**Implementation Details**:
+- Minimal change approach: Only modified the label property in the columns array for each view
+- Updated comments to reflect the new "Actions" designation
+- Verified build and lint processes still work correctly
+- No functional changes, only display text changes
+
 Command: report details view - add column modal updates
 
 2025-01-14: ✅ IMPLEMENTED - Focus and Enter key handling for add column modal
