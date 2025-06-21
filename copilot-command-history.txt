@@ -122,6 +122,42 @@ Command: Add report wizard step 4 focus and enter key handling
  
 Command: Object Hierarchy search update - Center view without selecting exact matches
 
+2025-01-27: ✅ IMPLEMENTED - Modified Object Hierarchy initial view per issue #203
+
+**Issue**: Object Hierarchy diagram needed initial view adjustments:
+- Wider initial view by about 10% (zoom out effect)
+- 'All Objects' item should be centered horizontally and vertically in the view
+
+**Current Behavior**: Initial view shows at 100% zoom with default positioning
+**Required Behavior**: Initial view should zoom out by 10% and center 'All Objects' root node
+
+**Solution Applied**:
+- **Added setInitialView() function**: New function that applies 0.9 scale (10% zoom out) and centers the root node
+- **Modified initDiagram() function**: Added call to setInitialView() after update(root) with 100ms timeout for DOM readiness
+- **Leveraged existing zoom infrastructure**: Used D3 zoom.transform() with scale and translate calculations
+- **Preserved existing functionality**: All other zoom controls and behaviors remain unchanged
+
+**Technical Implementation**:
+- **File Modified**: src/webviews/hierarchyView.js  
+- **Key Changes**:
+  * Added setInitialView() function after centerViewOnNode() function (lines 588-610)
+  * Calculates SVG viewport center and root node position for proper centering
+  * Uses D3 zoom.transform() with d3.zoomIdentity.scale(0.9).translate(x, y) for combined zoom and positioning
+  * Added timeout call to setInitialView() in initDiagram() function after update(root) call
+  * 500ms transition duration provides smooth initial animation
+
+**User Experience Improvements**:
+- **Wider initial view**: 10% zoom out provides better overview of hierarchy structure
+- **Centered root node**: 'All Objects' is now perfectly centered both horizontally and vertically
+- **Smooth initialization**: 500ms transition provides professional visual feedback during initial load
+- **Consistent with existing UI**: Uses same transition patterns as other zoom functions
+
+**Code Quality**:
+- **Minimal changes**: 26 lines added, 3 lines modified - surgical approach maintained
+- **Build successful**: npm run compile passes without errors
+- **Lint clean**: No new warnings introduced in modified file
+- **Follows existing patterns**: Uses same D3 zoom patterns as centerViewOnNode() and resetZoom()
+
 2025-06-15: ✅ IMPLEMENTED - Modified Object Hierarchy search behavior per issue #156
 
 **Issue**: Object Hierarchy diagram search needed behavior changes:
