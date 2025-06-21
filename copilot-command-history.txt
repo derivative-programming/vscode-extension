@@ -1,4 +1,3 @@
- 
 Command: Project settings update - name field label
 
 2025-01-17: ✅ IMPLEMENTED - Project Settings Name Field Label Updates
@@ -699,7 +698,7 @@ Issue #205: Update the success message displayed after model fabrication results
 - To: "Fabrication results have been downloaded and extracted successfully. Fabrication results have been downloaded and extracted to the fabrication_results folder. Review the files and copy needed files to your project."
 - This provides users with clearer guidance on where the files are located and what actions to take next
 
-2025-06-14: Removed the 'Header Text:' property from the 'add column' modal to simplify it and match the object 'add property' modal design
+2025-06-14: Removed the 'Header Text' property from the 'add column' modal to simplify it and match the object 'add property' modal design
 - Modified src/webviews/reports/components/templates/addColumnModalTemplate.js:
   * Removed the Header Text input field and its associated form-row
   * Removed the field note explaining header text usage
@@ -1235,4 +1234,31 @@ Command: Change 'Requested At' to 'Requested Date\Time' on model AI service list
 - Modal detail labels consistently show "Requested Date\Time" 
 - Uniform labeling across all model AI service views (Processing, Validation, Fabrication)
 - Clear indication that field contains both date and time information
+
+Command: Review refresh button on model feature catalog list - show icon only
+
+2025-06-21: ✅ IMPLEMENTED - Model Feature Catalog Refresh Button Icon Only
+
+**Issue**: The refresh button on the model feature catalog list is showing both an icon and text "Refresh". It should only show the refresh icon.
+
+**Solution**: Modified src/commands/modelFeatureCatalogCommands.ts:
+- Removed the "Refresh" text from the refresh button HTML
+- Updated the button to only display the codicon-refresh icon
+
+**Files Changed**:
+- src/commands/modelFeatureCatalogCommands.ts
+
+2025-06-21: ✅ FIXED - Model Feature Catalog refresh icon now displays correctly
+
+**Issue**: The refresh icon in the model feature catalog list was showing as a box instead of the icon. This was due to loading Codicons from a CDN, which can fail in VS Code webviews due to CSP or network issues.
+
+**Solution**:
+- Downloaded codicon.css and placed it in the media/ directory
+- Updated src/commands/modelFeatureCatalogCommands.ts to reference codicon.css as a local resource using webview.asWebviewUri
+- Changed the HTML template to use <link rel="stylesheet" href="${codiconsUri}" />
+- Now the refresh icon renders correctly in all environments
+
+**Files Changed**:
+- media/codicon.css (new)
+- src/commands/modelFeatureCatalogCommands.ts
 

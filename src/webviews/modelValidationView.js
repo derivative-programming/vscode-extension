@@ -590,8 +590,7 @@
                     <button id="addButton" class="refresh-button add-button" title="Add Request">
                         Add
                     </button>
-                    <button id="refreshButton" class="refresh-only-button" title="Refresh Table">
-                        <i class="codicon codicon-refresh"></i>
+                    <button id="refreshButton" class="refresh-button" title="Refresh Table">
                         Refresh
                     </button>
                 </div>
