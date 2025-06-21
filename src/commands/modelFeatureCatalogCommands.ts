@@ -101,15 +101,19 @@ export function registerModelFeatureCatalogCommands(
             const scriptUri = panel.webview.asWebviewUri(
                 vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'modelFeatureCatalogView.js')
             );
+            const codiconsUri = panel.webview.asWebviewUri(
+                vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
+            );
 
             panel.webview.html = `
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
                     <meta charset="UTF-8">
-                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource}; font-src ${panel.webview.cspSource};">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Model Feature Catalog</title>
+                    <link href="${codiconsUri}" rel="stylesheet" />
                     <style>
                         body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
                         .validation-header {
@@ -195,6 +199,7 @@ export function registerModelFeatureCatalogCommands(
                             border-radius: 3px;
                             display: flex;
                             align-items: center;
+                            gap: 4px;
                         }
                         .refresh-button:hover {
                             background-color: var(--vscode-button-hoverBackground);
@@ -229,6 +234,7 @@ export function registerModelFeatureCatalogCommands(
                     </div>
                     <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                            <span class="codicon codicon-refresh"></span>
                             Refresh
                         </button>
                     </div>
