@@ -99,15 +99,24 @@ function showAddReportWizard(modelService) {
                             name: reportName,
                             titleText: reportTitle,
                             visualizationType: visualizationType,
+                            isCustomSqlUsed: "false",
+                            isPage: "true",
                             reportColumn: [],
                             reportButton: [],
                             reportParam: []
                         };
                         
+                        newReport.reportButton.push({
+                            buttonName: "Back",
+                            buttonText: "Back",
+                            buttonType: "back"
+                        });
+
                         // Add optional properties based on wizard selections
                         if (roleRequired) {
                             newReport.isAuthorizationRequired = "true";
                             newReport.roleRequired = roleRequired;
+                            newReport.layoutName = roleRequired + "Layout";
                         }
                         
                         if (targetObjectName && visualizationType === "grid") {

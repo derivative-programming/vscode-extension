@@ -100,4 +100,4 @@ does 'validate all' work?  validate all when view comes up?
 
 normal users should not get legacy code
  
-  
+   
