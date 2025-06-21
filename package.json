@@ -16,12 +16,14 @@
   "contributes": {
     "viewsContainers": {
       "activitybar": [
-        {          "id": "appdnaContainer",
+        {
+          "id": "appdnaContainer",
           "title": "AppDNA",
           "icon": "$(rocket)"
         }
       ]
-    },    "views": {
+    },
+    "views": {
       "appdnaContainer": [
         {
           "id": "appdna",
@@ -78,7 +80,8 @@
           "group": "navigation@0"
         }
       ],
-      "view/item/context": [        {
+      "view/item/context": [
+        {
           "command": "appdna.addObject",
           "when": "viewItem =~ /dataObjects.*/",
           "group": "inline@1",
@@ -101,7 +104,8 @@
           "when": "viewItem =~ /reports.*showReportFilter/",
           "group": "inline",
           "icon": "$(filter)"
-        },        {
+        },
+        {
           "command": "appdna.clearReportFilter",
           "when": "viewItem =~ /reports.*showReportFilter/ && appDnaReportFilterActive",
           "group": "inline",
@@ -121,7 +125,8 @@
         }
       ]
     },
-    "configuration": {      "title": "AppDNA",
+    "configuration": {
+      "title": "AppDNA",
       "properties": {
         "appDNA.modelServiceUrl": {
           "type": "string",
@@ -130,7 +135,8 @@
         }
       }
     },
-    "commands": [      {
+    "commands": [
+      {
         "command": "appdna.addFile",
         "title": "New Project Model",
         "icon": "$(add)"
@@ -184,7 +190,8 @@
         "command": "appdna.startMCPServer",
         "title": "Start MCP Server",
         "icon": "$(debug-start)"
-      },      {
+      },
+      {
         "command": "appdna.stopMCPServer",
         "title": "Stop MCP Server",
         "icon": "$(debug-stop)"
@@ -228,7 +235,8 @@
         "command": "appdna.showReportFilter",
         "title": "Filter Reports",
         "icon": "$(filter)"
-      },      {
+      },
+      {
         "command": "appdna.clearReportFilter",
         "title": "Clear Report Filter",
         "icon": "$(clear-all)"
@@ -281,8 +289,6 @@
     "@typescript-eslint/parser": "^8.28.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
-
-
     "copy-webpack-plugin": "^13.0.0",
     "eslint": "^9.23.0",
     "glob": "^11.0.1",
@@ -290,13 +296,14 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
-
     "webpack": "^5.85.0",
     "webpack-cli": "^5.1.1"
-  },  "dependencies": {
+  },
+  "dependencies": {
     "@babel/core": "^7.22.5",
     "@babel/plugin-transform-react-jsx": "^7.22.5",
     "@babel/preset-env": "^7.22.5",
+    "@vscode/codicons": "^0.0.36",
     "ajv": "^6.12.6",
     "babel-loader": "^9.1.2",
     "jsonschema": "^1.5.0",

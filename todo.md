@@ -4,11 +4,6 @@ Agent todo items...
 
 make extension repo public
 
-Object Heirarchy diagram...
-- option to hide lookup items
-- option to hide items not implemented
-  
-
  
 object details view...
 - lookup item list
@@ -31,11 +26,7 @@ change requests...
 - show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
 - validation error text 'Please provide a reason for rejection.' to red
  
-  
- 
-model fabrication download...
- When done, show a message to the user that the results have been downloaded and unzipped into the fabrication_results folder. Instruct the user to create and run a script to copy the desired files from the fabrication_results folder to the project source code folder.  
- 
+
 
 MCP server
 - implement MCP server in the extension that the copilot agent can connect to.
@@ -184,7 +175,7 @@ add welcome step to update project settings view
 
 need to adjust datetimes to timezone in profile, or local computer timezone
 
-copilot:show button with refresh icon with no blue background instead of text 'Refresh' on 
+show button with refresh icon with no blue background instead of text 'Refresh' on 
 - model feature catalog view
 - the model ai processing requests view
 - model validation requests view
@@ -197,7 +188,7 @@ there is a faint box above the table that is not needed
 - model fabrication requests view
  
 
-copilot:show button with 'plus'' icon with no blue background instead of text 'add' on 
+show button with 'plus'' icon with no blue background instead of text 'add' on 
 - the model ai processing requests view
 - model validation requests view
 - model fabrication requests view 
@@ -206,7 +197,7 @@ copilot:show button with 'plus'' icon with no blue background instead of text 'a
 
 cancel option on model ai processing request?
 
-copilot:dont validate on model change request approval. 
+dont validate on model change request approval. 
 
 does 'validate all' work?  validate all when view comes up?
 

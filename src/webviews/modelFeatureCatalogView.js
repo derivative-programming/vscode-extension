@@ -1,5 +1,13 @@
 // Description: Handles the model feature catalog webview display.
 // Created: October 12, 2023
+// Last Modified: June 21, 2025
+//
+// NOTE: This webview expects the codicon stylesheet to be included in the HTML template.
+// Ensure your webview HTML includes:
+// <link href="${webview.asWebviewUri(codiconCssUri)}" rel="stylesheet" />
+// where codiconCssUri points to your local media/codicon.css file.
+//
+// This is required for the refresh button and any other codicon icons to render correctly.
 
 (function() {
     // Acquire the VS Code API
@@ -35,6 +43,11 @@
     
     // Set up the UI when the page loads
     document.addEventListener('DOMContentLoaded', function() {
+        // Remove codicon stylesheet injection (now handled in HTML template)
+        var oldCodicon = document.getElementById('codicon-css');
+        if (oldCodicon) {
+            oldCodicon.remove();
+        }
         console.log("[Webview] DOM Content loaded for Model Feature Catalog");
         initializeUI();
         
@@ -43,14 +56,36 @@
         
         // Request the currently selected features
         vscode.postMessage({ command: 'ModelFeatureCatalogGetSelectedFeatures' });
-        
-        // Attach refresh button handler
-        document.getElementById("refreshButton").onclick = function() {
-            requestPage(pageNumber);
-        };
-        
-        // Show spinner while loading
-        showSpinner();
+
+        // Replace refresh button text with standard VS Code codicon icon ONLY (no text)
+        var refreshBtn = document.getElementById("refreshButton");
+        if (refreshBtn) {
+            refreshBtn.innerHTML = '<span class="codicon codicon-refresh" style="font-size:16px;"></span>';
+            refreshBtn.title = "Refresh";
+            refreshBtn.style.background = "none";
+            refreshBtn.style.border = "none";
+            refreshBtn.style.color = "var(--vscode-editor-foreground)";
+            refreshBtn.style.padding = "4px 8px";
+            refreshBtn.style.cursor = "pointer";
+            refreshBtn.style.display = "flex";
+            refreshBtn.style.alignItems = "center";
+            refreshBtn.style.borderRadius = "4px";
+            refreshBtn.style.transition = "background 0.15s";
+
+            // Add hover effect: darker background on hover
+            refreshBtn.addEventListener("mouseenter", function() {
+                refreshBtn.style.background = "var(--vscode-toolbar-hoverBackground, #2a2d2e)";
+            });
+            refreshBtn.addEventListener("mouseleave", function() {
+                refreshBtn.style.background = "none";
+            });
+        }
+    // Attach refresh button handler
+    refreshBtn.onclick = function() {
+        requestPage(pageNumber);
+    };
+    // Show spinner while loading
+    showSpinner();
     });
     
     // Event listeners for messages from the extension
@@ -304,6 +339,7 @@
     }
     
     function updateSelectedFeaturesInTable() {
+        console.log("[Webview] Updating selected features in table");
         // Update checkboxes in the table based on selectedFeatures
         const checkboxes = document.querySelectorAll('input[data-feature]');
         
