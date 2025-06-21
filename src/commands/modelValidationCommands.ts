@@ -57,14 +57,18 @@ export function registerModelValidationCommands(
             const scriptUri = panel.webview.asWebviewUri(
                 vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'modelValidationView.js')
             );
+            const codiconsUri = panel.webview.asWebviewUri(
+                vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
+            );
             panel.webview.html = `
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
                     <meta charset="UTF-">
-                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource}; font-src ${panel.webview.cspSource};">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Model Validation Requests</title>
+                    <link href="${codiconsUri}" rel="stylesheet" />
                     <style>
                         body { font-family: var(--vscode-font-family); margin: 0; padding: 0; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; }

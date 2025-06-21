@@ -859,6 +859,7 @@
                         Add
                     </button>
                     <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                            <span class="codicon codicon-refresh"></span>
                         Refresh
                     </button>
                 </div>
@@ -900,6 +901,30 @@
         
         // Show spinner when initially loading the view
         showSpinner();
+        
+        // Replace refresh button text with standard VS Code codicon icon ONLY (no text)
+        var refreshBtn = document.getElementById("refreshButton");
+        if (refreshBtn) {
+            refreshBtn.innerHTML = '<span class="codicon codicon-refresh" style="font-size:16px;"></span>';
+            refreshBtn.title = "Refresh";
+            refreshBtn.style.background = "none";
+            refreshBtn.style.border = "none";
+            refreshBtn.style.color = "var(--vscode-editor-foreground)";
+            refreshBtn.style.padding = "4px 8px";
+            refreshBtn.style.cursor = "pointer";
+            refreshBtn.style.display = "flex";
+            refreshBtn.style.alignItems = "center";
+            refreshBtn.style.borderRadius = "4px";
+            refreshBtn.style.transition = "background 0.15s";
+
+            // Add hover effect: darker background on hover
+            refreshBtn.addEventListener("mouseenter", function() {
+                refreshBtn.style.background = "var(--vscode-toolbar-hoverBackground, #2a2d2e)";
+            });
+            refreshBtn.addEventListener("mouseleave", function() {
+                refreshBtn.style.background = "none";
+            });
+        }
         
         // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {

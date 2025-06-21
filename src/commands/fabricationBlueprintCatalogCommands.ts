@@ -97,14 +97,18 @@ export function registerFabricationBlueprintCatalogCommands(
             const scriptUri = panel.webview.asWebviewUri(
                 vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'fabricationBlueprintCatalogView.js')
             );
+            const codiconsUri = panel.webview.asWebviewUri(
+                vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
+            );
             panel.webview.html = `
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
                     <meta charset="UTF-8">
-                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource};">
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' ${panel.webview.cspSource}; style-src 'unsafe-inline' ${panel.webview.cspSource}; font-src ${panel.webview.cspSource};">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Fabrication Blueprint Catalog</title>                    <style>
+                    <title>Fabrication Blueprint Catalog</title>   
+                    <link href="${codiconsUri}" rel="stylesheet" />                 <style>
                         body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
                         .validation-header {
                             padding: 10px 0;
@@ -220,6 +224,7 @@ export function registerFabricationBlueprintCatalogCommands(
                      
                     <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                            <span class="codicon codicon-refresh"></span>
                             Refresh
                         </button>
                     </div>                    <table id="blueprintCatalogTable"></table>
