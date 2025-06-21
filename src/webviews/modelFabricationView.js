@@ -526,8 +526,21 @@
                 }
                 .refresh-only-button:hover {
                     background-color: var(--vscode-toolbar-hoverBackground);
-                }                .add-button {
+                }
+                .add-button {
                     margin-right: 8px;
+                    background: transparent !important;
+                    color: var(--vscode-editor-foreground) !important;
+                    border: none !important;
+                    padding: 4px 8px;
+                    cursor: pointer;
+                    border-radius: 3px;
+                    display: flex;
+                    align-items: center;
+                    font-size: 16px;
+                }
+                .add-button:hover {
+                    background-color: var(--vscode-toolbar-hoverBackground) !important;
                 }
                 #autoRefreshIndicator {
                     margin-right: auto;
@@ -855,8 +868,8 @@
                     <p class="intro-text">This page displays a list of fabrication requests for generating code based on your model. You can add a new request, view details of completed requests, and download fabrication results.</p>
                 </div>
                 <div class="toolbar">
-                    <button id="addButton" class="refresh-button add-button" title="Add Request">
-                        Add
+                    <button id="addButton" class="add-button" title="Add Request">
+                        +
                     </button>
                     <button id="refreshButton" class="refresh-button" title="Refresh Table">
                         Refresh

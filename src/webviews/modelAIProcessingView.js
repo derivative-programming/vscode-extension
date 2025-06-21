@@ -293,6 +293,18 @@
                 }
                 .add-button {
                     margin-right: 8px;
+                    background: transparent !important;
+                    color: var(--vscode-editor-foreground) !important;
+                    border: none !important;
+                    padding: 4px 8px;
+                    cursor: pointer;
+                    border-radius: 3px;
+                    display: flex;
+                    align-items: center;
+                    font-size: 16px;
+                }
+                .add-button:hover {
+                    background-color: var(--vscode-toolbar-hoverBackground) !important;
                 }
                 #autoRefreshIndicator {
                     margin-right: auto;
@@ -638,8 +650,8 @@
                     <p style="margin-top: 5px; font-size: 0.9em; color: var(--vscode-descriptionForeground);">AI processing adds data to the model. It does not change existing data in the model.</p>
                 </div>
                 <div class="toolbar">
-                    <button id="addButton" class="refresh-button add-button" title="Add Request">
-                        Add
+                    <button id="addButton" class="add-button" title="Add Request">
+                        +
                     </button>
                     <button id="refreshButton" class="refresh-button" title="Refresh Table">
                         Refresh
