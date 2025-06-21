@@ -171,6 +171,36 @@ async function getWebviewContent(context, allObjects) {
             .button:hover {
                 background: var(--vscode-button-hoverBackground);
             }
+            .legend {
+                display: flex;
+                align-items: center;
+                margin-left: 15px;
+                font-size: 12px;
+            }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-right: 10px;
+            }
+            .legend-color {
+                width: 16px;
+                height: 16px;
+                border: 1px solid var(--vscode-editor-foreground);
+                margin-right: 5px;
+                border-radius: 2px;
+            }
+            .legend-color.lookup {
+                background-color: #ffa500;
+            }
+            .checkbox-control {
+                display: flex;
+                align-items: center;
+                margin-left: 15px;
+                font-size: 12px;
+            }
+            .checkbox-control input[type="checkbox"] {
+                margin-right: 5px;
+            }
             .node {
                 cursor: pointer;
             }            .node rect {
@@ -186,7 +216,13 @@ async function getWebviewContent(context, allObjects) {
                 fill: #90ee90 !important;  /* Light green for partial matches */
                 stroke: #32cd32 !important;  /* Lime green border */
                 stroke-width: 1px !important;
-            }.node.selected rect {
+            }
+            .node.lookup rect {
+                fill: #ffa500 !important;  /* Light orange for lookup items */
+                stroke: #ff8c00 !important;  /* Dark orange border */
+                stroke-width: 1px !important;
+            }
+            .node.selected rect {
                 fill: var(--vscode-list-activeSelectionBackground) !important;
                 stroke: var(--vscode-list-activeSelectionForeground) !important;
                 stroke-width: 1.5px !important;
@@ -235,6 +271,16 @@ async function getWebviewContent(context, allObjects) {
                 <button id="zoom-in" class="button"><i class="codicon codicon-zoom-in"></i></button>                <button id="zoom-out" class="button"><i class="codicon codicon-zoom-out"></i></button>
                 <button id="reset-zoom" class="button">Reset</button>
                 <button id="refresh" class="button" title="Refresh Diagram"><i class="codicon codicon-refresh"></i></button>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color lookup"></div>
+                        <span>Lookup Items</span>
+                    </div>
+                </div>
+                <div class="checkbox-control">
+                    <input type="checkbox" id="show-lookup" checked>
+                    <label for="show-lookup">Show Lookup Items</label>
+                </div>
             </div>
             <div class="diagram-container">
                 <div id="diagram"></div>
@@ -343,6 +389,7 @@ async function getWebviewContent(context, allObjects) {
                     document.getElementById('close-detail').addEventListener('click', closeDetailPanel);
                     document.getElementById('show-full-details').addEventListener('click', showFullDetails);
                     document.getElementById('search').addEventListener('input', searchObjects);
+                    document.getElementById('show-lookup').addEventListener('change', toggleLookupItems);
                     
                     // Focus on the search input when the diagram loads
                     document.getElementById('search').focus();
@@ -374,6 +421,7 @@ async function getWebviewContent(context, allObjects) {
                             if (d === selectedNode) classes += ' selected';
                             else if (d.searchHighlight) classes += ' search-highlight';  // Exact match
                             else if (d.searchPartial) classes += ' search-partial';     // Partial match
+                            else if (d.data.isLookup) classes += ' lookup';  // Lookup items
                             else if (d._children) classes += ' collapsed';
                             else classes += ' normal';
                             return classes;
@@ -439,6 +487,9 @@ async function getWebviewContent(context, allObjects) {
                         } else if (d.searchPartial) {
                             classes += ' search-partial';    // Partial match
                             console.log('Applying search-partial class to:', d.data.name);
+                        } else if (d.data.isLookup) {
+                            classes += ' lookup';  // Lookup items
+                            console.log('Applying lookup class to:', d.data.name);
                         } else if (d._children) {
                             classes += ' collapsed';
                         } else {
@@ -524,6 +575,30 @@ async function getWebviewContent(context, allObjects) {
                 function collapseAll() {
                     collapse(root);
                     update(root);
+                }
+                
+                // Toggle visibility of lookup items
+                function toggleLookupItems() {
+                    const showLookup = document.getElementById('show-lookup').checked;
+                    console.log('Toggle lookup items:', showLookup);
+                    
+                    // Apply visibility filter to all nodes
+                    svg.selectAll('g.node')
+                        .style('display', function(d) {
+                            if (!showLookup && d.data.isLookup) {
+                                return 'none';
+                            }
+                            return 'block';
+                        });
+                    
+                    // Also hide/show connecting links for hidden lookup nodes
+                    svg.selectAll('path.link')
+                        .style('display', function(d) {
+                            if (!showLookup && (d.source.data.isLookup || d.target.data.isLookup)) {
+                                return 'none';
+                            }
+                            return 'block';
+                        });
                 }
                 
                 // Collapse a node and its children
@@ -843,10 +918,12 @@ function buildObjectRelationships(objects) {
                 name: obj.name,
                 id: obj.id || `obj_${Math.random().toString(36).substr(2, 9)}`,
                 parentName: parentName,
+                isLookup: obj.isLookup === "true", // Convert string to boolean
                 children: [],
                 details: {
                     properties: obj.prop ? obj.prop.map(p => ({ name: p.name, value: p.value })) : [],
                     parentName: parentName,
+                    isLookup: obj.isLookup === "true",
                     children: []
                 }
             });
