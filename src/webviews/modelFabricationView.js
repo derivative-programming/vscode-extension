@@ -530,6 +530,7 @@
                     z-index: 1000;
                 }
                 .modal-content {
+                    position: relative;
                     background: var(--vscode-editor-background);
                     padding: 20px;
                     border-radius: 4px;
