@@ -126,8 +126,8 @@ export function registerFabricationBlueprintCatalogCommands(
                         #paging { margin: 1em 0; padding: 10px 0; text-align: center; }
                         button { 
                             margin: 0 4px; 
-                            background-color: var(--vscode-button-background);
-                            color: var(--vscode-button-foreground);
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
                             border: none;
                             padding: 4px 8px;
                             cursor: pointer;
@@ -138,7 +138,7 @@ export function registerFabricationBlueprintCatalogCommands(
                             cursor: not-allowed;
                         }
                         button:hover:not(:disabled) {
-                            background-color: var(--vscode-button-hoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground);
                         }
                         .checkbox-container { text-align: center; }
                         input[type="checkbox"] { cursor: pointer; }
