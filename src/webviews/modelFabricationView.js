@@ -926,6 +926,30 @@
             });
         }
         
+        // Replace add button text with standard VS Code codicon plus icon ONLY (no text)
+        var addBtn = document.getElementById("addButton");
+        if (addBtn) {
+            addBtn.innerHTML = '<span class="codicon codicon-add" style="font-size:16px;"></span>';
+            addBtn.title = "Add";
+            addBtn.style.background = "none";
+            addBtn.style.border = "none";
+            addBtn.style.color = "var(--vscode-editor-foreground)";
+            addBtn.style.padding = "4px 8px";
+            addBtn.style.cursor = "pointer";
+            addBtn.style.display = "flex";
+            addBtn.style.alignItems = "center";
+            addBtn.style.borderRadius = "4px";
+            addBtn.style.transition = "background 0.15s";
+
+            // Add hover effect: darker background on hover
+            addBtn.addEventListener("mouseenter", function() {
+                addBtn.style.background = "var(--vscode-toolbar-hoverBackground, #2a2d2e)";
+            });
+            addBtn.addEventListener("mouseleave", function() {
+                addBtn.style.background = "none";
+            });
+        }
+        
         // Attach refresh button handler
         document.getElementById("refreshButton").onclick = function() {
             showSpinner(); // Show spinner when refresh button is clicked
