@@ -169,7 +169,6 @@ class HelpPanel {
                 <ul>
                     <li>Use the Welcome view to get started with AppDNA projects</li>
                     <li>Access the tree view to navigate your AppDNA model structure</li>
-                    <li>Use the command palette (Ctrl+Shift+P) to find AppDNA commands quickly</li>
                     <li>Save your work frequently using the save button in the tree view</li>
                 </ul>
             </div>
