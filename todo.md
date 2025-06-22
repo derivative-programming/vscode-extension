@@ -56,15 +56,8 @@ functions
         - show validation request change request list
 
 add report...
-- grid
-- detail
 - API Get
-- Navigation
-
-add db object...
-- ok:general
-- ok:lookup
-
+ 
 
 
 update welcome...
@@ -101,3 +94,102 @@ does 'validate all' work?  validate all when view comes up?
 normal users should not get legacy code
  
    
+bulk add on enter key should not submit modal form
+
+report items...
+extension...
+{
+                "name": "CustomerUserCustomerRoleTest",
+                "titleText": "Customer User Customer Role",
+                "visualizationType": "grid",
+                "isCustomSqlUsed": "false",
+                "isPage": "true",
+                "reportColumn": [
+                  {
+                    "name": "TestCol"
+                  }
+                ],
+                "reportButton": [
+                  {
+                    "buttonName": "Back",
+                    "buttonText": "Back",
+                    "buttonType": "back"
+                  },
+                  {
+                    "buttonName": "TestBtn"
+                  }
+                ],
+                "reportParam": [
+                  {
+                    "name": "TestFilter"
+                  }
+                ],
+                "isAuthorizationRequired": "true",
+                "roleRequired": "User",
+                "layoutName": "UserLayout",
+                "targetChildObject": "CustomerRole"
+              }
+win app...
+
+              {
+                "isCustomSqlUsed": "false",
+                "isPage": "true",
+                "layoutName": "UserLayout",
+                "name": "CustomerUserCustomerEmailRequestListTest",
+                "reportButton": [
+                  {
+                    "buttonName": "Back",
+                    "buttonText": "Back",
+                    "buttonType": "back"
+                  },
+                  {
+                    "buttonName": "TestBtn",
+                    "buttonText": "Test Btn",//TODO
+                    "buttonType": "other"//TODO
+                  },
+                  {//TODO breadcrumb
+                    "buttonName": "CustomerUserCustomerEmailRequestListTestBreadcrumb",
+                    "buttonType": "breadcrumb",
+                    "destinationContextObjectName": "Customer",
+                    "destinationTargetName": "CustomerUserCustomerEmailRequestListTest"
+                  }
+                ],
+                "reportColumn": [
+                  {
+                    "isButton": "false",//TODO test
+                    "name": "TestCol"
+                  },
+                  {//TODO dest btn
+                    "buttonText": "TestDestBtn",
+                    "destinationContextObjectName": "CustomerEmailRequest",
+                    "destinationTargetName": "CustomerEmailRequestConfigDetails",
+                    "isButton": "true",
+                    "isVisible": "true",
+                    "name": "TestDestBtnLinkCustomerEmailRequestCode",
+                    "sourceObjectName": "CustomerEmailRequest",
+                    "sourcePropertyName": "Code",
+                    "sqlServerDBDataType": "uniqueidentifier"
+                  },
+                  {//TODO async flow btn
+                    "buttonText": "TestAsyncFlowBtn",
+                    "destinationContextObjectName": "CustomerEmailRequest",
+                    "destinationTargetName": "CustomerEmailRequestAdminGetAttachment",
+                    "isButton": "true",
+                    "isButtonAsyncObjWF": "true",
+                    "isVisible": "true",
+                    "name": "TestAsyncFlowBtnLinkCustomerEmailRequestCode",
+                    "sourceObjectName": "CustomerEmailRequest",
+                    "sourcePropertyName": "Code",
+                    "sqlServerDBDataType": "uniqueidentifier"
+                  }
+                ],
+                "reportParam": [
+                  {
+                    "name": "TestFilter"
+                  }
+                ],
+                "roleRequired": "User",
+                "targetChildObject": "CustomerEmailRequest",
+                "titleText": "Customer User Customer Email Request List Test",
+                "visualizationType": "Grid"
+              },
