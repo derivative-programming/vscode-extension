@@ -139,7 +139,7 @@ function createAddColumnModal() {
         const headerText = generateHeaderText(columnName);
         
         // Add the new column - backend will reload view
-        addNewColumn(columnName, headerText);
+        addNewColumn(columnName);
         
         // Close the modal
         document.body.removeChild(modal);
@@ -169,8 +169,7 @@ function createAddColumnModal() {
             return;
         }        // Add all valid columns at once
         const newColumns = validColumns.map(name => ({
-            name: name,
-            headerText: generateHeaderText(name)
+            name: name
         }));
         
         // Add all columns in one operation
