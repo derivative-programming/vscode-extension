@@ -144,7 +144,7 @@ win app...
                   },
                   {
                     "buttonName": "TestBtn",
-                    "buttonText": "Test Btn",//TODO
+                    "buttonText": "Test Btn",
                     "buttonType": "other"
                   },
                   {//TODO breadcrumb

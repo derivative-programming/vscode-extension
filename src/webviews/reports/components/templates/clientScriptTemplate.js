@@ -1159,10 +1159,15 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 buttonName: buttonName,
                 buttonType: 'other'
             };
-            
+                        
             const buttonText = generateButtonText(buttonName);
 
             newButton.buttonText = buttonText;
+
+            //if buttonText starts with 'Add' then its an 'add' button type
+            if(buttonText.startsWith('Add')){
+                newButton.buttonType = 'add';
+            }
             
             // Add to current buttons array for immediate backend update
             const updatedButtons = [...currentButtons, newButton];
