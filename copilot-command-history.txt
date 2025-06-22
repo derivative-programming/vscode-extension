@@ -1266,3 +1266,4 @@ Command: Review refresh button on model feature catalog list - show icon only
 
 Command: startMCPServerCommand
 Command: stopMCPServerCommand
+Command: Expand all top level tree items in the AppDNA tree view

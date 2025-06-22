@@ -683,30 +683,12 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Use the new add column modal instead of the edit modal
             createAddColumnModal();
         });        // Function to add a new column (called from add column modal)
-        function addNewColumn(columnName, buttonDestinationTargetName, asyncFlowDestinationTargetName) {
+        function addNewColumn(columnName, headerText) {
             const newColumn = {
                 name: columnName,
-                isButton: "false"
+                headerText: headerText
             };
-
-            if(buttonDestinationTargetName && buttonDestinationTargetName !== "") {
-                newColumn.destinationTargetName = buttonDestinationTargetName;
-                newColumn.isButton = "true";
-                newColmn.isVisible = "true;
-                newColmn.sourcePropertyName = "Code";
-                newColmn.sqlServerDBDataType = "uniqueidentifier";
-            }
-
-            if(asyncFlowDestinationTargetName && asyncFlowDestinationTargetName !== "") {
-                newColumn.destinationTargetName = asyncFlowDestinationTargetName;
-                newColumn.isButton = "true";
-                newColumn.isButtonAsyncObjWF = "true",
-                newColmn.isVisible = "true;
-                newColmn.sourcePropertyName = "Code";
-                newColmn.sqlServerDBDataType = "uniqueidentifier";
-            }
-                
-
+            
             // Add to current columns array for immediate backend update
             const updatedColumns = [...currentColumns, newColumn];
             
@@ -866,7 +848,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 const headerText = generateHeaderText(columnName);
                 
                 // Add the new column - backend will reload view
-                addNewColumn(columnName);
+                addNewColumn(columnName, headerText);
                 
                 // Close the modal
                 document.body.removeChild(modal);
@@ -898,7 +880,8 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 
                 // Add all valid columns at once
                 const newColumns = validColumns.map(name => ({
-                    name: name
+                    name: name,
+                    headerText: generateHeaderText(name)
                 }));
                   // Add all columns in one operation
                 const updatedColumns = [...currentColumns, ...newColumns];
