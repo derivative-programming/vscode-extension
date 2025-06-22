@@ -169,7 +169,8 @@ function createAddColumnModal() {
             return;
         }        // Add all valid columns at once
         const newColumns = validColumns.map(name => ({
-            name: name
+            name: name,
+            isButton: "false",
         }));
         
         // Add all columns in one operation

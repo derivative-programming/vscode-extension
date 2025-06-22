@@ -686,7 +686,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
         function addNewColumn(columnName) {
             const newColumn = {
                 name: columnName,
-                isButton: "false"
+                isButton: 'false'
             };
 
             // if(buttonDestinationTargetName && buttonDestinationTargetName !== "") {
@@ -898,7 +898,8 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 
                 // Add all valid columns at once
                 const newColumns = validColumns.map(name => ({
-                    name: name
+                    name: name,
+                    isButton: "false",
                 }));
                   // Add all columns in one operation
                 const updatedColumns = [...currentColumns, ...newColumns];
@@ -1145,10 +1146,23 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             document.querySelector('#button-modal .modal-title').textContent = 'Edit Button';
             document.getElementById('button-modal').style.display = 'block';        }
           // Function to add a new button (called from add button modal)
+
+        // Helper function to generate button text from column name
+        function generateButtonText(buttonName) {
+            // Convert PascalCase to space-separated words
+            // Handle cases like "FirstName" -> "First Name", "AppDNA" -> "App DNA"
+            return buttonName.replace(/([a-z])([A-Z])/g, '$1 $2')
+                            .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+        }
         function addNewButton(buttonName) {
             const newButton = {
-                buttonName: buttonName
+                buttonName: buttonName,
+                buttonType: 'other'
             };
+            
+            const buttonText = generateButtonText(buttonName);
+
+            newButton.buttonText = buttonText;
             
             // Add to current buttons array for immediate backend update
             const updatedButtons = [...currentButtons, newButton];

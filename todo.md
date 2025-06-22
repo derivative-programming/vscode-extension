@@ -145,7 +145,7 @@ win app...
                   {
                     "buttonName": "TestBtn",
                     "buttonText": "Test Btn",//TODO
-                    "buttonType": "other"//TODO
+                    "buttonType": "other"
                   },
                   {//TODO breadcrumb
                     "buttonName": "CustomerUserCustomerEmailRequestListTestBreadcrumb",
@@ -156,7 +156,7 @@ win app...
                 ],
                 "reportColumn": [
                   {
-                    "isButton": "false",//TODO test
+                    "isButton": "false",
                     "name": "TestCol"
                   },
                   {//TODO dest btn
