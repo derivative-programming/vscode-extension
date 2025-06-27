@@ -4,11 +4,6 @@ Agent todo items...
 
 make extension repo public
 
-add buttton to plus sign buttons...
-- add data object property
-- add report column
-- add report parameter
-- add report button
  
 object details view...
 - lookup item list
@@ -23,8 +18,13 @@ test 'add' buttons...
 - add lookup item
 - report details - columns tab
 - report details - buttons tab
-- report details - parameters tab
-  
+- ok:report details - parameters tab
+
+
+report details view...
+- separate tab for breadcrumb buttons
+- allow creation of column destination button
+- allow creation of column async flow button
 
 change requests... 
 - on approve all, show processing animation while all are processed
@@ -32,6 +32,16 @@ change requests...
 - validation error text 'Please provide a reason for rejection.' to red
  
 
+
+on logout...
+- close all model ai processing views ✓ COMPLETED
+
+
+model validation requests...
+- in status column if change requests exist, show 'changes requested' too
+
+model fabrication reuests...
+- ' Auto-refreshing every minute' text is a little higher than it is on the other lists.  Should be aligned with the 'add' button.
 
 MCP server
 - implement MCP server in the extension that the copilot agent can connect to.
@@ -57,7 +67,7 @@ functions
 
 add report...
 - API Get
- 
+
 
 
 update welcome...
@@ -193,3 +203,22 @@ win app...
                 "titleText": "Customer User Customer Email Request List Test",
                 "visualizationType": "Grid"
               },
+
+
+odd settings file...
+"settings": {
+    "validateOnSave": true,
+    "codeGeneration": {
+      "outputPath": "./generated",
+      "languages": [
+        "typescript",
+        "csharp"
+      ],
+      "generateComments": true
+    },
+    "editor": {
+      "showAdvancedProperties": false,
+      "defaultView": "tree",
+      "expandNodesOnLoad": true
+    }
+  }

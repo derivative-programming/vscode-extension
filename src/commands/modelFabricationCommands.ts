@@ -661,3 +661,20 @@ async function openFabricationReport(panel: vscode.WebviewPanel, requestCode: st
         vscode.window.showErrorMessage(`Failed to open fabrication report: ${error.message}`);
     }
 }
+
+/**
+ * Close all active Model Fabrication panels
+ * This is typically called during logout to clean up all open views
+ */
+export function closeAllModelFabricationPanels(): void {
+    console.log(`[ModelFabricationCommands] Closing ${activePanels.size} active panels during logout`);
+    
+    // Dispose all active panels
+    activePanels.forEach((panel, panelId) => {
+        console.log(`[ModelFabricationCommands] Disposing panel: ${panelId}`);
+        panel.dispose();
+    });
+    
+    // Clear the map (though onDidDispose should handle this)
+    activePanels.clear();
+}

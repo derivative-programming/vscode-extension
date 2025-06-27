@@ -1,5 +1,51 @@
 # AppDNA VS Code Extension Architecture Notes
  
+## Model AI Panel Management During Logout (Added 2025-01-20)
+
+### Panel Tracking Architecture:
+The extension uses `activePanels` Maps in three command files to track webview panels:
+- `modelAIProcessingCommands.ts` - Tracks Model AI Processing panels
+- `modelFabricationCommands.ts` - Tracks Model Fabrication panels  
+- `modelValidationCommands.ts` - Tracks Model Validation panels
+
+Additionally, catalog views are managed through individual close functions:
+- `closeModelFeatureCatalogPanel()` - Closes Model Feature Catalog view
+- `closeFabricationBlueprintCatalogPanel()` - Closes Fabrication Blueprint Catalog view
+
+### Panel Lifecycle:
+1. **Panel Creation**: Panels are added to `activePanels` Map with unique IDs
+2. **Panel Disposal**: `onDidDispose()` callback removes panel from Map automatically
+3. **Panel Reuse**: Existing panels are revealed instead of creating duplicates
+
+### Logout Implementation:
+Created `closeAllPanels` functions in each command file that:
+- Iterate through the `activePanels` Map
+- Call `dispose()` on each panel
+- Clear the Map (though `onDidDispose` handles removal)
+- Log panel disposal for debugging
+
+For catalog views, existing close functions are called directly during logout.
+
+### Integration Points:
+- Functions are exported from command files
+- Imported in `registerCommands.ts`
+- Called during logout before `authService.logout()`
+- Ensures all Model AI-related views AND catalog views are closed before logout completes
+
+### Views Closed During Logout:
+- Model AI Processing panels
+- Model Fabrication panels
+- Model Validation panels
+- Model Feature Catalog view
+- Fabrication Blueprint Catalog view
+
+### Benefits:
+- Clean state after logout
+- Prevents stale authenticated panels
+- Consistent user experience
+- Proper resource cleanup
+- Complete closure of all AI-related interfaces
+ 
 ## Add Report Wizard Step 3 Enhanced Enter Key Handling (Added 2025-01-15)
 
 ### Issue #174 Resolution:

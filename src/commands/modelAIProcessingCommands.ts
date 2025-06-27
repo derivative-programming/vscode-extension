@@ -643,3 +643,20 @@ async function openAIProcessingReport(panel: vscode.WebviewPanel, requestCode: s
         handleApiError(error, panel, 'reportOpenError', { error: error.message });
     }
 }
+
+/**
+ * Close all active Model AI Processing panels
+ * This is typically called during logout to clean up all open views
+ */
+export function closeAllModelAIProcessingPanels(): void {
+    console.log(`[ModelAIProcessingCommands] Closing ${activePanels.size} active panels during logout`);
+    
+    // Dispose all active panels
+    activePanels.forEach((panel, panelId) => {
+        console.log(`[ModelAIProcessingCommands] Disposing panel: ${panelId}`);
+        panel.dispose();
+    });
+    
+    // Clear the map (though onDidDispose should handle this)
+    activePanels.clear();
+}

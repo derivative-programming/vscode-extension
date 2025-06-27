@@ -14,6 +14,23 @@ import { getWorkspaceRoot, getValidationReportsPath, getValidationChangeRequests
 // Track active panels to avoid duplicates
 const activePanels = new Map<string, vscode.WebviewPanel>();
 
+/**
+ * Close all active Model Validation panels
+ * This is typically called during logout to clean up all open views
+ */
+export function closeAllModelValidationPanels(): void {
+    console.log(`[ModelValidationCommands] Closing ${activePanels.size} active panels during logout`);
+    
+    // Dispose all active panels
+    activePanels.forEach((panel, panelId) => {
+        console.log(`[ModelValidationCommands] Disposing panel: ${panelId}`);
+        panel.dispose();
+    });
+    
+    // Clear the map (though onDidDispose should handle this)
+    activePanels.clear();
+}
+
 export function registerModelValidationCommands(
     context: vscode.ExtensionContext,
     appDNAFilePath: string | null,

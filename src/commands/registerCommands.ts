@@ -28,9 +28,9 @@ import { showProjectSettings, getProjectSettingsPanel, closeProjectSettingsPanel
 import { showLexiconView, getLexiconPanel, closeLexiconPanel } from '../webviews/lexiconView';
 // Import showUserStoriesView and related functions
 import { showUserStoriesView, getUserStoriesPanel, closeUserStoriesPanel } from '../webviews/userStoriesView';
-import { registerModelValidationCommands } from './modelValidationCommands';
-import { registerModelAIProcessingCommands } from './modelAIProcessingCommands';
-import { registerModelFabricationCommands } from './modelFabricationCommands';
+import { registerModelValidationCommands, closeAllModelValidationPanels } from './modelValidationCommands';
+import { registerModelAIProcessingCommands, closeAllModelAIProcessingPanels } from './modelAIProcessingCommands';
+import { registerModelFabricationCommands, closeAllModelFabricationPanels } from './modelFabricationCommands';
 import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
@@ -387,6 +387,15 @@ export function registerCommands(
             );
             
             if (confirmed === "Yes") {
+                // Close all Model AI related panels before logout
+                closeAllModelAIProcessingPanels();
+                closeAllModelFabricationPanels();
+                closeAllModelValidationPanels();
+                
+                // Close catalog views
+                closeModelFeatureCatalogPanel();
+                closeFabricationBlueprintCatalogPanel();
+                
                 await authService.logout();
                 // vscode.window.showInformationMessage("Logged out from Model Services");
                 
