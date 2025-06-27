@@ -500,6 +500,7 @@
                     display: flex;
                     justify-content: flex-end;
                     margin-bottom: 10px;
+                    align-items: center;
                 }
                 .refresh-button {
                     background-color: var(--vscode-button-background);
