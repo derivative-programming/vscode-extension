@@ -30,12 +30,10 @@ change requests...
 - on approve all, show processing animation while all are processed
 - show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
 - validation error text 'Please provide a reason for rejection.' to red
- 
 
-
-on logout...
-- close all model ai processing views ✓ COMPLETED
-
+  
+logout...
+- needs a better confirmation window
 
 model validation requests...
 - in status column if change requests exist, show 'changes requested' too

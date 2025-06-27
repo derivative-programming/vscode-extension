@@ -1,5 +1,34 @@
 # AppDNA VS Code Extension Architecture Notes
  
+## Welcome View Auto-Opening on Login (Added 2025-01-20)
+
+### Login Flow Enhancement:
+Added functionality to automatically open the welcome view when a user successfully logs in to Model Services.
+
+### Implementation Details:
+- Modified the login command callback in `registerCommands.ts`
+- Added `showWelcomeView(context)` call after successful login
+- Placed before the existing welcome view update logic to ensure proper initialization
+
+### Login Sequence:
+1. User clicks login and completes authentication
+2. Login callback executes:
+   - Refresh tree view to update icons and services
+   - Execute refresh view command
+   - **Open welcome view automatically** *(NEW)*
+   - Update welcome view login status if already open
+
+### Benefits:
+- **Improved User Experience**: Users immediately see the welcome view after login
+- **Better Onboarding**: Welcome view provides guidance and next steps
+- **Consistent Interface**: Ensures users have a starting point after authentication
+- **Contextual Information**: Welcome view shows login status and available features
+
+### Technical Notes:
+- Uses existing `showWelcomeView(context)` function
+- Maintains existing welcome view update logic for cases where view is already open
+- No impact on existing login flow functionality
+ 
 ## Model AI Panel Management During Logout (Added 2025-01-20)
 
 ### Panel Tracking Architecture:

@@ -364,6 +364,9 @@ export function registerCommands(
                 jsonTreeDataProvider.refresh();
                 vscode.commands.executeCommand('appdna.refreshView');
                 
+                // Open the welcome view after successful login
+                showWelcomeView(context);
+                
                 // Update welcome view if it's currently open
                 if (WelcomePanel.currentPanel) {
                     const authService = AuthService.getInstance();

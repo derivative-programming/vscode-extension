@@ -1,1 +1,2 @@
 on logout, close all model ai processing views - implemented functionality to close all Model AI processing related views when user logs out - COMPLETED: Added closeAllModelAIProcessingPanels, closeAllModelFabricationPanels, closeAllModelValidationPanels functions and integrated them into logout command - ENHANCED: Also added closeModelFeatureCatalogPanel and closeFabricationBlueprintCatalogPanel to close catalog views on logout
+on login, open the welcome view - implemented functionality to automatically open welcome view after successful login
