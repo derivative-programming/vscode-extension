@@ -1,5 +1,39 @@
 # AppDNA VS Code Extension Architecture Notes
  
+## Custom Logout Confirmation Modal (Added 2025-06-27)
+
+### Implementation Overview:
+Replaced VS Code's built-in `showWarningMessage` confirmation with a custom webview-based modal that follows the same design patterns used throughout the extension.
+
+### Architecture Pattern:
+- **Modal Utility**: Created `src/utils/logoutConfirmationModal.ts` as a reusable utility
+- **Webview Integration**: Uses VS Code webview panel for consistent styling and behavior
+- **Design Consistency**: Follows the established modal pattern with `.modal`, `.modal-content`, and `.modal-buttons` classes
+- **Theme Integration**: Uses VS Code CSS variables for theming consistency
+
+### Key Features:
+- **Consistent Styling**: Matches other confirmation modals (fabrication cancel, validation cancel)
+- **Keyboard Support**: Enter/Escape key handling for accessibility
+- **Focus Management**: Default focus on Cancel button (safer default)
+- **Click-outside-to-cancel**: Modal closes when clicking outside content area
+- **Proper Event Handling**: Promise-based approach for clean async/await usage
+
+### Files Modified:
+- `src/utils/logoutConfirmationModal.ts`: New utility for logout confirmation
+- `src/commands/registerCommands.ts`: Updated logout command to use custom modal
+- `copilot-command-history.txt`: Logged implementation details
+
+### Button Layout:
+- **Primary Action**: "Logout" button (left side, standard button styling)
+- **Secondary Action**: "Cancel" button (right side, secondary button styling)
+- **Button Order**: Follows VS Code conventions with primary action first
+
+### Benefits:
+- **Visual Consistency**: Matches the design language of other modals in the extension
+- **Better UX**: Custom modal provides more control over styling and behavior
+- **Accessibility**: Proper keyboard navigation and focus management
+- **Maintainability**: Reusable utility that can be extended for other confirmations
+
 ## Welcome View Auto-Opening on Login (Added 2025-01-20)
 
 ### Login Flow Enhancement:

@@ -20,6 +20,7 @@ import { showWelcomeView, WelcomePanel } from '../webviews/welcomeView';
 import { showHelpView } from '../webviews/helpView';
 import { showLoginView } from '../webviews/loginView';
 import { AuthService } from '../services/authService';
+import { showLogoutConfirmationModal } from '../utils/logoutConfirmationModal';
 // Import showChangeRequestsListView and alias getWebviewContent
 import { getWebviewContent as getChangeRequestsViewHtml, showChangeRequestsListView } from '../webviews/changeRequestsListView';
 // Import showProjectSettings and related functions
@@ -382,14 +383,8 @@ export function registerCommands(
             const authService = AuthService.getInstance();
             authService.initialize(context);
             
-            // Confirm logout
-            const confirmed = await vscode.window.showWarningMessage(
-                "Are you sure you want to log out from Model Services?",
-                { modal: true },
-                "Yes", "No"
-            );
-            
-            if (confirmed === "Yes") {
+            // Show custom logout confirmation modal
+            await showLogoutConfirmationModal(async () => {
                 // Close all Model AI related panels before logout
                 closeAllModelAIProcessingPanels();
                 closeAllModelFabricationPanels();
@@ -409,7 +404,7 @@ export function registerCommands(
                 if (WelcomePanel.currentPanel) {
                     WelcomePanel.currentPanel.updateLoginStatus(false);
                 }
-            }
+            });
         })
     );
 
