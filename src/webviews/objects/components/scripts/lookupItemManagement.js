@@ -44,7 +44,7 @@ function getLookupItemManagementFunctions() {
             const addLookupItemBtn = document.getElementById('addLookupItem');
             if (addLookupItemBtn) {
                 addLookupItemBtn.addEventListener('click', function() {
-                    addNewLookupItem();
+                    createLookupItemModal();
                 });
             }
 
@@ -183,25 +183,27 @@ function getLookupItemManagementFunctions() {
             }
         }
 
-        function addNewLookupItem() {
-            const newLookupItem = {
+        function addNewLookupItem(lookupItemData) {
+            // Use provided data or create default lookup item
+            const newLookupItem = lookupItemData || {
                 name: '',
                 displayName: '',
                 description: '',
-                isActive: 'true',
-                customIntProp1Value: ''
+                isActive: 'true'
             };
 
             lookupItems.push(newLookupItem);
             updateLookupItemsList();
             updateLookupItemsTable();
             
-            // Select the new item
-            const lookupItemsList = document.getElementById('lookupItemsList');
-            if (lookupItemsList) {
-                lookupItemsList.value = lookupItems.length - 1;
-                selectedLookupItemIndex = lookupItems.length - 1;
-                showLookupItemDetails(selectedLookupItemIndex);
+            // Select the new item if it has a name
+            if (newLookupItem.name) {
+                const lookupItemsList = document.getElementById('lookupItemsList');
+                if (lookupItemsList) {
+                    lookupItemsList.value = lookupItems.length - 1;
+                    selectedLookupItemIndex = lookupItems.length - 1;
+                    showLookupItemDetails(selectedLookupItemIndex);
+                }
             }
 
             // Update the lookup items counter in the tab label

@@ -54,3 +54,4 @@ Command: Expand all top level tree items in the AppDNA tree view
 2025-06-28: Investigate tabs still not working after function signature fix.
 2025-06-28: Fix JavaScript syntax error - Uncaught SyntaxError: missing ) after argument list in generated script.
 2025-06-28: Fix lookup items list view controls remaining grey/inactive after selecting an item from the list.
+2025-06-28: Implement modal for adding lookup items with single and bulk options, similar to adding properties to data objects.

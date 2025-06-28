@@ -996,3 +996,32 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
 2. **When populating existing properties**: Call `updateInputStyle(input, true)` to make controls with values appear active
 
 **Result**: Now when you select a lookup item from the list, controls for properties that exist become visually active (white background), while controls for non-existing properties remain grey.
+
+## Lookup Item Modal Implementation (2025-06-28)
+
+**Feature**: Implemented a modal for adding lookup items with single and bulk options, similar to the existing property modal.
+
+**Implementation Details**:
+1. **lookupItemModalTemplate.js**: Created modal HTML template with two tabs (Single Lookup Item / Bulk Add)
+2. **lookupItemModalFunctionality.js**: Implemented JavaScript functionality including:
+   - Tab switching within modal
+   - Single lookup item validation and creation
+   - Bulk lookup item validation and creation
+   - Pascal case name validation
+   - Duplicate name checking
+   - Keyboard shortcuts (Enter for single, Ctrl+Enter for bulk)
+3. **Updated clientScriptTemplate.js**: Integrated new modal templates and functionality
+4. **Updated lookupItemManagement.js**: 
+   - Changed "Add Lookup Item" button to open modal instead of direct creation
+   - Made `addNewLookupItem()` function more flexible to accept lookup item data
+
+**Validation Rules**:
+- Names must be in Pascal case format (e.g., ActiveStatus)
+- Only alpha characters allowed
+- No duplicate names within existing lookup items
+- No duplicate names within bulk input
+
+**User Experience**: 
+- Single tab: Enter key submits
+- Bulk tab: Ctrl+Enter submits, each name on separate line
+- Modal can be closed via X button, clicking outside, or after successful submission
