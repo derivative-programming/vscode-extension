@@ -105,8 +105,21 @@ function getPropItemsSchema(schema) {
     return propItemsSchema;
 }
 
+/**
+ * Gets lookupItem schema properties from the loaded schema
+ * @param {Object} schema The complete schema object
+ * @returns {Object} The lookupItem schema properties
+ */
+function getLookupItemsSchema(schema) {
+    // Extract lookupItem schema from the schema document
+    const lookupItemsSchema = schema.properties?.root?.properties?.namespace?.items?.properties?.object?.items?.properties?.lookupItem?.items?.properties || {};
+    console.log("[getLookupItemsSchema] LookupItem schema keys:", Object.keys(lookupItemsSchema));
+    return lookupItemsSchema;
+}
+
 module.exports = {
     loadSchema,
     getObjectSchemaProperties,
-    getPropItemsSchema
+    getPropItemsSchema,
+    getLookupItemsSchema
 };

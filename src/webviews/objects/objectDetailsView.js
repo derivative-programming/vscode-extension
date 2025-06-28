@@ -1,6 +1,6 @@
 "use strict";
 const vscode = require("vscode");
-const { loadSchema, getObjectSchemaProperties, getPropItemsSchema } = require("./helpers/schemaLoader");
+const { loadSchema, getObjectSchemaProperties, getPropItemsSchema, getLookupItemsSchema } = require("./helpers/schemaLoader");
 const { formatLabel } = require("./helpers/objectDataHelper");
 const { generateDetailsView } = require("./components/detailsViewGenerator");
 
@@ -119,6 +119,15 @@ function showObjectDetails(item, modelService) {
                         console.warn("Cannot update settings: ModelService not available or object reference not found");
                     }
                     return;
+                    
+                case "updateLookupItems":
+                    if (modelService && objectReference) {
+                        // Update lookup items directly on the object
+                        updateLookupItemsDirectly(message.data, objectReference, modelService);
+                    } else {
+                        console.warn("Cannot update lookup items: ModelService not available or object reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -154,8 +163,12 @@ function refreshAll() {
             const schema = loadSchema();
             const objectSchemaProps = getObjectSchemaProperties(schema);
             const propItemsSchema = getPropItemsSchema(schema);
+            
+            // Get all objects for FK lookup
+            const allObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
+            
             // Update the HTML content
-            panel.webview.html = generateDetailsView(objectData, objectSchemaProps, propItemsSchema);
+            panel.webview.html = generateDetailsView(objectData, objectSchemaProps, propItemsSchema, allObjects);
         }
     }
 }
@@ -251,6 +264,37 @@ function updateSettingsDirectly(data, objectReference, modelService) {
         }
     } catch (error) {
         console.error("Error updating settings directly:", error);
+    }
+}
+
+/**
+ * Updates lookup items directly on the object in the ModelService instance
+ * @param {Object} data The data containing lookup items update information
+ * @param {Object} objectReference Direct reference to the object in the model
+ * @param {Object} modelService The ModelService instance 
+ */
+function updateLookupItemsDirectly(data, objectReference, modelService) {
+    try {
+        console.log("[DEBUG] updateLookupItemsDirectly called");
+        console.log("[DEBUG] objectReference before update:", JSON.stringify(objectReference, null, 2));
+        
+        // Update lookupItem if provided
+        if (data.lookupItems) {
+            objectReference.lookupItem = data.lookupItems;
+            console.log("[DEBUG] objectReference after lookup items update:", JSON.stringify(objectReference, null, 2));
+            
+            // Mark that there are unsaved changes
+            if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                modelService.markUnsavedChanges();
+                console.log("[DEBUG] Model marked as having unsaved changes after lookup items update");
+            } else {
+                console.warn("[DEBUG] modelService.markUnsavedChanges is not available");
+            }
+            
+            vscode.commands.executeCommand("appdna.refresh");
+        }
+    } catch (error) {
+        console.error("Error updating lookup items directly:", error);
     }
 }
 

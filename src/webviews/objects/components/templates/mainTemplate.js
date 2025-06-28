@@ -9,9 +9,11 @@
  * @param {string} tableRows HTML for table rows
  * @param {string} listViewFields HTML for list view form fields
  * @param {string} clientScript HTML script tag with JavaScript
+ * @param {Object} lookupItemsHtml HTML content for lookup items tab (null if not a lookup object)
+ * @param {number} lookupItemsLength Number of lookup items
  * @returns {string} Complete HTML for the details view
  */
-function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript) {
+function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript, lookupItemsHtml, lookupItemsLength) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>    <meta charset="UTF-8">
@@ -28,6 +30,7 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
     <div class="tabs">
         <div class="tab active" data-tab="settings">Settings</div>
         <div class="tab" data-tab="props">Properties (${propsLength})</div>
+        ${object.isLookup === "true" ? `<div class="tab" data-tab="lookupItems">Lookup Items (${lookupItemsLength || 0})</div>` : ""}
     </div>
     
     <div id="settings" class="tab-content active">
@@ -82,6 +85,50 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
 
         ${clientScript}
     </div>
+
+    ${object.isLookup === "true" ? `
+    <div id="lookupItems" class="tab-content">
+        <div class="view-icons">
+            <div class="view-icons-left">
+                <span class="icon list-icon active" data-view="lookupListView">List View</span>
+                <span class="icon table-icon" data-view="lookupTableView">Table View</span>
+            </div>
+            <button id="addLookupItem" class="add-lookup-item-button">Add Lookup Item</button>
+        </div>
+
+        <div id="lookupTableView" class="view-content">
+            ${object.error ? 
+                `<div class="error">${object.error}</div>` : 
+                `<div class="table-container">
+                    <table id="lookupItemsTable">
+                        <thead>
+                            <tr>
+                                ${lookupItemsHtml ? lookupItemsHtml.tableHeaders : ""}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${lookupItemsHtml ? lookupItemsHtml.tableRows : ""}
+                        </tbody>
+                    </table>
+                </div>`
+            }
+        </div>
+
+        <div id="lookupListView" class="view-content active">
+            <div class="list-container">
+                <select id="lookupItemsList" size="10">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+                <button id="copyLookupItemsButton" class="copy-lookup-items-button">Copy</button>
+            </div>
+            <div id="lookupItemDetailsContainer" class="details-container" style="display: none;">
+                <form id="lookupItemDetailsForm">
+                    ${lookupItemsHtml ? lookupItemsHtml.formFields : ""}
+                </form>
+            </div>
+        </div>
+    </div>
+    ` : ""}
 </body>
 </html>`;
 }

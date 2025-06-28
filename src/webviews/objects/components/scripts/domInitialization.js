@@ -31,7 +31,12 @@ function getDOMInitialization() {
         }
         
         // Initialize the behavior for all checkboxes
-        initializeToggleEditableBehavior();        // Set up lookup button event handlers for fKObjectName fields
+        initializeToggleEditableBehavior();
+        
+        // Initialize lookup items functionality if the lookup items tab exists
+        if (document.getElementById('lookupItems')) {
+            initializeLookupItems();
+        }        // Set up lookup button event handlers for fKObjectName fields
         document.addEventListener('click', (event) => {
             if (event.target.closest('.lookup-button')) {
                 const button = event.target.closest('.lookup-button');

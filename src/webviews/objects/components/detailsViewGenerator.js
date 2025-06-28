@@ -10,6 +10,7 @@ const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
 const { getPropertiesTableTemplate } = require("./templates/propertiesTableTemplate");
 const { getPropertiesListTemplate } = require("./templates/propertiesListTemplate");
 const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
+const { getLookupItemsTemplate } = require("./templates/lookupItemsTemplate");
 
 /**
  * Generates the HTML content for the object details webview
@@ -21,12 +22,14 @@ const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
  */
 function generateDetailsView(object, objectSchemaProps, propItemsSchema, allObjects) {
     const props = object.prop || [];
+    const lookupItems = object.lookupItem || [];
     
     // Remove complex properties from settings
     const objectForSettings = { ...object };
     delete objectForSettings.prop;
     delete objectForSettings.report;
     delete objectForSettings.objectWorkflow;
+    delete objectForSettings.lookupItem;
 
     // Generate the settings tab content using the template
     const settingsHtml = getSettingsTabTemplate(objectForSettings, objectSchemaProps);
@@ -35,11 +38,17 @@ function generateDetailsView(object, objectSchemaProps, propItemsSchema, allObje
     const { tableHeaders, tableRows, propColumns } = getPropertiesTableTemplate(props, propItemsSchema);
     const listViewFields = getPropertiesListTemplate(propItemsSchema);
     
+    // Generate lookup items tab content if this is a lookup object
+    const { loadSchema, getObjectSchemaProperties, getPropItemsSchema, getLookupItemsSchema } = require("../helpers/schemaLoader");
+    const schema = loadSchema();
+    const lookupItemsSchema = getLookupItemsSchema(schema);
+    const lookupItemsHtml = (object.isLookup === "true") ? getLookupItemsTemplate(lookupItems, lookupItemsSchema) : null;
+    
     // Generate client-side JavaScript
-    const clientScript = getClientScriptTemplate(props, propItemsSchema, object.name, allObjects);
+    const clientScript = getClientScriptTemplate(props, propItemsSchema, object.name, allObjects, object);
     
     // Combine all parts into the main template
-    return getMainTemplate(object, props.length, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript);
+    return getMainTemplate(object, props.length, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript, lookupItemsHtml, lookupItems.length);
 }
 
 module.exports = {

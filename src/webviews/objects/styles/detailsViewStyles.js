@@ -81,6 +81,28 @@ function getDetailViewStyles() {
             margin-left: auto;
         }
 
+        .add-lookup-item-button {
+            margin-left: auto;
+        }
+
+        .copy-lookup-items-button {
+            margin-top: 10px;
+            padding: 5px 10px;
+        }
+
+        .delete-lookup-item {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: 1px solid var(--vscode-button-border);
+            padding: 3px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .delete-lookup-item:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+
         /* Form row styling */
         .form-row {
             display: flex;
@@ -264,9 +286,26 @@ function getDetailViewStyles() {
             border: 1px solid var(--vscode-input-border);
         }
 
+        #lookupItemsList {
+            width: 100%;
+            height: 300px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+        }
+
         .actions {
             margin-top: 15px;
             text-align: right;
+        }
+
+        /* View content styling */
+        .view-content {
+            display: none !important;
+        }
+
+        .view-content.active {
+            display: block !important;
         }
 
         /* Clear fix */

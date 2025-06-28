@@ -10,9 +10,11 @@ function getUIEventHandlers() {
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
             const tabId = tab.getAttribute('data-tab');
+            
             // Update active tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
+            
             // Update visible tab content
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');

@@ -4,7 +4,8 @@ Agent todo items...
 
 make extension repo public
 
- 
+'list' and 'table' view icon toggle buttons
+
 object details view...
 - lookup item list
     only show if is lookup object
@@ -211,3 +212,8 @@ odd settings file...
       "expandNodesOnLoad": true
     }
   }
+
+
+model services api todo...
+- add search query on all request list endpoints
+- add search query on all catalog endpoints
