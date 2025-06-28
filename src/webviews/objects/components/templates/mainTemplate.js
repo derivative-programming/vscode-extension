@@ -74,7 +74,9 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
                 <select id="propsList" size="10">
                     ${object.prop.map((prop, index) => `<option value="${index}">${prop.name || 'Unnamed Property'}</option>`).join('')}
                 </select>
-                <button id="copyPropsButton" class="copy-props-button">Copy</button>
+                <div class="list-buttons">
+                    <button id="copyPropsButton" class="copy-props-button">Copy</button>
+                </div>
             </div>
             <div id="propertyDetailsContainer" class="details-container" style="display: none;">
                 <form id="propDetailsForm">

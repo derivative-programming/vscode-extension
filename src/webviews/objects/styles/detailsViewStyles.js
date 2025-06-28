@@ -258,12 +258,15 @@ function getDetailViewStyles() {
 
         /* Button styling */
         button {
-            padding: 6px 14px;
+            padding: 8px 16px;
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
             border-radius: 3px;
             cursor: pointer;
+            margin-right: 8px;
+            transition: background-color 0.2s;
+            box-sizing: border-box;
         }
 
         button:hover {
@@ -274,14 +277,16 @@ function getDetailViewStyles() {
         .copy-lookup-items-button,
         .move-button,
         .reverse-button {
-            margin-top: 10px;
-            font-size: 12px;
-            padding: 4px 8px;
+            padding: 6px 12px;
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
             border-radius: 3px;
             cursor: pointer;
+            font-size: 12px;
+            margin-right: 8px;
+            transition: background-color 0.2s;
+            box-sizing: border-box;
         }
 
         .copy-props-button:hover,
@@ -299,9 +304,10 @@ function getDetailViewStyles() {
         }
 
         .list-buttons {
+            margin-top: 10px;
             display: flex;
-            flex-direction: column;
-            gap: 5px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         /* List and details container */

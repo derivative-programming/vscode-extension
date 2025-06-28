@@ -1061,3 +1061,45 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
   - Move Down disabled when last item selected or no selection
   - Buttons update automatically on selection change
 - Integration: Properly saves changes to model via saveLookupItemsToModel() after any move operation
+
+## Button Layout Consistency Update (2024-12-28)
+- Updated lookup items and properties tab button styling to match reports view exactly for height and width consistency
+- Button Sizing Changes:
+  - Padding: 4px 8px → 6px 12px (matches reports)
+  - Font size: 12px (consistent across all views)
+  - Border radius: 3px (consistent)
+- Layout Changes:
+  - .list-buttons container now uses horizontal layout (flex-direction: row)
+  - Gap between buttons: 8px (matches reports)
+  - Added flex-wrap: wrap for responsive behavior
+  - Removed individual button margin-top (handled by container)
+- Structure Consistency:
+  - Properties tab now uses .list-buttons container (was direct button under select)
+  - Both tabs have identical button container structure
+  - Consistent with reports view implementation
+- All three views (objects properties, objects lookup items, reports columns) now have identical button styling and layout
+
+## Button Dimensions Consistency Update (2024-12-28)
+- Updated general button styling to match reports view exactly for height and width consistency
+- General Button Changes:
+  - Padding: 6px 14px → 8px 16px (matches reports)
+  - Added margin-right: 8px (consistent spacing between buttons)
+  - Added transition: background-color 0.2s (smooth hover effects)
+- Specific Button Classes:
+  - .copy-props-button, .move-button, .reverse-button still use 6px 12px padding (same as reports)
+  - These override the general button styling for specific use cases
+- Cross-View Consistency:
+  - All buttons now have identical dimensions to reports view
+  - Consistent hover animations and spacing
+  - Unified visual appearance across object details and report details views
+
+## Button Height Consistency Fix (2024-12-28)
+- Fixed move up/down button height inconsistency by adding box-sizing: border-box
+- Issue: Move buttons had slightly different height than reports view, reverse button was correct
+- Solution: Added box-sizing: border-box to both general button and specific button classes
+- Box Model Fix:
+  - General button style: Added box-sizing: border-box
+  - Specific button classes (.copy-props-button, .move-button, .reverse-button): Added box-sizing: border-box
+- This ensures padding and borders are included in height calculation consistently
+- All buttons now have identical dimensions and visual appearance to reports view
+- Cross-browser compatibility improved with explicit box-sizing model

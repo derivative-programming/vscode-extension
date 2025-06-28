@@ -95,4 +95,32 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Move buttons are automatically enabled/disabled based on current selection position
 - All functionality matches the reports columns tab implementation
 - Compilation successful, lookup items now have full move/reorder functionality
+2024-12-28 - Match lookup items button sizes and layout to reports view
+- Updated button styling in detailsViewStyles.js to match reports view exactly:
+  - Changed padding from 4px 8px to 6px 12px (same as reports)
+  - Removed margin-top from individual buttons (now handled by container)
+  - Updated .list-buttons container to use horizontal layout (flex-direction: row) with 8px gap
+  - Added flex-wrap: wrap for responsive behavior
+- Updated properties tab structure to use .list-buttons container for consistency
+- Both properties and lookup items tabs now have identical button layout and sizing
+- All button styling now matches the reports view implementation exactly
+- Compilation successful, buttons should now have correct size and positioning
+2024-12-28 - Match button height and width to reports view exactly
+- Updated general button styling in detailsViewStyles.js to match reports view:
+  - Changed padding from 6px 14px to 8px 16px (matches reports exactly)
+  - Added margin-right: 8px for consistent spacing between buttons
+  - Added transition: background-color 0.2s for smooth hover effects
+- This affects all buttons in the objects view, ensuring consistent sizing
+- The specific button classes (.copy-props-button, .move-button, etc.) still override with 6px 12px padding
+- Now all buttons have the exact same dimensions and behavior as in the reports view
+- Compilation successful, buttons should now have identical height and width to reports
+2024-12-28 - Fix move up/down button height inconsistency with reports view
+- Added box-sizing: border-box to all button styles to ensure consistent height calculation
+- Updated both general button styling and specific button classes (.move-button, etc.)
+- This ensures padding and borders are included in the element's total width and height calculation
+- The reverse button was already correct, but move buttons had slight height differences
+- Added box-sizing to both general button style and specific button classes for consistency
+- Compilation successful, all buttons should now have identical heights to reports view
 Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree viewCommand: Expand all top level tree items in the AppDNA tree view
