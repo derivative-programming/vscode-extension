@@ -984,3 +984,15 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
 ```
 
 **Key Learning**: When adding new functionality with optional parameters, ensure all function signatures match between definition and calling sites. JavaScript silently ignores extra parameters, but the logic expecting those parameters may fail silently.
+
+## Lookup Items List View Styling Fix (2025-06-28)
+
+**Issue**: After selecting a lookup item from the list, the form controls in the list view remained grey/inactive even though they were functionally enabled.
+
+**Root Cause**: The `showLookupItemDetails` function was correctly removing `readonly` and `disabled` attributes and checking checkboxes, but was not calling `updateInputStyle()` to update the visual appearance. The controls were enabled functionally but still appeared grey because the inline CSS styles weren't updated.
+
+**Solution**: Added calls to `updateInputStyle()` function in two places:
+1. **When clearing form fields**: Call `updateInputStyle(input, false)` to ensure all controls appear inactive initially
+2. **When populating existing properties**: Call `updateInputStyle(input, true)` to make controls with values appear active
+
+**Result**: Now when you select a lookup item from the list, controls for properties that exist become visually active (white background), while controls for non-existing properties remain grey.

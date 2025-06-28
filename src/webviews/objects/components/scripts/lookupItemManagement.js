@@ -88,7 +88,7 @@ function getLookupItemManagementFunctions() {
             // Populate form with lookup item data
             const lookupItem = lookupItems[index];
             
-            // Clear all form fields first
+            // Clear all form fields first and set them to disabled/readonly state
             const inputs = form.querySelectorAll('input[type="text"], select');
             const checkboxes = form.querySelectorAll('input[type="checkbox"]');
             
@@ -100,6 +100,8 @@ function getLookupItemManagementFunctions() {
                     input.selectedIndex = 0;
                     input.disabled = true;
                 }
+                // Update styling to appear inactive
+                updateInputStyle(input, false);
             });
             
             checkboxes.forEach(checkbox => {
@@ -118,6 +120,9 @@ function getLookupItemManagementFunctions() {
                     } else if (input.tagName === 'SELECT') {
                         input.disabled = false;
                     }
+                    
+                    // Update the visual styling to make it appear active
+                    updateInputStyle(input, true);
                     
                     // Find and check the corresponding checkbox
                     const fieldId = input.id;
