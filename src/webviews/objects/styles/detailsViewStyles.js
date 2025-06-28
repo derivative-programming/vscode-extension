@@ -270,10 +270,38 @@ function getDetailViewStyles() {
             background-color: var(--vscode-button-hoverBackground);
         }
 
-        .copy-props-button {
+        .copy-props-button,
+        .copy-lookup-items-button,
+        .move-button,
+        .reverse-button {
             margin-top: 10px;
             font-size: 12px;
             padding: 4px 8px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .copy-props-button:hover,
+        .copy-lookup-items-button:hover,
+        .move-button:hover,
+        .reverse-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+
+        .move-button:disabled {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .list-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         /* List and details container */

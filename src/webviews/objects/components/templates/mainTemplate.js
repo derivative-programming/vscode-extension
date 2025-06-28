@@ -119,7 +119,12 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
                 <select id="lookupItemsList" size="10">
                     ${object.lookupItem ? object.lookupItem.map((item, index) => `<option value="${index}">${item.name || item.displayName || 'Unnamed Lookup Item'}</option>`).join('') : ''}
                 </select>
-                <button id="copyLookupItemsButton" class="copy-lookup-items-button">Copy</button>
+                <div class="list-buttons">
+                    <button id="copyLookupItemsButton" class="copy-lookup-items-button">Copy</button>
+                    <button id="moveUpLookupItemsButton" class="move-button">Move Up</button>
+                    <button id="moveDownLookupItemsButton" class="move-button">Move Down</button>
+                    <button id="reverseLookupItemsButton" class="reverse-button">Reverse</button>
+                </div>
             </div>
             <div id="lookupItemDetailsContainer" class="details-container" style="display: none;">
                 <form id="lookupItemDetailsForm">

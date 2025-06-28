@@ -61,6 +61,9 @@ function getLookupItemManagementFunctions() {
             
             // Update the lookup items counter in the tab label
             updateLookupItemsCounter();
+            
+            // Initialize move buttons
+            initializeLookupItemMoveButtons();
         }
 
         function updateLookupItemsList() {
@@ -181,6 +184,9 @@ function getLookupItemManagementFunctions() {
                 });
                 form.dataset.listenerAdded = 'true';
             }
+            
+            // Update move button states when showing details
+            updateLookupItemMoveButtonStates();
         }
 
         function addNewLookupItem(lookupItemData) {
@@ -429,6 +435,130 @@ function getLookupItemManagementFunctions() {
                     saveLookupItemsToModel();
                 });
             });
+        }
+
+        // --- MOVE UP/DOWN FUNCTIONALITY ---
+        
+        // Helper function to move a lookup item in the list and update model
+        function moveLookupItem(direction) {
+            const lookupItemsList = document.getElementById('lookupItemsList');
+            if (!lookupItemsList || lookupItemsList.selectedIndex === -1) {
+                return; // No item selected
+            }
+            
+            const selectedIndex = lookupItemsList.selectedIndex;
+            const newIndex = direction === 'up' ? selectedIndex - 1 : selectedIndex + 1;
+            
+            // Check bounds
+            if (newIndex < 0 || newIndex >= lookupItems.length) {
+                return; // Already at first/last position
+            }
+            
+            // Swap lookup items in the array
+            const temp = lookupItems[selectedIndex];
+            lookupItems[selectedIndex] = lookupItems[newIndex];
+            lookupItems[newIndex] = temp;
+            
+            // Update the list view
+            updateLookupItemsList();
+            
+            // Update the table view
+            updateLookupItemsTable();
+            
+            // Maintain selection on the moved item
+            lookupItemsList.selectedIndex = newIndex;
+            selectedLookupItemIndex = newIndex;
+            
+            // Update move button states
+            updateLookupItemMoveButtonStates();
+            
+            // Show details for the moved item
+            showLookupItemDetails(newIndex);
+            
+            // Save changes to model
+            saveLookupItemsToModel();
+        }
+
+        // Helper function to reverse the order of lookup items
+        function reverseLookupItems() {
+            if (lookupItems.length <= 1) return;
+            
+            // Remember the selected item
+            const selectedItem = selectedLookupItemIndex !== null ? lookupItems[selectedLookupItemIndex] : null;
+            
+            // Reverse the array
+            lookupItems.reverse();
+            
+            // Update views
+            updateLookupItemsList();
+            updateLookupItemsTable();
+            
+            // Try to reselect the same item if it was selected
+            if (selectedItem && selectedLookupItemIndex !== null) {
+                const newIndex = lookupItems.length - 1 - selectedLookupItemIndex;
+                const lookupItemsList = document.getElementById('lookupItemsList');
+                if (lookupItemsList && newIndex >= 0 && newIndex < lookupItems.length) {
+                    lookupItemsList.selectedIndex = newIndex;
+                    selectedLookupItemIndex = newIndex;
+                    showLookupItemDetails(newIndex);
+                }
+            }
+            
+            // Update move button states
+            updateLookupItemMoveButtonStates();
+            
+            // Save changes to model
+            saveLookupItemsToModel();
+        }
+
+        // Helper function to update move button states based on selection
+        function updateLookupItemMoveButtonStates() {
+            const lookupItemsList = document.getElementById('lookupItemsList');
+            const moveUpButton = document.getElementById('moveUpLookupItemsButton');
+            const moveDownButton = document.getElementById('moveDownLookupItemsButton');
+            
+            if (lookupItemsList && moveUpButton && moveDownButton) {
+                const selectedIndex = lookupItemsList.selectedIndex;
+                const hasSelection = selectedIndex !== -1;
+                const isFirst = selectedIndex === 0;
+                const isLast = selectedIndex === lookupItems.length - 1;
+                
+                moveUpButton.disabled = !hasSelection || isFirst;
+                moveDownButton.disabled = !hasSelection || isLast;
+            }
+        }
+
+        // Initialize move button event listeners
+        function initializeLookupItemMoveButtons() {
+            const moveUpButton = document.getElementById('moveUpLookupItemsButton');
+            const moveDownButton = document.getElementById('moveDownLookupItemsButton');
+            const reverseButton = document.getElementById('reverseLookupItemsButton');
+            const lookupItemsList = document.getElementById('lookupItemsList');
+            
+            if (moveUpButton) {
+                moveUpButton.addEventListener('click', () => {
+                    moveLookupItem('up');
+                });
+            }
+            
+            if (moveDownButton) {
+                moveDownButton.addEventListener('click', () => {
+                    moveLookupItem('down');
+                });
+            }
+            
+            if (reverseButton) {
+                reverseButton.addEventListener('click', () => {
+                    reverseLookupItems();
+                });
+            }
+            
+            if (lookupItemsList) {
+                lookupItemsList.addEventListener('change', updateLookupItemMoveButtonStates);
+            }
+            
+            // Initial state update
+            updateLookupItemMoveButtonStates();
         }
     `;
 }

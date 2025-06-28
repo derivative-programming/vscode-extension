@@ -1043,3 +1043,21 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
 - Added scoping logic to ensure view switching only affects the current tab content
 - Each tab now has independent view switching that doesn't interfere with the other tab
 - Improved reliability by using parentTabContent.querySelector() for scoped element selection
+
+## Move Up/Down Functionality for Lookup Items (2024-12-28)
+- Added move up/down and reverse buttons to lookup items tab list view, matching reports columns functionality
+- UI Components:
+  - Move Up button (#moveUpLookupItemsButton)
+  - Move Down button (#moveDownLookupItemsButton) 
+  - Reverse button (#reverseLookupItemsButton)
+  - All buttons styled with .list-buttons container for vertical layout
+- JavaScript Functions:
+  - moveLookupItem(direction): Swaps items in array and updates all views
+  - reverseLookupItems(): Reverses entire array while maintaining selection
+  - updateLookupItemMoveButtonStates(): Enables/disables buttons based on selection position
+  - initializeLookupItemMoveButtons(): Sets up event listeners and initial state
+- Button States:
+  - Move Up disabled when first item selected or no selection
+  - Move Down disabled when last item selected or no selection
+  - Buttons update automatically on selection change
+- Integration: Properly saves changes to model via saveLookupItemsToModel() after any move operation

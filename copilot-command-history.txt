@@ -82,3 +82,17 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Updated logic to scope view switching to the current tab content container
 - Now each tab's view switching works independently without interfering with the other
 - Compilation successful, both tabs should now have working view switching buttons
+2024-12-28 - Add move up/down and reverse buttons to lookup items tab list view
+- Reviewed report details view columns tab to understand move up/down button implementation
+- Added Move Up, Move Down, and Reverse buttons to lookup items list view in mainTemplate.js
+- Added styling for move-button and reverse-button classes in detailsViewStyles.js
+- Implemented move functionality in lookupItemManagement.js:
+  - moveLookupItem() function to move items up/down in array and update views
+  - reverseLookupItems() function to reverse the entire lookup items array
+  - updateLookupItemMoveButtonStates() to enable/disable buttons based on selection
+  - initializeLookupItemMoveButtons() to set up event listeners
+- Added list-buttons container styling for proper button layout
+- Move buttons are automatically enabled/disabled based on current selection position
+- All functionality matches the reports columns tab implementation
+- Compilation successful, lookup items now have full move/reorder functionality
+Command: Expand all top level tree items in the AppDNA tree view
