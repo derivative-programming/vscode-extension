@@ -117,7 +117,7 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
         <div id="lookupListView" class="view-content active">
             <div class="list-container">
                 <select id="lookupItemsList" size="10">
-                    <!-- Options will be populated by JavaScript -->
+                    ${object.lookupItem ? object.lookupItem.map((item, index) => `<option value="${index}">${item.name || item.displayName || 'Unnamed Lookup Item'}</option>`).join('') : ''}
                 </select>
                 <button id="copyLookupItemsButton" class="copy-lookup-items-button">Copy</button>
             </div>

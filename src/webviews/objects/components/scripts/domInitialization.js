@@ -129,6 +129,58 @@ function getDOMInitialization() {
                 }
             });
         }
+        
+        // Set up copy button functionality for lookup items
+        const copyLookupItemsButton = document.getElementById('copyLookupItemsButton');
+        if (copyLookupItemsButton) {
+            copyLookupItemsButton.addEventListener('click', () => {
+                try {
+                    // Get all lookup item names from the list
+                    const lookupItemsList = document.getElementById('lookupItemsList');
+                    if (!lookupItemsList) return;
+                    
+                    const lookupItemList = [];
+                    for (let i = 0; i < lookupItemsList.options.length; i++) {
+                        lookupItemList.push(lookupItemsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = lookupItemList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Lookup items copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyLookupItemsButton.textContent;
+                            copyLookupItemsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyLookupItemsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy lookup items: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyLookupItemsButton.textContent;
+                        copyLookupItemsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyLookupItemsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying lookup items: ', err);
+                }
+            });
+        }
     });
     `;
 }

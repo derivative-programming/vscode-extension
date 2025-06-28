@@ -936,3 +936,51 @@ Enhanced the Select FK Object modal functionality to properly disable the 'Accep
 - Data-view attributes should correspond to the container ID minus the "View" suffix
   - Example: `data-view="propsList"` corresponds to `id="propsListView"`
 - This pattern allows the JavaScript view switching logic to work correctly by appending "View" to the data-view value
+
+## Data Object Details View - Lookup Items Tab Consistency Fixes (Added 2025-06-28)
+
+### Problem:
+The lookup items tab in the data object details view didn't match the structure and functionality of the properties tab, leading to inconsistent user experience:
+- List was not properly populated in template (had placeholder comment)
+- Missing copy functionality
+- JavaScript initialization conflicted with template population
+- Inconsistent data handling patterns
+
+### Solution:
+**Template Consistency**: Updated `mainTemplate.js` to populate lookup items list directly in template using the same pattern as properties tab
+**Data Flow Alignment**: Added `lookupItem` array initialization in `objectDetailsView.js` to match properties array initialization
+**Feature Parity**: Implemented copy button functionality for lookup items in `domInitialization.js` to match properties copy feature
+**JavaScript Optimization**: Updated `lookupItemManagement.js` to avoid overriding template-populated lists, preventing conflicts
+
+### Architecture Pattern:
+- **Template-First Population**: Both properties and lookup items now populate their lists directly in the template rather than relying solely on JavaScript
+- **Consistent Initialization**: Both data types get initialized as empty arrays if not present in object data
+- **Unified Copy Functionality**: Both tabs use the same clipboard API pattern for copy operations
+- **Smart JavaScript Updates**: JavaScript only updates lists when they're empty to avoid conflicts with template population
+
+### Files Modified:
+1. `src/webviews/objects/components/templates/mainTemplate.js` - Fixed list population
+2. `src/webviews/objects/objectDetailsView.js` - Added lookupItem initialization
+3. `src/webviews/objects/components/scripts/domInitialization.js` - Added copy functionality
+4. `src/webviews/objects/components/scripts/lookupItemManagement.js` - Optimized initialization
+
+### Impact:
+- Lookup items tab now provides consistent UX with properties tab
+- Users can copy lookup item lists just like property lists
+- Template and JavaScript work together without conflicts
+- Maintains existing functionality while adding missing features
+
+## Tab Switching Bug Fix (2025-06-28)
+
+**Issue**: Tab switching stopped working in object details view after implementing lookup items schema support.
+
+**Root Cause**: Function signature mismatch in `getClientScriptTemplate()`. The function was being called with 6 parameters but only defined to accept 5 parameters:
+- Function definition: `getClientScriptTemplate(props, propItemsSchema, objectName, allObjects, objectData)`
+- Function call: `getClientScriptTemplate(props, propItemsSchema, object.name, allObjects, object, lookupItemsSchema)`
+
+**Solution**: Updated the function signature to accept the 6th parameter `lookupItemsSchema`:
+```javascript
+function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects, objectData, lookupItemsSchema)
+```
+
+**Key Learning**: When adding new functionality with optional parameters, ensure all function signatures match between definition and calling sites. JavaScript silently ignores extra parameters, but the logic expecting those parameters may fail silently.

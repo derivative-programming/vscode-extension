@@ -45,7 +45,7 @@ function generateDetailsView(object, objectSchemaProps, propItemsSchema, allObje
     const lookupItemsHtml = (object.isLookup === "true") ? getLookupItemsTemplate(lookupItems, lookupItemsSchema) : null;
     
     // Generate client-side JavaScript
-    const clientScript = getClientScriptTemplate(props, propItemsSchema, object.name, allObjects, object);
+    const clientScript = getClientScriptTemplate(props, propItemsSchema, object.name, allObjects, object, lookupItemsSchema);
     
     // Combine all parts into the main template
     return getMainTemplate(object, props.length, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript, lookupItemsHtml, lookupItems.length);

@@ -87,6 +87,11 @@ function showObjectDetails(item, modelService) {
         objectData.prop = [];
     }
     
+    // Initialize the lookupItem array if it doesn't exist
+    if (!objectData.lookupItem) {
+        objectData.lookupItem = [];
+    }
+    
     // Get schema for generating the HTML
     const schema = loadSchema();
     const objectSchemaProps = getObjectSchemaProperties(schema);
@@ -158,6 +163,11 @@ function refreshAll() {
             }
             if (!objectData.prop) {
                 objectData.prop = [];
+            }
+            
+            // Initialize the lookupItem array if it doesn't exist
+            if (!objectData.lookupItem) {
+                objectData.lookupItem = [];
             }
             // Get schema for generating the HTML
             const schema = loadSchema();

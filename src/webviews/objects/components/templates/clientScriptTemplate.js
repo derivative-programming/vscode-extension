@@ -21,13 +21,25 @@ const { getLookupItemManagementFunctions } = require("../scripts/lookupItemManag
  * @param {string} objectName The name of the object for display and messaging
  * @param {Array} allObjects Array of all available objects for FK lookup
  * @param {Object} objectData The complete object data including lookup items
+ * @param {Object} lookupItemsSchema Schema for lookup items (optional)
  * @returns {string} HTML script tag with JavaScript
  */
-function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects, objectData) {
+function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects, objectData, lookupItemsSchema) {
     // Create header columns for all prop item properties and sort them alphabetically
     // Make sure 'name' is always the first column
     const propColumns = Object.keys(propItemsSchema).filter(key => key !== "name").sort();
     propColumns.unshift("name");
+
+    // Use the passed lookupItemsSchema parameter if available
+    let lookupColumns = [];
+    
+    // Create header columns for lookup items if schema is available
+    if (lookupItemsSchema && typeof lookupItemsSchema === 'object' && Object.keys(lookupItemsSchema).length > 0) {
+        lookupColumns = Object.keys(lookupItemsSchema).filter(key => key !== "name").sort();
+        if (lookupItemsSchema.name) {
+            lookupColumns.unshift("name");
+        }
+    }
 
     return `<script>
             (function() {
@@ -36,6 +48,8 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                 const props = ${JSON.stringify(props)};
                 const propColumns = ${JSON.stringify(propColumns)};
                 const propItemsSchema = ${JSON.stringify(propItemsSchema)};
+                const lookupColumns = ${JSON.stringify(lookupColumns)};
+                const lookupItemsSchema = ${JSON.stringify(lookupItemsSchema || {})};
                 const objectName = "${objectName || ''}";
                 const allObjects = ${JSON.stringify(allObjects || [])};
                 

@@ -26,7 +26,10 @@ function getLookupItemManagementFunctions() {
             // Initialize lookup items list if it exists
             const lookupItemsList = document.getElementById('lookupItemsList');
             if (lookupItemsList) {
-                updateLookupItemsList();
+                // Only update the list if it's empty (to avoid overriding template population)
+                if (lookupItemsList.options.length === 0) {
+                    updateLookupItemsList();
+                }
                 
                 // Add event listener for selection
                 lookupItemsList.addEventListener('change', function() {
@@ -289,15 +292,15 @@ function getLookupItemManagementFunctions() {
 
             tableBody.innerHTML = '';
             
-            // Get lookup item schema columns (assuming they're available globally)
-            const lookupColumns = ['name', 'displayName', 'description', 'isActive', 'customIntProp1Value'];
+            // Use the schema-based lookup columns that are available globally
+            const columnsToUse = typeof lookupColumns !== 'undefined' ? lookupColumns : ['name', 'displayName', 'description', 'isActive', 'customIntProp1Value'];
             
             lookupItems.forEach((item, index) => {
                 const row = document.createElement('tr');
                 row.dataset.index = index;
                 
                 // Add cells for each property
-                lookupColumns.forEach(propKey => {
+                columnsToUse.forEach(propKey => {
                     const cell = document.createElement('td');
                     
                     // Check if the property exists and is not null or undefined
@@ -308,9 +311,24 @@ function getLookupItemManagementFunctions() {
                         cell.innerHTML = '<span class="lookup-item-name">' + (item.name || "Unnamed Lookup Item") + '</span>' +
                             '<input type="hidden" name="name" value="' + (item.name || "") + '">';
                     } else {
-                        // Create input field
-                        let inputField = '<input type="text" name="' + propKey + '" value="' + (propertyExists ? item[propKey] : '') + '" ' + 
-                            (propertyExists ? '' : 'readonly') + '>';
+                        // Get the schema for this property to determine if it has enum options
+                        const propSchema = (typeof lookupItemsSchema !== 'undefined' && lookupItemsSchema[propKey]) || {};
+                        const hasEnum = propSchema.enum && Array.isArray(propSchema.enum);
+                        
+                        let inputField = '';
+                        if (hasEnum) {
+                            // Create select dropdown for enum properties
+                            inputField = '<select name="' + propKey + '" ' + (propertyExists ? '' : 'disabled') + '>';
+                            propSchema.enum.forEach(option => {
+                                const isSelected = propertyExists && item[propKey] === option;
+                                inputField += '<option value="' + option + '" ' + (isSelected ? 'selected' : '') + '>' + option + '</option>';
+                            });
+                            inputField += '</select>';
+                        } else {
+                            // Create text input for regular properties
+                            inputField = '<input type="text" name="' + propKey + '" value="' + (propertyExists ? item[propKey] : '') + '" ' + 
+                                (propertyExists ? '' : 'readonly') + '>';
+                        }
                         
                         // If the property exists, add a data attribute to indicate it was originally checked
                         const originallyChecked = propertyExists ? 'data-originally-checked="true"' : '';
