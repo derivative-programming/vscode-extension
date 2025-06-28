@@ -123,4 +123,15 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Compilation successful, all buttons should now have identical heights to reports view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
-Command: Expand all top level tree items in the AppDNA tree viewCommand: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+June 28, 2025: Review the report details view columns tab list view and the data object details view lookup items tab list view move up and down buttons. Ensure buttons on the list view have the same height between both views.
+June 28, 2025: CORRECTION - Reverted incorrect changes to report styles file. User confirmed report buttons are already correct height. Need to re-examine which buttons actually need adjustment.
+June 28, 2025: Fixed move button height issue by adding !important to padding in objects styles. General button selector was overriding specific move-button padding.
+June 28, 2025: Fixed button height issue by standardizing copy-lookup-items-button padding and adding !important to font-size and margin-right to prevent general button styles from overriding specific button classes.
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view

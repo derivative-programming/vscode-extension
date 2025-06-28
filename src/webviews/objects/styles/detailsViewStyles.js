@@ -97,7 +97,7 @@ function getDetailViewStyles() {
 
         .copy-lookup-items-button {
             margin-top: 10px;
-            padding: 5px 10px;
+            padding: 8px 16px;  /* Match report columns button height */
         }
 
         .delete-lookup-item {
@@ -277,13 +277,13 @@ function getDetailViewStyles() {
         .copy-lookup-items-button,
         .move-button,
         .reverse-button {
-            padding: 6px 12px;
+            margin-top: 10px;          /* align vertical spacing in list views */
+            padding: 8px 16px;         /* match report columns button height */
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
             border-radius: 3px;
             cursor: pointer;
-            font-size: 12px;
             margin-right: 8px;
             transition: background-color 0.2s;
             box-sizing: border-box;

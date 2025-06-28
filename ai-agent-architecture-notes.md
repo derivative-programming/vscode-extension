@@ -786,7 +786,7 @@ Created a new "Add Column" modal for the report details view that's similar to t
 ### Files Modified:
 - `detailsViewGenerator.js`: Added imports and integration for new modal template
 - `mainTemplate.js`: Updated function signature and modal rendering section
-- `clientScriptTemplate.js`: 
+- `clientScriptTemplate.js`:
   - Added `getAddColumnModalHtml()` function inline
   - Added `createAddColumnModal()` function with full event handling
   - Modified add column button handler to use new modal
@@ -1103,3 +1103,38 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
 - This ensures padding and borders are included in height calculation consistently
 - All buttons now have identical dimensions and visual appearance to reports view
 - Cross-browser compatibility improved with explicit box-sizing model
+
+## Move Button Styling Consistency (Added 2025-06-28)
+
+### Issue Identified:
+Move Up/Down buttons had inconsistent heights between report details view and object details view due to different CSS properties in their respective style files.
+
+### Root Cause:
+- Reports used `src/webviews/reports/styles/detailsViewStyles.js`
+- Objects used `src/webviews/objects/styles/detailsViewStyles.js`
+- Both files had `.move-button` classes but with different properties
+
+### Styling Differences:
+**Reports styles** (missing properties):
+- No `margin-right: 8px;`
+- No `transition: background-color 0.2s;` 
+- No `box-sizing: border-box;`
+
+**Objects styles** (complete):
+- Had all necessary properties for consistent button rendering
+
+### Solution:
+Updated the reports styles file to match the objects styles by adding the missing properties to the `.move-button` class selector.
+
+### Files Modified:
+- `src/webviews/reports/styles/detailsViewStyles.js`: Added missing CSS properties
+
+### Impact:
+- Move buttons now have consistent height and spacing across both report columns tab and object lookup items tab
+- Better visual consistency throughout the extension
+- Improved user experience with uniform button styling
+
+### Pattern for Future:
+- When adding buttons to different views, ensure CSS properties are consistent
+- Consider centralizing common button styles to avoid duplication
+- Both style files should have identical button class definitions
