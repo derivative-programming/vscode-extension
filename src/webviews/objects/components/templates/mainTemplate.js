@@ -90,8 +90,8 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
     <div id="lookupItems" class="tab-content">
         <div class="view-icons">
             <div class="view-icons-left">
-                <span class="icon list-icon active" data-view="lookupListView">List View</span>
-                <span class="icon table-icon" data-view="lookupTableView">Table View</span>
+                <span class="icon list-icon active" data-view="lookupList">List View</span>
+                <span class="icon table-icon" data-view="lookupTable">Table View</span>
             </div>
             <button id="addLookupItem" class="add-lookup-item-button">Add Lookup Item</button>
         </div>

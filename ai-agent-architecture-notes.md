@@ -1035,3 +1035,11 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
 - Correctly handles cases like "AppDNA" → "App DNA", "DNAApp" → "DNA App", "AppDNATest" → "App DNA Test"
 - Auto-generates description by appending " lookup item" to the converted display text
 - Implementation is complete and working as specified in coding guidelines
+
+## View Switching Buttons Fix (2024-12-28)
+- Fixed issue where lookup items tab view switching buttons (List View/Table View) were not working
+- Problem: uiEventHandlers.js used querySelector('.view-icons') which only selected the first container (properties tab)
+- Solution: Changed to querySelectorAll('.view-icons') to handle both properties and lookup items containers
+- Added scoping logic to ensure view switching only affects the current tab content
+- Each tab now has independent view switching that doesn't interfere with the other tab
+- Improved reliability by using parentTabContent.querySelector() for scoped element selection

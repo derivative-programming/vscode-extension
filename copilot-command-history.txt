@@ -65,3 +65,20 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Both use the same regex patterns: ([a-z])([A-Z]) and ([A-Z])([A-Z][a-z])
 - Auto-population is already working correctly for cases like "AppDNA" → "App DNA", "DNAApp" → "DNA App"
 - The modal functionality is already complete and matches the requirements
+2024-12-28 - Compare properties tab default view and lookup items tab default view
+- Examined mainTemplate.js, propertiesListTemplate.js, and lookupItemsTemplate.js to compare structures
+- Both tabs have identical structure and layout with same components and functionality
+2024-12-28 - Fix lookup items tab list view not displaying issue
+- Identified naming inconsistency in mainTemplate.js for lookup items view switching
+- Properties tab uses data-view="propsList" → propsListView (correct)
+- Lookup items tab was using data-view="lookupListView" → lookupListViewView (incorrect)
+- Fixed by changing data-view attributes from "lookupListView"/"lookupTableView" to "lookupList"/"lookupTable"
+- This matches the UI event handler logic that appends "View" to the data-view attribute
+- Compilation successful, issue should now be resolved
+2024-12-28 - Fix lookup items tab view switching buttons not working
+- Identified issue: uiEventHandlers.js was only attaching event listener to first .view-icons container (properties tab)
+- The lookup items tab has its own .view-icons container that wasn't getting event listeners
+- Fixed by changing from querySelector('.view-icons') to querySelectorAll('.view-icons')
+- Updated logic to scope view switching to the current tab content container
+- Now each tab's view switching works independently without interfering with the other
+- Compilation successful, both tabs should now have working view switching buttons

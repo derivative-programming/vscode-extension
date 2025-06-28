@@ -28,8 +28,8 @@ function getUIEventHandlers() {
         });
 
         // View switching - using event delegation for better reliability
-        const viewIconsContainer = document.querySelector('.view-icons');
-        if (viewIconsContainer) {
+        // Handle all view-icons containers (properties and lookup items)
+        document.querySelectorAll('.view-icons').forEach(viewIconsContainer => {
             viewIconsContainer.addEventListener('click', (event) => {
                 // Check if the clicked element is an icon or a child of an icon
                 const iconElement = event.target.closest('.icon');
@@ -37,29 +37,33 @@ function getUIEventHandlers() {
                 const view = iconElement.getAttribute('data-view');
                 console.log('Switching to view:', view);
                 
-                // Update active state of icons
-                document.querySelectorAll('.view-icons .icon').forEach(icon => {
+                // Update active state of icons within this specific view-icons container
+                viewIconsContainer.querySelectorAll('.icon').forEach(icon => {
                     icon.classList.remove('active');
                 });
                 iconElement.classList.add('active');
                 
-                // Hide all views
-                document.querySelectorAll('.view-content').forEach(content => {
-                    content.style.display = 'none';
-                    content.classList.remove('active');
-                });
-                
-                // Show selected view
-                const viewElement = document.getElementById(view + 'View'); 
-                if (viewElement) {
-                    viewElement.style.display = 'block';
-                    viewElement.classList.add('active');
-                    console.log('Activated view:', view + 'View');
-                } else {
-                    console.error('View not found:', view + 'View');
+                // Find the parent tab content to scope view switching to the current tab
+                const parentTabContent = viewIconsContainer.closest('.tab-content');
+                if (parentTabContent) {
+                    // Hide all views within this tab content
+                    parentTabContent.querySelectorAll('.view-content').forEach(content => {
+                        content.style.display = 'none';
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show selected view within this tab content
+                    const viewElement = parentTabContent.querySelector('#' + view + 'View');
+                    if (viewElement) {
+                        viewElement.style.display = 'block';
+                        viewElement.classList.add('active');
+                        console.log('Activated view:', view + 'View');
+                    } else {
+                        console.error('View not found:', view + 'View');
+                    }
                 }
             });
-        }
+        });
     });
     `;
 }
