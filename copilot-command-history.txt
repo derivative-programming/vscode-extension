@@ -55,3 +55,13 @@ Command: Expand all top level tree items in the AppDNA tree view
 2025-06-28: Fix JavaScript syntax error - Uncaught SyntaxError: missing ) after argument list in generated script.
 2025-06-28: Fix lookup items list view controls remaining grey/inactive after selecting an item from the list.
 2025-06-28: Implement modal for adding lookup items with single and bulk options, similar to adding properties to data objects.
+2025-06-28: Investigate property name conversion from Pascal case to spaced format for other properties when adding data object properties.
+2025-06-28: Review generateHeaderText function to understand its implementation and usage.
+2025-06-28: Update lookup item modal to use generateHeaderText-like logic to auto-populate displayName and description from name value.
+2024-12-28 - Review and verify lookup item modal auto-population logic for displayName/description using PascalCase-to-spaced conversion (generateHeaderText-like logic)
+- Reviewed the existing lookupItemModalFunctionality.js implementation
+- Confirmed that generateDisplayText() and generateDescriptionText() functions already implement the correct PascalCase-to-spaced conversion logic
+- Verified that the logic matches the generateHeaderText() function from addColumnModalFunctionality.js
+- Both use the same regex patterns: ([a-z])([A-Z]) and ([A-Z])([A-Z][a-z])
+- Auto-population is already working correctly for cases like "AppDNA" → "App DNA", "DNAApp" → "DNA App"
+- The modal functionality is already complete and matches the requirements

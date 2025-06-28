@@ -90,6 +90,21 @@ function createLookupItemModal() {
         }
     });
     
+    // Helper function to generate display text from lookup item name
+    function generateDisplayText(lookupItemName) {
+        // Convert PascalCase to space-separated words
+        // Handle cases like "FirstName" -> "First Name", "AppDNA" -> "App DNA"
+        return lookupItemName.replace(/([a-z])([A-Z])/g, '$1 $2')
+                            .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+    }
+    
+    // Helper function to generate description text from lookup item name
+    function generateDescriptionText(lookupItemName) {
+        // Convert PascalCase to space-separated words and add descriptive text
+        const displayText = generateDisplayText(lookupItemName);
+        return displayText;
+    }
+    
     // Single lookup item add functionality
     modal.querySelector("#addSingleLookupItem").addEventListener("click", function() {
         const lookupItemNameInput = modal.querySelector("#lookupItemName");
@@ -121,11 +136,11 @@ function createLookupItemModal() {
             return;
         }
         
-        // Create new lookup item with default values
+        // Create new lookup item with auto-generated values
         const newLookupItem = {
             name: lookupItemName,
-            displayName: lookupItemName,
-            description: '',
+            displayName: generateDisplayText(lookupItemName),
+            description: generateDescriptionText(lookupItemName),
             isActive: 'true'
         };
         
@@ -217,11 +232,11 @@ function createLookupItemModal() {
             return;
         }
         
-        // Create new lookup items
+        // Create new lookup items with auto-generated values
         const newLookupItems = lookupItemNames.map(name => ({
             name: name,
-            displayName: name,
-            description: '',
+            displayName: generateDisplayText(name),
+            description: generateDescriptionText(name),
             isActive: 'true'
         }));
         

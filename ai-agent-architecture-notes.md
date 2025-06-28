@@ -1025,3 +1025,13 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
 - Single tab: Enter key submits
 - Bulk tab: Ctrl+Enter submits, each name on separate line
 - Modal can be closed via X button, clicking outside, or after successful submission
+
+## Auto-Population Logic for Lookup Items (2024-12-28)
+- The lookup item modal (lookupItemModalFunctionality.js) includes auto-population logic for displayName and description fields
+- Uses generateDisplayText() and generateDescriptionText() functions that implement PascalCase-to-spaced conversion
+- Logic matches generateHeaderText() from addColumnModalFunctionality.js using regex patterns:
+  - ([a-z])([A-Z]) - matches lowercase followed by uppercase
+  - ([A-Z])([A-Z][a-z]) - matches uppercase followed by uppercase+lowercase
+- Correctly handles cases like "AppDNA" → "App DNA", "DNAApp" → "DNA App", "AppDNATest" → "App DNA Test"
+- Auto-generates description by appending " lookup item" to the converted display text
+- Implementation is complete and working as specified in coding guidelines
