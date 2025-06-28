@@ -96,8 +96,13 @@ function getDetailViewStyles() {
         }
 
         .copy-lookup-items-button {
-            margin-top: 10px;
-            padding: 8px 16px;  /* Match report columns button height */
+            padding: 6px 12px;  /* match report view button size */
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
         }
 
         .delete-lookup-item {
@@ -277,13 +282,13 @@ function getDetailViewStyles() {
         .copy-lookup-items-button,
         .move-button,
         .reverse-button {
-            margin-top: 10px;          /* align vertical spacing in list views */
-            padding: 8px 16px;         /* match report columns button height */
+            padding: 6px 12px; /* match report view button size */
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
             border-radius: 3px;
             cursor: pointer;
+            font-size: 12px; /* explicitly set font size to match report view */
             margin-right: 8px;
             transition: background-color 0.2s;
             box-sizing: border-box;
