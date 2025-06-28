@@ -11,74 +11,126 @@
  * @returns {Object} Object containing HTML for table headers, rows, and form fields
  */
 function getLookupItemsTemplate(lookupItems, lookupItemsSchema) {
-    // Generate table headers for lookup items
-    const tableHeaders = Object.keys(lookupItemsSchema)
-        .sort() // Display properties in alphabetical order
-        .map(prop => {
-            const propSchema = lookupItemsSchema[prop];
-            const description = propSchema.description || "";
-            return `<th title="${description}">${formatLabel(prop)}</th>`;
-        }).join("");
+    // Ensure lookupItems is always an array, even if undefined
+    const safeLookupItems = Array.isArray(lookupItems) ? lookupItems : [];
+    
+    // Create header columns for all lookup item properties and sort them alphabetically
+    // Make sure 'name' is always the first column if it exists
+    const lookupColumns = Object.keys(lookupItemsSchema).filter(key => key !== "name").sort();
+    if (lookupItemsSchema.name) {
+        lookupColumns.unshift("name");
+    }
 
-    // Generate table rows for lookup items
-    const tableRows = lookupItems.map((item, index) => {
-        const cells = Object.keys(lookupItemsSchema)
-            .sort()
-            .map(prop => {
-                const value = item[prop] || "";
-                return `<td data-prop="${prop}" data-index="${index}">${value}</td>`;
-            }).join("");
-        return `<tr data-index="${index}">${cells}<td><button class="delete-lookup-item" data-index="${index}">Delete</button></td></tr>`;
+    // Generate table headers with tooltips based on schema descriptions
+    const tableHeaders = lookupColumns.map(key => {
+        const propSchema = lookupItemsSchema[key] || {};
+        const tooltip = propSchema.description ? ` title="${propSchema.description}"` : "";
+        return `<th${tooltip}>${formatLabel(key)}</th>`;
     }).join("");
 
-    // Generate form fields for editing lookup items
-    const formFields = Object.keys(lookupItemsSchema)
-        .sort()
-        .map(prop => {
-            const propSchema = lookupItemsSchema[prop];
-            const description = propSchema.description || "";
-            const isEnum = propSchema.enum && propSchema.enum.length > 0;
+    // Generate table rows for all lookup items
+    const tableRows = safeLookupItems.map((item, index) => {
+        const cells = lookupColumns.map(propKey => {
+            const propSchema = lookupItemsSchema[propKey] || {};
+            const hasEnum = propSchema.enum && Array.isArray(propSchema.enum);
+            // Check if it's a boolean enum (containing only true/false values)
+            const isBooleanEnum = hasEnum && propSchema.enum.length === 2 && 
+                propSchema.enum.every(val => val === true || val === false || val === "true" || val === "false");
             
-            let inputHtml = "";
-            if (isEnum) {
-                // Create dropdown for enum properties
-                const options = propSchema.enum.map(option => 
-                    `<option value="${option}">${option}</option>`
-                ).join("");
-                inputHtml = `<select id="lookupItem_${prop}" name="${prop}" title="${description}">${options}</select>`;
-            } else {
-                // Create text input for other properties
-                inputHtml = `<input type="text" id="lookupItem_${prop}" name="${prop}" title="${description}" />`;
+            const tooltip = propSchema.description ? `title="${propSchema.description}"` : "";
+            
+            // Check if the property exists and is not null or undefined
+            const propertyExists = item.hasOwnProperty(propKey) && item[propKey] !== null && item[propKey] !== undefined;
+            
+            // Special handling for the name column
+            if (propKey === "name") {
+                return `<td>
+                    <span class="lookup-item-name">${item.name || "Unnamed Lookup Item"}</span>
+                    <input type="hidden" name="name" value="${item.name || ""}">
+                </td>`;
             }
-
-            return `
-                <div class="form-row">
-                    <label for="lookupItem_${prop}" title="${description}">${formatLabel(prop)}:</label>
-                    ${inputHtml}
+            
+            let inputField = "";
+            if (hasEnum) {
+                // Always show all options in the dropdown but disable it if property doesn't exist or is null/undefined
+                inputField = `<select name="${propKey}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
+                    ${propSchema.enum.map(option => {
+                        // If it's a boolean enum and the property doesn't exist or is null/undefined, default to 'false'
+                        const isSelected = isBooleanEnum && !propertyExists ? 
+                            (option === false || option === "false") : 
+                            item[propKey] === option;
+                        
+                        return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
+                    }).join("")}
+                </select>`;
+            } else {
+                inputField = `<input type="text" name="${propKey}" value="${propertyExists ? item[propKey] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
+            }
+            
+            // If the property exists, add a data attribute to indicate it was originally checked
+            // and disable the checkbox to prevent unchecking
+            const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
+            
+            return `<td>
+                <div class="control-with-checkbox">
+                    ${inputField}
+                    <input type="checkbox" class="lookup-item-checkbox" data-prop="${propKey}" data-index="${index}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} title="Toggle property existence">
                 </div>
-            `;
+            </td>`;
         }).join("");
+        
+        return `<tr data-index="${index}">${cells}</tr>`;
+    }).join("");
+
+    // Generate form fields for list view editing
+    const formFields = lookupColumns.filter(key => key !== "name").map(propKey => {
+        const propSchema = lookupItemsSchema[propKey] || {};
+        const hasEnum = propSchema.enum && Array.isArray(propSchema.enum);
+        // Check if it's a boolean enum (containing only true/false values)
+        const isBooleanEnum = hasEnum && propSchema.enum.length === 2 && 
+            propSchema.enum.every(val => val === true || val === false || val === "true" || val === "false");
+            
+        const tooltip = propSchema.description ? `title="${propSchema.description}"` : "";
+        
+        const fieldId = `lookupItem${propKey}`;
+        
+        // Note: The detailed lookup item values will be populated by client-side JavaScript
+        // when a lookup item is selected from the list, so we set default values here
+        let inputField = "";
+        if (hasEnum) {
+            // Always display all enum options even when disabled
+            inputField = `<select id="${fieldId}" name="${propKey}" ${tooltip} disabled>
+                ${propSchema.enum.map(option => {
+                    // Default to 'false' for boolean enums
+                    const isSelected = isBooleanEnum ? (option === false || option === "false") : false;
+                    
+                    return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
+                }).join("")}
+            </select>`;
+        } else {
+            inputField = `<input type="text" id="${fieldId}" name="${propKey}" value="" ${tooltip} readonly>`;
+        }
+        
+        // Note: We'll dynamically set the disabled attribute for checked checkboxes in the JavaScript
+        return `<div class="form-row">
+            <label for="${fieldId}" ${tooltip}>${formatLabel(propKey)}:</label>
+            <div class="control-with-button">
+                ${inputField}
+            </div>
+            <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" style="margin-left: 5px; transform: scale(0.8);">
+        </div>`;
+    }).join("");
 
     return {
-        tableHeaders: tableHeaders + "<th>Actions</th>",
+        tableHeaders,
         tableRows,
-        formFields
+        formFields,
+        lookupColumns
     };
 }
 
-/**
- * Formats a property name to a human-readable label
- * @param {string} propName The property name to format
- * @returns {string} Formatted label
- */
-function formatLabel(propName) {
-    // Convert camelCase/PascalCase to readable format
-    // Keep consecutive capital letters together (e.g., "DNAApp" → "DNA App")
-    return propName
-        .replace(/([a-z])([A-Z])/g, "$1 $2")  // Add space before capital letters
-        .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")  // Handle consecutive caps
-        .replace(/^./, char => char.toUpperCase());  // Capitalize first letter
-}
+// Import required helpers
+const { formatLabel } = require("../../helpers/objectDataHelper");
 
 module.exports = {
     getLookupItemsTemplate

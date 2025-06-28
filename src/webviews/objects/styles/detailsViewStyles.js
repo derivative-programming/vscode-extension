@@ -85,6 +85,16 @@ function getDetailViewStyles() {
             margin-left: auto;
         }
 
+        .lookup-item-name {
+            font-weight: bold;
+            color: var(--vscode-editor-foreground);
+        }
+
+        .lookup-item-checkbox {
+            margin-left: 5px;
+            transform: scale(0.8);
+        }
+
         .copy-lookup-items-button {
             margin-top: 10px;
             padding: 5px 10px;

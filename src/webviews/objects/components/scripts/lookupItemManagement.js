@@ -55,6 +55,9 @@ function getLookupItemManagementFunctions() {
 
             // Initialize table view
             updateLookupItemsTable();
+            
+            // Update the lookup items counter in the tab label
+            updateLookupItemsCounter();
         }
 
         function updateLookupItemsList() {
@@ -81,12 +84,44 @@ function getLookupItemManagementFunctions() {
 
             // Populate form with lookup item data
             const lookupItem = lookupItems[index];
-            const inputs = form.querySelectorAll('input, select');
+            
+            // Clear all form fields first
+            const inputs = form.querySelectorAll('input[type="text"], select');
+            const checkboxes = form.querySelectorAll('input[type="checkbox"]');
             
             inputs.forEach(input => {
+                if (input.type === 'text') {
+                    input.value = '';
+                    input.readOnly = true;
+                } else if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0;
+                    input.disabled = true;
+                }
+            });
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Populate form fields with lookup item data and update checkboxes
+            inputs.forEach(input => {
                 const propName = input.name;
-                if (propName && lookupItem.hasOwnProperty(propName)) {
-                    input.value = lookupItem[propName] || '';
+                if (propName && lookupItem.hasOwnProperty(propName) && lookupItem[propName] !== null && lookupItem[propName] !== undefined) {
+                    input.value = lookupItem[propName];
+                    
+                    // Enable the input and check the corresponding checkbox
+                    if (input.type === 'text') {
+                        input.readOnly = false;
+                    } else if (input.tagName === 'SELECT') {
+                        input.disabled = false;
+                    }
+                    
+                    // Find and check the corresponding checkbox
+                    const fieldId = input.id;
+                    const checkbox = form.querySelector('input[type="checkbox"][data-field-id="' + fieldId + '"]');
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
                 }
             });
 
@@ -94,7 +129,46 @@ function getLookupItemManagementFunctions() {
             if (!form.dataset.listenerAdded) {
                 form.addEventListener('change', function(e) {
                     if (selectedLookupItemIndex !== null) {
-                        saveLookupItemChanges(selectedLookupItemIndex, e.target.name, e.target.value);
+                        if (e.target.type === 'checkbox') {
+                            // Handle checkbox toggle
+                            const fieldId = e.target.getAttribute('data-field-id');
+                            const inputElement = document.getElementById(fieldId);
+                            if (inputElement) {
+                                if (e.target.checked) {
+                                    // Enable the field
+                                    if (inputElement.type === 'text') {
+                                        inputElement.readOnly = false;
+                                    } else if (inputElement.tagName === 'SELECT') {
+                                        inputElement.disabled = false;
+                                    }
+                                    updateInputStyle(inputElement, true);
+                                    
+                                    // Set a default value and save it
+                                    const propName = inputElement.name;
+                                    let defaultValue = '';
+                                    if (inputElement.tagName === 'SELECT' && inputElement.options.length > 0) {
+                                        defaultValue = inputElement.options[0].value;
+                                        inputElement.value = defaultValue;
+                                    }
+                                    saveLookupItemChanges(selectedLookupItemIndex, propName, defaultValue);
+                                } else {
+                                    // Disable the field and remove the property
+                                    if (inputElement.type === 'text') {
+                                        inputElement.readOnly = true;
+                                        inputElement.value = '';
+                                    } else if (inputElement.tagName === 'SELECT') {
+                                        inputElement.disabled = true;
+                                    }
+                                    updateInputStyle(inputElement, false);
+                                    
+                                    // Remove the property from the lookup item
+                                    removeLookupItemProperty(selectedLookupItemIndex, inputElement.name);
+                                }
+                            }
+                        } else {
+                            // Handle regular field change
+                            saveLookupItemChanges(selectedLookupItemIndex, e.target.name, e.target.value);
+                        }
                     }
                 });
                 form.dataset.listenerAdded = 'true';
@@ -122,8 +196,19 @@ function getLookupItemManagementFunctions() {
                 showLookupItemDetails(selectedLookupItemIndex);
             }
 
+            // Update the lookup items counter in the tab label
+            updateLookupItemsCounter();
+
             // Save changes
             saveLookupItemsToModel();
+        }
+
+        // Function to update the lookup items counter in the tab label
+        function updateLookupItemsCounter() {
+            const lookupItemsTab = document.querySelector('.tab[data-tab="lookupItems"]');
+            if (lookupItemsTab) {
+                lookupItemsTab.textContent = "Lookup Items (" + lookupItems.length + ")";
+            }
         }
 
         function saveLookupItemChanges(index, propertyName, value) {
@@ -190,6 +275,9 @@ function getLookupItemManagementFunctions() {
                 // Update the table view
                 updateLookupItemsTable();
                 
+                // Update the lookup items counter in the tab label
+                updateLookupItemsCounter();
+                
                 // Save changes
                 saveLookupItemsToModel();
             }
@@ -200,33 +288,121 @@ function getLookupItemManagementFunctions() {
             if (!tableBody) return;
 
             tableBody.innerHTML = '';
+            
+            // Get lookup item schema columns (assuming they're available globally)
+            const lookupColumns = ['name', 'displayName', 'description', 'isActive', 'customIntProp1Value'];
+            
             lookupItems.forEach((item, index) => {
                 const row = document.createElement('tr');
                 row.dataset.index = index;
                 
-                // Add cells for each property (sorted alphabetically)
-                const propertyKeys = ['name', 'displayName', 'description', 'isActive', 'customIntProp1Value'];
-                propertyKeys.forEach(key => {
+                // Add cells for each property
+                lookupColumns.forEach(propKey => {
                     const cell = document.createElement('td');
-                    cell.dataset.prop = key;
-                    cell.dataset.index = index;
-                    cell.textContent = item[key] || '';
+                    
+                    // Check if the property exists and is not null or undefined
+                    const propertyExists = item.hasOwnProperty(propKey) && item[propKey] !== null && item[propKey] !== undefined;
+                    
+                    // Special handling for the name column
+                    if (propKey === 'name') {
+                        cell.innerHTML = '<span class="lookup-item-name">' + (item.name || "Unnamed Lookup Item") + '</span>' +
+                            '<input type="hidden" name="name" value="' + (item.name || "") + '">';
+                    } else {
+                        // Create input field
+                        let inputField = '<input type="text" name="' + propKey + '" value="' + (propertyExists ? item[propKey] : '') + '" ' + 
+                            (propertyExists ? '' : 'readonly') + '>';
+                        
+                        // If the property exists, add a data attribute to indicate it was originally checked
+                        const originallyChecked = propertyExists ? 'data-originally-checked="true"' : '';
+                        
+                        cell.innerHTML = '<div class="control-with-checkbox">' +
+                            inputField +
+                            '<input type="checkbox" class="lookup-item-checkbox" data-prop="' + propKey + 
+                            '" data-index="' + index + '" ' + (propertyExists ? 'checked disabled' : '') + ' ' + originallyChecked + ' title="Toggle property existence">' +
+                            '</div>';
+                    }
+                    
                     row.appendChild(cell);
                 });
                 
-                // Add delete button cell
-                const deleteCell = document.createElement('td');
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-lookup-item';
-                deleteBtn.dataset.index = index;
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.addEventListener('click', function() {
-                    deleteLookupItem(parseInt(this.dataset.index));
-                });
-                deleteCell.appendChild(deleteBtn);
-                row.appendChild(deleteCell);
-                
                 tableBody.appendChild(row);
+            });
+            
+            // Initialize checkbox behavior for table rows
+            initializeLookupItemTableCheckboxes();
+        }
+
+        // Remove a property from a lookup item
+        function removeLookupItemProperty(index, propertyName) {
+            if (lookupItems[index] && lookupItems[index].hasOwnProperty(propertyName)) {
+                delete lookupItems[index][propertyName];
+                saveLookupItemsToModel();
+                updateLookupItemsTable();
+            }
+        }
+
+        // Initialize checkbox behavior for lookup item table
+        function initializeLookupItemTableCheckboxes() {
+            const table = document.getElementById('lookupItemsTable');
+            if (!table) return;
+            
+            table.querySelectorAll('.lookup-item-checkbox').forEach(checkbox => {
+                const tableCell = checkbox.closest('td');
+                if (!tableCell) return;
+                
+                const inputElement = tableCell.querySelector('input[type="text"], select');
+                if (!inputElement) return;
+                
+                // Set initial state
+                updateInputStyle(inputElement, checkbox.checked);
+                
+                checkbox.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    const rowIndex = parseInt(this.getAttribute('data-index'));
+                    const propName = this.getAttribute('data-prop');
+                    
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = !isChecked;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = !isChecked;
+                    }
+                    
+                    updateInputStyle(inputElement, isChecked);
+                    
+                    if (isChecked) {
+                        // Set default value when enabling
+                        let defaultValue = '';
+                        if (inputElement.tagName === 'SELECT' && inputElement.options.length > 0) {
+                            defaultValue = inputElement.options[0].value;
+                            inputElement.value = defaultValue;
+                        }
+                        
+                        // Save the property
+                        if (!lookupItems[rowIndex]) lookupItems[rowIndex] = {};
+                        lookupItems[rowIndex][propName] = defaultValue;
+                    } else {
+                        // Remove the property
+                        if (lookupItems[rowIndex]) {
+                            delete lookupItems[rowIndex][propName];
+                        }
+                        inputElement.value = '';
+                    }
+                    
+                    saveLookupItemsToModel();
+                });
+                
+                // Handle input changes
+                inputElement.addEventListener('change', function() {
+                    if (!checkbox.checked) return;
+                    
+                    const rowIndex = parseInt(checkbox.getAttribute('data-index'));
+                    const propName = checkbox.getAttribute('data-prop');
+                    
+                    if (!lookupItems[rowIndex]) lookupItems[rowIndex] = {};
+                    lookupItems[rowIndex][propName] = this.value;
+                    
+                    saveLookupItemsToModel();
+                });
             });
         }
     `;
