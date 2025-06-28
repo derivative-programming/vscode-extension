@@ -45,13 +45,13 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
     <div id="props" class="tab-content">
         <div class="view-icons">
             <div class="view-icons-left">
-                <span class="icon list-icon active" data-view="list">List View</span>
-                <span class="icon table-icon" data-view="table">Table View</span>
+                <span class="icon list-icon active" data-view="propsList">List View</span>
+                <span class="icon table-icon" data-view="propsTable">Table View</span>
             </div>
             <button id="addProp" class="add-prop-button">Add Property</button>
         </div>
 
-        <div id="tableView" class="view-content">
+        <div id="propsTableView" class="view-content">
             ${object.error ? 
                 `<div class="error">${object.error}</div>` : 
                 `<div class="table-container">
@@ -69,7 +69,7 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
             }
         </div>
 
-        <div id="listView" class="view-content active">
+        <div id="propsListView" class="view-content active">
             <div class="list-container">
                 <select id="propsList" size="10">
                     ${object.prop.map((prop, index) => `<option value="${index}">${prop.name || 'Unnamed Property'}</option>`).join('')}

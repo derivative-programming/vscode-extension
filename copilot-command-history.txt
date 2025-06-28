@@ -20,4 +20,6 @@ Command: fix lookup items tab to match properties tab structure
 Date: June 28, 2025
 Purpose: User reported that lookup items tab doesn't look and work similar to properties tab
 
-Context: Need to examine and update lookup items template to match the structure, styling, and functionality of the properties table template.Command: Expand all top level tree items in the AppDNA tree view
+Context: Need to examine and update lookup items template to match the structure, styling, and functionality of the properties table template.
+Command: Expand all top level tree items in the AppDNA tree view
+2025-06-28: Update generic IDs ('listView', 'tableView') to be more descriptive for properties tab in data object details view - make IDs more specific to avoid confusion with similar view patterns in other tabs

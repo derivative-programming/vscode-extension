@@ -927,3 +927,12 @@ Enhanced the Select FK Object modal functionality to properly disable the 'Accep
 - Gets enabled when pre-selected value exists or when user makes a selection
 - Visual feedback through reduced opacity and "not-allowed" cursor for disabled state
 - Uses VS Code's built-in theme variables for consistent styling with editor theme
+
+## UI Component ID Naming Convention
+
+- View container IDs should be descriptive and specific to their context to avoid confusion
+- For properties tab views: `propsListView` and `propsTableView` (not generic `listView`/`tableView`)
+- For lookup items tab views: `lookupListView` and `lookupTableView`
+- Data-view attributes should correspond to the container ID minus the "View" suffix
+  - Example: `data-view="propsList"` corresponds to `id="propsListView"`
+- This pattern allows the JavaScript view switching logic to work correctly by appending "View" to the data-view value
