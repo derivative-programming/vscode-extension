@@ -38,7 +38,7 @@ A professional VS Code extension for building and managing AppDNA model files wi
 
 ## Extension Interface
 
-![AppDNA Extension](https://raw.githubusercontent.com/derivative-programming/appdna-vscode-extension/main/media/screenshot.png)
+![AppDNA Extension](https://raw.githubusercontent.com/derivative-programming/vscode-extension/main/media/screenshot.png)
 
 The extension provides:
 - **Sidebar Tree View**: Navigate your model structure
@@ -59,7 +59,7 @@ This extension contributes the following settings:
 
 - Large model files may take a moment to load initially
 
-Please report issues on our [GitHub repository](https://github.com/derivative-programming/appdna-vscode-extension/issues).
+Please report issues on our [GitHub repository](https://github.com/derivative-programming/vscode-extension/issues).
 
 ## Release Notes
 
@@ -73,7 +73,7 @@ Initial release of AppDNA Model Builder featuring:
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](https://github.com/derivative-programming/appdna-vscode-extension/blob/main/CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](https://github.com/derivative-programming/vscode-extension/blob/main/CONTRIBUTING.md) for details.
 
 ## License
 
@@ -81,9 +81,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- 📚 [Documentation](https://github.com/derivative-programming/appdna-vscode-extension/wiki)
-- 🐛 [Report Issues](https://github.com/derivative-programming/appdna-vscode-extension/issues)
-- 💬 [Discussions](https://github.com/derivative-programming/appdna-vscode-extension/discussions)
+- 📚 [Documentation](https://github.com/derivative-programming/vscode-extension/wiki)
+- 🐛 [Report Issues](https://github.com/derivative-programming/vscode-extension/issues)
+- 💬 [Discussions](https://github.com/derivative-programming/vscode-extension/discussions)
 
 ---
 

@@ -3,8 +3,7 @@
 ## 🔓 Step 1: Make Repository Public
 
 1. **Navigate to Your Repository**
-   - Go to https://github.com/derivative-programming/appdna-vscode-extension
-   - Or whatever your current repository URL is
+   - Go to https://github.com/derivative-programming/vscode-extension
 
 2. **Change Visibility Settings**
    - Click on **Settings** tab (far right in the repository menu)
