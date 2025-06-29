@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- DNA Double Helix - Tilted Enhanced S-Curve Design -->
+  <g transform="rotate(20 12 12)">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <!-- First strand - pronounced S curve -->
+      <path d="M6 2 C2 4, 2 8, 12 12 C22 16, 22 20, 18 22"/>
+      
+      <!-- Second strand - opposite pronounced S curve -->
+      <path d="M18 2 C22 4, 22 8, 12 12 C2 16, 2 20, 6 22"/>
+    </g>
+    
+    <!-- Base pair connections -->
+    <g stroke="currentColor" stroke-width="1.5" fill="none">
+      <line x1="8" y1="3" x2="16" y2="3"/>
+      <line x1="6" y1="7" x2="18" y2="7"/>
+      <line x1="12" y1="12" x2="12" y2="12"/>
+      <line x1="6" y1="17" x2="18" y2="17"/>
+      <line x1="8" y1="21" x2="16" y2="21"/>
+    </g>
+    
+    <!-- Connection points -->
+    <g fill="currentColor">
+      <circle cx="8" cy="3" r="0.8"/>
+      <circle cx="16" cy="3" r="0.8"/>
+      <circle cx="6" cy="7" r="0.8"/>
+      <circle cx="18" cy="7" r="0.8"/>
+      <circle cx="12" cy="12" r="1"/>
+      <circle cx="6" cy="17" r="0.8"/>
+      <circle cx="18" cy="17" r="0.8"/>
+      <circle cx="8" cy="21" r="0.8"/>
+      <circle cx="16" cy="21" r="0.8"/>
+    </g>
+  </g>
+</svg>

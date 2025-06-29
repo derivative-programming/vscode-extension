@@ -19,7 +19,7 @@
         {
           "id": "appdnaContainer",
           "title": "AppDNA",
-          "icon": "$(rocket)"
+          "icon": "./media/dna-strand-tilted-enhanced.svg"
         }
       ]
     },

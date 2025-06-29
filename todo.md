@@ -186,8 +186,6 @@ model services api todo...
 - no legacy code for non admin users
 - focus on data object blueprints
 
-Python - SQLAlchemy
-
 JavaScript - TypeORM
 
 Java - Hibernate 
