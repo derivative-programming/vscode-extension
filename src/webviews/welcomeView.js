@@ -425,7 +425,7 @@ class WelcomePanel {
                     <div class="workflow-step-number">7</div>
                     <div class="workflow-step-title">Request Model Fabrication</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Fabrication service and download the fabrication results when complete.</div>
-                    <div class="workflow-note">In the fabrication_results folder, you will find generated files. Copy what you need from here to your project source code folder.</div>
+                    <div class="workflow-note">In the output folder (configured in your app-dna.config.json file), you will find generated files. Copy what you need from here to your project source code folder.</div>
                     <button id="requestModelFabricationButton" class="button" style="display: none;">Request Model Fabrication</button>
                 </div>
 

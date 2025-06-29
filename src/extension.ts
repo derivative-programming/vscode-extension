@@ -71,7 +71,19 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Load model if model file exists
     if (appDNAFilePath && fs.existsSync(appDNAFilePath)) {
-        modelService.loadFile(appDNAFilePath).catch(err => {
+        modelService.loadFile(appDNAFilePath).then(() => {
+            // Check if we should auto-expand nodes on load
+            if (workspaceFolder) {
+                const { getExpandNodesOnLoadFromConfig } = require('./utils/fileUtils');
+                const shouldExpand = getExpandNodesOnLoadFromConfig(workspaceFolder);
+                if (shouldExpand) {
+                    // Small delay to ensure tree view is ready, then execute expand command
+                    setTimeout(() => {
+                        vscode.commands.executeCommand('appdna.expandAllTopLevel');
+                    }, 100);
+                }
+            }
+        }).catch(err => {
             console.error("Failed to load model:", err);
         });
     }    // Create the tree data provider (now with ModelService) and tree view

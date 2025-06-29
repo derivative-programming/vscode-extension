@@ -137,3 +137,12 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
+Command: review the 'app-dna.config.json' file we create, and where it is used
+Command: change default outputpath to fabrication_results folder
+currently in the model services fabrication request details modal we download the fabrication results and send them to the 'fabrication_results' folder. instead, it should eend the results to the value in the outputPath of the config
+the config file should always be called app-dna.config.json
+output folder (configured in your project settings) should say that its in the app dna config file
+2025-06-28: Log command to implement auto-expand on model load
+2025-06-28: If config has expandNodesOnLoad = true then when the model is loaded, fully expand the treeview
+2025-06-28: there is a 'expand tree' icon button. you should execute the same command
+Command: Expand all top level tree items in the AppDNA tree view

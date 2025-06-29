@@ -144,7 +144,7 @@
         }
     }
 
-    function downloadComplete() {
+    function downloadComplete(outputFolder = 'fabrication_results') {
         console.log("[Webview] Modal: downloadComplete() called. Cleaning UI and showing success.");
         const modalContent = document.querySelector('#detailsModal .modal-content');
 
@@ -197,7 +197,7 @@
             color: var(--vscode-editor-background);
             display: block !important; 
         `;
-        successMessage.textContent = 'Fabrication results have been downloaded and extracted successfully. Fabrication results have been downloaded and extracted to the fabrication_results folder. Review the files and copy needed files to your project.';
+        successMessage.textContent = `Fabrication results have been downloaded and extracted successfully to the ${outputFolder} folder. Review the files and copy needed files to your project.`;
         
         const actionContainer = modalContent.querySelector('.action-container');
         if (actionContainer) {
@@ -352,7 +352,7 @@
             const detailsModal = document.getElementById('detailsModal');
             if (detailsModal && detailsModal.style.display === 'flex') {
                 console.log("[Webview] Details modal is visible. Executing downloadComplete().");
-                downloadComplete(); // This function now handles all modal UI updates for success.
+                downloadComplete(message.outputFolder); // Pass the output folder name from the extension
             } else {
                 console.log("[Webview] Details modal is not visible or not found. Cannot run downloadComplete().");
             }

@@ -43,3 +43,62 @@ export function getModelFileNameFromConfig(workspaceFolder: string): string {
     }
     return defaultModelFile;
 }
+
+/**
+ * Reads the output path from the config file (app-dna.config.json) in the workspace root.
+ * If the config file does not exist or doesn't have outputPath, returns the default value.
+ * @param workspaceFolder The workspace root folder path
+ * @returns The output path for code generation (e.g., './fabrication_results')
+ */
+export function getOutputPathFromConfig(workspaceFolder: string): string {
+    const configPath = workspaceFolder ? workspaceFolder + "/app-dna.config.json" : null;
+    const defaultOutputPath = "./fabrication_results";
+    if (!configPath) {
+        return defaultOutputPath;
+    }
+    try {
+        if (fs.existsSync(configPath)) {
+            const configRaw = fs.readFileSync(configPath, "utf8");
+            const config = JSON.parse(configRaw);
+            if (config && 
+                config.settings && 
+                config.settings.codeGeneration && 
+                typeof config.settings.codeGeneration.outputPath === "string" && 
+                config.settings.codeGeneration.outputPath.trim() !== "") {
+                return config.settings.codeGeneration.outputPath;
+            }
+        }
+    } catch (err) {
+        console.warn("Could not read config file for output path:", err);
+    }
+    return defaultOutputPath;
+}
+
+/**
+ * Reads the expandNodesOnLoad setting from the config file (app-dna.config.json) in the workspace root.
+ * If the config file does not exist or doesn't have the setting, returns the default value.
+ * @param workspaceFolder The workspace root folder path
+ * @returns True if nodes should be expanded on load, false otherwise
+ */
+export function getExpandNodesOnLoadFromConfig(workspaceFolder: string): boolean {
+    const configPath = workspaceFolder ? workspaceFolder + "/app-dna.config.json" : null;
+    const defaultExpandNodesOnLoad = false;
+    if (!configPath) {
+        return defaultExpandNodesOnLoad;
+    }
+    try {
+        if (fs.existsSync(configPath)) {
+            const configRaw = fs.readFileSync(configPath, "utf8");
+            const config = JSON.parse(configRaw);
+            if (config && 
+                config.settings && 
+                config.settings.editor && 
+                typeof config.settings.editor.expandNodesOnLoad === "boolean") {
+                return config.settings.editor.expandNodesOnLoad;
+            }
+        }
+    } catch (err) {
+        console.warn("Could not read config file for expandNodesOnLoad:", err);
+    }
+    return defaultExpandNodesOnLoad;
+}

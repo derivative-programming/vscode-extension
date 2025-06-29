@@ -224,6 +224,19 @@ export async function addFileCommand(
         
         // Refresh the tree view to display the empty 'Data Objects' node
         jsonTreeDataProvider.refresh();
+        
+        // Check if we should auto-expand nodes on load
+        const workspaceFolderPath = path.dirname(appDNAFilePath);
+        if (workspaceFolderPath) {
+            const { getExpandNodesOnLoadFromConfig } = require('../utils/fileUtils');
+            const shouldExpand = getExpandNodesOnLoadFromConfig(workspaceFolderPath);
+            if (shouldExpand) {
+                // Small delay to ensure tree view is ready, then execute expand command
+                setTimeout(() => {
+                    vscode.commands.executeCommand('appdna.expandAllTopLevel');
+                }, 100);
+            }
+        }
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         vscode.window.showErrorMessage(`Failed to create AppDNA file: ${errorMessage}`);
@@ -231,14 +244,13 @@ export async function addFileCommand(
 }
 
 /**
- * Creates the config file name based on the model file path
+ * Creates the config file name - always returns 'app-dna.config.json' in the same directory as the model file
  * @param modelFilePath Path to the model file
- * @returns Path to the config file
+ * @returns Path to the config file (always app-dna.config.json)
  */
 function createConfigFileName(modelFilePath: string): string {
     const dir = path.dirname(modelFilePath);
-    const baseName = path.basename(modelFilePath, '.json');
-    return path.join(dir, `${baseName}.config.json`);
+    return path.join(dir, 'app-dna.config.json');
 }
 
 /**
@@ -250,17 +262,13 @@ function generateConfigFileContent(modelFileName: string): string {
     const config = {
         version: "1.0.0",
         modelFile: modelFileName,
-        settings: {
-            validateOnSave: true,
+        settings: { 
             codeGeneration: {
-                outputPath: "./generated",
-                languages: ["typescript", "csharp"],
-                generateComments: true
+                outputPath: "./fabrication_results"
             },
             editor: {
                 showAdvancedProperties: false,
-                defaultView: "tree",
-                expandNodesOnLoad: true
+                expandNodesOnLoad: false
             }
         }
     };

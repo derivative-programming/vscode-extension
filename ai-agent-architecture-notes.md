@@ -928,213 +928,92 @@ Enhanced the Select FK Object modal functionality to properly disable the 'Accep
 - Visual feedback through reduced opacity and "not-allowed" cursor for disabled state
 - Uses VS Code's built-in theme variables for consistent styling with editor theme
 
-## UI Component ID Naming Convention
+## Configuration File System (app-dna.config.json)
 
-- View container IDs should be descriptive and specific to their context to avoid confusion
-- For properties tab views: `propsListView` and `propsTableView` (not generic `listView`/`tableView`)
-- For lookup items tab views: `lookupListView` and `lookupTableView`
-- Data-view attributes should correspond to the container ID minus the "View" suffix
-  - Example: `data-view="propsList"` corresponds to `id="propsListView"`
-- This pattern allows the JavaScript view switching logic to work correctly by appending "View" to the data-view value
+The extension uses a configuration file system to manage project-specific settings:
 
-## Data Object Details View - Lookup Items Tab Consistency Fixes (Added 2025-06-28)
+1. **File Location**: `app-dna.config.json` is created in the workspace root directory
+2. **Creation**: Auto-created when a new AppDNA project is created via `createAppDNAFileCommand` in `objectCommands.ts`
+3. **Purpose**: Stores project configuration including:
+   - Model file name (allows custom naming instead of hardcoded "app-dna.json")
+   - Code generation settings (output path)
+   - Editor preferences (advanced properties, expand nodes on load)
 
-### Problem:
-The lookup items tab in the data object details view didn't match the structure and functionality of the properties tab, leading to inconsistent user experience:
-- List was not properly populated in template (had placeholder comment)
-- Missing copy functionality
-- JavaScript initialization conflicted with template population
-- Inconsistent data handling patterns
+4. **Usage Pattern**:
+   - `getModelFileNameFromConfig()` in `fileUtils.ts` reads the config to determine the model file name
+   - Used in `extension.ts` to locate the correct model file at startup
+   - Used in `welcomeView.js` to check if files exist
+   - If config doesn't exist, creates it with default "app-dna.json" model file name
 
-### Solution:
-**Template Consistency**: Updated `mainTemplate.js` to populate lookup items list directly in template using the same pattern as properties tab
-**Data Flow Alignment**: Added `lookupItem` array initialization in `objectDetailsView.js` to match properties array initialization
-**Feature Parity**: Implemented copy button functionality for lookup items in `domInitialization.js` to match properties copy feature
-**JavaScript Optimization**: Updated `lookupItemManagement.js` to avoid overriding template-populated lists, preventing conflicts
+5. **Config Structure**:
+   ```json
+   {
+     "version": "1.0.0",
+     "modelFile": "app-dna.json",
+     "settings": {
+       "codeGeneration": {
+         "outputPath": "./generated"
+       },
+       "editor": {
+         "showAdvancedProperties": false,
+         "expandNodesOnLoad": false
+       }
+     }
+   }
+   ```
 
-### Architecture Pattern:
-- **Template-First Population**: Both properties and lookup items now populate their lists directly in the template rather than relying solely on JavaScript
-- **Consistent Initialization**: Both data types get initialized as empty arrays if not present in object data
-- **Unified Copy Functionality**: Both tabs use the same clipboard API pattern for copy operations
-- **Smart JavaScript Updates**: JavaScript only updates lists when they're empty to avoid conflicts with template population
+6. **Current Limitations**: Only the `modelFile` property is currently used by the extension logic.
 
-### Files Modified:
-1. `src/webviews/objects/components/templates/mainTemplate.js` - Fixed list population
-2. `src/webviews/objects/objectDetailsView.js` - Added lookupItem initialization
-3. `src/webviews/objects/components/scripts/domInitialization.js` - Added copy functionality
-4. `src/webviews/objects/components/scripts/lookupItemManagement.js` - Optimized initialization
+## Configuration File Implementation Updates
 
-### Impact:
-- Lookup items tab now provides consistent UX with properties tab
-- Users can copy lookup item lists just like property lists
-- Template and JavaScript work together without conflicts
-- Maintains existing functionality while adding missing features
+**Enhanced Config Usage (June 29, 2025):**
 
-## Tab Switching Bug Fix (2025-06-28)
+The extension now properly utilizes the `outputPath` setting from the configuration file:
 
-**Issue**: Tab switching stopped working in object details view after implementing lookup items schema support.
+1. **New Function**: Added `getOutputPathFromConfig()` in `fileUtils.ts` to read the `settings.codeGeneration.outputPath` from config
+2. **Updated Model Fabrication**: `modelFabricationCommands.ts` now uses config outputPath instead of hardcoded "fabrication_results"
+3. **Dynamic Folder Support**: 
+   - Supports both relative and absolute paths from config
+   - Default fallback to "./fabrication_results" if config missing/invalid
+   - Success messages now show actual folder name used
+4. **Webview Updates**: 
+   - `modelFabricationView.js` displays dynamic folder name in success messages
+   - `welcomeView.js` uses generic messaging about "output folder"
 
-**Root Cause**: Function signature mismatch in `getClientScriptTemplate()`. The function was being called with 6 parameters but only defined to accept 5 parameters:
-- Function definition: `getClientScriptTemplate(props, propItemsSchema, objectName, allObjects, objectData)`
-- Function call: `getClientScriptTemplate(props, propItemsSchema, object.name, allObjects, object, lookupItemsSchema)`
+This makes the extension properly respect user configuration for where fabrication results are stored.
 
-**Solution**: Updated the function signature to accept the 6th parameter `lookupItemsSchema`:
-```javascript
-function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects, objectData, lookupItemsSchema)
+## Config File Naming Standardization (June 29, 2025)
+
+**Important Change**: The config file naming has been standardized to always use `app-dna.config.json` regardless of the model file name.
+
+- **Previous Behavior**: Config file was named based on model file (e.g., `my-model.config.json` for `my-model.json`)
+- **New Behavior**: Config file is always named `app-dna.config.json` in the workspace root
+- **Rationale**: Consistent naming makes it easier to locate and reference the config file
+- **Updated Function**: `createConfigFileName()` in `objectCommands.ts` now returns fixed name
+- **Copilot Ignore**: Added `!app-dna.config.json` to ensure this file is never ignored by Copilot
+
+## Auto-Expand Tree View Feature (June 29, 2025)
+
+**New Feature**: Auto-expand tree view nodes when model is loaded based on config setting.
+
+**Implementation**:
+1. **New Function**: Added `getExpandNodesOnLoadFromConfig()` in `fileUtils.ts` to read the `settings.editor.expandNodesOnLoad` boolean from config
+2. **Extension Startup**: Modified `extension.ts` to check config and auto-expand when model loads on startup
+3. **Refresh Command**: Updated `registerCommands.ts` refresh command to respect auto-expand setting after reload
+4. **New Project Creation**: Modified `addFileCommand` in `objectCommands.ts` to auto-expand after creating new project
+
+**How it works**:
+- When `expandNodesOnLoad: true` in config, the extension automatically calls `jsonTreeDataProvider.expandAllItems()`
+- Uses small delays (100-200ms) to ensure tree view is ready before expansion
+- Applied to all model loading scenarios: startup, refresh, and new project creation
+
+**Config Setting**:
+```json
+{
+  "settings": {
+    "editor": {
+      "expandNodesOnLoad": true
+    }
+  }
+}
 ```
-
-**Key Learning**: When adding new functionality with optional parameters, ensure all function signatures match between definition and calling sites. JavaScript silently ignores extra parameters, but the logic expecting those parameters may fail silently.
-
-## Lookup Items List View Styling Fix (2025-06-28)
-
-**Issue**: After selecting a lookup item from the list, the form controls in the list view remained grey/inactive even though they were functionally enabled.
-
-**Root Cause**: The `showLookupItemDetails` function was correctly removing `readonly` and `disabled` attributes and checking checkboxes, but was not calling `updateInputStyle()` to update the visual appearance. The controls were enabled functionally but still appeared grey because the inline CSS styles weren't updated.
-
-**Solution**: Added calls to `updateInputStyle()` function in two places:
-1. **When clearing form fields**: Call `updateInputStyle(input, false)` to ensure all controls appear inactive initially
-2. **When populating existing properties**: Call `updateInputStyle(input, true)` to make controls with values appear active
-
-**Result**: Now when you select a lookup item from the list, controls for properties that exist become visually active (white background), while controls for non-existing properties remain grey.
-
-## Lookup Item Modal Implementation (2025-06-28)
-
-**Feature**: Implemented a modal for adding lookup items with single and bulk options, similar to the existing property modal.
-
-**Implementation Details**:
-1. **lookupItemModalTemplate.js**: Created modal HTML template with two tabs (Single Lookup Item / Bulk Add)
-2. **lookupItemModalFunctionality.js**: Implemented JavaScript functionality including:
-   - Tab switching within modal
-   - Single lookup item validation and creation
-   - Bulk lookup item validation and creation
-   - Pascal case name validation
-   - Duplicate name checking
-   - Keyboard shortcuts (Enter for single, Ctrl+Enter for bulk)
-3. **Updated clientScriptTemplate.js**: Integrated new modal templates and functionality
-4. **Updated lookupItemManagement.js**: 
-   - Changed "Add Lookup Item" button to open modal instead of direct creation
-   - Made `addNewLookupItem()` function more flexible to accept lookup item data
-
-**Validation Rules**:
-- Names must be in Pascal case format (e.g., ActiveStatus)
-- Only alpha characters allowed
-- No duplicate names within existing lookup items
-- No duplicate names within bulk input
-
-**User Experience**: 
-- Single tab: Enter key submits
-- Bulk tab: Ctrl+Enter submits, each name on separate line
-- Modal can be closed via X button, clicking outside, or after successful submission
-
-## Auto-Population Logic for Lookup Items (2024-12-28)
-- The lookup item modal (lookupItemModalFunctionality.js) includes auto-population logic for displayName and description fields
-- Uses generateDisplayText() and generateDescriptionText() functions that implement PascalCase-to-spaced conversion
-- Logic matches generateHeaderText() from addColumnModalFunctionality.js using regex patterns:
-  - ([a-z])([A-Z]) - matches lowercase followed by uppercase
-  - ([A-Z])([A-Z][a-z]) - matches uppercase followed by uppercase+lowercase
-- Correctly handles cases like "AppDNA" → "App DNA", "DNAApp" → "DNA App", "AppDNATest" → "App DNA Test"
-- Auto-generates description by appending " lookup item" to the converted display text
-- Implementation is complete and working as specified in coding guidelines
-
-## View Switching Buttons Fix (2024-12-28)
-- Fixed issue where lookup items tab view switching buttons (List View/Table View) were not working
-- Problem: uiEventHandlers.js used querySelector('.view-icons') which only selected the first container (properties tab)
-- Solution: Changed to querySelectorAll('.view-icons') to handle both properties and lookup items containers
-- Added scoping logic to ensure view switching only affects the current tab content
-- Each tab now has independent view switching that doesn't interfere with the other tab
-- Improved reliability by using parentTabContent.querySelector() for scoped element selection
-
-## Move Up/Down Functionality for Lookup Items (2024-12-28)
-- Added move up/down and reverse buttons to lookup items tab list view, matching reports columns functionality
-- UI Components:
-  - Move Up button (#moveUpLookupItemsButton)
-  - Move Down button (#moveDownLookupItemsButton) 
-  - Reverse button (#reverseLookupItemsButton)
-  - All buttons styled with .list-buttons container for vertical layout
-- JavaScript Functions:
-  - moveLookupItem(direction): Swaps items in array and updates all views
-  - reverseLookupItems(): Reverses entire array while maintaining selection
-  - updateLookupItemMoveButtonStates(): Enables/disables buttons based on selection position
-  - initializeLookupItemMoveButtons(): Sets up event listeners and initial state
-- Button States:
-  - Move Up disabled when first item selected or no selection
-  - Move Down disabled when last item selected or no selection
-  - Buttons update automatically on selection change
-- Integration: Properly saves changes to model via saveLookupItemsToModel() after any move operation
-
-## Button Layout Consistency Update (2024-12-28)
-- Updated lookup items and properties tab button styling to match reports view exactly for height and width consistency
-- Button Sizing Changes:
-  - Padding: 4px 8px → 6px 12px (matches reports)
-  - Font size: 12px (consistent across all views)
-  - Border radius: 3px (consistent)
-- Layout Changes:
-  - .list-buttons container now uses horizontal layout (flex-direction: row)
-  - Gap between buttons: 8px (matches reports)
-  - Added flex-wrap: wrap for responsive behavior
-  - Removed individual button margin-top (handled by container)
-- Structure Consistency:
-  - Properties tab now uses .list-buttons container (was direct button under select)
-  - Both tabs have identical button container structure
-  - Consistent with reports view implementation
-- All three views (objects properties, objects lookup items, reports columns) now have identical button styling and layout
-
-## Button Dimensions Consistency Update (2024-12-28)
-- Updated general button styling to match reports view exactly for height and width consistency
-- General Button Changes:
-  - Padding: 6px 14px → 8px 16px (matches reports)
-  - Added margin-right: 8px (consistent spacing between buttons)
-  - Added transition: background-color 0.2s (smooth hover effects)
-- Specific Button Classes:
-  - .copy-props-button, .move-button, .reverse-button still use 6px 12px padding (same as reports)
-  - These override the general button styling for specific use cases
-- Cross-View Consistency:
-  - All buttons now have identical dimensions to reports view
-  - Consistent hover animations and spacing
-  - Unified visual appearance across object details and report details views
-
-## Button Height Consistency Fix (2024-12-28)
-- Fixed move up/down button height inconsistency by adding box-sizing: border-box
-- Issue: Move buttons had slightly different height than reports view, reverse button was correct
-- Solution: Added box-sizing: border-box to both general button and specific button classes
-- Box Model Fix:
-  - General button style: Added box-sizing: border-box
-  - Specific button classes (.copy-props-button, .move-button, .reverse-button): Added box-sizing: border-box
-- This ensures padding and borders are included in height calculation consistently
-- All buttons now have identical dimensions and visual appearance to reports view
-- Cross-browser compatibility improved with explicit box-sizing model
-
-## Move Button Styling Consistency (Added 2025-06-28)
-
-### Issue Identified:
-Move Up/Down buttons had inconsistent heights between report details view and object details view due to different CSS properties in their respective style files.
-
-### Root Cause:
-- Reports used `src/webviews/reports/styles/detailsViewStyles.js`
-- Objects used `src/webviews/objects/styles/detailsViewStyles.js`
-- Both files had `.move-button` classes but with different properties
-
-### Styling Differences:
-**Reports styles** (missing properties):
-- No `margin-right: 8px;`
-- No `transition: background-color 0.2s;` 
-- No `box-sizing: border-box;`
-
-**Objects styles** (complete):
-- Had all necessary properties for consistent button rendering
-
-### Solution:
-Updated the reports styles file to match the objects styles by adding the missing properties to the `.move-button` class selector.
-
-### Files Modified:
-- `src/webviews/reports/styles/detailsViewStyles.js`: Added missing CSS properties
-
-### Impact:
-- Move buttons now have consistent height and spacing across both report columns tab and object lookup items tab
-- Better visual consistency throughout the extension
-- Improved user experience with uniform button styling
-
-### Pattern for Future:
-- When adding buttons to different views, ensure CSS properties are consistent
-- Consider centralizing common button styles to avoid duplication
-- Both style files should have identical button class definitions

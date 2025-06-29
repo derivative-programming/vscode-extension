@@ -138,6 +138,19 @@ export function registerCommands(
             if (appDNAFilePath) {
                 try {
                     await modelService.loadFile(appDNAFilePath);
+                    
+                    // Check if we should auto-expand nodes on load
+                    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+                    if (workspaceFolder) {
+                        const { getExpandNodesOnLoadFromConfig } = require('../utils/fileUtils');
+                        const shouldExpand = getExpandNodesOnLoadFromConfig(workspaceFolder);
+                        if (shouldExpand) {
+                            // Small delay to ensure tree view is ready after refresh, then execute expand command
+                            setTimeout(() => {
+                                vscode.commands.executeCommand('appdna.expandAllTopLevel');
+                            }, 200);
+                        }
+                    }
                 } catch (err) {
                     vscode.window.showErrorMessage("Failed to reload model: " + (err && err.message ? err.message : err));
                 }

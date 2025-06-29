@@ -1,22 +1,17 @@
 Agent todo items...
 
-'there is no data provider registered....' on startup
+~~'there is no data provider registered....' on startup~~ (Fixed 2025-06-29)
 
 make extension repo public
 
+add setting to show 
+
 'list' and 'table' view icon toggle buttons
 
-object details view...
-- lookup item list
-    only show if is lookup object
-    -buttons ... add, move up, move down
-    - list
-    - properties... customIntProp1Value, description, displayName, isActive.
-    - add button... modal, allow single or bulk.
  
 test 'add' buttons...
 - ok:data object details - properties tab
-- add lookup item
+- ok:add lookup item
 - report details - columns tab
 - report details - buttons tab
 - ok:report details - parameters tab
@@ -68,7 +63,7 @@ Step 3. text...
 
 
 max length validation rules?
-50... lookup item names
+>>50... lookup item names
  
 
   
@@ -79,7 +74,7 @@ test step 2 if no role data obect
 test:When completed, create a report item in the owner data object report array. Add the new report item to the treeview. Open the new report item in the report details view.
 
 in the case where the model file is not foudn or deleted, set the flag showing the model is updated to false. should not be showing indicator that changes exist on the treeview title item
- 
+
 
 add welcome step to update project settings view
  
@@ -217,3 +212,17 @@ odd settings file...
 model services api todo...
 - add search query on all request list endpoints
 - add search query on all catalog endpoints
+- no legacy code for non admin users
+- focus on data object blueprints
+ 
+
+
+Python - SQLAlchemy
+
+JavaScript - TypeORM
+
+Java - Hibernate 
+ 
+C# - Entity Framework
+
+PHP - Doctrine 

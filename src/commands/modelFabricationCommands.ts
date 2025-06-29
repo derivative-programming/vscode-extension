@@ -10,6 +10,7 @@ import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService';
 import { getWorkspaceRoot, getFabricationReportsPath, getCompatibleFilePath } from '../utils/appDnaFolderUtils'; // Assuming AuthService is in services
 import { handleApiError } from '../utils/apiErrorHandler';
+import { getOutputPathFromConfig } from '../utils/fileUtils';
 
 // Track active panels to avoid duplicates
 const activePanels = new Map<string, vscode.WebviewPanel>();
@@ -317,7 +318,12 @@ export function registerModelFabricationCommands(
                             throw new Error('No workspace folder found');
                         }
                         
-                        const fabricationResultsDir = path.join(workspaceFolder.uri.fsPath, 'fabrication_results');
+                        // Get output path from config file
+                        const configOutputPath = getOutputPathFromConfig(workspaceFolder.uri.fsPath);
+                        // Convert relative path to absolute path
+                        const fabricationResultsDir = path.isAbsolute(configOutputPath) 
+                            ? configOutputPath 
+                            : path.join(workspaceFolder.uri.fsPath, configOutputPath);
                         console.log("[Extension] Creating/cleaning fabrication results directory:", fabricationResultsDir);
                         
                         // Create or clean directory
@@ -470,15 +476,17 @@ export function registerModelFabricationCommands(
                         console.log("[Extension] Fabrication results successfully extracted to:", fabricationResultsDir);
                         
                         // Show success message
+                        const folderName = path.basename(fabricationResultsDir);
                         vscode.window.showInformationMessage(
-                            'Fabrication results have been downloaded and extracted to the fabrication_results folder. ' +
+                            `Fabrication results have been downloaded and extracted to the ${folderName} folder. ` +
                             'Review the files and copy needed files to your project.'
                         );
                         
                         // Notify webview that download is complete
                         panel.webview.postMessage({ 
                             command: 'modelFabricationResultDownloadSuccess',
-                            requestCode: msg.requestCode
+                            requestCode: msg.requestCode,
+                            outputFolder: folderName
                         });
                         
                     } catch (error) {
