@@ -4,6 +4,7 @@
 
 import * as vscode from "vscode";
 import { AuthService } from "../services/authService";
+import { showRegisterView } from "./registerView";
 
 /**
  * Opens a webview panel for Model Services login
@@ -90,7 +91,6 @@ export async function showLoginView(context: vscode.ExtensionContext, onLoginSuc
             case "register":
                 // Close login view and open register view
                 panel.dispose();
-                const { showRegisterView } = await import('./registerView.js');
                 await showRegisterView(context, onLoginSuccess);
                 return;
 

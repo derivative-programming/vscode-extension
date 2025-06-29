@@ -3,6 +3,7 @@
 
 import * as vscode from "vscode";
 import { AuthService } from "../services/authService";
+import { showLoginView } from "./loginView";
 
 /**
  * Opens a webview panel for Model Services registration
@@ -98,7 +99,6 @@ export async function showRegisterView(context: vscode.ExtensionContext, onRegis
             case "login":
                 // Close register view and open login view
                 panel.dispose();
-                const { showLoginView } = await import('./loginView.js');
                 await showLoginView(context, onRegisterSuccess);
                 return;
         }

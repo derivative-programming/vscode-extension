@@ -1,0 +1,1 @@
+2025-06-29: User wants to put this extension on the marketplace - preparing for VS Code marketplace publishing

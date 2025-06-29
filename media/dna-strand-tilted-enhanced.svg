@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-  <!-- DNA Double Helix - Tilted Enhanced S-Curve Design -->
-  <g transform="rotate(20 12 12)">
+  <!-- DNA Double Helix - Straight Enhanced S-Curve Design -->
+  <g>
     <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <!-- First strand - pronounced S curve -->
       <path d="M6 2 C2 4, 2 8, 12 12 C22 16, 22 20, 18 22"/>

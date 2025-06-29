@@ -1,37 +1,90 @@
-# VS Code Extension: AppDNA
+# AppDNA Model Builder
 
-This extension provides a professional UI for building AppDNA model files based on a schema. It includes the following features:
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/derivative-programming.appdna)](https://marketplace.visualstudio.com/items?itemName=derivative-programming.appdna)
+[![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/derivative-programming.appdna)](https://marketplace.visualstudio.com/items?itemName=derivative-programming.appdna)
 
-- **Tree View**: Navigate the JSON structure easily.
-- **Form-Based Editor**: Edit JSON properties using a dynamic form.
-- **Right-Click Context Menus**: Modify items with options like Add, Edit, Remove, and Duplicate.
-- **Live JSON Preview**: View the generated JSON in real-time.
-- **GitHub Copilot Integration**: Interact with user stories via Model Context Protocol (MCP).
-
-## Getting Started
-
-1. Open this project in Visual Studio Code.
-2. Press `F5` to launch the extension in a new Extension Development Host window.
-3. Use the tree view and form editor to create and manage JSON files.
+A professional VS Code extension for building and managing AppDNA model files with schema-driven UI and code generation capabilities.
 
 ## Features
 
-### Model Context Protocol (MCP) Server
+### 🏗️ Schema-Driven Model Builder
+- **Dynamic UI Generation**: All forms and controls are automatically generated from your JSON schema
+- **Real-time Validation**: Instant feedback as you edit with schema-based validation
+- **Professional Interface**: Clean, VS Code-integrated design with tree view navigation
 
-The extension includes an MCP server that enables GitHub Copilot to interact with user stories:
+### 📝 Intelligent Editing
+- **Tree View Navigation**: Navigate your JSON structure easily in the sidebar
+- **Form-Based Editor**: Edit JSON properties using intuitive, dynamically generated forms
+- **Right-Click Context Menus**: Add, edit, and manage items with convenient context menus
+- **Live JSON Preview**: View the generated JSON in real-time as you make changes
 
-- **Start/Stop Server**: Use the Command Palette to control the MCP server
-- **User Story Creation**: Create user stories with format validation
-- **User Story Listing**: Get a list of all user stories in the model
+### ⚡ Advanced Features
+- **File Watching**: Automatic detection of external file changes
+- **In-Memory Editing**: Changes are made in-memory and saved only when you choose
+- **Property Control**: Toggle property existence with checkboxes - unchecked means the property is omitted from JSON
+- **Tooltips & Descriptions**: Schema descriptions shown as helpful tooltips
+- **Keyboard Shortcuts**: Quick access to common actions
 
-For more details, see [MCP_README.md](MCP_README.md).
+## Getting Started
 
-## Development
+1. **Install the Extension**: Search for "AppDNA Model Builder" in the VS Code marketplace
+2. **Open Your Project**: Open a folder containing your AppDNA model files
+3. **Start Building**: Use the AppDNA sidebar to create and manage your models
+4. **Generate Code**: Use the built-in code generation features
 
-- Modify the `src/extension.ts` file to add new features.
-- Use the `get_vscode_api` tool to fetch the latest VS Code API references.
-- Extend the MCP server in the `src/mcp` directory.
+### Quick Actions
+- `Ctrl+A O` - Add new object
+- `Ctrl+A S` - Save model to file
+
+## Extension Interface
+
+![AppDNA Extension](https://raw.githubusercontent.com/derivative-programming/appdna-vscode-extension/main/media/screenshot.png)
+
+The extension provides:
+- **Sidebar Tree View**: Navigate your model structure
+- **Detail Panels**: Edit individual objects and properties
+- **Command Palette**: Access all extension features via `Ctrl+Shift+P`
+
+## Requirements
+
+- Visual Studio Code 1.99.0 or higher
+
+## Extension Settings
+
+This extension contributes the following settings:
+
+- `appDNA.modelServiceUrl`: Configure the URL for external model generation service (default: https://modelservicesapi.derivative-programming.com)
+
+## Known Issues
+
+- Large model files may take a moment to load initially
+
+Please report issues on our [GitHub repository](https://github.com/derivative-programming/appdna-vscode-extension/issues).
+
+## Release Notes
+
+### 1.0.0
+
+Initial release of AppDNA Model Builder featuring:
+- Schema-driven dynamic UI generation
+- Real-time model editing and validation
+- Professional tree view and form-based editing interface
+- Code generation capabilities
 
 ## Contributing
 
-Contributions are welcome! Please submit a pull request or open an issue for any bugs or feature requests.
+We welcome contributions! Please see our [Contributing Guide](https://github.com/derivative-programming/appdna-vscode-extension/blob/main/CONTRIBUTING.md) for details.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- 📚 [Documentation](https://github.com/derivative-programming/appdna-vscode-extension/wiki)
+- 🐛 [Report Issues](https://github.com/derivative-programming/appdna-vscode-extension/issues)
+- 💬 [Discussions](https://github.com/derivative-programming/appdna-vscode-extension/discussions)
+
+---
+
+**Enjoy building with AppDNA! 🚀**

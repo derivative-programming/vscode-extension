@@ -1,15 +1,35 @@
 {
   "name": "appdna",
-  "publisher": "TestPublisher",
-  "displayName": "AppDNA",
-  "description": "code generator",
-  "version": "0.0.1",
+  "publisher": "derivative-programming",
+  "displayName": "AppDNA Model Builder",
+  "description": "A professional VS Code extension for building and managing AppDNA model files with schema-driven UI, code generation, and Model Context Protocol support for GitHub Copilot integration.",
+  "version": "1.0.0",
   "engines": {
-    "vscode": "^1.98.0"
+    "vscode": "^1.99.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Snippets",
+    "Programming Languages"
   ],
+  "keywords": [
+    "appdna",
+    "model",
+    "code generator",
+    "json schema",
+    "mcp",
+    "model context protocol",
+    "copilot"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/derivative-programming/appdna-vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/derivative-programming/appdna-vscode-extension/issues"
+  },
+  "homepage": "https://github.com/derivative-programming/appdna-vscode-extension#readme",
+  "license": "MIT",
   "activationEvents": [],
   "main": "./dist/extension.js",
   "mcp": "./dist/mcp/stdioBridge.js",
