@@ -16,6 +16,18 @@ export function updateFileExistsContext(appDNAFilePath: string | null): boolean 
 }
 
 /**
+ * Updates the config file existence context to reflect whether the app-dna.config.json file exists
+ * @param workspaceFolder Path to the workspace folder
+ * @returns Boolean indicating if the config file exists
+ */
+export function updateConfigExistsContext(workspaceFolder: string | null): boolean {
+    const configPath = workspaceFolder ? workspaceFolder + "/app-dna.config.json" : null;
+    const configExists = configPath && fs.existsSync(configPath);
+    vscode.commands.executeCommand('setContext', 'appDnaConfigExists', configExists);
+    return configExists;
+}
+
+/**
  * Reads the model file name from the config file (app-dna.config.json) in the workspace root.
  * If the config file does not exist, it creates one with a default value.
  * @param workspaceFolder The workspace root folder path

@@ -38,6 +38,8 @@ import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCat
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
 import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand } from './filterTreeViewCommands';
+// Import showAppDNASettingsView and related functions
+import { showAppDNASettingsView } from '../webviews/appDnaSettingsView';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -364,6 +366,12 @@ export function registerCommands(
         showHelpView(context);
     });
     context.subscriptions.push(showHelpCommand);
+    
+    // Register show AppDNA settings view command
+    const showAppDNASettingsCommand = vscode.commands.registerCommand('appdna.showAppDNASettings', () => {
+        showAppDNASettingsView(context);
+    });
+    context.subscriptions.push(showAppDNASettingsCommand);
     
     // Register login command for Model Services
     context.subscriptions.push(

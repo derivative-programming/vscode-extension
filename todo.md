@@ -4,7 +4,7 @@ Agent todo items...
 
 make extension repo public
 
-add setting to show 
+~~add setting to show~~ (Implemented AppDNA Settings view with gear icon in tree view - 2025-01-02)
 
 'list' and 'table' view icon toggle buttons
 
@@ -189,25 +189,7 @@ win app...
                 "visualizationType": "Grid"
               },
 
-
-odd settings file...
-"settings": {
-    "validateOnSave": true,
-    "codeGeneration": {
-      "outputPath": "./generated",
-      "languages": [
-        "typescript",
-        "csharp"
-      ],
-      "generateComments": true
-    },
-    "editor": {
-      "showAdvancedProperties": false,
-      "defaultView": "tree",
-      "expandNodesOnLoad": true
-    }
-  }
-
+ 
 
 model services api todo...
 - add search query on all request list endpoints

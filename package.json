@@ -78,6 +78,11 @@
           "command": "appdna.showWelcome",
           "when": "view == appdna",
           "group": "navigation@0"
+        },
+        {
+          "command": "appdna.showAppDNASettings",
+          "when": "view == appdna && appDnaFileExists && appDnaConfigExists",
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
@@ -250,6 +255,11 @@
         "command": "appdna.clearDataObjectFilter",
         "title": "Clear Data Object Filter",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "appdna.showAppDNASettings",
+        "title": "AppDNA Settings",
+        "icon": "$(gear)"
       }
     ],
     "keybindings": [

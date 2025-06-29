@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { setExtensionContext } from './utils/extensionContext';
-import { updateFileExistsContext } from './utils/fileUtils';
+import { updateFileExistsContext, updateConfigExistsContext } from './utils/fileUtils';
 import { JsonTreeDataProvider } from './providers/jsonTreeDataProvider';
 import { registerCommands } from './commands/registerCommands';
 import * as objectDetailsView from './webviews/objectDetailsView';
@@ -43,6 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Set initial context based on file existence
     const fileExists = appDNAFilePath && fs.existsSync(appDNAFilePath);
     updateFileExistsContext(appDNAFilePath);
+    updateConfigExistsContext(workspaceFolder);
     
     // Load the objectDetailsView module safely
     try {

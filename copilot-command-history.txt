@@ -149,3 +149,24 @@ Command: Expand all top level tree items in the AppDNA tree view
 if showAdvancedProperties = false, then hide the treeview items... lexicon, user stories, mcp server, mcp http server, reports
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
+Command: add a settings gear icon to the AppDNA tree view title bar and create a settings view
+Date: January 2, 2025
+Purpose: User requested to add a settings gear icon to the AppDNA tree view title bar with a settings view for configuration
+
+Context: Need to add a gear icon to the tree view title bar that opens a settings configuration interface, allowing users to edit config properties like expandNodesOnLoad and showAdvancedProperties.
+
+COMPLETED: Successfully implemented AppDNA settings gear icon and configuration UI:
+
+1. **Settings Command Registration**: Added `appdna.showAppDNASettings` command in registerCommands.ts with proper import from appDnaSettingsView.js
+2. **Menu Integration**: Settings gear icon configured in package.json menus with visibility conditions (view == appdna && appDnaFileExists && appDnaConfigExists)
+3. **Settings Webview**: Complete settings UI with grouped sections for File Configuration, Code Generation, and Editor Settings
+4. **Config File Management**: Robust config file reading/writing with graceful handling of missing properties using optional chaining
+5. **Tree View Integration**: Settings save triggers tree view refresh via vscode.commands.executeCommand('appdna.refreshView')
+6. **User Experience**: Professional VS Code-themed interface with proper validation, error handling, and form state management
+7. **Context Key Support**: Leverages existing appDnaConfigExists context key for proper settings icon visibility
+8. **Configuration Properties**: Editable output path, showAdvancedProperties, and expandNodesOnLoad settings with read-only model file name
+
+The implementation follows all coding guidelines including TypeScript for commands, JavaScript for webviews, proper commenting, error handling, and VS Code design patterns. The settings view allows users to configure tree view behavior and code generation without manually editing JSON files.
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Collapse all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view

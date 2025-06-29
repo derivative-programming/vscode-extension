@@ -1055,3 +1055,52 @@ This makes the extension properly respect user configuration for where fabricati
 ```
 
 This provides a cleaner interface for basic users while keeping advanced features accessible when needed.
+
+## AppDNA Settings View and Configuration Management (Added 2025-01-02)
+
+### Settings Gear Icon and Configuration UI:
+Added a settings gear icon to the AppDNA tree view title bar that opens a configuration interface allowing users to edit AppDNA config properties.
+
+### Architecture Pattern:
+- **Settings View**: Created `src/webviews/appDnaSettingsView.js` as a dedicated webview for editing config file properties
+- **Tree View Integration**: Added gear icon to tree view title bar with appropriate visibility conditions
+- **Command Registration**: Registered `appdna.showAppDNASettings` command in `registerCommands.ts`
+- **Config Integration**: Webview reads and writes to `app-dna.config.json` in workspace root
+
+### Key Features:
+- **Professional UI**: Clean, VS Code-themed interface with grouped settings sections
+- **Config Property Management**: Allows editing of output path, showAdvancedProperties, and expandNodesOnLoad
+- **Model File Protection**: Model file name is read-only to prevent breaking references
+- **Real-time Refresh**: Tree view automatically refreshes after settings are saved
+- **Form Validation**: Basic validation of config structure before saving
+
+### Configurable Properties:
+- **Output Path**: Folder where fabricated code will be saved (relative to workspace root)
+- **Show Advanced Properties**: Controls visibility of advanced tree view items (Lexicon, User Stories, MCP Servers, Reports)
+- **Expand Nodes on Load**: Automatically expands all tree view nodes when a model is loaded
+
+### Files Added/Modified:
+- `src/webviews/appDnaSettingsView.js`: New settings webview implementation
+- `src/commands/registerCommands.ts`: Added settings command registration and import
+- `package.json`: Settings command already configured in menus with proper `when` conditions
+
+### Menu Visibility:
+Settings gear icon appears in tree view title bar only when:
+- `view == appdna` (in AppDNA tree view)
+- `appDnaFileExists` (AppDNA model file is loaded)
+- `appDnaConfigExists` (Config file exists in workspace)
+
+### Context Key Integration:
+The `appDnaConfigExists` context key is managed by `fileUtils.ts` and automatically updated when config file state changes, ensuring the settings button appears/disappears appropriately.
+
+### Settings Form Structure:
+1. **File Configuration**: Read-only model file name
+2. **Code Generation**: Editable output path with description
+3. **Editor Settings**: Checkboxes for showAdvancedProperties and expandNodesOnLoad
+4. **Action Buttons**: Save and Cancel buttons with proper event handling
+
+### Benefits:
+- **User-Friendly Configuration**: No need to manually edit JSON files
+- **Immediate Feedback**: Tree view updates immediately after saving settings
+- **Proper Validation**: Prevents invalid config structures from being saved
+- **Consistent Design**: Matches VS Code design language and extension patterns
