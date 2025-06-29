@@ -1,10 +1,9 @@
 Agent todo items...
 
-~~'there is no data provider registered....' on startup~~ (Fixed 2025-06-29)
+'there is no data provider registered....' on startup
 
 make extension repo public
-
-~~add setting to show~~ (Implemented AppDNA Settings view with gear icon in tree view - 2025-01-02)
+ 
 
 'list' and 'table' view icon toggle buttons
 

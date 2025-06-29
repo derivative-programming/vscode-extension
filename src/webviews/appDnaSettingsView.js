@@ -258,15 +258,6 @@ class AppDNASettingsPanel {
         <h1>AppDNA Settings</h1>
         
         <div class="setting-group">
-            <h2>File Configuration</h2>
-            <div class="setting-item">
-                <label for="modelFile">Model File Name</label>
-                <input type="text" id="modelFile" readonly>
-                <div class="description readonly-note">The model file name cannot be changed from this settings view.</div>
-            </div>
-        </div>
-
-        <div class="setting-group">
             <h2>Code Generation</h2>
             <div class="setting-item">
                 <label for="outputPath">Output Path</label>
@@ -295,7 +286,6 @@ class AppDNASettingsPanel {
 
         <div class="button-container">
             <button id="saveButton" class="button">Save Settings</button>
-            <button id="cancelButton" class="button">Cancel</button>
         </div>
     </div>
 
@@ -306,12 +296,10 @@ class AppDNASettingsPanel {
             let currentConfig = null;
             
             // DOM elements
-            const modelFileInput = document.getElementById('modelFile');
             const outputPathInput = document.getElementById('outputPath');
             const showAdvancedPropertiesInput = document.getElementById('showAdvancedProperties');
             const expandNodesOnLoadInput = document.getElementById('expandNodesOnLoad');
             const saveButton = document.getElementById('saveButton');
-            const cancelButton = document.getElementById('cancelButton');
             
             // Request initial config load
             vscode.postMessage({ command: 'loadConfig' });
@@ -332,10 +320,6 @@ class AppDNASettingsPanel {
             
             // Load config data into form
             function loadConfigIntoForm(config) {
-                if (config.modelFile) {
-                    modelFileInput.value = config.modelFile;
-                }
-                
                 // Set default values if settings don't exist
                 outputPathInput.value = config.settings?.codeGeneration?.outputPath || './fabrication_results';
                 showAdvancedPropertiesInput.checked = config.settings?.editor?.showAdvancedProperties || false;
@@ -369,14 +353,6 @@ class AppDNASettingsPanel {
                     command: 'saveConfig',
                     config: updatedConfig
                 });
-            });
-            
-            // Cancel button click handler
-            cancelButton.addEventListener('click', () => {
-                // Close the panel or reset form
-                if (currentConfig) {
-                    loadConfigIntoForm(currentConfig);
-                }
             });
         })();
     </script>

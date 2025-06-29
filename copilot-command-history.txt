@@ -167,6 +167,18 @@ COMPLETED: Successfully implemented AppDNA settings gear icon and configuration 
 8. **Configuration Properties**: Editable output path, showAdvancedProperties, and expandNodesOnLoad settings with read-only model file name
 
 The implementation follows all coding guidelines including TypeScript for commands, JavaScript for webviews, proper commenting, error handling, and VS Code design patterns. The settings view allows users to configure tree view behavior and code generation without manually editing JSON files.
+
+COMPLETED: Simplified AppDNA settings view by removing unnecessary UI elements:
+
+1. **Removed Model File Name Section**: Eliminated the "File Configuration" section containing the read-only model file name display as it provided no user value
+2. **Removed Cancel Button**: Streamlined the interface to have only a "Save Settings" button for cleaner UX
+3. **Updated JavaScript**: Removed references to modelFileInput and cancelButton DOM elements and their event handlers
+4. **Simplified Form Logic**: Removed loadConfigIntoForm logic for model file handling
+5. **Updated Test Files**: Modified test-settings-preview.html and verification script to reflect the simplified interface
+6. **Documentation Updates**: Updated architecture notes to reflect the streamlined settings form structure
+
+The settings view now focuses purely on configurable properties (output path and editor settings) with a single action button, providing a cleaner and more focused user experience.
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Collapse all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

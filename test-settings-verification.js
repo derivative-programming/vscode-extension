@@ -19,10 +19,10 @@ IMPLEMENTATION SUMMARY:
 3. SETTINGS WEBVIEW ✓
    - File: src/webviews/appDnaSettingsView.js
    - Professional VS Code-themed UI
-   - Grouped settings sections:
-     * File Configuration (read-only model file)
+   - Simplified settings sections:
      * Code Generation (output path)
      * Editor Settings (showAdvancedProperties, expandNodesOnLoad)
+   - Single Save button for streamlined UX
 
 4. CONFIG FILE INTEGRATION ✓
    - Reads from app-dna.config.json in workspace root

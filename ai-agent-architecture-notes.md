@@ -1070,7 +1070,7 @@ Added a settings gear icon to the AppDNA tree view title bar that opens a config
 ### Key Features:
 - **Professional UI**: Clean, VS Code-themed interface with grouped settings sections
 - **Config Property Management**: Allows editing of output path, showAdvancedProperties, and expandNodesOnLoad
-- **Model File Protection**: Model file name is read-only to prevent breaking references
+- **Streamlined Interface**: Simplified UI focusing only on configurable properties
 - **Real-time Refresh**: Tree view automatically refreshes after settings are saved
 - **Form Validation**: Basic validation of config structure before saving
 
@@ -1094,10 +1094,9 @@ Settings gear icon appears in tree view title bar only when:
 The `appDnaConfigExists` context key is managed by `fileUtils.ts` and automatically updated when config file state changes, ensuring the settings button appears/disappears appropriately.
 
 ### Settings Form Structure:
-1. **File Configuration**: Read-only model file name
-2. **Code Generation**: Editable output path with description
-3. **Editor Settings**: Checkboxes for showAdvancedProperties and expandNodesOnLoad
-4. **Action Buttons**: Save and Cancel buttons with proper event handling
+1. **Code Generation**: Editable output path with description
+2. **Editor Settings**: Checkboxes for showAdvancedProperties and expandNodesOnLoad
+3. **Action Button**: Single Save button for streamlined user experience
 
 ### Benefits:
 - **User-Friendly Configuration**: No need to manually edit JSON files
