@@ -81,19 +81,36 @@ export class AuthService {
             // Parse the response
             const data = await response.json();
             
+            // Debug logging for API response
+            console.log("[DEBUG] Login API response:", JSON.stringify(data, null, 2));
+            
             // Check for API-level success flag
             if (!data.success) {
-                // Construct error message from validation errors if available
-                if (data.validationError && data.validationError.length > 0) {
-                    const errorMessages = data.validationError.map((err: any) => 
-                        `${err.property}: ${err.message}`
-                    ).join(", ");
-                    
-                    throw new Error(`Validation failed: ${errorMessages}`);
+                // Debug logging for entire response structure
+                console.log("[DEBUG] Login failed. Full API response structure:");
+                console.log("[DEBUG] data.success:", data.success);
+                console.log("[DEBUG] data.message:", data.message);
+                console.log("[DEBUG] data.validationError:", data.validationError);
+                console.log("[DEBUG] typeof data.validationError:", typeof data.validationError);
+                console.log("[DEBUG] Array.isArray(data.validationError):", Array.isArray(data.validationError));
+                
+                // Create a custom error with validation details
+                const error: any = new Error(data.message || "Login failed with no specific error message");
+                
+                // Check for validation errors with multiple possible property names
+                let validationErrors = data.validationError || data.validationErrors || data.ValidationError || data.ValidationErrors;
+                
+                // Only mark as validation error if there are actual validation errors
+                if (validationErrors && Array.isArray(validationErrors) && validationErrors.length > 0) {
+                    error.validationErrors = validationErrors;
+                    error.isValidationError = true;
+                    console.log("[DEBUG] Validation errors found:", validationErrors);
+                } else {
+                    error.isValidationError = false;
+                    console.log("[DEBUG] No validation errors, general error:", data.message);
                 }
                 
-                // If no validation errors but still failed, use the message
-                throw new Error(data.message || "Login failed with no specific error message");
+                throw error;
             }
             
             if (!data.modelServicesAPIKey) {
@@ -160,19 +177,36 @@ export class AuthService {
             // Parse the response
             const data = await response.json();
             
+            // Debug logging for API response
+            console.log("[DEBUG] Register API response:", JSON.stringify(data, null, 2));
+            
             // Check for API-level success flag
             if (!data.success) {
-                // Construct error message from validation errors if available
-                if (data.validationError && data.validationError.length > 0) {
-                    const errorMessages = data.validationError.map((err: any) => 
-                        `${err.property}: ${err.message}`
-                    ).join(", ");
-                    
-                    throw new Error(`Validation failed: ${errorMessages}`);
+                // Debug logging for entire response structure
+                console.log("[DEBUG] Registration failed. Full API response structure:");
+                console.log("[DEBUG] data.success:", data.success);
+                console.log("[DEBUG] data.message:", data.message);
+                console.log("[DEBUG] data.validationError:", data.validationError);
+                console.log("[DEBUG] typeof data.validationError:", typeof data.validationError);
+                console.log("[DEBUG] Array.isArray(data.validationError):", Array.isArray(data.validationError));
+                
+                // Create a custom error with validation details
+                const error: any = new Error(data.message || "Registration failed with no specific error message");
+                
+                // Check for validation errors with multiple possible property names
+                let validationErrors = data.validationError || data.validationErrors || data.ValidationError || data.ValidationErrors;
+                
+                // Only mark as validation error if there are actual validation errors
+                if (validationErrors && Array.isArray(validationErrors) && validationErrors.length > 0) {
+                    error.validationErrors = validationErrors;
+                    error.isValidationError = true;
+                    console.log("[DEBUG] Validation errors found:", validationErrors);
+                } else {
+                    error.isValidationError = false;
+                    console.log("[DEBUG] No validation errors, general error:", data.message);
                 }
                 
-                // If no validation errors but still failed, use the message
-                throw new Error(data.message || "Registration failed with no specific error message");
+                throw error;
             }
             
             if (!data.modelServicesAPIKey) {

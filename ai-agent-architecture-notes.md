@@ -1122,3 +1122,19 @@ The extension now supports user registration through the Model Services treeview
 - Terms of Service checkbox (required)
 
 **API Response**: Returns `modelServicesAPIKey` on successful registration, same as login flow.
+
+## Validation Error Display Enhancement (June 29, 2025)
+
+Enhanced the authentication views to properly display API validation errors:
+
+- **AuthService Error Handling**: Modified to preserve structured validation errors instead of concatenating them
+- **Error Structure**: Throws errors with `isValidationError` flag and `validationErrors[]` array
+- **UI Display**: Added proper CSS styling and JavaScript handling for validation errors
+- **User Experience**: Each field error is displayed separately with clear field identification
+- **Consistency**: Both login and register views use identical error display patterns
+
+**Error Display Features:**
+- General errors: Single message display (as before)
+- Validation errors: Structured list with field names and error messages
+- Visual styling: Left border, background highlighting, bold field names
+- Clear separation between different types of errors

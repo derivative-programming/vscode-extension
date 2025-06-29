@@ -67,10 +67,26 @@ export async function showRegisterView(context: vscode.ExtensionContext, onRegis
                     }
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
-                    panel.webview.postMessage({ 
-                        command: "registerError",
-                        message: errorMessage
-                    });
+                    
+                    // Debug logging
+                    console.log("[DEBUG] Registration error:", error);
+                    console.log("[DEBUG] Error message:", errorMessage);
+                    console.log("[DEBUG] Is validation error:", (error as any).isValidationError);
+                    console.log("[DEBUG] Validation errors:", (error as any).validationErrors);
+                    
+                    // Check if this is a validation error with detailed validation errors
+                    if ((error as any).isValidationError && (error as any).validationErrors) {
+                        panel.webview.postMessage({ 
+                            command: "registerValidationError",
+                            message: errorMessage,
+                            validationErrors: (error as any).validationErrors
+                        });
+                    } else {
+                        panel.webview.postMessage({ 
+                            command: "registerError",
+                            message: errorMessage
+                        });
+                    }
                     vscode.window.showErrorMessage(`Registration failed: ${errorMessage}`);
                 }
                 return;
@@ -185,6 +201,21 @@ function getRegisterViewContent(): string {
             border: 1px solid var(--vscode-errorForeground);
             background-color: var(--vscode-inputValidation-errorBackground);
         }
+        .validation-errors {
+            margin-top: 10px;
+        }
+        .validation-error-item {
+            margin: 5px 0;
+            padding: 5px 8px;
+            font-size: 0.9em;
+            background-color: var(--vscode-inputValidation-errorBackground);
+            border-left: 3px solid var(--vscode-errorForeground);
+            border-radius: 2px;
+        }
+        .validation-error-property {
+            font-weight: bold;
+            color: var(--vscode-errorForeground);
+        }
         .success {
             color: var(--vscode-terminal-ansiGreen);
             margin-top: 15px;
@@ -267,7 +298,10 @@ function getRegisterViewContent(): string {
                 <input type="checkbox" id="optIntoTerms" name="optIntoTerms" required>
                 <label for="optIntoTerms">I agree to the terms of service and acknowledge that my models will be sent to AppDNA Model Services for processing. This service is provided for amusement purposes only with no guarantees of accuracy.</label>
             </div>
-            <div id="errorMessage" class="error"></div>
+            <div id="errorMessage" class="error">
+                <div id="generalError"></div>
+                <div id="validationErrors" class="validation-errors"></div>
+            </div>
             <div id="successMessage" class="success">Registration successful! Welcome to AppDNA Model Services!</div>
             <div class="buttons">
                 <button type="button" id="cancelButton" class="secondary">Cancel</button>
@@ -301,14 +335,59 @@ function getRegisterViewContent(): string {
             function onReady() {
                 const registerForm = document.getElementById('registerForm');
                 const errorMessage = document.getElementById('errorMessage');
+                const generalError = document.getElementById('generalError');
+                const validationErrors = document.getElementById('validationErrors');
                 const successMessage = document.getElementById('successMessage');
                 const cancelButton = document.getElementById('cancelButton');
                 const submitButton = document.getElementById('submitButton');
                 const emailField = document.getElementById('email');
 
+                // Function to clear all errors
+                function clearErrors() {
+                    errorMessage.style.display = 'none';
+                    generalError.textContent = '';
+                    validationErrors.innerHTML = '';
+                }
+
+                // Function to show general error
+                function showGeneralError(message) {
+                    clearErrors();
+                    generalError.textContent = message || 'Registration failed. Please try again.';
+                    errorMessage.style.display = 'block';
+                    successMessage.style.display = 'none';
+                    submitButton.disabled = false;
+                }
+
+                // Function to show validation errors
+                function showValidationErrors(message, validationErrorList) {
+                    clearErrors();
+                    
+                    // Show general message if provided
+                    if (message) {
+                        generalError.textContent = message;
+                    }
+                    
+                    // Show individual validation errors
+                    if (validationErrorList && validationErrorList.length > 0) {
+                        validationErrorList.forEach(function(error) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'validation-error-item';
+                            errorDiv.innerHTML = '<span class="validation-error-property">' + 
+                                (error.property || 'Field') + ':</span> ' + (error.message || 'Invalid value');
+                            validationErrors.appendChild(errorDiv);
+                        });
+                    }
+                    
+                    errorMessage.style.display = 'block';
+                    successMessage.style.display = 'none';
+                    submitButton.disabled = false;
+                }
+
                 // Listen for messages from the extension
                 window.addEventListener('message', function(event) {
                     const message = event.data;
+                    console.log('[DEBUG-WEBVIEW] Received message:', message);
+                    
                     switch(message.command) {
                         case 'setEmailValue':
                             if (emailField) {
@@ -316,13 +395,15 @@ function getRegisterViewContent(): string {
                             }
                             break;
                         case 'registerError':
-                            errorMessage.textContent = message.message || 'Registration failed. Please try again.';
-                            errorMessage.style.display = 'block';
-                            successMessage.style.display = 'none';
-                            submitButton.disabled = false;
+                            console.log('[DEBUG-WEBVIEW] Showing general error:', message.message);
+                            showGeneralError(message.message);
+                            break;
+                        case 'registerValidationError':
+                            console.log('[DEBUG-WEBVIEW] Showing validation errors:', message.validationErrors);
+                            showValidationErrors(message.message, message.validationErrors);
                             break;
                         case 'registerSuccess':
-                            errorMessage.style.display = 'none';
+                            clearErrors();
                             successMessage.style.display = 'block';
                             submitButton.disabled = true;
                             break;
@@ -345,26 +426,23 @@ function getRegisterViewContent(): string {
                     
                     // Client-side validation
                     if (!email || !firstName || !lastName || !password || !confirmPassword) {
-                        errorMessage.textContent = 'Please fill in all required fields.';
-                        errorMessage.style.display = 'block';
+                        showGeneralError('Please fill in all required fields.');
                         return;
                     }
                     
                     if (password !== confirmPassword) {
-                        errorMessage.textContent = 'Passwords do not match.';
-                        errorMessage.style.display = 'block';
+                        showGeneralError('Passwords do not match.');
                         return;
                     }
                     
                     if (!optIntoTerms) {
-                        errorMessage.textContent = 'You must agree to the terms of service to register.';
-                        errorMessage.style.display = 'block';
+                        showGeneralError('You must agree to the terms of service to register.');
                         return;
                     }
                     
                     // Disable submit button during processing
                     submitButton.disabled = true;
-                    errorMessage.style.display = 'none';
+                    clearErrors();
                     
                     // Send registration data to the extension
                     vscode.postMessage({

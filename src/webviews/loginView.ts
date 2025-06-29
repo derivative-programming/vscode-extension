@@ -65,10 +65,20 @@ export async function showLoginView(context: vscode.ExtensionContext, onLoginSuc
                     }
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
-                    panel.webview.postMessage({ 
-                        command: "loginError",
-                        message: errorMessage
-                    });
+                    
+                    // Check if this is a validation error with detailed validation errors
+                    if ((error as any).isValidationError && (error as any).validationErrors) {
+                        panel.webview.postMessage({ 
+                            command: "loginValidationError",
+                            message: errorMessage,
+                            validationErrors: (error as any).validationErrors
+                        });
+                    } else {
+                        panel.webview.postMessage({ 
+                            command: "loginError",
+                            message: errorMessage
+                        });
+                    }
                     vscode.window.showErrorMessage(`Login failed: ${errorMessage}`);
                 }
                 return;
@@ -167,6 +177,21 @@ function getLoginViewContent(): string {
             border: 1px solid var(--vscode-errorForeground);
             background-color: var(--vscode-inputValidation-errorBackground);
         }
+        .validation-errors {
+            margin-top: 10px;
+        }
+        .validation-error-item {
+            margin: 5px 0;
+            padding: 5px 8px;
+            font-size: 0.9em;
+            background-color: var(--vscode-inputValidation-errorBackground);
+            border-left: 3px solid var(--vscode-errorForeground);
+            border-radius: 2px;
+        }
+        .validation-error-property {
+            font-weight: bold;
+            color: var(--vscode-errorForeground);
+        }
         .info {
             margin-top: 20px;
             padding: 10px;
@@ -233,7 +258,10 @@ function getLoginViewContent(): string {
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <div id="errorMessage" class="error"></div>
+            <div id="errorMessage" class="error">
+                <div id="generalError"></div>
+                <div id="validationErrors" class="validation-errors"></div>
+            </div>
             <div id="successMessage" class="success">Login successful! Redirecting...</div>            <div class="buttons">
                 <button type="button" id="cancelButton" class="secondary" style="visibility: hidden;">Cancel</button>
                 <button type="submit">Login</button>
@@ -265,9 +293,50 @@ function getLoginViewContent(): string {
             function onReady() {
                 const loginForm = document.getElementById('loginForm');
                 const errorMessage = document.getElementById('errorMessage');
+                const generalError = document.getElementById('generalError');
+                const validationErrors = document.getElementById('validationErrors');
                 const successMessage = document.getElementById('successMessage');
                 const cancelButton = document.getElementById('cancelButton');
                 const emailField = document.getElementById('email');
+
+                // Function to clear all errors
+                function clearErrors() {
+                    errorMessage.style.display = 'none';
+                    generalError.textContent = '';
+                    validationErrors.innerHTML = '';
+                }
+
+                // Function to show general error
+                function showGeneralError(message) {
+                    clearErrors();
+                    generalError.textContent = message || 'Login failed. Please try again.';
+                    errorMessage.style.display = 'block';
+                    successMessage.style.display = 'none';
+                }
+
+                // Function to show validation errors
+                function showValidationErrors(message, validationErrorList) {
+                    clearErrors();
+                    
+                    // Show general message if provided
+                    if (message) {
+                        generalError.textContent = message;
+                    }
+                    
+                    // Show individual validation errors
+                    if (validationErrorList && validationErrorList.length > 0) {
+                        validationErrorList.forEach(function(error) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'validation-error-item';
+                            errorDiv.innerHTML = '<span class="validation-error-property">' + 
+                                (error.property || 'Field') + ':</span> ' + (error.message || 'Invalid value');
+                            validationErrors.appendChild(errorDiv);
+                        });
+                    }
+                    
+                    errorMessage.style.display = 'block';
+                    successMessage.style.display = 'none';
+                }
 
                 // Listen for messages from the extension
                 window.addEventListener('message', function(event) {
@@ -279,12 +348,13 @@ function getLoginViewContent(): string {
                             }
                             break;
                         case 'loginError':
-                            errorMessage.textContent = message.message || 'Login failed. Please try again.';
-                            errorMessage.style.display = 'block';
-                            successMessage.style.display = 'none';
+                            showGeneralError(message.message);
+                            break;
+                        case 'loginValidationError':
+                            showValidationErrors(message.message, message.validationErrors);
                             break;
                         case 'loginSuccess':
-                            errorMessage.style.display = 'none';
+                            clearErrors();
                             successMessage.style.display = 'block';
                             loginForm.querySelector('button[type="submit"]').disabled = true;
                             break;
@@ -302,8 +372,7 @@ function getLoginViewContent(): string {
                     const password = document.getElementById('password').value;
                     
                     if (!email || !password) {
-                        errorMessage.textContent = 'Please enter both email and password.';
-                        errorMessage.style.display = 'block';
+                        showGeneralError('Please enter both email and password.');
                         return;
                     }
                     

@@ -186,3 +186,6 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 2025-06-29: User requested to review the api schema register endpoint and implement a register item under Model Services treeview for non-logged-in users, with a register view that allows user registration.
 Command: Expand all top level tree items in the AppDNA tree view
+2025-06-29: User requested to improve validation error display in the registration API response - show validation errors to the user properly.
+Command: Expand all top level tree items in the AppDNA tree view
+2025-06-29: User reported validation errors only show 'Validation Failed.' instead of detailed field-specific error messages - investigating the API response handling
