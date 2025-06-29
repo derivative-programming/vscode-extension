@@ -529,6 +529,22 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     };
                     
                     items.push(loginItem);
+                    
+                    // Add register option
+                    const registerItem = new JsonTreeItem(
+                        "Register",
+                        vscode.TreeItemCollapsibleState.None,
+                        'modelServiceRegister'
+                    );
+                    
+                    registerItem.iconPath = new vscode.ThemeIcon('person-add');
+                    registerItem.command = {
+                        command: 'appdna.registerModelServices',
+                        title: 'Register',
+                        arguments: []
+                    };
+                    
+                    items.push(registerItem);
                 }
                 
                 return Promise.resolve(items);

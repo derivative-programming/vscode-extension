@@ -184,3 +184,5 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 2025-06-29: Review the data object details view lookup items tab and add validation for 50-character limit on lookup item names for both single and bulk adding.
 Command: Expand all top level tree items in the AppDNA tree view
+2025-06-29: User requested to review the api schema register endpoint and implement a register item under Model Services treeview for non-logged-in users, with a register view that allows user registration.
+Command: Expand all top level tree items in the AppDNA tree view

@@ -115,6 +115,85 @@ export class AuthService {
     }
     
     /**
+     * Perform registration to model services API
+     * @param email The email address for registration
+     * @param password The password for registration
+     * @param confirmPassword The password confirmation
+     * @param firstName The first name
+     * @param lastName The last name
+     * @param optIntoTerms Whether user agrees to terms of service
+     * @returns Promise resolving to true if registration was successful
+     * @throws Error if registration fails
+     */
+    public async register(
+        email: string, 
+        password: string, 
+        confirmPassword: string,
+        firstName: string,
+        lastName: string,
+        optIntoTerms: boolean
+    ): Promise<boolean> {
+        if (!this.context) {
+            throw new Error("AuthService not initialized properly.");
+        }
+        
+        try {
+            // Define the API endpoint
+            const apiUrl = "https://modelservicesapi.derivative-programming.com/api/v1_0/registers";
+            
+            // Call the register endpoint
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ 
+                    email, 
+                    password, 
+                    confirmPassword, 
+                    firstName, 
+                    lastName, 
+                    optIntoTerms 
+                }),
+            });
+            
+            // Parse the response
+            const data = await response.json();
+            
+            // Check for API-level success flag
+            if (!data.success) {
+                // Construct error message from validation errors if available
+                if (data.validationError && data.validationError.length > 0) {
+                    const errorMessages = data.validationError.map((err: any) => 
+                        `${err.property}: ${err.message}`
+                    ).join(", ");
+                    
+                    throw new Error(`Validation failed: ${errorMessages}`);
+                }
+                
+                // If no validation errors but still failed, use the message
+                throw new Error(data.message || "Registration failed with no specific error message");
+            }
+            
+            if (!data.modelServicesAPIKey) {
+                throw new Error("Registration succeeded but no API key was returned.");
+            }
+            
+            // Store the API key and email securely (same as login)
+            await this.context.secrets.store(this.API_KEY_STORAGE_KEY, data.modelServicesAPIKey);
+            await this.context.secrets.store(this.EMAIL_STORAGE_KEY, email);
+            
+            this.isAuthenticated = true;
+            return true;
+        } catch (error) {
+            // Log and re-throw the error
+            console.error("Registration error:", error);
+            this.isAuthenticated = false;
+            throw error;
+        }
+    }
+    
+    /**
      * Get the stored API key
      * @returns Promise resolving to the API key or undefined if not logged in
      */

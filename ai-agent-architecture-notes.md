@@ -1102,24 +1102,23 @@ The `appDnaConfigExists` context key is managed by `fileUtils.ts` and automatica
 - **Proper Validation**: Prevents invalid config structures from being saved
 - **Consistent Design**: Matches VS Code design language and extension patterns
 
-## Lookup Item Validation (Added 2025-06-29)
+## User Registration Implementation (June 29, 2025)
 
-### 50-Character Name Limit Implementation:
-Added comprehensive validation for lookup item names to enforce a maximum length of 50 characters across all input methods.
+The extension now supports user registration through the Model Services treeview:
 
-### Validation Points:
-1. **Single Add Modal**: `lookupItemModalFunctionality.js` - Validates before creating new lookup item
-2. **Bulk Add Modal**: `lookupItemModalFunctionality.js` - Validates all names in bulk input before processing
-3. **Form Edit**: `lookupItemManagement.js` - `saveLookupItemChanges()` function validates on edit
-4. **Table Edit**: `lookupItemManagement.js` - Input change event handler validates in table view
+- **AuthService**: Contains both `login()` and `register()` methods for API authentication
+- **Register Endpoint**: `/api/v1_0/registers` with RegisterPostModel schema (email, password, confirmPassword, firstName, lastName, optIntoTerms)
+- **Tree View**: When not logged in, shows both "Login" and "Register" options under Model Services
+- **Register View**: `registerView.ts` provides a webview form similar to login view for user registration
+- **Navigation**: Users can switch between login and register views via links in each view
+- **Success Flow**: After successful registration, user is automatically logged in and welcome view is shown
 
-### Implementation Details:
-- **Consistent Error Messages**: All validation points use similar error messaging for consistency
-- **User Experience**: Shows validation errors with focus return to the problematic input
-- **Revert on Error**: For editing scenarios, reverts to previous value if validation fails
-- **Template Updates**: Updated modal templates to mention 50-character limit in field notes
+**Registration Form Fields:**
+- Email (required)
+- First Name (required) 
+- Last Name (required)
+- Password (required)
+- Confirm Password (required)
+- Terms of Service checkbox (required)
 
-### Architecture Pattern:
-- **Client-side Validation**: All validation happens in webview JavaScript before data is sent to extension
-- **Multiple Entry Points**: Covers all ways users can add or edit lookup item names
-- **Graceful Degradation**: Uses alert() for table validation as a fallback UI pattern
+**API Response**: Returns `modelServicesAPIKey` on successful registration, same as login flow.

@@ -40,6 +40,8 @@ import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../
 import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand } from './filterTreeViewCommands';
 // Import showAppDNASettingsView and related functions
 import { showAppDNASettingsView } from '../webviews/appDnaSettingsView';
+// Import showRegisterView
+import { showRegisterView } from '../webviews/registerView';
 
 /**
  * Registers all commands for the AppDNA extension
@@ -558,6 +560,31 @@ export function registerCommands(
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.clearDataObjectFilter', () => {
             clearDataObjectFilterCommand(jsonTreeDataProvider);
+        })
+    );
+    
+    // Register register command for Model Services
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.registerModelServices', async () => {
+            // Initialize auth service with extension context
+            const authService = AuthService.getInstance();
+            authService.initialize(context);
+            
+            // Show register webview and refresh tree view on successful registration
+            await showRegisterView(context, () => {
+                // Refresh the tree view to update icons and available services
+                jsonTreeDataProvider.refresh();
+                vscode.commands.executeCommand('appdna.refreshView');
+                
+                // Open the welcome view after successful registration
+                showWelcomeView(context);
+                
+                // Update welcome view if it's currently open
+                if (WelcomePanel.currentPanel) {
+                    const authService = AuthService.getInstance();
+                    WelcomePanel.currentPanel.updateLoginStatus(authService.isLoggedIn());
+                }
+            });
         })
     );
 }

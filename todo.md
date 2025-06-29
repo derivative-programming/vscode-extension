@@ -1,8 +1,10 @@
 Agent todo items...
 
-'there is no data provider registered....' on startup
 
 make extension repo public
+
+'there is no data provider registered....' on startup
+
  
 
 'list' and 'table' view icon toggle buttons
@@ -60,10 +62,6 @@ If we can create a model of your application, then we can generate a large amoun
 Step 3. text...
 - Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
 
-
-max length validation rules? - COMPLETED: Added 50-character limit validation for lookup item names
->>50... lookup item names - COMPLETED: Added validation for single and bulk lookup item adding, plus editing existing items
- 
 
   
 test step 2 if no role data obect

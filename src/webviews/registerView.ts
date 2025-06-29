@@ -1,20 +1,19 @@
-// filepath: c:\VR\Source\DP\vscode-extension\src\webviews\loginView.ts
-// Login webview for Model Services authentication
-// Created: May 4, 2025
+// Register webview for Model Services registration
+// Created: June 29, 2025
 
 import * as vscode from "vscode";
 import { AuthService } from "../services/authService";
 
 /**
- * Opens a webview panel for Model Services login
+ * Opens a webview panel for Model Services registration
  * @param context The VS Code extension context
- * @param onLoginSuccess Callback function to execute after successful login
+ * @param onRegisterSuccess Callback function to execute after successful registration
  */
-export async function showLoginView(context: vscode.ExtensionContext, onLoginSuccess?: () => void): Promise<void> {
-    // Create webview panel for login
+export async function showRegisterView(context: vscode.ExtensionContext, onRegisterSuccess?: () => void): Promise<void> {
+    // Create webview panel for registration
     const panel = vscode.window.createWebviewPanel(
-        "modelServicesLogin",
-        "Login to AppDNA Model Services",
+        "modelServicesRegister",
+        "Register for AppDNA Model Services",
         vscode.ViewColumn.One,
         {
             enableScripts: true,
@@ -27,11 +26,8 @@ export async function showLoginView(context: vscode.ExtensionContext, onLoginSuc
     authService.initialize(context);
     const previousEmail = await authService.getEmail() || "";
     
-    // Add debug logging
-    console.log("[DEBUG] Previous email retrieved:", previousEmail);
-    
     // Set the HTML content
-    panel.webview.html = getLoginViewContent();
+    panel.webview.html = getRegisterViewContent();
 
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(async message => {
@@ -45,31 +41,37 @@ export async function showLoginView(context: vscode.ExtensionContext, onLoginSuc
                 }
                 return;
 
-            case "login":
+            case "register":
                 try {
-                    const success = await authService.login(message.email, message.password);
+                    const success = await authService.register(
+                        message.email, 
+                        message.password, 
+                        message.confirmPassword,
+                        message.firstName,
+                        message.lastName,
+                        message.optIntoTerms
+                    );
                     
                     if (success) {
-                        panel.webview.postMessage({ command: "loginSuccess" });
-                        // vscode.window.showInformationMessage("Successfully logged in to AppDNA Model Services");
+                        panel.webview.postMessage({ command: "registerSuccess" });
                         
-                        // Close the panel after successful login
+                        // Close the panel after successful registration
                         setTimeout(() => {
                             panel.dispose();
                             
                             // Call the success callback if provided
-                            if (onLoginSuccess) {
-                                onLoginSuccess();
+                            if (onRegisterSuccess) {
+                                onRegisterSuccess();
                             }
                         }, 1000);
                     }
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
                     panel.webview.postMessage({ 
-                        command: "loginError",
+                        command: "registerError",
                         message: errorMessage
                     });
-                    vscode.window.showErrorMessage(`Login failed: ${errorMessage}`);
+                    vscode.window.showErrorMessage(`Registration failed: ${errorMessage}`);
                 }
                 return;
                 
@@ -77,26 +79,21 @@ export async function showLoginView(context: vscode.ExtensionContext, onLoginSuc
                 panel.dispose();
                 return;
                 
-            case "register":
-                // Close login view and open register view
+            case "login":
+                // Close register view and open login view
                 panel.dispose();
-                const { showRegisterView } = await import('./registerView.js');
-                await showRegisterView(context, onLoginSuccess);
-                return;
-
-            case "debugEmailValue":
-                // Log debug information when received from the webview
-                console.log("[DEBUG-WEBVIEW] Email field value:", message.value);
+                const { showLoginView } = await import('./loginView.js');
+                await showLoginView(context, onRegisterSuccess);
                 return;
         }
     });
 }
 
 /**
- * Generates the HTML content for the login webview
+ * Generates the HTML content for the register webview
  * @returns HTML content as a string
  */
-function getLoginViewContent(): string {
+function getRegisterViewContent(): string {
     // Get the model services URL from settings to display to user
     const config = vscode.workspace.getConfiguration("appDNA");
     const apiUrl = config.get<string>("modelServiceUrl") || "Not configured";
@@ -106,7 +103,7 @@ function getLoginViewContent(): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login to AppDNA Model Services</title>
+    <title>Register for AppDNA Model Services</title>
     <style>
         body {
             padding: 20px;
@@ -135,6 +132,23 @@ function getLoginViewContent(): string {
             outline: 1px solid var(--vscode-focusBorder);
             border-color: var(--vscode-focusBorder);
         }
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .checkbox-group label {
+            margin: 0;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
         .buttons {
             display: flex;
             justify-content: flex-end;
@@ -152,6 +166,10 @@ function getLoginViewContent(): string {
         button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         button.secondary {
             background-color: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
@@ -167,13 +185,6 @@ function getLoginViewContent(): string {
             border: 1px solid var(--vscode-errorForeground);
             background-color: var(--vscode-inputValidation-errorBackground);
         }
-        .info {
-            margin-top: 20px;
-            padding: 10px;
-            font-style: italic;
-            font-size: 0.9em;
-            color: var(--vscode-descriptionForeground);
-        }
         .success {
             color: var(--vscode-terminal-ansiGreen);
             margin-top: 15px;
@@ -182,15 +193,15 @@ function getLoginViewContent(): string {
             border: 1px solid var(--vscode-terminal-ansiGreen);
             background-color: var(--vscode-inputValidation-infoBackground);
         }
-        .register-link {
+        .login-link {
             margin-top: 15px;
             text-align: center;
         }
-        .register-link a {
+        .login-link a {
             color: var(--vscode-textLink-foreground);
             text-decoration: none;
         }
-        .register-link a:hover {
+        .login-link a:hover {
             text-decoration: underline;
         }
         .terms {
@@ -219,39 +230,63 @@ function getLoginViewContent(): string {
             color: var(--vscode-textLink-activeForeground);
             text-decoration: underline;
         }
+        .info {
+            margin-top: 20px;
+            padding: 10px;
+            font-style: italic;
+            font-size: 0.9em;
+            color: var(--vscode-descriptionForeground);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Login to AppDNA Model Services</h1>
-        <form id="loginForm">
+        <h1>Register for AppDNA Model Services</h1>
+        <form id="registerForm">
             <div class="form-group">
                 <label for="email">Email:</label>
                 <input type="email" id="email" name="email" required autofocus>
             </div>
             <div class="form-group">
+                <label for="firstName">First Name:</label>
+                <input type="text" id="firstName" name="firstName" required>
+            </div>
+            <div class="form-group">
+                <label for="lastName">Last Name:</label>
+                <input type="text" id="lastName" name="lastName" required>
+            </div>
+            <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <div id="errorMessage" class="error"></div>
-            <div id="successMessage" class="success">Login successful! Redirecting...</div>            <div class="buttons">
-                <button type="button" id="cancelButton" class="secondary" style="visibility: hidden;">Cancel</button>
-                <button type="submit">Login</button>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password:</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
             </div>
-            <div class="register-link">
-                <p>Don't have an account? <a href="#" id="registerLink">Register here</a></p>
+            <div class="checkbox-group">
+                <input type="checkbox" id="optIntoTerms" name="optIntoTerms" required>
+                <label for="optIntoTerms">I agree to the terms of service and acknowledge that my models will be sent to AppDNA Model Services for processing. This service is provided for amusement purposes only with no guarantees of accuracy.</label>
+            </div>
+            <div id="errorMessage" class="error"></div>
+            <div id="successMessage" class="success">Registration successful! Welcome to AppDNA Model Services!</div>
+            <div class="buttons">
+                <button type="button" id="cancelButton" class="secondary">Cancel</button>
+                <button type="submit" id="submitButton">Register</button>
+            </div>
+            <div class="login-link">
+                <p>Already have an account? <a href="#" id="loginLink">Sign in here</a></p>
             </div>
         </form>
         
         <div class="terms">
-            <p><strong>Terms of Service:</strong> By logging in, you agree that your models will be sent to AppDNA Model Services for processing.</p>
+            <p><strong>Terms of Service:</strong> By registering, you agree that your models will be sent to AppDNA Model Services for processing.</p>
             <p>This service is provided for amusement purposes only with no guarantees of accuracy for any particular purpose.</p>
             <p>By using this service, you acknowledge that the provider accepts no liability for any damages, data loss, or other issues that may arise from using this service. You agree to indemnify and hold harmless the service provider from all claims.</p>
         </div>
         
         <div class="info">
             <p>Service URL: ${apiUrl}</p>
-            <p>Login to access code generation and other model services.</p>
+            <p>Register to access code generation and other model services.</p>
         </div>
         
         <div class="footer">
@@ -262,11 +297,13 @@ function getLoginViewContent(): string {
     <script>
         (function() {
             const vscode = acquireVsCodeApi();
+            
             function onReady() {
-                const loginForm = document.getElementById('loginForm');
+                const registerForm = document.getElementById('registerForm');
                 const errorMessage = document.getElementById('errorMessage');
                 const successMessage = document.getElementById('successMessage');
                 const cancelButton = document.getElementById('cancelButton');
+                const submitButton = document.getElementById('submitButton');
                 const emailField = document.getElementById('email');
 
                 // Listen for messages from the extension
@@ -278,15 +315,16 @@ function getLoginViewContent(): string {
                                 emailField.value = message.value || '';
                             }
                             break;
-                        case 'loginError':
-                            errorMessage.textContent = message.message || 'Login failed. Please try again.';
+                        case 'registerError':
+                            errorMessage.textContent = message.message || 'Registration failed. Please try again.';
                             errorMessage.style.display = 'block';
                             successMessage.style.display = 'none';
+                            submitButton.disabled = false;
                             break;
-                        case 'loginSuccess':
+                        case 'registerSuccess':
                             errorMessage.style.display = 'none';
                             successMessage.style.display = 'block';
-                            loginForm.querySelector('button[type="submit"]').disabled = true;
+                            submitButton.disabled = true;
                             break;
                     }
                 });
@@ -295,23 +333,48 @@ function getLoginViewContent(): string {
                 vscode.postMessage({ command: 'webviewReady' });
 
                 // Handle form submission
-                loginForm.addEventListener('submit', function(e) {
+                registerForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
                     const email = document.getElementById('email').value;
+                    const firstName = document.getElementById('firstName').value;
+                    const lastName = document.getElementById('lastName').value;
                     const password = document.getElementById('password').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    const optIntoTerms = document.getElementById('optIntoTerms').checked;
                     
-                    if (!email || !password) {
-                        errorMessage.textContent = 'Please enter both email and password.';
+                    // Client-side validation
+                    if (!email || !firstName || !lastName || !password || !confirmPassword) {
+                        errorMessage.textContent = 'Please fill in all required fields.';
                         errorMessage.style.display = 'block';
                         return;
                     }
                     
-                    // Send credentials to the extension
+                    if (password !== confirmPassword) {
+                        errorMessage.textContent = 'Passwords do not match.';
+                        errorMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    if (!optIntoTerms) {
+                        errorMessage.textContent = 'You must agree to the terms of service to register.';
+                        errorMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Disable submit button during processing
+                    submitButton.disabled = true;
+                    errorMessage.style.display = 'none';
+                    
+                    // Send registration data to the extension
                     vscode.postMessage({
-                        command: 'login',
+                        command: 'register',
                         email: email,
-                        password: password
+                        firstName: firstName,
+                        lastName: lastName,
+                        password: password,
+                        confirmPassword: confirmPassword,
+                        optIntoTerms: optIntoTerms
                     });
                 });
                 
@@ -322,17 +385,18 @@ function getLoginViewContent(): string {
                     });
                 });
                 
-                // Handle register link
-                const registerLink = document.getElementById('registerLink');
-                if (registerLink) {
-                    registerLink.addEventListener('click', function(e) {
+                // Handle login link
+                const loginLink = document.getElementById('loginLink');
+                if (loginLink) {
+                    loginLink.addEventListener('click', function(e) {
                         e.preventDefault();
                         vscode.postMessage({
-                            command: 'register'
+                            command: 'login'
                         });
                     });
                 }
             }
+            
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', onReady);
             } else {
