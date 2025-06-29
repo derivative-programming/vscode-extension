@@ -3,7 +3,7 @@
   "publisher": "derivative-programming",
   "displayName": "AppDNA Model Builder",
   "description": "A professional VS Code extension for building and managing AppDNA model files with schema-driven UI, code generation, and Model Context Protocol support for GitHub Copilot integration.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "vscode": "^1.99.0"
   },
