@@ -102,3 +102,32 @@ export function getExpandNodesOnLoadFromConfig(workspaceFolder: string): boolean
     }
     return defaultExpandNodesOnLoad;
 }
+
+/**
+ * Reads the showAdvancedProperties setting from the config file (app-dna.config.json) in the workspace root.
+ * If the config file does not exist or doesn't have the setting, returns the default value.
+ * @param workspaceFolder The workspace root folder path
+ * @returns True if advanced properties should be shown, false otherwise
+ */
+export function getShowAdvancedPropertiesFromConfig(workspaceFolder: string): boolean {
+    const configPath = workspaceFolder ? workspaceFolder + "/app-dna.config.json" : null;
+    const defaultShowAdvancedProperties = false;
+    if (!configPath) {
+        return defaultShowAdvancedProperties;
+    }
+    try {
+        if (fs.existsSync(configPath)) {
+            const configRaw = fs.readFileSync(configPath, "utf8");
+            const config = JSON.parse(configRaw);
+            if (config && 
+                config.settings && 
+                config.settings.editor && 
+                typeof config.settings.editor.showAdvancedProperties === "boolean") {
+                return config.settings.editor.showAdvancedProperties;
+            }
+        }
+    } catch (err) {
+        console.warn("Could not read config file for showAdvancedProperties:", err);
+    }
+    return defaultShowAdvancedProperties;
+}

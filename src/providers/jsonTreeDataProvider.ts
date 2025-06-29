@@ -8,6 +8,7 @@ import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService';
 import { MCPServer } from '../mcp/server';
 import { MCPHttpServer } from '../mcp/httpServer';
+import { getShowAdvancedPropertiesFromConfig } from '../utils/fileUtils';
 
 /**
  * TreeDataProvider for managing JSON structure in the AppDNA extension
@@ -158,17 +159,27 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     "Connected to Model Services API" : 
                     "Authentication required to access Model Services";
                 
-                // Create REPORTS as a top-level item
-                const reportsItem = new JsonTreeItem(
-                    'REPORTS',
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    'reports showReportFilter'
-                );
-                reportsItem.iconPath = new vscode.ThemeIcon('book');
-                reportsItem.tooltip = "Model reports from all objects (click to expand, right-click for options)";
+                // Create REPORTS as a top-level item (only if advanced properties are enabled)
+                const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+                const showAdvancedProperties = workspaceFolder ? getShowAdvancedPropertiesFromConfig(workspaceFolder) : false;
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, REPORTS, MODEL SERVICES
-                return Promise.resolve([projectItem, dataObjectsItem, reportsItem, modelServicesItem]);
+                const items = [projectItem, dataObjectsItem];
+                
+                if (showAdvancedProperties) {
+                    const reportsItem = new JsonTreeItem(
+                        'REPORTS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'reports showReportFilter'
+                    );
+                    reportsItem.iconPath = new vscode.ThemeIcon('book');
+                    reportsItem.tooltip = "Model reports from all objects (click to expand, right-click for options)";
+                    items.push(reportsItem);
+                }
+                
+                items.push(modelServicesItem);
+                
+                // Return tree items in order: PROJECT, DATA OBJECTS, [REPORTS], MODEL SERVICES
+                return Promise.resolve(items);
             } else {
                 // File doesn't exist, show empty tree
                 return Promise.resolve([]);
@@ -177,7 +188,13 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
           // Handle PROJECT children
         if (element?.contextValue === 'project' && fileExists) {
             try {
-                // Create Settings item under PROJECT
+                // Check if advanced properties should be shown
+                const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+                const showAdvancedProperties = workspaceFolder ? getShowAdvancedPropertiesFromConfig(workspaceFolder) : false;
+                
+                const items = [];
+                
+                // Create Settings item under PROJECT (always shown)
                 const settingsItem = new JsonTreeItem(
                     'Settings',
                     vscode.TreeItemCollapsibleState.None,
@@ -191,92 +208,105 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     title: 'Show Project Settings',
                     arguments: []
                 };
-                  // Create Lexicon item under PROJECT
-                const lexiconItem = new JsonTreeItem(
-                    'Lexicon',
-                    vscode.TreeItemCollapsibleState.None,
-                    'projectLexicon'
-                );
+                items.push(settingsItem);
                 
-                lexiconItem.iconPath = new vscode.ThemeIcon('symbol-string');
-                lexiconItem.tooltip = "Manage lexicon entries";
-                lexiconItem.command = {
-                    command: 'appdna.showLexicon',
-                    title: 'Show Lexicon',
-                    arguments: []
-                };
-                
-                // Create User Stories item under PROJECT
-                const userStoriesItem = new JsonTreeItem(
-                    'User Stories',
-                    vscode.TreeItemCollapsibleState.None,
-                    'projectUserStories'
-                );
-                
-                userStoriesItem.iconPath = new vscode.ThemeIcon('book');
-                userStoriesItem.tooltip = "Manage user stories";
-                userStoriesItem.command = {
-                    command: 'appdna.showUserStories',
-                    title: 'Show User Stories',
-                    arguments: []
-                };                // Create MCP Server item with status indicator
-                const isServerRunning = this.mcpServer.isServerRunning();
-                const mcpServerItem = new JsonTreeItem(
-                    `MCP Server (${isServerRunning ? 'Running' : 'Stopped'})`,
-                    vscode.TreeItemCollapsibleState.None,
-                    'projectMCPServer'
-                );
+                // Only show advanced items if setting is enabled
+                if (showAdvancedProperties) {
+                    // Create Lexicon item under PROJECT
+                    const lexiconItem = new JsonTreeItem(
+                        'Lexicon',
+                        vscode.TreeItemCollapsibleState.None,
+                        'projectLexicon'
+                    );
+                    
+                    lexiconItem.iconPath = new vscode.ThemeIcon('symbol-string');
+                    lexiconItem.tooltip = "Manage lexicon entries";
+                    lexiconItem.command = {
+                        command: 'appdna.showLexicon',
+                        title: 'Show Lexicon',
+                        arguments: []
+                    };
+                    items.push(lexiconItem);
+                    
+                    // Create User Stories item under PROJECT
+                    const userStoriesItem = new JsonTreeItem(
+                        'User Stories',
+                        vscode.TreeItemCollapsibleState.None,
+                        'projectUserStories'
+                    );
+                    
+                    userStoriesItem.iconPath = new vscode.ThemeIcon('book');
+                    userStoriesItem.tooltip = "Manage user stories";
+                    userStoriesItem.command = {
+                        command: 'appdna.showUserStories',
+                        title: 'Show User Stories',
+                        arguments: []
+                    };
+                    items.push(userStoriesItem);
+                    
+                    // Create MCP Server item with status indicator
+                    const isServerRunning = this.mcpServer.isServerRunning();
+                    const mcpServerItem = new JsonTreeItem(
+                        `MCP Server (${isServerRunning ? 'Running' : 'Stopped'})`,
+                        vscode.TreeItemCollapsibleState.None,
+                        'projectMCPServer'
+                    );
 
-                // Use different icons based on server status
-                if (isServerRunning) {
-                    // Server running icon
-                    mcpServerItem.iconPath = new vscode.ThemeIcon('server-environment');
-                    mcpServerItem.tooltip = "MCP Server is currently running. Click to stop.";
-                    mcpServerItem.command = {
-                        command: 'appdna.stopMCPServer',
-                        title: 'Stop MCP Server',
-                        arguments: []
-                    };
-                } else {
-                    // Server stopped icon
-                    mcpServerItem.iconPath = new vscode.ThemeIcon('server-process');
-                    mcpServerItem.tooltip = "MCP Server is currently stopped. Click to start.";
-                    mcpServerItem.command = {
-                        command: 'appdna.startMCPServer',
-                        title: 'Start MCP Server',
-                        arguments: []
-                    };                  }                // Create MCP HTTP Server item with status indicator
-                // Now that we fixed the TypeScript error, we can use the proper method
-                const isHttpServerRunning = this.mcpHttpServer.isServerRunning();
-                
-                const mcpHttpServerItem = new JsonTreeItem(
-                    `MCP HTTP Server (${isHttpServerRunning ? 'Running' : 'Stopped'})`,
-                    vscode.TreeItemCollapsibleState.None,
-                    'projectMCPHttpServer'
-                );
-                
-                // Use different icons based on server status
-                if (isHttpServerRunning) {
-                    // HTTP Server running icon - use same icon as MCP Server
-                    mcpHttpServerItem.iconPath = new vscode.ThemeIcon('server-environment');
-                    mcpHttpServerItem.tooltip = "MCP HTTP Server is currently running. Click to stop.";
-                    mcpHttpServerItem.command = {
-                        command: 'appdna.stopMCPHttpServer',
-                        title: 'Stop MCP HTTP Server',
-                        arguments: []
-                    };
-                } else {
-                    // HTTP Server stopped icon - use same icon as MCP Server
-                    mcpHttpServerItem.iconPath = new vscode.ThemeIcon('server-process');
-                    mcpHttpServerItem.tooltip = "MCP HTTP Server is currently stopped. Click to start.";
-                    mcpHttpServerItem.command = {
-                        command: 'appdna.startMCPHttpServer',
-                        title: 'Start MCP HTTP Server',
-                        arguments: []
-                    };
+                    // Use different icons based on server status
+                    if (isServerRunning) {
+                        // Server running icon
+                        mcpServerItem.iconPath = new vscode.ThemeIcon('server-environment');
+                        mcpServerItem.tooltip = "MCP Server is currently running. Click to stop.";
+                        mcpServerItem.command = {
+                            command: 'appdna.stopMCPServer',
+                            title: 'Stop MCP Server',
+                            arguments: []
+                        };
+                    } else {
+                        // Server stopped icon
+                        mcpServerItem.iconPath = new vscode.ThemeIcon('server-process');
+                        mcpServerItem.tooltip = "MCP Server is currently stopped. Click to start.";
+                        mcpServerItem.command = {
+                            command: 'appdna.startMCPServer',
+                            title: 'Start MCP Server',
+                            arguments: []
+                        };
+                    }
+                    items.push(mcpServerItem);
+                    
+                    // Create MCP HTTP Server item with status indicator
+                    const isHttpServerRunning = this.mcpHttpServer.isServerRunning();
+                    
+                    const mcpHttpServerItem = new JsonTreeItem(
+                        `MCP HTTP Server (${isHttpServerRunning ? 'Running' : 'Stopped'})`,
+                        vscode.TreeItemCollapsibleState.None,
+                        'projectMCPHttpServer'
+                    );
+                    
+                    // Use different icons based on server status
+                    if (isHttpServerRunning) {
+                        // HTTP Server running icon - use same icon as MCP Server
+                        mcpHttpServerItem.iconPath = new vscode.ThemeIcon('server-environment');
+                        mcpHttpServerItem.tooltip = "MCP HTTP Server is currently running. Click to stop.";
+                        mcpHttpServerItem.command = {
+                            command: 'appdna.stopMCPHttpServer',
+                            title: 'Stop MCP HTTP Server',
+                            arguments: []
+                        };
+                    } else {
+                        // HTTP Server stopped icon - use same icon as MCP Server
+                        mcpHttpServerItem.iconPath = new vscode.ThemeIcon('server-process');
+                        mcpHttpServerItem.tooltip = "MCP HTTP Server is currently stopped. Click to start.";
+                        mcpHttpServerItem.command = {
+                            command: 'appdna.startMCPHttpServer',
+                            title: 'Start MCP HTTP Server',
+                            arguments: []
+                        };
+                    }
+                    items.push(mcpHttpServerItem);
                 }
                 
-                return Promise.resolve([settingsItem, lexiconItem, userStoriesItem, mcpServerItem, mcpHttpServerItem]);
+                return Promise.resolve(items);
             } catch (error) {
                 console.error('Error reading project settings:', error);
                 return Promise.resolve([]);

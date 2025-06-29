@@ -1017,3 +1017,41 @@ This makes the extension properly respect user configuration for where fabricati
   }
 }
 ```
+
+## Conditional Tree View Items Feature (June 29, 2025)
+
+**New Feature**: Show/hide advanced tree view items based on config setting.
+
+**Implementation**:
+1. **New Function**: Added `getShowAdvancedPropertiesFromConfig()` in `fileUtils.ts` to read the `settings.editor.showAdvancedProperties` boolean from config
+2. **Modified JsonTreeDataProvider**: Updated tree item creation logic to conditionally show items based on config
+3. **Root Level**: REPORTS item is only shown if `showAdvancedProperties: true`
+4. **PROJECT Children**: Lexicon, User Stories, MCP Server, and MCP HTTP Server are only shown if `showAdvancedProperties: true`
+5. **Always Shown**: Settings item under PROJECT is always visible regardless of the setting
+
+**Conditional Items**:
+- **Hidden when `showAdvancedProperties: false`**:
+  - REPORTS (root level)
+  - Lexicon (under PROJECT)
+  - User Stories (under PROJECT)
+  - MCP Server (under PROJECT)
+  - MCP HTTP Server (under PROJECT)
+
+- **Always Visible**:
+  - PROJECT (root level)
+  - DATA OBJECTS (root level)
+  - MODEL SERVICES (root level)
+  - Settings (under PROJECT)
+
+**Config Setting**:
+```json
+{
+  "settings": {
+    "editor": {
+      "showAdvancedProperties": false
+    }
+  }
+}
+```
+
+This provides a cleaner interface for basic users while keeping advanced features accessible when needed.

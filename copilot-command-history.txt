@@ -146,3 +146,6 @@ output folder (configured in your project settings) should say that its in the a
 2025-06-28: If config has expandNodesOnLoad = true then when the model is loaded, fully expand the treeview
 2025-06-28: there is a 'expand tree' icon button. you should execute the same command
 Command: Expand all top level tree items in the AppDNA tree view
+if showAdvancedProperties = false, then hide the treeview items... lexicon, user stories, mcp server, mcp http server, reports
+Command: Expand all top level tree items in the AppDNA tree view
+Command: Expand all top level tree items in the AppDNA tree view
