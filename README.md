@@ -81,7 +81,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- 📚 [Documentation](https://github.com/derivative-programming/vscode-extension/wiki)
 - 🐛 [Report Issues](https://github.com/derivative-programming/vscode-extension/issues)
 - 💬 [Discussions](https://github.com/derivative-programming/vscode-extension/discussions)
 
