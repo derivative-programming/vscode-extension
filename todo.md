@@ -5,18 +5,14 @@ make extension repo public
 
 'there is no data provider registered....' on startup
 
- 
-
 'list' and 'table' view icon toggle buttons
 
- 
 test 'add' buttons...
 - ok:data object details - properties tab
 - ok:add lookup item
 - report details - columns tab
 - report details - buttons tab
 - ok:report details - parameters tab
-
 
 report details view...
 - separate tab for breadcrumb buttons
@@ -82,9 +78,7 @@ dont validate on model change request approval.
 
 does 'validate all' work?  validate all when view comes up?
 
-
 normal users should not get legacy code
- 
    
 bulk add on enter key should not submit modal form
 
@@ -186,15 +180,11 @@ win app...
                 "visualizationType": "Grid"
               },
 
- 
-
 model services api todo...
 - add search query on all request list endpoints
 - add search query on all catalog endpoints
 - no legacy code for non admin users
 - focus on data object blueprints
- 
-
 
 Python - SQLAlchemy
 
@@ -205,3 +195,10 @@ Java - Hibernate
 C# - Entity Framework
 
 PHP - Doctrine 
+
+
+
+ares changes...
+broken register api endpoint
+rearrange register controls on page: fabricate
+disabled mf are displayed to user? looks ok

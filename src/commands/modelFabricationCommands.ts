@@ -470,6 +470,28 @@ export function registerModelFabricationCommands(
                         // Wait for all extraction promises to complete
                         await Promise.all(extractionPromises);
                         
+                        // Delete dotnetcore and sendgrid folders if they exist in the code directory
+                        console.log("[Extension] Checking for and removing dotnetcore and sendgrid folders...");
+                        const codeDir = path.join(fabricationResultsDir, 'code');
+                        if (fs.existsSync(codeDir)) {
+                            const dotnetcoreDir = path.join(codeDir, 'dotnetcore');
+                            const sendgridDir = path.join(codeDir, 'sendgrid');
+                            
+                            // Remove dotnetcore folder if it exists
+                            if (fs.existsSync(dotnetcoreDir)) {
+                                console.log("[Extension] Removing dotnetcore folder:", dotnetcoreDir);
+                                fs.rmSync(dotnetcoreDir, { recursive: true, force: true });
+                                console.log("[Extension] dotnetcore folder removed successfully");
+                            }
+                            
+                            // Remove sendgrid folder if it exists
+                            if (fs.existsSync(sendgridDir)) {
+                                console.log("[Extension] Removing sendgrid folder:", sendgridDir);
+                                fs.rmSync(sendgridDir, { recursive: true, force: true });
+                                console.log("[Extension] sendgrid folder removed successfully");
+                            }
+                        }
+                        
                         // Clean up zip file
                         fs.unlinkSync(zipPath);
                         

@@ -189,3 +189,4 @@ Command: Expand all top level tree items in the AppDNA tree view
 2025-06-29: User requested to improve validation error display in the registration API response - show validation errors to the user properly.
 Command: Expand all top level tree items in the AppDNA tree view
 2025-06-29: User reported validation errors only show 'Validation Failed.' instead of detailed field-specific error messages - investigating the API response handling
+review where the fabrication request details modal downloads the results and unzips the results to the output folder, immediately delete the dotnetcore and sendgrid folders if they exist - COMPLETED: Added logic to automatically delete [output folder]/code/dotnetcore and [output folder]/code/sendgrid folders after fabrication results extraction in modelFabricationCommands.ts, using fs.rmSync with recursive and force options for clean removal
