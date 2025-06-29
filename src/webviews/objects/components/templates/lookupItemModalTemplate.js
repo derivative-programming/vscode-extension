@@ -17,7 +17,7 @@ function getLookupItemModalHtml() {
         <div class="form-row">
             <label for="lookupItemName">Lookup Item Name:</label>
             <input type="text" id="lookupItemName">
-            <div class="field-note">Use Pascal case (Example: ActiveStatus). No spaces are allowed in names. Alpha characters only.</div>
+            <div class="field-note">Use Pascal case (Example: ActiveStatus). No spaces are allowed in names. Alpha characters only. Maximum 50 characters.</div>
         </div>
         <div id="singleValidationError" class="validation-error"></div>
         <button id="addSingleLookupItem">Add Lookup Item</button>
@@ -26,7 +26,7 @@ function getLookupItemModalHtml() {
         <div class="form-row">
             <label for="bulkLookupItems">Lookup Item Names (one per line):</label>
             <textarea id="bulkLookupItems" rows="5"></textarea>
-            <div class="field-note">Use Pascal case (Example: ActiveStatus). No spaces are allowed in names. Alpha characters only.</div>
+            <div class="field-note">Use Pascal case (Example: ActiveStatus). No spaces are allowed in names. Alpha characters only. Maximum 50 characters.</div>
         </div>
         <div id="bulkValidationError" class="validation-error"></div>
         <button id="addBulkLookupItems">Add Lookup Items</button>

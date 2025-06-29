@@ -426,8 +426,6 @@ if (buttonNameInput) {
 - Confirmed Enter key handling respects validation rules
 - No regressions in existing functionality
 
-  
- 
 ## Object Hierarchy View - Auto Focus Search Box (Added 2025-06-15)
 
 Enhanced user experience in the Object Hierarchy diagram by automatically focusing the search input when the view opens.
@@ -1103,3 +1101,25 @@ The `appDnaConfigExists` context key is managed by `fileUtils.ts` and automatica
 - **Immediate Feedback**: Tree view updates immediately after saving settings
 - **Proper Validation**: Prevents invalid config structures from being saved
 - **Consistent Design**: Matches VS Code design language and extension patterns
+
+## Lookup Item Validation (Added 2025-06-29)
+
+### 50-Character Name Limit Implementation:
+Added comprehensive validation for lookup item names to enforce a maximum length of 50 characters across all input methods.
+
+### Validation Points:
+1. **Single Add Modal**: `lookupItemModalFunctionality.js` - Validates before creating new lookup item
+2. **Bulk Add Modal**: `lookupItemModalFunctionality.js` - Validates all names in bulk input before processing
+3. **Form Edit**: `lookupItemManagement.js` - `saveLookupItemChanges()` function validates on edit
+4. **Table Edit**: `lookupItemManagement.js` - Input change event handler validates in table view
+
+### Implementation Details:
+- **Consistent Error Messages**: All validation points use similar error messaging for consistency
+- **User Experience**: Shows validation errors with focus return to the problematic input
+- **Revert on Error**: For editing scenarios, reverts to previous value if validation fails
+- **Template Updates**: Updated modal templates to mention 50-character limit in field notes
+
+### Architecture Pattern:
+- **Client-side Validation**: All validation happens in webview JavaScript before data is sent to extension
+- **Multiple Entry Points**: Covers all ways users can add or edit lookup item names
+- **Graceful Degradation**: Uses alert() for table validation as a fallback UI pattern

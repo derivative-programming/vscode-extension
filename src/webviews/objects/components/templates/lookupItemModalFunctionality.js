@@ -128,6 +128,13 @@ function createLookupItemModal() {
             return;
         }
         
+        // Check for maximum length (50 characters)
+        if (lookupItemName.length > 50) {
+            errorDiv.textContent = "Lookup item name cannot be longer than 50 characters.";
+            lookupItemNameInput.focus();
+            return;
+        }
+        
         // Check for duplicate names
         const existingNames = lookupItems.map(item => item.name).filter(name => name);
         if (existingNames.includes(lookupItemName)) {
@@ -197,11 +204,16 @@ function createLookupItemModal() {
         const existingNames = lookupItems.map(item => item.name).filter(name => name);
         const invalidNames = [];
         const duplicateNames = [];
+        const longNames = [];
         
         lookupItemNames.forEach(name => {
             // Check format
             if (!/^[A-Z][a-zA-Z]*$/.test(name)) {
                 invalidNames.push(name);
+            }
+            // Check for maximum length (50 characters)
+            if (name.length > 50) {
+                longNames.push(name);
             }
             // Check for duplicates with existing items
             if (existingNames.includes(name)) {
@@ -216,6 +228,12 @@ function createLookupItemModal() {
         
         if (invalidNames.length > 0) {
             errorDiv.textContent = "Invalid names (must be Pascal case, alpha only): " + invalidNames.join(", ");
+            bulkLookupItemsTextarea.focus();
+            return;
+        }
+        
+        if (longNames.length > 0) {
+            errorDiv.textContent = "Names too long (maximum 50 characters): " + longNames.join(", ");
             bulkLookupItemsTextarea.focus();
             return;
         }

@@ -230,6 +230,22 @@ function getLookupItemManagementFunctions() {
         function saveLookupItemChanges(index, propertyName, value) {
             if (!lookupItems[index]) return;
 
+            // Validate name property for maximum length
+            if (propertyName === 'name' && value && value.length > 50) {
+                // Show error and revert to previous value
+                const form = document.getElementById('lookupItemDetailsForm');
+                if (form) {
+                    const nameInput = form.querySelector('input[name="name"]');
+                    if (nameInput) {
+                        nameInput.value = lookupItems[index][propertyName] || '';
+                        // Show error message
+                        alert('Lookup item name cannot be longer than 50 characters.');
+                        nameInput.focus();
+                    }
+                }
+                return;
+            }
+
             lookupItems[index][propertyName] = value;
             
             // Update the list display if name or displayName changed
@@ -428,6 +444,15 @@ function getLookupItemManagementFunctions() {
                     
                     const rowIndex = parseInt(checkbox.getAttribute('data-index'));
                     const propName = checkbox.getAttribute('data-prop');
+                    
+                    // Validate name property for maximum length
+                    if (propName === 'name' && this.value && this.value.length > 50) {
+                        // Show error and revert to previous value
+                        this.value = lookupItems[rowIndex][propName] || '';
+                        alert('Lookup item name cannot be longer than 50 characters.');
+                        this.focus();
+                        return;
+                    }
                     
                     if (!lookupItems[rowIndex]) lookupItems[rowIndex] = {};
                     lookupItems[rowIndex][propName] = this.value;

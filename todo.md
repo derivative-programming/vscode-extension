@@ -61,8 +61,8 @@ Step 3. text...
 - Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
 
 
-max length validation rules?
->>50... lookup item names
+max length validation rules? - COMPLETED: Added 50-character limit validation for lookup item names
+>>50... lookup item names - COMPLETED: Added validation for single and bulk lookup item adding, plus editing existing items
  
 
   
