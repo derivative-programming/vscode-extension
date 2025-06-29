@@ -13,7 +13,21 @@
    - Type your repository name to confirm
    - Click **"I understand, change repository visibility"**
 
-## 🛡️ Step 2: Protect the Main Branch (Only You Can Merge)
+## 🛡️ Step 2: Configure Repository Rules and Branch Protection
+
+### **Option A: Disable Repository Rules (Recommended for Direct Push)**
+
+1. **Check Repository Rules First**
+   - In your repository, click **Settings** → **Rules** (left sidebar)
+   - Look for any rules affecting the `main` branch
+   - **Delete or disable any repository rules** that require pull requests
+
+2. **If you see repository rules:**
+   - Click on the rule name
+   - Click **"Delete rule"** or disable it
+   - This overrides branch protection and prevents direct pushes
+
+### **Option B: Set Up Branch Protection Only**
 
 1. **Go to Branch Protection Settings**
    - In your repository, click **Settings** → **Branches** (left sidebar)
@@ -23,19 +37,17 @@
    ```
    Branch name pattern: main
    
-   ✅ Restrict pushes that create files larger than 100 MB
-   ✅ Require a pull request before merging
-       ✅ Require approvals: 1
-       ✅ Dismiss stale pull request approvals when new commits are pushed
-       ✅ Require review from code owners
+   ❌ Require a pull request before merging: UNCHECKED (to allow direct push)
    ✅ Require status checks to pass before merging
    ✅ Require branches to be up to date before merging
    ✅ Require conversation resolution before merging
-   ✅ Allow force pushes: Everyone (but you control reviews)
-   ✅ Allow deletions: NO
+   ✅ Allow force pushes: Specify who can force push → "Repository administrators"
+   ❌ Allow deletions: NO
+   ❌ Include administrators: UNCHECKED (allows you to bypass restrictions)
    ```
 
-3. **Click "Create" to save the protection rule**
+3. **Important**: The key is **NOT** requiring pull requests if you want direct push access
+4. **Click "Create" to save the protection rule**
 
 ## 📁 Step 3: Create CODEOWNERS File (via GitHub Website)
 
@@ -108,18 +120,48 @@ All done through the GitHub website interface! 🎉
 
 After these steps:
 - ✅ **Repository is public** - anyone can view and fork
-- ✅ **Main branch is protected** - no direct pushes allowed
-- ✅ **Only vroche can merge** - must approve every PR
+- ✅ **Main branch is protected** - contributors must use PRs
+- ✅ **vroche can push directly** - admin bypass enabled
+- ✅ **Only vroche can approve PRs** - for contributor changes
 - ✅ **Contributors can fork and submit PRs**
 - ✅ **Marketplace publishing links work** (public repo)
 
 ## 🚨 Important Notes
 
-- **vroche can still push directly** if admin (but better to use PRs)
-- **Emergency access**: Repository admins can bypass protections if needed
+- **vroche can push directly** to main branch (admin bypass enabled)
+- **Contributors must use PRs** which vroche must approve
+- **Emergency access**: Repository admins can always bypass protections
 - **Update README links**: Your marketplace README links will now work since repo is public
 - **Consider adding CI/CD**: You can add GitHub Actions for automated testing
 
+## 🚨 Troubleshooting Push Issues
+
+### **Error: "Changes must be made through a pull request"**
+
+If you get this error when pushing:
+```
+GH013: Repository rule violations found for refs/heads/main
+- Changes must be made through a pull request.
+```
+
+**Solution:**
+1. Go to **Settings** → **Rules** in your repository
+2. **Delete or disable** any repository rules affecting the main branch
+3. Repository rules override branch protection rules
+4. After removing repository rules, you can push directly
+
+### **Quick Fix:**
+- Visit: https://github.com/derivative-programming/vscode-extension/rules
+- Delete any rules that mention "pull request" requirements
+- Then try pushing again
+
+### **Alternative: Use Pull Requests**
+If you prefer to keep the rules:
+1. Create a new branch: `git checkout -b my-changes`
+2. Push the branch: `git push origin my-changes`
+3. Create a PR from the GitHub website
+4. Merge the PR (you can approve your own PRs)
+
 ---
 
-**Your repository will be public but fully under vroche's control! 🎉**
+**Your repository will be public with flexible protection - vroche has full control! 🎉**

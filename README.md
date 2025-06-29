@@ -38,7 +38,7 @@ A professional VS Code extension for building and managing AppDNA model files wi
 
 ## Extension Interface
 
-![AppDNA Extension](https://raw.githubusercontent.com/derivative-programming/vscode-extension/main/media/screenshot.png)
+![AppDNA Extension](https://github.com/derivative-programming/vscode-extension/blob/main/media/screenshot.png)
 
 The extension provides:
 - **Sidebar Tree View**: Navigate your model structure
