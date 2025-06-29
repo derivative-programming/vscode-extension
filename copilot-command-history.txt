@@ -1,1 +1,1 @@
-2025-06-29: User wants to put this extension on the marketplace - preparing for VS Code marketplace publishing
+2025-06-29: User wants to make GitHub repo public but only allow them to merge into main - providing instructions for branch protection and repository visibility

@@ -1,0 +1,15 @@
+# Global code ownership - only vroche can approve changes to main branch
+* @vroche
+
+# Critical files require vroche's approval
+package.json @vroche
+README.md @vroche
+CHANGELOG.md @vroche
+LICENSE @vroche
+
+# Source code requires vroche's approval
+src/ @vroche
+
+# Documentation requires vroche's approval
+docs/ @vroche
+*.md @vroche
