@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
 export function addLogToCommandHistory(commandText: string): void {
     try {
         // Get the extension's root path
-        const extensionPath = vscode.extensions.getExtension('TestPublisher.appdna')?.extensionUri.fsPath;
+        const extensionPath = vscode.extensions.getExtension('derivative-programming.appdna')?.extensionUri.fsPath;
         if (!extensionPath) {
             console.error('[CommandLog] Extension path not found');
             return;

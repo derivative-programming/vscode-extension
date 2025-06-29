@@ -1138,3 +1138,40 @@ Enhanced the authentication views to properly display API validation errors:
 - Validation errors: Structured list with field names and error messages
 - Visual styling: Left border, background highlighting, bold field names
 - Clear separation between different types of errors
+
+## Web Extension Compatibility Issues (June 29, 2025)
+
+The AppDNA extension cannot run on VS Code for the Web because:
+
+1. **Missing `browser` field**: Web extensions require a `browser` field in package.json instead of/alongside `main`
+2. **Heavy Node.js dependencies**: The extension extensively uses Node.js APIs that are not available in browsers:
+   - `fs` (file system) - used in 21+ files for reading/writing JSON files  
+   - `path` - used in 21+ files for file path manipulation
+   - `process` - used in MCP server for stdio communication and process handling
+3. **File system operations**: Core functionality depends on direct file system access to read/write app-dna.json files
+4. **MCP Server**: The Model Context Protocol server uses stdio/process APIs incompatible with browser environment
+5. **Local file dependencies**: Extension loads local schema files and resources using file:// paths
+
+Key architecture dependencies that prevent web compatibility:
+- ModelService relies on fs.readFileSync/writeFileSync for JSON file operations
+- JsonTreeDataProvider uses fs.existsSync for file detection  
+- Schema validation loads schemas using fs operations
+- MCP stdio bridge requires process.argv and process control APIs
+
+## Schema Loading Issue Fixed (June 29, 2025)
+
+Fixed critical bug in project settings view where schema file loading was failing:
+
+**Problem**: ModelService.getSchemaPath() was using incorrect extension ID 'TestPublisher.appdna' instead of 'derivative-programming.appdna' from package.json
+
+**Solution**: 
+1. Updated extension ID to match package.json 
+2. Enhanced error handling with fallback to extensionContext utility
+3. Added more robust path resolution using existing extension infrastructure
+
+**Files Changed**: 
+- src/services/modelService.ts - Fixed getSchemaPath() method
+
+**Related Components**:
+- SchemaLoader class already has proper path resolution logic that could be used for consistency
+- Extension context utility provides reliable extension path resolution

@@ -67,7 +67,7 @@ suite("Empty Project Test Suite", () => {
 		await new Promise(resolve => setTimeout(resolve, 3000));
 		
 		// Ensure the extension is activated
-		const extension = vscode.extensions.getExtension("TestPublisher.appdna");
+		const extension = vscode.extensions.getExtension("derivative-programming.appdna");
 		if (!extension) {
 			assert.fail("Extension not found. Check publisher and name in package.json.");
 		}
@@ -148,7 +148,7 @@ suite("Empty Project Test Suite", () => {
 		console.log("Starting test: Tree view is empty in empty project");
 		
 		// Ensure the extension is activated
-		const extension = vscode.extensions.getExtension("TestPublisher.appdna");
+		const extension = vscode.extensions.getExtension("derivative-programming.appdna");
 		if (!extension) {
 			assert.fail("Extension not found. Check publisher and name in package.json.");
 		}
@@ -248,7 +248,7 @@ suite("Empty Project Test Suite", () => {
 		console.log("Starting test: Context-dependent commands behave appropriately in empty project");
 		
 		// Ensure the extension is activated
-		const extension = vscode.extensions.getExtension("TestPublisher.appdna");
+		const extension = vscode.extensions.getExtension("derivative-programming.appdna");
 		if (!extension) {
 			assert.fail("Extension not found. Check publisher and name in package.json.");
 		}
@@ -308,7 +308,7 @@ suite("Empty Project Test Suite", () => {
 		console.log("Starting test: UI elements have correct visibility for users in empty project");
 		
 		// Ensure the extension is activated
-		const extension = vscode.extensions.getExtension("TestPublisher.appdna");
+		const extension = vscode.extensions.getExtension("derivative-programming.appdna");
 		if (!extension) {
 			assert.fail("Extension not found. Check publisher and name in package.json.");
 		}

@@ -1,18 +1,10 @@
 Agent todo items...
 
-
-make extension repo public
-
-'there is no data provider registered....' on startup
+✅ Fixed 'there is no data provider registered....' on startup - schema loading issue resolved
+✅ Fixed project settings view schema file error - updated extension ID references
 
 'list' and 'table' view icon toggle buttons
-
-test 'add' buttons...
-- ok:data object details - properties tab
-- ok:add lookup item
-- report details - columns tab
-- report details - buttons tab
-- ok:report details - parameters tab
+ 
 
 report details view...
 - separate tab for breadcrumb buttons
@@ -58,27 +50,19 @@ If we can create a model of your application, then we can generate a large amoun
 Step 3. text...
 - Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
 
-
-  
-test step 2 if no role data obect
  
-
+help view...
+link to discussion board
 
 test:When completed, create a report item in the owner data object report array. Add the new report item to the treeview. Open the new report item in the report details view.
 
-in the case where the model file is not foudn or deleted, set the flag showing the model is updated to false. should not be showing indicator that changes exist on the treeview title item
-
+in the case where the model file is not found or deleted, set the flag showing the model is updated to false. should not be showing indicator that changes exist on the treeview title item
 
 add welcome step to update project settings view
- 
-
-cancel option on model ai processing request?
 
 dont validate on model change request approval. 
 
 does 'validate all' work?  validate all when view comes up?
-
-normal users should not get legacy code
    
 bulk add on enter key should not submit modal form
 
@@ -197,6 +181,4 @@ PHP - Doctrine
 
 
 ares changes...
-broken register api endpoint
 rearrange register controls on page: fabricate
-disabled mf are displayed to user? looks ok

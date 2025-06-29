@@ -61,7 +61,7 @@ describe("AppDNA Clean Project Test", function () {
         }
         // Make sure the extension is active
         const extension = vscode.extensions.getExtension("appdna") ||
-            vscode.extensions.getExtension("TestPublisher.appdna");
+            vscode.extensions.getExtension("derivative-programming.appdna");
         if (extension && !extension.isActive) {
             await extension.activate();
         }
@@ -76,7 +76,7 @@ describe("AppDNA Clean Project Test", function () {
         // Check if the extension contributes a view container
         // Look for the package.json contribution
         const extension = vscode.extensions.getExtension("appdna") ||
-            vscode.extensions.getExtension("TestPublisher.appdna");
+            vscode.extensions.getExtension("derivative-programming.appdna");
         assert.ok(extension, "Extension should be available");
         // Check the package.json for viewContainers contribution
         const packageJson = extension.packageJSON;

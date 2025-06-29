@@ -1,1 +1,3 @@
 2025-06-29: User wants to make GitHub repo public but only allow them to merge into main - providing instructions for branch protection and repository visibility
+2025-06-29: User asked why this extension can't be used on 'Visual Studio Code for the Web' version
+2025-06-29: Fixed project settings view schema file error - updated ModelService.getSchemaPath() to use correct extension ID and more robust path resolutionCommand: Expand all top level tree items in the AppDNA tree view

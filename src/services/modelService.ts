@@ -325,9 +325,20 @@ export class ModelService {
             }
         }
 
-        // Fall back to the extension's schema file
-        const extensionPath = vscode.extensions.getExtension('TestPublisher.appdna')?.extensionPath || '';
-        return path.join(extensionPath, 'app-dna.schema.json');
+        // Try to use extension context utility for more robust path resolution
+        try {
+            const { getExtensionResourcePath } = require('../utils/extensionContext');
+            return getExtensionResourcePath('app-dna.schema.json');
+        } catch (error) {
+            console.warn('Could not get extension resource path, falling back to extension API:', error);
+            
+            // Fall back to the extension's schema file using VS Code API
+            const extensionPath = vscode.extensions.getExtension('derivative-programming.appdna')?.extensionPath;
+            if (!extensionPath) {
+                throw new Error('Could not find extension path for derivative-programming.appdna');
+            }
+            return path.join(extensionPath, 'app-dna.schema.json');
+        }
     }
     
     /**
