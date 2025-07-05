@@ -370,7 +370,7 @@ class WelcomePanel {
             <p>A graphical editor for AppDNA model files</p>
         </div>
 
-        <p>AppDNA accelerates your development process by generating code based on your project model. This extension provides powerful tools to create, edit, and process your model through AI-assisted pre-population, validation, and code generation services. With a user-friendly interface and guided workflow, you can transform your project requirements into code in significantly less time than traditional development approaches.</p>
+        <p>AppDNA accelerates your development process by generating code based on your project model. This extension provides powerful tools to create, edit, and process your model through AI-assisted pre-population, validation, and code generation services. With a user-friendly interface and guided workflow, you can transform your project requirements into code in significantly less time than traditional development approaches. </p> <p> If we can create a model of your application, then we can generate a large amount of source code automatically. The source code generated can be for many different language (.net, python, etc.) and for many diffierent application types (API, Web, IOS App, Android App, Augmented Reality App, Virtual Reality App, etc.). Once generated, you can pull in any of the generated source code you like into your own source code repository. </p>
 
         <div class="workflow-section">
             <h2>AppDNA Workflow</h2>

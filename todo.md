@@ -1,9 +1,4 @@
 Agent todo items...
-
-
-welcome view and extension readme...
-- add text describing the types of uis that can be generated (fabricated) from the model
-
  
 
 cant use ctrl-a as first part of sequence. its select all.
@@ -19,12 +14,18 @@ fabrication requests view...
 'there is no data provider registered....' on startup  
 
 'list' and 'table' view icon toggle buttons
- 
+
+forms tree view item...
+- object.objwf where page = true
 
 report details view...
-- separate tab for breadcrumb buttons
 - allow creation of column destination button
 - allow creation of column async flow button
+- add button - multiselect
+- add button - breadcrumb
+- import breadcrumb buttons from another report
+- columns - subscribe to owner obj properties
+- columns - subscribe to target child obj properties
 
 change requests... 
 - on approve all, show processing animation while all are processed
@@ -57,21 +58,10 @@ functions
 add report...
 - API Get
 
-
-
-update welcome...
-If we can create a model of your application, then we can generate a large amount of source code automatically. The source code generated can be for many different language (.net, python, etc.) and for many diffierent application types (Web, IOS App, Android App, Augmented Reality App, Virtual Reality App, etc.). Once generated, you can pull in any of the generated source code you like into your own source code repository.  
- 
-
- 
-help view...
-link to discussion board
-
+  
 test:When completed, create a report item in the owner data object report array. Add the new report item to the treeview. Open the new report item in the report details view.
 
 in the case where the model file is not found or deleted, set the flag showing the model is updated to false. should not be showing indicator that changes exist on the treeview title item
-
-add welcome step to update project settings view
 
 dont validate on model change request approval. 
 

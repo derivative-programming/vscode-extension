@@ -5,6 +5,8 @@
 
 A professional VS Code extension for building and managing AppDNA model files with schema-driven UI and code generation capabilities.
 
+If we can create a model of your application, then we can generate a large amount of source code automatically. The source code generated can be for many different language (.net, python, etc.) and for many diffierent application types (API, Web, IOS App, Android App, Augmented Reality App, Virtual Reality App, etc.). Once generated, you can pull in any of the generated source code you like into your own source code repository.
+
 ## Features
 
 ### 🏗️ Schema-Driven Model Builder
