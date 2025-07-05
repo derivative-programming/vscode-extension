@@ -583,7 +583,7 @@
                     <h2>Model Validation Requests</h2>
                     
                     <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
-                        Submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions. Model Validation Change Requests adds and modifies the model.
+                        Submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions. Model validation change requests will add to and modify the model.
                     </p>
                 </div> 
                 <div class="toolbar">
@@ -609,7 +609,7 @@
                     <div class="modal-content">
                         <h3>Add Model Validation Request</h3>
                         <div id="unsavedChangesWarning" class="unsaved-changes-warning">
-                            You have unsaved changes in your model. Please save your changes before requesting model services.
+                            You have unsaved changes in your model. Please save your changes before adding a model validation request.
                         </div>
                         <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
                             <button id="submitAdd" class="refresh-button">Add</button>

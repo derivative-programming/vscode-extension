@@ -309,7 +309,7 @@ export function registerModelFabricationCommands(
                         const apiKey = await authService.getApiKey();
                         
                         if (!apiKey) {
-                            throw new Error('You must be logged in to download fabrication results.');
+                            throw new Error('You must be logged in to download the fabrication results.');
                         }
                         
                         // Create directory for fabrication results if it doesn't exist
@@ -501,7 +501,7 @@ export function registerModelFabricationCommands(
                         const folderName = path.basename(fabricationResultsDir);
                         vscode.window.showInformationMessage(
                             `Fabrication results have been downloaded and extracted to the ${folderName} folder. ` +
-                            'Review the files and copy needed files to your project.'
+                            'Review the generated files and copy any files to your actual application project folders as needed.'
                         );
                         
                         // Notify webview that download is complete

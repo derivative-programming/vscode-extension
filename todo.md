@@ -1,7 +1,41 @@
 Agent todo items...
 
-✅ Fixed 'there is no data provider registered....' on startup - schema loading issue resolved
-✅ Fixed project settings view schema file error - updated extension ID references
+tell users about the repo with the win app version of the extension
+- help view
+- readme
+
+welcome view...
+- add text describing the types of uis that can be generated (fabricated) from the model
+
+
+
+welcome view new Step 3. text...
+- Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
+
+cant use ctrl-a as first part of sequence. its select all.
+
+
+fabrication requests view...
+- details modal should not close if clicking outside the modal (others do this correctly already)
+- add a button to open the output folder in the file explorer
+- allow for a deployment script to be run after fabrication results are downloaded
+
+
+register view...
+- remove cancel button
+
+
+- object Hierarchy Diagram view...
+- 'Show Lookup Data Objects' should not hide items if its children are non-lookup items
+- reset button should reset the view to the initial state. seems like its a little differnt.
+- details modal should have a close (x) button in the top right corner
+- details modal should have close button in the bottom right corner
+- details modal should show data type on each property
+- 'Expand All' should use icon instead of text
+- 'Collapse All' should use icon instead of text
+- no blue background on icon buttons
+
+'there is no data provider registered....' on startup  
 
 'list' and 'table' view icon toggle buttons
  
@@ -46,9 +80,7 @@ add report...
 
 update welcome...
 If we can create a model of your application, then we can generate a large amount of source code automatically. The source code generated can be for many different language (.net, python, etc.) and for many diffierent application types (Web, IOS App, Android App, Augmented Reality App, Virtual Reality App, etc.). Once generated, you can pull in any of the generated source code you like into your own source code repository.  
-
-Step 3. text...
-- Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
+ 
 
  
 help view...

@@ -274,12 +274,12 @@ async function getWebviewContent(context, allObjects) {
                 <div class="legend">
                     <div class="legend-item">
                         <div class="legend-color lookup"></div>
-                        <span>Lookup Items</span>
+                        <span>Lookup Data Objects</span>
                     </div>
                 </div>
                 <div class="checkbox-control">
                     <input type="checkbox" id="show-lookup" checked>
-                    <label for="show-lookup">Show Lookup Items</label>
+                    <label for="show-lookup">Show All Lookup Data Objects</label>
                 </div>
             </div>
             <div class="diagram-container">

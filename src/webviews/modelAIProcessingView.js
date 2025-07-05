@@ -660,7 +660,7 @@
                     <div class="modal-content">
                         <h3>Add Model AI Processing Request</h3>
                         <div id="unsavedChangesWarning" class="unsaved-changes-warning">
-                            You have unsaved changes in your model. Please save your changes before requesting model services.
+                            You have unsaved changes in your model. Please save your changes before adding a model AI processing request.
                         </div>
                         <label>Description:<br><input type="text" id="addDescription" /></label>                        <div class="modal-buttons"> <!-- Button container -->
                             <button id="submitAdd" class="refresh-button">Add</button> <!-- Add button now on the left -->
@@ -883,7 +883,7 @@
                                     confirmModal.innerHTML = `
                                         <div class="modal-content" style="width: 300px;">
                                             <h3>Cancel Model AI Processing Request</h3>
-                                            <p>Are you sure you want to cancel this processing request?</p>                                            
+                                            <p>Are you sure you want to cancel this Model AI processing request?</p>                                            
                                             <div class="modal-buttons">
                                                 <button id="confirmCancel" class="refresh-button">Yes, Cancel</button>
                                                 <button id="cancelCancel" class="refresh-button modal-button-secondary">No</button>

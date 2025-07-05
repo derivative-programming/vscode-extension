@@ -258,11 +258,11 @@ class AppDNASettingsPanel {
         <h1>AppDNA Settings</h1>
         
         <div class="setting-group">
-            <h2>Code Generation</h2>
+            <h2>Model Fabrication</h2>
             <div class="setting-item">
-                <label for="outputPath">Output Path</label>
+                <label for="outputPath">Output Folder</label>
                 <input type="text" id="outputPath" placeholder="./fabrication_results">
-                <div class="description">The folder where fabricated code will be saved (relative to workspace root).</div>
+                <div class="description">The folder where generated files (code, documentation, etc.) will be saved (relative to the workspace root).</div>
             </div>
         </div>
 

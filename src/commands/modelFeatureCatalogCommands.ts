@@ -229,7 +229,7 @@ export function registerModelFeatureCatalogCommands(
                     <div class="validation-header">
                         <h2>Model Feature Catalog</h2>
                         <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
-                            Browse and select from a catalog of features to add to your model.
+                            Browse and select from a catalog of features to pre-populate your model.
                         </p>
                     </div>
                     <div class="header-actions">

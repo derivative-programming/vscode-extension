@@ -367,7 +367,7 @@ class WelcomePanel {
             <p>A graphical editor for AppDNA model files</p>
         </div>
 
-        <p>AppDNA accelerates your development process by generating code based on your project model. This extension provides powerful tools to create, edit, and process your model through AI-assisted validation and fabrication services. With a user-friendly interface and guided workflow, you can transform your project requirements into code in significantly less time than traditional development approaches.</p>
+        <p>AppDNA accelerates your development process by generating code based on your project model. This extension provides powerful tools to create, edit, and process your model through AI-assisted pre-population, validation, and code generation services. With a user-friendly interface and guided workflow, you can transform your project requirements into code in significantly less time than traditional development approaches.</p>
 
         <div class="workflow-section">
             <h2>AppDNA Workflow</h2>
@@ -386,7 +386,7 @@ class WelcomePanel {
                     <div class="workflow-step-number">2</div>
                     <div class="workflow-step-title">Register or Login to AppDNA Model Services</div>
                     <div class="workflow-step-description">Create an account or sign in to access the AppDNA Model Services features.</div>
-                    <div class="workflow-note">Model Services provide AI processing, validation, and code generation capabilities.</div>
+                    <div class="workflow-note">Model Services provide AI-assisted pre-population, validation, and code generation services.</div>
                     <button id="loginButton" class="button">Register or Login</button>
                     <div id="loggedInMessage" style="display: none; margin-top: 10px; color: var(--vscode-terminal-ansiGreen);">✓ You are logged in</div>
                 </div>
@@ -394,7 +394,7 @@ class WelcomePanel {
                 <div class="workflow-step">
                     <div class="workflow-step-number">3</div>
                     <div class="workflow-step-title">Add Model Features</div>
-                    <div class="workflow-step-description">From Model Services, browse and select from a catalog of features to add to your model.</div>
+                    <div class="workflow-step-description">From Model Services, browse and select from a catalog of features to pre-populate your model.</div>
                     <button id="viewModelFeatureCatalogButton" class="button" style="display: none;">View Model Feature Catalog</button>
                 </div>
 
@@ -410,14 +410,14 @@ class WelcomePanel {
                     <div class="workflow-step-number">5</div>
                     <div class="workflow-step-title">Request Model Validation</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions.</div>
-                    <div class="workflow-note">Model Validation Change Requests adds and modifies the model.</div>
+                    <div class="workflow-note">Model validation change requests will add to and modify the model.</div>
                     <button id="requestModelValidationButton" class="button" style="display: none;">Request Model Validation</button>
                 </div>
 
                 <div class="workflow-step">
                     <div class="workflow-step-number">6</div>
-                    <div class="workflow-step-title">Select Blueprint</div>
-                    <div class="workflow-step-description">From Model Services, select Blueprint Selection to define the type of files you want to fabricate.</div>
+                    <div class="workflow-step-title">Select Blueprints to Fabricate</div>
+                    <div class="workflow-step-description">From Model Services, select from the Fabrication Blueprint Catalog to define the type of files you want to fabricate.</div>
                     <button id="viewFabricationBlueprintCatalogButton" class="button" style="display: none;">View Fabrication Blueprint Catalog</button>
                 </div>
 

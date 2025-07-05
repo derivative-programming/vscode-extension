@@ -197,7 +197,7 @@
             color: var(--vscode-editor-background);
             display: block !important; 
         `;
-        successMessage.textContent = `Fabrication results have been downloaded and extracted successfully to the ${outputFolder} folder. Review the files and copy needed files to your project.`;
+        successMessage.textContent = `Fabrication results have been downloaded and extracted successfully to the ${outputFolder} folder. Review the generated files and copy any files to your actual application project folders as needed.`;
         
         const actionContainer = modalContent.querySelector('.action-container');
         if (actionContainer) {
@@ -853,7 +853,7 @@
                     <div class="spinner"></div>
                 </div>            <div class="fabrication-header">
                     <h2>Model Fabrication Requests</h2>
-                    <p class="intro-text">This page displays a list of fabrication requests for generating code based on your model. You can add a new request, view details of completed requests, and download fabrication results.</p>
+                    <p class="intro-text">This page displays a list of fabrication requests for generating files (code, documentation, etc.) based on your model. You can add a new request, view details of completed requests, and download the fabrication results to the AppDNA project output folder.</p>
                 </div>
                 <div class="toolbar">
                     <button id="addButton" class="refresh-button add-button" title="Add Request">
@@ -878,7 +878,7 @@
                     <div class="modal-content">
                         <h3>Add Model Fabrication Request</h3>
                         <div id="unsavedChangesWarning" class="unsaved-changes-warning">
-                            You have unsaved changes in your model. Please save your changes before requesting model services.
+                            You have unsaved changes in your model. Please save your changes before adding a model fabrication request.
                         </div>
                         <label>Description:<br><input type="text" id="addDescription" /></label>                        
                         <div class="modal-buttons"> <!-- Button container -->
