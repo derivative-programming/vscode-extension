@@ -36,6 +36,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     private filterText: string = "";
     // Current filter text for report items only
     private reportFilterText: string = "";
+    // Current filter text for form items only
+    private formFilterText: string = "";
     // Current filter text for data object items only
     private dataObjectFilterText: string = "";
       constructor(
@@ -48,6 +50,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
           // Initialize context values
         vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaDataObjectFilterActive', false);
+        vscode.commands.executeCommand('setContext', 'appDnaFormFilterActive', false);
         
         // Register to server status changes to update the tree view
         this.mcpServer.onStatusChange(isRunning => {
@@ -159,23 +162,22 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     "Connected to Model Services API" : 
                     "Authentication required to access Model Services";
                 
+                // Create FORMS as a top-level item (always shown)
+                const formsItem = new JsonTreeItem(
+                    'FORMS',
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    'forms showFormFilter'
+                );
+                formsItem.iconPath = new vscode.ThemeIcon('edit');
+                formsItem.tooltip = "Model forms (object workflows with isPage=true)";
+                
                 // Create REPORTS as a top-level item (only if advanced properties are enabled)
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
                 const showAdvancedProperties = workspaceFolder ? getShowAdvancedPropertiesFromConfig(workspaceFolder) : false;
                 
-                const items = [projectItem, dataObjectsItem];
+                const items = [projectItem, dataObjectsItem, formsItem];
                 
                 if (showAdvancedProperties) {
-                    // Create FORMS as a top-level item
-                    const formsItem = new JsonTreeItem(
-                        'FORMS',
-                        vscode.TreeItemCollapsibleState.Collapsed,
-                        'forms'
-                    );
-                    formsItem.iconPath = new vscode.ThemeIcon('edit');
-                    formsItem.tooltip = "Model forms (object workflows with isPage=true)";
-                    items.push(formsItem);
-                    
                     const reportsItem = new JsonTreeItem(
                         'REPORTS',
                         vscode.TreeItemCollapsibleState.Collapsed,
@@ -188,7 +190,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, [FORMS], [REPORTS], MODEL SERVICES
+                // Return tree items in order: PROJECT, DATA OBJECTS, FORMS, [REPORTS], MODEL SERVICES
                 return Promise.resolve(items);
             } else {
                 // File doesn't exist, show empty tree
@@ -580,19 +582,19 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         ]);
                     }
                     
-                    // Apply global filtering to forms
+                    // Apply filtering to forms (both global filter and form-specific filter)
                     const filteredForms = allPageWorkflows.filter(workflow => {
                         const workflowName = workflow.name || workflow.titleText || 'Unnamed Form';
-                        return this.applyFilter(workflowName);
+                        return this.applyFilter(workflowName) && this.applyFormFilter(workflowName);
                     });
                     
                     // Check if we need to expand this when filter is active
-                    const collapsibleState = this.filterText
+                    const collapsibleState = (this.filterText || this.formFilterText)
                         ? vscode.TreeItemCollapsibleState.Expanded
                         : vscode.TreeItemCollapsibleState.Collapsed;
                     
                     // If filtering is active and no results found, show message
-                    if (this.filterText && filteredForms.length === 0) {
+                    if ((this.filterText || this.formFilterText) && filteredForms.length === 0) {
                         return Promise.resolve([
                             new JsonTreeItem(
                                 'No forms match filter',
@@ -930,6 +932,45 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         
         // Case-insensitive match of data object filter text within the label
         return label.toLowerCase().includes(this.dataObjectFilterText);
+    }
+
+    /**
+     * Sets a filter for only the form items
+     * @param filterText The text to filter form nodes by
+     */
+    setFormFilter(filterText: string): void {
+        // Convert to lowercase for case-insensitive comparison
+        this.formFilterText = filterText.toLowerCase();
+        // Update context to indicate form filter is active
+        vscode.commands.executeCommand('setContext', 'appDnaFormFilterActive', !!this.formFilterText);
+        // Refresh the tree to apply the filter
+        this.refresh();
+    }
+
+    /**
+     * Clears the current form filter
+     */
+    clearFormFilter(): void {
+        this.formFilterText = "";
+        // Update context to indicate form filter is not active
+        vscode.commands.executeCommand('setContext', 'appDnaFormFilterActive', false);
+        // Refresh the tree to show all forms
+        this.refresh();
+    }
+
+    /**
+     * Checks if a form's label matches the current form filter
+     * @param label The label to check against the form filter
+     * @returns True if the label matches the form filter or no form filter is set
+     */
+    private applyFormFilter(label: string): boolean {
+        // If no form filter is set, all forms match
+        if (!this.formFilterText) {
+            return true;
+        }
+        
+        // Case-insensitive match of form filter text within the label
+        return label.toLowerCase().includes(this.formFilterText);
     }
 
     /**

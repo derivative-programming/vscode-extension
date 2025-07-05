@@ -148,6 +148,18 @@
           "when": "viewItem =~ /dataObjects.*showDataObjectFilter/ && appDnaDataObjectFilterActive",
           "group": "inline",
           "icon": "$(clear-all)"
+        },
+        {
+          "command": "appdna.showFormFilter",
+          "when": "viewItem =~ /forms.*showFormFilter/",
+          "group": "inline",
+          "icon": "$(filter)"
+        },
+        {
+          "command": "appdna.clearFormFilter",
+          "when": "viewItem =~ /forms.*showFormFilter/ && appDnaFormFilterActive",
+          "group": "inline",
+          "icon": "$(clear-all)"
         }
       ]
     },
@@ -275,6 +287,16 @@
       {
         "command": "appdna.clearDataObjectFilter",
         "title": "Clear Data Object Filter",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "appdna.showFormFilter",
+        "title": "Filter Forms",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "appdna.clearFormFilter",
+        "title": "Clear Form Filter",
         "icon": "$(clear-all)"
       },
       {

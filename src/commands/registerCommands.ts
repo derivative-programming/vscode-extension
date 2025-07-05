@@ -37,7 +37,7 @@ import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, close
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
-import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand } from './filterTreeViewCommands';
+import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand, showFormFilterInputCommand, clearFormFilterCommand } from './filterTreeViewCommands';
 // Import showAppDNASettingsView and related functions
 import { showAppDNASettingsView } from '../webviews/appDnaSettingsView';
 // Import showRegisterView
@@ -597,6 +597,19 @@ export function registerCommands(
                 `Form Details: ${node.label}\n\nForm details view is not yet implemented. This form represents an object workflow with isPage=true.`,
                 'OK'
             );
+        })
+    );
+
+    // Register form filter commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showFormFilter', async () => {
+            await showFormFilterInputCommand(jsonTreeDataProvider);
+        })
+    );
+    
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.clearFormFilter', () => {
+            clearFormFilterCommand(jsonTreeDataProvider);
         })
     );
 }

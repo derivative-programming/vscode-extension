@@ -1,6 +1,14 @@
 Agent todo items...
  
 
+ objectWorkflowParam
+ objectWorkflowOutputVar
+ objectWorkflowButton
+
+reportButton = objectWorkflowButton
+reportParam =  objectWorkflowOutputVar
+reportColumn = objectWorkflowParam
+
 cant use ctrl-a as first part of sequence. its select all.
 
 
