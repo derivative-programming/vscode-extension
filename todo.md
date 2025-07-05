@@ -4,9 +4,7 @@ Agent todo items...
 welcome view and extension readme...
 - add text describing the types of uis that can be generated (fabricated) from the model
 
-
-
-welcome view new Step 3... populate project settings.
+ 
 
 cant use ctrl-a as first part of sequence. its select all.
 

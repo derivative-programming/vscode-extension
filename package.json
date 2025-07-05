@@ -283,6 +283,12 @@
         "icon": "$(gear)"
       }
     ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "appDNAMcpProvider",
+        "label": "AppDNA MCP Server Provider"
+      }
+    ],
     "keybindings": [
       {
         "command": "appdna.addObject",

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "tools": [
     {
-      "name": "createUserStory",
+      "name": "create_user_story",
       "description": "Creates a user story and validates its format",
       "parameters": {
         "type": "object",
@@ -22,7 +22,7 @@
       }
     },
     {
-      "name": "listUserStories",
+      "name": "list_user_stories",
       "description": "Lists all user stories",
       "parameters": {
         "type": "object",

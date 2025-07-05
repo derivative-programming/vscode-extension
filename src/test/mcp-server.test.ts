@@ -35,12 +35,12 @@ suite('User Story Tools Tests', () => {
         const userStoryTools = new UserStoryTools(server);
         
         // Try with both valid formats
-        const validResult1 = await userStoryTools.createUserStory({
+        const validResult1 = await userStoryTools.create_user_story({
             description: 'As a User, I want to add a task'
         });
         assert.strictEqual(validResult1.success, true, 'Valid user story format should be accepted');
         
-        const validResult2 = await userStoryTools.createUserStory({
+        const validResult2 = await userStoryTools.create_user_story({
             title: 'US-123',
             description: 'A Manager wants to view all reports'
         });
@@ -52,7 +52,7 @@ suite('User Story Tools Tests', () => {
         const userStoryTools = new UserStoryTools(server);
         
         // Try with invalid format
-        const invalidResult = await userStoryTools.createUserStory({
+        const invalidResult = await userStoryTools.create_user_story({
             description: 'I want to add a task'
         });
         assert.strictEqual(invalidResult.success, false, 'Invalid user story format should be rejected');
@@ -66,13 +66,13 @@ suite('User Story Tools Tests', () => {
         const userStoryTools = new UserStoryTools(server);
         
         // Add a test story
-        await userStoryTools.createUserStory({
+        await userStoryTools.create_user_story({
             title: 'TEST-1',
             description: 'As a Tester, I want to view all test cases'
         });
         
         // List stories
-        const result = await userStoryTools.listUserStories();
+        const result = await userStoryTools.list_user_stories();
         
         assert.strictEqual(result.success, true, 'List operation should succeed');
         assert.strictEqual(result.stories.length, 1, 'Should have one story');

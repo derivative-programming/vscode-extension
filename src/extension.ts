@@ -14,6 +14,7 @@ import { AuthService } from './services/authService';
 import { showWelcomeView } from './webviews/welcomeView';
 import { showLexiconView } from './webviews/lexiconView';
 import { initializeStdioServer } from './mcp/stdioBridge';
+import { AppDNAMcpProvider } from './mcp/mcpProvider';
 
 // Track whether welcome view has been shown in this session
 let hasShownWelcomeView = false;
@@ -34,6 +35,22 @@ export function activate(context: vscode.ExtensionContext) {
     // Initialize the authentication service
     const authService = AuthService.getInstance();
     authService.initialize(context);
+
+    // TODO: Register the official MCP server definition provider when API is available
+    // The vscode.lm.registerMcpServerDefinitionProvider API is not yet available in VS Code 1.99.0
+    // Uncomment when upgrading to a newer VS Code version that supports MCP registration
+    /*
+    try {
+        const mcpProvider = new AppDNAMcpProvider();
+        const mcpRegistration = vscode.lm.registerMcpServerDefinitionProvider('appDNAMcpProvider', mcpProvider);
+        context.subscriptions.push(mcpRegistration);
+        context.subscriptions.push(mcpProvider);
+        console.log('MCP server definition provider registered successfully');
+    } catch (error) {
+        console.error('Failed to register MCP server definition provider:', error);
+        // Continue without MCP support if registration fails
+    }
+    */
 
     // Get the workspace folder and model file path from config
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;

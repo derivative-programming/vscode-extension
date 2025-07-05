@@ -17,10 +17,11 @@ export class UserStoryTools {
 
     /**
      * Creates a user story and validates its format
+     * Tool name: create_user_story (following MCP snake_case convention)
      * @param parameters Tool parameters containing title and description
      * @returns Result of the user story creation
      */
-    public async createUserStory(parameters: any): Promise<any> {
+    public async create_user_story(parameters: any): Promise<any> {
         const { title, description } = parameters;
         
         if (!description) {
@@ -111,9 +112,10 @@ export class UserStoryTools {
 
     /**
      * Lists all user stories
+     * Tool name: list_user_stories (following MCP snake_case convention)
      * @returns Array of user stories
      */
-    public async listUserStories(): Promise<any> {
+    public async list_user_stories(): Promise<any> {
         // Try to get stories from the model if available
         const modelService = this.mcpServer.getModelService();
         

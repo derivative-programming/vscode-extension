@@ -190,13 +190,13 @@ export class MCPServer {
         const { name, parameters } = params;
         try {
             let result;
-            if (name === 'createUserStory') {
+            if (name === 'create_user_story') {
                 if (!parameters || !parameters.description) {
                     throw new Error('Missing required parameter: description');
                 }
-                result = await this.userStoryTools.createUserStory(parameters);
-            } else if (name === 'listUserStories') {
-                result = await this.userStoryTools.listUserStories();
+                result = await this.userStoryTools.create_user_story(parameters);
+            } else if (name === 'list_user_stories') {
+                result = await this.userStoryTools.list_user_stories();
             } else {
                 throw new Error(`Unknown tool: ${name}`);
             }
@@ -217,10 +217,10 @@ export class MCPServer {
     }
 
     public async executeToolByName(name: string, parameters: any): Promise<any> {
-        if (name === 'createUserStory') {
-            return await this.userStoryTools.createUserStory(parameters);
-        } else if (name === 'listUserStories') {
-            return await this.userStoryTools.listUserStories();
+        if (name === 'create_user_story') {
+            return await this.userStoryTools.create_user_story(parameters);
+        } else if (name === 'list_user_stories') {
+            return await this.userStoryTools.list_user_stories();
         }
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -228,7 +228,7 @@ export class MCPServer {
     public getToolDefinitions(): any[] {
         return [
             {
-                name: 'createUserStory',
+                name: 'create_user_story',
                 description: 'Creates a user story and validates its format',
                 inputs: [
                     {
@@ -273,7 +273,7 @@ export class MCPServer {
                 }
             },
             {
-                name: 'listUserStories',
+                name: 'list_user_stories',
                 description: 'Lists all user stories',
                 inputs: [],
                 outputs: [
