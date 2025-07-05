@@ -1281,3 +1281,69 @@ After reviewing the official VS Code MCP documentation, several critical gaps an
 1. Update VS Code engine version in package.json
 2. Uncomment MCP provider registration in extension.ts
 3. Test official integration with VS Code MCP management
+
+## Object Hierarchy Diagram View Icon Button Review (Added 2025-07-05)
+
+### Current State Analysis:
+The hierarchy diagram view has a comprehensive toolbar with icon buttons for various diagram manipulation functions.
+
+### Icon Button Implementation:
+- **Toolbar Layout**: Search box + icon buttons + legend + checkbox controls
+- **Icon Libraries**: Uses VS Code codicons (`@vscode/codicons` v0.0.36)
+- **Styling**: Consistent `.icon-button` class with proper hover and focus states
+- **Accessibility**: All buttons include meaningful tooltips and proper focus management
+
+### Button Functions:
+1. **Expand All**: `codicon-expand-all` - Expands all nodes in the hierarchy
+2. **Collapse All**: `codicon-collapse-all` - Collapses all nodes to show only root
+3. **Zoom In**: `codicon-zoom-in` - Increases diagram zoom level
+4. **Zoom Out**: `codicon-zoom-out` - Decreases diagram zoom level  
+5. **Refresh**: `codicon-refresh` - Refreshes diagram with latest model data
+6. **Reset View**: `codicon-home` - Resets to initial view state (zoom, position, expansion)
+
+### Recent Improvements Made:
+- **Icon Consistency**: Converted "Reset" text button to use `codicon-home` icon
+- **Visual Harmony**: All toolbar buttons now use icons instead of mixed text/icon approach
+- **Button Order**: Refresh button positioned before reset button as intended
+- **Styling Cleanup**: Removed blue backgrounds and borders, using clean icon-only design
+
+### CSS Architecture:
+```css
+.icon-button {
+    background: none;
+    border: none;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 5px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+```
+
+### Design Principles Applied:
+- **Consistency**: All interactive buttons use the same styling pattern
+- **VS Code Integration**: Leverages VS Code's theming system and codicon library
+- **Accessibility**: Proper focus indicators and keyboard navigation support
+- **Semantic Structure**: Clear button purposes with descriptive tooltips
+
+### Files Involved:
+- `src/webviews/hierarchyView.js`: Main implementation file
+- `copilot-command-history.txt`: Change tracking and history
+
+## Icon Button Implementation (January 2025)
+
+**User Stories View Icon Button Conversion:**
+- Converted User Stories view toolbar to use icon buttons matching hierarchy view style
+- Added codicon CSS dependency and .icon-button styling for consistency
+- Toolbar buttons now use appropriate codicons:
+  - Add User Story: codicon-add
+  - Upload CSV: codicon-cloud-upload (confirmed available icon)
+  - Download CSV: codicon-cloud-download (confirmed available icon)
+- Modal dialog buttons remain as text buttons (appropriate for primary/secondary actions)
+- All icon buttons include descriptive tooltips for accessibility
+- Provides consistent VS Code-style interface across all view toolbars
+- Fixed icon availability issues by using well-established codicon names

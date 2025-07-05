@@ -517,6 +517,7 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Stories</title>
+    <link rel="stylesheet" href="https://unpkg.com/@vscode/codicons@latest/dist/codicon.css" />
     <style>
         body {
             font-family: var(--vscode-font-family);
@@ -622,6 +623,31 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
             background-color: var(--vscode-button-hoverBackground);
         }
         
+        /* Icon button styling for toolbar actions */
+        .icon-button {
+            background: none;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 5px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .icon-button:hover {
+            background: var(--vscode-toolbar-hoverBackground);
+            color: var(--vscode-foreground);
+        }
+        
+        .icon-button:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: 2px;
+        }
+        
         /* Secondary button styling for cancel button */
         #btnCancelAddStory {
             background-color: var(--vscode-button-secondaryBackground);
@@ -655,6 +681,12 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+        }
+        
+        .btn-container > div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .table-container {
@@ -745,10 +777,10 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
                 <input type="text" id="searchInput" placeholder="Filter user stories...">
             </div>
             <div>
-                <button id="btnAddStory">Add User Story</button>
+                <button id="btnAddStory" class="icon-button" title="Add User Story"><i class="codicon codicon-add"></i></button>
                 <input type="file" id="csvFileInput" class="csv-input" accept=".csv">
-                <button id="btnUploadCsv">Upload CSV</button>
-                <button id="btnDownloadCsv">Download CSV</button>
+                <button id="btnUploadCsv" class="icon-button" title="Upload CSV"><i class="codicon codicon-cloud-upload"></i></button>
+                <button id="btnDownloadCsv" class="icon-button" title="Download CSV"><i class="codicon codicon-cloud-download"></i></button>
             </div>
         </div>
         

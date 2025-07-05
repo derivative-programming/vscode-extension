@@ -185,8 +185,8 @@ async function getWebviewContent(context, allObjects) {
                 font-size: 16px;
             }
             .icon-button:hover {
-                background: var(--vscode-button-hoverBackground);
-                color: var(--vscode-button-hoverForeground);
+                background: var(--vscode-toolbar-hoverBackground);
+                color: var(--vscode-foreground);
             }
             .icon-button:focus {
                 outline: 1px solid var(--vscode-focusBorder);
@@ -356,7 +356,7 @@ async function getWebviewContent(context, allObjects) {
                 <button id="zoom-in" class="icon-button" title="Zoom In"><i class="codicon codicon-zoom-in"></i></button>
                 <button id="zoom-out" class="icon-button" title="Zoom Out"><i class="codicon codicon-zoom-out"></i></button>
                 <button id="refresh" class="icon-button" title="Refresh Diagram"><i class="codicon codicon-refresh"></i></button>
-                <button id="reset-zoom" class="button">Reset</button>
+                <button id="reset-zoom" class="icon-button" title="Reset View"><i class="codicon codicon-home"></i></button>
                 <div class="legend">
                     <div class="legend-item">
                         <div class="legend-color lookup"></div>
