@@ -1,8 +1,5 @@
 Agent todo items...
 
-tell users about the repo with the win app version of the extension
-- help view
-- readme
 
 welcome view...
 - add text describing the types of uis that can be generated (fabricated) from the model

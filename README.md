@@ -45,6 +45,8 @@ The extension provides:
 - **Detail Panels**: Edit individual objects and properties
 - **Command Palette**: Access all extension features via `Ctrl+Shift+P`
 
+A Windows app version of this extension is available [here](https://github.com/derivative-programming/ModelWinApp).
+
 ## Requirements
 
 - Visual Studio Code 1.99.0 or higher
@@ -57,7 +59,7 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-- Large model files may take a moment to load initially
+- MCP is a work in progress
 
 Please report issues on our [GitHub repository](https://github.com/derivative-programming/vscode-extension/issues).
 

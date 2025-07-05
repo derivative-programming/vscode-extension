@@ -143,6 +143,8 @@ class HelpPanel {
                 Learn more about this extension on <a href="https://github.com/derivative-programming/vscode-extension" target="_blank" class="help-link">GitHub</a>.
                 <br><br>
                 Visit our repository to find detailed documentation, examples, and the latest updates.
+                <br><br>
+                A windows app version of this extension is available <a href="https://github.com/derivative-programming/ModelWinApp" target="_blank" class="help-link">here</a>.
             </div>
         </div>
 

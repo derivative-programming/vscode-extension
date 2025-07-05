@@ -440,6 +440,7 @@ class WelcomePanel {
         
         <div class="footer">
             <p>Learn more about this extension on <a href="https://github.com/derivative-programming/vscode-extension" target="_blank">GitHub</a></p>
+            <p>A windows app version of this extension is available <a href="https://github.com/derivative-programming/ModelWinApp" target="_blank">here</a></p>
         </div>
     </div>
 
