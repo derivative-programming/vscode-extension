@@ -11,3 +11,6 @@
 2025-07-05: 'Collapse All' should use icon instead of text - using codicon like tree view collapse
 2025-07-05: move the refresh diagram button to the left of the reset button
 2025-07-05: remove blue background and border from icon buttons - just show the icon
+2025-07-05: if 'Show Lookup Data Objects' is unchecked, hide all lookup objects that have no children
+2025-07-05: on the detail modal, show the data type next to each property
+2025-07-05: the value column is not necessary - remove value column from details modal

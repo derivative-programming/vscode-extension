@@ -317,6 +317,31 @@ async function getWebviewContent(context, allObjects) {
                 border-top: 1px solid var(--vscode-panel-border);
                 gap: 10px;
             }
+            .detail-panel table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 5px 0;
+            }
+            .detail-panel th {
+                background: var(--vscode-editor-background);
+                color: var(--vscode-foreground);
+                font-weight: bold;
+                padding: 8px 4px;
+                text-align: left;
+                border-bottom: 1px solid var(--vscode-panel-border);
+                font-size: 12px;
+            }
+            .detail-panel td {
+                padding: 6px 4px;
+                border-bottom: 1px solid var(--vscode-panel-border);
+                font-size: 11px;
+                vertical-align: top;
+            }
+            .detail-panel .data-type {
+                color: var(--vscode-textLink-foreground);
+                font-style: italic;
+                font-size: 10px;
+            }
         </style>
         <script src="https://d3js.org/d3.v7.min.js"></script>
     </head>
@@ -667,18 +692,56 @@ async function getWebviewContent(context, allObjects) {
                     // Apply visibility filter to all nodes
                     svg.selectAll('g.node')
                         .style('display', function(d) {
-                            if (!showLookup && d.data.isLookup) {
-                                return 'none';
+                            // Never hide the root "All Objects" node
+                            if (d === root) {
+                                return 'block';
                             }
+                            
+                            // If showLookup is true, show all nodes
+                            if (showLookup) {
+                                return 'block';
+                            }
+                            
+                            // If showLookup is false, only hide lookup nodes that have no children
+                            if (d.data.isLookup) {
+                                // Check if this lookup node has any children (visible or collapsed)
+                                const hasChildren = (d.children && d.children.length > 0) || (d._children && d._children.length > 0);
+                                
+                                if (hasChildren) {
+                                    // Keep lookup nodes that have children
+                                    console.log('Keeping lookup node with children:', d.data.name);
+                                    return 'block';
+                                } else {
+                                    // Hide lookup nodes with no children
+                                    console.log('Hiding childless lookup node:', d.data.name);
+                                    return 'none';
+                                }
+                            }
+                            
+                            // Show all non-lookup nodes
                             return 'block';
                         });
                     
-                    // Also hide/show connecting links for hidden lookup nodes
+                    // Handle connecting links - hide links where both source and target are hidden
                     svg.selectAll('path.link')
                         .style('display', function(d) {
-                            if (!showLookup && (d.source.data.isLookup || d.target.data.isLookup)) {
+                            // If showLookup is true, show all links
+                            if (showLookup) {
+                                return 'block';
+                            }
+                            
+                            // Check if source or target nodes are hidden
+                            const sourceNode = svg.selectAll('g.node').filter(node => node === d.source);
+                            const targetNode = svg.selectAll('g.node').filter(node => node === d.target);
+                            
+                            const isSourceHidden = sourceNode.style('display') === 'none';
+                            const isTargetHidden = targetNode.style('display') === 'none';
+                            
+                            // Hide link if either source or target is hidden
+                            if (isSourceHidden || isTargetHidden) {
                                 return 'none';
                             }
+                            
                             return 'block';
                         });
                 }
@@ -842,9 +905,11 @@ async function getWebviewContent(context, allObjects) {
                     
                     // Add properties
                     if (details.properties && details.properties.length > 0) {
-                        html += '<tr><th colspan="2">Properties</th></tr>';
+                        html += '<tr><th>Property</th><th>Data Type</th></tr>';
                         details.properties.forEach(prop => {
-                            html += '<tr><td>' + prop.name + '</td><td>' + (prop.value || '') + '</td></tr>';
+                            const propName = prop.name || '';
+                            const dataType = prop.dataType || 'Unknown';
+                            html += '<tr><td>' + propName + '</td><td><span class="data-type">' + dataType + '</span></td></tr>';
                         });
                     }
                     
@@ -1058,7 +1123,11 @@ function buildObjectRelationships(objects) {
                 isLookup: obj.isLookup === "true", // Convert string to boolean
                 children: [],
                 details: {
-                    properties: obj.prop ? obj.prop.map(p => ({ name: p.name, value: p.value })) : [],
+                    properties: obj.prop ? obj.prop.map(p => ({ 
+                        name: p.name, 
+                        value: p.value,
+                        dataType: p.sqlServerDBDataType || p.dataType || 'Unknown'
+                    })) : [],
                     parentName: parentName,
                     isLookup: obj.isLookup === "true",
                     children: []

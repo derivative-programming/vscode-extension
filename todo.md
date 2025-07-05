@@ -18,9 +18,6 @@ fabrication requests view...
  
 
 
-- object Hierarchy Diagram view...
-- 'Show Lookup Data Objects' should not hide items if its children are non-lookup items
-- details modal should show data type on each property
 
 'there is no data provider registered....' on startup  
 
