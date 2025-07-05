@@ -13,6 +13,88 @@ let userStoryItems = [];
 let originalUserStoryItems = [];
 
 /**
+ * Extracts the role name from a user story text.
+ * @param {string} text User story text
+ * @returns {string|null} The extracted role name or null if not found
+ */
+function extractRoleFromUserStory(text) {
+    if (!text || typeof text !== "string") { return null; }
+    
+    // Remove extra spaces
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract role from: A [Role] wants to...
+    const re1 = /^A\s+\[?(\w+(?:\s+\w+)*)\]?\s+wants to/i;
+    // Regex to extract role from: As a [Role], I want to...
+    const re2 = /^As a\s+\[?(\w+(?:\s+\w+)*)\]?\s*,?\s*I want to/i;
+    
+    const match1 = re1.exec(t);
+    const match2 = re2.exec(t);
+    
+    if (match1) {
+        return match1[1].trim();
+    } else if (match2) {
+        return match2[1].trim();
+    }
+    
+    return null;
+}
+
+/**
+ * Validates if a role exists in the model's role data objects.
+ * @param {string} roleName The role name to validate
+ * @param {Object} modelService The model service instance
+ * @returns {boolean} True if the role exists, false otherwise
+ */
+function isValidRole(roleName, modelService) {
+    if (!roleName || !modelService || !modelService.isFileLoaded()) {
+        return false;
+    }
+    
+    try {
+        const allObjects = modelService.getAllObjects();
+        if (!allObjects || !Array.isArray(allObjects)) {
+            return false;
+        }
+        
+        // Find Role objects (objects with name 'Role' or containing 'role')
+        const roleObjects = allObjects.filter(obj => 
+            obj.name === 'Role' || (obj.name && obj.name.toLowerCase().includes('role'))
+        );
+        
+        if (roleObjects.length === 0) {
+            // If no Role objects exist in the model, allow any role name
+            return true;
+        }
+        
+        // Check if the role name exists in any Role object's lookup items
+        for (const roleObj of roleObjects) {
+            if (roleObj.lookupItem && Array.isArray(roleObj.lookupItem)) {
+                const roleExists = roleObj.lookupItem.some(item => {
+                    // Check both name and displayName for matches (case insensitive)
+                    const itemName = (item.name || "").toLowerCase();
+                    const itemDisplayName = (item.displayName || "").toLowerCase();
+                    const searchRole = roleName.toLowerCase();
+                    
+                    return itemName === searchRole || itemDisplayName === searchRole;
+                });
+                
+                if (roleExists) {
+                    return true;
+                }
+            }
+        }
+        
+        // Role not found in any lookup items
+        return false;
+    } catch (error) {
+        console.error('Error validating role:', error);
+        // In case of error, return true to avoid blocking user stories
+        return true;
+    }
+}
+
+/**
  * Validates user story text against allowed formats.
  * Accepts:
  *   - A [Role Name] wants to [View all, view, add, update, delete] [a,an,all] [Object Name(s)]
@@ -170,6 +252,29 @@ function showUserStoriesView(context, modelService) {
                             command: 'addUserStoryError',
                             data: {
                                 error: 'Story text format is invalid. Expected format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]" or "As a [Role name], I want to [View all, view, add, update, delete] a [object name]" (brackets optional, a/an/all allowed)'
+                            }
+                        });
+                        return;
+                    }
+
+                    // Extract and validate the role from the user story
+                    const roleName = extractRoleFromUserStory(storyText);
+                    if (!roleName) {
+                        panel.webview.postMessage({
+                            command: 'addUserStoryError',
+                            data: {
+                                error: 'Unable to extract role name from the user story. Please ensure the story follows the correct format.'
+                            }
+                        });
+                        return;
+                    }
+
+                    // Validate that the role exists in the model
+                    if (!isValidRole(roleName, modelService)) {
+                        panel.webview.postMessage({
+                            command: 'addUserStoryError',
+                            data: {
+                                error: `Role "${roleName}" does not exist in the model. Please ensure the role is defined in a Role data object with lookup items before creating user stories that reference it.`
                             }
                         });
                         return;
@@ -361,6 +466,21 @@ function showUserStoriesView(context, modelService) {
                         if (!isValidUserStoryFormat(storyText)) {
                             results.skipped++;
                             results.errors.push(`Invalid format: "${storyText}"`);
+                            continue;
+                        }
+                        
+                        // Extract and validate the role from the user story
+                        const roleName = extractRoleFromUserStory(storyText);
+                        if (!roleName) {
+                            results.skipped++;
+                            results.errors.push(`Unable to extract role from: "${storyText}"`);
+                            continue;
+                        }
+                        
+                        // Validate that the role exists in the model
+                        if (!isValidRole(roleName, modelService)) {
+                            results.skipped++;
+                            results.errors.push(`Role "${roleName}" does not exist in model: "${storyText}"`);
                             continue;
                         }
                         
@@ -763,7 +883,7 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
 <body>
     <div class="header-container">
         <h1>User Stories</h1>
-        <p class="subtitle">Create and manage user stories that describe features and requirements.</p>
+        <p class="subtitle">Create and manage user stories that describe features and requirements. After you add a user story, request Model AI Processing to update the model automatically.</p>
         <hr>
     </div>
     
@@ -818,7 +938,8 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
                 <label for="storyText">Story Text:</label>
                 <textarea id="storyText" placeholder="Enter user story text..."></textarea>
                 <p>Format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]"<br>
-Alternate format: "As a [Role name], I want to [View all, view, add, update, delete] a [object name]"</p>
+Alternate format: "As a [Role name], I want to [View all, view, add, update, delete] a [object name]"<br>
+<strong>Note:</strong> The role must exist in the model's Role data object lookup items.</p>
                 <div id="addStoryError" class="error-message" style="display: none;"></div>
             </div>            <div class="modal-footer">
                 <button id="btnConfirmAddStory">Add</button>

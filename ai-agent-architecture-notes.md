@@ -1347,3 +1347,78 @@ The hierarchy diagram view has a comprehensive toolbar with icon buttons for var
 - All icon buttons include descriptive tooltips for accessibility
 - Provides consistent VS Code-style interface across all view toolbars
 - Fixed icon availability issues by using well-established codicon names
+
+## User Story Management System
+
+### Add User Story Process Flow
+1. **UI Trigger**: User clicks "Add User Story" icon button (codicon-add) in User Stories view toolbar
+2. **Modal Display**: Add User Story modal opens with text input field and validation feedback area
+3. **Client-Side Validation**: Empty text check performed before sending to backend
+4. **Backend Processing**: Extension receives 'addUserStory' message and performs comprehensive validation
+5. **Model Update**: Valid stories are added to the model in memory and marked as unsaved changes
+6. **UI Feedback**: Success/error messages displayed and table updated dynamically
+
+### User Story Validation Rules
+The system implements multi-layered validation for user stories:
+
+#### Format Validation (`isValidUserStoryFormat`)
+- **Two Accepted Formats**:
+  1. `A [Role Name] wants to [action] [a/an/all] [Object Name(s)]`
+  2. `As a [Role Name], I want to [action] [a/an/all] [Object Name(s)]`
+- **Allowed Actions**: View all, view, add, update, delete (case insensitive)
+- **Articles**: Must include "a", "an", or "all" before the object name
+- **Brackets**: Optional around role names, actions, and object names
+- **Whitespace**: Extra spaces are normalized during validation
+- **Examples**:
+  - ✅ "A [Manager] wants to view all [Reports]"
+  - ✅ "As a User, I want to add a Product"
+  - ✅ "A Developer wants to delete an Issue"
+  - ❌ "I want to see reports" (missing role and article)
+
+#### Duplicate Prevention
+- **Text Comparison**: Exact string matching against existing stories in the model
+- **Case Sensitive**: Duplicate check is case-sensitive
+- **Scope**: Checks within the first namespace of the model
+- **Error Message**: "A user story with this text already exists"
+
+#### Empty Text Protection
+- **Client-Side**: Modal validates empty input before submission
+- **Backend**: Additional empty/null checks in the extension
+- **Trimming**: Leading/trailing whitespace is trimmed before validation
+
+#### Model Structure Validation
+- **Namespace Check**: Ensures model has valid namespace array structure
+- **UserStory Array**: Creates userStory array if it doesn't exist
+- **Error Handling**: Comprehensive error messages for model structure issues
+
+#### Role Existence Validation (NEW)
+- **Role Extraction**: The system extracts role names from user story text using regex patterns
+- **Model Validation**: Checks if the extracted role exists in the model's Role data objects
+- **Lookup Item Search**: Searches through Role object lookup items for matching role names
+- **Case Insensitive**: Role matching is case insensitive and checks both `name` and `displayName` fields
+- **Fallback Behavior**: If no Role objects exist in the model, any role name is accepted
+- **Error Messages**: Clear feedback when roles don't exist: "Role '[name]' does not exist in the model"
+- **CSV Import**: Same role validation applies to bulk CSV imports
+
+### Enhanced Data Flow Architecture
+- **WebView → Extension**: User input sent via 'addUserStory' message
+- **Extension → Model**: Stories added to `rootModel.namespace[0].userStory[]`
+- **Model Service**: Changes marked as unsaved using `markUnsavedChanges()`
+- **Extension → WebView**: Success/error responses with updated data
+- **Persistence**: Changes remain in memory until user saves the model file
+
+### CSV Import Validation
+The system also supports CSV import with the same validation rules:
+- **Format Validation**: Each imported story must pass `isValidUserStoryFormat`
+- **Duplicate Detection**: Imported stories checked against existing ones
+- **Error Reporting**: Detailed feedback on skipped items with reasons
+- **Batch Processing**: Results summary showing added vs. skipped counts
+
+### Error Handling and UX
+- **Real-time Feedback**: Immediate validation results displayed in modal
+- **Clear Messages**: Specific error descriptions help users understand format requirements
+- **Success Indication**: Confirmation messages remind users to save changes
+- **Non-blocking**: Invalid stories don't prevent other operations
+- **Accessibility**: Error messages are properly associated with form controls
+
+This validation system ensures data quality while providing clear guidance to users on proper user story formatting.

@@ -39,6 +39,23 @@ export class UserStoryTools {
             };
         }
 
+        // Extract and validate the role from the user story
+        const roleName = this.extractRoleFromUserStory(description);
+        if (!roleName) {
+            return {
+                success: false,
+                error: 'Unable to extract role name from the user story. Please ensure the story follows the correct format.'
+            };
+        }
+
+        // Validate that the role exists in the model
+        if (!this.isValidRole(roleName)) {
+            return {
+                success: false,
+                error: `Role "${roleName}" does not exist in the model. Please ensure the role is defined in a Role data object with lookup items before creating user stories that reference it.`
+            };
+        }
+
         // Try to save to the model if available
         const modelService = this.mcpServer.getModelService();
         let success = false;
@@ -154,6 +171,94 @@ export class UserStoryTools {
             })),
             note: inMemoryStories.length > 0 ? "Stories loaded from in-memory storage (model file not loaded)" : "No stories found"
         };
+    }
+
+    /**
+     * Extracts the role name from a user story text.
+     * @param text User story text
+     * @returns The extracted role name or null if not found
+     */
+    private extractRoleFromUserStory(text: string): string | null {
+        if (!text || typeof text !== "string") {
+            return null;
+        }
+        
+        // Remove extra spaces
+        const t = text.trim().replace(/\s+/g, " ");
+        
+        // Regex to extract role from: A [Role] wants to...
+        const re1 = /^A\s+\[?(\w+(?:\s+\w+)*)\]?\s+wants to/i;
+        // Regex to extract role from: As a [Role], I want to...
+        const re2 = /^As a\s+\[?(\w+(?:\s+\w+)*)\]?\s*,?\s*I want to/i;
+        
+        const match1 = re1.exec(t);
+        const match2 = re2.exec(t);
+        
+        if (match1) {
+            return match1[1].trim();
+        } else if (match2) {
+            return match2[1].trim();
+        }
+        
+        return null;
+    }
+
+    /**
+     * Validates if a role exists in the model's role data objects.
+     * @param roleName The role name to validate
+     * @returns True if the role exists, false otherwise
+     */
+    private isValidRole(roleName: string): boolean {
+        if (!roleName) {
+            return false;
+        }
+        
+        try {
+            const modelService = this.mcpServer.getModelService();
+            if (!modelService || !modelService.isFileLoaded()) {
+                return false;
+            }
+            
+            const allObjects = modelService.getAllObjects();
+            if (!allObjects || !Array.isArray(allObjects)) {
+                return false;
+            }
+            
+            // Find Role objects (objects with name 'Role' or containing 'role')
+            const roleObjects = allObjects.filter((obj: any) => 
+                obj.name === 'Role' || (obj.name && obj.name.toLowerCase().includes('role'))
+            );
+            
+            if (roleObjects.length === 0) {
+                // If no Role objects exist in the model, allow any role name
+                return true;
+            }
+            
+            // Check if the role name exists in any Role object's lookup items
+            for (const roleObj of roleObjects) {
+                if (roleObj.lookupItem && Array.isArray(roleObj.lookupItem)) {
+                    const roleExists = roleObj.lookupItem.some((item: any) => {
+                        // Check both name and displayName for matches (case insensitive)
+                        const itemName = (item.name || "").toLowerCase();
+                        const itemDisplayName = (item.displayName || "").toLowerCase();
+                        const searchRole = roleName.toLowerCase();
+                        
+                        return itemName === searchRole || itemDisplayName === searchRole;
+                    });
+                    
+                    if (roleExists) {
+                        return true;
+                    }
+                }
+            }
+            
+            // Role not found in any lookup items
+            return false;
+        } catch (error) {
+            console.error('Error validating role:', error);
+            // In case of error, return true to avoid blocking user stories
+            return true;
+        }
     }
 
     /**
