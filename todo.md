@@ -20,9 +20,6 @@ fabrication requests view...
 
 - object Hierarchy Diagram view...
 - 'Show Lookup Data Objects' should not hide items if its children are non-lookup items
-- reset button should reset the view to the initial state. seems like its a little differnt.
-- details modal should have a close (x) button in the top right corner
-- details modal should have close button in the bottom right corner
 - details modal should show data type on each property
 - 'Expand All' should use icon instead of text
 - 'Collapse All' should use icon instead of text

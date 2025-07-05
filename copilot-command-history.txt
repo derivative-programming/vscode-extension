@@ -3,3 +3,7 @@
 2025-06-29: Fixed project settings view schema file error - updated ModelService.getSchemaPath() to use correct extension ID and more robust path resolution
 2025-01-05: in the register view, remove the cancel button
 2025-01-05: On the fabrication request list view request details modal if you click outside the modal it closes. This should not happen. The validation request list view request details modal works correctly.
+2025-07-05: review the object Hierarchy Diagram view
+2025-07-05: details modal should have close button in the bottom right corner
+2025-07-05: reset button should reset the view to the initial state. seems like its a little differnt.
+2025-07-05: expand all on reset as well

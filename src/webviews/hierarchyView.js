@@ -257,6 +257,45 @@ async function getWebviewContent(context, allObjects) {
                 overflow-y: auto;
                 max-height: calc(100vh - 80px);
             }
+            .detail-panel-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+                border-bottom: 1px solid var(--vscode-panel-border);
+            }
+            .detail-panel-title {
+                margin: 0;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            .detail-panel-close-x {
+                background: none;
+                border: none;
+                color: var(--vscode-foreground);
+                cursor: pointer;
+                font-size: 16px;
+                padding: 2px 6px;
+                border-radius: 3px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+            }
+            .detail-panel-close-x:hover {
+                background: var(--vscode-button-hoverBackground);
+            }
+            .detail-panel-footer {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                margin-top: 15px;
+                padding-top: 10px;
+                border-top: 1px solid var(--vscode-panel-border);
+                gap: 10px;
+            }
         </style>
         <script src="https://d3js.org/d3.v7.min.js"></script>
     </head>
@@ -286,10 +325,15 @@ async function getWebviewContent(context, allObjects) {
                 <div id="diagram"></div>
             </div>
             <div id="detail-panel" class="detail-panel">
-                <h3 id="detail-title">Object Details</h3>
+                <div class="detail-panel-header">
+                    <h3 id="detail-title" class="detail-panel-title">Object Details</h3>
+                    <button id="close-detail-x" class="detail-panel-close-x" title="Close"><i class="codicon codicon-close"></i></button>
+                </div>
                 <div id="detail-content"></div>
-                <button id="close-detail" class="button">Close</button>
-                <button id="show-full-details" class="button">Show Full Details</button>
+                <div class="detail-panel-footer">
+                    <button id="show-full-details" class="button">Show Full Details</button>
+                    <button id="close-detail" class="button">Close</button>
+                </div>
             </div>
         </div>
 
@@ -390,8 +434,9 @@ async function getWebviewContent(context, allObjects) {
                     document.getElementById('collapse-all').addEventListener('click', collapseAll);
                     document.getElementById('zoom-in').addEventListener('click', zoomIn);
                     document.getElementById('zoom-out').addEventListener('click', zoomOut);
-                    document.getElementById('reset-zoom').addEventListener('click', resetZoom);                    document.getElementById('refresh').addEventListener('click', refreshDiagram);
+                    document.getElementById('reset-zoom').addEventListener('click', resetViewToInitial);                    document.getElementById('refresh').addEventListener('click', refreshDiagram);
                     document.getElementById('close-detail').addEventListener('click', closeDetailPanel);
+                    document.getElementById('close-detail-x').addEventListener('click', closeDetailPanel);
                     document.getElementById('show-full-details').addEventListener('click', showFullDetails);
                     document.getElementById('search').addEventListener('input', searchObjects);
                     document.getElementById('show-lookup').addEventListener('change', toggleLookupItems);
@@ -647,6 +692,35 @@ async function getWebviewContent(context, allObjects) {
                         .transition()
                         .duration(300)
                         .call(zoom.transform, d3.zoomIdentity.translate(margin.left, margin.top));
+                }
+                
+                // Reset view to initial state (comprehensive reset)
+                function resetViewToInitial() {
+                    console.log('Resetting view to initial state...');
+                    
+                    // 1. Clear search input and highlights
+                    document.getElementById('search').value = '';
+                    clearSearchHighlights(root);
+                    
+                    // 2. Close details panel if open
+                    closeDetailPanel();
+                    
+                    // 3. Reset lookup checkbox to checked (show all lookup items)
+                    document.getElementById('show-lookup').checked = true;
+                    
+                    // 4. Expand all nodes to show full hierarchy
+                    expandAll();
+                    
+                    // 5. Reset zoom and position to initial view
+                    setTimeout(() => {
+                        setInitialView();
+                    }, 100);
+                    
+                    // 6. Show all lookup items again
+                    svg.selectAll('g.node').style('display', 'block');
+                    svg.selectAll('path.link').style('display', 'block');
+                    
+                    console.log('View reset complete - all nodes expanded');
                 }
                 
                 // Center view on a specific node
