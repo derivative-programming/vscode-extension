@@ -990,13 +990,6 @@
                 document.getElementById("submitAdd").click(); // Trigger submit button click
             }
         });
-        
-        // Close modal when clicking outside the modal content
-        window.onclick = function(event) {
-            if (event.target.className === "modal" && event.target.style.display === "flex") {
-                event.target.style.display = "none";
-            }
-        };
     }    function renderTable() {
         console.log(`[Webview] renderTable() called at ${new Date().toISOString()}`);
         const table = document.getElementById("fabricationTable");

@@ -13,7 +13,6 @@ cant use ctrl-a as first part of sequence. its select all.
 
 
 fabrication requests view...
-- details modal should not close if clicking outside the modal (others do this correctly already)
 - add a button to open the output folder in the file explorer
 - allow for a deployment script to be run after fabrication results are downloaded
  
