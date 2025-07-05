@@ -78,6 +78,9 @@ class WelcomePanel {
                     case "openLoginView":
                         vscode.commands.executeCommand("appdna.loginModelServices");
                         break;
+                    case "openProjectSettings":
+                        vscode.commands.executeCommand("appdna.showProjectSettings");
+                        break;
                     case "showModelFeatureCatalog":
                         vscode.commands.executeCommand("appdna.modelFeatureCatalog");
                         break;
@@ -384,6 +387,14 @@ class WelcomePanel {
 
                 <div class="workflow-step">
                     <div class="workflow-step-number">2</div>
+                    <div class="workflow-step-title">Update Project Settings</div>
+                    <div class="workflow-step-description">Configure your project settings with information about your project such as name, description, and other metadata.</div>
+                    <div class="workflow-note">Project settings help the AI understand your project context for better code generation.</div>
+                    <button id="openProjectSettingsButton" class="button" style="display: none;">Open Project Settings</button>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">3</div>
                     <div class="workflow-step-title">Register or Login to AppDNA Model Services</div>
                     <div class="workflow-step-description">Create an account or sign in to access the AppDNA Model Services features.</div>
                     <div class="workflow-note">Model Services provide AI-assisted pre-population, validation, and code generation services.</div>
@@ -392,14 +403,14 @@ class WelcomePanel {
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">3</div>
+                    <div class="workflow-step-number">4</div>
                     <div class="workflow-step-title">Add Model Features</div>
-                    <div class="workflow-step-description">From Model Services, browse and select from a catalog of features to pre-populate your model.</div>
+                    <div class="workflow-step-description">From Model Services, browse and select from a catalog of features to pre-populate your model. They are added during the 'Model AI Processing' Step.</div>
                     <button id="viewModelFeatureCatalogButton" class="button" style="display: none;">View Model Feature Catalog</button>
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">4</div>
+                    <div class="workflow-step-number">5</div>
                     <div class="workflow-step-title">Request Model AI Processing</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model AI processing service and download the results when complete.</div>
                     <div class="workflow-note">AI processing adds data to the model. It does not change existing data in the model.</div>
@@ -407,7 +418,7 @@ class WelcomePanel {
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">5</div>
+                    <div class="workflow-step-number">6</div>
                     <div class="workflow-step-title">Request Model Validation</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Validation service, download the results when complete, and approve and apply any change suggestions.</div>
                     <div class="workflow-note">Model validation change requests will add to and modify the model.</div>
@@ -415,14 +426,14 @@ class WelcomePanel {
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">6</div>
+                    <div class="workflow-step-number">7</div>
                     <div class="workflow-step-title">Select Blueprints to Fabricate</div>
                     <div class="workflow-step-description">From Model Services, select from the Fabrication Blueprint Catalog to define the type of files you want to fabricate.</div>
                     <button id="viewFabricationBlueprintCatalogButton" class="button" style="display: none;">View Fabrication Blueprint Catalog</button>
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">7</div>
+                    <div class="workflow-step-number">8</div>
                     <div class="workflow-step-title">Request Model Fabrication</div>
                     <div class="workflow-step-description">From Model Services, submit the model to the Model Fabrication service and download the fabrication results when complete.</div>
                     <div class="workflow-note">In the output folder (configured in your app-dna.config.json file), you will find generated files. Copy what you need from here to your project source code folder.</div>
@@ -430,9 +441,9 @@ class WelcomePanel {
                 </div>
 
                 <div class="workflow-step">
-                    <div class="workflow-step-number">8</div>
+                    <div class="workflow-step-number">9</div>
                     <div class="workflow-step-title">Manual Model Editing</div>
-                    <div class="workflow-step-description">Manually make any changes you like to the model, then go back to step 4.</div>
+                    <div class="workflow-step-description">Manually make any changes you like to the model, then go back to step 5.</div>
                     <div class="workflow-note">Use the AppDNA tree view or directly edit the JSON file to make custom modifications to your model before re-running AI processing.</div>
                 </div>
             </div>
@@ -503,6 +514,14 @@ class WelcomePanel {
             if (loginButton) {
                 loginButton.addEventListener("click", () => {
                     vscode.postMessage({ command: "openLoginView" });
+                });
+            }
+
+            // Add event listener for Project Settings button
+            const openProjectSettingsButton = document.getElementById("openProjectSettingsButton");
+            if (openProjectSettingsButton) {
+                openProjectSettingsButton.addEventListener("click", () => {
+                    vscode.postMessage({ command: "openProjectSettings" });
                 });
             }
 
@@ -608,6 +627,7 @@ class WelcomePanel {
             // Update model-dependent buttons state based on whether a model is loaded
             function updateModelDependentButtonsState(modelLoaded, blueprintsSelected) {
                 const modelDependentButtons = [
+                    "openProjectSettingsButton",
                     "viewModelFeatureCatalogButton",
                     "requestModelAIProcessingButton",
                     "requestModelValidationButton",

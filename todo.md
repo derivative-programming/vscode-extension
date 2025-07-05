@@ -6,8 +6,7 @@ welcome view and extension readme...
 
 
 
-welcome view new Step 3. text...
-- Add pre-configured features to your model to get a head start. They are added during the 'AI Processing' Phase.
+welcome view new Step 3... populate project settings.
 
 cant use ctrl-a as first part of sequence. its select all.
 
