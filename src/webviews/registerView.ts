@@ -92,10 +92,6 @@ export async function showRegisterView(context: vscode.ExtensionContext, onRegis
                 }
                 return;
                 
-            case "cancel":
-                panel.dispose();
-                return;
-                
             case "login":
                 // Close register view and open login view
                 panel.dispose();
@@ -304,7 +300,6 @@ function getRegisterViewContent(): string {
             </div>
             <div id="successMessage" class="success">Registration successful! Welcome to AppDNA Model Services!</div>
             <div class="buttons">
-                <button type="button" id="cancelButton" class="secondary">Cancel</button>
                 <button type="submit" id="submitButton">Register</button>
             </div>
             <div class="login-link">
@@ -338,7 +333,6 @@ function getRegisterViewContent(): string {
                 const generalError = document.getElementById('generalError');
                 const validationErrors = document.getElementById('validationErrors');
                 const successMessage = document.getElementById('successMessage');
-                const cancelButton = document.getElementById('cancelButton');
                 const submitButton = document.getElementById('submitButton');
                 const emailField = document.getElementById('email');
 
@@ -453,13 +447,6 @@ function getRegisterViewContent(): string {
                         password: password,
                         confirmPassword: confirmPassword,
                         optIntoTerms: optIntoTerms
-                    });
-                });
-                
-                // Handle cancel button
-                cancelButton.addEventListener('click', function() {
-                    vscode.postMessage({
-                        command: 'cancel'
                     });
                 });
                 

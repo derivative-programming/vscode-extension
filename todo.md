@@ -1,7 +1,7 @@
 Agent todo items...
 
 
-welcome view...
+welcome view and extension readme...
 - add text describing the types of uis that can be generated (fabricated) from the model
 
 
@@ -16,10 +16,7 @@ fabrication requests view...
 - details modal should not close if clicking outside the modal (others do this correctly already)
 - add a button to open the output folder in the file explorer
 - allow for a deployment script to be run after fabrication results are downloaded
-
-
-register view...
-- remove cancel button
+ 
 
 
 - object Hierarchy Diagram view...
