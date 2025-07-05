@@ -1348,77 +1348,171 @@ The hierarchy diagram view has a comprehensive toolbar with icon buttons for var
 - Provides consistent VS Code-style interface across all view toolbars
 - Fixed icon availability issues by using well-established codicon names
 
-## User Story Management System
+## Report Details View Architecture Review (2025-07-05)
 
-### Add User Story Process Flow
-1. **UI Trigger**: User clicks "Add User Story" icon button (codicon-add) in User Stories view toolbar
-2. **Modal Display**: Add User Story modal opens with text input field and validation feedback area
-3. **Client-Side Validation**: Empty text check performed before sending to backend
-4. **Backend Processing**: Extension receives 'addUserStory' message and performs comprehensive validation
-5. **Model Update**: Valid stories are added to the model in memory and marked as unsaved changes
-6. **UI Feedback**: Success/error messages displayed and table updated dynamically
+### File Structure
+- **Main View**: `src/webviews/reportDetailsView.js` - Wrapper that delegates to the reports subfolder
+- **Implementation**: `src/webviews/reports/reportDetailsView.js` - Core implementation with 826 lines
+- **Components**: `src/webviews/reports/components/` - Modular template system
+- **Templates**: Multiple template files for different sections (main, settings, columns, buttons, params)
+- **Styles**: `src/webviews/reports/styles/detailsViewStyles.js` - CSS-in-JS styling
 
-### User Story Validation Rules
-The system implements multi-layered validation for user stories:
+### Key Features
+1. **Tabbed Interface**: Settings, Columns, Buttons, Filters (Parameters)
+2. **Dual View Modes**: List view and Table view for array properties
+3. **Schema-Driven**: Uses app-dna.schema.json to dynamically generate form fields
+4. **Property Management**: Checkboxes control property existence in JSON
+5. **Live Updates**: Direct model manipulation with real-time webview refresh
+6. **Panel Management**: Prevents duplicate panels, tracks open panels
 
-#### Format Validation (`isValidUserStoryFormat`)
-- **Two Accepted Formats**:
-  1. `A [Role Name] wants to [action] [a/an/all] [Object Name(s)]`
-  2. `As a [Role Name], I want to [action] [a/an/all] [Object Name(s)]`
-- **Allowed Actions**: View all, view, add, update, delete (case insensitive)
-- **Articles**: Must include "a", "an", or "all" before the object name
-- **Brackets**: Optional around role names, actions, and object names
-- **Whitespace**: Extra spaces are normalized during validation
-- **Examples**:
-  - ✅ "A [Manager] wants to view all [Reports]"
-  - ✅ "As a User, I want to add a Product"
-  - ✅ "A Developer wants to delete an Issue"
-  - ❌ "I want to see reports" (missing role and article)
+### Architecture Strengths
+- Clean separation of concerns with template system
+- Schema-driven UI generation prevents hardcoding
+- Direct model reference updates for efficiency
+- Comprehensive debugging logging
+- Follows VS Code UI patterns and styling
 
-#### Duplicate Prevention
-- **Text Comparison**: Exact string matching against existing stories in the model
-- **Case Sensitive**: Duplicate check is case-sensitive
-- **Scope**: Checks within the first namespace of the model
-- **Error Message**: "A user story with this text already exists"
+### UX Features
+- Read-only controls have different styling
+- Tooltips from schema descriptions
+- Alphabetical property ordering
+- Move up/down/reverse operations for arrays
+- Modal dialogs for adding new items
+- Copy functionality for array items
 
-#### Empty Text Protection
-- **Client-Side**: Modal validates empty input before submission
-- **Backend**: Additional empty/null checks in the extension
-- **Trimming**: Leading/trailing whitespace is trimmed before validation
+### Data Flow
+1. Panel opens → Loads report from ModelService
+2. Schema loaded → UI generated dynamically  
+3. User edits → Direct model updates
+4. Changes marked → Tree view refreshed
+5. Tab preservation during updates
 
-#### Model Structure Validation
-- **Namespace Check**: Ensures model has valid namespace array structure
-- **UserStory Array**: Creates userStory array if it doesn't exist
-- **Error Handling**: Comprehensive error messages for model structure issues
+### Areas for Review/Improvement
+- Large file size (826 lines) - could benefit from more modularization
+- Complex message handling switch statement
+- Heavy use of console.log - could use structured logging
+- Some duplicate template logic across array types
 
-#### Role Existence Validation (NEW)
-- **Role Extraction**: The system extracts role names from user story text using regex patterns
-- **Model Validation**: Checks if the extracted role exists in the model's Role data objects
-- **Lookup Item Search**: Searches through Role object lookup items for matching role names
-- **Case Insensitive**: Role matching is case insensitive and checks both `name` and `displayName` fields
-- **Fallback Behavior**: If no Role objects exist in the model, any role name is accepted
-- **Error Messages**: Clear feedback when roles don't exist: "Role '[name]' does not exist in the model"
-- **CSV Import**: Same role validation applies to bulk CSV imports
+## Object Workflow Architecture Review (2025-07-05)
 
-### Enhanced Data Flow Architecture
-- **WebView → Extension**: User input sent via 'addUserStory' message
-- **Extension → Model**: Stories added to `rootModel.namespace[0].userStory[]`
-- **Model Service**: Changes marked as unsaved using `markUnsavedChanges()`
-- **Extension → WebView**: Success/error responses with updated data
-- **Persistence**: Changes remain in memory until user saves the model file
+### Schema Structure
+- **Main Entity**: `objectWorkflow` array within data objects
+- **Core Properties**: name, titleText, initObjectWorkflowName, isPage, etc.
+- **Child Arrays**: 
+  - `objectWorkflowParam[]` - Input parameters for the workflow
+  - `objectWorkflowOutputVar[]` - Output variables/results
+  - `objectWorkflowButton[]` - Buttons/actions available
+  - `dynaFlowTask[]` - Background task definitions
 
-### CSV Import Validation
-The system also supports CSV import with the same validation rules:
-- **Format Validation**: Each imported story must pass `isValidUserStoryFormat`
-- **Duplicate Detection**: Imported stories checked against existing ones
-- **Error Reporting**: Detailed feedback on skipped items with reasons
-- **Batch Processing**: Results summary showing added vs. skipped counts
+### Model Implementation
+- **Main Model**: `ObjectWorkflowModel.ts` (215 lines)
+- **Child Models**: 
+  - `ObjectWorkflowParamModel.ts` - Parameter definitions
+  - `ObjectWorkflowButtonModel.ts` - Button configurations  
+  - `ObjectWorkflowOutputVarModel.ts` - Output variable specs
+- **Interfaces**: Complete TypeScript interfaces in `src/data/interfaces/`
 
-### Error Handling and UX
-- **Real-time Feedback**: Immediate validation results displayed in modal
-- **Clear Messages**: Specific error descriptions help users understand format requirements
-- **Success Indication**: Confirmation messages remind users to save changes
-- **Non-blocking**: Invalid stories don't prevent other operations
-- **Accessibility**: Error messages are properly associated with form controls
+### Current State Analysis
+**✅ Implemented:**
+- Complete TypeScript models and interfaces
+- JSON schema definitions with all properties
+- Model serialization/deserialization
+- Integration with parent object model
 
-This validation system ensures data quality while providing clear guidance to users on proper user story formatting.
+**❌ Missing Implementation:**
+- No dedicated webview for object workflow details
+- No tree view representation of workflows
+- Object workflows excluded from object details view (line 31 in detailsViewGenerator.js)
+- No commands for creating/editing workflows
+- No UI for workflow parameters, buttons, output variables
+
+### Key Features from Schema
+1. **Page Workflows**: `isPage: "true"` indicates form/page workflows
+2. **Authorization**: Role-based access with `isAuthorizationRequired` and `roleRequired`
+3. **Form Configuration**: Title, intro, footer text and images
+4. **DynaFlow Integration**: Background task workflow support
+5. **Business Logic**: `isExposedInBusinessObject` for API exposure
+
+### Todo Item Connection
+- Forms tree view item mentions "object.objwf where page = true"
+- This suggests need for displaying page-type workflows in tree view
+- Currently no UI exists for this functionality
+
+### Recommended Implementation Priorities
+1. Add object workflows to tree data provider (filtered by isPage=true)
+2. Create object workflow details webview (similar to report details)
+3. Implement workflow parameter/button/output variable editing
+4. Add commands for creating new workflows
+5. Integrate with forms tree view for page workflows
+
+### Technical Considerations
+- Schema has 30+ properties with complex business logic rules
+- Similar complexity to reports but with different focus (forms vs data)
+- Would benefit from same tabbed interface pattern as reports
+- Need schema-driven UI generation like other detail views
+
+## Forms Tree View Implementation (2025-07-05)
+
+### Implementation Summary
+Successfully added a 'Forms' section to the tree view that displays object workflows with `isPage=true`.
+
+### Changes Made
+
+**1. ModelService Enhancement** (`src/services/modelService.ts`):
+- Added `getAllPageObjectWorkflows()` method to retrieve workflows with `isPage=true`
+- Added import for `ObjectWorkflowSchema` interface
+- Method filters all object workflows from all objects and returns only page-type workflows
+
+**2. Tree Data Provider Updates** (`src/providers/jsonTreeDataProvider.ts`):
+- Added FORMS as a new top-level tree item above REPORTS
+- Added 'forms' context value handling
+- Implemented filtering support for form items
+- Added proper error handling and empty state messages
+- Used 'form' icon for the main Forms section and 'file-code' for individual forms
+
+**3. Command Integration** (`src/models/types.ts` & `src/commands/registerCommands.ts`):
+- Added `formItem` context handling in JsonTreeItem constructor
+- Added `appdna.showFormDetails` command registration
+- Implemented placeholder command that shows form information
+- Command shows form name and explains current implementation status
+
+**4. Tree Structure Order**:
+```
+- PROJECT
+- DATA OBJECTS  
+- FORMS (new - shows when advanced properties enabled)
+- REPORTS
+- MODEL SERVICES
+```
+
+**5. Test Data** (`app-dna.new.json`):
+- Added sample object workflow with `isPage=true` for testing
+- Includes parameters and buttons to demonstrate full structure
+- Named "PacAddForm" with proper form configuration
+
+### UI Features Implemented
+- ✅ Forms section appears above Reports in tree view
+- ✅ Shows count and proper icons
+- ✅ Filters forms based on global filter text
+- ✅ Displays form name or titleText as fallback
+- ✅ Shows helpful tooltips with form details
+- ✅ Handles empty states and loading states
+- ✅ Only shows when advanced properties are enabled (same as Reports)
+- ✅ Clickable form items with placeholder command
+- ✅ Proper command integration following extension patterns
+
+### Technical Notes
+- Forms are filtered by `isPage=true` to show only page-type workflows
+- Display name uses `workflow.name` with fallback to `workflow.titleText`
+- Tooltip shows both name and title text when available
+- Context value 'formItem' for individual forms enables command handling
+- Follows same architectural patterns as Reports implementation
+- Placeholder command shows information dialog until full details view is implemented
+
+### Future Implementation
+The foundation is now in place for adding a full form details view similar to the report details view. This would include:
+- Object workflow details webview
+- Parameter editing interface
+- Button configuration
+- Output variable management
+- Form settings configuration

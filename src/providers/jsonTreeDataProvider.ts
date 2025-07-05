@@ -166,6 +166,16 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const items = [projectItem, dataObjectsItem];
                 
                 if (showAdvancedProperties) {
+                    // Create FORMS as a top-level item
+                    const formsItem = new JsonTreeItem(
+                        'FORMS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'forms'
+                    );
+                    formsItem.iconPath = new vscode.ThemeIcon('edit');
+                    formsItem.tooltip = "Model forms (object workflows with isPage=true)";
+                    items.push(formsItem);
+                    
                     const reportsItem = new JsonTreeItem(
                         'REPORTS',
                         vscode.TreeItemCollapsibleState.Collapsed,
@@ -178,7 +188,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, [REPORTS], MODEL SERVICES
+                // Return tree items in order: PROJECT, DATA OBJECTS, [FORMS], [REPORTS], MODEL SERVICES
                 return Promise.resolve(items);
             } else {
                 // File doesn't exist, show empty tree
@@ -550,6 +560,72 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 return Promise.resolve(items);
             } catch (error) {
                 console.error('Error loading model services:', error);
+                return Promise.resolve([]);
+            }
+        }
+        
+        // Handle FORMS as a top-level item
+        if (element?.contextValue?.includes('forms') && fileExists) {
+            try {
+                if (modelLoaded) {
+                    // Use ModelService to get all page object workflows
+                    const allPageWorkflows = this.modelService.getAllPageObjectWorkflows();
+                    if (allPageWorkflows.length === 0) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No forms found',
+                                vscode.TreeItemCollapsibleState.None,
+                                'formsEmpty'
+                            )
+                        ]);
+                    }
+                    
+                    // Apply global filtering to forms
+                    const filteredForms = allPageWorkflows.filter(workflow => {
+                        const workflowName = workflow.name || workflow.titleText || 'Unnamed Form';
+                        return this.applyFilter(workflowName);
+                    });
+                    
+                    // Check if we need to expand this when filter is active
+                    const collapsibleState = this.filterText
+                        ? vscode.TreeItemCollapsibleState.Expanded
+                        : vscode.TreeItemCollapsibleState.Collapsed;
+                    
+                    // If filtering is active and no results found, show message
+                    if (this.filterText && filteredForms.length === 0) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No forms match filter',
+                                vscode.TreeItemCollapsibleState.None,
+                                'formsEmpty'
+                            )
+                        ]);
+                    }
+                    
+                    return Promise.resolve(
+                        filteredForms.map((workflow: any, index: number) => {
+                            const displayName = workflow.name || workflow.titleText || `Form ${index + 1}`;
+                            const formItem = new JsonTreeItem(
+                                displayName,
+                                vscode.TreeItemCollapsibleState.None,
+                                'formItem'
+                            );
+                            formItem.tooltip = `Form: ${displayName}${workflow.titleText ? ` (${workflow.titleText})` : ''}`;
+                            return formItem;
+                        })
+                    );
+                } else {
+                    // If model isn't loaded, show placeholder
+                    return Promise.resolve([
+                        new JsonTreeItem(
+                            'Model not loaded',
+                            vscode.TreeItemCollapsibleState.None,
+                            'formsEmpty'
+                        )
+                    ]);
+                }
+            } catch (error) {
+                console.error('Error reading forms:', error);
                 return Promise.resolve([]);
             }
         }

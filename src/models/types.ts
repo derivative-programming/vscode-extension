@@ -65,6 +65,12 @@ export class JsonTreeItem extends vscode.TreeItem {
             this.iconPath = new vscode.ThemeIcon('database');
         }
 
+        // If this is the FORMS item, apply special styling
+        if (contextValue === 'forms' && label === 'FORMS') {
+            // Use iconPath to give it a distinctive appearance
+            this.iconPath = new vscode.ThemeIcon('edit');
+        }
+
     // If the item represents a data object, attach a command to show details.
         if (contextValue === 'dataObjectItem') {
             this.command = {
@@ -79,6 +85,15 @@ export class JsonTreeItem extends vscode.TreeItem {
             this.command = {
                 title: 'Show Report Details',
                 command: 'appdna.showReportDetails',
+                arguments: [this]
+            };
+        }
+        
+        // If the item represents a form, attach a command to show form details.
+        if (contextValue === 'formItem') {
+            this.command = {
+                title: 'Show Form Details',
+                command: 'appdna.showFormDetails',
                 arguments: [this]
             };
         }

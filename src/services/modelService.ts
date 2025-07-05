@@ -13,6 +13,7 @@ import { ModelDataProvider } from "../data/models/ModelDataProvider";
 import { RootModel } from "../data/models/rootModel";
 import { ObjectSchema } from "../data/interfaces";
 import { ReportSchema } from "../data/interfaces/report.interface";
+import { ObjectWorkflowSchema } from "../data/interfaces/objectWorkflow.interface";
 
 /**
  * Service responsible for loading, validating, and saving App DNA model data
@@ -356,5 +357,32 @@ export class ModelService {
      */
     public hasUnsavedChangesInMemory(): boolean {
         return this.hasUnsavedChanges;
+    }
+
+    /**
+     * Get all object workflows from all objects in the model that have isPage=true
+     * @returns Array containing references to the actual object workflow instances that are pages
+     */
+    public getAllPageObjectWorkflows(): ObjectWorkflowSchema[] {
+        // Get all objects from all namespaces
+        const allObjects = this.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            return [];
+        }
+
+        // Flatten the arrays of object workflows from all objects, filter for pages
+        const allPageWorkflows: ObjectWorkflowSchema[] = [];
+        
+        for (const object of allObjects) {
+            if (object.objectWorkflow && Array.isArray(object.objectWorkflow)) {
+                // Filter for workflows that have isPage=true
+                const pageWorkflows = object.objectWorkflow.filter(workflow => 
+                    workflow.isPage === "true"
+                );
+                allPageWorkflows.push(...pageWorkflows);
+            }
+        }
+        
+        return allPageWorkflows;
     }
 }

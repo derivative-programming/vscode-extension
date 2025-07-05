@@ -8,7 +8,7 @@ fabrication requests view...
 - add a button to open the output folder in the file explorer
 - allow for a deployment script to be run after fabrication results are downloaded
  
-
+find large files and split them up
 
 
 'there is no data provider registered....' on startup  

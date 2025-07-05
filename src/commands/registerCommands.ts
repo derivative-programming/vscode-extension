@@ -587,4 +587,16 @@ export function registerCommands(
             });
         })
     );
+
+    // Register show form details command (placeholder implementation)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showFormDetails', (node: JsonTreeItem) => {
+            // Show information message with form details as placeholder
+            // TODO: Implement full form details view similar to reportDetailsView
+            vscode.window.showInformationMessage(
+                `Form Details: ${node.label}\n\nForm details view is not yet implemented. This form represents an object workflow with isPage=true.`,
+                'OK'
+            );
+        })
+    );
 }
