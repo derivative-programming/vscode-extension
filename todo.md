@@ -21,9 +21,6 @@ fabrication requests view...
 - object Hierarchy Diagram view...
 - 'Show Lookup Data Objects' should not hide items if its children are non-lookup items
 - details modal should show data type on each property
-- 'Expand All' should use icon instead of text
-- 'Collapse All' should use icon instead of text
-- no blue background on icon buttons
 
 'there is no data provider registered....' on startup  
 

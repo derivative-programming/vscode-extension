@@ -7,3 +7,7 @@
 2025-07-05: details modal should have close button in the bottom right corner
 2025-07-05: reset button should reset the view to the initial state. seems like its a little differnt.
 2025-07-05: expand all on reset as well
+2025-07-05: 'Expand All' should use icon instead of text - using codicon like tree view expand
+2025-07-05: 'Collapse All' should use icon instead of text - using codicon like tree view collapse
+2025-07-05: move the refresh diagram button to the left of the reset button
+2025-07-05: remove blue background and border from icon buttons - just show the icon

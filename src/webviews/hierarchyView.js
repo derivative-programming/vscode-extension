@@ -171,6 +171,27 @@ async function getWebviewContent(context, allObjects) {
             .button:hover {
                 background: var(--vscode-button-hoverBackground);
             }
+            .icon-button {
+                background: none;
+                border: none;
+                color: var(--vscode-foreground);
+                cursor: pointer;
+                padding: 5px;
+                margin-left: 5px;
+                border-radius: 3px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+            }
+            .icon-button:hover {
+                background: var(--vscode-button-hoverBackground);
+                color: var(--vscode-button-hoverForeground);
+            }
+            .icon-button:focus {
+                outline: 1px solid var(--vscode-focusBorder);
+                outline-offset: 2px;
+            }
             .legend {
                 display: flex;
                 align-items: center;
@@ -305,11 +326,12 @@ async function getWebviewContent(context, allObjects) {
                 <div class="search-box">
                     <input type="text" id="search" placeholder="Search objects...">
                 </div>
-                <button id="expand-all" class="button">Expand All</button>
-                <button id="collapse-all" class="button">Collapse All</button>
-                <button id="zoom-in" class="button"><i class="codicon codicon-zoom-in"></i></button>                <button id="zoom-out" class="button"><i class="codicon codicon-zoom-out"></i></button>
+                <button id="expand-all" class="icon-button" title="Expand All"><i class="codicon codicon-expand-all"></i></button>
+                <button id="collapse-all" class="icon-button" title="Collapse All"><i class="codicon codicon-collapse-all"></i></button>
+                <button id="zoom-in" class="icon-button" title="Zoom In"><i class="codicon codicon-zoom-in"></i></button>
+                <button id="zoom-out" class="icon-button" title="Zoom Out"><i class="codicon codicon-zoom-out"></i></button>
+                <button id="refresh" class="icon-button" title="Refresh Diagram"><i class="codicon codicon-refresh"></i></button>
                 <button id="reset-zoom" class="button">Reset</button>
-                <button id="refresh" class="button" title="Refresh Diagram"><i class="codicon codicon-refresh"></i></button>
                 <div class="legend">
                     <div class="legend-item">
                         <div class="legend-color lookup"></div>
