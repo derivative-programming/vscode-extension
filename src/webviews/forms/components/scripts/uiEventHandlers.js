@@ -158,10 +158,34 @@ function getUIEventHandlers() {
                     content.classList.remove('active');
                 });
                 
-                // Show selected view in the current tab
-                const selectedView = currentTabContent.querySelector('.' + view + '-view');
+                // Show selected view in the current tab based on naming convention
+                // Tab naming varies between forms tabs:
+                // params -> paramsListView/paramsTableView
+                // buttons -> buttons-list-view/buttons-table-view (with hyphens!)
+                // outputVars -> outputVarsListView/outputVarsTableView
+                let viewId = '';
+                if (currentTab === 'buttons') {
+                    // Special case for buttons tab which uses hyphens
+                    if (view === 'list') {
+                        viewId = 'buttons-list-view';
+                    } else if (view === 'table') {
+                        viewId = 'buttons-table-view';
+                    }
+                } else {
+                    // Standard pattern for params and outputVars tabs
+                    if (view === 'list') {
+                        viewId = currentTab + 'ListView';
+                    } else if (view === 'table') {
+                        viewId = currentTab + 'TableView';
+                    }
+                }
+                
+                const selectedView = document.getElementById(viewId);
                 if (selectedView) {
                     selectedView.classList.add('active');
+                    console.log('Successfully switched to view:', viewId);
+                } else {
+                    console.warn('Could not find view element with ID:', viewId);
                 }
             }
         });

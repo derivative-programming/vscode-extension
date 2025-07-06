@@ -152,7 +152,7 @@ function getMainTemplate(
             </div>
         </div>
 
-        <div id="buttons-list-view" class="view-content" style="display: none;">
+        <div id="buttons-list-view" class="view-content">
             <div class="list-container">
                 <select id="buttonsList" size="10">
                     ${(form.objectWorkflowButton || []).map((button, index) => {

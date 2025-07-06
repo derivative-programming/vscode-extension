@@ -1529,3 +1529,26 @@ Successfully refactored the forms detail view from a monolithic clientScriptTemp
 - Verify all initialization functions exist and are called
 - Ensure VS Code API is acquired only once in main template
 - Monitor script injection order in detailsViewGenerator.js
+
+### Common UI Bug Pattern - List/Table View Switching (Added 2025-07-06):
+When implementing list/table view toggle buttons in details views, ensure the view switching JavaScript matches the actual HTML element IDs:
+- **HTML Elements**: Use naming convention like `columnsListView`, `columnsTableView`, `buttonsListView`, etc.
+- **View Switching Logic**: Must construct the proper ID from tab name + "ListView"/"TableView"
+- **Event Handler**: Look for `.icon[data-view="list|table"]` clicks and find parent `.view-icons[data-tab="..."]`
+- **Bug Pattern**: Using class-based selectors like `.list-view` instead of ID-based selectors like `#columnsListView`
+
+**IMPORTANT**: Forms Detail View has inconsistent naming patterns that require special handling:
+- `params` tab: `paramsListView` / `paramsTableView` (standard pattern)
+- `buttons` tab: `buttons-list-view` / `buttons-table-view` (with hyphens!)
+- `outputVars` tab: `outputVarsListView` / `outputVarsTableView` (standard pattern)
+
+The view switching code should handle these inconsistencies:
+```javascript
+if (currentTab === 'buttons') {
+    // Special case for buttons tab which uses hyphens
+    viewId = view === 'list' ? 'buttons-list-view' : 'buttons-table-view';
+} else {
+    // Standard pattern for other tabs
+    viewId = currentTab + (view === 'list' ? 'ListView' : 'TableView');
+}
+```
