@@ -1,0 +1,2245 @@
+"use strict";
+
+/**
+ * Generates JavaScript code for client-side functionality
+ * @param {Array} columns The report columns
+ * @param {Array} buttons The report buttons
+ * @param {Array} params The report parameters
+ * @param {Object} columnSchema Schema for columns
+ * @param {Object} buttonSchema Schema for buttons
+ * @param {Object} paramSchema Schema for parameters
+ * @param {string} reportName The name of the report
+ * @returns {string} JavaScript code
+ */
+function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonSchema, paramSchema, reportName) {
+    return `        // Store current data
+        let currentColumns = ${JSON.stringify(columns)};
+        let currentButtons = ${JSON.stringify(buttons)};
+        let currentParams = ${JSON.stringify(params)};
+        let currentEditingIndex = -1;
+        
+        // Set up VS Code message listener for tab restoration
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (message.command === 'restoreTab') {
+                console.log('[DEBUG] Restoring tab:', message.tabId);
+                restoreActiveTab(message.tabId);
+            }
+        });        // Function to restore the active tab with retry logic
+        function restoreActiveTab(tabId) {
+            function attemptRestore() {
+                // Remove active class from all tabs and tab contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to the specified tab and its content
+                const targetTab = document.querySelector('.tab[data-tab="' + tabId + '"]');
+                const targetContent = document.getElementById(tabId);
+                
+                if (targetTab && targetContent) {
+                    targetTab.classList.add('active');
+                    targetContent.classList.add('active');
+                    console.log('[DEBUG] Successfully restored tab:', tabId);
+                    return true;
+                } else {
+                    console.warn('[DEBUG] Elements not ready yet for tab:', tabId);
+                    return false;
+                }
+            }
+            
+            // Try immediately first
+            if (!attemptRestore()) {
+                // If elements not found, wait for DOM to be ready and try again
+                setTimeout(() => {
+                    if (!attemptRestore()) {
+                        console.error('[DEBUG] Failed to restore tab after retry:', tabId);
+                    }
+                }, 50);
+            }
+        }
+          // Add Column Modal Template Function
+        function getAddColumnModalHtml() {
+            return "" +
+        "<div class='modal-content'>" +
+            "<span class='close-button'>&times;</span>" +
+            "<h2>Add Column</h2>" +
+            "<div class='tabs'>" +
+                "<div class='tab active' data-tab='singleAdd'>Single Column</div>" +
+                "<div class='tab' data-tab='bulkAdd'>Bulk Add</div>" +
+            "</div>" +            "<div id='singleAdd' class='tab-content active'>" +
+                "<div class='form-row'>" +
+                    "<label for='columnName'>Column Name:</label>" +
+                    "<input type='text' id='columnName'>" +
+                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>" +
+                "</div>" +
+                "<div id='singleValidationError' class='validation-error'></div>" +
+                "<button id='addSingleColumn'>Add Column</button>" +
+            "</div>" +
+            "<div id='bulkAdd' class='tab-content'>" +
+                "<div class='form-row'>" +
+                    "<label for='bulkColumns'>Column Names (one per line):</label>" +
+                    "<textarea id='bulkColumns' rows='5'></textarea>" +
+                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Header text will be auto-generated from the column name. Maximum 100 characters.</div>" +
+                "</div>" +
+                "<div id='bulkValidationError' class='validation-error'></div>" +
+                "<button id='addBulkColumns'>Add Columns</button>" +
+            "</div>" +
+        "</div>";
+        }
+          // Add Parameter Modal Template Function
+        function getAddParamModalHtml() {
+            return "" +
+        "<div class='modal-content'>" +
+            "<span class='close-button'>&times;</span>" +
+            "<h2>Add Filter</h2>" +
+            "<div class='tabs'>" +
+                "<div class='tab active' data-tab='singleAdd'>Single Filter</div>" +
+                "<div class='tab' data-tab='bulkAdd'>Bulk Add</div>" +
+            "</div>" +
+            "<div id='singleAdd' class='tab-content active'>" +
+                "<div class='form-row'>" +
+                    "<label for='paramName'>Filter Name:</label>" +
+                    "<input type='text' id='paramName'>" +
+                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>" +
+                "</div>" +
+                "<div id='singleValidationError' class='validation-error'></div>" +
+                "<button id='addSingleParam'>Add Filter</button>" +
+            "</div>" +
+            "<div id='bulkAdd' class='tab-content'>" +
+                "<div class='form-row'>" +
+                    "<label for='bulkParams'>Filter Names (one per line):</label>" +
+                    "<textarea id='bulkParams' rows='5'></textarea>" +
+                    "<div class='field-note'>Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>" +
+                "</div>" +                "<div id='bulkValidationError' class='validation-error'></div>" +
+                "<button id='addBulkParams'>Add Filters</button>" +
+            "</div>" +
+        "</div>";
+        }
+        
+        // Add Button Modal Template Function
+        function getAddButtonModalHtml() {
+            return "" +
+        "<div class='modal-content'>" +
+            "<span class='close-button'>&times;</span>" +
+            "<h2>Add Button</h2>" +
+            "<div class='form-row'>" +
+                "<label for='buttonName'>Button Name:</label>" +
+                "<input type='text' id='buttonName'>" +
+                "<div class='field-note'>Use Pascal case (Example: SubmitButton). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>" +
+            "</div>" +
+            "<div id='buttonValidationError' class='validation-error'></div>" +
+            "<button id='addButton'>Add Button</button>" +
+        "</div>";
+        }
+        
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+          // View switching functionality for each tab
+        document.addEventListener('click', (event) => {
+            // Check if the clicked element is a view icon
+            const iconElement = event.target.closest('.icon');
+            if (!iconElement) return;
+            
+            const view = iconElement.getAttribute('data-view');
+            const viewIconsContainer = iconElement.closest('.view-icons');
+            const currentTab = viewIconsContainer ? viewIconsContainer.getAttribute('data-tab') : null;
+            
+            console.log('Switching to view:', view, 'in tab:', currentTab);
+            
+            if (!currentTab) return;
+            
+            // Update active state of icons within this tab
+            viewIconsContainer.querySelectorAll('.icon').forEach(icon => {
+                icon.classList.remove('active');
+            });
+            iconElement.classList.add('active');
+            
+            // Hide all views in the current tab
+            const currentTabContent = document.getElementById(currentTab);
+            if (currentTabContent) {
+                currentTabContent.querySelectorAll('.view-content').forEach(content => {
+                    content.style.display = 'none';
+                    content.classList.remove('active');
+                });
+                
+                // Show selected view in the current tab
+                const viewElement = document.getElementById(currentTab + view.charAt(0).toUpperCase() + view.slice(1) + 'View');
+                if (viewElement) {
+                    viewElement.style.display = 'block';
+                    viewElement.classList.add('active');
+                    console.log('Activated view:', currentTab + view.charAt(0).toUpperCase() + view.slice(1) + 'View');
+                } else {
+                    console.error('View not found:', currentTab + view.charAt(0).toUpperCase() + view.slice(1) + 'View');
+                }
+            }
+        });
+        
+        // Helper function to update input styles based on checkbox state
+        function updateInputStyle(inputElement, isChecked) {
+            if (!isChecked) {
+                inputElement.style.backgroundColor = "var(--vscode-input-disabledBackground, #e9e9e9)";
+                inputElement.style.color = "var(--vscode-input-disabledForeground, #999)";
+                inputElement.style.opacity = "0.8";
+            } else {
+                inputElement.style.backgroundColor = "var(--vscode-input-background)";
+                inputElement.style.color = "var(--vscode-input-foreground)";
+                inputElement.style.opacity = "1";
+            }
+        }
+        
+        // Settings tab functionality
+        document.querySelectorAll('.setting-checkbox').forEach(checkbox => {
+            const propertyName = checkbox.getAttribute('data-prop');
+            const isEnum = checkbox.getAttribute('data-is-enum') === 'true';
+            const inputField = document.getElementById('setting-' + propertyName);
+            
+            // Set initial state of the input field
+            if (inputField) {
+                if (isEnum) {
+                    inputField.disabled = !checkbox.checked;
+                } else {
+                    inputField.readOnly = !checkbox.checked;
+                }
+                
+                // Set initial styling based on checkbox state
+                updateInputStyle(inputField, checkbox.checked);
+            }
+            
+            checkbox.addEventListener('change', function() {
+                const propertyName = this.getAttribute('data-prop');
+                const isEnum = this.getAttribute('data-is-enum') === 'true';
+                const inputField = document.getElementById('setting-' + propertyName);
+                
+                // Don't allow unchecking of properties that already exist in the model
+                if (this.hasAttribute('data-originally-checked')) {
+                    this.checked = true;
+                    return;
+                }
+                
+                if (this.checked) {
+                    // Enable the input field
+                    if (isEnum) {
+                        inputField.disabled = false;
+                    } else {
+                        inputField.readOnly = false;
+                    }
+                    updateInputStyle(inputField, true);
+                    
+                    // Disable the checkbox to prevent unchecking
+                    this.disabled = true;
+                    this.setAttribute('data-originally-checked', 'true');
+                    
+                    // If the checkbox is checked, ensure we have a valid value for select elements
+                    if (isEnum && (!inputField.value || inputField.value === '')) {
+                        // For select elements with no value, select the first option
+                        if (inputField.options.length > 0) {
+                            inputField.value = inputField.options[0].value;
+                        }
+                    }
+                } else {
+                    // Disable the input field
+                    if (isEnum) {
+                        inputField.disabled = true;
+                    } else {
+                        inputField.readOnly = true;
+                    }
+                    updateInputStyle(inputField, false);
+                }
+                
+                // Send message to update the model
+                vscode.postMessage({
+                    command: 'updateSettings',
+                    data: {
+                        property: propertyName,
+                        exists: this.checked,
+                        value: this.checked ? inputField.value : null
+                    }
+                });
+            });
+        });
+        
+        // Handle input changes for settings
+        document.querySelectorAll('[id^="setting-"]').forEach(input => {
+            // For select elements, listen for change
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', function() {
+                    const propertyName = this.name;
+                    const checkbox = this.parentElement.querySelector('.setting-checkbox[data-prop="' + propertyName + '"]');
+                    
+                    if (checkbox && checkbox.checked) {
+                        // Send message to update the model
+                        vscode.postMessage({
+                            command: 'updateSettings',
+                            data: {
+                                property: propertyName,
+                                exists: true,
+                                value: this.value
+                            }
+                        });
+                    }
+                });
+            } else {
+                // For text inputs, listen for both input and change events
+                input.addEventListener('input', function() {
+                    const propertyName = this.name;
+                    const checkbox = this.parentElement.querySelector('.setting-checkbox[data-prop="' + propertyName + '"]');
+                    
+                    if (checkbox && checkbox.checked) {
+                        // Send message to update the model
+                        vscode.postMessage({
+                            command: 'updateSettings',
+                            data: {
+                                property: propertyName,
+                                exists: true,
+                                value: this.value
+                            }
+                        });
+                    }
+                });
+                
+                input.addEventListener('change', function() {
+                    const propertyName = this.name;
+                    const checkbox = this.parentElement.querySelector('.setting-checkbox[data-prop="' + propertyName + '"]');
+                    
+                    if (checkbox && checkbox.checked) {
+                        // Send message to update the model
+                        vscode.postMessage({
+                            command: 'updateSettings',
+                            data: {
+                                property: propertyName,
+                                exists: true,
+                                value: this.value
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        
+        // Initialize styling for readonly/disabled inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('[id^="setting-"]').forEach(input => {
+                const isReadOnly = input.readOnly || input.disabled;
+                updateInputStyle(input, !isReadOnly);
+            });
+              // Initialize button list view - hide details if no button is selected
+            let buttonsList = document.getElementById('buttonsList');
+            let buttonDetailsContainer = document.getElementById('buttonDetailsContainer');
+            if (buttonsList && buttonDetailsContainer && (!buttonsList.value || buttonsList.value === "")) {
+                buttonDetailsContainer.style.display = 'none';
+            }
+              // Initialize column list view - hide details if no column is selected
+            let columnsList = document.getElementById('columnsList');
+            let columnDetailsContainer = document.getElementById('columnDetailsContainer');
+            if (columnsList && columnDetailsContainer && (!columnsList.value || columnsList.value === "")) {
+                columnDetailsContainer.style.display = 'none';
+            }
+              // Initialize params list view - hide details if no param is selected
+            let paramsList = document.getElementById('paramsList');
+            let paramDetailsContainer = document.getElementById('paramDetailsContainer');
+            if (paramsList && paramDetailsContainer && (!paramsList.value || paramsList.value === "")) {
+                paramDetailsContainer.style.display = 'none';
+            }
+        });
+        
+        // --- BUTTONS TAB FUNCTIONALITY ---
+        // Button checkbox functionality similar to properties tab
+        document.querySelectorAll('.button-checkbox').forEach(checkbox => {
+            const propName = checkbox.getAttribute('data-prop');
+            const index = checkbox.getAttribute('data-index');
+            
+            // Find the input element within the same table cell
+            const tableCell = checkbox.closest('td');
+            if (!tableCell) return;
+            
+            const inputElement = tableCell.querySelector('input[type="text"], select');
+            if (!inputElement) return;
+            
+            // Set initial state
+            if (inputElement.tagName === 'INPUT') {
+                inputElement.readOnly = !checkbox.checked;
+            } else if (inputElement.tagName === 'SELECT') {
+                inputElement.disabled = !checkbox.checked;
+            }
+            
+            updateInputStyle(inputElement, checkbox.checked);
+            
+            checkbox.addEventListener('change', function() {
+                // Don't allow unchecking of properties that already exist in the model
+                if (this.hasAttribute('data-originally-checked')) {
+                    this.checked = true;
+                    return;
+                }
+                
+                if (this.checked) {
+                    // Enable the input field
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = false;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = false;
+                    }
+                    updateInputStyle(inputElement, true);
+                    
+                    // Disable the checkbox to prevent unchecking
+                    this.disabled = true;
+                    this.setAttribute('data-originally-checked', 'true');
+                    
+                    // If the checkbox is checked, ensure we have a valid value for select elements
+                    if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === '')) {
+                        // For select elements with no value, select the first option
+                        if (inputElement.options.length > 0) {
+                            inputElement.value = inputElement.options[0].value;
+                        }
+                    }
+                } else {
+                    // Disable the input field
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = true;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = true;
+                    }
+                    updateInputStyle(inputElement, false);
+                }
+                
+                // Send message to update the model
+                vscode.postMessage({
+                    command: 'updateButton',
+                    data: {
+                        index: parseInt(index),
+                        property: propName,
+                        exists: this.checked,
+                        value: this.checked ? inputElement.value : null
+                    }
+                });
+            });
+        });
+        
+        // Handle input changes for buttons table
+        document.querySelectorAll('#buttons-table input[type="text"], #buttons-table select').forEach(input => {
+            const updateButton = () => {
+                const tableCell = input.closest('td');
+                if (!tableCell) return;
+                
+                const checkbox = tableCell.querySelector('.button-checkbox');
+                if (!checkbox || !checkbox.checked) return;
+                
+                const propName = checkbox.getAttribute('data-prop');
+                const index = checkbox.getAttribute('data-index');
+                
+                // Send message to update the model
+                vscode.postMessage({
+                    command: 'updateButton',
+                    data: {
+                        index: parseInt(index),
+                        property: propName,
+                        exists: true,
+                        value: input.value
+                    }
+                });
+            };
+            
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', updateButton);
+            } else {
+                input.addEventListener('input', updateButton);
+                input.addEventListener('change', updateButton);
+            }
+        });
+        
+        // --- COLUMNS FUNCTIONALITY ---        // Column list change handler for list view
+        columnsList = document.getElementById('columnsList');
+        columnDetailsContainer = document.getElementById('columnDetailsContainer');
+        if (columnsList && columnDetailsContainer) {
+            columnsList.addEventListener('change', (event) => {
+                const selectedIndex = event.target.value;
+                const column = currentColumns[selectedIndex];
+
+                // Show column details container when an item is selected
+                columnDetailsContainer.style.display = 'block';
+
+                // Update form fields with column values
+                Object.keys(${JSON.stringify(columnSchema)}).forEach(columnKey => {
+                    if (columnKey === 'name') return; // Skip name field as it's in the list
+                    
+                    const fieldId = 'column' + columnKey;
+                    const field = document.getElementById(fieldId);
+                    const checkbox = document.getElementById(fieldId + 'Editable');
+                    
+                    if (field && checkbox) {
+                        // Check if property exists and is not null or undefined
+                        const propertyExists = column.hasOwnProperty(columnKey) && column[columnKey] !== null && column[columnKey] !== undefined;
+                        
+                        if (field.tagName === 'SELECT') {
+                            field.value = propertyExists ? column[columnKey] : '';
+                            field.disabled = !propertyExists;
+                        } else {
+                            field.value = propertyExists ? column[columnKey] : '';
+                            field.readOnly = !propertyExists;
+                        }
+                        
+                        checkbox.checked = propertyExists;
+                        
+                        // If the property exists, disable the checkbox to prevent unchecking
+                        if (propertyExists) {
+                            checkbox.disabled = true;
+                            checkbox.setAttribute('data-originally-checked', 'true');
+                        } else {
+                            checkbox.disabled = false;
+                            checkbox.removeAttribute('data-originally-checked');
+                        }
+                        
+                        updateInputStyle(field, checkbox.checked);
+                    }
+                });
+            });
+            
+            // Initialize toggle editable behavior for column list view form fields
+            Object.keys(${JSON.stringify(columnSchema)}).forEach(columnKey => {
+                if (columnKey === 'name') return;
+                
+                const fieldId = 'column' + columnKey;
+                const field = document.getElementById(fieldId);
+                const checkbox = document.getElementById(fieldId + 'Editable');
+                
+                if (field && checkbox) {
+                    // Set initial state
+                    updateInputStyle(field, checkbox.checked);
+                    
+                    // Add event listener for checkbox state changes
+                    checkbox.addEventListener('change', function() {
+                        if (field.tagName === 'INPUT') {
+                            field.readOnly = !this.checked;
+                        } else if (field.tagName === 'SELECT') {
+                            field.disabled = !this.checked;
+                        }
+                        updateInputStyle(field, this.checked);
+                        
+                        // Disable the checkbox if it's checked to prevent unchecking
+                        if (this.checked) {
+                            this.disabled = true;
+                            this.setAttribute('data-originally-checked', 'true');
+                            
+                            // If the checkbox is checked, ensure we have a valid value
+                            if (field.tagName === 'SELECT' && (!field.value || field.value === "")) {
+                                // For select elements with no value, select the first option
+                                if (field.options.length > 0) {
+                                    field.selectedIndex = 0;
+                                }
+                            }
+                        }
+                        
+                        // Update the column in the model when checkbox changes
+                        const selectedIndex = columnsList.value;
+                        if (selectedIndex !== '' && selectedIndex >= 0) {
+                            vscode.postMessage({
+                                command: 'updateColumn',
+                                data: {
+                                    index: parseInt(selectedIndex),
+                                    property: columnKey,
+                                    exists: this.checked,
+                                    value: this.checked ? field.value : undefined
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Add event listener for field value changes
+                    field.addEventListener('input', function() {
+                        if (checkbox.checked) {
+                            const selectedIndex = columnsList.value;
+                            if (selectedIndex !== '' && selectedIndex >= 0) {
+                                vscode.postMessage({
+                                    command: 'updateColumn',
+                                    data: {
+                                        index: parseInt(selectedIndex),
+                                        property: columnKey,
+                                        exists: true,
+                                        value: this.value
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Column checkbox functionality similar to properties tab
+        document.querySelectorAll('.column-checkbox').forEach(checkbox => {
+            const propName = checkbox.getAttribute('data-prop');
+            const index = checkbox.getAttribute('data-index');
+            
+            // Find the input element within the same table cell
+            const tableCell = checkbox.closest('td');
+            if (!tableCell) return;
+            
+            const inputElement = tableCell.querySelector('input[type="text"], select');
+            if (!inputElement) return;
+            
+            // Set initial state
+            if (inputElement.tagName === 'INPUT') {
+                inputElement.readOnly = !checkbox.checked;
+            } else if (inputElement.tagName === 'SELECT') {
+                inputElement.disabled = !checkbox.checked;
+            }
+            
+            updateInputStyle(inputElement, checkbox.checked);
+            
+            checkbox.addEventListener('change', function() {
+                // Don't allow unchecking of properties that already exist in the model
+                if (this.hasAttribute('data-originally-checked')) {
+                    this.checked = true;
+                    return;
+                }
+                
+                if (this.checked) {
+                    // Enable the input field
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = false;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = false;
+                    }
+                    updateInputStyle(inputElement, true);
+                    
+                    // Disable the checkbox to prevent unchecking
+                    this.disabled = true;
+                    this.setAttribute('data-originally-checked', 'true');
+                    
+                    // If the checkbox is checked, ensure we have a valid value for select elements
+                    if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === '')) {
+                        // For select elements with no value, select the first option
+                        if (inputElement.options.length > 0) {
+                            inputElement.value = inputElement.options[0].value;
+                        }
+                    }
+                } else {
+                    // Disable the input field
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = true;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = true;
+                    }
+                    updateInputStyle(inputElement, false);
+                }
+                
+                // Send message to update the model
+                vscode.postMessage({
+                    command: 'updateColumn',
+                    data: {
+                        index: parseInt(index),
+                        property: propName,
+                        exists: this.checked,
+                        value: this.checked ? inputElement.value : null
+                    }
+                });
+            });
+        });
+        
+        // Handle input changes for columns table
+        document.querySelectorAll('#columns-table input[type="text"], #columns-table select').forEach(input => {
+            const updateColumn = () => {
+                const tableCell = input.closest('td');
+                if (!tableCell) return;
+                
+                const checkbox = tableCell.querySelector('.column-checkbox');
+                if (!checkbox || !checkbox.checked) return;
+                
+                const propName = checkbox.getAttribute('data-prop');
+                const index = checkbox.getAttribute('data-index');
+                
+                // Send message to update the model
+                vscode.postMessage({
+                    command: 'updateColumn',
+                    data: {
+                        index: parseInt(index),
+                        property: propName,
+                        exists: true,
+                        value: input.value
+                    }
+                });
+            };
+            
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', updateColumn);
+            } else {
+                input.addEventListener('input', updateColumn);
+                input.addEventListener('change', updateColumn);
+            }
+        });
+
+        // Add column button click handler
+        document.getElementById('add-column-btn').addEventListener('click', function() {
+            // Use the new add column modal instead of the edit modal
+            createAddColumnModal();
+        });        // Function to add a new column (called from add column modal)
+        function addNewColumn(columnName) {
+            const newColumn = {
+                name: columnName,
+                isButton: 'false'
+            };
+
+            // if(buttonDestinationTargetName && buttonDestinationTargetName !== "") {
+            //     newColumn.destinationTargetName = buttonDestinationTargetName;
+            //     newColumn.isButton = "true";
+            //     newColmn.isVisible = "true;
+            //     newColmn.sourcePropertyName = "Code";
+            //     newColmn.sqlServerDBDataType = "uniqueidentifier";
+            // }
+
+            // if(asyncFlowDestinationTargetName && asyncFlowDestinationTargetName !== "") {
+            //     newColumn.destinationTargetName = asyncFlowDestinationTargetName;
+            //     newColumn.isButton = "true";
+            //     newColumn.isButtonAsyncObjWF = "true",
+            //     newColmn.isVisible = "true;
+            //     newColmn.sourcePropertyName = "Code";
+            //     newColmn.sqlServerDBDataType = "uniqueidentifier";
+            // }
+                
+
+            // Add to current columns array for immediate backend update
+            const updatedColumns = [...currentColumns, newColumn];
+            
+            // Get the currently active tab to preserve it after reload
+            const activeTab = document.querySelector('.tab.active');
+            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'columns';
+            
+            // Send message to update the model - backend will reload the view
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    columns: updatedColumns,
+                    preserveTab: currentTabId
+                }
+            });
+            
+            // Note: View will be automatically reloaded by backend after model update
+            // No need to update frontend UI here - backend will regenerate entire view
+        }
+          // Function to create and show the Add Column modal
+        function createAddColumnModal() {
+            // Create modal dialog for adding columns
+            const modal = document.createElement("div");
+            modal.className = "modal";
+            
+            // Import the modal HTML template
+            const modalContent = getAddColumnModalHtml();
+            
+            // Set the modal content
+            modal.innerHTML = modalContent;
+            document.body.appendChild(modal);
+            
+            // Wait for DOM to be ready before attaching event listeners
+            setTimeout(() => {
+                // Show the modal
+                modal.style.display = "flex";
+                
+                // Attach event listeners after modal is in DOM and visible
+                attachModalEventListeners(modal);
+                
+                // Focus on the column name input when modal opens (single column tab is active by default)
+                const columnNameInput = modal.querySelector("#columnName");
+                if (columnNameInput) {
+                    columnNameInput.focus();
+                }
+            }, 10);
+        }
+        
+        // Function to attach event listeners to the modal
+        function attachModalEventListeners(modal) {
+            // Tab switching in modal
+            modal.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    // Update active tab
+                    modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    // Update visible tab content
+                    modal.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId) {
+                            content.classList.add('active');
+                        }
+                    });
+                    
+                    // Set focus based on which tab is now active
+                    setTimeout(() => {
+                        if (tabId === 'singleAdd') {
+                            const columnNameInput = modal.querySelector("#columnName");
+                            if (columnNameInput) {
+                                columnNameInput.focus();
+                            }
+                        } else if (tabId === 'bulkAdd') {
+                            const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
+                            if (bulkColumnsTextarea) {
+                                bulkColumnsTextarea.focus();
+                            }
+                        }
+                    }, 10);
+                });
+            });            // Close modal when clicking the x button
+            modal.querySelector(".close-button").addEventListener("click", function() {
+                document.body.removeChild(modal);
+            });
+              // Close modal when clicking outside the modal content
+            modal.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+            
+            // Add Enter key handling for single column input
+            const columnNameInput = modal.querySelector("#columnName");
+            if (columnNameInput) {
+                columnNameInput.addEventListener("keypress", function(event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault(); // Prevent default Enter behavior
+                        const addButton = modal.querySelector("#addSingleColumn");
+                        if (addButton && !addButton.disabled) {
+                            addButton.click();
+                        }
+                    }
+                });
+            }
+            
+            // Add Enter key handling for bulk columns textarea (Enter submits, Shift+Enter for new line)
+            const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
+            if (bulkColumnsTextarea) {
+                bulkColumnsTextarea.addEventListener("keydown", function(event) {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault(); // Prevent default Enter behavior
+                        const addButton = modal.querySelector("#addBulkColumns");
+                        if (addButton && !addButton.disabled) {
+                            addButton.click();
+                        }
+                    }
+                    // Shift+Enter will allow new line (default behavior)
+                });
+            }
+              // Validate column name function
+            function validateColumnName(name) {
+                if (!name) {
+                    return "Column name cannot be empty";
+                }
+                if (name.length > 100) {
+                    return "Column name cannot exceed 100 characters";
+                }
+                if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
+                    return "Column name must start with a letter and contain only letters and numbers";
+                }
+                if (currentColumns.some(column => column.name === name)) {
+                    return "Column with this name already exists";
+                }
+                return null; // Valid
+            }
+            
+            // Helper function to generate header text from column name
+            function generateHeaderText(columnName) {
+                // Convert PascalCase to space-separated words
+                // Handle cases like "FirstName" -> "First Name", "AppDNA" -> "App DNA"
+                return columnName.replace(/([a-z])([A-Z])/g, '$1 $2')
+                                .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+            }
+            
+            // Add single column button event listener
+            modal.querySelector("#addSingleColumn").addEventListener("click", function() {
+                const columnName = modal.querySelector("#columnName").value.trim();
+                const errorElement = modal.querySelector("#singleValidationError");
+                
+                const validationError = validateColumnName(columnName);
+                if (validationError) {
+                    errorElement.textContent = validationError;
+                    return;
+                }
+                
+                // Generate header text from column name
+                const headerText = generateHeaderText(columnName);
+                
+                // Add the new column - backend will reload view
+                addNewColumn(columnName);
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            });
+            
+            // Add bulk columns button event listener
+            modal.querySelector("#addBulkColumns").addEventListener("click", function() {
+                const bulkColumns = modal.querySelector("#bulkColumns").value;
+                const columnNames = bulkColumns.split("\\n").map(name => name.trim()).filter(name => name);
+                const errorElement = modal.querySelector("#bulkValidationError");
+                
+                // Validate all column names
+                const errors = [];
+                const validColumns = [];
+                
+                columnNames.forEach(name => {
+                    const validationError = validateColumnName(name);
+                    if (validationError) {
+                        errors.push("\\"" + name + "\\": " + validationError);
+                    } else {
+                        validColumns.push(name);
+                    }
+                });
+                
+                if (errors.length > 0) {
+                    errorElement.innerHTML = errors.join("<br>");
+                    return;
+                }
+                
+                // Add all valid columns at once
+                const newColumns = validColumns.map(name => ({
+                    name: name,
+                    isButton: "false",
+                }));
+                  // Add all columns in one operation
+                const updatedColumns = [...currentColumns, ...newColumns];
+                
+                // Get the currently active tab to preserve it after reload
+                const activeTab = document.querySelector('.tab.active');
+                const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'columns';
+                
+                // Send message to update the model - backend will reload the view
+                vscode.postMessage({
+                    command: 'updateModel',
+                    data: {
+                        columns: updatedColumns,
+                        preserveTab: currentTabId
+                    }
+                });
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            });
+        }
+        
+        // Edit column button click handlers
+        document.querySelectorAll('.edit-column-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                editColumn(index);
+            });
+        });
+        
+        // Function to edit a column
+        function editColumn(index) {
+            const column = currentColumns[index];
+            currentEditingIndex = index;
+            
+            // Reset form and fill with column data
+            const form = document.getElementById('column-form');
+            form.reset();
+            
+            // Fill the form with column data
+            for (const prop in column) {
+                const input = document.getElementById('column-' + prop);
+                if (input) {
+                    input.value = column[prop] || '';
+                }
+            }
+            
+            // Update modal title and show
+            document.querySelector('#column-modal .modal-title').textContent = 'Edit Column';
+            document.getElementById('column-modal').style.display = 'block';
+        }
+        
+        // Function to save column changes
+        function saveColumnChanges() {
+            const form = document.getElementById('column-form');
+            const newColumn = {};
+            
+            // Get all input values
+            Object.keys(${JSON.stringify(columnSchema)}).forEach(prop => {
+                const input = document.getElementById('column-' + prop);
+                if (input && input.value) {
+                    newColumn[prop] = input.value;
+                }
+            });
+            
+            // Ensure required fields are set
+            if (!newColumn.name) {
+                alert('Column name is required!');
+                return;
+            }
+            
+            if (currentEditingIndex >= 0) {
+                // Update existing column
+                currentColumns[currentEditingIndex] = newColumn;
+            } else {
+                // Add new column
+                currentColumns.push(newColumn);
+            }
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    columns: currentColumns
+                }
+            });
+            
+            // Close the modal
+            document.getElementById('column-modal').style.display = 'none';
+        }
+          // --- BUTTONS FUNCTIONALITY ---
+        // Button list change handler for list view
+        buttonsList = document.getElementById('buttonsList');
+        buttonDetailsContainer = document.getElementById('buttonDetailsContainer');
+        if (buttonsList && buttonDetailsContainer) {
+            buttonsList.addEventListener('change', (event) => {
+                const selectedIndex = event.target.value;
+                const button = currentButtons[selectedIndex];
+
+                // Show button details container when an item is selected
+                buttonDetailsContainer.style.display = 'block';
+
+                // Update form fields with button values
+                Object.keys(${JSON.stringify(buttonSchema)}).forEach(buttonKey => {
+                    if (buttonKey === 'buttonName') return; // Skip buttonName field as it's in the list
+                    
+                    const fieldId = 'button' + buttonKey;
+                    const field = document.getElementById(fieldId);
+                    const checkbox = document.getElementById(fieldId + 'Editable');
+                    
+                    if (field && checkbox) {
+                        // Check if property exists and is not null or undefined
+                        const propertyExists = button.hasOwnProperty(buttonKey) && button[buttonKey] !== null && button[buttonKey] !== undefined;
+                        
+                        if (field.tagName === 'SELECT') {
+                            field.value = propertyExists ? button[buttonKey] : '';
+                            field.disabled = !propertyExists;
+                        } else {
+                            field.value = propertyExists ? button[buttonKey] : '';
+                            field.readOnly = !propertyExists;
+                        }
+                        
+                        checkbox.checked = propertyExists;
+                        
+                        // If the property exists, disable the checkbox to prevent unchecking
+                        if (propertyExists) {
+                            checkbox.disabled = true;
+                            checkbox.setAttribute('data-originally-checked', 'true');
+                        } else {
+                            checkbox.disabled = false;
+                            checkbox.removeAttribute('data-originally-checked');
+                        }
+                        
+                        updateInputStyle(field, checkbox.checked);
+                    }
+                });
+            });
+            
+            // Initialize toggle editable behavior for button list view form fields
+            Object.keys(${JSON.stringify(buttonSchema)}).forEach(buttonKey => {
+                if (buttonKey === 'buttonName') return;
+                
+                const fieldId = 'button' + buttonKey;
+                const field = document.getElementById(fieldId);
+                const checkbox = document.getElementById(fieldId + 'Editable');
+                
+                if (field && checkbox) {
+                    // Set initial state
+                    updateInputStyle(field, checkbox.checked);
+                    
+                    // Add event listener for checkbox state changes
+                    checkbox.addEventListener('change', function() {
+                        if (field.tagName === 'INPUT') {
+                            field.readOnly = !this.checked;
+                        } else if (field.tagName === 'SELECT') {
+                            field.disabled = !this.checked;
+                        }
+                        updateInputStyle(field, this.checked);
+                        
+                        // Disable the checkbox if it's checked to prevent unchecking
+                        if (this.checked) {
+                            this.disabled = true;
+                            this.setAttribute('data-originally-checked', 'true');
+                            
+                            // If the checkbox is checked, ensure we have a valid value
+                            if (field.tagName === 'SELECT' && (!field.value || field.value === "")) {
+                                // For select elements with no value, select the first option
+                                if (field.options.length > 0) {
+                                    field.selectedIndex = 0;
+                                }
+                            }
+                        }
+                        
+                        // Update the button in the model when checkbox changes
+                        const selectedIndex = buttonsList.value;
+                        if (selectedIndex !== '' && selectedIndex >= 0) {
+                            vscode.postMessage({
+                                command: 'updateButton',
+                                data: {
+                                    index: parseInt(selectedIndex),
+                                    property: buttonKey,
+                                    exists: this.checked,
+                                    value: this.checked ? field.value : undefined
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Add event listener for field value changes
+                    field.addEventListener('input', function() {
+                        if (checkbox.checked) {
+                            const selectedIndex = buttonsList.value;
+                            if (selectedIndex !== '' && selectedIndex >= 0) {
+                                vscode.postMessage({
+                                    command: 'updateButton',
+                                    data: {
+                                        index: parseInt(selectedIndex),
+                                        property: buttonKey,
+                                        exists: true,
+                                        value: this.value
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+          // Add button button click handler - create new modal
+        document.getElementById('add-button-btn').addEventListener('click', function() {
+            createAddButtonModal();
+        });
+        
+        // Edit button button click handlers
+        document.querySelectorAll('.edit-button-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                editButton(index);
+            });
+        });
+        
+        // Function to edit a button
+        function editButton(index) {
+            const button = currentButtons[index];
+            currentEditingIndex = index;
+            
+            // Show the edit form and hide the add form
+            document.getElementById('button-form').style.display = 'block';
+            document.getElementById('add-button-form').style.display = 'none';
+            
+            // Reset form and fill with button data
+            const form = document.getElementById('button-form');
+            form.reset();
+            
+            // Fill the form with button data
+            for (const prop in button) {
+                const input = document.getElementById('button-' + prop);
+                if (input) {
+                    input.value = button[prop] || '';
+                }
+            }
+            
+            // Update modal title and show
+            document.querySelector('#button-modal .modal-title').textContent = 'Edit Button';
+            document.getElementById('button-modal').style.display = 'block';        }
+          // Function to add a new button (called from add button modal)
+
+        // Helper function to generate button text from column name
+        function generateButtonText(buttonName) {
+            // Convert PascalCase to space-separated words
+            // Handle cases like "FirstName" -> "First Name", "AppDNA" -> "App DNA"
+            return buttonName.replace(/([a-z])([A-Z])/g, '$1 $2')
+                            .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+        }
+        function addNewButton(buttonName) {
+            const newButton = {
+                buttonName: buttonName,
+                buttonType: 'other'
+            };
+                        
+            const buttonText = generateButtonText(buttonName);
+
+            newButton.buttonText = buttonText;
+
+            //if buttonText starts with 'Add' then its an 'add' button type
+            if(buttonText.startsWith('Add')){
+                newButton.buttonType = 'add';
+            }
+            
+            // Add to current buttons array for immediate backend update
+            const updatedButtons = [...currentButtons, newButton];
+            
+            // Get the currently active tab to preserve it after reload
+            const activeTab = document.querySelector('.tab.active');
+            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'buttons';
+            
+            // Send message to update the model - backend will reload the view
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    buttons: updatedButtons,
+                    preserveTab: currentTabId
+                }
+            });
+            
+            // Note: View will be automatically reloaded by backend after model update
+            // No need to update frontend UI here - backend will regenerate entire view
+        }
+        
+        // Function to save button changes
+        function saveButtonChanges() {
+            const form = document.getElementById('button-form');
+            const newButton = {};
+            
+            // Get all input values
+            Object.keys(${JSON.stringify(buttonSchema)}).forEach(prop => {
+                const input = document.getElementById('button-' + prop);
+                if (input && input.value) {
+                    newButton[prop] = input.value;
+                }
+            });
+            
+            // Ensure required fields are set
+            if (!newButton.buttonName) {
+                alert('Button name is required!');
+                return;
+            }
+            
+            if (currentEditingIndex >= 0) {
+                // Update existing button
+                currentButtons[currentEditingIndex] = newButton;
+                
+                // Update the corresponding option in the buttons list
+                const buttonsList = document.getElementById('buttonsList');
+                if (buttonsList) {
+                    const option = buttonsList.options[currentEditingIndex];
+                    if (option) {
+                        option.textContent = newButton.buttonName || newButton.name || 'Unnamed Button';
+                    }
+                }
+            } else {
+                // Add new button
+                currentButtons.push(newButton);
+                
+                // Add to buttons list in list view
+                const buttonsList = document.getElementById('buttonsList');
+                if (buttonsList) {
+                    const option = document.createElement('option');
+                    option.value = currentButtons.length - 1;
+                    option.textContent = newButton.buttonName || newButton.name || 'Unnamed Button';
+                    buttonsList.appendChild(option);
+                }
+            }
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    buttons: currentButtons
+                }
+            });
+            
+            // Close the modal
+            document.getElementById('button-modal').style.display = 'none';
+        }
+        
+        // --- PARAMETERS FUNCTIONALITY ---        // Parameter list change handler for list view
+        paramsList = document.getElementById('paramsList');
+        paramDetailsContainer = document.getElementById('paramDetailsContainer');
+        if (paramsList && paramDetailsContainer) {
+            paramsList.addEventListener('change', (event) => {
+                const selectedIndex = event.target.value;
+                const param = currentParams[selectedIndex];
+
+                // Show param details container when an item is selected
+                paramDetailsContainer.style.display = 'block';
+
+                // Update form fields with param values
+                Object.keys(${JSON.stringify(paramSchema)}).forEach(paramKey => {
+                    if (paramKey === 'name') return; // Skip name field as it's in the list
+                    
+                    const fieldId = 'param' + paramKey;
+                    const field = document.getElementById(fieldId);
+                    const checkbox = document.getElementById(fieldId + 'Editable');
+                    
+                    if (field && checkbox) {
+                        // Check if property exists and is not null or undefined
+                        const propertyExists = param.hasOwnProperty(paramKey) && param[paramKey] !== null && param[paramKey] !== undefined;
+                        
+                        if (field.tagName === 'SELECT') {
+                            field.value = propertyExists ? param[paramKey] : '';
+                            field.disabled = !propertyExists;
+                        } else {
+                            field.value = propertyExists ? param[paramKey] : '';
+                            field.readOnly = !propertyExists;
+                        }
+                        
+                        checkbox.checked = propertyExists;
+                        
+                        // If the property exists, disable the checkbox to prevent unchecking
+                        if (propertyExists) {
+                            checkbox.disabled = true;
+                            checkbox.setAttribute('data-originally-checked', 'true');
+                        } else {
+                            checkbox.disabled = false;
+                            checkbox.removeAttribute('data-originally-checked');
+                        }
+                        
+                        updateInputStyle(field, checkbox.checked);
+                    }
+                });
+            });
+            
+            // Initialize toggle editable behavior for param list view form fields
+            Object.keys(${JSON.stringify(paramSchema)}).forEach(paramKey => {
+                if (paramKey === 'name') return;
+                
+                const fieldId = 'param' + paramKey;
+                const field = document.getElementById(fieldId);
+                const checkbox = document.getElementById(fieldId + 'Editable');
+                
+                if (field && checkbox) {
+                    // Set initial state
+                    updateInputStyle(field, checkbox.checked);
+                    
+                    // Add event listener for checkbox state changes
+                    checkbox.addEventListener('change', function() {
+                        if (field.tagName === 'INPUT') {
+                            field.readOnly = !this.checked;
+                        } else if (field.tagName === 'SELECT') {
+                            field.disabled = !this.checked;
+                        }
+                        updateInputStyle(field, this.checked);
+                        
+                        // Disable the checkbox if it's checked to prevent unchecking
+                        if (this.checked) {
+                            this.disabled = true;
+                            this.setAttribute('data-originally-checked', 'true');
+                            
+                            // If the checkbox is checked, ensure we have a valid value
+                            if (field.tagName === 'SELECT' && (!field.value || field.value === "")) {
+                                // For select elements with no value, select the first option
+                                if (field.options.length > 0) {
+                                    field.selectedIndex = 0;
+                                }
+                            }
+                        }
+                        
+                        // Update the param in the model when checkbox changes
+                        const selectedIndex = paramsList.value;
+                        if (selectedIndex !== '' && selectedIndex >= 0) {
+                            vscode.postMessage({
+                                command: 'updateParam',
+                                data: {
+                                    index: parseInt(selectedIndex),
+                                    property: paramKey,
+                                    exists: this.checked,
+                                    value: this.checked ? field.value : undefined
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Add event listener for field value changes
+                    field.addEventListener('input', function() {
+                        if (checkbox.checked) {
+                            const selectedIndex = paramsList.value;
+                            if (selectedIndex !== '' && selectedIndex >= 0) {
+                                vscode.postMessage({
+                                    command: 'updateParam',
+                                    data: {
+                                        index: parseInt(selectedIndex),
+                                        property: paramKey,
+                                        exists: true,
+                                        value: this.value
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Parameter checkbox functionality for table view similar to properties tab
+        document.querySelectorAll('.param-checkbox').forEach(checkbox => {
+            const propName = checkbox.getAttribute('data-prop');
+            const index = checkbox.getAttribute('data-index');
+            
+            // Find the input element within the same table cell
+            const tableCell = checkbox.closest('td');
+            if (!tableCell) return;
+            
+            const inputElement = tableCell.querySelector('input[type="text"], select');
+            if (!inputElement) return;
+            
+            // Set initial state
+            if (inputElement.tagName === 'INPUT') {
+                inputElement.readOnly = !checkbox.checked;
+            } else if (inputElement.tagName === 'SELECT') {
+                inputElement.disabled = !checkbox.checked;
+            }
+            
+            updateInputStyle(inputElement, checkbox.checked);
+            
+            checkbox.addEventListener('change', function() {
+                // Don't allow unchecking of properties that already exist in the model
+                if (this.hasAttribute('data-originally-checked')) {
+                    this.checked = true;
+                    return;
+                }
+                
+                if (this.checked) {
+                    // Enable the input field
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = false;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = false;
+                    }
+                    updateInputStyle(inputElement, true);
+                    
+                    // Disable the checkbox to prevent unchecking
+                    this.disabled = true;
+                    this.setAttribute('data-originally-checked', 'true');
+                    
+                    // If the checkbox is checked, ensure we have a valid value for select elements
+                    if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === '')) {
+                        // For select elements with no value, select the first option
+                        if (inputElement.options.length > 0) {
+                            inputElement.value = inputElement.options[0].value;
+                        }
+                    }
+                } else {
+                    // Disable the input field
+                    if (inputElement.tagName === 'INPUT') {
+                        inputElement.readOnly = true;
+                    } else if (inputElement.tagName === 'SELECT') {
+                        inputElement.disabled = true;
+                    }
+                    updateInputStyle(inputElement, false);
+                }
+                
+                // Send message to update the model
+                vscode.postMessage({
+                    command: 'updateParam',
+                    data: {
+                        index: parseInt(index),
+                        property: propName,
+                        exists: this.checked,
+                        value: this.checked ? inputElement.value : null
+                    }
+                });
+            });
+        });
+        
+        // Handle input changes for params table
+        document.querySelectorAll('#params-table input[type="text"], #params-table select').forEach(input => {
+            const updateParam = () => {
+                const tableCell = input.closest('td');
+                if (!tableCell) return;
+                
+                const checkbox = tableCell.querySelector('.param-checkbox');
+                if (!checkbox || !checkbox.checked) return;
+                
+                const propName = checkbox.getAttribute('data-prop');
+                const index = checkbox.getAttribute('data-index');
+                
+                // Send message to update the model
+                vscode.postMessage({
+                    command: 'updateParam',
+                    data: {
+                        index: parseInt(index),
+                        property: propName,
+                        exists: true,
+                        value: input.value
+                    }
+                });
+            };
+            
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', updateParam);
+            } else {
+                input.addEventListener('input', updateParam);
+                input.addEventListener('change', updateParam);
+            }
+        });
+          // Add parameter button click handler
+        document.getElementById('add-param-btn').addEventListener('click', function() {
+            // Use the new add parameter modal instead of the edit modal
+            createAddParamModal();
+        });
+          // Function to add a new parameter (called from add parameter modal)
+        function addNewParam(paramName) {
+            const newParam = {
+                name: paramName
+            };
+            
+            // Add to current parameters array for immediate backend update
+            const updatedParams = [...currentParams, newParam];
+            
+            // Get the currently active tab to preserve it after reload
+            const activeTab = document.querySelector('.tab.active');
+            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'params';
+            
+            // Send message to update the model - backend will reload the view
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    params: updatedParams,
+                    preserveTab: currentTabId
+                }
+            });
+            
+            // Note: View will be automatically reloaded by backend after model update
+            // No need to update frontend UI here - backend will regenerate entire view
+        }
+          // Function to create and show the Add Parameter modal
+        function createAddParamModal() {
+            // Create modal dialog for adding parameters
+            const modal = document.createElement("div");
+            modal.className = "modal";
+            
+            // Import the modal HTML template
+            const modalContent = getAddParamModalHtml();
+            
+            // Set the modal content
+            modal.innerHTML = modalContent;
+            document.body.appendChild(modal);
+            
+            // Wait for DOM to be ready before attaching event listeners
+            setTimeout(() => {
+                // Show the modal
+                modal.style.display = "flex";
+                
+                // Attach event listeners after modal is in DOM and visible
+                attachParamModalEventListeners(modal);
+                
+                // Focus on the parameter name input (single tab is active by default)
+                const paramNameInput = modal.querySelector("#paramName");
+                if (paramNameInput) {
+                    paramNameInput.focus();
+                }
+            }, 10);
+        }
+        
+        // Function to attach event listeners to the parameter modal
+        function attachParamModalEventListeners(modal) {
+            // Tab switching in modal
+            modal.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    // Update active tab
+                    modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    // Update visible tab content
+                    modal.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId) {
+                            content.classList.add('active');
+                        }
+                    });
+                    
+                    // Focus appropriate input based on active tab
+                    setTimeout(() => {
+                        if (tabId === 'singleAdd') {
+                            const paramNameInput = modal.querySelector("#paramName");
+                            if (paramNameInput) {
+                                paramNameInput.focus();
+                            }
+                        } else if (tabId === 'bulkAdd') {
+                            const bulkParamsInput = modal.querySelector("#bulkParams");
+                            if (bulkParamsInput) {
+                                bulkParamsInput.focus();
+                            }
+                        }
+                    }, 10);
+                });
+            });
+            
+            // Close modal when clicking the x button
+            modal.querySelector(".close-button").addEventListener("click", function() {
+                document.body.removeChild(modal);
+            });
+            
+            // Close modal when clicking outside the modal content
+            modal.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+            
+            // Validate parameter name function
+            function validateParamName(name) {
+                if (!name) {
+                    return "Filter name cannot be empty";
+                }
+                if (name.length > 100) {
+                    return "Filter name cannot exceed 100 characters";
+                }
+                if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
+                    return "Filter name must start with a letter and contain only letters and numbers";
+                }
+                if (currentParams.some(param => param.name === name)) {
+                    return "Filter with this name already exists";
+                }
+                return null; // Valid
+            }
+            
+            // Add single parameter button event listener
+            modal.querySelector("#addSingleParam").addEventListener("click", function() {
+                const paramName = modal.querySelector("#paramName").value.trim();
+                const errorElement = modal.querySelector("#singleValidationError");
+                
+                const validationError = validateParamName(paramName);
+                if (validationError) {
+                    errorElement.textContent = validationError;
+                    return;
+                }
+                
+                // Add the new parameter - backend will reload view
+                addNewParam(paramName);
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            });
+            
+            // Add bulk parameters button event listener
+            modal.querySelector("#addBulkParams").addEventListener("click", function() {
+                const bulkParams = modal.querySelector("#bulkParams").value;
+                const paramNames = bulkParams.split("\\n").map(name => name.trim()).filter(name => name);
+                const errorElement = modal.querySelector("#bulkValidationError");
+                
+                // Validate all parameter names
+                const errors = [];
+                const validParams = [];
+                
+                paramNames.forEach(name => {
+                    const validationError = validateParamName(name);
+                    if (validationError) {
+                        errors.push("\\"" + name + "\\": " + validationError);
+                    } else {
+                        validParams.push(name);
+                    }
+                });
+                
+                if (errors.length > 0) {
+                    errorElement.innerHTML = errors.join("<br>");
+                    return;
+                }
+                
+                // Add all valid parameters at once
+                const newParams = validParams.map(name => ({
+                    name: name
+                }));
+                
+                // Add all parameters in one operation
+                const updatedParams = [...currentParams, ...newParams];
+                
+                // Get the currently active tab to preserve it after reload
+                const activeTab = document.querySelector('.tab.active');
+                const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'params';
+                
+                // Send message to update the model - backend will reload the view
+                vscode.postMessage({
+                    command: 'updateModel',
+                    data: {
+                        params: updatedParams,
+                        preserveTab: currentTabId
+                    }
+                });
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            });
+            
+            // Add Enter key listener for single parameter input
+            modal.querySelector("#paramName").addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault(); // Prevent default Enter behavior
+                    const addButton = modal.querySelector("#addSingleParam");
+                    if (addButton && !addButton.disabled) {
+                        addButton.click(); // Trigger the add parameter button
+                    }
+                }
+            });
+            
+            // Add Enter key listener for bulk parameters textarea
+            modal.querySelector("#bulkParams").addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    // For textarea, we'll use a more sophisticated approach
+                    // Check if the input appears complete (no trailing newlines/spaces)
+                    const value = this.value.trim();
+                    if (value && !event.shiftKey) {
+                        event.preventDefault(); // Prevent default Enter behavior
+                        const addButton = modal.querySelector("#addBulkParams");
+                        if (addButton && !addButton.disabled) {
+                            addButton.click(); // Trigger the add parameters button
+                        }
+                    }
+                    // If Shift+Enter, allow normal newline behavior
+                }
+            });
+        }
+        
+        // Edit parameter button click handlers
+        document.querySelectorAll('.edit-param-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                editParam(index);
+            });
+        });
+        
+        // Function to edit a parameter
+        function editParam(index) {
+            const param = currentParams[index];
+            currentEditingIndex = index;
+            
+            // Reset form and fill with parameter data
+            const form = document.getElementById('param-form');
+            form.reset();
+            
+            // Fill the form with parameter data
+            for (const prop in param) {
+                const input = document.getElementById('param-' + prop);
+                if (input) {
+                    input.value = param[prop] || '';
+                }
+            }
+            
+            // Update modal title and show
+            document.querySelector('#param-modal .modal-title').textContent = 'Edit Parameter';
+            document.getElementById('param-modal').style.display = 'block';
+        }
+        
+        // Function to save parameter changes
+        function saveParamChanges() {
+            const form = document.getElementById('param-form');
+            const newParam = {};
+            
+            // Get all input values
+            Object.keys(${JSON.stringify(paramSchema)}).forEach(prop => {
+                const input = document.getElementById('param-' + prop);
+                if (input && input.value) {
+                    newParam[prop] = input.value;
+                }
+            });
+            
+            // Ensure required fields are set
+            if (!newParam.name) {
+                alert('Parameter name is required!');
+                return;
+            }
+            
+            if (currentEditingIndex >= 0) {
+                // Update existing parameter
+                currentParams[currentEditingIndex] = newParam;
+            } else {
+                // Add new parameter
+                currentParams.push(newParam);
+            }
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    params: currentParams
+                }
+            });
+              // Close the modal
+            document.getElementById('param-modal').style.display = 'none';
+        }
+        
+        // Function to create and show the Add Button modal
+        function createAddButtonModal() {
+            // Create modal dialog for adding buttons
+            const modal = document.createElement("div");
+            modal.className = "modal";
+            
+            // Import the modal HTML template
+            const modalContent = getAddButtonModalHtml();
+            
+            // Set the modal content
+            modal.innerHTML = modalContent;
+            document.body.appendChild(modal);
+            
+            // Wait for DOM to be ready before attaching event listeners
+            setTimeout(() => {
+                // Show the modal
+                modal.style.display = "flex";
+                
+                // Attach event listeners after modal is in DOM and visible
+                attachButtonModalEventListeners(modal);
+            }, 10);
+        }
+        
+        // Function to attach event listeners to the button modal
+        function attachButtonModalEventListeners(modal) {
+            // Focus on button name input when modal opens
+            const buttonNameInput = modal.querySelector("#buttonName");
+            if (buttonNameInput) {
+                buttonNameInput.focus();
+            }
+            
+            // Close modal when clicking the x button
+            modal.querySelector(".close-button").addEventListener("click", function() {
+                document.body.removeChild(modal);
+            });
+            
+            // Close modal when clicking outside the modal content
+            modal.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+            
+            // Validate button name function
+            function validateButtonName(name) {
+                if (!name) {
+                    return "Button name cannot be empty";
+                }
+                if (name.length > 100) {
+                    return "Button name cannot exceed 100 characters";
+                }
+                if (!/^[a-zA-Z][a-zA-Z]*$/.test(name)) {
+                    return "Button name must start with a letter and contain only letters (no numbers)";
+                }
+                // Check if button with this name already exists
+                if (currentButtons.some(button => button.buttonName === name)) {
+                    return "Button with this name already exists";
+                }
+                return null; // Valid
+            }
+            
+            // Add single button functionality
+            const addButton = modal.querySelector("#addButton");
+            addButton.addEventListener("click", function() {
+                const buttonName = modal.querySelector("#buttonName").value.trim();
+                const errorElement = modal.querySelector("#buttonValidationError");
+                
+                // Clear previous errors
+                errorElement.textContent = "";
+                
+                // Validate button name
+                const validationError = validateButtonName(buttonName);
+                if (validationError) {
+                    errorElement.textContent = validationError;
+                    return;
+                }
+                
+                // Add the new button
+                addNewButton(buttonName);
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            });
+            
+            // Add enter key handling for button name input
+            if (buttonNameInput) {
+                buttonNameInput.addEventListener("keypress", function(e) {
+                    if (e.key === "Enter") {
+                        // Check if add button is enabled (no validation errors)
+                        const buttonName = buttonNameInput.value.trim();
+                        const validationError = validateButtonName(buttonName);
+                        
+                        // Only trigger click if button would be enabled (no validation errors)
+                        if (!validationError) {
+                            addButton.click();
+                        }
+                    }
+                });
+            }
+        }
+        // --- COPY FUNCTIONALITY ---
+        // Set up copy button functionality for columns list
+        const copyColumnsButton = document.getElementById('copyColumnsButton');
+        if (copyColumnsButton) {
+            copyColumnsButton.addEventListener('click', () => {
+                try {
+                    // Get all column names from the list
+                    const columnsList = document.getElementById('columnsList');
+                    if (!columnsList) return;
+                    
+                    const columnList = [];
+                    for (let i = 0; i < columnsList.options.length; i++) {
+                        columnList.push(columnsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = columnList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Columns copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyColumnsButton.textContent;
+                            copyColumnsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyColumnsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy columns: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyColumnsButton.textContent;
+                        copyColumnsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyColumnsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying columns: ', err);
+                }
+            });
+        }
+
+        // Set up copy button functionality for buttons list
+        const copyButtonsButton = document.getElementById('copyButtonsButton');
+        if (copyButtonsButton) {
+            copyButtonsButton.addEventListener('click', () => {
+                try {
+                    // Get all button names from the list
+                    const buttonsList = document.getElementById('buttonsList');
+                    if (!buttonsList) return;
+                    
+                    const buttonList = [];
+                    for (let i = 0; i < buttonsList.options.length; i++) {
+                        buttonList.push(buttonsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = buttonList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Buttons copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyButtonsButton.textContent;
+                            copyButtonsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyButtonsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy buttons: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyButtonsButton.textContent;
+                        copyButtonsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButtonsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying buttons: ', err);
+                }
+            });
+        }
+
+        // Set up copy button functionality for parameters list
+        const copyParamsButton = document.getElementById('copyParamsButton');
+        if (copyParamsButton) {
+            copyParamsButton.addEventListener('click', () => {
+                try {
+                    // Get all parameter names from the list
+                    const paramsList = document.getElementById('paramsList');
+                    if (!paramsList) return;
+                    
+                    const paramList = [];
+                    for (let i = 0; i < paramsList.options.length; i++) {
+                        paramList.push(paramsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = paramList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Filters copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyParamsButton.textContent;
+                            copyParamsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyParamsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy parameters: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyParamsButton.textContent;
+                        copyParamsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyParamsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying parameters: ', err);
+                }
+            });
+        }
+        
+        // --- MOVE UP/DOWN FUNCTIONALITY ---
+        
+        // Helper function to move an item in a select list and update model
+        function moveListItem(listId, arrayName, direction) {
+            const selectElement = document.getElementById(listId);
+            if (!selectElement || selectElement.selectedIndex === -1) {
+                return; // No item selected
+            }
+            
+            const selectedIndex = selectElement.selectedIndex;
+            const newIndex = direction === 'up' ? selectedIndex - 1 : selectedIndex + 1;
+            
+            // Check bounds
+            if (newIndex < 0 || newIndex >= selectElement.options.length) {
+                return; // Already at first/last position
+            }
+            
+            // Move the option in the select list
+            const selectedOption = selectElement.options[selectedIndex];
+            const targetOption = selectElement.options[newIndex];
+            
+            // Swap the options
+            const tempText = selectedOption.text;
+            const tempValue = selectedOption.value;
+            
+            selectedOption.text = targetOption.text;
+            selectedOption.value = targetOption.value;
+            
+            targetOption.text = tempText;
+            targetOption.value = tempValue;
+            
+            // Update selection to follow the moved item
+            selectElement.selectedIndex = newIndex;
+            
+            // Update move button states for the new position
+            updateMoveButtonStates();
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'move' + arrayName.charAt(0).toUpperCase() + arrayName.slice(1),
+                data: {
+                    fromIndex: selectedIndex,
+                    toIndex: newIndex
+                }
+            });
+        }
+        
+        // Set up move up/down functionality for columns
+        const moveUpColumnsButton = document.getElementById('moveUpColumnsButton');
+        const moveDownColumnsButton = document.getElementById('moveDownColumnsButton');
+        
+        if (moveUpColumnsButton) {
+            moveUpColumnsButton.addEventListener('click', () => {
+                moveListItem('columnsList', 'column', 'up');
+            });
+        }
+        
+        if (moveDownColumnsButton) {
+            moveDownColumnsButton.addEventListener('click', () => {
+                moveListItem('columnsList', 'column', 'down');
+            });
+        }
+        
+        // Set up move up/down functionality for buttons
+        const moveUpButtonsButton = document.getElementById('moveUpButtonsButton');
+        const moveDownButtonsButton = document.getElementById('moveDownButtonsButton');
+        
+        if (moveUpButtonsButton) {
+            moveUpButtonsButton.addEventListener('click', () => {
+                moveListItem('buttonsList', 'button', 'up');
+            });
+        }
+        
+        if (moveDownButtonsButton) {
+            moveDownButtonsButton.addEventListener('click', () => {
+                moveListItem('buttonsList', 'button', 'down');
+            });
+        }
+        
+        // Set up move up/down functionality for parameters
+        const moveUpParamsButton = document.getElementById('moveUpParamsButton');
+        const moveDownParamsButton = document.getElementById('moveDownParamsButton');
+        
+        if (moveUpParamsButton) {
+            moveUpParamsButton.addEventListener('click', () => {
+                moveListItem('paramsList', 'param', 'up');
+            });
+        }
+        
+        if (moveDownParamsButton) {
+            moveDownParamsButton.addEventListener('click', () => {
+                moveListItem('paramsList', 'param', 'down');
+            });
+        }
+        
+        // --- REVERSE FUNCTIONALITY ---
+        
+        // Helper function to reverse a list and update model
+        function reverseList(listId, arrayName) {
+            const selectElement = document.getElementById(listId);
+            if (!selectElement || selectElement.options.length <= 1) {
+                return; // Nothing to reverse
+            }
+            
+            // Remember current selection
+            const selectedIndex = selectElement.selectedIndex;
+            const selectedValue = selectedIndex >= 0 ? selectElement.options[selectedIndex].value : null;
+            
+            // Reverse the options in the select list
+            const options = Array.from(selectElement.options);
+            selectElement.innerHTML = '';
+            
+            // Add options in reverse order
+            for (let i = options.length - 1; i >= 0; i--) {
+                selectElement.appendChild(options[i]);
+                // Update the value to reflect new position
+                options[i].value = options.length - 1 - i;
+            }
+            
+            // Update selection - if an item was selected, select the same item in its new position
+            if (selectedValue !== null) {
+                const newIndex = options.length - 1 - parseInt(selectedValue);
+                selectElement.selectedIndex = newIndex;
+            }
+            
+            // Update move button states for the new position
+            updateMoveButtonStates();
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'reverse' + arrayName.charAt(0).toUpperCase() + arrayName.slice(1),
+                data: {}
+            });
+        }
+        
+        // Set up reverse functionality for columns
+        const reverseColumnsButton = document.getElementById('reverseColumnsButton');
+        if (reverseColumnsButton) {
+            reverseColumnsButton.addEventListener('click', () => {
+                reverseList('columnsList', 'column');
+            });
+        }
+        
+        // Set up reverse functionality for buttons
+        const reverseButtonsButton = document.getElementById('reverseButtonsButton');
+        if (reverseButtonsButton) {
+            reverseButtonsButton.addEventListener('click', () => {
+                reverseList('buttonsList', 'button');
+            });
+        }
+        
+        // Set up reverse functionality for parameters
+        const reverseParamsButton = document.getElementById('reverseParamsButton');
+        if (reverseParamsButton) {
+            reverseParamsButton.addEventListener('click', () => {
+                reverseList('paramsList', 'param');
+            });
+        }
+          // Helper function to update move button states based on selection
+        function updateMoveButtonStates() {
+            // Update columns move buttons
+            columnsList = document.getElementById('columnsList');
+            const moveUpColumns = document.getElementById('moveUpColumnsButton');
+            const moveDownColumns = document.getElementById('moveDownColumnsButton');
+            
+            if (columnsList && moveUpColumns && moveDownColumns) {
+                const selectedIndex = columnsList.selectedIndex;
+                const hasSelection = selectedIndex !== -1;
+                const isFirst = selectedIndex === 0;
+                const isLast = selectedIndex === columnsList.options.length - 1;
+                
+                moveUpColumns.disabled = !hasSelection || isFirst;
+                moveDownColumns.disabled = !hasSelection || isLast;
+            }
+              // Update buttons move buttons
+            buttonsList = document.getElementById('buttonsList');
+            const moveUpButtons = document.getElementById('moveUpButtonsButton');
+            const moveDownButtons = document.getElementById('moveDownButtonsButton');
+            
+            if (buttonsList && moveUpButtons && moveDownButtons) {
+                const selectedIndex = buttonsList.selectedIndex;
+                const hasSelection = selectedIndex !== -1;
+                const isFirst = selectedIndex === 0;
+                const isLast = selectedIndex === buttonsList.options.length - 1;
+                
+                moveUpButtons.disabled = !hasSelection || isFirst;
+                moveDownButtons.disabled = !hasSelection || isLast;
+            }
+              // Update params move buttons
+            paramsList = document.getElementById('paramsList');
+            const moveUpParams = document.getElementById('moveUpParamsButton');
+            const moveDownParams = document.getElementById('moveDownParamsButton');
+            
+            if (paramsList && moveUpParams && moveDownParams) {
+                const selectedIndex = paramsList.selectedIndex;
+                const hasSelection = selectedIndex !== -1;
+                const isFirst = selectedIndex === 0;
+                const isLast = selectedIndex === paramsList.options.length - 1;
+                
+                moveUpParams.disabled = !hasSelection || isFirst;
+                moveDownParams.disabled = !hasSelection || isLast;
+            }
+        }
+          // Add event listeners to update move button states when selection changes
+        columnsList = document.getElementById('columnsList');
+        if (columnsList) {
+            columnsList.addEventListener('change', updateMoveButtonStates);
+        }
+        
+        buttonsList = document.getElementById('buttonsList');
+        if (buttonsList) {
+            buttonsList.addEventListener('change', updateMoveButtonStates);
+        }
+        
+        paramsList = document.getElementById('paramsList');
+        if (paramsList) {
+            paramsList.addEventListener('change', updateMoveButtonStates);
+        }
+        
+        // Initialize move button states on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMoveButtonStates();
+        });
+        
+        // Also update move button states after existing functionality
+        if (typeof updateMoveButtonStates === 'function') {
+            setTimeout(updateMoveButtonStates, 100);
+        }
+    `;
+}
+
+module.exports = {
+    getClientScriptTemplate
+};
