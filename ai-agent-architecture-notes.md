@@ -42,6 +42,14 @@ Documentation for other architectural components including:
 
 **Sections:** 3 detailed notes covering specialized architectural components.
 
+### [Client Script Architecture](./docs/architecture/client-script-architecture.md)
+Documentation for client script architecture including:
+- Modularization pattern for client-side scripts
+- Common pitfalls to avoid when working with client scripts
+- Client script testing guidelines
+
+**Sections:** 3 detailed notes covering client script modularization, pitfalls, and testing.
+
 ## Quick Reference
 
 ### Recent Major Updates
@@ -64,7 +72,8 @@ docs/architecture/
 ├── ui-components.md                    # UI-related architecture (30 sections)
 ├── configuration-system.md            # Configuration management (5 sections)
 ├── bug-fixes-and-improvements.md      # Bug fixes and improvements (5 sections)
-└── other-architecture.md              # Other specialized components (3 sections)
+├── other-architecture.md              # Other specialized components (3 sections)
+└── client-script-architecture.md      # Client script architecture (3 sections)
 ```
 
 ### Contributing to Architecture Documentation

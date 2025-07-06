@@ -15,49 +15,37 @@ function getDOMInitialization() {
     // Initialize all DOM event listeners and functionality
 function initializeDOMEvents() {
     // Add param button functionality
-    document.getElementById('add-param-btn').addEventListener('click', function() {
-        openModal('param-modal');
-        document.getElementById('param-index').value = -1;  // -1 indicates new param
-        
-        // Reset the form
-        const fieldsContainer = document.getElementById('param-fields-container');
-        while (fieldsContainer.firstChild) {
-            fieldsContainer.removeChild(fieldsContainer.firstChild);
-        }
-        
-        // Generate input fields based on schema
-        generateParamFields({});
-    });
+    const addParamBtn = document.getElementById('add-param-btn');
+    if (addParamBtn) {
+        addParamBtn.addEventListener('click', function() {
+            // Send direct message to add a new parameter
+            vscode.postMessage({
+                command: 'addParam'
+            });
+        });
+    }
     
     // Add button button functionality
-    document.getElementById('add-button-btn').addEventListener('click', function() {
-        openModal('button-modal');
-        document.getElementById('button-index').value = -1;  // -1 indicates new button
-        
-        // Reset the form
-        const fieldsContainer = document.getElementById('button-fields-container');
-        while (fieldsContainer.firstChild) {
-            fieldsContainer.removeChild(fieldsContainer.firstChild);
-        }
-        
-        // Generate input fields based on schema
-        generateButtonFields({});
-    });
+    const addButtonBtn = document.getElementById('add-button-btn');
+    if (addButtonBtn) {
+        addButtonBtn.addEventListener('click', function() {
+            // Send direct message to add a new button
+            vscode.postMessage({
+                command: 'addButton'
+            });
+        });
+    }
     
     // Add output variable button functionality
-    document.getElementById('add-output-var-btn').addEventListener('click', function() {
-        openModal('output-var-modal');
-        document.getElementById('output-var-index').value = -1;  // -1 indicates new output var
-        
-        // Reset the form
-        const fieldsContainer = document.getElementById('output-var-fields-container');
-        while (fieldsContainer.firstChild) {
-            fieldsContainer.removeChild(fieldsContainer.firstChild);
-        }
-        
-        // Generate input fields based on schema
-        generateOutputVarFields({});
-    });
+    const addOutputVarBtn = document.getElementById('add-output-var-btn');
+    if (addOutputVarBtn) {
+        addOutputVarBtn.addEventListener('click', function() {
+            // Send direct message to add a new output variable
+            vscode.postMessage({
+                command: 'addOutputVar'
+            });
+        });
+    }
     
     // Save modal handlers
     setupSaveModalHandlers();
@@ -83,11 +71,21 @@ function setupSaveModalHandlers() {
         
         // Send to VS Code
         const vscode = acquireVsCodeApi();
-        vscode.postMessage({
-            command: 'updateFormParam',
-            param: paramData,
-            index: index
-        });
+        if (index === -1) {
+            // This is a new parameter
+            vscode.postMessage({
+                command: 'addParam'
+            });
+        } else {
+            // This is an update to an existing parameter
+            vscode.postMessage({
+                command: 'updateParam',
+                data: {
+                    param: paramData,
+                    index: index
+                }
+            });
+        }
         
         closeModal('param-modal');
     });
@@ -104,11 +102,21 @@ function setupSaveModalHandlers() {
         
         // Send to VS Code
         const vscode = acquireVsCodeApi();
-        vscode.postMessage({
-            command: 'updateFormButton',
-            button: buttonData,
-            index: index
-        });
+        if (index === -1) {
+            // This is a new button
+            vscode.postMessage({
+                command: 'addButton'
+            });
+        } else {
+            // This is an update to an existing button
+            vscode.postMessage({
+                command: 'updateButton',
+                data: {
+                    button: buttonData,
+                    index: index
+                }
+            });
+        }
         
         closeModal('button-modal');
     });
@@ -125,13 +133,21 @@ function setupSaveModalHandlers() {
         
         // Send to VS Code
         const vscode = acquireVsCodeApi();
-        vscode.postMessage({
-            command: 'updateOutputVar',
-            data: {
-                outputVar: outputVar,
-                index: index
-            }
-        });
+        if (index === -1) {
+            // This is a new output variable
+            vscode.postMessage({
+                command: 'addOutputVar'
+            });
+        } else {
+            // This is an update to an existing output variable
+            vscode.postMessage({
+                command: 'updateOutputVar',
+                data: {
+                    outputVar: outputVar,
+                    index: index
+                }
+            });
+        }
         
         closeModal('output-var-modal');
     });

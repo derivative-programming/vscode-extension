@@ -1,6 +1,5 @@
 Agent todo items...
-
-break up the architectural guidance file by adding links to separate files
+ 
 
 reportButton = objectWorkflowButton
 reportParam =  objectWorkflowOutputVar
@@ -53,9 +52,7 @@ find large files and split them up
 'there is no data provider registered....' on startup  
 
 'list' and 'table' view icon toggle buttons
-
-forms tree view item...
-- object.objwf where page = true
+ 
 
 report details view...
 - allow creation of column destination button
