@@ -1,5 +1,39 @@
 # AppDNA VS Code Extension Architecture Notes
  
+## Form Details View and Report Details View Structure (Added 2025-07-05)
+
+### Implementation Overview:
+The Form Details View and Report Details View follow a parallel structure with consistent UI patterns and component organization. Both views use a tabbed interface to present and edit complex objects with schema-driven property editing and array management.
+
+### Architecture Pattern:
+- **Modular Templates**: Both views use separate template files for different UI components:
+  - `settingsTabTemplate.js` - Generates schema-driven property editors
+  - `modalTemplates.js` (Forms) / `*ModalTemplate.js` files (Reports) - Handle editing dialogs
+  - `*TableTemplate.js` files - Generate table views for array items
+  - `*ListTemplate.js` files - Generate list views for schema properties
+  - `clientScriptTemplate.js` - Handles client-side interactions
+  - `mainTemplate.js` - Orchestrates the complete UI assembly
+
+- **Data Flow Pattern**:
+  - Extensions loads schema and object data from ModelService
+  - Data passes to detailsViewGenerator which distributes to template functions
+  - Templates generate HTML/CSS/JS for the webview
+  - Client-side JS handles user interactions and sends commands back to extension
+
+### Key Features:
+- **Schema-driven UI**: All editable properties come directly from the schema
+- **Property Toggling**: Properties can be added/removed via checkboxes
+- **Real-time Updates**: Property changes immediately update the in-memory model
+- **Tooltips**: Schema descriptions shown as tooltips on hover
+- **Consistent Styling**: VS Code theming variables used throughout
+- **Tab State Persistence**: Active tab is restored when re-opening views
+- **Array Management**: Items can be added, edited, reordered, and reversed
+
+### Mapping Between Views:
+- Forms: objectWorkflowParam = Reports: reportColumn
+- Forms: objectWorkflowButton = Reports: reportButton
+- Forms: objectWorkflowOutputVar = Reports: reportParam
+
 ## Custom Logout Confirmation Modal (Added 2025-06-27)
 
 ### Implementation Overview:
