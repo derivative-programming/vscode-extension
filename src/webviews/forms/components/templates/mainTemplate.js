@@ -225,8 +225,6 @@ function getMainTemplate(
     ${outputVarModalHtml}
     
     <script>
-        // Get the VS Code API
-        const vscode = acquireVsCodeApi();
         ${clientScript}
     </script>
 </body>

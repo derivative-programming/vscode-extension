@@ -1,13 +1,35 @@
 Agent todo items...
- 
 
- objectWorkflowParam
- objectWorkflowOutputVar
- objectWorkflowButton
+
 
 reportButton = objectWorkflowButton
 reportParam =  objectWorkflowOutputVar
 reportColumn = objectWorkflowParam
+
+look for unused 'require' statements in the codebase
+
+form detail view...
+- rename tabs
+- rename columns to controls
+- add form wizard
+
+treeview...
+- add Page treeview item
+- move reports and forms under page treeview item
+
+
+page treeview item...
+- page flow diagram
+  - form buttons have a destinationtargetname property that holds the name of its form or report destination
+  - report buttons have a destinationtargetname property that holds the name of its form or report destination
+  - report columns can have a buttondestinationtargetname property that holds the name of its form or report destination
+- allow filtering on role required on page flow diagram
+
+sample page views...
+- form
+- report grid
+- report two col nav
+- report three col detail
 
 cant use ctrl-a as first part of sequence. its select all.
 
@@ -195,3 +217,6 @@ PHP - Doctrine
 
 ares changes...
 rearrange register controls on page: fabricate
+
+ 
+

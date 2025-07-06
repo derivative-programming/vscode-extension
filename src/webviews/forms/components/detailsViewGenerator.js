@@ -12,6 +12,15 @@ const { getParamModalHtml, getButtonModalHtml, getOutputVarModalHtml } = require
 const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
 const { getMainTemplate } = require("./templates/mainTemplate");
 
+// Import modular scripts
+const { getModalFunctionality } = require("./scripts/modalFunctionality");
+const { getUIEventHandlers } = require("./scripts/uiEventHandlers");
+const { getFormControlUtilities } = require("./scripts/formControlUtilities");
+const { getButtonManagementFunctions } = require("./scripts/buttonManagementFunctions");
+const { getParameterManagementFunctions } = require("./scripts/parameterManagementFunctions");
+const { getOutputVariableManagementFunctions } = require("./scripts/outputVariableManagementFunctions");
+const { getDOMInitialization } = require("./scripts/domInitialization");
+
 /**
  * Generates the HTML content for the form details webview
  * @param {Object} form The form data to display
@@ -88,13 +97,14 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
         const paramProperties = Object.keys(formParamsSchema)
             .filter(key => !paramPropertiesToHide.includes(key.toLowerCase()));
         
-        // Generate client-side JavaScript
+        // Generate client-side JavaScript with modular scripts
         console.log("[DEBUG] Generating client script...");
         console.log("[DEBUG] Form object:", form);
         console.log("[DEBUG] Form name:", form ? form.name : 'form is null/undefined');
         const formName = (form && form.name) ? form.name : 'Unknown Form';
         console.log("[DEBUG] Using formName:", formName);
         
+        // Get the main client script template
         const clientScript = getClientScriptTemplate(
             params, 
             buttons, 

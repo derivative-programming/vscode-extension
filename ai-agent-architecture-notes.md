@@ -1485,37 +1485,47 @@ The foundation is now in place for adding a full form details view similar to th
 - Output variable management
 - Form settings configuration
 
-## Form Details View - Buttons Tab
+## Forms Detail View Modularization (2024-12-19)
 
-I've aligned the Form Details View Buttons tab with the Report Details View Buttons tab to ensure feature consistency. Key insights:
+Successfully refactored the forms detail view from a monolithic clientScriptTemplate.js (1289 lines) to a modular architecture similar to the reports/objects view.
 
-1. **View Switching**: Both forms and reports now support table and list views for buttons. The table view offers a compact grid layout while list view allows detailed editing of one button at a time.
+### Key Architecture Points:
 
-2. **Button Actions**: Both tabs now support:
-   - Add new buttons
-   - Edit existing buttons
-   - Copy buttons
-   - Move buttons up/down
-   - Reverse button order
+1. **Script Injection Flow**:
+   - detailsViewGenerator.js reads all modular scripts from `scripts/` directory
+   - Combines them with the main clientScriptTemplate.js
+   - Passes the combined script to mainTemplate.js
+   - mainTemplate.js injects it as a single `<script>` block
 
-3. **Property Management**: 
-   - Both use property toggles via checkboxes to add/remove properties
-   - Properties are displayed with tooltips from the schema description
-   - Once added, properties can't be removed (disabled checkboxes)
+2. **Modular Scripts Structure**:
+   - Scripts are plain JavaScript (no wrapper functions or module.exports)
+   - No `<script>` tags in the modular files
+   - Each script contains specific initialization functions
+   - All scripts are concatenated and executed in the webview context
 
-4. **Modal Pattern**: The button edit modal now follows the same pattern as params - showing all properties from schema with toggles.
+3. **Critical Pattern**:
+   - Each modular script exports functions like `initializeXXXFunctionality()`
+   - The main clientScriptTemplate.js calls all initialization functions on DOMContentLoaded
+   - Only one `acquireVsCodeApi()` call in the main template
+   - VS Code API (`vscode`) is available globally to all modular scripts
 
-5. **Code Structure**:
-   - Templates are separated into table and list templates
-   - Client-side JS handles UI state and sends appropriate commands to backend
-   - Backend handlers maintain the model state and save changes
+4. **Forms Specific Modules**:
+   - modalFunctionality.js - Modal open/close functions
+   - uiEventHandlers.js - Tab switching and view switching  
+   - formControlUtilities.js - Input styling utilities
+   - buttonManagementFunctions.js - Button CRUD operations
+   - parameterManagementFunctions.js - Parameter CRUD operations
+   - outputVariableManagementFunctions.js - Output variable CRUD operations
+   - domInitialization.js - Event listeners and initialization
 
-6. **File Structure**:
-   - `buttonsTableTemplate.js` - Table view layout
-   - `buttonsListTemplate.js` - List view layout
-   - `modalTemplates.js` - Modal dialogs for editing
-   - `formDetailsView.js` - Message handlers and model operations
-   - `clientScriptTemplate.js` - Client-side interactivity
-   - `mainTemplate.js` - Main HTML structure and tab switching
+5. **Common Issues Fixed**:
+   - Removed function wrappers from modular scripts
+   - Fixed lint errors with curly braces on if statements
+   - Ensured no duplicate acquireVsCodeApi() calls
+   - Proper initialization function calling sequence
 
-This architecture makes it easy to add new features consistently across different tabs and view types.
+### Debugging Tips:
+- Check that modular scripts are plain JavaScript without wrappers
+- Verify all initialization functions exist and are called
+- Ensure VS Code API is acquired only once in main template
+- Monitor script injection order in detailsViewGenerator.js
