@@ -27,7 +27,20 @@ function getSaveSubmitHandlers() {
                 const propertyExists = prop.hasOwnProperty(propKey) && prop[propKey] !== null && prop[propKey] !== undefined;
                 
                 if (field.tagName === 'SELECT') {
-                    field.value = propertyExists ? prop[propKey] : '';
+                    if (propertyExists) {
+                        // If property exists, use its value
+                        field.value = prop[propKey];
+                    } else {
+                        // If property doesn't exist, use default value logic
+                        const propSchema = propItemsSchema[propKey] || {};
+                        if (propSchema.default !== undefined) {
+                            // Use the schema's default value if available
+                            field.value = propSchema.default;
+                        } else {
+                            // Otherwise, leave the default that was set in the HTML template
+                            // The template already handles boolean enums and first-option defaults
+                        }
+                    }
                     field.disabled = !propertyExists;
                 } else {
                     field.value = propertyExists ? prop[propKey] : '';

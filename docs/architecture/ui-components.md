@@ -2,6 +2,25 @@
 
 *This file contains architecture notes related to ui components.*
 
+## Default Values for Dropdown Controls (Added 2025-07-06)
+
+### Implementation Overview:
+Dropdown controls in all views (objects, reports, forms) need to display appropriate default values when inactive (not enabled by checkbox). The default value selection follows a hierarchy:
+
+1. Use the `default` property from the schema if available
+2. For boolean enums, default to `false` if no default specified in schema
+3. For non-boolean enums with no default, select the first option as default
+
+### Implementation Details:
+- This implementation is now consistent across all views (objects, reports, forms) and all tabs within those views
+- The following files have been updated to use this consistent default value logic:
+  - Object view: `propertiesListTemplate.js`, `propertiesTableTemplate.js`, `propertyManagement.js`, `saveSubmitHandlers.js`
+  - Report view: `columnsListTemplate.js`, `columnsTableTemplate.js`, `paramsListTemplate.js`, `paramsTableTemplate.js`, `buttonsListTemplate.js`, `buttonsTableTemplate.js`, `columnManagementFunctions.js`, `parameterManagementFunctions.js`
+  - Form view: `buttonsListTemplate.js`, `buttonsTableTemplate.js`, `buttonManagementFunctions.js`
+- When a dropdown is inactive (checkbox not checked), it shows the default value according to the hierarchy
+- When a checkbox is checked to make a property editable, the value is initialized using the same hierarchy
+- This ensures consistency between the display value when disabled and the initial value when enabled across all UI components
+
 ## Form Details View and Report Details View Structure (Added 2025-07-05)
 
 ### Implementation Overview:

@@ -42,8 +42,19 @@ function getButtonsListTemplate(reportButtonsSchema) {
             // Always display all enum options even when disabled
             inputField = `<select id="${fieldId}" name="${buttonKey}" ${tooltip} disabled>
                 ${buttonSchema.enum.map(option => {
-                    // Default to 'false' for boolean enums
-                    const isSelected = isBooleanEnum ? (option === false || option === "false") : false;
+                    // Check if there's a default value in the schema
+                    let isSelected = false;
+                    
+                    if (buttonSchema.default !== undefined) {
+                        // Use the schema's default value if available
+                        isSelected = option === buttonSchema.default;
+                    } else if (isBooleanEnum) {
+                        // Default to 'false' for boolean enums if no default specified
+                        isSelected = (option === false || option === "false");
+                    } else if (buttonSchema.enum.indexOf(option) === 0) {
+                        // For non-boolean enums with no default, select the first option
+                        isSelected = true;
+                    }
                     
                     return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
                 }).join("")}

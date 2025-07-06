@@ -46,9 +46,19 @@ function getPropertyManagementFunctions() {
                     inputHTML = '<select name="' + propKey + '" ' + tooltip + ' disabled>';
                     
                     // Create options
-                    propSchema.enum.forEach(option => {
-                        const isSelected = isBooleanEnum ? 
-                            (option === false || option === "false") : false;
+                    propSchema.enum.forEach((option, index) => {
+                        let isSelected = false;
+                        
+                        if (propSchema.default !== undefined) {
+                            // Use the schema's default value if available
+                            isSelected = option === propSchema.default;
+                        } else if (isBooleanEnum) {
+                            // Default to 'false' for boolean enums if no default specified
+                            isSelected = (option === false || option === "false");
+                        } else if (index === 0) {
+                            // For non-boolean enums with no default, select the first option
+                            isSelected = true;
+                        }
                         
                         inputHTML += '<option value="' + option + '" ' + 
                             (isSelected ? "selected" : "") + '>' + option + '</option>';
@@ -158,14 +168,20 @@ function getPropertyManagementFunctions() {
                     if (this.checked) {
                         this.disabled = true;
                         this.setAttribute("data-originally-checked", "true");
+                              // If the checkbox is checked, ensure we have a valid value
+                    if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === "")) {
+                        const propKey = this.getAttribute("data-prop");
+                        const propSchema = propItemsSchema[propKey] || {};
                         
-                        // If the checkbox is checked, ensure we have a valid value
-                        if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === "")) {
-                            // For select elements with no value, select the first option
-                            if (inputElement.options.length > 0) {
-                                inputElement.value = inputElement.options[0].value;
-                            }
+                        // If schema has a default value, use it
+                        if (propSchema && propSchema.default !== undefined) {
+                            inputElement.value = propSchema.default;
+                        } 
+                        // Otherwise, select the first option
+                        else if (inputElement.options.length > 0) {
+                            inputElement.value = inputElement.options[0].value;
                         }
+                    }
                         
                         // Send update message to the extension
                         vscode.postMessage({
@@ -229,8 +245,15 @@ function getPropertyManagementFunctions() {
                     
                     // If the checkbox is checked, ensure we have a valid value
                     if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === "")) {
-                        // For select elements with no value, select the first option
-                        if (inputElement.options.length > 0) {
+                        const propName = checkbox.getAttribute("data-prop");
+                        const propSchema = propItemsSchema[propName] || {};
+                        
+                        // If schema has a default value, use it
+                        if (propSchema && propSchema.default !== undefined) {
+                            inputElement.value = propSchema.default;
+                        } 
+                        // Otherwise, select the first option
+                        else if (inputElement.options.length > 0) {
                             inputElement.value = inputElement.options[0].value;
                         }
                     }

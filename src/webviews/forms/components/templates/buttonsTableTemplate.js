@@ -68,10 +68,24 @@ function getButtonsTableTemplate(buttons, buttonsSchema) {
                 // Always show all options in the dropdown but disable it if property doesn't exist or is null/undefined
                 inputField = `<select name="${buttonKey}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
                     ${buttonSchema.enum.map(option => {
-                        // If it's a boolean enum and the property doesn't exist or is null/undefined, default to 'false'
-                        const isSelected = isBooleanEnum && !propertyExists ? 
-                            (option === false || option === "false") : 
-                            button[buttonKey] === option;
+                        let isSelected = false;
+                        
+                        if (propertyExists) {
+                            // If the property exists, select the matching option
+                            isSelected = button[buttonKey] === option;
+                        } else {
+                            // If the property doesn't exist, use default value logic
+                            if (buttonSchema.default !== undefined) {
+                                // Use the schema's default value if available
+                                isSelected = option === buttonSchema.default;
+                            } else if (isBooleanEnum) {
+                                // Default to 'false' for boolean enums if no default specified
+                                isSelected = (option === false || option === "false");
+                            } else if (buttonSchema.enum.indexOf(option) === 0) {
+                                // For non-boolean enums with no default, select the first option
+                                isSelected = true;
+                            }
+                        }
                         return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
                     }).join("")}
                 </select>`;

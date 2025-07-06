@@ -37,7 +37,20 @@ function getParameterManagementFunctions() {
                     const propertyExists = param.hasOwnProperty(paramKey) && param[paramKey] !== null && param[paramKey] !== undefined;
                     
                     if (field.tagName === 'SELECT') {
-                        field.value = propertyExists ? param[paramKey] : '';
+                        if (propertyExists) {
+                            // If property exists, use its value
+                            field.value = param[paramKey];
+                        } else {
+                            // If property doesn't exist, use default value logic
+                            const schema = paramSchema[paramKey] || {};
+                            if (schema.default !== undefined) {
+                                // Use the schema's default value if available
+                                field.value = schema.default;
+                            } else {
+                                // Otherwise, leave the default that was set in the HTML template
+                                // The template already handles boolean enums and first-option defaults
+                            }
+                        }
                         field.disabled = !propertyExists;
                     } else {
                         field.value = propertyExists ? param[paramKey] : '';

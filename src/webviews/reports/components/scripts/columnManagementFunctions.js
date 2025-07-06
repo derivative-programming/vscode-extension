@@ -37,7 +37,20 @@ function getColumnManagementFunctions() {
                     const propertyExists = column.hasOwnProperty(columnKey) && column[columnKey] !== null && column[columnKey] !== undefined;
                     
                     if (field.tagName === 'SELECT') {
-                        field.value = propertyExists ? column[columnKey] : '';
+                        if (propertyExists) {
+                            // If property exists, use its value
+                            field.value = column[columnKey];
+                        } else {
+                            // If property doesn't exist, use default value logic
+                            const schema = columnSchema[columnKey] || {};
+                            if (schema.default !== undefined) {
+                                // Use the schema's default value if available
+                                field.value = schema.default;
+                            } else {
+                                // Otherwise, leave the default that was set in the HTML template
+                                // The template already handles boolean enums and first-option defaults
+                            }
+                        }
                         field.disabled = !propertyExists;
                     } else {
                         field.value = propertyExists ? column[columnKey] : '';

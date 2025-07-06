@@ -71,7 +71,20 @@ function initializeButtonTabFunctionality() {
                     const propertyExists = button.hasOwnProperty(buttonKey) && button[buttonKey] !== null && button[buttonKey] !== undefined;
                     
                     if (field.tagName === 'SELECT') {
-                        field.value = propertyExists ? button[buttonKey] : '';
+                        if (propertyExists) {
+                            // If property exists, use its value
+                            field.value = button[buttonKey];
+                        } else {
+                            // If property doesn't exist, use default value logic
+                            const schema = buttonSchemaProps[buttonKey] || {};
+                            if (schema.default !== undefined) {
+                                // Use the schema's default value if available
+                                field.value = schema.default;
+                            } else {
+                                // Otherwise, leave the default that was set in the HTML template
+                                // The template already handles boolean enums and first-option defaults
+                            }
+                        }
                         field.disabled = !propertyExists;
                     } else {
                         field.value = propertyExists ? button[buttonKey] : '';
@@ -142,8 +155,15 @@ function initializeButtonCheckboxes() {
                 
                 // If the checkbox is checked, ensure we have a valid value for select elements
                 if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === '')) {
-                    // For select elements with no value, select the first option
-                    if (inputElement.options.length > 0) {
+                    const propKey = this.getAttribute('data-prop');
+                    const schema = buttonSchemaProps[propKey] || {};
+                    
+                    // If schema has a default value, use it
+                    if (schema && schema.default !== undefined) {
+                        inputElement.value = schema.default;
+                    } 
+                    // Otherwise, select the first option
+                    else if (inputElement.options.length > 0) {
                         inputElement.value = inputElement.options[0].value;
                     }
                 }
