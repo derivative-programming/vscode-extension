@@ -2,6 +2,31 @@
 
 *This file contains architecture notes related to ui components.*
 
+## Report Details View - Buttons List View Event Handler (Added 2025-07-09)
+
+### Problem:
+- In the Report Details View Buttons tab list view, selecting a button from the list didn't display the button details form
+- Unlike Columns and Parameters tabs, the Buttons tab was missing the event handler for list selection changes
+- This issue only affected the Report Details View (Forms Details View worked correctly)
+
+### Implementation Details:
+- Each details view tab has a standardized pattern where:
+  1. The list container has a select element (e.g., `buttonsList`, `columnsList`, `paramsList`)
+  2. When an item is selected, a change event handler:
+     - Sets the corresponding details container to display: block
+     - Populates the form fields with values from the selected item
+     - Properly handles property existence with checkboxes
+- The missing event handler was added to `buttonManagementFunctions.js`
+- Event handler has consistent behavior with other tabs:
+  - Shows details container when an item is selected
+  - Updates form fields with button properties
+  - Sets checkbox states based on property existence
+  - Sets proper read-only/disabled states for inputs
+  - Sets up event handlers for property changes
+
+### Files Modified:
+- `src/webviews/reports/components/scripts/buttonManagementFunctions.js`: Added event handler for `buttonsList` change event and related field update logic
+
 ## Default Values for Dropdown Controls (Added 2025-07-06)
 
 ### Implementation Overview:
