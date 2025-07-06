@@ -142,5 +142,6 @@ function getButtonsListTemplate(buttonsSchema) {
 
 module.exports = {
     getButtonsTableTemplate,
-    getButtonsListTemplate
+    getButtonsListTemplate,
+    getButtonPropertiesToHide
 };

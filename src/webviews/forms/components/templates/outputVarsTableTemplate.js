@@ -7,7 +7,7 @@ const { formatLabel } = require("../../helpers/formDataHelper");
  */
 function getOutputVarPropertiesToHide() {
     return [
-        "name"
+        // Note: "name" is not hidden as it's the primary identifier for output variables
     ];
 }
 
@@ -18,11 +18,19 @@ function getOutputVarPropertiesToHide() {
  * @returns {Object} Object containing tableHeaders and tableRows HTML
  */
 function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
+    console.log("[DEBUG] getOutputVarsTableTemplate called with:", {
+        outputVarsCount: outputVars ? outputVars.length : 0,
+        outputVarsSchemaKeys: outputVarsSchema ? Object.keys(outputVarsSchema) : [],
+        outputVarsSchema: outputVarsSchema
+    });
+    
     // Ensure outputVars is always an array, even if undefined
     const safeOutputVars = Array.isArray(outputVars) ? outputVars : [];
+    console.log("[DEBUG] safeOutputVars:", safeOutputVars);
     
     // Get properties to hide
     const propertiesToHide = getOutputVarPropertiesToHide();
+    console.log("[DEBUG] propertiesToHide:", propertiesToHide);
     
     // Create header columns for all outputVar properties and sort them alphabetically
     // Make sure 'name' is always the first column if it exists
@@ -33,17 +41,24 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
     if (outputVarsSchema.hasOwnProperty("name") && !propertiesToHide.includes("name")) {
         outputVarColumns.unshift("name");
     }
+    console.log("[DEBUG] outputVarColumns:", outputVarColumns);
 
     // Generate table headers with tooltips based on schema descriptions
     const outputVarTableHeaders = outputVarColumns.map(key => {
         const outputVarSchema = outputVarsSchema[key] || {};
         const tooltip = outputVarSchema.description ? ` title="${outputVarSchema.description}"` : "";
+        console.log(`[DEBUG] Processing header for key: ${key}, schema:`, outputVarSchema);
         return `<th${tooltip}>${formatLabel(key)}</th>`;
     }).join("");
+    console.log("[DEBUG] outputVarTableHeaders:", outputVarTableHeaders);
     
     // Generate table rows for all output variables
     const outputVarTableRows = safeOutputVars.map((outputVar, index) => {
+        console.log(`[DEBUG] Processing outputVar at index ${index}:`, outputVar);
+        
         const cells = outputVarColumns.map(outputVarKey => {
+            console.log(`[DEBUG] Processing outputVarKey: ${outputVarKey} for outputVar:`, outputVar);
+            
             const outputVarSchema = outputVarsSchema[outputVarKey] || {};
             const hasEnum = outputVarSchema.enum && Array.isArray(outputVarSchema.enum);
             // Check if it's a boolean enum (containing only true/false values)
@@ -53,13 +68,17 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
             const tooltip = outputVarSchema.description ? `title="${outputVarSchema.description}"` : "";
             
             // Check if the property exists and is not null or undefined
-            const propertyExists = outputVar.hasOwnProperty(outputVarKey) && outputVar[outputVarKey] !== null && outputVar[outputVarKey] !== undefined;
+            const propertyExists = outputVar && outputVar.hasOwnProperty(outputVarKey) && outputVar[outputVarKey] !== null && outputVar[outputVarKey] !== undefined;
+            console.log(`[DEBUG] Property ${outputVarKey} exists: ${propertyExists}, value:`, outputVar ? outputVar[outputVarKey] : 'N/A');
             
             // Special handling for the name column
             if (outputVarKey === "name") {
+                const outputVarName = (outputVar && typeof outputVar === 'object' && outputVar.name) ? outputVar.name : "Unnamed Output Variable";
+                const outputVarNameValue = (outputVar && typeof outputVar === 'object' && outputVar.name) ? outputVar.name : "";
+                console.log(`[DEBUG] Handling name column: outputVarName="${outputVarName}", outputVarNameValue="${outputVarNameValue}"`);
                 return `<td>
-                    <span class="outputvar-name">${outputVar.name || "Unnamed Output Variable"}</span>
-                    <input type="hidden" name="name" value="${outputVar.name || ""}">
+                    <span class="outputvar-name">${outputVarName}</span>
+                    <input type="hidden" name="name" value="${outputVarNameValue}">
                 </td>`;
             }
             
@@ -84,6 +103,8 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
             // and disable the checkbox to prevent unchecking
             const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
             
+            console.log(`[DEBUG] Generated inputField for ${outputVarKey}:`, inputField.substring(0, 100) + '...');
+            
             return `<td>
                 <div class="control-with-checkbox">
                     ${inputField}
@@ -91,6 +112,8 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
                 </div>
             </td>`;
         }).join("");
+        
+        console.log(`[DEBUG] Generated cells for outputVar ${index}:`, cells.substring(0, 200) + '...');
         
         return `<tr data-index="${index}">
             <td>${index + 1}</td>
@@ -104,7 +127,11 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
         </tr>`;
     }).join("");
     
-    return { outputVarTableHeaders, outputVarTableRows, outputVarColumns };
+    console.log("[DEBUG] outputVarTableRows generated, length:", outputVarTableRows.length);
+    
+    const result = { outputVarTableHeaders, outputVarTableRows, outputVarColumns };
+    console.log("[DEBUG] getOutputVarsTableTemplate returning:", result);
+    return result;
 }
 
 /**
@@ -113,8 +140,11 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
  * @returns {string} HTML for output variable fields in list view
  */
 function getOutputVarsListTemplate(outputVarsSchema) {
+    console.log("[DEBUG] getOutputVarsListTemplate called with outputVarsSchema:", outputVarsSchema);
+    
     // Get properties to hide
     const propertiesToHide = getOutputVarPropertiesToHide();
+    console.log("[DEBUG] propertiesToHide:", propertiesToHide);
     
     // Create header columns for all outputVar properties and sort them alphabetically
     // Make sure 'name' is always the first column if it exists

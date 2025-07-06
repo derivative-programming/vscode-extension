@@ -47,6 +47,10 @@ function getModalFunctionality() {
  * @returns {string} JavaScript code for client-side functionality
  */
 function getClientScriptTemplate(params, buttons, outputVars, paramSchema, buttonSchema, outputVarSchema, formName) {
+    // Ensure formName is never undefined to prevent "name is not defined" error
+    const safeFormName = formName || 'Unknown Form';
+    console.log("[DEBUG] getClientScriptTemplate called with formName:", formName, "safeFormName:", safeFormName);
+    
     return `
         // Store current data
         let currentParams = ${JSON.stringify(params)};
@@ -117,7 +121,7 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     vscode.postMessage({
                         command: 'tabChanged',
                         tabId: tabId,
-                        formName: '${formName}'
+                        formName: '${safeFormName}'
                     });
                 });
             });
@@ -423,9 +427,11 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 // Send to VS Code
                 const vscode = acquireVsCodeApi();
                 vscode.postMessage({
-                    command: 'updateFormOutputVar',
-                    outputVar: outputVar,
-                    index: index
+                    command: 'updateOutputVar',
+                    data: {
+                        outputVar: outputVar,
+                        index: index
+                    }
                 });
                 
                 closeModal('output-var-modal');
@@ -456,13 +462,13 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             Object.entries(paramSchemaProps).sort((a, b) => a[0].localeCompare(b[0])).forEach(([propName, schema]) => {
                 const value = param[propName] || '';
                 const hasEnum = schema.enum && Array.isArray(schema.enum);
-                const tooltip = schema.description ? \`title="\${schema.description}"\` : '';
+                const tooltip = schema.description ? 'title="' + schema.description + '"' : '';
                 
                 const fieldHtml = document.createElement('div');
                 fieldHtml.className = 'form-row';
                 
                 const label = document.createElement('label');
-                label.setAttribute('for', \`param-\${propName}\`);
+                label.setAttribute('for', 'param-' + propName);
                 if (schema.description) {
                     label.setAttribute('title', schema.description);
                 }
@@ -487,7 +493,7 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     input.value = value;
                 }
                 
-                input.id = \`param-\${propName}\`;
+                input.id = 'param-' + propName;
                 input.name = propName;
                 if (schema.description) {
                     input.setAttribute('title', schema.description);
@@ -506,13 +512,13 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             Object.entries(buttonSchemaProps).sort((a, b) => a[0].localeCompare(b[0])).forEach(([propName, schema]) => {
                 const value = button[propName] || '';
                 const hasEnum = schema.enum && Array.isArray(schema.enum);
-                const tooltip = schema.description ? \`title="\${schema.description}"\` : '';
+                const tooltip = schema.description ? 'title="' + schema.description + '"' : '';
                 
                 const fieldHtml = document.createElement('div');
                 fieldHtml.className = 'form-row';
                 
                 const label = document.createElement('label');
-                label.setAttribute('for', \`button-\${propName}\`);
+                label.setAttribute('for', 'button-' + propName);
                 if (schema.description) {
                     label.setAttribute('title', schema.description);
                 }
@@ -537,7 +543,7 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     input.value = value;
                 }
                 
-                input.id = \`button-\${propName}\`;
+                input.id = 'button-' + propName;
                 input.name = propName;
                 if (schema.description) {
                     input.setAttribute('title', schema.description);
@@ -588,13 +594,6 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     
                     updateInputStyle(field, checkbox.checked);
                 }
-                input.name = propName;
-                if (schema.description) {
-                    input.setAttribute('title', schema.description);
-                }
-                
-                fieldHtml.appendChild(input);
-                fieldsContainer.appendChild(fieldHtml);
             });
         }
         
@@ -1151,7 +1150,7 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 const isChecked = event.target.checked;
                 
                 const row = event.target.closest('tr');
-                const input = row.querySelector(`[name="${prop}"]`);
+                const input = row.querySelector('[name="' + prop + '"]');
                 
                 if (input) {
                     if (input.tagName === 'SELECT') {
@@ -1203,6 +1202,81 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     property: property,
                     value: event.target.value
                 });
+            });
+        });
+        
+        // Handle output variable edit events
+        document.querySelectorAll('.edit-outputvar').forEach(button => {
+            button.addEventListener('click', function() {
+                const index = this.getAttribute('data-index');
+                if (!index) return;
+                
+                const outputVarIndex = parseInt(index);
+                
+                // Get the output variable data for editing
+                const outputVarData = currentOutputVars[outputVarIndex];
+                if (!outputVarData) return;
+                
+                // Set the index in the hidden field
+                document.getElementById('output-var-index').value = outputVarIndex;
+                
+                // Populate the form fields in the edit modal
+                Object.keys(outputVarData).forEach(key => {
+                    const input = document.getElementById("output-var-" + key);
+                    if (input) {
+                        input.value = outputVarData[key];
+                        
+                        // Check the toggle checkbox
+                        const toggleCheckbox = document.getElementById("output-var-" + key + "-toggle");
+                        if (toggleCheckbox) {
+                            toggleCheckbox.checked = true;
+                        }
+                    }
+                });
+                
+                // Open the modal
+                openModal('output-var-modal');
+            });
+        });
+        
+        // Handle output variable copy events
+        document.querySelectorAll('.copy-outputvar').forEach(button => {
+            button.addEventListener('click', function() {
+                const index = this.getAttribute('data-index');
+                if (!index) return;
+                
+                vscode.postMessage({
+                    command: 'copyOutputVar',
+                    index: parseInt(index)
+                });
+            });
+        });
+
+        // Handle output variable move up events
+        document.querySelectorAll('.move-up-outputvar').forEach(button => {
+            button.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                if (index > 0) {
+                    vscode.postMessage({
+                        command: 'moveOutputVar',
+                        fromIndex: index,
+                        toIndex: index - 1
+                    });
+                }
+            });
+        });
+
+        // Handle output variable move down events
+        document.querySelectorAll('.move-down-outputvar').forEach(button => {
+            button.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                if (index < currentOutputVars.length - 1) {
+                    vscode.postMessage({
+                        command: 'moveOutputVar',
+                        fromIndex: index,
+                        toIndex: index + 1
+                    });
+                }
             });
         });
 `;

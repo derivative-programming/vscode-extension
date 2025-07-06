@@ -22,81 +22,120 @@ const { getMainTemplate } = require("./templates/mainTemplate");
  * @returns {string} HTML content
  */
 function generateDetailsView(form, formSchemaProps, formParamsSchema, formButtonsSchema, formOutputVarsSchema) {
-    const params = form.objectWorkflowParam || [];
-    const buttons = form.objectWorkflowButton || [];
-    const outputVars = form.objectWorkflowOutputVar || [];
+    console.log("[DEBUG] generateDetailsView called with:", {
+        form: form,
+        formSchemaPropsKeys: formSchemaProps ? Object.keys(formSchemaProps) : [],
+        formParamsSchemaKeys: formParamsSchema ? Object.keys(formParamsSchema) : [],
+        formButtonsSchemaKeys: formButtonsSchema ? Object.keys(formButtonsSchema) : [],
+        formOutputVarsSchemaKeys: formOutputVarsSchema ? Object.keys(formOutputVarsSchema) : []
+    });
     
-    // Remove complex properties from settings
-    const formForSettings = { ...form };
-    delete formForSettings.objectWorkflowParam;
-    delete formForSettings.objectWorkflowButton;
-    delete formForSettings.objectWorkflowOutputVar;
+    try {
+        const params = form.objectWorkflowParam || [];
+        const buttons = form.objectWorkflowButton || [];
+        const outputVars = form.objectWorkflowOutputVar || [];
+        
+        console.log("[DEBUG] Extracted arrays:", {
+            paramsCount: params.length,
+            buttonsCount: buttons.length,
+            outputVarsCount: outputVars.length,
+            outputVars: outputVars
+        });
+        
+        // Remove complex properties from settings
+        const formForSettings = { ...form };
+        delete formForSettings.objectWorkflowParam;
+        delete formForSettings.objectWorkflowButton;
+        delete formForSettings.objectWorkflowOutputVar;
 
-    // Generate the settings tab content using the template
-    const settingsHtml = getSettingsTabTemplate(formForSettings, formSchemaProps);
-    
-    // Get properties to hide for parameters
-    const paramPropertiesToHide = getParamPropertiesToHide();
-    
-    // Generate the params tab content using templates
-    const { paramTableHeaders, paramTableRows } = getParamsTableTemplate(params, formParamsSchema);
-    
-    // Generate the params list view content
-    const paramListViewFields = getParamsListTemplate(formParamsSchema);
-    
-    // Generate the buttons tab content using templates
-    const { buttonTableHeaders, buttonTableRows } = getButtonsTableTemplate(buttons, formButtonsSchema);
-    
-    // Generate the buttons list view content
-    const buttonListViewFields = getButtonsListTemplate(formButtonsSchema);
-    
-    // Generate the output variables tab content using templates
-    const { outputVarTableHeaders, outputVarTableRows } = getOutputVarsTableTemplate(outputVars, formOutputVarsSchema);
-    
-    // Generate the output variables list view content
-    const outputVarListViewFields = getOutputVarsListTemplate(formOutputVarsSchema);
-    
-    // Generate modal HTML content
-    const paramModalHtml = getParamModalHtml(formParamsSchema);
-    const buttonModalHtml = getButtonModalHtml(formButtonsSchema);
-    const outputVarModalHtml = getOutputVarModalHtml(formOutputVarsSchema);
-    
-    // Get additional data for dynamic rendering
-    const styles = getDetailViewStyles();
-    const paramProperties = Object.keys(formParamsSchema)
-        .filter(key => !paramPropertiesToHide.includes(key.toLowerCase()));
-    
-    // Generate client-side JavaScript
-    const clientScript = getClientScriptTemplate(
-        form.name || 'Form', 
-        params, 
-        buttons, 
-        outputVars, 
-        formSchemaProps,
-        formParamsSchema
-    );
-    
-    // Generate the complete HTML document
-    return getMainTemplate(
-        form,
-        params.length,
-        buttons.length,
-        outputVars.length,
-        settingsHtml,
-        paramTableHeaders,
-        paramTableRows,
-        paramListViewFields,
-        buttonTableHeaders,
-        buttonTableRows,
-        buttonListViewFields,
-        outputVarTableHeaders,
-        outputVarTableRows,
-        outputVarListViewFields,
-        paramModalHtml,
-        buttonModalHtml,
-        outputVarModalHtml,
-        clientScript
-    );
+        // Generate the settings tab content using the template
+        console.log("[DEBUG] Generating settings tab...");
+        const settingsHtml = getSettingsTabTemplate(formForSettings, formSchemaProps);
+        
+        // Get properties to hide for parameters
+        const paramPropertiesToHide = getParamPropertiesToHide();
+        
+        // Generate the params tab content using templates
+        console.log("[DEBUG] Generating params tab...");
+        const { paramTableHeaders, paramTableRows } = getParamsTableTemplate(params, formParamsSchema);
+        
+        // Generate the params list view content
+        const paramListViewFields = getParamsListTemplate(formParamsSchema);
+        
+        // Generate the buttons tab content using templates
+        console.log("[DEBUG] Generating buttons tab...");
+        const { buttonTableHeaders, buttonTableRows } = getButtonsTableTemplate(buttons, formButtonsSchema);
+        
+        // Generate the buttons list view content
+        const buttonListViewFields = getButtonsListTemplate(formButtonsSchema);
+        
+        // Generate the output variables tab content using templates
+        console.log("[DEBUG] Generating output variables tab...");
+        const { outputVarTableHeaders, outputVarTableRows } = getOutputVarsTableTemplate(outputVars, formOutputVarsSchema);
+        
+        // Generate the output variables list view content
+        console.log("[DEBUG] Generating output variables list view...");
+        const outputVarListViewFields = getOutputVarsListTemplate(formOutputVarsSchema);
+        
+        // Generate modal HTML content
+        console.log("[DEBUG] Generating modals...");
+        const paramModalHtml = getParamModalHtml(formParamsSchema);
+        const buttonModalHtml = getButtonModalHtml(formButtonsSchema);
+        const outputVarModalHtml = getOutputVarModalHtml(formOutputVarsSchema);
+        
+        // Get additional data for dynamic rendering
+        const styles = getDetailViewStyles();
+        const paramProperties = Object.keys(formParamsSchema)
+            .filter(key => !paramPropertiesToHide.includes(key.toLowerCase()));
+        
+        // Generate client-side JavaScript
+        console.log("[DEBUG] Generating client script...");
+        console.log("[DEBUG] Form object:", form);
+        console.log("[DEBUG] Form name:", form ? form.name : 'form is null/undefined');
+        const formName = (form && form.name) ? form.name : 'Unknown Form';
+        console.log("[DEBUG] Using formName:", formName);
+        
+        const clientScript = getClientScriptTemplate(
+            params, 
+            buttons, 
+            outputVars,
+            formParamsSchema,
+            formButtonsSchema,
+            formOutputVarsSchema,
+            formName
+        );
+        
+        // Generate the complete HTML document
+        console.log("[DEBUG] Generating main template...");
+        const result = getMainTemplate(
+            form,
+            params.length,
+            buttons.length,
+            outputVars.length,
+            settingsHtml,
+            paramTableHeaders,
+            paramTableRows,
+            paramListViewFields,
+            buttonTableHeaders,
+            buttonTableRows,
+            buttonListViewFields,
+            outputVarTableHeaders,
+            outputVarTableRows,
+            outputVarListViewFields,
+            paramModalHtml,
+            buttonModalHtml,
+            outputVarModalHtml,
+            clientScript
+        );
+        
+        console.log("[DEBUG] generateDetailsView completed successfully");
+        return result;
+        
+    } catch (error) {
+        console.error("[ERROR] generateDetailsView failed:", error);
+        console.error("[ERROR] Stack trace:", error.stack);
+        throw error;
+    }
 }
 
 module.exports = {

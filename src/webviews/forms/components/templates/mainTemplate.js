@@ -96,7 +96,10 @@ function getMainTemplate(
         <div id="paramsListView" class="view-content active">
             <div class="list-container">
                 <select id="paramsList" size="10">
-                    ${(form.objectWorkflowParam || []).map((param, index) => `<option value="${index}">${param.name || 'Unnamed Parameter'}</option>`).join('')}
+                    ${(form.objectWorkflowParam || []).map((param, index) => {
+                        const name = (param && typeof param === 'object' && param.name) ? param.name : 'Unnamed Parameter';
+                        return `<option value="${index}">${name}</option>`;
+                    }).join('')}
                 </select>
                 <div class="list-buttons">
                     <button id="copyParamsButton" class="copy-props-button">Copy</button>
@@ -152,7 +155,10 @@ function getMainTemplate(
         <div id="buttons-list-view" class="view-content" style="display: none;">
             <div class="list-container">
                 <select id="buttonsList" size="10">
-                    ${(form.objectWorkflowButton || []).map((button, index) => `<option value="${index}">${button.buttonName || 'Unnamed Button'}</option>`).join('')}
+                    ${(form.objectWorkflowButton || []).map((button, index) => {
+                        const name = (button && typeof button === 'object' && button.buttonName) ? button.buttonName : 'Unnamed Button';
+                        return `<option value="${index}">${name}</option>`;
+                    }).join('')}
                 </select>
                 
                 <div id="buttonDetailsContainer" class="details-container" style="display: none;">
@@ -191,7 +197,12 @@ function getMainTemplate(
         <div id="outputVarsListView" class="view-content active">
             <div class="list-container">
                 <select id="outputVarsList" size="10">
-                    ${(form.objectWorkflowOutputVar || []).map((outputVar, index) => `<option value="${index}">${outputVar.name || 'Unnamed Output Variable'}</option>`).join('')}
+                    ${(form.objectWorkflowOutputVar || []).map((outputVar, index) => {
+                        console.log(`[DEBUG] mainTemplate outputVar at index ${index}:`, outputVar);
+                        const name = (outputVar && typeof outputVar === 'object' && outputVar.name) ? outputVar.name : 'Unnamed Output Variable';
+                        console.log(`[DEBUG] mainTemplate outputVar name: "${name}"`);
+                        return `<option value="${index}">${name}</option>`;
+                    }).join('')}
                 </select>
                 <div class="list-buttons">
                     <button id="copyOutputVarButton" class="copy-props-button">Copy</button>

@@ -105,14 +105,27 @@ function showFormDetails(item, modelService) {
     const formButtonsSchema = getFormButtonsSchema(schema);
     const formOutputVarsSchema = getFormOutputVarsSchema(schema);
     
-    // Set the HTML content with the full form data
-    panel.webview.html = generateDetailsView(
-        formData, 
-        formSchemaProps, 
-        formParamsSchema, 
-        formButtonsSchema, 
-        formOutputVarsSchema
-    );
+    try {
+        // Set the HTML content with the full form data
+        panel.webview.html = generateDetailsView(
+            formData, 
+            formSchemaProps, 
+            formParamsSchema, 
+            formButtonsSchema, 
+            formOutputVarsSchema
+        );
+    } catch (error) {
+        console.error("Error generating details view:", error);
+        console.error("Form data:", JSON.stringify(formData, null, 2));
+        console.error("Schema props:", Object.keys(formSchemaProps));
+        console.error("Params schema:", Object.keys(formParamsSchema));
+        console.error("Buttons schema:", Object.keys(formButtonsSchema));
+        console.error("Output vars schema:", Object.keys(formOutputVarsSchema));
+        
+        // Show error to user
+        vscode.window.showErrorMessage(`Failed to open Form Details: ${error.message}`);
+        return;
+    }
     
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(
@@ -531,18 +544,36 @@ function updateOutputVarDirectly(data, formReference, modelService) {
     try {
         if (formReference) {
             console.log("[DEBUG] updateOutputVarDirectly called for form");
-            const { index, property, exists, value } = data;
+            
+            // Support both new format (data.outputVar, data.index) and old format (data.property, data.exists, data.value)
+            const { index, outputVar, property, exists, value } = data;
             
             // Log what we're receiving
-            console.log("[DEBUG] updateOutputVarDirectly received:", index, property, value, typeof value);
+            console.log("[DEBUG] updateOutputVarDirectly received:", data);
             
             // Ensure objectWorkflowOutputVar array exists
             if (!formReference.objectWorkflowOutputVar) {
                 formReference.objectWorkflowOutputVar = [];
             }
             
-            // Ensure the output variable at the index exists
-            if (index >= 0 && index < formReference.objectWorkflowOutputVar.length) {
+            // Handle the case where we're receiving a complete outputVar object
+            if (outputVar && typeof outputVar === 'object' && index >= 0) {
+                if (index < formReference.objectWorkflowOutputVar.length) {
+                    // Update existing output variable
+                    formReference.objectWorkflowOutputVar[index] = outputVar;
+                    console.log(`[DEBUG] Updated entire outputVar at index ${index}`);
+                } else if (index === formReference.objectWorkflowOutputVar.length) {
+                    // Add new output variable
+                    formReference.objectWorkflowOutputVar.push(outputVar);
+                    console.log(`[DEBUG] Added new outputVar at index ${index}`);
+                } else {
+                    console.error(`[DEBUG] Invalid index: ${index} for outputVar array of length ${formReference.objectWorkflowOutputVar.length}`);
+                    return;
+                }
+                console.log(`[DEBUG] OutputVar after update:`, outputVar);
+            }
+            // Handle the case where we're updating a specific property
+            else if (property && index >= 0 && index < formReference.objectWorkflowOutputVar.length) {
                 const outputVar = formReference.objectWorkflowOutputVar[index];
                 
                 if (exists) {
