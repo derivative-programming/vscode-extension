@@ -7,6 +7,63 @@ const { formatLabel } = require("../../helpers/formDataHelper");
  * @returns {string} HTML for parameter edit modal
  */
 function getParamModalHtml(paramsSchema) {
+    // Get properties to hide
+    const { getParamPropertiesToHide } = require("./paramsTableTemplate");
+    const propertiesToHide = getParamPropertiesToHide();
+    
+    // Filter out hidden properties and sort remaining properties alphabetically
+    const sortedProps = Object.keys(paramsSchema)
+        .filter(key => !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
+    
+    // Generate form groups for each property
+    const formGroups = sortedProps.map(prop => {
+        const schema = paramsSchema[prop];
+        const propLabel = formatLabel(prop);
+        
+        // Get tooltip content if description exists
+        const tooltipHtml = schema.description 
+            ? `<div class="tooltip">
+                <span>ⓘ</span>
+                <span class="tooltip-text">${schema.description}</span>
+              </div>`
+            : '';
+        
+        // Generate appropriate input based on the type
+        let inputHtml = '';
+        
+        if (schema.enum && Array.isArray(schema.enum)) {
+            // Enum should use a select dropdown
+            const options = schema.enum.map(opt => {
+                return `<option value="${opt}">${opt}</option>`;
+            }).join('');
+            
+            inputHtml = `
+                <select id="param-${prop}">
+                    ${options}
+                </select>
+            `;
+        } else {
+            // Default to text input
+            inputHtml = `
+                <input type="text" id="param-${prop}" value="">
+            `;
+        }
+        
+        // Create the form group with checkbox for property toggle
+        return `
+            <div class="form-group">
+                <div class="property-label">
+                    <label for="param-${prop}">${propLabel} ${tooltipHtml}</label>
+                </div>
+                <div class="property-input">
+                    ${inputHtml}
+                    <input type="checkbox" id="param-${prop}-toggle" class="property-toggle" data-property="${prop}" title="Toggle property existence">
+                </div>
+            </div>
+        `;
+    }).join('');
+
     return `
     <div id="param-modal" class="modal">
         <div class="modal-content">
@@ -15,7 +72,9 @@ function getParamModalHtml(paramsSchema) {
             
             <form id="param-form">
                 <input type="hidden" id="param-index">
-                <div id="param-fields-container"></div>
+                <div id="param-fields-container">
+                    ${formGroups}
+                </div>
                 
                 <div class="form-actions">
                     <button type="button" id="save-param">Save</button>
@@ -32,6 +91,63 @@ function getParamModalHtml(paramsSchema) {
  * @returns {string} HTML for button edit modal
  */
 function getButtonModalHtml(buttonsSchema) {
+    // Get properties to hide
+    const { getButtonPropertiesToHide } = require("./buttonsTableTemplate");
+    const propertiesToHide = getButtonPropertiesToHide();
+    
+    // Filter out hidden properties and sort remaining properties alphabetically
+    const sortedProps = Object.keys(buttonsSchema)
+        .filter(key => !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
+    
+    // Generate form groups for each property
+    const formGroups = sortedProps.map(prop => {
+        const schema = buttonsSchema[prop];
+        const propLabel = formatLabel(prop);
+        
+        // Get tooltip content if description exists
+        const tooltipHtml = schema.description 
+            ? `<div class="tooltip">
+                <span>ⓘ</span>
+                <span class="tooltip-text">${schema.description}</span>
+              </div>`
+            : '';
+        
+        // Generate appropriate input based on the type
+        let inputHtml = '';
+        
+        if (schema.enum && Array.isArray(schema.enum)) {
+            // Enum should use a select dropdown
+            const options = schema.enum.map(opt => {
+                return `<option value="${opt}">${opt}</option>`;
+            }).join('');
+            
+            inputHtml = `
+                <select id="button-${prop}">
+                    ${options}
+                </select>
+            `;
+        } else {
+            // Default to text input
+            inputHtml = `
+                <input type="text" id="button-${prop}" value="">
+            `;
+        }
+        
+        // Create the form group with checkbox for property toggle
+        return `
+            <div class="form-group">
+                <div class="property-label">
+                    <label for="button-${prop}">${propLabel} ${tooltipHtml}</label>
+                </div>
+                <div class="property-input">
+                    ${inputHtml}
+                    <input type="checkbox" id="button-${prop}-toggle" class="property-toggle" data-property="${prop}" title="Toggle property existence">
+                </div>
+            </div>
+        `;
+    }).join('');
+
     return `
     <div id="button-modal" class="modal">
         <div class="modal-content">
@@ -40,7 +156,9 @@ function getButtonModalHtml(buttonsSchema) {
             
             <form id="button-form">
                 <input type="hidden" id="button-index">
-                <div id="button-fields-container"></div>
+                <div id="button-fields-container">
+                    ${formGroups}
+                </div>
                 
                 <div class="form-actions">
                     <button type="button" id="save-button">Save</button>

@@ -2,40 +2,109 @@
 const { formatLabel } = require("../../helpers/formDataHelper");
 
 /**
+ * Gets the list of output variable properties that should be hidden in the output variables tab
+ * @returns {Array<string>} Array of property names to hide (lowercase)
+ */
+function getOutputVarPropertiesToHide() {
+    return [
+        "name"
+    ];
+}
+
+/**
  * Generates the table template for form output variables
  * @param {Array} outputVars Array of form output variables
  * @param {Object} outputVarsSchema Schema properties for form output variables
  * @returns {Object} Object containing tableHeaders and tableRows HTML
  */
 function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
-    // Generate table headers based on schema
-    const tableHeaders = Object.keys(outputVarsSchema)
-        .sort((a, b) => a.localeCompare(b))
-        .map(prop => `<th>${formatLabel(prop)}</th>`)
-        .join("");
+    // Ensure outputVars is always an array, even if undefined
+    const safeOutputVars = Array.isArray(outputVars) ? outputVars : [];
     
-    // Generate table rows for each output variable
-    const tableRows = outputVars.map((outputVar, index) => {
-        const cells = Object.keys(outputVarsSchema)
-            .sort((a, b) => a.localeCompare(b))
-            .map(prop => {
-                const value = outputVar[prop] !== undefined ? outputVar[prop] : '';
-                return `<td>${value}</td>`;
-            })
-            .join("");
+    // Get properties to hide
+    const propertiesToHide = getOutputVarPropertiesToHide();
+    
+    // Create header columns for all outputVar properties and sort them alphabetically
+    // Make sure 'name' is always the first column if it exists
+    // Filter out properties that should be hidden
+    const outputVarColumns = Object.keys(outputVarsSchema)
+        .filter(key => key !== "name" && !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
+    if (outputVarsSchema.hasOwnProperty("name") && !propertiesToHide.includes("name")) {
+        outputVarColumns.unshift("name");
+    }
+
+    // Generate table headers with tooltips based on schema descriptions
+    const outputVarTableHeaders = outputVarColumns.map(key => {
+        const outputVarSchema = outputVarsSchema[key] || {};
+        const tooltip = outputVarSchema.description ? ` title="${outputVarSchema.description}"` : "";
+        return `<th${tooltip}>${formatLabel(key)}</th>`;
+    }).join("");
+    
+    // Generate table rows for all output variables
+    const outputVarTableRows = safeOutputVars.map((outputVar, index) => {
+        const cells = outputVarColumns.map(outputVarKey => {
+            const outputVarSchema = outputVarsSchema[outputVarKey] || {};
+            const hasEnum = outputVarSchema.enum && Array.isArray(outputVarSchema.enum);
+            // Check if it's a boolean enum (containing only true/false values)
+            const isBooleanEnum = hasEnum && outputVarSchema.enum.length === 2 && 
+                outputVarSchema.enum.every(val => val === true || val === false || val === "true" || val === "false");
+            
+            const tooltip = outputVarSchema.description ? `title="${outputVarSchema.description}"` : "";
+            
+            // Check if the property exists and is not null or undefined
+            const propertyExists = outputVar.hasOwnProperty(outputVarKey) && outputVar[outputVarKey] !== null && outputVar[outputVarKey] !== undefined;
+            
+            // Special handling for the name column
+            if (outputVarKey === "name") {
+                return `<td>
+                    <span class="outputvar-name">${outputVar.name || "Unnamed Output Variable"}</span>
+                    <input type="hidden" name="name" value="${outputVar.name || ""}">
+                </td>`;
+            }
+            
+            let inputField = "";
+            if (hasEnum) {
+                // Always show all options in the dropdown but disable it if property doesn't exist or is null/undefined
+                inputField = `<select name="${outputVarKey}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
+                    ${outputVarSchema.enum.map(option => {
+                        // If it's a boolean enum and the property doesn't exist or is null/undefined, default to 'false'
+                        const isSelected = isBooleanEnum && !propertyExists ? 
+                            (option === false || option === "false") : 
+                            outputVar[outputVarKey] === option;
+                        
+                        return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
+                    }).join("")}
+                </select>`;
+            } else {
+                inputField = `<input type="text" name="${outputVarKey}" value="${propertyExists ? outputVar[outputVarKey] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
+            }
+            
+            // If the property exists, add a data attribute to indicate it was originally checked
+            // and disable the checkbox to prevent unchecking
+            const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
+            
+            return `<td>
+                <div class="control-with-checkbox">
+                    ${inputField}
+                    <input type="checkbox" class="outputvar-checkbox" data-prop="${outputVarKey}" data-index="${index}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} title="Toggle property existence">
+                </div>
+            </td>`;
+        }).join("");
         
-        return `<tr data-outputvar-index="${index}">
+        return `<tr data-index="${index}">
             <td>${index + 1}</td>
             ${cells}
-            <td>
-                <button class="action-button edit-outputvar" data-outputvar-index="${index}">Edit</button>
-                <button class="action-button move-up" data-outputvar-index="${index}" ${index === 0 ? 'disabled' : ''}>▲</button>
-                <button class="action-button move-down" data-outputvar-index="${index}" ${index === outputVars.length - 1 ? 'disabled' : ''}>▼</button>
+            <td class="action-column">
+                <button class="action-button edit-outputvar" data-index="${index}" title="Edit this output variable">Edit</button>
+                <button class="action-button copy-outputvar" data-index="${index}" title="Copy this output variable">Copy</button>
+                <button class="action-button move-up-outputvar" data-index="${index}" ${index === 0 ? 'disabled' : ''} title="Move up">▲</button>
+                <button class="action-button move-down-outputvar" data-index="${index}" ${index === safeOutputVars.length - 1 ? 'disabled' : ''} title="Move down">▼</button>
             </td>
         </tr>`;
     }).join("");
     
-    return { outputVarTableHeaders: tableHeaders, outputVarTableRows: tableRows };
+    return { outputVarTableHeaders, outputVarTableRows, outputVarColumns };
 }
 
 /**
@@ -44,35 +113,59 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
  * @returns {string} HTML for output variable fields in list view
  */
 function getOutputVarsListTemplate(outputVarsSchema) {
-    return Object.entries(outputVarsSchema)
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([prop, schema]) => {
-            // Check if property has enum values
-            const hasEnum = schema.enum && Array.isArray(schema.enum);
+    // Get properties to hide
+    const propertiesToHide = getOutputVarPropertiesToHide();
+    
+    // Create header columns for all outputVar properties and sort them alphabetically
+    // Make sure 'name' is always the first column if it exists
+    // Filter out properties that should be hidden
+    const outputVarColumns = Object.keys(outputVarsSchema)
+        .filter(key => key !== "name" && !propertiesToHide.includes(key.toLowerCase()))
+        .sort();
+    if (outputVarsSchema.hasOwnProperty("name") && !propertiesToHide.includes("name")) {
+        outputVarColumns.unshift("name");
+    }
+
+    // Generate list view form fields for all properties except name
+    return outputVarColumns.filter(key => key !== "name").map(outputVarKey => {
+        const outputVarSchema = outputVarsSchema[outputVarKey] || {};
+        const hasEnum = outputVarSchema.enum && Array.isArray(outputVarSchema.enum);
+        // Check if it's a boolean enum (containing only true/false values)
+        const isBooleanEnum = hasEnum && outputVarSchema.enum.length === 2 && 
+            outputVarSchema.enum.every(val => val === true || val === false || val === "true" || val === "false");
             
-            // Get description for tooltip
-            const tooltip = schema.description ? `title="${schema.description}"` : "";
-            
-            // Generate appropriate input field based on whether it has enum values
-            let inputField = "";
-            if (hasEnum) {
-                inputField = `<select id="outputvar-${prop}" name="${prop}" ${tooltip} class="outputvar-field">
-                    <option value="">Select...</option>
-                    ${schema.enum.map(option => `<option value="${option}">${option}</option>`).join("")}
-                </select>`;
-            } else {
-                inputField = `<input type="text" id="outputvar-${prop}" name="${prop}" ${tooltip} class="outputvar-field">`;
-            }
-            
-            return `<div class="form-row">
-                <label for="outputvar-${prop}" ${tooltip}>${formatLabel(prop)}:</label>
-                ${inputField}
-                <input type="checkbox" class="outputvar-checkbox" data-prop="${prop}" title="Include this property">
-            </div>`;
-        }).join("");
+        const tooltip = outputVarSchema.description ? `title="${outputVarSchema.description}"` : "";
+        
+        const fieldId = `outputVar${outputVarKey}`;
+        
+        // Note: The detailed output variable values will be populated by client-side JavaScript
+        // when an output variable is selected from the list, so we set default values here
+        let inputField = "";
+        if (hasEnum) {
+            // Always display all enum options even when disabled
+            inputField = `<select id="${fieldId}" name="${outputVarKey}" ${tooltip} disabled>
+                ${outputVarSchema.enum.map(option => {
+                    // Default to 'false' for boolean enums
+                    const isSelected = isBooleanEnum ? (option === false || option === "false") : false;
+                    
+                    return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
+                }).join("")}
+            </select>`;
+        } else {
+            inputField = `<input type="text" id="${fieldId}" name="${outputVarKey}" value="" ${tooltip} readonly>`;
+        }
+        
+        // Note: We'll dynamically set the disabled attribute for checked checkboxes in the JavaScript
+        return `<div class="form-row">
+            <label for="${fieldId}" ${tooltip}>${formatLabel(outputVarKey)}:</label>
+            ${inputField}
+            <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" style="margin-left: 5px; transform: scale(0.8);">
+        </div>`;
+    }).join("");
 }
 
 module.exports = {
     getOutputVarsTableTemplate,
-    getOutputVarsListTemplate
+    getOutputVarsListTemplate,
+    getOutputVarPropertiesToHide
 };

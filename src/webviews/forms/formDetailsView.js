@@ -150,7 +150,7 @@ function showFormDetails(item, modelService) {
                         // Update param properties directly on the form
                         updateParamDirectly(message.data, formReference, modelService);
                     } else {
-                        console.warn("Cannot update param: ModelService not available or form reference not found");
+                        console.warn("Cannot update param: ModelService not available or formReference not found");
                     }
                     return;
                     
@@ -160,6 +160,24 @@ function showFormDetails(item, modelService) {
                         updateOutputVarDirectly(message.data, formReference, modelService);
                     } else {
                         console.warn("Cannot update output variable: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "updateOutputVarProperty":
+                    if (modelService && formReference) {
+                        // Update a single property of an output variable
+                        updateOutputVarProperty(message, formReference, modelService);
+                    } else {
+                        console.warn("Cannot update output variable property: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "removeOutputVarProperty":
+                    if (modelService && formReference) {
+                        // Remove a property from an output variable
+                        removeOutputVarProperty(message, formReference, modelService);
+                    } else {
+                        console.warn("Cannot remove output variable property: ModelService not available or form reference not found");
                     }
                     return;
                     
@@ -178,6 +196,15 @@ function showFormDetails(item, modelService) {
                         moveButtonInArray(message.data, formReference, modelService);
                     } else {
                         console.warn("Cannot move button: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "copyOutputVar":
+                    if (modelService && formReference) {
+                        // Copy an output variable
+                        copyOutputVarInArray(message, formReference, modelService);
+                    } else {
+                        console.warn("Cannot copy output variable: ModelService not available or form reference not found");
                     }
                     return;
                     
@@ -214,6 +241,69 @@ function showFormDetails(item, modelService) {
                         reverseOutputVarArray(formReference, modelService);
                     } else {
                         console.warn("Cannot reverse output variables: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "copyParam":
+                    if (modelService && formReference) {
+                        // Copy parameter in the array
+                        copyParamInArray(message.data, formReference, modelService);
+                    } else {
+                        console.warn("Cannot copy parameter: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "copyButton":
+                    if (modelService && formReference) {
+                        // Copy button in the array
+                        copyButtonInArray(message.data, formReference, modelService);
+                    } else {
+                        console.warn("Cannot copy button: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "addParam":
+                    if (modelService && formReference) {
+                        // Add a new parameter to the form
+                        addParamToForm(formReference, modelService);
+                    } else {
+                        console.warn("Cannot add parameter: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "addButton":
+                    if (modelService && formReference) {
+                        // Add a new button to the form
+                        addButtonToForm(formReference, modelService);
+                    } else {
+                        console.warn("Cannot add button: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "addOutputVar":
+                    if (modelService && formReference) {
+                        // Add a new output variable to the form
+                        addOutputVarToForm(formReference, modelService);
+                    } else {
+                        console.warn("Cannot add output variable: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "reverseParams":
+                    if (modelService && formReference) {
+                        // Reverse the parameters array
+                        reverseParamArray(formReference, modelService);
+                    } else {
+                        console.warn("Cannot reverse parameters: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "updateParamFull":
+                    if (modelService && formReference) {
+                        // Update the complete parameter with new data
+                        updateParamFull(message.data, formReference, modelService);
+                    } else {
+                        console.warn("Cannot update parameter: ModelService not available or form reference not found");
                     }
                     return;
             }
@@ -316,48 +406,885 @@ function updateSettingsDirectly(data, formReference, modelService) {
 }
 
 function updateButtonDirectly(data, formReference, modelService) {
-    // Implementation would be similar to reports but for form buttons
-    console.log("updateButtonDirectly called for form");
+    console.log(`updateButtonDirectly called with data:`, data);
+    
+    if (!formReference || !data || data.index === undefined || !modelService) {
+        console.error("Missing required data for button update");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the buttons array if it doesn't exist
+        if (!form.objectWorkflowButton) {
+            form.objectWorkflowButton = [];
+        }
+        
+        // Check if the button exists
+        if (data.index >= form.objectWorkflowButton.length) {
+            console.error(`Button index ${data.index} out of bounds`);
+            return;
+        }
+        
+        // Get the button
+        const button = form.objectWorkflowButton[data.index];
+        
+        if (!button) {
+            console.error(`Button at index ${data.index} is undefined`);
+            return;
+        }
+        
+        // Handle full button update
+        if (data.button) {
+            form.objectWorkflowButton[data.index] = data.button;
+            modelService.saveModel();
+            return;
+        }
+        
+        // Handle individual property update
+        if (data.property) {
+            if (data.exists) {
+                // Update the property with the new value
+                button[data.property] = data.value;
+            } else {
+                // Remove the property
+                delete button[data.property];
+            }
+            
+            // Save the model
+            modelService.saveModel();
+        }
+    } catch (error) {
+        console.error("Error updating button:", error);
+    }
 }
 
 function updateParamDirectly(data, formReference, modelService) {
-    // Implementation would be similar to reports but for form params
-    console.log("updateParamDirectly called for form");
+    console.log(`updateParamDirectly called with data:`, data);
+    
+    if (!formReference || !data || data.index === undefined || !modelService) {
+        console.error("Missing required data for parameter update");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the parameters array if it doesn't exist
+        if (!form.objectWorkflowParam) {
+            form.objectWorkflowParam = [];
+        }
+        
+        // Check if the parameter exists
+        if (data.index >= form.objectWorkflowParam.length) {
+            console.error(`Parameter index ${data.index} out of bounds`);
+            return;
+        }
+        
+        // Get the parameter
+        const param = form.objectWorkflowParam[data.index];
+        
+        if (!param) {
+            console.error(`Parameter at index ${data.index} is undefined`);
+            return;
+        }
+        
+        // Handle full parameter update
+        if (data.param) {
+            form.objectWorkflowParam[data.index] = data.param;
+            modelService.saveModel();
+            return;
+        }
+        
+        // Handle individual property update
+        if (data.property) {
+            if (data.exists) {
+                // Update the property with the new value
+                param[data.property] = data.value;
+            } else {
+                // Remove the property
+                delete param[data.property];
+            }
+            
+            // Save the model
+            modelService.saveModel();
+        }
+    } catch (error) {
+        console.error("Error updating parameter:", error);
+    }
 }
 
 function updateOutputVarDirectly(data, formReference, modelService) {
-    // Implementation would be similar to reports but for form output variables
-    console.log("updateOutputVarDirectly called for form");
+    try {
+        if (formReference) {
+            console.log("[DEBUG] updateOutputVarDirectly called for form");
+            const { index, property, exists, value } = data;
+            
+            // Log what we're receiving
+            console.log("[DEBUG] updateOutputVarDirectly received:", index, property, value, typeof value);
+            
+            // Ensure objectWorkflowOutputVar array exists
+            if (!formReference.objectWorkflowOutputVar) {
+                formReference.objectWorkflowOutputVar = [];
+            }
+            
+            // Ensure the output variable at the index exists
+            if (index >= 0 && index < formReference.objectWorkflowOutputVar.length) {
+                const outputVar = formReference.objectWorkflowOutputVar[index];
+                
+                if (exists) {
+                    // Set or update the property
+                    outputVar[property] = value;
+                    console.log(`[DEBUG] Set outputVar[${index}].${property} = ${value}`);
+                } else {
+                    // Remove the property
+                    delete outputVar[property];
+                    console.log(`[DEBUG] Removed outputVar[${index}].${property}`);
+                }
+                
+                console.log(`[DEBUG] OutputVar after update:`, outputVar);
+            }
+            
+            // Mark as having unsaved changes using the modelService
+            if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                modelService.markUnsavedChanges();
+                console.log("[DEBUG] Marked unsaved changes via modelService");
+            } else {
+                console.warn("[DEBUG] modelService.markUnsavedChanges is not available");
+            }
+            
+            vscode.commands.executeCommand("appdna.refresh");
+        }
+    } catch (error) {
+        console.error("Error in updateOutputVarDirectly:", error);
+    }
+}
+
+function updateOutputVarProperty(message, formReference, modelService) {
+    console.log(`updateOutputVarProperty called with:`, message);
+    
+    if (!formReference || message.index === undefined || !message.property || !modelService) {
+        console.error("Missing required data for output variable property update operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the output variables array if it doesn't exist
+        if (!form.objectWorkflowOutputVar) {
+            form.objectWorkflowOutputVar = [];
+        }
+        
+        // Check if the output variable exists
+        if (message.index >= form.objectWorkflowOutputVar.length) {
+            console.error(`Output variable index ${message.index} out of bounds`);
+            return;
+        }
+        
+        // Update the property
+        form.objectWorkflowOutputVar[message.index][message.property] = message.value;
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error updating output variable property:", error);
+    }
+}
+
+function removeOutputVarProperty(message, formReference, modelService) {
+    console.log(`removeOutputVarProperty called with:`, message);
+    
+    if (!formReference || message.index === undefined || !message.property || !modelService) {
+        console.error("Missing required data for output variable property remove operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the output variables array if it doesn't exist
+        if (!form.objectWorkflowOutputVar) {
+            form.objectWorkflowOutputVar = [];
+        }
+        
+        // Check if the output variable exists
+        if (message.index >= form.objectWorkflowOutputVar.length) {
+            console.error(`Output variable index ${message.index} out of bounds`);
+            return;
+        }
+        
+        // Remove the property
+        delete form.objectWorkflowOutputVar[message.index][message.property];
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error removing output variable property:", error);
+    }
 }
 
 function moveParamInArray(data, formReference, modelService) {
-    // Implementation would be similar to reports but for form params
-    console.log("moveParamInArray called for form");
+    console.log(`moveParamInArray called with data:`, data);
+    
+    if (!formReference || !data || data.index === undefined || !data.direction || !modelService) {
+        console.error("Missing required data for parameter move operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the parameters array if it doesn't exist
+        if (!form.objectWorkflowParam) {
+            form.objectWorkflowParam = [];
+            return; // Nothing to move in an empty array
+        }
+        
+        // Check if the parameter exists
+        if (data.index >= form.objectWorkflowParam.length) {
+            console.error(`Parameter index ${data.index} out of bounds`);
+            return;
+        }
+        
+        const params = form.objectWorkflowParam;
+        const currentIndex = data.index;
+        let newIndex;
+        
+        // Calculate the new index based on the direction
+        if (data.direction === 'up') {
+            if (currentIndex <= 0) {
+                return; // Already at the top
+            }
+            newIndex = currentIndex - 1;
+        } else if (data.direction === 'down') {
+            if (currentIndex >= params.length - 1) {
+                return; // Already at the bottom
+            }
+            newIndex = currentIndex + 1;
+        } else {
+            console.error("Invalid direction for move operation:", data.direction);
+            return;
+        }
+        
+        // Swap the parameters
+        const temp = params[currentIndex];
+        params[currentIndex] = params[newIndex];
+        params[newIndex] = temp;
+        
+        // Save the model
+        modelService.saveModel();
+    } catch (error) {
+        console.error("Error moving parameter:", error);
+    }
 }
 
 function moveButtonInArray(data, formReference, modelService) {
-    // Implementation would be similar to reports but for form buttons
-    console.log("moveButtonInArray called for form");
+    console.log(`moveButtonInArray called with data:`, data);
+    
+    if (!formReference || !data || data.index === undefined || !data.direction || !modelService) {
+        console.error("Missing required data for button move operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the buttons array if it doesn't exist
+        if (!form.objectWorkflowButton) {
+            form.objectWorkflowButton = [];
+            return; // Nothing to move in an empty array
+        }
+        
+        // Check if the button exists
+        if (data.index >= form.objectWorkflowButton.length) {
+            console.error(`Button index ${data.index} out of bounds`);
+            return;
+        }
+        
+        const buttons = form.objectWorkflowButton;
+        const currentIndex = data.index;
+        let newIndex;
+        
+        // Calculate the new index based on the direction
+        if (data.direction === 'up') {
+            if (currentIndex <= 0) {
+                return; // Already at the top
+            }
+            newIndex = currentIndex - 1;
+        } else if (data.direction === 'down') {
+            if (currentIndex >= buttons.length - 1) {
+                return; // Already at the bottom
+            }
+            newIndex = currentIndex + 1;
+        } else {
+            console.error("Invalid direction for move operation:", data.direction);
+            return;
+        }
+        
+        // Swap the buttons
+        const temp = buttons[currentIndex];
+        buttons[currentIndex] = buttons[newIndex];
+        buttons[newIndex] = temp;
+        
+        // Save the model
+        modelService.saveModel();
+    } catch (error) {
+        console.error("Error moving button:", error);
+    }
 }
 
 function moveOutputVarInArray(data, formReference, modelService) {
-    // Implementation would be similar to reports but for form output variables
-    console.log("moveOutputVarInArray called for form");
+    console.log(`moveOutputVarInArray called with data:`, data);
+    
+    if (!formReference || !data || !data.hasOwnProperty('fromIndex') || !data.hasOwnProperty('toIndex') || !modelService) {
+        console.error("Missing required data for output variable move operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the output variables array if it doesn't exist
+        if (!form.objectWorkflowOutputVar) {
+            form.objectWorkflowOutputVar = [];
+            return; // Nothing to move in an empty array
+        }
+        
+        // Check if the output variable exists
+        const fromIndex = data.fromIndex;
+        const toIndex = data.toIndex;
+        
+        if (fromIndex < 0 || fromIndex >= form.objectWorkflowOutputVar.length) {
+            console.error(`Output variable fromIndex ${fromIndex} out of bounds`);
+            return;
+        }
+        
+        if (toIndex < 0 || toIndex >= form.objectWorkflowOutputVar.length) {
+            console.error(`Output variable toIndex ${toIndex} out of bounds`);
+            return;
+        }
+        
+        // Get the output variable to move
+        const outputVarToMove = form.objectWorkflowOutputVar[fromIndex];
+        
+        // Remove from current position
+        form.objectWorkflowOutputVar.splice(fromIndex, 1);
+        
+        // Add at new position
+        form.objectWorkflowOutputVar.splice(toIndex, 0, outputVarToMove);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error moving output variable:", error);
+    }
 }
 
 function reverseParamArray(formReference, modelService) {
-    // Implementation would be similar to reports but for form params
     console.log("reverseParamArray called for form");
+    
+    if (!formReference || !modelService) {
+        console.error("Missing required data for parameter reverse operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the parameters array if it doesn't exist
+        if (!form.objectWorkflowParam || form.objectWorkflowParam.length <= 1) {
+            return; // Nothing to reverse with 0 or 1 elements
+        }
+        
+        // Reverse the parameters array
+        form.objectWorkflowParam.reverse();
+        
+        // Save the model
+        modelService.saveModel();
+    } catch (error) {
+        console.error("Error reversing parameters:", error);
+    }
 }
 
 function reverseButtonArray(formReference, modelService) {
-    // Implementation would be similar to reports but for form buttons
-    console.log("reverseButtonArray called for form");
+    try {
+        console.log("[DEBUG] reverseButtonArray called for form");
+        
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        if (!form.objectWorkflowButton || !Array.isArray(form.objectWorkflowButton)) {
+            console.warn("[DEBUG] objectWorkflowButton array does not exist");
+            return;
+        }
+        
+        const array = form.objectWorkflowButton;
+        
+        if (array.length <= 1) {
+            console.log("[DEBUG] Button array has 1 or fewer items, nothing to reverse");
+            return;
+        }
+        
+        // Reverse the array
+        array.reverse();
+        
+        console.log("[DEBUG] Button array reversed successfully");
+        
+        // Save the model
+        modelService.saveModel();
+    } catch (error) {
+        console.error("Error reversing button array:", error);
+    }
 }
 
 function reverseOutputVarArray(formReference, modelService) {
-    // Implementation would be similar to reports but for form output variables
     console.log("reverseOutputVarArray called for form");
+    
+    if (!formReference || !modelService) {
+        console.error("Missing required data for output variables reverse operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the output variables array if it doesn't exist
+        if (!form.objectWorkflowOutputVar) {
+            form.objectWorkflowOutputVar = [];
+            return; // Nothing to reverse in an empty array
+        }
+        
+        // Check if there's anything to reverse
+        if (form.objectWorkflowOutputVar.length <= 1) {
+            return; // Nothing to reverse with 0 or 1 element
+        }
+        
+        // Reverse the array
+        form.objectWorkflowOutputVar.reverse();
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error reversing output variables array:", error);
+    }
+}
+
+function copyParamInArray(data, formReference, modelService) {
+    console.log(`copyParamInArray called with data:`, data);
+    
+    if (!formReference || !data || data.index === undefined || !modelService) {
+        console.error("Missing required data for parameter copy operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the parameters array if it doesn't exist
+        if (!form.objectWorkflowParam) {
+            form.objectWorkflowParam = [];
+        }
+        
+        // Check if the parameter exists
+        if (data.index >= form.objectWorkflowParam.length) {
+            console.error(`Parameter index ${data.index} out of bounds`);
+            return;
+        }
+        
+        // Get the parameter
+        const param = form.objectWorkflowParam[data.index];
+        
+        if (!param) {
+            console.error(`Parameter at index ${data.index} is undefined`);
+            return;
+        }
+        
+        // Create a deep copy of the parameter
+        const paramCopy = JSON.parse(JSON.stringify(param));
+        
+        // If the parameter has a name, append " - Copy" to make it unique
+        if (paramCopy.name) {
+            paramCopy.name = `${paramCopy.name} - Copy`;
+        }
+        
+        // Insert the copy after the original
+        form.objectWorkflowParam.splice(data.index + 1, 0, paramCopy);
+        
+        // Save the model
+        modelService.saveModel();
+    } catch (error) {
+        console.error("Error copying parameter:", error);
+    }
+}
+
+function copyButtonInArray(data, formReference, modelService) {
+    console.log(`copyButtonInArray called with data:`, data);
+    
+    if (!formReference || !data || data.index === undefined || !modelService) {
+        console.error("Missing required data for button copy operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the buttons array if it doesn't exist
+        if (!form.objectWorkflowButton) {
+            form.objectWorkflowButton = [];
+        }
+        
+        // Check if the button exists
+        if (data.index >= form.objectWorkflowButton.length) {
+            console.error(`Button index ${data.index} out of bounds`);
+            return;
+        }
+        
+        // Get the button to copy
+        const originalButton = form.objectWorkflowButton[data.index];
+        
+        if (!originalButton) {
+            console.error(`Button at index ${data.index} is undefined`);
+            return;
+        }
+        
+        // Create a deep copy of the button
+        const buttonCopy = JSON.parse(JSON.stringify(originalButton));
+        
+        // If the button has a buttonName, create a unique name for the copy
+        if (buttonCopy.buttonName) {
+            let baseName = buttonCopy.buttonName;
+            let copyName = `${baseName}Copy`;
+            let counter = 1;
+            
+            // Ensure the copied button name is unique
+            while (form.objectWorkflowButton.some(b => b.buttonName === copyName)) {
+                copyName = `${baseName}Copy${counter}`;
+                counter++;
+            }
+            
+            buttonCopy.buttonName = copyName;
+        }
+        
+        // Insert the copy right after the original
+        form.objectWorkflowButton.splice(data.index + 1, 0, buttonCopy);
+        
+        // Save the model
+        modelService.saveModel();
+    } catch (error) {
+        console.error("Error copying button:", error);
+    }
+}
+
+/**
+ * Copies an output variable in the array
+ * @param {Object} message The message containing the index of the output variable to copy
+ * @param {Object} formReference Reference to the current form
+ * @param {Object} modelService Reference to the model service
+ */
+function copyOutputVarInArray(message, formReference, modelService) {
+    console.log(`copyOutputVarInArray called with index:`, message.index);
+    
+    if (!formReference || message.index === undefined || !modelService) {
+        console.error("Missing required data for output variable copy operation");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the output variables array if it doesn't exist
+        if (!form.objectWorkflowOutputVar) {
+            form.objectWorkflowOutputVar = [];
+        }
+        
+        // Check if the output variable exists
+        if (message.index >= form.objectWorkflowOutputVar.length) {
+            console.error(`Output variable index ${message.index} out of bounds`);
+            return;
+        }
+        
+        // Get the output variable to copy
+        const outputVarToCopy = form.objectWorkflowOutputVar[message.index];
+        
+        // Create a deep copy of the output variable
+        const outputVarCopy = JSON.parse(JSON.stringify(outputVarToCopy));
+        
+        // If the output variable has a name, append " Copy" to the name
+        if (outputVarCopy.name) {
+            outputVarCopy.name += " Copy";
+        }
+        
+        // Insert the copy after the original
+        form.objectWorkflowOutputVar.splice(message.index + 1, 0, outputVarCopy);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error copying output variable:", error);
+    }
+}
+
+function addParamToForm(formReference, modelService) {
+    console.log("addParamToForm called");
+    
+    if (!formReference || !modelService) {
+        console.error("Missing required data to add parameter");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the parameters array if it doesn't exist
+        if (!form.objectWorkflowParam) {
+            form.objectWorkflowParam = [];
+        }
+        
+        // Create a new parameter with a default name
+        const newParam = {
+            name: `New Parameter ${form.objectWorkflowParam.length + 1}`
+        };
+        
+        // Add the new parameter to the array
+        form.objectWorkflowParam.push(newParam);
+        
+        // Save the model
+        modelService.saveModel();
+    } catch (error) {
+        console.error("Error adding parameter:", error);
+    }
+}
+
+function addButtonToForm(formReference, modelService) {
+    console.log("addButtonToForm called");
+    
+    if (!formReference || !modelService) {
+        console.error("Missing required data for adding a button");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the buttons array if it doesn't exist
+        if (!form.objectWorkflowButton) {
+            form.objectWorkflowButton = [];
+        }
+        
+        // Create a new button with a default name
+        const newButton = {
+            buttonName: "NewButton" + (form.objectWorkflowButton.length + 1)
+        };
+        
+        // Add the new button to the array
+        form.objectWorkflowButton.push(newButton);
+        
+        // Save the model
+        modelService.saveModel();
+    } catch (error) {
+        console.error("Error adding button:", error);
+    }
+}
+
+/**
+ * Adds a new output variable to the form
+ * @param {Object} formReference Reference to the current form
+ * @param {Object} modelService Reference to the model service
+ */
+function addOutputVarToForm(formReference, modelService) {
+    console.log("addOutputVarToForm called");
+    
+    if (!formReference || !modelService) {
+        console.error("Missing required data for adding output variable");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the output variables array if it doesn't exist
+        if (!form.objectWorkflowOutputVar) {
+            form.objectWorkflowOutputVar = [];
+        }
+        
+        // Create a new output variable with a default name
+        const newOutputVar = {
+            name: `OutputVar${form.objectWorkflowOutputVar.length + 1}`
+        };
+        
+        // Add the new output variable to the form
+        form.objectWorkflowOutputVar.push(newOutputVar);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding output variable to form:", error);
+    }
+}
+
+function updateParamFull(data, formReference, modelService) {
+    console.log(`updateParamFull called with data:`, data);
+    
+    if (!formReference || !data || data.index === undefined || !data.param || !modelService) {
+        console.error("Missing required data for full parameter update");
+        return;
+    }
+    
+    try {
+        // Get the current form from the model service
+        const form = modelService.getObjectById(formReference.id);
+        
+        if (!form) {
+            console.error(`Form with ID ${formReference.id} not found`);
+            return;
+        }
+        
+        // Initialize the parameters array if it doesn't exist
+        if (!form.objectWorkflowParam) {
+            form.objectWorkflowParam = [];
+        }
+        
+        // Check if the parameter exists
+        if (data.index >= form.objectWorkflowParam.length) {
+            console.error(`Parameter index ${data.index} out of bounds`);
+            return;
+        }
+        
+        // Update the parameter with the new data
+        form.objectWorkflowParam[data.index] = data.param;
+        
+        // Save the model
+        modelService.saveModel();
+    } catch (error) {
+        console.error("Error updating full parameter:", error);
+    }
 }
 
 module.exports = {

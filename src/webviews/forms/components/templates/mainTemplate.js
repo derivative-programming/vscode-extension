@@ -68,51 +68,144 @@ function getMainTemplate(
     </div>
     
     <div id="params" class="tab-content">
-        <div class="action-buttons">
-            <button id="add-param-btn">Add Parameter</button>
-            <button id="reverse-params-btn">Reverse Order</button>
+        <div class="view-icons" data-tab="params">
+            <div class="view-icons-left">
+                <span class="icon list-icon active" data-view="list">List View</span>
+                <span class="icon table-icon" data-view="table">Table View</span>
+            </div>
+            <button id="add-param-btn" class="add-prop-button">Add Parameter</button>
         </div>
-        
-        <table class="data-table">
-            <thead>
-                <tr>${paramTableHeaders}</tr>
-            </thead>
-            <tbody>
-                ${paramTableRows}
-            </tbody>
-        </table>
+
+        <div id="paramsTableView" class="view-content">
+            <div class="table-container">
+                <table id="params-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            ${paramTableHeaders}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${paramTableRows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="paramsListView" class="view-content active">
+            <div class="list-container">
+                <select id="paramsList" size="10">
+                    ${(form.objectWorkflowParam || []).map((param, index) => `<option value="${index}">${param.name || 'Unnamed Parameter'}</option>`).join('')}
+                </select>
+                <div class="list-buttons">
+                    <button id="copyParamsButton" class="copy-props-button">Copy</button>
+                    <button id="moveUpParamsButton" class="move-button">Move Up</button>
+                    <button id="moveDownParamsButton" class="move-button">Move Down</button>
+                    <button id="reverseParamsButton" class="reverse-button">Reverse</button>
+                </div>
+            </div>
+            <div id="paramDetailsContainer" class="details-container" style="display: none;">
+                <form id="paramDetailsForm">
+                    ${paramListViewFields}
+                </form>
+            </div>
+        </div>
     </div>
     
     <div id="buttons" class="tab-content">
-        <div class="action-buttons">
-            <button id="add-button-btn">Add Button</button>
-            <button id="reverse-buttons-btn">Reverse Order</button>
+        <div class="view-icons" data-tab="buttons">
+            <div class="view-icons-left">
+                <span class="icon list-icon" data-view="list">List View</span>
+                <span class="icon table-icon active" data-view="table">Table View</span>
+            </div>
+            <div class="view-icons-right">
+                <label for="buttons-view-switcher">View: </label>
+                <select id="buttons-view-switcher">
+                    <option value="table">Table</option>
+                    <option value="list">List</option>
+                </select>
+            </div>
+            <div class="action-buttons">
+                <button id="add-button-btn">Add Button</button>
+                <button id="reverse-buttons-btn">Reverse Order</button>
+            </div>
         </div>
-        
-        <table class="data-table">
-            <thead>
-                <tr>${buttonTableHeaders}</tr>
-            </thead>
-            <tbody>
-                ${buttonTableRows}
-            </tbody>
-        </table>
+
+        <div id="buttons-table-view" class="view-content active">
+            <div class="table-container">
+                <table id="buttons-table" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            ${buttonTableHeaders}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${buttonTableRows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="buttons-list-view" class="view-content" style="display: none;">
+            <div class="list-container">
+                <select id="buttonsList" size="10">
+                    ${(form.objectWorkflowButton || []).map((button, index) => `<option value="${index}">${button.buttonName || 'Unnamed Button'}</option>`).join('')}
+                </select>
+                
+                <div id="buttonDetailsContainer" class="details-container" style="display: none;">
+                    ${buttonListViewFields}
+                </div>
+            </div>
+        </div>
     </div>
     
     <div id="outputVars" class="tab-content">
-        <div class="action-buttons">
-            <button id="add-output-var-btn">Add Output Variable</button>
-            <button id="reverse-output-vars-btn">Reverse Order</button>
+        <div class="view-icons" data-tab="outputVars">
+            <div class="view-icons-left">
+                <span class="icon list-icon active" data-view="list">List View</span>
+                <span class="icon table-icon" data-view="table">Table View</span>
+            </div>
+            <button id="add-output-var-btn" class="add-prop-button">Add Output Variable</button>
         </div>
-        
-        <table class="data-table">
-            <thead>
-                <tr>${outputVarTableHeaders}</tr>
-            </thead>
-            <tbody>
-                ${outputVarTableRows}
-            </tbody>
-        </table>
+
+        <div id="outputVarsTableView" class="view-content">
+            <div class="table-container">
+                <table id="outputVars-table" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            ${outputVarTableHeaders}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${outputVarTableRows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="outputVarsListView" class="view-content active">
+            <div class="list-container">
+                <select id="outputVarsList" size="10">
+                    ${(form.objectWorkflowOutputVar || []).map((outputVar, index) => `<option value="${index}">${outputVar.name || 'Unnamed Output Variable'}</option>`).join('')}
+                </select>
+                <div class="list-buttons">
+                    <button id="copyOutputVarButton" class="copy-props-button">Copy</button>
+                    <button id="moveUpOutputVarButton" class="move-button">Move Up</button>
+                    <button id="moveDownOutputVarButton" class="move-button">Move Down</button>
+                    <button id="reverseOutputVarButton" class="reverse-button">Reverse</button>
+                </div>
+            </div>
+            <div id="outputVarDetailsContainer" class="details-container" style="display: none;">
+                <form id="outputVarDetailsForm">
+                    ${outputVarListViewFields}
+                </form>
+            </div>
+        </div>
     </div>
     
     <!-- Modals for adding/editing items -->

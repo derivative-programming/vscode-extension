@@ -50,93 +50,56 @@ function getDetailViewStyles() {
             background-color: var(--vscode-editor-background);
             border: 1px solid var(--vscode-panel-border);
             border-top: none;
-            border-radius: 3px;
+            border-radius: 0 0 3px 3px;
         }
         
         .tab-content.active {
             display: block;
         }
         
-        .form-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 10px 0;
-        }
-        
-        .form-table th, .form-table td {
-            padding: 8px 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--vscode-panel-border);
-            vertical-align: middle;
-        }
-        
-        .form-table th {
-            background-color: var(--vscode-list-hoverBackground);
-            font-weight: bold;
-        }
-        
-        .form-table td {
-            vertical-align: top;
-        }
-        
-        .form-row {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        .form-row label {
-            width: 150px;
-            margin-right: 10px;
-        }
-
-        input[type="text"], select {
-            flex-grow: 1;
-            padding: 4px 8px;
+        input[type="text"], select, textarea {
             background-color: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
             border: 1px solid var(--vscode-input-border);
+            padding: 4px 8px;
+            border-radius: 3px;
+            margin-right: 4px;
         }
-
+        
         input[readonly], select[disabled], textarea[readonly] {
-            background-color: var(--vscode-input-disabledBackground, #e9e9e9);
-            color: var(--vscode-input-disabledForeground, #999);
+            background-color: var(--vscode-input-disabledBackground, #e9e9e9) !important;
+            color: var(--vscode-input-disabledForeground, #999) !important;
             opacity: 0.8;
             cursor: not-allowed;
         }
-        
+
+        /* View switching styling */
         .view-icons {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-bottom: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            padding-bottom: 10px;
         }
         
         .view-icons-left {
             display: flex;
-            align-items: center;
         }
         
         .icon {
-            padding: 4px 8px;
-            margin-right: 8px;
+            padding: 5px 10px;
             cursor: pointer;
-            border-radius: 3px;
-            border: 1px solid transparent;
+            margin-right: 10px;
             background-color: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
-            font-size: 12px;
+            border-radius: 3px;
             user-select: none;
         }
         
         .icon.active {
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
-            border: 1px solid var(--vscode-button-border);
-        }
-        
-        .icon:hover {
-            background-color: var(--vscode-button-hoverBackground);
         }
         
         .view-content {
@@ -147,56 +110,150 @@ function getDetailViewStyles() {
             display: block;
         }
         
-        .table-container {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid var(--vscode-panel-border);
-            border-radius: 3px;
-        }
-        
+        /* List view styling */
         .list-container {
             display: flex;
-            gap: 10px;
+            width: 100%;
+            margin-bottom: 15px;
         }
         
         .list-container select {
             flex: 1;
             min-height: 200px;
-            padding: 5px;
-            background-color: var(--vscode-input-background);
-            color: var(--vscode-input-foreground);
-            border: 1px solid var(--vscode-input-border);
-            border-radius: 3px;
-        }
-        
-        .list-container select option:hover {
-            background-color: var(--vscode-list-hoverBackground);
+            margin-right: 10px;
         }
         
         .list-buttons {
             display: flex;
             flex-direction: column;
-            gap: 5px;
-            width: 80px;
+            justify-content: flex-start;
+        }
+        
+        .list-buttons button {
+            margin-bottom: 5px;
+            white-space: nowrap;
         }
         
         .details-container {
-            flex: 2;
-            padding: 10px;
-            background-color: var(--vscode-editor-background);
             border: 1px solid var(--vscode-panel-border);
+            padding: 15px;
             border-radius: 3px;
+            margin-top: 10px;
         }
         
-        .details-container form {
+        /* Table view styling */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: var(--vscode-panel-background);
+            color: var(--vscode-panel-title-activeForeground);
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+        
+        tbody tr:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            position: relative;
+            background-color: var(--vscode-editor-background);
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            width: 80%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .property-label {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            align-items: center;
+            margin-bottom: 5px;
         }
         
-        .details-container label {
-            font-weight: bold;
-            margin-bottom: 5px;
+        .property-input {
+            display: flex;
+            align-items: center;
+        }
+        
+        .property-input input[type="checkbox"] {
+            margin-left: 8px;
+            width: auto;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-foreground);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--vscode-panel-border);
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Form styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-actions {
+            margin-top: 20px;
+            text-align: right;
         }
         
         .details-container input,
@@ -211,9 +268,10 @@ function getDetailViewStyles() {
         }
         
         .details-container input[readonly],
-        .details-container select[readonly],
+        .details-container select[disabled],
         .details-container textarea[readonly] {
-            background-color: var(--vscode-input-background);
+            background-color: var(--vscode-input-disabledBackground, #e9e9e9);
+            color: var(--vscode-input-disabledForeground, #999);
             opacity: 0.8;
             cursor: not-allowed;
         }
@@ -238,286 +296,36 @@ function getDetailViewStyles() {
             border-radius: 3px;
             cursor: pointer;
             margin-right: 8px;
-            transition: background-color 0.2s;
+            margin-bottom: 5px;
         }
         
         button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
         
-        .setting-checkbox {
-            margin-left: 5px;
-            transform: scale(0.8);
-            cursor: pointer;
-        }
-        
-        .input-checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .input-checkbox-container input[type="text"],
-        .input-checkbox-container select {
-            flex: 1;
-        }
-        
-        .input-checkbox-container input[type="checkbox"] {
-            transform: scale(0.8);
-            cursor: pointer;
-        }
-        
-        /* Control with checkbox container for table cells */
-        .control-with-checkbox {
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-
-        .control-with-checkbox input[type="text"],
-        .control-with-checkbox select {
-            flex: 1;
-            min-width: 100px; /* Ensure minimum width for controls */
-        }
-
-        .control-with-checkbox input[type="checkbox"] {
-            margin-left: 5px;
-            flex: 0 0 auto;
-            transform: scale(0.8);
-            cursor: pointer;
-        }
-        
-        .button-checkbox {
-            margin-left: 5px;
-            transform: scale(0.8);
-            cursor: pointer;
-        }
-          /* Modal Dialog Styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background-color: var(--vscode-editor-background);
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid var(--vscode-panel-border);
-            width: 80%;
-            max-width: 600px;
-            border-radius: 6px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .close-button {
-            float: right;
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--vscode-foreground);
-            cursor: pointer;
-        }
-
-        .close-button:hover {
-            color: var(--vscode-errorForeground);
-        }
-
-        .modal-header h3 {
-            margin: 0 0 15px 0;
-            padding: 0;
-        }
-
-        .modal-body {
-            margin: 15px 0;
-        }
-
-        .modal-footer {
-            text-align: right;
-            margin-top: 15px;
-        }
-
-        .modal-footer button {
-            margin-left: 8px;
-        }
-        
-        /* Add Property Button */
-        .add-prop-button {
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 3px;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-        
-        .add-prop-button:hover {
-            background-color: var(--vscode-button-hoverBackground);
-        }
-        
-        /* Copy Props Button */
-        .copy-props-button {
+        button:disabled {
             background-color: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
-            border: 1px solid var(--vscode-button-border);
-            padding: 6px 12px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        
-        .copy-props-button:hover {
-            background-color: var(--vscode-button-hoverBackground);
-        }
-        
-        /* Move Button styling */
-        .move-button {
-            background-color: var(--vscode-button-secondaryBackground);
-            color: var(--vscode-button-secondaryForeground);
-            border: 1px solid var(--vscode-button-border);
-            padding: 6px 12px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        
-        .move-button:hover:not(:disabled) {
-            background-color: var(--vscode-button-hoverBackground);
-        }
-        
-        .move-button:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
         }
         
-        /* Reverse Button styling */
-        .reverse-button {
-            background-color: var(--vscode-button-secondaryBackground);
-            color: var(--vscode-button-secondaryForeground);
-            border: 1px solid var(--vscode-button-border);
-            padding: 6px 12px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-            white-space: nowrap;
-            height: 34px; /* Explicit height to match other buttons */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .reverse-button:hover {
-            background-color: var(--vscode-button-hoverBackground);
-        }
-        
-        /* Focus outline for accessibility */
-        button:focus,
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: 1px solid var(--vscode-focusBorder);
-            outline-offset: 2px;
-        }
-        
-        /* Disabled state */
-        button:disabled,
-        input:disabled,
-        select:disabled,
-        textarea:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        /* Text area styling */
-        textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-        
-        /* Error message styling */
-        .error-message {
-            color: var(--vscode-errorForeground);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid var(--vscode-errorForeground);
-        }
-        
-        /* Modal styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-
-        .modal-content {
-            background-color: var(--vscode-editor-background);
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid var(--vscode-panel-border);
-            width: 60%;
-        }
-
-        .close-button {
-            color: var(--vscode-editor-foreground);
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .close-button:hover,
-        .close-button:focus {
-            color: var(--vscode-errorForeground);
-        }
-
-        .form-actions {
-            margin-top: 20px;
-            text-align: right;
-        }
-
-        .action-row {
-            margin-top: 20px;
-            text-align: right;
-        }
-
-        .table-actions {
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        /* Action button styling */
         .action-button {
-            color: var(--vscode-errorForeground);
-            background-color: var(--vscode-inputValidation-errorBackground);
-            border: 1px solid var(--vscode-inputValidation-errorBorder);
-            padding: 8px;
-            border-radius: 3px;
-            margin: 8px 0;
+            padding: 4px 8px;
+            font-size: 0.85em;
         }
         
-        /* Success message styling */
-        .success-message {
-            color: var(--vscode-terminal-ansiGreen);
-            background-color: var(--vscode-inputValidation-infoBackground);
-            border: 1px solid var(--vscode-inputValidation-infoBorder);
-            padding: 8px;
-            border-radius: 3px;
-            margin: 8px 0;
+        .move-button, .copy-props-button, .reverse-button {
+            width: 100%;
+        }
+        
+        .add-prop-button {
+            margin-left: auto;
+        }
+        
+        .property-toggle {
+            margin-left: 5px;
+            transform: scale(0.8);
         }
     `;
 }

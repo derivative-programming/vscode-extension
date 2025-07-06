@@ -2,9 +2,11 @@
 
 // Import helpers and templates
 const { formatLabel } = require("../helpers/formDataHelper");
+const { getDetailViewStyles } = require("../styles/detailsViewStyles");
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
-const { getParamsTableTemplate, getParamsListTemplate } = require("./templates/paramsTableTemplate");
-const { getButtonsTableTemplate, getButtonsListTemplate } = require("./templates/buttonsTableTemplate");
+const { getParamsTableTemplate, getParamsListTemplate, getParamPropertiesToHide } = require("./templates/paramsTableTemplate");
+const { getButtonsTableTemplate } = require("./templates/buttonsTableTemplate");
+const { getButtonsListTemplate } = require("./templates/buttonsListTemplate");
 const { getOutputVarsTableTemplate, getOutputVarsListTemplate } = require("./templates/outputVarsTableTemplate");
 const { getParamModalHtml, getButtonModalHtml, getOutputVarModalHtml } = require("./templates/modalTemplates");
 const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
@@ -33,6 +35,9 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
     // Generate the settings tab content using the template
     const settingsHtml = getSettingsTabTemplate(formForSettings, formSchemaProps);
     
+    // Get properties to hide for parameters
+    const paramPropertiesToHide = getParamPropertiesToHide();
+    
     // Generate the params tab content using templates
     const { paramTableHeaders, paramTableRows } = getParamsTableTemplate(params, formParamsSchema);
     
@@ -56,15 +61,19 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
     const buttonModalHtml = getButtonModalHtml(formButtonsSchema);
     const outputVarModalHtml = getOutputVarModalHtml(formOutputVarsSchema);
     
+    // Get additional data for dynamic rendering
+    const styles = getDetailViewStyles();
+    const paramProperties = Object.keys(formParamsSchema)
+        .filter(key => !paramPropertiesToHide.includes(key.toLowerCase()));
+    
     // Generate client-side JavaScript
     const clientScript = getClientScriptTemplate(
+        form.name || 'Form', 
         params, 
         buttons, 
         outputVars, 
-        formParamsSchema, 
-        formButtonsSchema, 
-        formOutputVarsSchema, 
-        form.name
+        formSchemaProps,
+        formParamsSchema
     );
     
     // Generate the complete HTML document
