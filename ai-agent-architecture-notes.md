@@ -1552,3 +1552,36 @@ if (currentTab === 'buttons') {
     viewId = currentTab + (view === 'list' ? 'ListView' : 'TableView');
 }
 ```
+
+## Form vs Report Details View Comparison Analysis (2025-01-13)
+
+### Current State Analysis
+Both form and report details views follow similar architectural patterns but have some inconsistencies:
+
+**Similarities:**
+- Both use the same main tab structure with Settings as the first tab
+- Both implement settings tabs using settingsTabTemplate with similar logic
+- Both use the same basic styling framework (detailsViewStyles)
+- Both implement checkbox-based property existence controls
+- Both support enum dropdowns and text inputs based on schema
+
+**Key Differences Found:**
+1. **Properties to Ignore Lists**: Different sets of properties are filtered out
+   - Reports: Much longer list (50+ properties) including visualization-specific properties
+   - Forms: Shorter list (5 properties) - more minimal filtering
+
+2. **Tab Labels**: Different naming conventions
+   - Reports: "Settings", "Columns", "Buttons", "Filters" (params renamed to Filters)
+   - Forms: "Settings", "Parameters", "Buttons", "Output Variables"
+
+3. **Form Structure**: Both use same underlying template structure but different property mappings
+   - Reports: reportColumn, reportButton, reportParam
+   - Forms: objectWorkflowParam, objectWorkflowButton, objectWorkflowOutputVar
+
+4. **Styling Details**: Minor differences in form-row styling between the two detailsViewStyles files
+
+**Architecture Notes:**
+- Settings tab generation is fully dynamic based on schema properties
+- Property existence is controlled via checkboxes with disabled state for existing properties
+- Both views use the same modular template approach with separate files for different sections
+- Schema-driven UI generation ensures consistency with actual model structure

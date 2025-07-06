@@ -58,12 +58,13 @@ function getDetailViewStyles() {
         }
         
         input[type="text"], select, textarea {
+            flex: 1;
+            padding: 5px;
+            border: 1px solid var(--vscode-input-border);
             background-color: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
-            border: 1px solid var(--vscode-input-border);
-            padding: 4px 8px;
             border-radius: 3px;
-            margin-right: 4px;
+            box-sizing: border-box;
         }
         
         input[readonly], select[disabled], textarea[readonly] {
@@ -286,6 +287,7 @@ function getDetailViewStyles() {
         .form-row label {
             flex: 0 0 150px;
             font-weight: bold;
+            margin-bottom: 5px;
         }
         
         button {
@@ -297,6 +299,7 @@ function getDetailViewStyles() {
             cursor: pointer;
             margin-right: 8px;
             margin-bottom: 5px;
+            transition: background-color 0.2s;
         }
         
         button:hover {
@@ -308,6 +311,30 @@ function getDetailViewStyles() {
             color: var(--vscode-button-secondaryForeground);
             opacity: 0.6;
             cursor: not-allowed;
+        }
+
+        .setting-checkbox {
+            margin-left: 5px;
+            transform: scale(0.8);
+            cursor: pointer;
+        }
+        
+        /* Control with checkbox container for table cells */
+        .control-with-checkbox {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .control-with-checkbox input[type="text"],
+        .control-with-checkbox select {
+            flex: 1;
+            min-width: 100px; /* Ensure minimum width for controls */
+        }
+
+        .control-with-checkbox .setting-checkbox {
+            flex: 0 0 auto;
+            margin-left: 5px;
         }
         
         .action-button {
@@ -326,6 +353,29 @@ function getDetailViewStyles() {
         .property-toggle {
             margin-left: 5px;
             transform: scale(0.8);
+        }
+
+        /* Modal form row styling */
+        .modal .form-row {
+            margin-bottom: 15px;
+        }
+        
+        .modal .form-row label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .modal .form-row input[type="text"],
+        .modal .form-row textarea,
+        .modal .form-row select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border-radius: 3px;
+            box-sizing: border-box;
         }
     `;
 }

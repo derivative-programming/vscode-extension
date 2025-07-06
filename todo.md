@@ -1,12 +1,14 @@
 Agent todo items...
 
-
+break up the architectural guidance file by adding links to separate files
 
 reportButton = objectWorkflowButton
 reportParam =  objectWorkflowOutputVar
 reportColumn = objectWorkflowParam
 
 look for unused 'require' statements in the codebase
+
+issue with default values in the inactive dropdowns 
 
 form detail view...
 - rename tabs
@@ -30,6 +32,11 @@ sample page views...
 - report grid
 - report two col nav
 - report three col detail
+
+demo view...
+- use a sqllite db?
+- clickable demo that stays on the same view?
+- tell the user to fabricate the demo html files?
 
 cant use ctrl-a as first part of sequence. its select all.
 

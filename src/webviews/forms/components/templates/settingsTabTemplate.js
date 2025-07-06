@@ -3,6 +3,7 @@ const { formatLabel } = require("../../helpers/formDataHelper");
 
 /**
  * Gets the list of form properties that should not be editable or visible on the settings tab
+ * Based on comprehensive property filtering approach similar to reports view
  * @returns {Array<string>} Array of property names to ignore (lowercase)
  */
 function getFormPropertiesToIgnore() {
@@ -11,7 +12,42 @@ function getFormPropertiesToIgnore() {
         "isignoredindocumentation",
         "objectworkflowparam",
         "objectworkflowbutton",
-        "objectworkflowoutputvar"
+        "objectworkflowoutputvar",
+        // Additional form-specific properties that should be hidden
+        "initobjectworkflowname",
+        "iscachingallowed",
+        "cacheexpirationinminutes",
+        "badgecountpropertyname",
+        "isheaderlabelsvisible",
+        "isreportdetaillabelcolumnvisible",
+        "formintrotext",
+        "isazureblobstorageused",
+        "azuretablenameoverride",
+        "isazuretableprimarykeycolumndatetime",
+        // Workflow-specific properties to hide
+        "workflowtype",
+        "workflowsubtype",
+        "isasync",
+        "asynctimeoutminutes",
+        "isemailnotificationrequired",
+        "emailnotificationtemplatename",
+        "isauditlogrequired",
+        "auditlogmessage",
+        "iscustomhandlerrequired",
+        "customhandlerclassname",
+        "customhandlermethodname",
+        "isvalidationrequired",
+        "validationrulename",
+        "isauthorizationbypassallowed",
+        "authorizationbypassreason",
+        "isdevelopmentonly",
+        "developmentdescription",
+        "islegacysupported",
+        "legacycompatibilityversion",
+        "ismobileoptimized",
+        "mobileviewname",
+        "istabletoptimized",
+        "tabletviewname"
     ];
 }
 
