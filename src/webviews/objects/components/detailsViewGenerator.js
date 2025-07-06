@@ -1,10 +1,10 @@
 "use strict";
 
 // Import helpers and templates
-const { formatLabel } = require("../helpers/objectDataHelper");
-const { getDetailViewStyles } = require("../styles/detailsViewStyles");
-const { getPropertyModalHtml } = require("./templates/propertyModalTemplate");
-const { getPropertyModalFunctionality } = require("./templates/propertyModalFunctionality");
+// const { formatLabel } = require("../helpers/objectDataHelper");
+// const { getDetailViewStyles } = require("../styles/detailsViewStyles");
+// const { getPropertyModalHtml } = require("./templates/propertyModalTemplate");
+// const { getPropertyModalFunctionality } = require("./templates/propertyModalFunctionality");
 const { getMainTemplate } = require("./templates/mainTemplate");
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
 const { getPropertiesTableTemplate } = require("./templates/propertiesTableTemplate");

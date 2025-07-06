@@ -1,7 +1,6 @@
 "use strict";
 
 // Import helpers and templates
-const { formatLabel } = require("../helpers/formDataHelper");
 const { getDetailViewStyles } = require("../styles/detailsViewStyles");
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
 const { getParamsTableTemplate, getParamsListTemplate, getParamPropertiesToHide } = require("./templates/paramsTableTemplate");
@@ -13,13 +12,13 @@ const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
 const { getMainTemplate } = require("./templates/mainTemplate");
 
 // Import modular scripts
-const { getModalFunctionality } = require("./scripts/modalFunctionality");
-const { getUIEventHandlers } = require("./scripts/uiEventHandlers");
-const { getFormControlUtilities } = require("./scripts/formControlUtilities");
-const { getButtonManagementFunctions } = require("./scripts/buttonManagementFunctions");
-const { getParameterManagementFunctions } = require("./scripts/parameterManagementFunctions");
-const { getOutputVariableManagementFunctions } = require("./scripts/outputVariableManagementFunctions");
-const { getDOMInitialization } = require("./scripts/domInitialization");
+// const { getModalFunctionality } = require("./scripts/modalFunctionality");
+// const { getUIEventHandlers } = require("./scripts/uiEventHandlers");
+// const { getFormControlUtilities } = require("./scripts/formControlUtilities");
+// const { getButtonManagementFunctions } = require("./scripts/buttonManagementFunctions");
+// const { getParameterManagementFunctions } = require("./scripts/parameterManagementFunctions");
+// const { getOutputVariableManagementFunctions } = require("./scripts/outputVariableManagementFunctions");
+// const { getDOMInitialization } = require("./scripts/domInitialization");
 
 /**
  * Generates the HTML content for the form details webview

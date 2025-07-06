@@ -1,8 +1,8 @@
 "use strict";
 
 // Import helpers and templates
-const { formatLabel } = require("../helpers/reportDataHelper");
-const { getDetailViewStyles } = require("../styles/detailsViewStyles");
+// const { formatLabel } = require("../helpers/reportDataHelper");
+// const { getDetailViewStyles } = require("../styles/detailsViewStyles");
 const { getColumnModalHtml } = require("./templates/columnModalTemplate");
 const { getButtonModalHtml } = require("./templates/buttonModalTemplate");
 const { getParamModalHtml } = require("./templates/paramModalTemplate");

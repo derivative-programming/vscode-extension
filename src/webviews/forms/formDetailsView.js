@@ -1,7 +1,6 @@
 "use strict";
 const vscode = require("vscode");
 const { loadSchema, getFormSchemaProperties, getFormParamsSchema, getFormButtonsSchema, getFormOutputVarsSchema } = require("./helpers/schemaLoader");
-const { formatLabel } = require("./helpers/formDataHelper");
 const { generateDetailsView } = require("./components/detailsViewGenerator");
 
 // Track current panels to avoid duplicates
