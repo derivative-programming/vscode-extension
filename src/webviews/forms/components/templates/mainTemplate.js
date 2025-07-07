@@ -119,14 +119,14 @@ function getMainTemplate(
     <div id="buttons" class="tab-content">
         <div class="view-icons" data-tab="buttons">
             <div class="view-icons-left">
-                <span class="icon list-icon" data-view="list">List View</span>
-                <span class="icon table-icon active" data-view="table">Table View</span>
+                <span class="icon list-icon active" data-view="list">List View</span>
+                <span class="icon table-icon" data-view="table">Table View</span>
             </div>
             <div class="view-icons-right">
                 <label for="buttons-view-switcher">View: </label>
                 <select id="buttons-view-switcher">
-                    <option value="table">Table</option>
                     <option value="list">List</option>
+                    <option value="table">Table</option>
                 </select>
             </div>
             <div class="action-buttons">
@@ -135,7 +135,7 @@ function getMainTemplate(
             </div>
         </div>
 
-        <div id="buttons-table-view" class="view-content active">
+        <div id="buttons-table-view" class="view-content">
             <div class="table-container">
                 <table id="buttons-table" class="data-table">
                     <thead>
@@ -152,7 +152,7 @@ function getMainTemplate(
             </div>
         </div>
 
-        <div id="buttons-list-view" class="view-content">
+        <div id="buttons-list-view" class="view-content active">
             <div class="list-container">
                 <select id="buttonsList" size="10">
                     ${(form.objectWorkflowButton || []).map((button, index) => {

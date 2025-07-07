@@ -223,6 +223,59 @@ function setupReorderingButtons() {
     // Initialize view switching functionality
     initializeViewSwitching();
 }
+
+// Function to initialize view switching
+function initializeViewSwitching() {
+    // Initialize view switcher dropdowns
+    const viewSwitchers = document.querySelectorAll('select[id$="-view-switcher"]');
+    viewSwitchers.forEach(switcher => {
+        switcher.addEventListener('change', function() {
+            const view = this.value; // list or table
+            const tabId = this.id.replace('-view-switcher', '');
+            
+            // Find the corresponding view icons
+            const viewIcons = document.querySelector('.view-icons[data-tab="' + tabId + '"]');
+            if (viewIcons) {
+                // Simulate click on the appropriate icon to switch views
+                const iconToClick = viewIcons.querySelector('.icon.' + view + '-icon');
+                if (iconToClick) {
+                    iconToClick.click();
+                }
+            }
+        });
+    });
+    
+    // Ensure list view is active by default for all tabs
+    document.querySelectorAll('.tab-content').forEach(tabContent => {
+        const tabId = tabContent.id;
+        const listView = document.querySelector('#' + tabId + 'ListView') || document.querySelector('#' + tabId + '-list-view');
+        const tableView = document.querySelector('#' + tabId + 'TableView') || document.querySelector('#' + tabId + '-table-view');
+        
+        if (listView && tableView) {
+            // Set list view as active
+            listView.classList.add('active');
+            tableView.classList.remove('active');
+            
+            // Update icons
+            const viewIcons = document.querySelector('.view-icons[data-tab="' + tabId + '"]');
+            if (viewIcons) {
+                const listIcon = viewIcons.querySelector('.list-icon');
+                const tableIcon = viewIcons.querySelector('.table-icon');
+                
+                if (listIcon && tableIcon) {
+                    listIcon.classList.add('active');
+                    tableIcon.classList.remove('active');
+                }
+            }
+            
+            // Update dropdown if it exists
+            const viewSwitcher = document.getElementById(tabId + '-view-switcher');
+            if (viewSwitcher) {
+                viewSwitcher.value = 'list';
+            }
+        }
+    });
+}
     `;
 }
 
