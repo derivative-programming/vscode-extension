@@ -12,35 +12,8 @@
  */
 function getOutputVariableManagementFunctions() {
     return `
-    // Output variable tab functionality
-function initializeOutputVariableTabFunctionality() {
-    // Set up view switching for the output variables tab
-    const outputVarsListViewIcon = document.querySelector('.view-icons[data-tab="outputVars"] .list-icon');
-    const outputVarsTableViewIcon = document.querySelector('.view-icons[data-tab="outputVars"] .table-icon');
-    const outputVarsListView = document.getElementById('outputVarsListView');
-    const outputVarsTableView = document.getElementById('outputVarsTableView');
+    // --- OUTPUT VARIABLES TAB FUNCTIONALITY ---
     
-    if (outputVarsListViewIcon && outputVarsTableViewIcon) {
-        // List view button
-        outputVarsListViewIcon.addEventListener('click', () => {
-            outputVarsTableViewIcon.classList.remove('active');
-            outputVarsListViewIcon.classList.add('active');
-            outputVarsTableView.classList.remove('active');
-            outputVarsListView.classList.add('active');
-        });
-        
-        // Table view button
-        outputVarsTableViewIcon.addEventListener('click', () => {
-            outputVarsListViewIcon.classList.remove('active');
-            outputVarsTableViewIcon.classList.add('active');
-            outputVarsListView.classList.remove('active');
-            outputVarsTableView.classList.add('active');
-        });
-    }
-}
-
-// Output variable list functionality
-function initializeOutputVariableListView() {
     // Output variable list change handler for list view
     const outputVarsList = document.getElementById('outputVarsList');
     const outputVarDetailsContainer = document.getElementById('outputVarDetailsContainer');
@@ -52,34 +25,129 @@ function initializeOutputVariableListView() {
 
             // Show output variable details container when an item is selected
             outputVarDetailsContainer.style.display = 'block';
-            
-            // Update form fields with output variable values
-            generateOutputVarFields(outputVar);
+
+            // Update form fields with output var values
+            Object.keys(outputVarSchema).forEach(outputVarKey => {
+                if (outputVarKey === 'name') return; // Skip name field as it's in the list
+                
+                const fieldId = 'outputVar' + outputVarKey;
+                const field = document.getElementById(fieldId);
+                const checkbox = document.getElementById(fieldId + 'Editable');
+                
+                if (field && checkbox) {
+                    // Check if property exists and is not null or undefined
+                    const propertyExists = outputVar.hasOwnProperty(outputVarKey) && outputVar[outputVarKey] !== null && outputVar[outputVarKey] !== undefined;
+                    
+                    if (field.tagName === 'SELECT') {
+                        if (propertyExists) {
+                            // If property exists, use its value
+                            field.value = outputVar[outputVarKey];
+                        } else {
+                            // If property doesn't exist, use default value logic
+                            const schema = outputVarSchema[outputVarKey] || {};
+                            if (schema.default !== undefined) {
+                                // Use the schema's default value if available
+                                field.value = schema.default;
+                            } else {
+                                // Otherwise, leave the default that was set in the HTML template
+                                // The template already handles boolean enums and first-option defaults
+                            }
+                        }
+                        field.disabled = !propertyExists;
+                    } else {
+                        field.value = propertyExists ? outputVar[outputVarKey] : '';
+                        field.readOnly = !propertyExists;
+                    }
+                    
+                    checkbox.checked = propertyExists;
+                    
+                    // If the property exists, disable the checkbox to prevent unchecking
+                    if (propertyExists) {
+                        checkbox.disabled = true;
+                        checkbox.setAttribute('data-originally-checked', 'true');
+                    } else {
+                        checkbox.disabled = false;
+                        checkbox.removeAttribute('data-originally-checked');
+                    }
+                    
+                    updateInputStyle(field, checkbox.checked);
+                }
+            });
         });
         
         // Initialize toggle editable behavior for output variable list view form fields
-        const outputVarSchemaProps = window.outputVarSchemaProps || {};
-        Object.keys(outputVarSchemaProps).forEach(outputVarKey => {
-            if (outputVarKey === 'name') {
-                return;
-            }
+        Object.keys(outputVarSchema).forEach(outputVarKey => {
+            if (outputVarKey === 'name') return;
             
             const fieldId = 'outputVar' + outputVarKey;
-            const checkbox = document.getElementById(fieldId + 'Editable');
             const field = document.getElementById(fieldId);
+            const checkbox = document.getElementById(fieldId + 'Editable');
             
-            if (checkbox && field) {
-                checkbox.addEventListener('change', (event) => {
-                    const isChecked = event.target.checked;
+            if (field && checkbox) {
+                // Set initial state
+                updateInputStyle(field, checkbox.checked);
+                
+                // Add event listener for checkbox state changes
+                checkbox.addEventListener('change', function() {
+                    // Get the currently selected output variable index
+                    const selectedIndex = outputVarsList.value;
+                    if (selectedIndex === '') return;
                     
-                    if (field.tagName === 'SELECT') {
-                        field.disabled = !isChecked;
-                    } else {
-                        field.readOnly = !isChecked;
+                    if (field.tagName === 'INPUT') {
+                        field.readOnly = !this.checked;
+                    } else if (field.tagName === 'SELECT') {
+                        field.disabled = !this.checked;
+                    }
+                    updateInputStyle(field, this.checked);
+                    
+                    // Disable the checkbox if it's checked to prevent unchecking
+                    if (this.checked) {
+                        this.disabled = true;
+                        this.setAttribute('data-originally-checked', 'true');
+                        
+                        // If this is a select element, make sure it has a valid value
+                        if (field.tagName === 'SELECT' && (!field.value || field.value === '')) {
+                            if (field.options.length > 0) {
+                                field.value = field.options[0].value;
+                            }
+                        }
                     }
                     
-                    updateInputStyle(field, isChecked);
+                    // Send message to update the model
+                    vscode.postMessage({
+                        command: 'updateOutputVar',
+                        data: {
+                            index: parseInt(selectedIndex),
+                            property: outputVarKey,
+                            exists: this.checked,
+                            value: this.checked ? field.value : null
+                        }
+                    });
                 });
+                
+                // Update model when input value changes
+                const updateInputHandler = function() {
+                    const selectedIndex = outputVarsList.value;
+                    if (selectedIndex === '' || !checkbox.checked) return;
+                    
+                    // Send message to update the model
+                    vscode.postMessage({
+                        command: 'updateOutputVar',
+                        data: {
+                            index: parseInt(selectedIndex),
+                            property: outputVarKey,
+                            exists: true,
+                            value: field.value
+                        }
+                    });
+                };
+                
+                if (field.tagName === 'SELECT') {
+                    field.addEventListener('change', updateInputHandler);
+                } else {
+                    field.addEventListener('input', updateInputHandler);
+                    field.addEventListener('change', updateInputHandler);
+                }
             }
         });
         
@@ -88,269 +156,93 @@ function initializeOutputVariableListView() {
             outputVarDetailsContainer.style.display = 'none';
         }
     }
-}
 
-// Output variable button handlers
-function initializeOutputVariableButtons() {
-    const outputVarsList = document.getElementById('outputVarsList');
-    
-    // Handle copy, move up/down, and reverse buttons for output variables
-    document.getElementById('copyOutputVarButton')?.addEventListener('click', () => {
-        if (!outputVarsList.value) {
-            return;
-        }
+    // Output variable tab functionality
+    function initializeOutputVariableTabFunctionality() {
+        // Set up view switching for the output variables tab
+        const outputVarsListViewIcon = document.querySelector('.view-icons[data-tab="outputVars"] .list-icon');
+        const outputVarsTableViewIcon = document.querySelector('.view-icons[data-tab="outputVars"] .table-icon');
+        const outputVarsListView = document.getElementById('outputVarsListView');
+        const outputVarsTableView = document.getElementById('outputVarsTableView');
         
-        const selectedIndex = parseInt(outputVarsList.value);
-        vscode.postMessage({
-            command: 'copyOutputVar',
-            index: selectedIndex
-        });
-    });
-    
-    document.getElementById('moveUpOutputVarButton')?.addEventListener('click', () => {
-        if (!outputVarsList.value) {
-            return;
-        }
-        
-        const selectedIndex = parseInt(outputVarsList.value);
-        if (selectedIndex > 0) {
-            vscode.postMessage({
-                command: 'moveOutputVar',
-                fromIndex: selectedIndex,
-                toIndex: selectedIndex - 1
+        if (outputVarsListViewIcon && outputVarsTableViewIcon) {
+            // List view button
+            outputVarsListViewIcon.addEventListener('click', () => {
+                outputVarsTableViewIcon.classList.remove('active');
+                outputVarsListViewIcon.classList.add('active');
+                outputVarsTableView.classList.remove('active');
+                outputVarsListView.classList.add('active');
+            });
+            
+            // Table view button
+            outputVarsTableViewIcon.addEventListener('click', () => {
+                outputVarsListViewIcon.classList.remove('active');
+                outputVarsTableViewIcon.classList.add('active');
+                outputVarsListView.classList.remove('active');
+                outputVarsTableView.classList.add('active');
             });
         }
-    });
-    
-    document.getElementById('moveDownOutputVarButton')?.addEventListener('click', () => {
-        if (!outputVarsList.value) {
-            return;
-        }
         
-        const selectedIndex = parseInt(outputVarsList.value);
-        if (selectedIndex < currentOutputVars.length - 1) {
-            vscode.postMessage({
-                command: 'moveOutputVar',
-                fromIndex: selectedIndex,
-                toIndex: selectedIndex + 1
-            });
-        }
-    });
-    
-    document.getElementById('reverseOutputVarButton')?.addEventListener('click', () => {
-        vscode.postMessage({
-            command: 'reverseOutputVar'
-        });
-    });
-    
-    // Add output variable button
-    document.getElementById('add-output-var-btn')?.addEventListener('click', () => {
-        vscode.postMessage({
-            command: 'addOutputVar'
-        });
-    });
-}
+        // Initialize output variable buttons
+        initializeOutputVariableButtons();
+    }
 
-// Output variable table functionality
-function initializeOutputVariableTableView() {
-    // Handle checkbox changes in output variables table
-    document.querySelectorAll('.outputvar-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', event => {
-            const index = parseInt(event.target.dataset.index);
-            const prop = event.target.dataset.prop;
-            const isChecked = event.target.checked;
-            
-            const row = event.target.closest('tr');
-            const input = row.querySelector('[name="' + prop + '"]');
-            
-            if (input) {
-                if (input.tagName === 'SELECT') {
-                    input.disabled = !isChecked;
-                } else {
-                    input.readOnly = !isChecked;
-                }
-                
-                updateInputStyle(input, isChecked);
-                
-                // If adding the property, initialize it with a default value
-                if (isChecked && (!currentOutputVars[index][prop] || currentOutputVars[index][prop] === '')) {
-                    // Default value depends on the input type
-                    let defaultValue = input.tagName === 'SELECT' ? input.options[0].value : '';
-                    
-                    vscode.postMessage({
-                        command: 'updateOutputVarProperty',
-                        index: index,
-                        property: prop,
-                        value: defaultValue
-                    });
-                }
-                // If removing the property, send message to backend
-                else if (!isChecked) {
-                    vscode.postMessage({
-                        command: 'removeOutputVarProperty',
-                        index: index,
-                        property: prop
-                    });
-                }
-            }
-        });
-    });
-    
-    // Listen for input changes in output variable fields in table view
-    document.querySelectorAll('#outputVars-table input[type="text"], #outputVars-table select').forEach(input => {
-        if (input.type === 'checkbox') {
-            return; // Skip checkbox inputs
-        }
+    // Output variable button handlers
+    function initializeOutputVariableButtons() {
+        const outputVarsList = document.getElementById('outputVarsList');
         
-        input.addEventListener('change', event => {
-            const row = event.target.closest('tr');
-            if (!row) {
+        // Handle copy, move up/down, and reverse buttons for output variables
+        document.getElementById('copyOutputVarButton')?.addEventListener('click', () => {
+            if (!outputVarsList.value) {
                 return;
             }
             
-            const index = parseInt(row.dataset.index);
-            const property = event.target.name;
-            
-            vscode.postMessage({
-                command: 'updateOutputVarProperty',
-                index: index,
-                property: property,
-                value: event.target.value
-            });
-        });
-    });
-}
-
-// Output variable CRUD operations
-function initializeOutputVariableCrudOperations() {
-    // Handle output variable edit events
-    document.querySelectorAll('.edit-outputvar').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = this.getAttribute('data-index');
-            if (!index) {
-                return;
-            }
-            
-            const outputVarIndex = parseInt(index);
-            
-            // Get the output variable data for editing
-            const outputVarData = currentOutputVars[outputVarIndex];
-            if (!outputVarData) {
-                return;
-            }
-            
-            // Set the index in the hidden field
-            document.getElementById('output-var-index').value = outputVarIndex;
-            
-            // Populate the form fields in the edit modal
-            Object.keys(outputVarData).forEach(key => {
-                const input = document.getElementById("output-var-" + key);
-                if (input) {
-                    input.value = outputVarData[key];
-                    
-                    // Check the toggle checkbox
-                    const toggleCheckbox = document.getElementById("output-var-" + key + "-toggle");
-                    if (toggleCheckbox) {
-                        toggleCheckbox.checked = true;
-                    }
-                }
-            });
-            
-            // Open the modal
-            openModal('output-var-modal');
-        });
-    });
-    
-    // Handle output variable copy events
-    document.querySelectorAll('.copy-outputvar').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = this.getAttribute('data-index');
-            if (!index) {
-                return;
-            }
-            
+            const selectedIndex = parseInt(outputVarsList.value);
             vscode.postMessage({
                 command: 'copyOutputVar',
-                index: parseInt(index)
+                index: selectedIndex
             });
         });
-    });
-
-    // Handle output variable move up events
-    document.querySelectorAll('.move-up-outputvar').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            if (index > 0) {
+        
+        document.getElementById('moveUpOutputVarButton')?.addEventListener('click', () => {
+            if (!outputVarsList.value) {
+                return;
+            }
+            
+            const selectedIndex = parseInt(outputVarsList.value);
+            if (selectedIndex > 0) {
                 vscode.postMessage({
                     command: 'moveOutputVar',
-                    fromIndex: index,
-                    toIndex: index - 1
+                    fromIndex: selectedIndex,
+                    toIndex: selectedIndex - 1
                 });
             }
         });
-    });
-
-    // Handle output variable move down events
-    document.querySelectorAll('.move-down-outputvar').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            if (index < currentOutputVars.length - 1) {
+        
+        document.getElementById('moveDownOutputVarButton')?.addEventListener('click', () => {
+            if (!outputVarsList.value) {
+                return;
+            }
+            
+            const selectedIndex = parseInt(outputVarsList.value);
+            if (selectedIndex < currentOutputVars.length - 1) {
                 vscode.postMessage({
                     command: 'moveOutputVar',
-                    fromIndex: index,
-                    toIndex: index + 1
+                    fromIndex: selectedIndex,
+                    toIndex: selectedIndex + 1
                 });
             }
         });
-    });
-}
-
-// Output variable field generator
-function generateOutputVarFields(outputVar) {
-    const fieldsContainer = document.getElementById('outputVarDetailsForm');
-    if (!fieldsContainer) {
-        return;
+        
+        document.getElementById('reverseOutputVarButton')?.addEventListener('click', () => {
+            vscode.postMessage({
+                command: 'reverseOutputVar'
+            });
+        });
     }
     
-    const outputVarSchemaProps = window.outputVarSchemaProps || {};
-    
-    // Only handle the form fields that are already in the DOM
-    Object.keys(outputVarSchemaProps).forEach(propName => {
-        if (propName === 'name') {
-            return; // Skip name field as it's in the list
-        }
-        
-        const fieldId = 'outputVar' + propName;
-        const field = document.getElementById(fieldId);
-        const checkbox = document.getElementById(fieldId + 'Editable');
-        
-        if (field && checkbox) {
-            // Check if property exists and is not null or undefined
-            const propertyExists = outputVar.hasOwnProperty(propName) && outputVar[propName] !== null && outputVar[propName] !== undefined;
-            
-            if (field.tagName === 'SELECT') {
-                field.value = propertyExists ? outputVar[propName] : '';
-                field.disabled = !propertyExists;
-            } else {
-                field.value = propertyExists ? outputVar[propName] : '';
-                field.readOnly = !propertyExists;
-            }
-            
-            checkbox.checked = propertyExists;
-            
-            // If the property exists, disable the checkbox to prevent unchecking
-            if (propertyExists) {
-                checkbox.disabled = true;
-                checkbox.setAttribute('data-originally-checked', 'true');
-            } else {
-                checkbox.disabled = false;
-                checkbox.removeAttribute('data-originally-checked');
-            }
-            
-            updateInputStyle(field, checkbox.checked);
-        }
-    });
-}
+    // Initialize output variable functionality
+    initializeOutputVariableTabFunctionality();
     `;
 }
 

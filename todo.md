@@ -5,8 +5,13 @@ reportButton = objectWorkflowButton
 reportParam =  objectWorkflowOutputVar
 reportColumn = objectWorkflowParam
 
+help icon buttons on primary treeview items...
+- object
+- form
+- report
+- page
 
-issue with default values in the inactive dropdowns 
+test:issue with default values in the inactive dropdowns 
 
 form detail view...
 - rename tabs
@@ -17,6 +22,10 @@ treeview...
 - add Page treeview item
 - move reports and forms under page treeview item
 
+create many diff treeview report items? under report treeview item?...
+- navigation page
+- table page
+- detail page
 
 page treeview item...
 - page flow diagram
@@ -52,6 +61,7 @@ find large files and split them up
 
 'list' and 'table' view icon toggle buttons
  
+add report wizard has dif step design than add data object wizard
 
 report details view...
 - allow creation of column destination button

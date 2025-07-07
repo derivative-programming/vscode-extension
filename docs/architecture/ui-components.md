@@ -904,6 +904,7 @@ Enhanced the Select FK Object modal functionality to properly disable the 'Accep
 - **Always Visible**:
   - PROJECT (root level)
   - DATA OBJECTS (root level)
+  - FORMS (root level)
   - MODEL SERVICES (root level)
   - Settings (under PROJECT)
 
@@ -1020,8 +1021,8 @@ The `appDnaConfigExists` context key is managed by `fileUtils.ts` and automatica
 - **Core Properties**: name, titleText, initObjectWorkflowName, isPage, etc.
 - **Child Arrays**: 
   - `objectWorkflowParam[]` - Input parameters for the workflow
-  - `objectWorkflowOutputVar[]` - Output variables/results
   - `objectWorkflowButton[]` - Buttons/actions available
+  - `objectWorkflowOutputVar[]` - Output variables/results
   - `dynaFlowTask[]` - Background task definitions
 
 ### Model Implementation
@@ -1237,4 +1238,65 @@ Both form and report details views follow similar architectural patterns but hav
 - Property existence is controlled via checkboxes with disabled state for existing properties
 - Both views use the same modular template approach with separate files for different sections
 - Schema-driven UI generation ensures consistency with actual model structure
+
+## Form Details View Output Variables Tab (Added 2025-07-07)
+
+### Issue:
+- In the Form Details View, the Output Variables tab wasn't properly displaying the properties of selected items in the list view
+- When selecting an output variable from the list, no properties were shown in the right panel
+- This issue only affected the Output Variables tab (Parameters and Buttons tabs were working correctly)
+
+### Root Cause:
+- The `getOutputVarsListTemplate` function was being exported from `outputVarsTableTemplate.js` but was not actually defined in the file
+- This missing function prevented proper generation of HTML form fields for the output variables list view
+
+### Implementation Details:
+- The Form Details View has a consistent pattern across all tabs (Parameters, Buttons, Output Variables):
+  - Each tab has two viewing modes: List View and Table View
+  - List View shows a list (30% width) on the left and details (65% width) on the right
+  - When an item is selected in the list, its properties should be displayed in the details panel
+  - Each property has a checkbox that toggles whether it exists in the model
+
+- Each tab requires:
+  1. A template function (e.g., `getParamsListTemplate`, `getButtonsListTemplate`, `getOutputVarsListTemplate`)
+  2. A management script (e.g., `parameterManagementFunctions.js`, `buttonManagementFunctions.js`, `outputVariableManagementFunctions.js`)
+  3. Event handlers for selection changes and field updates
+
+### Solution:
+- Implemented the missing `getOutputVarsListTemplate` function in `outputVarsTableTemplate.js`
+- Function follows the same pattern as the other list template functions:
+  - Gets schema properties and sorts them alphabetically
+  - Generates form fields for each property
+  - Handles proper default values for dropdowns
+  - Adds property existence checkboxes
+  - Sets up tooltips from schema descriptions
+
+### Files Modified:
+- `src/webviews/forms/components/templates/outputVarsTableTemplate.js`: Added the `getOutputVarsListTemplate` function
+
+### Key Learning:
+- The form details view tabs follow a consistent pattern that should be maintained
+- List view implementation requires both template generation and event handling components
+- When adding or modifying tabs, ensure all required functions and components are properly implemented
+
+## Form Details View Style Consistency Updates (Added 2025-07-08)
+
+### Issue:
+- The styling between Form Details View and Report Details View had inconsistencies
+- List containers and details containers had different borders and padding
+- The form-row and control-with-checkbox styles weren't fully aligned between views
+- Output Variables tab had duplicate `getOutputVarsListTemplate` function references in code
+
+### Implementation Details:
+- Updated Form Details View CSS in `detailsViewStyles.js` to match Report Details View:
+  - Removed border and padding from `.details-container` to match report view
+  - Removed `flex-wrap: wrap` from `.list-buttons` to ensure consistent horizontal button layout
+  - Fixed `.control-with-checkbox` styling to ensure consistent checkbox positioning
+  - Updated clearfix styling to match between both views
+- Fixed Output Variables tab implementation:
+  - Ensured only a single `getOutputVarsListTemplate` function definition exists
+  - Made sure all properties display properly when an output variable is selected
+  - Fixed property toggling functionality to work consistently with other tabs
+- Updated all form rows to use consistent `.control-with-checkbox` container structure
+- Ensured all controls
 

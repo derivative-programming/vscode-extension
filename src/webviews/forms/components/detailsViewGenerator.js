@@ -3,7 +3,8 @@
 // Import helpers and templates
 const { getDetailViewStyles } = require("../styles/detailsViewStyles");
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
-const { getParamsTableTemplate, getParamsListTemplate, getParamPropertiesToHide } = require("./templates/paramsTableTemplate");
+const { getParamsTableTemplate, getParamPropertiesToHide } = require("./templates/paramsTableTemplate");
+const { getParamsListTemplate } = require("./templates/paramsListTemplate");
 const { getButtonsTableTemplate } = require("./templates/buttonsTableTemplate");
 const { getButtonsListTemplate } = require("./templates/buttonsListTemplate");
 const { getOutputVarsTableTemplate, getOutputVarsListTemplate } = require("./templates/outputVarsTableTemplate");

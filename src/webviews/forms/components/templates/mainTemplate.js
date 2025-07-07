@@ -160,10 +160,15 @@ function getMainTemplate(
                         return `<option value="${index}">${name}</option>`;
                     }).join('')}
                 </select>
-                
-                <div id="buttonDetailsContainer" class="details-container" style="display: none;">
-                    ${buttonListViewFields}
+                <div class="list-buttons">
+                    <button id="copyButtonButton" class="copy-props-button">Copy</button>
+                    <button id="moveUpButtonButton" class="move-button">Move Up</button>
+                    <button id="moveDownButtonButton" class="move-button">Move Down</button>
+                    <button id="reverseButtonsButton" class="reverse-button">Reverse</button>
                 </div>
+            </div>
+            <div id="buttonDetailsContainer" class="details-container" style="display: none;">
+                ${buttonListViewFields}
             </div>
         </div>
     </div>

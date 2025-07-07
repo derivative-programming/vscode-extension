@@ -113,33 +113,43 @@ function getDetailViewStyles() {
         
         /* List view styling */
         .list-container {
-            display: flex;
-            width: 100%;
-            margin-bottom: 15px;
+            width: 30%;
+            float: left;
+            padding-right: 15px;
         }
         
         .list-container select {
-            flex: 1;
-            min-height: 200px;
-            margin-right: 10px;
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
         }
         
         .list-buttons {
+            margin-top: 10px;
             display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
+            gap: 8px;
         }
         
         .list-buttons button {
-            margin-bottom: 5px;
-            white-space: nowrap;
+            padding: 6px 12px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
         }
         
         .details-container {
-            border: 1px solid var(--vscode-panel-border);
-            padding: 15px;
-            border-radius: 3px;
-            margin-top: 10px;
+            width: 65%;
+            float: left;
+        }
+        
+        /* Clear fix for floating elements */
+        .view-content:after {
+            content: "";
+            display: table;
+            clear: both;
         }
         
         /* Table view styling */
@@ -257,25 +267,8 @@ function getDetailViewStyles() {
             text-align: right;
         }
         
-        .details-container input,
-        .details-container select,
-        .details-container textarea {
-            width: 100%;
-            padding: 5px;
-            background-color: var(--vscode-input-background);
-            color: var(--vscode-input-foreground);
-            border: 1px solid var(--vscode-input-border);
-            border-radius: 3px;
-        }
-        
-        .details-container input[readonly],
-        .details-container select[disabled],
-        .details-container textarea[readonly] {
-            background-color: var(--vscode-input-disabledBackground, #e9e9e9);
-            color: var(--vscode-input-disabledForeground, #999);
-            opacity: 0.8;
-            cursor: not-allowed;
-        }
+        /* We'll use the global input styling instead of details-container specific styling 
+           to match the report view styling approach */
         
         /* Form row styling */
         .form-row {
@@ -287,7 +280,6 @@ function getDetailViewStyles() {
         .form-row label {
             flex: 0 0 150px;
             font-weight: bold;
-            margin-bottom: 5px;
         }
         
         button {
@@ -332,9 +324,11 @@ function getDetailViewStyles() {
             min-width: 100px; /* Ensure minimum width for controls */
         }
 
-        .control-with-checkbox .setting-checkbox {
-            flex: 0 0 auto;
+        .control-with-checkbox input[type="checkbox"] {
             margin-left: 5px;
+            flex: 0 0 auto;
+            transform: scale(0.8);
+            cursor: pointer;
         }
         
         .action-button {
@@ -342,8 +336,22 @@ function getDetailViewStyles() {
             font-size: 0.85em;
         }
         
-        .move-button, .copy-props-button, .reverse-button {
-            width: 100%;
+        .copy-props-button,
+        .move-button,
+        .reverse-button {
+            padding: 6px 12px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .copy-props-button:hover,
+        .move-button:hover,
+        .reverse-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
         }
         
         .add-prop-button {

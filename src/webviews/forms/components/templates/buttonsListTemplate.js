@@ -66,8 +66,10 @@ function getButtonsListTemplate(buttonsSchema) {
         // Note: We'll dynamically set the disabled attribute for checked checkboxes in the JavaScript
         return `<div class="form-row">
             <label for="${fieldId}" ${tooltip}>${formatLabel(buttonKey)}:</label>
-            ${inputField}
-            <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" style="margin-left: 5px; transform: scale(0.8);">
+            <div class="control-with-checkbox">
+                ${inputField}
+                <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" class="property-toggle">
+            </div>
         </div>`;
     }).join("");
 }
