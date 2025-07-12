@@ -17,18 +17,7 @@ stop validating a\bulk change request on approval?
 
 if appdna config file changes, reload its settings
 
-
-object view...
-- ✅ hide 'Is FK Non Lookup Included In XML Function'
-
-
-report prop to hide...
-- 'Visualization Line Chart Grid Horiz Title'
-- 'Visualization Card View Is Image Available'
-
-db prop tab... 
-- hide 'Default Value:'
-
+  
 obj view add prop modal...
 - add lookup tab. sample json created...
 {

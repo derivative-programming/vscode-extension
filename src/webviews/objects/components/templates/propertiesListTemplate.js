@@ -9,7 +9,7 @@ function getPropertiesListTemplate(propItemsSchema) {
     // Create header columns for all prop item properties and sort them alphabetically
     // Make sure 'name' is always the first column
     // Hide specific properties that should not be displayed to the user
-    const hiddenProperties = ["isFKNonLookupIncludedInXMLFunction"];
+    const hiddenProperties = ["isFKNonLookupIncludedInXMLFunction", "defaultValue"];
     const propColumns = Object.keys(propItemsSchema)
         .filter(key => key !== "name" && !hiddenProperties.includes(key))
         .sort();

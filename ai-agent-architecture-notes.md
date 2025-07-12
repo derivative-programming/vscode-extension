@@ -108,3 +108,10 @@ Implementation details:
 - To hide properties: Add property names to the `hiddenProperties` array before filtering
 - The `isFKNonLookupIncludedInXMLFunction` property is hidden from user view while still being preserved in the JSON model
 - Schema properties are dynamically read from `app-dna.schema.json` and filtered before UI generation
+
+### Report Settings Tab Property Filtering
+- Report property display is controlled by the `getReportPropertiesToIgnore()` function in `settingsTabTemplate.js`
+- Properties in the ignore list are converted to lowercase for comparison with schema properties
+- Located in: `src/webviews/reports/components/templates/settingsTabTemplate.js`
+- The properties `visualizationLineChartGridHorizTitle` and `visualizationCardViewIsImageAvailable` are hidden from the settings tab
+- Fixed property name casing issues where ignore list entries didn't match actual schema property names
