@@ -521,6 +521,30 @@ async function getWebviewContent(context, allObjects) {
                     fill: #ca8a04; /* Dark yellow for other report types */
                 }
                 
+                /* Search highlighting styles */
+                .page-node.search-partial {
+                    fill: #90ee90 !important; /* Light green for partial matches */
+                    stroke: #32cd32 !important; /* Lime green border */
+                    stroke-width: 3px !important;
+                }
+                
+                .page-node.search-highlight {
+                    fill: #00ff00 !important; /* Bright green for exact matches */
+                    stroke: #228b22 !important; /* Forest green border */
+                    stroke-width: 4px !important;
+                }
+                
+                /* Dark mode search highlighting */
+                body.vscode-dark .page-node.search-partial {
+                    fill: #4ade80 !important; /* Light green for partial matches in dark mode */
+                    stroke: #16a34a !important; /* Green border */
+                }
+                
+                body.vscode-dark .page-node.search-highlight {
+                    fill: #22c55e !important; /* Bright green for exact matches in dark mode */
+                    stroke: #15803d !important; /* Dark green border */
+                }
+                
                 .page-text {
                     font-family: var(--vscode-font-family);
                     font-size: 13px;
@@ -619,6 +643,31 @@ async function getWebviewContent(context, allObjects) {
                     font-size: 11px;
                     color: var(--vscode-descriptionForeground);
                     text-transform: uppercase;
+                }
+                
+                .search-box {
+                    margin-bottom: 15px;
+                    padding: 10px;
+                    background-color: var(--vscode-editorWidget-background);
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                }
+                
+                .search-box input {
+                    width: 100%;
+                    padding: 8px;
+                    border: 1px solid var(--vscode-input-border);
+                    border-radius: 4px;
+                    background-color: var(--vscode-input-background);
+                    color: var(--vscode-input-foreground);
+                    font-family: var(--vscode-font-family);
+                    font-size: 14px;
+                    box-sizing: border-box;
+                }
+                
+                .search-box input:focus {
+                    outline: 1px solid var(--vscode-focusBorder);
+                    border-color: var(--vscode-focusBorder);
                 }
                 
                 .role-filter {
@@ -874,6 +923,10 @@ async function getWebviewContent(context, allObjects) {
                 </div>
             </div>
             
+            <div class="search-box">
+                <input type="text" id="searchPages" placeholder="Search pages...">
+            </div>
+            
             <div class="role-filter">
                 <div class="role-filter-title">Filter by Role:</div>
                 <div class="role-filter-options" id="roleFilterOptions">
@@ -1006,6 +1059,9 @@ async function getWebviewContent(context, allObjects) {
                     renderDiagram();
                     updateZoomDisplay(); // Initialize zoom display
                     
+                    // Add search functionality
+                    document.getElementById('searchPages').addEventListener('input', searchPages);
+                    
                     // Add keyboard shortcut for legend toggle (L key)
                 });
                 
@@ -1049,6 +1105,70 @@ async function getWebviewContent(context, allObjects) {
                     renderDiagram();
                 }
                 
+                function searchPages() {
+                    const searchText = document.getElementById('searchPages').value.toLowerCase();
+                    
+                    // Clear previous search highlights
+                    clearSearchHighlights();
+                    
+                    // If search is empty, just clear highlights and return
+                    if (!searchText.trim()) {
+                        renderDiagram();
+                        return;
+                    }
+                    
+                    let exactMatchNode = null;
+                    let matchCount = 0;
+                    
+                    // Find matching pages and mark them for highlighting
+                    flowData.pages.forEach(page => {
+                        const pageName = page.name.toLowerCase();
+                        const pageTitle = (page.titleText || '').toLowerCase();
+                        
+                        // Check if page name or title matches
+                        const nameMatch = pageName.includes(searchText);
+                        const titleMatch = pageTitle.includes(searchText);
+                        
+                        if (nameMatch || titleMatch) {
+                            matchCount++;
+                            
+                            // Check for exact match vs partial match
+                            if (pageName === searchText || pageTitle === searchText) {
+                                // Exact match - use bright green
+                                page.searchHighlight = true;
+                                page.searchPartial = false;
+                                if (!exactMatchNode) {
+                                    exactMatchNode = page;
+                                }
+                            } else {
+                                // Partial match - use light green
+                                page.searchHighlight = false;
+                                page.searchPartial = true;
+                            }
+                        } else {
+                            // No match
+                            page.searchHighlight = false;
+                            page.searchPartial = false;
+                        }
+                    });
+                    
+                    console.log('[DEBUG] Search results:', {
+                        searchText,
+                        matchCount,
+                        exactMatch: exactMatchNode ? exactMatchNode.name : 'none'
+                    });
+                    
+                    // Re-render the diagram to apply search highlighting
+                    renderDiagram();
+                }
+                
+                function clearSearchHighlights() {
+                    flowData.pages.forEach(page => {
+                        page.searchHighlight = false;
+                        page.searchPartial = false;
+                    });
+                }
+                
                 function initializeD3() {
                     const container = d3.select('#d3Container');
                     const containerRect = document.getElementById('flowContainer').getBoundingClientRect();
@@ -1087,8 +1207,10 @@ async function getWebviewContent(context, allObjects) {
                 
                 // Function to get CSS class for page node based on type and visualization
                 function getPageNodeClass(page) {
+                    let baseClass = '';
+                    
                     if (page.type === 'form') {
-                        return 'page-node form';
+                        baseClass = 'page-node form';
                     } else if (page.type === 'report') {
                         const vizType = (page.visualizationType || 'grid').toLowerCase();
                         
@@ -1096,23 +1218,37 @@ async function getWebviewContent(context, allObjects) {
                         switch (vizType) {
                             case 'grid':
                             case 'table':
-                                return 'page-node report-grid';
+                                baseClass = 'page-node report-grid';
+                                break;
                             case 'navigation':
                             case 'twocolumn':
                             case 'two column':
                             case 'nav':
                             case 'detailtwocolumn':
-                                return 'page-node report-navigation';
+                                baseClass = 'page-node report-navigation';
+                                break;
                             case 'detail':
                             case 'threecolumn':
                             case 'three column':
                             case 'detailthreecolumn':
-                                return 'page-node report-detail';
+                                baseClass = 'page-node report-detail';
+                                break;
                             default:
-                                return 'page-node report-other';
+                                baseClass = 'page-node report-other';
+                                break;
                         }
+                    } else {
+                        baseClass = 'page-node';
                     }
-                    return 'page-node';
+                    
+                    // Add search highlighting classes
+                    if (page.searchHighlight) {
+                        baseClass += ' search-highlight';
+                    } else if (page.searchPartial) {
+                        baseClass += ' search-partial';
+                    }
+                    
+                    return baseClass;
                 }
                 
                 function renderDiagram() {

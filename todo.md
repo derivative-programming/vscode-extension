@@ -47,9 +47,8 @@ create many diff treeview report items? under report treeview item?...
 
 page layout view...
 - can i wrap the title text to a new line?
-- add a search textbox.  if an item fits the search partially, show it with a light green background on the item. if its an exact match, show a darker green background on the item.
-- ✅ can you push items with only one connection away from the center?
 - stats are hidden under the fold
+- reset all forces to the frameworks suggested default
 
 
 
