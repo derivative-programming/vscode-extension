@@ -15,18 +15,15 @@ test all views in dark mode
 
 stop validating a\bulk change request on approval?
 
-✅ if appdna config file changes, reload its settings - COMPLETED (2025-07-12)
-
-  
 obj view add prop modal...
 - add lookup tab. sample json created...
 {
-                "fKObjectName": "DataSourceType",
-                "fKObjectPropertyName": "DataSourceTypeID",
-                "isFK": "true",
-                "isFKLookup": "true",
-                "name": "DataSourceTypeID"
-              },
+  "fKObjectName": "DataSourceType",
+  "fKObjectPropertyName": "DataSourceTypeID",
+  "isFK": "true",
+  "isFKLookup": "true",
+  "name": "DataSourceTypeID"
+},
 
 data obj lookup item tab...
 - onece checked, the checkbox should be disabled and not editable

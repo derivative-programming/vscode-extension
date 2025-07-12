@@ -56,6 +56,11 @@ function createPropertyModal() {
                     if (bulkPropsInput) {
                         bulkPropsInput.focus();
                     }
+                } else if (tabId === 'lookupAdd') {
+                    const lookupObjectsList = modal.querySelector("#lookupObjectsList");
+                    if (lookupObjectsList) {
+                        lookupObjectsList.focus();
+                    }
                 }
             }, 10);
         });
@@ -88,6 +93,162 @@ function createPropertyModal() {
             return "Property with this name already exists";
         }
         return null; // Valid
+    }
+    
+    // Populate lookup objects list
+    function populateLookupObjectsList() {
+        const lookupObjectsList = modal.querySelector("#lookupObjectsList");
+        if (!lookupObjectsList || typeof allObjects === 'undefined') {
+            return;
+        }
+        
+        // Clear existing options
+        lookupObjectsList.innerHTML = "";
+        
+        // Filter objects where isLookup = "true"
+        const lookupObjects = allObjects.filter(obj => obj.isLookup === "true");
+        
+        // Get existing property names to check for duplicates
+        const existingPropNames = props.map(p => p.name);
+        
+        lookupObjects.forEach(obj => {
+            const potentialPropName = obj.name + "ID";
+            
+            // Only add if the property doesn't already exist
+            if (!existingPropNames.includes(potentialPropName)) {
+                const option = document.createElement("option");
+                option.value = obj.name;
+                option.textContent = obj.name;
+                lookupObjectsList.appendChild(option);
+            }
+        });
+        
+        // Enable/disable the add button based on available options
+        const addButton = modal.querySelector("#addLookupProp");
+        if (addButton) {
+            addButton.disabled = lookupObjectsList.options.length === 0;
+        }
+    }
+    
+    // Function to add a new lookup property
+    function addNewLookupProperty(lookupObjectName) {
+        const propertyName = lookupObjectName + "ID";
+        
+        // Create new lookup property object
+        const newProp = {
+            "name": propertyName,
+            "fKObjectName": lookupObjectName,
+            "fKObjectPropertyName": lookupObjectName + "ID",
+            "isFK": "true",
+            "isFKLookup": "true",
+            "sqlServerDBDataType": "int"
+        };
+        
+        // Add to properties array
+        props.push(newProp);
+        
+        // Add to properties list in list view
+        const propsList = document.getElementById("propsList");
+        const option = document.createElement("option");
+        option.value = props.length - 1;
+        option.textContent = propertyName;
+        propsList.appendChild(option);
+        
+        // Add to table in table view
+        const tableBody = document.querySelector("#propsTable tbody");
+        const row = document.createElement("tr");
+        row.setAttribute("data-index", props.length - 1);
+        
+        // Create cells for each property column
+        propColumns.forEach(propKey => {
+            const cell = document.createElement("td");
+            
+            if (propKey === "name") {
+                cell.innerHTML = '<span class="prop-name">' + propertyName + '</span>' +
+                    '<input type="hidden" name="name" value="' + propertyName + '">';
+            } else {
+                const propSchema = propItemsSchema[propKey] || {};
+                const hasEnum = propSchema.enum && Array.isArray(propSchema.enum);
+                const isBooleanEnum = hasEnum && propSchema.enum.length === 2 && 
+                    propSchema.enum.every(val => val === true || val === false || val === "true" || val === "false");
+                
+                const tooltip = propSchema.description ? 'title="' + propSchema.description + '"' : "";
+                
+                let inputHTML = "";
+                let defaultValue = "";
+                let isChecked = false;
+                
+                // Set default values for lookup properties
+                if (newProp[propKey] !== undefined) {
+                    defaultValue = newProp[propKey];
+                    isChecked = true;
+                }
+                
+                if (hasEnum) {
+                    inputHTML = '<select name="' + propKey + '" ' + tooltip + (isChecked ? '' : ' disabled') + '>';
+                    
+                    // Create options
+                    propSchema.enum.forEach((option, index) => {
+                        let isSelected = false;
+                        
+                        if (defaultValue !== "") {
+                            isSelected = option === defaultValue;
+                        } else if (propSchema.default !== undefined) {
+                            isSelected = option === propSchema.default;
+                        } else if (isBooleanEnum) {
+                            isSelected = (option === false || option === "false");
+                        } else if (index === 0) {
+                            isSelected = true;
+                        }
+                        
+                        inputHTML += '<option value="' + option + '" ' + 
+                            (isSelected ? "selected" : "") + '>' + option + '</option>';
+                    });
+                    
+                    inputHTML += '</select>';
+                } else {
+                    inputHTML = '<input type="text" name="' + propKey + '" value="' + defaultValue + '" ' + 
+                        tooltip + (isChecked ? '' : ' readonly') + '>';
+                }
+                
+                cell.innerHTML = '<div class="control-with-checkbox">' +
+                    inputHTML +
+                    '<input type="checkbox" class="prop-checkbox" data-prop="' + propKey + 
+                    '" data-index="' + (props.length - 1) + '" title="Toggle property existence"' +
+                    (isChecked ? ' checked disabled' : '') + '>' +
+                    '</div>';
+            }
+            
+            row.appendChild(cell);
+        });
+        
+        tableBody.appendChild(row);
+        
+        // Initialize checkbox behavior for the new row
+        initializeCheckboxBehaviorForRow(row);
+        
+        // Update the properties counter in the tab label
+        updatePropertiesCounter();
+        
+        // Dispatch propertyAdded event to trigger model update and mark unsaved changes
+        document.dispatchEvent(new CustomEvent('propertyAdded'));
+    }
+    
+    // Validate lookup property selection
+    function validateLookupSelection() {
+        const lookupObjectsList = modal.querySelector("#lookupObjectsList");
+        const errorElement = modal.querySelector("#lookupValidationError");
+        const addButton = modal.querySelector("#addLookupProp");
+        
+        if (!lookupObjectsList.value) {
+            errorElement.textContent = "Please select a lookup data object";
+            addButton.disabled = true;
+            return false;
+        }
+        
+        errorElement.textContent = "";
+        addButton.disabled = false;
+        return true;
     }
     
     // Add single property
@@ -141,6 +302,44 @@ function createPropertyModal() {
         document.body.removeChild(modal);
     });
     
+    // Populate lookup objects list when modal is created
+    populateLookupObjectsList();
+    
+    // Handle lookup object selection change
+    const lookupObjectsList = modal.querySelector("#lookupObjectsList");
+    if (lookupObjectsList) {
+        lookupObjectsList.addEventListener("change", function() {
+            validateLookupSelection();
+        });
+        
+        lookupObjectsList.addEventListener("dblclick", function() {
+            if (this.value && !modal.querySelector("#addLookupProp").disabled) {
+                modal.querySelector("#addLookupProp").click();
+            }
+        });
+    }
+    
+    // Add lookup property
+    const addLookupPropButton = modal.querySelector("#addLookupProp");
+    if (addLookupPropButton) {
+        addLookupPropButton.addEventListener("click", function() {
+            const lookupObjectsList = modal.querySelector("#lookupObjectsList");
+            const errorElement = modal.querySelector("#lookupValidationError");
+            
+            if (!validateLookupSelection()) {
+                return;
+            }
+            
+            const selectedObject = lookupObjectsList.value;
+            
+            // Add the new lookup property
+            addNewLookupProperty(selectedObject);
+            
+            // Close the modal
+            document.body.removeChild(modal);
+        });
+    }
+    
     // Add Enter key handler for single property input
     const propNameInput = modal.querySelector("#propName");
     if (propNameInput) {
@@ -164,6 +363,20 @@ function createPropertyModal() {
                 const addButton = modal.querySelector("#addBulkProps");
                 if (addButton && !addButton.disabled) {
                     addButton.click(); // Trigger add properties button click
+                }
+            }
+        });
+    }
+    
+    // Add Enter key handler for lookup objects list
+    const lookupObjectsListForEnter = modal.querySelector("#lookupObjectsList");
+    if (lookupObjectsListForEnter) {
+        lookupObjectsListForEnter.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent default Enter behavior
+                const addButton = modal.querySelector("#addLookupProp");
+                if (addButton && !addButton.disabled) {
+                    addButton.click(); // Trigger add lookup property button click
                 }
             }
         });
