@@ -162,21 +162,25 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     "Connected to Model Services API" : 
                     "Authentication required to access Model Services";
                 
-                // Create FORMS as a top-level item (always shown)
-                const formsItem = new JsonTreeItem(
-                    'FORMS',
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    'forms showFormFilter'
-                );
-                formsItem.iconPath = new vscode.ThemeIcon('edit');
-                formsItem.tooltip = "Model forms (object workflows with isPage=true)";
-                
-                // Create REPORTS as a top-level item (only if advanced properties are enabled)
+                // Check if advanced properties should be shown for conditional tree items
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
                 const showAdvancedProperties = workspaceFolder ? getShowAdvancedPropertiesFromConfig(workspaceFolder) : false;
                 
-                const items = [projectItem, dataObjectsItem, formsItem];
+                const items = [projectItem, dataObjectsItem];
                 
+                // Create FORMS as a top-level item (only if advanced properties are enabled)
+                if (showAdvancedProperties) {
+                    const formsItem = new JsonTreeItem(
+                        'FORMS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'forms showFormFilter'
+                    );
+                    formsItem.iconPath = new vscode.ThemeIcon('edit');
+                    formsItem.tooltip = "Model forms (object workflows with isPage=true)";
+                    items.push(formsItem);
+                }
+                
+                // Create REPORTS as a top-level item (only if advanced properties are enabled)
                 if (showAdvancedProperties) {
                     const reportsItem = new JsonTreeItem(
                         'REPORTS',
@@ -190,7 +194,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, FORMS, [REPORTS], MODEL SERVICES
+                // Return tree items in order: PROJECT, DATA OBJECTS, [FORMS], [REPORTS], MODEL SERVICES
+                // (FORMS and REPORTS only shown when advanced properties are enabled)
                 return Promise.resolve(items);
             } else {
                 // File doesn't exist, show empty tree

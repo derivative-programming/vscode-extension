@@ -896,6 +896,7 @@ Enhanced the Select FK Object modal functionality to properly disable the 'Accep
 **Conditional Items**:
 - **Hidden when `showAdvancedProperties: false`**:
   - REPORTS (root level)
+  - FORMS (root level)
   - Lexicon (under PROJECT)
   - User Stories (under PROJECT)
   - MCP Server (under PROJECT)
@@ -904,7 +905,6 @@ Enhanced the Select FK Object modal functionality to properly disable the 'Accep
 - **Always Visible**:
   - PROJECT (root level)
   - DATA OBJECTS (root level)
-  - FORMS (root level)
   - MODEL SERVICES (root level)
   - Settings (under PROJECT)
 

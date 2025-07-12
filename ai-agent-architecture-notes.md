@@ -58,6 +58,7 @@ Documentation for client script architecture including:
 - **2025-07-05**: Report Details View Architecture Review
 - **2025-06-27**: Custom Logout Confirmation Modal
 - **2025-01-20**: Welcome View Auto-Opening on Login
+- **2025-07-12**: Forms Treeview Conditional Visibility Change
 
 ### Key Architecture Patterns
 - **Schema-driven UI**: All editable properties come directly from the schema
@@ -86,3 +87,15 @@ When adding new architecture notes:
 ---
 
 *Architecture documentation restructured on 2025-01-15 to improve maintainability and organization.*
+
+## Forms Treeview Conditional Visibility (2025-07-12)
+
+The FORMS treeview item now follows the same conditional visibility pattern as the REPORTS treeview item:
+- Both FORMS and REPORTS are only shown when `settings.editor.showAdvancedProperties` is set to `true`
+- When `showAdvancedProperties` is `false`, only PROJECT, DATA OBJECTS, and MODEL SERVICES are shown at the root level
+- This provides a cleaner interface for basic users while keeping advanced features accessible when needed
+
+Implementation details:
+- Modified `jsonTreeDataProvider.ts` to wrap FORMS creation in the same conditional check as REPORTS
+- Updated documentation to reflect FORMS as a conditional item
+- Maintained the same order: PROJECT, DATA OBJECTS, [FORMS], [REPORTS], MODEL SERVICES

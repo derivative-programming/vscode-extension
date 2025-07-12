@@ -11,7 +11,7 @@ modelValidationView.js - 1,217 lines
 hierarchyView.js - 1,176 lines
  
 
-'Forms' treeview item should only be shown if the setting to use advanced properties is set to true.
+✅ 'Forms' treeview item should only be shown if the setting to use advanced properties is set to true.
 
 "The folder where generated files (code, documentation, etc.) will be saved (relative to the workspace root)" > "The folder where generated files (code, documentation, etc.) will be saved, relative to the workspace root"
 
