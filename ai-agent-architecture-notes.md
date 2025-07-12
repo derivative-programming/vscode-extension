@@ -130,3 +130,58 @@ Implementation details:
 - Hidden properties include: `fKObjectQueryName`, `isFKListOptionRecommended`, `FKListRecommendedOption`, `isCreditCardEntry`, `isTimeZoneDetermined`, `defaultValue`
 - Both list and table views now consistently filter the same properties
 - Properties are hidden from user view while still being preserved in the JSON model
+
+## Config File Watcher Implementation (Added 2025-07-12)
+
+Implemented automated configuration reloading to address the TODO item "if appdna config file changes, reload its settings".
+
+### Problem:
+- The extension only watched the model file (`app-dna.json`) for changes, not the configuration file (`app-dna.config.json`)
+- External changes to configuration settings would not be reflected until manual refresh
+- Settings like `showAdvancedProperties` and `expandNodesOnLoad` could become out of sync
+
+### Solution:
+Added comprehensive configuration file watching and reloading system:
+
+#### 1. **Config File Watcher** (`extension.ts`)
+- Created `FileSystemWatcher` for `app-dna.config.json` alongside existing model file watcher
+- Watches for file creation, deletion, and modification events
+- Triggers `appdna.reloadConfig` command on any config file changes
+
+#### 2. **Reload Config Command** (`registerCommands.ts`)
+- New command `appdna.reloadConfig` registered for internal use
+- Refreshes tree view to apply configuration changes (like advanced properties visibility)
+- Reloads any open AppDNA settings panels with fresh configuration data
+- Provides debug logging for config reload events
+
+#### 3. **Settings Panel Reload Support** (`appDnaSettingsView.js`)
+- Added `reload()` method to `AppDNASettingsPanel` class
+- New exported function `reloadAppDNASettingsPanel()` for external access
+- Automatically refreshes form data when config changes externally
+
+### Technical Implementation:
+```typescript
+// Config file watcher setup
+const configFileWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(workspaceFolder, 'app-dna.config.json')
+);
+
+configFileWatcher.onDidChange(() => {
+    vscode.commands.executeCommand("appdna.reloadConfig");
+});
+```
+
+### Benefits:
+- **Real-time Updates**: Configuration changes are immediately reflected in the UI
+- **Consistent State**: Tree view and panels always show current configuration
+- **Better UX**: No manual refresh needed when config file is modified externally
+- **Development Friendly**: Hot-reloading of settings during development and testing
+
+### Integration Points:
+- File watcher disposal managed by extension context subscriptions
+- Reuses existing `getShowAdvancedPropertiesFromConfig()` and `getExpandNodesOnLoadFromConfig()` utilities
+- Maintains consistency with existing refresh patterns in the extension
+
+This implementation resolves the configuration sync issue and provides a foundation for future configuration-driven features.
+
+---

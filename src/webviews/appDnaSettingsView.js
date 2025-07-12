@@ -82,6 +82,13 @@ class AppDNASettingsPanel {
     reveal() {
         this.panel.reveal();
     }
+    
+    /**
+     * Reloads the configuration data in the settings panel
+     */
+    reload() {
+        this._loadConfig();
+    }
 
     /**
      * Loads the current config file and sends it to the webview
@@ -361,7 +368,17 @@ class AppDNASettingsPanel {
     }
 }
 
+/**
+ * Reloads the AppDNA settings panel if it's currently open
+ */
+function reloadAppDNASettingsPanel() {
+    if (AppDNASettingsPanel.currentPanel) {
+        AppDNASettingsPanel.currentPanel.reload();
+    }
+}
+
 module.exports = {
     showAppDNASettingsView,
-    AppDNASettingsPanel
+    AppDNASettingsPanel,
+    reloadAppDNASettingsPanel
 };

@@ -39,7 +39,7 @@ import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCo
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
 import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand, showFormFilterInputCommand, clearFormFilterCommand } from './filterTreeViewCommands';
 // Import showAppDNASettingsView and related functions
-import { showAppDNASettingsView } from '../webviews/appDnaSettingsView';
+import { showAppDNASettingsView, reloadAppDNASettingsPanel } from '../webviews/appDnaSettingsView';
 // Import showRegisterView
 import { showRegisterView } from '../webviews/registerView';
 
@@ -206,6 +206,22 @@ export function registerCommands(
             if (hierarchyData && hierarchyData.context) {
                 showHierarchyDiagram(hierarchyData.context, modelService);
             }        })
+    );
+    
+    // Register reload config command for config file changes
+    context.subscriptions.push(
+        vscode.commands.registerCommand("appdna.reloadConfig", async () => {
+            // Refresh the tree view to apply any config changes (like showAdvancedProperties)
+            jsonTreeDataProvider.refresh();
+            
+            // If the AppDNA settings panel is open, reload it with fresh config data
+            if (typeof reloadAppDNASettingsPanel === "function") {
+                reloadAppDNASettingsPanel();
+            }
+            
+            // Log config reload for debugging
+            console.log('AppDNA configuration reloaded due to config file change');
+        })
     );
     
         // Register expand all top level items command using the dedicated handler

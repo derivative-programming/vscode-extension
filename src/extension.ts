@@ -145,6 +145,32 @@ export function activate(context: vscode.ExtensionContext) {
         
         // Make sure to dispose of the watcher when the extension is deactivated
         context.subscriptions.push(fileWatcher);
+        
+        // Set up file system watcher for the config file
+        const configFileWatcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(workspaceFolder, 'app-dna.config.json')
+        );
+        
+        // Watch for config file creation
+        configFileWatcher.onDidCreate(() => {
+            console.log('app-dna.config.json file was created');
+            vscode.commands.executeCommand("appdna.reloadConfig");
+        });
+        
+        // Watch for config file deletion
+        configFileWatcher.onDidDelete(() => {
+            console.log('app-dna.config.json file was deleted');
+            vscode.commands.executeCommand("appdna.reloadConfig");
+        });
+        
+        // Watch for config file changes
+        configFileWatcher.onDidChange(() => {
+            console.log('app-dna.config.json file was changed');
+            vscode.commands.executeCommand("appdna.reloadConfig");
+        });
+        
+        // Make sure to dispose of the config watcher when the extension is deactivated
+        context.subscriptions.push(configFileWatcher);
     }
 
     // Register all commands

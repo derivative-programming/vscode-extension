@@ -15,7 +15,7 @@ test all views in dark mode
 
 stop validating a\bulk change request on approval?
 
-if appdna config file changes, reload its settings
+✅ if appdna config file changes, reload its settings - COMPLETED (2025-07-12)
 
   
 obj view add prop modal...
