@@ -38,10 +38,7 @@ form detail view...
 - rename tabs
 - rename columns to controls
 - add form wizard
-
-treeview...
-- add Page treeview item
-- move reports and forms under page treeview item
+ 
 
 create many diff treeview report items? under report treeview item?...
 - navigation page

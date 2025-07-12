@@ -173,10 +173,11 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     const pagesItem = new JsonTreeItem(
                         'PAGES',
                         vscode.TreeItemCollapsibleState.Collapsed,
-                        'pages'
+                        'pages showPageFlow'
                     );
                     pagesItem.iconPath = new vscode.ThemeIcon('browser');
                     pagesItem.tooltip = "User interface pages containing forms and reports";
+                    console.log('[DEBUG] Created PAGES item with contextValue:', pagesItem.contextValue);
                     items.push(pagesItem);
                 }
                 
@@ -319,7 +320,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         }
         
         // Handle PAGES as a parent item - show FORMS and REPORTS as children
-        if (element?.contextValue === 'pages' && fileExists) {
+        if (element?.contextValue?.startsWith('pages') && fileExists) {
             try {
                 const items: JsonTreeItem[] = [];
                 

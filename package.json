@@ -126,6 +126,12 @@
           "icon": "$(type-hierarchy)"
         },
         {
+          "command": "appdna.showPageFlowDiagram",
+          "when": "viewItem =~ /pages.*showPageFlow/",
+          "group": "inline",
+          "icon": "$(list-flat)"
+        },
+        {
           "command": "appdna.showReportFilter",
           "when": "viewItem =~ /reports.*showReportFilter/",
           "group": "inline",
@@ -258,6 +264,11 @@
         "command": "appdna.showHierarchyDiagram",
         "title": "Show Hierarchy Diagram",
         "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "appdna.showPageFlowDiagram",
+        "title": "Show Page Flow Diagram",
+        "icon": "$(list-flat)"
       },
       {
         "command": "appdna.showFilter",

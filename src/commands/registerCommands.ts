@@ -37,6 +37,7 @@ import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, close
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
+import { showPageFlowDiagram, getPageFlowPanel, closePageFlowView } from '../webviews/pageFlowDiagramView';
 import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand, showFormFilterInputCommand, clearFormFilterCommand } from './filterTreeViewCommands';
 // Import showAppDNASettingsView and related functions
 import { showAppDNASettingsView, reloadAppDNASettingsPanel } from '../webviews/appDnaSettingsView';
@@ -98,6 +99,9 @@ export function registerCommands(
             
             // Store reference to hierarchy view panel if open
             const hierarchyData = typeof getHierarchyPanel === "function" ? getHierarchyPanel() : null;
+            
+            // Store reference to page flow diagram panel if open
+            const pageFlowData = typeof getPageFlowPanel === "function" ? getPageFlowPanel() : null;
               // Close all open object details panels
             if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
                 objectDetailsView.closeAllPanels();
@@ -136,6 +140,11 @@ export function registerCommands(
             // Close hierarchy view panel if open
             if (typeof closeHierarchyView === "function") {
                 closeHierarchyView();
+            }
+            
+            // Close page flow diagram panel if open
+            if (typeof closePageFlowView === "function") {
+                closePageFlowView();
             }
             
             // Reload the model file into memory
@@ -205,7 +214,13 @@ export function registerCommands(
             // Reopen hierarchy view panel if it was open
             if (hierarchyData && hierarchyData.context) {
                 showHierarchyDiagram(hierarchyData.context, modelService);
-            }        })
+            }
+            
+            // Reopen page flow diagram panel if it was open
+            if (pageFlowData && pageFlowData.context) {
+                showPageFlowDiagram(pageFlowData.context, modelService);
+            }
+        })
     );
     
     // Register reload config command for config file changes
@@ -537,6 +552,38 @@ export function registerCommands(
             
             // Show the hierarchy diagram view
             await showHierarchyDiagram(context, modelService);
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showPageFlowDiagram', async () => {
+            console.log('[DEBUG] Page flow diagram command triggered');
+            console.log('[DEBUG] modelService.isFileLoaded():', modelService.isFileLoaded());
+            
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+                return;
+            }
+            
+            // Additional debug info about the loaded model
+            try {
+                const currentModel = modelService.getCurrentModel();
+                console.log('[DEBUG] Current model exists:', !!currentModel);
+                if (currentModel) {
+                    console.log('[DEBUG] Current model keys:', Object.keys(currentModel));
+                    if (currentModel.namespace) {
+                        console.log('[DEBUG] Number of namespaces:', currentModel.namespace.length);
+                    }
+                }
+                
+                const allObjects = modelService.getAllObjects();
+                console.log('[DEBUG] getAllObjects() in command:', allObjects ? allObjects.length : 'null/undefined');
+            } catch (error) {
+                console.log('[DEBUG] Error getting model info:', error);
+            }
+            
+            // Show the page flow diagram view
+            await showPageFlowDiagram(context, modelService);
         })
     );
           
