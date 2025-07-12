@@ -168,34 +168,22 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 
                 const items = [projectItem, dataObjectsItem];
                 
-                // Create FORMS as a top-level item (only if advanced properties are enabled)
+                // Create PAGES as a top-level item (only if advanced properties are enabled)
                 if (showAdvancedProperties) {
-                    const formsItem = new JsonTreeItem(
-                        'FORMS',
+                    const pagesItem = new JsonTreeItem(
+                        'PAGES',
                         vscode.TreeItemCollapsibleState.Collapsed,
-                        'forms showFormFilter'
+                        'pages'
                     );
-                    formsItem.iconPath = new vscode.ThemeIcon('edit');
-                    formsItem.tooltip = "Model forms (object workflows with isPage=true)";
-                    items.push(formsItem);
-                }
-                
-                // Create REPORTS as a top-level item (only if advanced properties are enabled)
-                if (showAdvancedProperties) {
-                    const reportsItem = new JsonTreeItem(
-                        'REPORTS',
-                        vscode.TreeItemCollapsibleState.Collapsed,
-                        'reports showReportFilter'
-                    );
-                    reportsItem.iconPath = new vscode.ThemeIcon('book');
-                    reportsItem.tooltip = "Model reports from all objects (click to expand, right-click for options)";
-                    items.push(reportsItem);
+                    pagesItem.iconPath = new vscode.ThemeIcon('browser');
+                    pagesItem.tooltip = "User interface pages containing forms and reports";
+                    items.push(pagesItem);
                 }
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, [FORMS], [REPORTS], MODEL SERVICES
-                // (FORMS and REPORTS only shown when advanced properties are enabled)
+                // Return tree items in order: PROJECT, DATA OBJECTS, [PAGES], MODEL SERVICES
+                // (PAGES only shown when advanced properties are enabled)
                 return Promise.resolve(items);
             } else {
                 // File doesn't exist, show empty tree
@@ -328,7 +316,41 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 console.error('Error reading project settings:', error);
                 return Promise.resolve([]);
             }
-        }        // Handle child elements
+        }
+        
+        // Handle PAGES as a parent item - show FORMS and REPORTS as children
+        if (element?.contextValue === 'pages' && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                
+                // Create FORMS as a child of PAGES
+                const formsItem = new JsonTreeItem(
+                    'FORMS',
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    'forms showFormFilter'
+                );
+                formsItem.iconPath = new vscode.ThemeIcon('edit');
+                formsItem.tooltip = "Model forms (object workflows with isPage=true)";
+                items.push(formsItem);
+                
+                // Create REPORTS as a child of PAGES
+                const reportsItem = new JsonTreeItem(
+                    'REPORTS',
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    'reports showReportFilter'
+                );
+                reportsItem.iconPath = new vscode.ThemeIcon('book');
+                reportsItem.tooltip = "Model reports from all objects (click to expand, right-click for options)";
+                items.push(reportsItem);
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading pages:', error);
+                return Promise.resolve([]);
+            }
+        }
+
+        // Handle child elements
         if (element?.contextValue?.includes('dataObjects') && fileExists) {
             try {
                 if (modelLoaded) {

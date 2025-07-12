@@ -15,6 +15,9 @@ test all views in dark mode
 
 stop validating a\bulk change request on approval?
  
+test all form prop updates
+
+test all report prop updates
 
 
 prop subscriptions
