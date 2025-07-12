@@ -411,7 +411,7 @@ async function getWebviewContent(context, allObjects) {
                 
                 .page-text {
                     font-family: var(--vscode-font-family);
-                    font-size: 12px;
+                    font-size: 13px;
                     fill: var(--vscode-editor-foreground);
                     text-anchor: middle;
                     dominant-baseline: middle;
@@ -420,17 +420,17 @@ async function getWebviewContent(context, allObjects) {
                 
                 .page-title {
                     font-weight: bold;
-                    font-size: 13px;
+                    font-size: 15px;
                 }
                 
                 .page-type {
-                    font-size: 10px;
+                    font-size: 11px;
                     fill: var(--vscode-descriptionForeground);
                     text-transform: uppercase;
                 }
                 
                 .page-object {
-                    font-size: 9px;
+                    font-size: 11px;
                     fill: var(--vscode-descriptionForeground);
                 }
                 
@@ -502,19 +502,43 @@ async function getWebviewContent(context, allObjects) {
                 
                 .role-filter {
                     margin-bottom: 15px;
+                    padding: 10px;
+                    background-color: var(--vscode-editorWidget-background);
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
                 }
                 
-                .role-filter label {
-                    margin-right: 10px;
+                .role-filter-title {
                     font-size: 13px;
+                    font-weight: bold;
+                    margin-bottom: 8px;
+                    color: var(--vscode-editor-foreground);
                 }
                 
-                .role-filter select {
-                    background-color: var(--vscode-dropdown-background);
-                    color: var(--vscode-dropdown-foreground);
-                    border: 1px solid var(--vscode-dropdown-border);
-                    padding: 4px 8px;
-                    border-radius: 3px;
+                .role-filter-options {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                }
+                
+                .role-checkbox-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    min-width: 120px;
+                }
+                
+                .role-checkbox-item input[type="checkbox"] {
+                    margin: 0;
+                    cursor: pointer;
+                }
+                
+                .role-checkbox-item label {
+                    cursor: pointer;
+                    color: var(--vscode-editor-foreground);
+                    user-select: none;
                 }
                 
                 .legend {
@@ -556,10 +580,10 @@ async function getWebviewContent(context, allObjects) {
             </div>
             
             <div class="role-filter">
-                <label for="roleFilter">Filter by Role:</label>
-                <select id="roleFilter" onchange="filterByRole()">
-                    <option value="">All Roles</option>
-                </select>
+                <div class="role-filter-title">Filter by Role:</div>
+                <div class="role-filter-options" id="roleFilterOptions">
+                    <!-- Role checkboxes will be populated here -->
+                </div>
             </div>
             
             <div class="flow-container" id="flowContainer">
@@ -601,7 +625,7 @@ async function getWebviewContent(context, allObjects) {
             <script>
                 const vscode = acquireVsCodeApi();
                 const flowData = ${JSON.stringify(flowMap)};
-                let currentRoleFilter = "";
+                let selectedRoles = new Set(); // Track selected roles
                 let simulation;
                 let svg;
                 let g;
@@ -619,29 +643,68 @@ async function getWebviewContent(context, allObjects) {
                 });
                 
                 function populateRoleFilter() {
-                    const roleFilter = document.getElementById('roleFilter');
+                    const roleFilterOptions = document.getElementById('roleFilterOptions');
                     const roles = [...new Set(flowData.pages.map(page => page.roleRequired).filter(role => role))];
                     
                     // Add "Public Pages" option for pages without role requirements
                     const hasPublicPages = flowData.pages.some(page => !page.roleRequired);
+                    
+                    // Create "All Roles" checkbox
+                    const allRolesItem = document.createElement('div');
+                    allRolesItem.className = 'role-checkbox-item';
+                    allRolesItem.innerHTML = 
+                        '<input type="checkbox" id="role-all" checked onchange="handleAllRolesChange(this)">' +
+                        '<label for="role-all">All Roles</label>';
+                    roleFilterOptions.appendChild(allRolesItem);
+                    
                     if (hasPublicPages) {
-                        const publicOption = document.createElement('option');
-                        publicOption.value = 'PUBLIC';
-                        publicOption.textContent = 'Public Pages (no role required)';
-                        roleFilter.appendChild(publicOption);
+                        const publicItem = document.createElement('div');
+                        publicItem.className = 'role-checkbox-item';
+                        publicItem.innerHTML = 
+                            '<input type="checkbox" id="role-PUBLIC" onchange="handleRoleChange(this)">' +
+                            '<label for="role-PUBLIC">Public Pages</label>';
+                        roleFilterOptions.appendChild(publicItem);
                     }
                     
                     roles.forEach(role => {
-                        const option = document.createElement('option');
-                        option.value = role;
-                        option.textContent = role;
-                        roleFilter.appendChild(option);
+                        const roleItem = document.createElement('div');
+                        roleItem.className = 'role-checkbox-item';
+                        roleItem.innerHTML = 
+                            '<input type="checkbox" id="role-' + role + '" onchange="handleRoleChange(this)">' +
+                            '<label for="role-' + role + '">' + role + '</label>';
+                        roleFilterOptions.appendChild(roleItem);
                     });
                 }
                 
-                function filterByRole() {
-                    const roleFilter = document.getElementById('roleFilter');
-                    currentRoleFilter = roleFilter.value;
+                function handleAllRolesChange(checkbox) {
+                    const allCheckboxes = document.querySelectorAll('.role-checkbox-item input[type="checkbox"]:not(#role-all)');
+                    
+                    if (checkbox.checked) {
+                        // If "All Roles" is checked, uncheck all other checkboxes and clear selected roles
+                        allCheckboxes.forEach(cb => cb.checked = false);
+                        selectedRoles.clear();
+                    }
+                    
+                    renderDiagram();
+                }
+                
+                function handleRoleChange(checkbox) {
+                    const allRolesCheckbox = document.getElementById('role-all');
+                    const roleValue = checkbox.id.replace('role-', '');
+                    
+                    if (checkbox.checked) {
+                        // Uncheck "All Roles" when any specific role is selected
+                        allRolesCheckbox.checked = false;
+                        selectedRoles.add(roleValue);
+                    } else {
+                        selectedRoles.delete(roleValue);
+                        
+                        // If no roles are selected, check "All Roles"
+                        if (selectedRoles.size === 0) {
+                            allRolesCheckbox.checked = true;
+                        }
+                    }
+                    
                     renderDiagram();
                 }
                 
@@ -683,16 +746,16 @@ async function getWebviewContent(context, allObjects) {
                     // Clear previous content
                     g.selectAll('*').remove();
                     
-                    // Filter pages by role if selected
+                    // Filter pages by selected roles
                     let filteredPages = flowData.pages;
-                    if (currentRoleFilter) {
-                        if (currentRoleFilter === 'PUBLIC') {
-                            // Show only public pages (no role required)
-                            filteredPages = flowData.pages.filter(page => !page.roleRequired);
-                        } else {
-                            // Show pages for specific role
-                            filteredPages = flowData.pages.filter(page => page.roleRequired === currentRoleFilter);
-                        }
+                    if (selectedRoles.size > 0) {
+                        filteredPages = flowData.pages.filter(page => {
+                            // Check if page matches any selected role
+                            if (selectedRoles.has('PUBLIC') && !page.roleRequired) {
+                                return true; // Show public pages
+                            }
+                            return page.roleRequired && selectedRoles.has(page.roleRequired);
+                        });
                     }
                     
                     // Check if there are any pages to display
@@ -738,15 +801,15 @@ async function getWebviewContent(context, allObjects) {
                     simulation = d3.forceSimulation(nodes)
                         .force('link', d3.forceLink(links)
                             .id(d => d.id)
-                            .distance(150)
-                            .strength(0.3))
+                            .distance(600)  // Very long distances to prevent chain overlap
+                            .strength(0.8))  // Very strong link force to maintain chain integrity
                         .force('charge', d3.forceManyBody()
-                            .strength(-800)
-                            .distanceMin(100))
+                            .strength(-800)  // Strong repulsion to separate different chains
+                            .distanceMin(200))  // Larger minimum distance for better separation
                         .force('center', d3.forceCenter(width / 2, height / 2))
                         .force('collision', d3.forceCollide()
-                            .radius(80)
-                            .strength(0.8));
+                            .radius(150)  // Large collision radius to prevent overlap
+                            .strength(1.0));  // Maximum collision strength
                     
                     // Create links
                     const link = g.append('g')
@@ -780,11 +843,11 @@ async function getWebviewContent(context, allObjects) {
                             .on('drag', dragged)
                             .on('end', dragended));
                     
-                    // Add rectangles for nodes
+                    // Add rectangles for nodes (made larger for better readability)
                     node.append('rect')
                         .attr('class', d => 'page-node ' + d.type)
-                        .attr('width', 140)
-                        .attr('height', 80)
+                        .attr('width', 180)
+                        .attr('height', 100)
                         .attr('rx', 8)
                         .attr('ry', 8)
                         .style('fill', 'var(--vscode-editorWidget-background)')
@@ -806,43 +869,47 @@ async function getWebviewContent(context, allObjects) {
                             }
                         });
                     
-                    // Add text to nodes
+                    // Add text to nodes (improved sizing and positioning)
                     node.append('text')
                         .attr('class', 'page-text page-type')
-                        .attr('x', 70)
-                        .attr('y', 20)
+                        .attr('x', 90)
+                        .attr('y', 25)
+                        .style('font-size', '11px')
                         .text(d => d.type.toUpperCase());
                     
                     node.append('text')
                         .attr('class', 'page-text page-title')
-                        .attr('x', 70)
-                        .attr('y', 40)
-                        .text(d => d.titleText.length > 15 ? d.titleText.substring(0, 15) + '...' : d.titleText);
+                        .attr('x', 90)
+                        .attr('y', 45)
+                        .style('font-size', '14px')
+                        .style('font-weight', 'bold')
+                        .text(d => d.titleText.length > 20 ? d.titleText.substring(0, 20) + '...' : d.titleText);
                     
                     node.append('text')
                         .attr('class', 'page-text page-object')
-                        .attr('x', 70)
-                        .attr('y', 55)
-                        .text(d => 'Object: ' + d.objectName);
+                        .attr('x', 90)
+                        .attr('y', 65)
+                        .style('font-size', '11px')
+                        .text(d => 'Object: ' + (d.objectName.length > 12 ? d.objectName.substring(0, 12) + '...' : d.objectName));
                     
                     node.append('text')
                         .attr('class', 'page-text')
-                        .attr('x', 70)
-                        .attr('y', 70)
-                        .style('font-size', '9px')
-                        .text(d => (d.roleRequired || 'Public') + ' | ' + d.buttons.length + ' button(s)');
+                        .attr('x', 90)
+                        .attr('y', 80)
+                        .style('font-size', '10px')
+                        .text(d => (d.roleRequired || 'Public') + ' | ' + d.buttons.length + ' btn(s)');
                     
-                    // Update positions on simulation tick
+                    // Update positions on simulation tick (adjusted for larger nodes)
                     simulation.on('tick', () => {
                         link
-                            .attr('x1', d => d.source.x + 70)
-                            .attr('y1', d => d.source.y + 40)
-                            .attr('x2', d => d.target.x + 70)
-                            .attr('y2', d => d.target.y + 40);
+                            .attr('x1', d => d.source.x + 90)
+                            .attr('y1', d => d.source.y + 50)
+                            .attr('x2', d => d.target.x + 90)
+                            .attr('y2', d => d.target.y + 50);
                         
                         linkLabels
-                            .attr('x', d => (d.source.x + d.target.x) / 2 + 70)
-                            .attr('y', d => (d.source.y + d.target.y) / 2 + 35);
+                            .attr('x', d => (d.source.x + d.target.x) / 2 + 90)
+                            .attr('y', d => (d.source.y + d.target.y) / 2 + 45);
                         
                         node
                             .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
@@ -869,7 +936,8 @@ async function getWebviewContent(context, allObjects) {
                 function showEmptyState() {
                     const container = document.getElementById('flowContainer');
                     const totalPages = flowData.pages ? flowData.pages.length : 'undefined';
-                    const roleFilter = currentRoleFilter || 'none';
+                    const selectedRolesArray = Array.from(selectedRoles);
+                    const roleFilter = selectedRolesArray.length > 0 ? selectedRolesArray.join(', ') : 'All Roles';
                     const rawDataStr = JSON.stringify(flowData, null, 2);                        container.innerHTML = '<div class="empty-state">' +
                             '<h3>No Pages Found</h3>' +
                             '<p>No pages match the current filter criteria.</p>' +

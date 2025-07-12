@@ -45,12 +45,17 @@ create many diff treeview report items? under report treeview item?...
 - table page
 - detail page
 
-page treeview item...
-- page flow diagram
-  - form buttons have a destinationtargetname property that holds the name of its form or report destination
-  - report buttons have a destinationtargetname property that holds the name of its form or report destination
-  - report columns can have a buttondestinationtargetname property that holds the name of its form or report destination
-- allow filtering on role required on page flow diagram
+page layout view...
+- ✅ use checkboxes instead of a dropdown on the role filter
+- can i have hover text over each item?
+- can i show a modal when each are clicked?
+- add the name of each form and report in each item as well, not just the title
+- can i wrap the title text to a new line?
+- add a search textbox.  if an item fits the search partially, show it with a light green background on the item. if its an exact match, show a darker green background on the item.
+- add zoom in and out icon buttons 
+- forms, reports with table (grid view), reports with navigation (two column view), reports with detail (three column view) and any other report view should all have different background colors
+
+
 
 sample page views...
 - form

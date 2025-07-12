@@ -42,6 +42,38 @@ Documentation for other architectural components including:
 
 **Sections:** 3 detailed notes covering specialized architectural components.
 
+## Page Flow Diagram View Architecture
+
+### Component Overview
+The `pageFlowDiagramView.js` is a sophisticated webview component that visualizes page flow connections in the AppDNA model. It creates an interactive D3.js-based diagram showing how forms and reports connect through button destinations.
+
+### Key Features
+- **Data Extraction**: Automatically extracts pages from the model by finding forms (objectWorkflow) and reports with `isPage="true"`
+- **Button Analysis**: Analyzes buttons in workflows and reports to identify navigation connections via `destinationTargetName`
+- **D3.js Visualization**: Uses D3.js force-directed layout for interactive node positioning and connection rendering
+- **Role-based Filtering**: Provides filtering by role requirements including a "Public Pages" option
+- **Interactive Navigation**: Clicking on nodes opens corresponding form/report detail views
+- **Real-time Statistics**: Shows counts of total pages, forms, reports, and connections
+
+### Data Flow
+1. `showPageFlowDiagram()` → Gets all objects from ModelService
+2. `extractPagesFromModel()` → Filters for pages with `isPage="true"`
+3. `extractButtonsFromWorkflow/Report()` → Finds buttons with destination targets
+4. `buildFlowMap()` → Creates connections between pages based on button destinations
+5. D3.js renders interactive force-directed graph with draggable nodes
+
+### Technical Implementation
+- Uses D3.js v7 for advanced graph visualization
+- Force simulation with collision detection and link constraints
+- SVG-based rendering with zoom/pan capabilities
+- WebView messaging for navigation to detail views
+- Responsive design with VS Code theme integration
+
+### Debug Features
+- Extensive console logging for troubleshooting data extraction
+- Empty state shows raw flowData for debugging
+- Debug information panel shows filter states and data counts
+
 ### [Client Script Architecture](./docs/architecture/client-script-architecture.md)
 Documentation for client script architecture including:
 - Modularization pattern for client-side scripts
