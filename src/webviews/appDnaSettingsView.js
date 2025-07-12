@@ -262,7 +262,7 @@ class AppDNASettingsPanel {
             <div class="setting-item">
                 <label for="outputPath">Output Folder</label>
                 <input type="text" id="outputPath" placeholder="./fabrication_results">
-                <div class="description">The folder where generated files (code, documentation, etc.) will be saved (relative to the workspace root).</div>
+                <div class="description">The folder where generated files (code, documentation, etc.) will be saved, relative to the workspace root.</div>
             </div>
         </div>
 

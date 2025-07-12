@@ -99,3 +99,12 @@ Implementation details:
 - Modified `jsonTreeDataProvider.ts` to wrap FORMS creation in the same conditional check as REPORTS
 - Updated documentation to reflect FORMS as a conditional item
 - Maintained the same order: PROJECT, DATA OBJECTS, [FORMS], [REPORTS], MODEL SERVICES
+
+## Property Display Configuration
+
+### Object Properties View Filtering
+- Property display can be controlled by filtering the `propColumns` array in both list and table view templates
+- Located in: `src/webviews/objects/components/templates/propertiesListTemplate.js` and `propertiesTableTemplate.js`
+- To hide properties: Add property names to the `hiddenProperties` array before filtering
+- The `isFKNonLookupIncludedInXMLFunction` property is hidden from user view while still being preserved in the JSON model
+- Schema properties are dynamically read from `app-dna.schema.json` and filtered before UI generation

@@ -142,7 +142,7 @@ class HelpPanel {
             <div class="help-section-content">
                 Learn more about this extension on <a href="https://github.com/derivative-programming/vscode-extension" target="_blank" class="help-link">GitHub</a>.
                 <br><br>
-                Visit our repository to find detailed documentation, examples, and the latest updates.
+                Visit our repository to find detailed documentation and the latest updates.
                 <br><br>
                 Join the discussion at our <a href="https://github.com/derivative-programming/vscode-extension/discussions" target="_blank" class="help-link">discussion board</a> to ask questions, share ideas, and get community support.
                 <br><br>
@@ -153,9 +153,7 @@ class HelpPanel {
         <div class="help-section">
             <div class="help-section-title">🐛 Report Issues</div>
             <div class="help-section-content">
-                Found a bug or have a feature request? Please log any issues at our GitHub repository:
-                <br><br>
-                <a href="https://github.com/derivative-programming/vscode-extension/issues" target="_blank" class="help-link">https://github.com/derivative-programming/vscode-extension/issues</a>
+                Found a bug or have a feature request? Please log any issues <a href="https://github.com/derivative-programming/vscode-extension/issues" target="_blank" class="help-link">here</a>.
                 <br><br>
                 When reporting issues, please include:
                 <ul>

@@ -11,28 +11,20 @@ modelValidationView.js - 1,217 lines
 hierarchyView.js - 1,176 lines
  
 
-✅ 'Forms' treeview item should only be shown if the setting to use advanced properties is set to true.
-
-"The folder where generated files (code, documentation, etc.) will be saved (relative to the workspace root)" > "The folder where generated files (code, documentation, etc.) will be saved, relative to the workspace root"
-
 test all views in dark mode
 
 stop validating a\bulk change request on approval?
 
 if appdna config file changes, reload its settings
 
-help view...
-"Visit our repository to find detailed documentation, examples, and the latest updates." > no examples.
-- ":Found a bug or have a feature request? Please log any issues at our GitHub repository:"  > use a 'here' link
 
 object view...
-- properties...'Is Not Published To Subscriptions:' dropdown has empty value
-- hide 'Is FK Non Lookup Included In XML Function'
+- ✅ hide 'Is FK Non Lookup Included In XML Function'
 
 
 report prop to hide...
-- Visualization Line Chart Grid Horiz Title:
-- Visualization Card View Is Image Available:
+- 'Visualization Line Chart Grid Horiz Title'
+- 'Visualization Card View Is Image Available'
 
 db prop tab... 
 - hide 'Default Value:'
