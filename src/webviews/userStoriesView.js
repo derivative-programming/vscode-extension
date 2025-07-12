@@ -295,9 +295,7 @@ function showUserStoriesView(context, modelService) {
                     // Create a new user story
                     const newStory = {
                         name: generateGuid(),
-                        storyText: storyText,
-                        isIgnored: "false",
-                        isStoryProcessed: "false"
+                        storyText: storyText
                     };                    // Add the new story to the model
                     namespace.userStory.push(newStory);
                     
@@ -495,9 +493,7 @@ function showUserStoriesView(context, modelService) {
                         const newStory = {
                             name: generateGuid(),
                             storyNumber: storyNumber || "",
-                            storyText: storyText,
-                            isIgnored: "false",
-                            isStoryProcessed: "false"
+                            storyText: storyText
                         };
                         
                         namespace.userStory.push(newStory);

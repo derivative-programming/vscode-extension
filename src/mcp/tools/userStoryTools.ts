@@ -87,9 +87,7 @@ export class UserStoryTools {
                     const newStory = {
                         name: this.generateGuid(),
                         storyNumber: title || "",
-                        storyText: description,
-                        isIgnored: "false",
-                        isStoryProcessed: "false"
+                        storyText: description
                     };
 
                     // Add the new story to the model
@@ -112,9 +110,7 @@ export class UserStoryTools {
             const newStory = {
                 name: this.generateGuid(),
                 storyNumber: title || "",
-                storyText: description,
-                isIgnored: "false",
-                isStoryProcessed: "false"
+                storyText: description
             };
 
             this.mcpServer.addInMemoryUserStory(newStory);

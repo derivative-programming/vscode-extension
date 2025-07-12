@@ -2,10 +2,14 @@ Agent todo items...
 
 any large files left?
 - split up large files into smaller ones
+modelFabricationView.js - 1,524 lines
+changeRequestsListView.ts - 1,436 lines
+formDetailsView.js - 1,298 lines
+modelAIProcessingView.js - 1,275 lines
+userStoriesView.js - 1,220 lines
+modelValidationView.js - 1,217 lines
+hierarchyView.js - 1,176 lines
  
-User stories...
-- ✅ sort column 'story number' correctly
-- on add, dont create isStoryProcessed and isIgnored
 
 'Forms' treeview item should only be shown if the setting to use advanced properties is set to true.
 
