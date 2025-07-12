@@ -1,9 +1,74 @@
 Agent todo items...
- 
 
-reportButton = objectWorkflowButton
-reportParam =  objectWorkflowOutputVar
-reportColumn = objectWorkflowParam
+any large files left?
+- split up large files into smaller ones
+ 
+User stories...
+- ✅ sort column 'story number' correctly
+- on add, dont create isStoryProcessed and isIgnored
+
+'Forms' treeview item should only be shown if the setting to use advanced properties is set to true.
+
+"The folder where generated files (code, documentation, etc.) will be saved (relative to the workspace root)" > "The folder where generated files (code, documentation, etc.) will be saved, relative to the workspace root"
+
+test all views in dark mode
+
+stop validating a\bulk change request on approval?
+
+if appdna config file changes, reload its settings
+
+help view...
+"Visit our repository to find detailed documentation, examples, and the latest updates." > no examples.
+- ":Found a bug or have a feature request? Please log any issues at our GitHub repository:"  > use a 'here' link
+
+object view...
+- properties...'Is Not Published To Subscriptions:' dropdown has empty value
+- hide 'Is FK Non Lookup Included In XML Function'
+
+
+report prop to hide...
+- Visualization Line Chart Grid Horiz Title:
+- Visualization Card View Is Image Available:
+
+db prop tab... 
+- hide 'Default Value:'
+
+obj view add prop modal...
+- add lookup tab. sample json created...
+{
+                "fKObjectName": "DataSourceType",
+                "fKObjectPropertyName": "DataSourceTypeID",
+                "isFK": "true",
+                "isFKLookup": "true",
+                "name": "DataSourceTypeID"
+              },
+
+data obj lookup item tab...
+- onece checked, the checkbox should be disabled and not editable
+- custom int prop 1 value doesnt change when list selection changes
+
+prop subscriptions
+
+form settings...
+- many settings to hide. check all tabs in win app
+- hde 'Form Footer Image URL', isImpersonationPage, 
+            result.Add("isCreditCardEntryUsed");
+            result.Add("headerImageURL");
+            result.Add("footerImageURL");
+            result.Add("isDynaFlow");
+            result.Add("isDynaFlowTask");
+            result.Add("isCustomPageViewUsed");
+
+form param pros to ignore...
+            result.Add("fKObjectQueryName".ToLower());
+            result.Add("isFKListOptionRecommended".ToLower());
+            result.Add("FKListRecommendedOption".ToLower());
+            result.Add("isCreditCardEntry".ToLower());
+            result.Add("isTimeZoneDetermined".ToLower());
+            result.Add("defaultValue".ToLower());
+
+many labels: "Sql Server DB Data Type" > "DB Data Type"
+
 
 help icon buttons on primary treeview items...
 - object

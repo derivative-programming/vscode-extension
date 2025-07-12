@@ -1003,6 +1003,15 @@ Alternate format: "As a [Role name], I want to [View all, view, add, update, del
                             // For checkbox column, compare checked state
                             valueA = a.querySelector('input.isIgnoredCheckbox').checked;
                             valueB = b.querySelector('input.isIgnoredCheckbox').checked;
+                        } else if (sortBy === 'storyNumber') {
+                            // For story number column, compare numerically
+                            const cellIndexMap = { storyNumber: 0, storyText: 1 };
+                            const textA = a.querySelectorAll('td')[cellIndexMap[sortBy]].textContent.trim();
+                            const textB = b.querySelectorAll('td')[cellIndexMap[sortBy]].textContent.trim();
+                            
+                            // Convert to numbers for comparison, defaulting to 0 if not a valid number
+                            valueA = isNaN(parseInt(textA)) ? 0 : parseInt(textA);
+                            valueB = isNaN(parseInt(textB)) ? 0 : parseInt(textB);
                         } else {
                             // For text columns, compare text content
                             const cellIndexMap = { storyNumber: 0, storyText: 1 };
@@ -1011,7 +1020,10 @@ Alternate format: "As a [Role name], I want to [View all, view, add, update, del
                         }
                         
                         // Compare values based on direction
-                        if (direction === 'asc') {
+                        if (sortBy === 'storyNumber') {
+                            // Numeric comparison for story number
+                            return direction === 'asc' ? valueA - valueB : valueB - valueA;
+                        } else if (direction === 'asc') {
                             return valueA > valueB ? 1 : -1;
                         } else {
                             return valueA < valueB ? 1 : -1;
