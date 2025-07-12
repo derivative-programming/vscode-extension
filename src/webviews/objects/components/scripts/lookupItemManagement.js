@@ -96,10 +96,13 @@ function getLookupItemManagementFunctions() {
             const checkboxes = form.querySelectorAll('input[type="checkbox"]');
             
             inputs.forEach(input => {
+                // Clear the value completely for all inputs including customIntProp1Value
+                input.value = '';
+                
                 if (input.type === 'text') {
-                    input.value = '';
                     input.readOnly = true;
                 } else if (input.tagName === 'SELECT') {
+                    // Reset to first option for selects
                     input.selectedIndex = 0;
                     input.disabled = true;
                 }
@@ -109,12 +112,16 @@ function getLookupItemManagementFunctions() {
             
             checkboxes.forEach(checkbox => {
                 checkbox.checked = false;
+                // Re-enable checkboxes that were previously disabled
+                checkbox.disabled = false;
+                checkbox.removeAttribute('data-originally-checked');
             });
             
             // Populate form fields with lookup item data and update checkboxes
             inputs.forEach(input => {
                 const propName = input.name;
                 if (propName && lookupItem.hasOwnProperty(propName) && lookupItem[propName] !== null && lookupItem[propName] !== undefined) {
+                    // Set the actual value from the lookup item
                     input.value = lookupItem[propName];
                     
                     // Enable the input and check the corresponding checkbox
@@ -132,6 +139,9 @@ function getLookupItemManagementFunctions() {
                     const checkbox = form.querySelector('input[type="checkbox"][data-field-id="' + fieldId + '"]');
                     if (checkbox) {
                         checkbox.checked = true;
+                        // Disable the checkbox since the property exists (once checked, it stays checked)
+                        checkbox.disabled = true;
+                        checkbox.setAttribute('data-originally-checked', 'true');
                     }
                 }
             });
@@ -153,6 +163,10 @@ function getLookupItemManagementFunctions() {
                                         inputElement.disabled = false;
                                     }
                                     updateInputStyle(inputElement, true);
+                                    
+                                    // Disable the checkbox to prevent unchecking (once checked, it stays checked)
+                                    e.target.disabled = true;
+                                    e.target.setAttribute('data-originally-checked', 'true');
                                     
                                     // Set a default value and save it
                                     const propName = inputElement.name;
@@ -423,6 +437,10 @@ function getLookupItemManagementFunctions() {
                             defaultValue = inputElement.options[0].value;
                             inputElement.value = defaultValue;
                         }
+                        
+                        // Disable the checkbox to prevent unchecking (once checked, it stays checked)
+                        this.disabled = true;
+                        this.setAttribute('data-originally-checked', 'true');
                         
                         // Save the property
                         if (!lookupItems[rowIndex]) lookupItems[rowIndex] = {};

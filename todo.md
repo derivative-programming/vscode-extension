@@ -14,20 +14,8 @@ hierarchyView.js - 1,176 lines
 test all views in dark mode
 
 stop validating a\bulk change request on approval?
+ 
 
-obj view add prop modal...
-- add lookup tab. sample json created...
-{
-  "fKObjectName": "DataSourceType",
-  "fKObjectPropertyName": "DataSourceTypeID",
-  "isFK": "true",
-  "isFKLookup": "true",
-  "name": "DataSourceTypeID"
-},
-
-data obj lookup item tab...
-- onece checked, the checkbox should be disabled and not editable
-- custom int prop 1 value doesnt change when list selection changes
 
 prop subscriptions
  
