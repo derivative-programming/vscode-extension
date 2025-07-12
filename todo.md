@@ -33,24 +33,7 @@ data obj lookup item tab...
 - custom int prop 1 value doesnt change when list selection changes
 
 prop subscriptions
-
-form settings...
-- many settings to hide. check all tabs in win app
-- hde 'Form Footer Image URL', isImpersonationPage, 
-            result.Add("isCreditCardEntryUsed");
-            result.Add("headerImageURL");
-            result.Add("footerImageURL");
-            result.Add("isDynaFlow");
-            result.Add("isDynaFlowTask");
-            result.Add("isCustomPageViewUsed");
-
-form param pros to ignore...
-            result.Add("fKObjectQueryName".ToLower());
-            result.Add("isFKListOptionRecommended".ToLower());
-            result.Add("FKListRecommendedOption".ToLower());
-            result.Add("isCreditCardEntry".ToLower());
-            result.Add("isTimeZoneDetermined".ToLower());
-            result.Add("defaultValue".ToLower());
+ 
 
 many labels: "Sql Server DB Data Type" > "DB Data Type"
 

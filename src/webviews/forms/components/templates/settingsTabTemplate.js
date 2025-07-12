@@ -47,7 +47,16 @@ function getFormPropertiesToIgnore() {
         "ismobileoptimized",
         "mobileviewname",
         "istabletoptimized",
-        "tabletviewname"
+        "tabletviewname",
+        // Additional form properties to hide based on user requirements
+        "formfooterimageurl",
+        "footerimageurl",
+        "headerimageurl",
+        "iscreditcardentryused",
+        "isdynaflow",
+        "isdynaflowtask",
+        "iscustompageviewused",
+        "isimpersonationpage"
     ];
 }
 

@@ -8,14 +8,39 @@ const { formatLabel } = require("../../helpers/formDataHelper");
  */
 
 /**
+ * Gets the list of parameter properties that should be hidden in the parameters tab
+ * @returns {Array<string>} Array of property names to hide (lowercase)
+ */
+function getParamPropertiesToHide() {
+    return [
+        "name",
+        "defaultvalue",
+        "fkobjectname",
+        "isfk",
+        "isfklookup",
+        "fklistorderby",
+        "isunknownlookupallowed",
+        // Additional properties to hide based on user requirements
+        "fkobjectqueryname",
+        "isfklistoptionrecommended",
+        "fklistrecommendedoption",
+        "iscreditcardentry",
+        "istimezonedetermined"
+    ];
+}
+
+/**
  * Generates the HTML for parameter list view fields
  * @param {Object} paramSchema Schema for form parameters
  * @returns {string} HTML for parameter list view fields
  */
 function getParamsListTemplate(paramSchema) {
-    // Sort properties alphabetically
+    // Get properties to hide
+    const propertiesToHide = getParamPropertiesToHide();
+    
+    // Sort properties alphabetically and filter out hidden ones
     const sortedProperties = Object.keys(paramSchema)
-        .filter(key => key !== "name") // Exclude name as it's already shown in the list
+        .filter(key => key !== "name" && !propertiesToHide.includes(key.toLowerCase()))
         .sort();
     
     let html = '';
@@ -71,5 +96,6 @@ function getParamsListTemplate(paramSchema) {
 }
 
 module.exports = {
-    getParamsListTemplate
+    getParamsListTemplate,
+    getParamPropertiesToHide
 };

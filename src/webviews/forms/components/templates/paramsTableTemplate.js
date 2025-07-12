@@ -13,7 +13,13 @@ function getParamPropertiesToHide() {
         "isfk",
         "isfklookup",
         "fklistorderby",
-        "isunknownlookupallowed"
+        "isunknownlookupallowed",
+        // Additional properties to hide based on user requirements
+        "fkobjectqueryname",
+        "isfklistoptionrecommended",
+        "fklistrecommendedoption",
+        "iscreditcardentry",
+        "istimezonedetermined"
     ];
 }
 

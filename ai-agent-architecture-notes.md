@@ -115,3 +115,18 @@ Implementation details:
 - Located in: `src/webviews/reports/components/templates/settingsTabTemplate.js`
 - The properties `visualizationLineChartGridHorizTitle` and `visualizationCardViewIsImageAvailable` are hidden from the settings tab
 - Fixed property name casing issues where ignore list entries didn't match actual schema property names
+
+### Form Settings Tab Property Filtering
+- Form property display is controlled by the `getFormPropertiesToIgnore()` function in form `settingsTabTemplate.js`
+- Properties in the ignore list are converted to lowercase for comparison with schema properties
+- Located in: `src/webviews/forms/components/templates/settingsTabTemplate.js`
+- Hidden properties include: `formFooterImageURL`, `isImpersonationPage`, `isCreditCardEntryUsed`, `headerImageURL`, `footerImageURL`, `isDynaFlow`, `isDynaFlowTask`, `isCustomPageViewUsed`
+- Properties are hidden from user view while still being preserved in the JSON model
+
+### Form Parameters Tab Property Filtering
+- Form parameter property display is controlled by the `getParamPropertiesToHide()` function in both list and table templates
+- Properties in the ignore list are converted to lowercase for comparison with schema properties
+- Located in: `src/webviews/forms/components/templates/paramsListTemplate.js` and `paramsTableTemplate.js`
+- Hidden properties include: `fKObjectQueryName`, `isFKListOptionRecommended`, `FKListRecommendedOption`, `isCreditCardEntry`, `isTimeZoneDetermined`, `defaultValue`
+- Both list and table views now consistently filter the same properties
+- Properties are hidden from user view while still being preserved in the JSON model
