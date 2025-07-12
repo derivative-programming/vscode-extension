@@ -453,6 +453,21 @@ async function getWebviewContent(context, allObjects) {
                     background-color: var(--vscode-editor-background);
                 }
                 
+                .graph-zoom-controls {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    display: flex;
+                    gap: 5px;
+                    align-items: center;
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                    padding: 2px;
+                    background-color: var(--vscode-editorWidget-background);
+                    z-index: 100;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                }
+                
                 .d3-container {
                     width: 100%;
                     height: 100%;
@@ -713,6 +728,46 @@ async function getWebviewContent(context, allObjects) {
                     user-select: none;
                 }
                 
+                .tabs {
+                    display: flex;
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                    margin-bottom: 15px;
+                    background-color: var(--vscode-editorWidget-background);
+                }
+                
+                .tab {
+                    padding: 12px 20px;
+                    cursor: pointer;
+                    border: none;
+                    background: none;
+                    color: var(--vscode-foreground);
+                    font-family: var(--vscode-font-family);
+                    font-size: 13px;
+                    font-weight: 500;
+                    border-bottom: 3px solid transparent;
+                    transition: all 0.2s ease;
+                    user-select: none;
+                }
+                
+                .tab:hover {
+                    background-color: var(--vscode-toolbar-hoverBackground);
+                    color: var(--vscode-foreground);
+                }
+                
+                .tab.active {
+                    color: var(--vscode-focusBorder);
+                    border-bottom-color: var(--vscode-focusBorder);
+                    background-color: var(--vscode-tab-activeBackground);
+                }
+                
+                .tab-content {
+                    display: none;
+                }
+                
+                .tab-content.active {
+                    display: block;
+                }
+                
                 .tooltip {
                     position: absolute;
                     background-color: var(--vscode-editorHoverWidget-background);
@@ -914,12 +969,6 @@ async function getWebviewContent(context, allObjects) {
             <div class="header">
                 <div class="title">Page Flow Diagram</div>
                 <div class="controls">
-                    <div class="zoom-controls">
-                        <button class="zoom-btn icon-button" id="zoomOut" onclick="zoomOut()" title="Zoom Out"><i class="codicon codicon-zoom-out"></i></button>
-                        <span class="zoom-level" id="zoomLevel">100%</span>
-                        <button class="zoom-btn icon-button" id="zoomIn" onclick="zoomIn()" title="Zoom In"><i class="codicon codicon-zoom-in"></i></button>
-                        <button class="zoom-btn icon-button" onclick="resetZoom()" title="Reset Zoom"><i class="codicon codicon-home"></i></button>
-                    </div>
                     <button class="btn" onclick="refreshDiagram()">Refresh</button>
                     <button class="btn" onclick="autoLayout()">Auto Layout</button>
                 </div>
@@ -936,101 +985,116 @@ async function getWebviewContent(context, allObjects) {
                 </div>
             </div>
             
-            <div class="flow-container" id="flowContainer">
-                <svg class="d3-container" id="d3Container"></svg>
-                <div class="tooltip" id="tooltip">
-                    <div class="tooltip-title"></div>
-                    <div class="tooltip-content"></div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('graph')" id="graphTab">Force-Directed Graph</button>
+                <button class="tab" onclick="switchTab('stats')" id="statsTab">Stats</button>
+            </div>
+            
+            <div class="tab-content active" id="graphContent">
+                <div class="flow-container" id="flowContainer">
+                    <div class="graph-zoom-controls">
+                        <button class="zoom-btn icon-button" id="zoomOut" onclick="zoomOut()" title="Zoom Out"><i class="codicon codicon-zoom-out"></i></button>
+                        <span class="zoom-level" id="zoomLevel">100%</span>
+                        <button class="zoom-btn icon-button" id="zoomIn" onclick="zoomIn()" title="Zoom In"><i class="codicon codicon-zoom-in"></i></button>
+                        <button class="zoom-btn icon-button" onclick="resetZoom()" title="Reset Zoom"><i class="codicon codicon-home"></i></button>
+                    </div>
+                    <svg class="d3-container" id="d3Container"></svg>
+                    <div class="tooltip" id="tooltip">
+                        <div class="tooltip-title"></div>
+                        <div class="tooltip-content"></div>
+                    </div>
                 </div>
             </div>
             
-            <div class="info-panel">
-                <div class="info-panel-title">Diagram Statistics</div>
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-number" id="totalPages">0</div>
-                        <div class="stat-label">Total Pages</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number" id="totalForms">0</div>
-                        <div class="stat-label">Forms</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number" id="totalReports">0</div>
-                        <div class="stat-label">Reports</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number" id="totalGridReports">0</div>
-                        <div class="stat-label">Grid Reports</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number" id="totalNavReports">0</div>
-                        <div class="stat-label">Nav Reports</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number" id="totalDetailReports">0</div>
-                        <div class="stat-label">Detail Reports</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number" id="totalConnections">0</div>
-                        <div class="stat-label">Connections</div>
-                    </div>
-                </div>
-                
-                <div class="legend" id="legendPanel">
-                    <div class="legend-title" onclick="toggleLegend()">
-                        <span>Color Legend - Page Types</span>
-                        <span class="legend-toggle" id="legendToggle">(click to collapse)</span>
-                    </div>
-                    <div class="legend-content" id="legendContent">
-                        <div class="legend-item">
-                            <div class="legend-color form"></div>
-                            <div>
-                                <div class="legend-description"><strong>Forms</strong></div>
-                                <div class="legend-viz-types">Object Workflows with isPage="true"</div>
-                            </div>
+            <div class="tab-content" id="statsContent">
+                <div class="info-panel">
+                    <div class="info-panel-title">Diagram Statistics</div>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-number" id="totalPages">0</div>
+                            <div class="stat-label">Total Pages</div>
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-color report-grid"></div>
-                            <div>
-                                <div class="legend-description"><strong>Grid/Table Reports</strong></div>
-                                <div class="legend-viz-types">visualizationType: grid, table</div>
-                            </div>
+                        <div class="stat">
+                            <div class="stat-number" id="totalForms">0</div>
+                            <div class="stat-label">Forms</div>
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-color report-navigation"></div>
-                            <div>
-                                <div class="legend-description"><strong>Navigation Reports</strong></div>
-                                <div class="legend-viz-types">visualizationType: navigation, twocolumn, DetailTwoColumn</div>
-                            </div>
+                        <div class="stat">
+                            <div class="stat-number" id="totalReports">0</div>
+                            <div class="stat-label">Reports</div>
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-color report-detail"></div>
-                            <div>
-                                <div class="legend-description"><strong>Detail Reports</strong></div>
-                                <div class="legend-viz-types">visualizationType: detail, threecolumn, DetailThreeColumn</div>
-                            </div>
+                        <div class="stat">
+                            <div class="stat-number" id="totalGridReports">0</div>
+                            <div class="stat-label">Grid Reports</div>
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-color report-other"></div>
-                            <div>
-                                <div class="legend-description"><strong>Other Report Types</strong></div>
-                                <div class="legend-viz-types">Custom or unspecified visualization types</div>
-                            </div>
+                        <div class="stat">
+                            <div class="stat-number" id="totalNavReports">0</div>
+                            <div class="stat-label">Nav Reports</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" id="totalDetailReports">0</div>
+                            <div class="stat-label">Detail Reports</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" id="totalConnections">0</div>
+                            <div class="stat-label">Connections</div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="connections-legend" id="connectionsLegend">
-                    <div class="connections-legend-title">Connection Information</div>
-                    <div class="connection-sample">
-                        <div class="connection-line-sample"></div>
-                        <span>Blue arrows show navigation flow between pages via button destinations</span>
+                    
+                    <div class="legend" id="legendPanel">
+                        <div class="legend-title" onclick="toggleLegend()">
+                            <span>Color Legend - Page Types</span>
+                            <span class="legend-toggle" id="legendToggle">(click to collapse)</span>
+                        </div>
+                        <div class="legend-content" id="legendContent">
+                            <div class="legend-item">
+                                <div class="legend-color form"></div>
+                                <div>
+                                    <div class="legend-description"><strong>Forms</strong></div>
+                                    <div class="legend-viz-types">Object Workflows with isPage="true"</div>
+                                </div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color report-grid"></div>
+                                <div>
+                                    <div class="legend-description"><strong>Grid/Table Reports</strong></div>
+                                    <div class="legend-viz-types">visualizationType: grid, table</div>
+                                </div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color report-navigation"></div>
+                                <div>
+                                    <div class="legend-description"><strong>Navigation Reports</strong></div>
+                                    <div class="legend-viz-types">visualizationType: navigation, twocolumn, DetailTwoColumn</div>
+                                </div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color report-detail"></div>
+                                <div>
+                                    <div class="legend-description"><strong>Detail Reports</strong></div>
+                                    <div class="legend-viz-types">visualizationType: detail, threecolumn, DetailThreeColumn</div>
+                                </div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color report-other"></div>
+                                <div>
+                                    <div class="legend-description"><strong>Other Report Types</strong></div>
+                                    <div class="legend-viz-types">Custom or unspecified visualization types</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 5px;">
-                        • Hover over connections to see button details<br>
-                        • Hover over pages to see detailed information<br>
-                        • Click pages to open their detail views
+                    
+                    <div class="connections-legend" id="connectionsLegend">
+                        <div class="connections-legend-title">Connection Information</div>
+                        <div class="connection-sample">
+                            <div class="connection-line-sample"></div>
+                            <span>Blue arrows show navigation flow between pages via button destinations</span>
+                        </div>
+                        <div style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 5px;">
+                            • Hover over connections to see button details<br>
+                            • Hover over pages to see detailed information<br>
+                            • Click pages to open their detail views
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1707,6 +1771,30 @@ async function getWebviewContent(context, allObjects) {
                     } else {
                         legendContent.classList.add('collapsed');
                         legendToggle.textContent = '(click to expand)';
+                    }
+                }
+                
+                // Tab switching function
+                function switchTab(tabName) {
+                    // Remove active class from all tabs and content
+                    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to selected tab and content
+                    document.getElementById(tabName + 'Tab').classList.add('active');
+                    document.getElementById(tabName + 'Content').classList.add('active');
+                    
+                    // If switching to graph tab, handle SVG resizing
+                    if (tabName === 'graph' && svg) {
+                        // Small delay to ensure tab content is visible before resizing
+                        setTimeout(() => {
+                            const containerRect = document.getElementById('flowContainer').getBoundingClientRect();
+                            svg.attr('width', containerRect.width).attr('height', containerRect.height);
+                            if (simulation) {
+                                simulation.force('center', d3.forceCenter(containerRect.width / 2, containerRect.height / 2));
+                                simulation.alpha(0.3).restart();
+                            }
+                        }, 50);
                     }
                 }
                 
