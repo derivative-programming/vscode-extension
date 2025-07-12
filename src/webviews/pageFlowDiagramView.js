@@ -194,6 +194,7 @@ function extractPagesFromModel(allObjects) {
                         name: report.name,
                         titleText: report.titleText || report.name,
                         type: 'report',
+                        visualizationType: report.visualizationType || 'grid', // Default to grid if not specified
                         objectName: obj.name,
                         buttons: extractButtonsFromReport(report),
                         roleRequired: report.roleRequired
@@ -329,6 +330,7 @@ async function getWebviewContent(context, allObjects) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Page Flow Diagram</title>
             <script src="https://d3js.org/d3.v7.min.js"></script>
+            <link rel="stylesheet" href="https://unpkg.com/@vscode/codicons@latest/dist/codicon.css" />
             <style>
                 body {
                     font-family: var(--vscode-font-family);
@@ -356,6 +358,74 @@ async function getWebviewContent(context, allObjects) {
                     display: flex;
                     gap: 10px;
                     align-items: center;
+                }
+                
+                .zoom-controls {
+                    display: flex;
+                    gap: 5px;
+                    align-items: center;
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                    padding: 2px;
+                    background-color: var(--vscode-editorWidget-background);
+                }
+                
+                .zoom-btn {
+                    background: none;
+                    border: none;
+                    color: var(--vscode-foreground);
+                    cursor: pointer;
+                    padding: 5px;
+                    border-radius: 3px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                    min-width: 28px;
+                    height: 28px;
+                }
+                
+                .zoom-btn:hover {
+                    background: var(--vscode-toolbar-hoverBackground);
+                    color: var(--vscode-foreground);
+                }
+                
+                .zoom-btn:disabled {
+                    opacity: 0.4;
+                    cursor: not-allowed;
+                    background: none;
+                }
+                
+                .icon-button {
+                    background: none;
+                    border: none;
+                    color: var(--vscode-foreground);
+                    cursor: pointer;
+                    padding: 5px;
+                    margin-left: 5px;
+                    border-radius: 3px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                }
+                
+                .icon-button:hover {
+                    background: var(--vscode-toolbar-hoverBackground);
+                    color: var(--vscode-foreground);
+                }
+                
+                .icon-button:focus {
+                    outline: 1px solid var(--vscode-focusBorder);
+                    outline-offset: 2px;
+                }
+                
+                .zoom-level {
+                    font-size: 11px;
+                    color: var(--vscode-descriptionForeground);
+                    min-width: 35px;
+                    text-align: center;
+                    user-select: none;
                 }
                 
                 .btn {
@@ -407,6 +477,48 @@ async function getWebviewContent(context, allObjects) {
                 .page-node.report {
                     stroke-left: var(--vscode-charts-orange);
                     stroke-width: 4;
+                }
+                
+                /* Different background colors for page types */
+                .page-node.form {
+                    fill: #e3f2fd; /* Light blue for forms */
+                }
+                
+                .page-node.report-grid {
+                    fill: #fff3e0; /* Light orange for grid reports */
+                }
+                
+                .page-node.report-navigation {
+                    fill: #f3e5f5; /* Light purple for navigation reports (two column) */
+                }
+                
+                .page-node.report-detail {
+                    fill: #ffebee; /* Light red for detail reports (three column) */
+                }
+                
+                .page-node.report-other {
+                    fill: #fffde7; /* Light yellow for other report types */
+                }
+                
+                /* Dark mode adjustments */
+                body.vscode-dark .page-node.form {
+                    fill: #1e3a8a; /* Dark blue for forms */
+                }
+                
+                body.vscode-dark .page-node.report-grid {
+                    fill: #ea580c; /* Dark orange for grid reports */
+                }
+                
+                body.vscode-dark .page-node.report-navigation {
+                    fill: #7c3aed; /* Dark purple for navigation reports */
+                }
+                
+                body.vscode-dark .page-node.report-detail {
+                    fill: #dc2626; /* Dark red for detail reports */
+                }
+                
+                body.vscode-dark .page-node.report-other {
+                    fill: #ca8a04; /* Dark yellow for other report types */
                 }
                 
                 .page-text {
@@ -463,6 +575,15 @@ async function getWebviewContent(context, allObjects) {
                     background-color: var(--vscode-editorWidget-background);
                     border: 1px solid var(--vscode-panel-border);
                     border-radius: 4px;
+                }
+                
+                .info-panel-title {
+                    font-size: 16px;
+                    font-weight: bold;
+                    margin-bottom: 15px;
+                    color: var(--vscode-editor-foreground);
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                    padding-bottom: 8px;
                 }
                 
                 .empty-state {
@@ -541,10 +662,85 @@ async function getWebviewContent(context, allObjects) {
                     user-select: none;
                 }
                 
+                .tooltip {
+                    position: absolute;
+                    background-color: var(--vscode-editorHoverWidget-background);
+                    color: var(--vscode-editorHoverWidget-foreground);
+                    border: 1px solid var(--vscode-editorHoverWidget-border);
+                    border-radius: 4px;
+                    padding: 8px 12px;
+                    font-size: 12px;
+                    max-width: 300px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    opacity: 0;
+                    transition: opacity 0.2s ease;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                }
+                
+                .tooltip.visible {
+                    opacity: 1;
+                }
+                
+                .tooltip-title {
+                    font-weight: bold;
+                    margin-bottom: 4px;
+                    color: var(--vscode-editorHoverWidget-foreground);
+                }
+                
+                .tooltip-content {
+                    line-height: 1.4;
+                }
+                
+                .tooltip-section {
+                    margin-bottom: 6px;
+                }
+                
+                .tooltip-section:last-child {
+                    margin-bottom: 0;
+                }
+                
                 .legend {
                     display: flex;
-                    gap: 20px;
-                    margin-top: 10px;
+                    flex-wrap: wrap;
+                    gap: 15px;
+                    margin-top: 15px;
+                    padding: 15px;
+                    background-color: var(--vscode-editorWidget-background);
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                }
+                
+                .legend-title {
+                    width: 100%;
+                    font-size: 14px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                    color: var(--vscode-editor-foreground);
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                
+                .legend-toggle {
+                    font-size: 12px;
+                    color: var(--vscode-descriptionForeground);
+                }
+                
+                .legend-content {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 15px;
+                    transition: all 0.3s ease;
+                }
+                
+                .legend-content.collapsed {
+                    display: none;
+                }
+                
+                .legend-panel {
+                    transition: all 0.3s ease;
                 }
                 
                 .legend-item {
@@ -552,21 +748,114 @@ async function getWebviewContent(context, allObjects) {
                     align-items: center;
                     gap: 8px;
                     font-size: 12px;
+                    min-width: 200px;
                 }
                 
                 .legend-color {
-                    width: 16px;
-                    height: 16px;
-                    border-radius: 3px;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 4px;
                     border: 2px solid;
+                    flex-shrink: 0;
                 }
                 
                 .legend-color.form {
-                    border-color: var(--vscode-charts-green);
+                    border-color: var(--vscode-charts-blue);
+                    background-color: #e3f2fd; /* Light blue for forms */
                 }
                 
-                .legend-color.report {
+                .legend-color.report-grid {
                     border-color: var(--vscode-charts-orange);
+                    background-color: #fff3e0; /* Light orange for grid reports */
+                }
+                
+                .legend-color.report-navigation {
+                    border-color: var(--vscode-charts-purple);
+                    background-color: #f3e5f5; /* Light purple for navigation reports */
+                }
+                
+                .legend-color.report-detail {
+                    border-color: var(--vscode-charts-red);
+                    background-color: #ffebee; /* Light red for detail reports */
+                }
+                
+                .legend-color.report-other {
+                    border-color: var(--vscode-charts-yellow);
+                    background-color: #fffde7; /* Light yellow for other report types */
+                }
+                
+                /* Dark mode legend colors */
+                body.vscode-dark .legend-color.form {
+                    background-color: #1e3a8a; /* Dark blue for forms */
+                }
+                
+                body.vscode-dark .legend-color.report-grid {
+                    background-color: #ea580c; /* Dark orange for grid reports */
+                }
+                
+                body.vscode-dark .legend-color.report-navigation {
+                    background-color: #7c3aed; /* Dark purple for navigation reports */
+                }
+                
+                body.vscode-dark .legend-color.report-detail {
+                    background-color: #dc2626; /* Dark red for detail reports */
+                }
+                
+                body.vscode-dark .legend-color.report-other {
+                    background-color: #ca8a04; /* Dark yellow for other report types */
+                }
+                
+                .legend-description {
+                    color: var(--vscode-editor-foreground);
+                }
+                
+                .legend-viz-types {
+                    font-size: 10px;
+                    color: var(--vscode-descriptionForeground);
+                    font-style: italic;
+                }
+                
+                .connections-legend {
+                    margin-top: 15px;
+                    padding: 10px 15px;
+                    background-color: var(--vscode-editorWidget-background);
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                    font-size: 12px;
+                    transition: all 0.3s ease;
+                }
+                
+                .connections-legend.hidden {
+                    display: none;
+                }
+                
+                .connections-legend-title {
+                    font-weight: bold;
+                    margin-bottom: 8px;
+                    color: var(--vscode-editor-foreground);
+                }
+                
+                .connection-sample {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 5px;
+                }
+                
+                .connection-line-sample {
+                    width: 30px;
+                    height: 2px;
+                    background-color: var(--vscode-charts-blue);
+                    position: relative;
+                }
+                
+                .connection-line-sample::after {
+                    content: '→';
+                    position: absolute;
+                    right: -8px;
+                    top: -8px;
+                    color: var(--vscode-charts-blue);
+                    font-size: 14px;
                 }
             </style>
         </head>
@@ -574,6 +863,12 @@ async function getWebviewContent(context, allObjects) {
             <div class="header">
                 <div class="title">Page Flow Diagram</div>
                 <div class="controls">
+                    <div class="zoom-controls">
+                        <button class="zoom-btn icon-button" id="zoomOut" onclick="zoomOut()" title="Zoom Out"><i class="codicon codicon-zoom-out"></i></button>
+                        <span class="zoom-level" id="zoomLevel">100%</span>
+                        <button class="zoom-btn icon-button" id="zoomIn" onclick="zoomIn()" title="Zoom In"><i class="codicon codicon-zoom-in"></i></button>
+                        <button class="zoom-btn icon-button" onclick="resetZoom()" title="Reset Zoom"><i class="codicon codicon-home"></i></button>
+                    </div>
                     <button class="btn" onclick="refreshDiagram()">Refresh</button>
                     <button class="btn" onclick="autoLayout()">Auto Layout</button>
                 </div>
@@ -588,9 +883,14 @@ async function getWebviewContent(context, allObjects) {
             
             <div class="flow-container" id="flowContainer">
                 <svg class="d3-container" id="d3Container"></svg>
+                <div class="tooltip" id="tooltip">
+                    <div class="tooltip-title"></div>
+                    <div class="tooltip-content"></div>
+                </div>
             </div>
             
             <div class="info-panel">
+                <div class="info-panel-title">Diagram Statistics</div>
                 <div class="stats">
                     <div class="stat">
                         <div class="stat-number" id="totalPages">0</div>
@@ -605,19 +905,77 @@ async function getWebviewContent(context, allObjects) {
                         <div class="stat-label">Reports</div>
                     </div>
                     <div class="stat">
+                        <div class="stat-number" id="totalGridReports">0</div>
+                        <div class="stat-label">Grid Reports</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="totalNavReports">0</div>
+                        <div class="stat-label">Nav Reports</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="totalDetailReports">0</div>
+                        <div class="stat-label">Detail Reports</div>
+                    </div>
+                    <div class="stat">
                         <div class="stat-number" id="totalConnections">0</div>
                         <div class="stat-label">Connections</div>
                     </div>
                 </div>
                 
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color form"></div>
-                        <span>Forms (Object Workflows with isPage="true")</span>
+                <div class="legend" id="legendPanel">
+                    <div class="legend-title" onclick="toggleLegend()">
+                        <span>Color Legend - Page Types</span>
+                        <span class="legend-toggle" id="legendToggle">(click to collapse)</span>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-color report"></div>
-                        <span>Reports (with isPage="true")</span>
+                    <div class="legend-content" id="legendContent">
+                        <div class="legend-item">
+                            <div class="legend-color form"></div>
+                            <div>
+                                <div class="legend-description"><strong>Forms</strong></div>
+                                <div class="legend-viz-types">Object Workflows with isPage="true"</div>
+                            </div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color report-grid"></div>
+                            <div>
+                                <div class="legend-description"><strong>Grid/Table Reports</strong></div>
+                                <div class="legend-viz-types">visualizationType: grid, table</div>
+                            </div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color report-navigation"></div>
+                            <div>
+                                <div class="legend-description"><strong>Navigation Reports</strong></div>
+                                <div class="legend-viz-types">visualizationType: navigation, twocolumn, DetailTwoColumn</div>
+                            </div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color report-detail"></div>
+                            <div>
+                                <div class="legend-description"><strong>Detail Reports</strong></div>
+                                <div class="legend-viz-types">visualizationType: detail, threecolumn, DetailThreeColumn</div>
+                            </div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color report-other"></div>
+                            <div>
+                                <div class="legend-description"><strong>Other Report Types</strong></div>
+                                <div class="legend-viz-types">Custom or unspecified visualization types</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="connections-legend" id="connectionsLegend">
+                    <div class="connections-legend-title">Connection Information</div>
+                    <div class="connection-sample">
+                        <div class="connection-line-sample"></div>
+                        <span>Blue arrows show navigation flow between pages via button destinations</span>
+                    </div>
+                    <div style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 5px;">
+                        • Hover over connections to see button details<br>
+                        • Hover over pages to see detailed information<br>
+                        • Click pages to open their detail views
                     </div>
                 </div>
             </div>
@@ -629,6 +987,11 @@ async function getWebviewContent(context, allObjects) {
                 let simulation;
                 let svg;
                 let g;
+                let tooltip; // Tooltip element
+                let zoom; // D3 zoom behavior
+                let currentZoom = 1; // Current zoom level
+                const minZoom = 0.1;
+                const maxZoom = 3;
                 
                 // Debug information
                 console.log('[DEBUG] Flow data received in webview:', flowData);
@@ -637,9 +1000,13 @@ async function getWebviewContent(context, allObjects) {
                 
                 // Initialize the diagram
                 document.addEventListener('DOMContentLoaded', function() {
+                    tooltip = document.getElementById('tooltip');
                     populateRoleFilter();
                     initializeD3();
                     renderDiagram();
+                    updateZoomDisplay(); // Initialize zoom display
+                    
+                    // Add keyboard shortcut for legend toggle (L key)
                 });
                 
                 function populateRoleFilter() {
@@ -649,60 +1016,34 @@ async function getWebviewContent(context, allObjects) {
                     // Add "Public Pages" option for pages without role requirements
                     const hasPublicPages = flowData.pages.some(page => !page.roleRequired);
                     
-                    // Create "All Roles" checkbox
-                    const allRolesItem = document.createElement('div');
-                    allRolesItem.className = 'role-checkbox-item';
-                    allRolesItem.innerHTML = 
-                        '<input type="checkbox" id="role-all" checked onchange="handleAllRolesChange(this)">' +
-                        '<label for="role-all">All Roles</label>';
-                    roleFilterOptions.appendChild(allRolesItem);
-                    
                     if (hasPublicPages) {
                         const publicItem = document.createElement('div');
                         publicItem.className = 'role-checkbox-item';
                         publicItem.innerHTML = 
-                            '<input type="checkbox" id="role-PUBLIC" onchange="handleRoleChange(this)">' +
+                            '<input type="checkbox" id="role-PUBLIC" checked onchange="handleRoleChange(this)">' +
                             '<label for="role-PUBLIC">Public Pages</label>';
                         roleFilterOptions.appendChild(publicItem);
+                        selectedRoles.add('PUBLIC');
                     }
                     
                     roles.forEach(role => {
                         const roleItem = document.createElement('div');
                         roleItem.className = 'role-checkbox-item';
                         roleItem.innerHTML = 
-                            '<input type="checkbox" id="role-' + role + '" onchange="handleRoleChange(this)">' +
+                            '<input type="checkbox" id="role-' + role + '" checked onchange="handleRoleChange(this)">' +
                             '<label for="role-' + role + '">' + role + '</label>';
                         roleFilterOptions.appendChild(roleItem);
+                        selectedRoles.add(role);
                     });
                 }
                 
-                function handleAllRolesChange(checkbox) {
-                    const allCheckboxes = document.querySelectorAll('.role-checkbox-item input[type="checkbox"]:not(#role-all)');
-                    
-                    if (checkbox.checked) {
-                        // If "All Roles" is checked, uncheck all other checkboxes and clear selected roles
-                        allCheckboxes.forEach(cb => cb.checked = false);
-                        selectedRoles.clear();
-                    }
-                    
-                    renderDiagram();
-                }
-                
                 function handleRoleChange(checkbox) {
-                    const allRolesCheckbox = document.getElementById('role-all');
                     const roleValue = checkbox.id.replace('role-', '');
                     
                     if (checkbox.checked) {
-                        // Uncheck "All Roles" when any specific role is selected
-                        allRolesCheckbox.checked = false;
                         selectedRoles.add(roleValue);
                     } else {
                         selectedRoles.delete(roleValue);
-                        
-                        // If no roles are selected, check "All Roles"
-                        if (selectedRoles.size === 0) {
-                            allRolesCheckbox.checked = true;
-                        }
                     }
                     
                     renderDiagram();
@@ -730,16 +1071,48 @@ async function getWebviewContent(context, allObjects) {
                         .attr('fill', 'var(--vscode-charts-blue)');
                     
                     // Create zoom behavior
-                    const zoom = d3.zoom()
-                        .scaleExtent([0.1, 3])
+                    zoom = d3.zoom()
+                        .scaleExtent([minZoom, maxZoom])
                         .on('zoom', (event) => {
                             g.attr('transform', event.transform);
+                            currentZoom = event.transform.k;
+                            updateZoomDisplay();
                         });
                     
                     svg.call(zoom);
                     
                     // Create main group for zoom/pan
                     g = svg.append('g');
+                }
+                
+                // Function to get CSS class for page node based on type and visualization
+                function getPageNodeClass(page) {
+                    if (page.type === 'form') {
+                        return 'page-node form';
+                    } else if (page.type === 'report') {
+                        const vizType = (page.visualizationType || 'grid').toLowerCase();
+                        
+                        // Map visualization types to CSS classes
+                        switch (vizType) {
+                            case 'grid':
+                            case 'table':
+                                return 'page-node report-grid';
+                            case 'navigation':
+                            case 'twocolumn':
+                            case 'two column':
+                            case 'nav':
+                            case 'detailtwocolumn':
+                                return 'page-node report-navigation';
+                            case 'detail':
+                            case 'threecolumn':
+                            case 'three column':
+                            case 'detailthreecolumn':
+                                return 'page-node report-detail';
+                            default:
+                                return 'page-node report-other';
+                        }
+                    }
+                    return 'page-node';
                 }
                 
                 function renderDiagram() {
@@ -757,6 +1130,7 @@ async function getWebviewContent(context, allObjects) {
                             return page.roleRequired && selectedRoles.has(page.roleRequired);
                         });
                     }
+                    // If no roles are selected, show all pages (this is the default behavior)
                     
                     // Check if there are any pages to display
                     if (filteredPages.length === 0) {
@@ -809,7 +1183,42 @@ async function getWebviewContent(context, allObjects) {
                         .force('center', d3.forceCenter(width / 2, height / 2))
                         .force('collision', d3.forceCollide()
                             .radius(150)  // Large collision radius to prevent overlap
-                            .strength(1.0));  // Maximum collision strength
+                            .strength(1.0))  // Maximum collision strength
+                        .force('isolatedNodes', function(alpha) {
+                            // Custom force to push isolated and weakly connected nodes away from center
+                            const centerX = width / 2;
+                            const centerY = height / 2;
+                            const pushRadius = Math.min(width, height) * 0.3; // Push to outer 30% of container
+                            
+                            for (let i = 0, n = nodes.length; i < n; ++i) {
+                                const node = nodes[i];
+                                
+                                // Count connections for this node
+                                const connectionCount = links.filter(link => 
+                                    link.source.id === node.id || link.target.id === node.id
+                                ).length;
+                                
+                                // Apply force to nodes with 0 or 1 connections
+                                if (connectionCount <= 1) {
+                                    const dx = node.x - centerX;
+                                    const dy = node.y - centerY;
+                                    const distance = Math.sqrt(dx * dx + dy * dy);
+                                    
+                                    // If node is too close to center, push it away
+                                    if (distance < pushRadius) {
+                                        const angle = Math.atan2(dy, dx);
+                                        const targetDistance = pushRadius + (connectionCount === 0 ? 100 : 50);
+                                        const targetX = centerX + Math.cos(angle) * targetDistance;
+                                        const targetY = centerY + Math.sin(angle) * targetDistance;
+                                        
+                                        // Apply gentle force towards target position
+                                        const forceStrength = alpha * 0.1 * (connectionCount === 0 ? 1.5 : 1.0);
+                                        node.vx += (targetX - node.x) * forceStrength;
+                                        node.vy += (targetY - node.y) * forceStrength;
+                                    }
+                                }
+                            }
+                        });
                     
                     // Create links
                     const link = g.append('g')
@@ -845,15 +1254,40 @@ async function getWebviewContent(context, allObjects) {
                     
                     // Add rectangles for nodes (made larger for better readability)
                     node.append('rect')
-                        .attr('class', d => 'page-node ' + d.type)
+                        .attr('class', d => getPageNodeClass(d))
                         .attr('width', 180)
                         .attr('height', 100)
                         .attr('rx', 8)
                         .attr('ry', 8)
-                        .style('fill', 'var(--vscode-editorWidget-background)')
-                        .style('stroke', d => d.type === 'form' ? 'var(--vscode-charts-green)' : 'var(--vscode-charts-orange)')
+                        .style('stroke', d => {
+                            if (d.type === 'form') {
+                                return 'var(--vscode-charts-blue)';
+                            } else if (d.type === 'report') {
+                                const vizType = (d.visualizationType || 'grid').toLowerCase();
+                                switch (vizType) {
+                                    case 'grid':
+                                    case 'table':
+                                        return 'var(--vscode-charts-orange)';
+                                    case 'navigation':
+                                    case 'twocolumn':
+                                    case 'two column':
+                                    case 'nav':
+                                    case 'detailtwocolumn':
+                                        return 'var(--vscode-charts-purple)';
+                                    case 'detail':
+                                    case 'threecolumn':
+                                    case 'three column':
+                                    case 'detailthreecolumn':
+                                        return 'var(--vscode-charts-red)';
+                                    default:
+                                        return 'var(--vscode-charts-red)';
+                                }
+                            }
+                            return 'var(--vscode-panel-border)';
+                        })
                         .style('stroke-width', 2)
                         .on('click', function(event, d) {
+                            hideTooltip();
                             if (d.type === 'form') {
                                 vscode.postMessage({
                                     command: 'showFormDetails',
@@ -867,6 +1301,15 @@ async function getWebviewContent(context, allObjects) {
                                     objectName: d.objectName
                                 });
                             }
+                        })
+                        .on('mouseover', function(event, d) {
+                            showTooltip(event, d);
+                        })
+                        .on('mousemove', function(event, d) {
+                            updateTooltipPosition(event);
+                        })
+                        .on('mouseout', function(event, d) {
+                            hideTooltip();
                         });
                     
                     // Add text to nodes (improved sizing and positioning)
@@ -956,6 +1399,18 @@ async function getWebviewContent(context, allObjects) {
                     document.getElementById('totalPages').textContent = pages.length;
                     document.getElementById('totalForms').textContent = pages.filter(p => p.type === 'form').length;
                     document.getElementById('totalReports').textContent = pages.filter(p => p.type === 'report').length;
+                    
+                    // Count different report types
+                    const gridReports = pages.filter(p => p.type === 'report' && 
+                        ['grid', 'table'].includes((p.visualizationType || 'grid').toLowerCase())).length;
+                    const navReports = pages.filter(p => p.type === 'report' && 
+                        ['navigation', 'twocolumn', 'two column', 'nav', 'detailtwocolumn'].includes((p.visualizationType || '').toLowerCase())).length;
+                    const detailReports = pages.filter(p => p.type === 'report' && 
+                        ['detail', 'threecolumn', 'three column', 'detailthreecolumn'].includes((p.visualizationType || '').toLowerCase())).length;
+                    
+                    document.getElementById('totalGridReports').textContent = gridReports;
+                    document.getElementById('totalNavReports').textContent = navReports;
+                    document.getElementById('totalDetailReports').textContent = detailReports;
                     document.getElementById('totalConnections').textContent = connections.length;
                 }
                 
@@ -989,6 +1444,143 @@ async function getWebviewContent(context, allObjects) {
                             notification.parentNode.removeChild(notification);
                         }
                     }, 3000);
+                }
+                
+                // Tooltip functions
+                function showTooltip(event, data) {
+                    const tooltipTitle = tooltip.querySelector('.tooltip-title');
+                    const tooltipContent = tooltip.querySelector('.tooltip-content');
+                    
+                    // Build tooltip content
+                    tooltipTitle.textContent = data.titleText || data.name;
+                    
+                    let content = '';
+                    content += '<div class="tooltip-section"><strong>Name:</strong> ' + data.name + '</div>';
+                    content += '<div class="tooltip-section"><strong>Type:</strong> ' + data.type.charAt(0).toUpperCase() + data.type.slice(1);
+                    if (data.type === 'report' && data.visualizationType) {
+                        content += ' (' + data.visualizationType + ')';
+                    }
+                    content += '</div>';
+                    content += '<div class="tooltip-section"><strong>Object:</strong> ' + data.objectName + '</div>';
+                    content += '<div class="tooltip-section"><strong>Role Required:</strong> ' + (data.roleRequired || 'Public') + '</div>';
+                    
+                    if (data.buttons && data.buttons.length > 0) {
+                        content += '<div class="tooltip-section"><strong>Buttons (' + data.buttons.length + '):</strong><br>';
+                        data.buttons.forEach((button, index) => {
+                            if (index < 5) { // Show first 5 buttons
+                                content += '• ' + (button.buttonText || button.buttonName || 'Button') + 
+                                          (button.destinationTargetName ? ' → ' + button.destinationTargetName : '') + '<br>';
+                            } else if (index === 5) {
+                                content += '• ... and ' + (data.buttons.length - 5) + ' more<br>';
+                            }
+                        });
+                        content += '</div>';
+                    }
+                    
+                    // Add connections information
+                    const outgoingConnections = flowData.connections.filter(conn => conn.from === data.name);
+                    const incomingConnections = flowData.connections.filter(conn => conn.to === data.name);
+                    
+                    if (outgoingConnections.length > 0 || incomingConnections.length > 0) {
+                        content += '<div class="tooltip-section"><strong>Connections:</strong><br>';
+                        if (outgoingConnections.length > 0) {
+                            content += 'Outgoing: ' + outgoingConnections.length + '<br>';
+                        }
+                        if (incomingConnections.length > 0) {
+                            content += 'Incoming: ' + incomingConnections.length;
+                        }
+                        content += '</div>';
+                    }
+                    
+                    tooltipContent.innerHTML = content;
+                    
+                    // Position and show tooltip
+                    updateTooltipPosition(event);
+                    tooltip.classList.add('visible');
+                }
+                
+                function updateTooltipPosition(event) {
+                    const containerRect = document.getElementById('flowContainer').getBoundingClientRect();
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    
+                    let x = event.pageX - containerRect.left + 15;
+                    let y = event.pageY - containerRect.top - 10;
+                    
+                    // Adjust position if tooltip would go outside container
+                    if (x + tooltipRect.width > containerRect.width) {
+                        x = event.pageX - containerRect.left - tooltipRect.width - 15;
+                    }
+                    if (y + tooltipRect.height > containerRect.height) {
+                        y = event.pageY - containerRect.top - tooltipRect.height - 10;
+                    }
+                    
+                    // Ensure tooltip doesn't go above or to the left of container
+                    x = Math.max(5, x);
+                    y = Math.max(5, y);
+                    
+                    tooltip.style.left = x + 'px';
+                    tooltip.style.top = y + 'px';
+                }
+                
+                function hideTooltip() {
+                    tooltip.classList.remove('visible');
+                }
+                
+                // Legend toggle function
+                function toggleLegend() {
+                    const legendContent = document.getElementById('legendContent');
+                    const legendToggle = document.getElementById('legendToggle');
+                    
+                    if (legendContent.classList.contains('collapsed')) {
+                        legendContent.classList.remove('collapsed');
+                        legendToggle.textContent = '(click to collapse)';
+                    } else {
+                        legendContent.classList.add('collapsed');
+                        legendToggle.textContent = '(click to expand)';
+                    }
+                }
+                
+                // Zoom control functions
+                function updateZoomDisplay() {
+                    const zoomLevel = document.getElementById('zoomLevel');
+                    const zoomOut = document.getElementById('zoomOut');
+                    const zoomIn = document.getElementById('zoomIn');
+                    
+                    zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
+                    
+                    // Disable buttons at zoom limits
+                    zoomOut.disabled = currentZoom <= minZoom;
+                    zoomIn.disabled = currentZoom >= maxZoom;
+                }
+                
+                function zoomIn() {
+                    if (currentZoom < maxZoom) {
+                        const newZoom = Math.min(currentZoom * 1.2, maxZoom);
+                        applyZoom(newZoom);
+                    }
+                }
+                
+                function zoomOut() {
+                    if (currentZoom > minZoom) {
+                        const newZoom = Math.max(currentZoom / 1.2, minZoom);
+                        applyZoom(newZoom);
+                    }
+                }
+                
+                function resetZoom() {
+                    applyZoom(1);
+                }
+                
+                function applyZoom(scale) {
+                    if (svg && zoom) {
+                        const containerRect = document.getElementById('flowContainer').getBoundingClientRect();
+                        const centerX = containerRect.width / 2;
+                        const centerY = containerRect.height / 2;
+                        
+                        svg.transition()
+                            .duration(300)
+                            .call(zoom.transform, d3.zoomIdentity.translate(centerX, centerY).scale(scale).translate(-centerX, -centerY));
+                    }
                 }
                 
                 // Handle window resize

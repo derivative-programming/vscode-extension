@@ -268,7 +268,7 @@
       {
         "command": "appdna.showPageFlowDiagram",
         "title": "Show Page Flow Diagram",
-        "icon": "$(list-flat)"
+        "icon": "$(outline-view-icon)"
       },
       {
         "command": "appdna.showFilter",
