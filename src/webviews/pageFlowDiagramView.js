@@ -108,10 +108,12 @@ async function showPageFlowDiagram(context, modelService) {
                     return;
                 
                 case 'refreshDiagram':
-                    // Handle refresh request by updating the webview with fresh data
+                    // Handle refresh request by sending fresh data to the webview
                     const refreshedObjects = modelService.getAllObjects();
-                    getWebviewContent(context, refreshedObjects).then(html => {
-                        currentPanel.webview.html = html;
+                    const refreshedFlowMap = buildFlowMap(extractPagesFromModel(refreshedObjects || []));
+                    currentPanel.webview.postMessage({
+                        command: 'updateFlowData',
+                        flowData: refreshedFlowMap
                     });
                     return;
                 
@@ -1062,6 +1064,56 @@ async function getWebviewContent(context, allObjects) {
                     // Add search functionality
                     document.getElementById('searchPages').addEventListener('input', searchPages);
                     
+                    // Listen for messages from the extension
+                    window.addEventListener('message', event => {
+                        const message = event.data;
+                        switch (message.command) {
+                            case 'updateFlowData':
+                                // Update the flow data and re-render
+                                Object.assign(flowData, message.flowData);
+                                console.log('[DEBUG] Received updated flow data:', flowData);
+                                
+                                // Re-populate role filter with new data
+                                const roleFilterOptions = document.getElementById('roleFilterOptions');
+                                roleFilterOptions.innerHTML = '';
+                                selectedRoles.clear();
+                                populateRoleFilter();
+                                
+                                // Re-render the diagram with new data
+                                renderDiagram();
+                                
+                                // Remove refresh notification and show success
+                                const refreshNotification = document.getElementById('refreshNotification');
+                                if (refreshNotification && refreshNotification.parentNode) {
+                                    refreshNotification.parentNode.removeChild(refreshNotification);
+                                }
+                                
+                                // Show success notification
+                                const successNotification = document.createElement('div');
+                                successNotification.style.position = 'fixed';
+                                successNotification.style.top = '10px';
+                                successNotification.style.right = '10px';
+                                successNotification.style.backgroundColor = 'var(--vscode-notifications-background)';
+                                successNotification.style.color = 'var(--vscode-notifications-foreground)';
+                                successNotification.style.padding = '8px 12px';
+                                successNotification.style.borderRadius = '4px';
+                                successNotification.style.border = '1px solid var(--vscode-notifications-border)';
+                                successNotification.style.zIndex = '1000';
+                                successNotification.style.fontSize = '12px';
+                                successNotification.textContent = 'Diagram refreshed successfully';
+                                
+                                document.body.appendChild(successNotification);
+                                
+                                // Remove success notification after 2 seconds
+                                setTimeout(() => {
+                                    if (successNotification.parentNode) {
+                                        successNotification.parentNode.removeChild(successNotification);
+                                    }
+                                }, 2000);
+                                break;
+                        }
+                    });
+                    
                     // Add keyboard shortcut for legend toggle (L key)
                 });
                 
@@ -1307,54 +1359,18 @@ async function getWebviewContent(context, allObjects) {
                     const width = containerRect.width;
                     const height = containerRect.height;
                     
-                    // Create force simulation
+                    // Create force simulation with weak connection forces and strong collision prevention
                     simulation = d3.forceSimulation(nodes)
                         .force('link', d3.forceLink(links)
                             .id(d => d.id)
-                            .distance(600)  // Very long distances to prevent chain overlap
-                            .strength(0.8))  // Very strong link force to maintain chain integrity
+                            .distance(200)  // Longer distance between connected nodes
+                            .strength(0.1))  // Very weak link force to minimize pulling
                         .force('charge', d3.forceManyBody()
-                            .strength(-800)  // Strong repulsion to separate different chains
-                            .distanceMin(200))  // Larger minimum distance for better separation
+                            .strength(-150))  // Stronger repulsion to keep nodes separated
                         .force('center', d3.forceCenter(width / 2, height / 2))
                         .force('collision', d3.forceCollide()
-                            .radius(150)  // Large collision radius to prevent overlap
-                            .strength(1.0))  // Maximum collision strength
-                        .force('isolatedNodes', function(alpha) {
-                            // Custom force to push isolated and weakly connected nodes away from center
-                            const centerX = width / 2;
-                            const centerY = height / 2;
-                            const pushRadius = Math.min(width, height) * 0.3; // Push to outer 30% of container
-                            
-                            for (let i = 0, n = nodes.length; i < n; ++i) {
-                                const node = nodes[i];
-                                
-                                // Count connections for this node
-                                const connectionCount = links.filter(link => 
-                                    link.source.id === node.id || link.target.id === node.id
-                                ).length;
-                                
-                                // Apply force to nodes with 0 or 1 connections
-                                if (connectionCount <= 1) {
-                                    const dx = node.x - centerX;
-                                    const dy = node.y - centerY;
-                                    const distance = Math.sqrt(dx * dx + dy * dy);
-                                    
-                                    // If node is too close to center, push it away
-                                    if (distance < pushRadius) {
-                                        const angle = Math.atan2(dy, dx);
-                                        const targetDistance = pushRadius + (connectionCount === 0 ? 100 : 50);
-                                        const targetX = centerX + Math.cos(angle) * targetDistance;
-                                        const targetY = centerY + Math.sin(angle) * targetDistance;
-                                        
-                                        // Apply gentle force towards target position
-                                        const forceStrength = alpha * 0.1 * (connectionCount === 0 ? 1.5 : 1.0);
-                                        node.vx += (targetX - node.x) * forceStrength;
-                                        node.vy += (targetY - node.y) * forceStrength;
-                                    }
-                                }
-                            }
-                        });
+                            .radius(120)  // Large collision radius to prevent overlap (nodes are 180x100)
+                            .strength(1.0))  // Maximum collision strength to enforce separation
                     
                     // Create links
                     const link = g.append('g')
@@ -1551,6 +1567,24 @@ async function getWebviewContent(context, allObjects) {
                 }
                 
                 function refreshDiagram() {
+                    // Show loading indicator
+                    const notification = document.createElement('div');
+                    notification.id = 'refreshNotification';
+                    notification.style.position = 'fixed';
+                    notification.style.top = '10px';
+                    notification.style.right = '10px';
+                    notification.style.backgroundColor = 'var(--vscode-notifications-background)';
+                    notification.style.color = 'var(--vscode-notifications-foreground)';
+                    notification.style.padding = '8px 12px';
+                    notification.style.borderRadius = '4px';
+                    notification.style.border = '1px solid var(--vscode-notifications-border)';
+                    notification.style.zIndex = '1000';
+                    notification.style.fontSize = '12px';
+                    notification.textContent = 'Refreshing diagram data...';
+                    
+                    document.body.appendChild(notification);
+                    
+                    // Request fresh data from the extension
                     vscode.postMessage({ command: 'refreshDiagram' });
                 }
                 

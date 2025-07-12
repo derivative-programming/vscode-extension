@@ -46,9 +46,7 @@ create many diff treeview report items? under report treeview item?...
 - detail page
 
 page layout view...
-- can i wrap the title text to a new line?
 - stats are hidden under the fold
-- reset all forces to the frameworks suggested default
 
 
 
