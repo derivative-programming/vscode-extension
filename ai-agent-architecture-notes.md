@@ -370,3 +370,27 @@ Moved zoom controls from the main header into the Force-Directed Graph tab:
 - **High Z-Index**: Ensures controls stay above the graph content
 
 The zoom controls (zoom in, zoom out, reset, and level indicator) are now contextually relevant and don't clutter the interface when viewing statistics.
+
+## Page Flow Diagram Refactoring (July 13, 2025)
+
+Successfully refactored the large pageFlowDiagramView.js file (1866 lines) into a modular structure following the data object view pattern:
+
+### New Structure:
+- **Main View**: `src/webviews/pageflow/pageFlowDiagramView.js` - Panel management and core logic
+- **Helpers**:
+  - `pageExtractor.js` - Page extraction from model data
+  - `flowBuilder.js` - Flow map building logic
+- **Components**:
+  - `htmlGenerator.js` - HTML template generation with inline CSS/JS
+- **Scripts**:
+  - `diagramRenderer.js` - D3.js diagram rendering logic
+  - `eventHandlers.js` - Event handling and state management
+- **Styles**:
+  - `pageflow.css` - External CSS styles
+
+### Benefits:
+- Reduced main file from 1866 lines to ~140 lines
+- Improved maintainability and readability
+- Better separation of concerns
+- Easier testing and debugging
+- Follows established patterns in the codebase

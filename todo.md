@@ -9,6 +9,7 @@ modelAIProcessingView.js - 1,275 lines
 userStoriesView.js - 1,220 lines
 modelValidationView.js - 1,217 lines
 hierarchyView.js - 1,176 lines
+~~pageFlowDiagramView.js - 1,866 lines~~ ✅ COMPLETED - Split into modular structure
  
 
 test all views in dark mode
@@ -34,11 +35,22 @@ help icon buttons on primary treeview items...
 
 test:issue with default values in the inactive dropdowns 
 
+
+
 form detail view...
 - rename tabs
 - rename columns to controls
 - add form wizard
+- edit of a setting does not trigger the unsaved changes flag
+- settings checkboxes should be disabled if checked
  
+report details view...
+- setting - Is Basic Header Automatically Added: - not a dropdown
+- columns - list view - Is Filter Available: has extra item
+-
+
+list view and table view need to be updated when the switch occurs...
+
 
 create many diff treeview report items? under report treeview item?...
 - navigation page
