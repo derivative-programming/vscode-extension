@@ -62,15 +62,42 @@ function getUIEventHandlers() {
             }
             
             checkbox.addEventListener('change', function() {
+                // Don't allow unchecking of properties that already exist in the model
+                if (this.hasAttribute('data-originally-checked')) {
+                    this.checked = true;
+                    return;
+                }
+                
                 const propertyName = this.getAttribute('data-prop');
                 const isEnum = this.getAttribute('data-is-enum') === 'true';
                 const inputField = document.getElementById('setting-' + propertyName);
                 
                 if (inputField) {
-                    if (isEnum) {
-                        inputField.disabled = !this.checked;
+                    if (this.checked) {
+                        // Enable the input field
+                        if (isEnum) {
+                            inputField.disabled = false;
+                        } else {
+                            inputField.readOnly = false;
+                        }
+                        
+                        // Disable the checkbox to prevent unchecking
+                        this.disabled = true;
+                        this.setAttribute('data-originally-checked', 'true');
+                        
+                        // If this is a select element, make sure it has a valid value
+                        if (inputField.tagName === 'SELECT' && (!inputField.value || inputField.value === '')) {
+                            if (inputField.options.length > 0) {
+                                inputField.value = inputField.options[0].value;
+                            }
+                        }
                     } else {
-                        inputField.readOnly = !this.checked;
+                        // Disable the input field
+                        if (isEnum) {
+                            inputField.disabled = true;
+                        } else {
+                            inputField.readOnly = true;
+                        }
                     }
                     
                     // Update styling based on checkbox state

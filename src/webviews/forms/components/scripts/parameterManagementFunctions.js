@@ -157,6 +157,115 @@ function getParameterManagementFunctions() {
         }
     }
 
+    // Parameter table checkbox functionality (for parameters table view)
+    document.querySelectorAll('.property-toggle').forEach(checkbox => {
+        const propName = checkbox.getAttribute('data-property');
+        const row = checkbox.closest('tr');
+        if (!row) return;
+        
+        const index = row.getAttribute('data-param-index');
+        
+        // Find the input element within the same table cell
+        const tableCell = checkbox.closest('td');
+        if (!tableCell) return;
+        
+        const inputElement = tableCell.querySelector('input[type="text"], select');
+        if (!inputElement) return;
+        
+        // Set initial state
+        if (inputElement.tagName === 'INPUT') {
+            inputElement.readOnly = !checkbox.checked;
+        } else if (inputElement.tagName === 'SELECT') {
+            inputElement.disabled = !checkbox.checked;
+        }
+        
+        updateInputStyle(inputElement, checkbox.checked);
+        
+        checkbox.addEventListener('change', function() {
+            // Don't allow unchecking of properties that already exist in the model
+            if (this.hasAttribute('data-originally-checked')) {
+                this.checked = true;
+                return;
+            }
+            
+            if (this.checked) {
+                // Enable the input field
+                if (inputElement.tagName === 'INPUT') {
+                    inputElement.readOnly = false;
+                } else if (inputElement.tagName === 'SELECT') {
+                    inputElement.disabled = false;
+                }
+                updateInputStyle(inputElement, true);
+                
+                // Disable the checkbox to prevent unchecking
+                this.disabled = true;
+                this.setAttribute('data-originally-checked', 'true');
+                
+                // If the checkbox is checked, ensure we have a valid value for select elements
+                if (inputElement.tagName === 'SELECT' && (!inputElement.value || inputElement.value === '')) {
+                    // For select elements with no value, select the first option
+                    if (inputElement.options.length > 0) {
+                        inputElement.value = inputElement.options[0].value;
+                    }
+                }
+            } else {
+                // Disable the input field
+                if (inputElement.tagName === 'INPUT') {
+                    inputElement.readOnly = true;
+                } else if (inputElement.tagName === 'SELECT') {
+                    inputElement.disabled = true;
+                }
+                updateInputStyle(inputElement, false);
+            }
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateParam',
+                data: {
+                    index: parseInt(index),
+                    property: propName,
+                    exists: this.checked,
+                    value: this.checked ? inputElement.value : null
+                }
+            });
+        });
+    });
+
+    // Handle input changes for parameters table
+    document.querySelectorAll('#params-table input[type="text"], #params-table select').forEach(input => {
+        const updateParam = () => {
+            const tableCell = input.closest('td');
+            if (!tableCell) return;
+            
+            const checkbox = tableCell.querySelector('.property-toggle');
+            if (!checkbox || !checkbox.checked) return;
+            
+            const propName = checkbox.getAttribute('data-property');
+            const row = checkbox.closest('tr');
+            if (!row) return;
+            
+            const index = row.getAttribute('data-param-index');
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateParam',
+                data: {
+                    index: parseInt(index),
+                    property: propName,
+                    exists: true,
+                    value: input.value
+                }
+            });
+        };
+        
+        if (input.tagName === 'SELECT') {
+            input.addEventListener('change', updateParam);
+        } else {
+            input.addEventListener('input', updateParam);
+            input.addEventListener('change', updateParam);
+        }
+    });
+
     // Parameter field generator
     function generateParamFields(param) {
         const fieldsContainer = document.getElementById('param-fields-container');

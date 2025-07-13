@@ -91,9 +91,12 @@ function getParamsTableTemplate(params, paramsSchema) {
                 inputField = `<input type="text" name="${paramKey}" value="${propertyExists ? param[paramKey] : ''}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
             
+            // If the property exists, add a data attribute to indicate it was originally checked
+            const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
+            
             return `<td>
                 ${inputField}
-                <input type="checkbox" class="property-toggle" data-property="${paramKey}" ${propertyExists ? "checked" : ""} title="Toggle property existence">
+                <input type="checkbox" class="property-toggle" data-property="${paramKey}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} title="Toggle property existence">
             </td>`;
         }).join("");
         
