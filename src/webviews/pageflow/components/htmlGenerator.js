@@ -1225,7 +1225,7 @@ function generateBodyContent(flowMap) {
     </div>
     
     <div class="tabs">
-        <button class="tab active" onclick="switchTab('diagram')">Diagram</button>
+        <button class="tab active" onclick="switchTab('diagram')">Force Directed Graph</button>
         <button class="tab" onclick="switchTab('mermaid')">Mermaid</button>
         <button class="tab" onclick="switchTab('statistics')">Statistics</button>
     </div>

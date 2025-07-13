@@ -18,8 +18,6 @@ stop validating a\bulk change request on approval?
  
 test all form prop updates
 
-test all report prop updates
-
 
 prop subscriptions
  
@@ -38,11 +36,10 @@ test:issue with default values in the inactive dropdowns
 
 
 form detail view...
-- rename tabs
 - rename columns to controls
 - add form wizard
 - edit of a setting does not trigger the unsaved changes flag
-- settings checkboxes should be disabled if checked
+- ~~settings checkboxes should be disabled if checked~~ ✅ COMPLETED - Fixed for all tabs (settings, parameters, buttons, output variables)
 - input variables tab
  
 report details view...
@@ -60,10 +57,15 @@ create many diff treeview report items? under report treeview item?...
 - table page
 - detail page
 
-page layout view...
-- stats are hidden under the fold
-- ~~mermaid shows a syntax error~~ ✅ COMPLETED - Fixed all Mermaid issues including display problems
 
+mermaid diagram view...
+- filter on role
+- zoom in and out
+- graph LR version? others?
+- color coding
+- hover text like graph view
+- click to view details like graph view
+- search like graph view
 
 
 sample page views...
