@@ -92,7 +92,9 @@ function getMainTemplate(
             <div class="list-container">
                 <select id="buttonsList" size="10">
                     ${(form.objectWorkflowButton || []).map((button, index) => {
-                        const name = (button && typeof button === 'object' && button.buttonName) ? button.buttonName : 'Unnamed Button';
+                        const name = (button && typeof button === 'object') 
+                            ? (button.buttonText || button.buttonName || 'Unnamed Button')
+                            : 'Unnamed Button';
                         return `<option value="${index}">${name}</option>`;
                     }).join('')}
                 </select>
