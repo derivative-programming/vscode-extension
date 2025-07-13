@@ -315,6 +315,19 @@ function getEmbeddedCSS() {
             justify-content: center;
         }
         
+        .mermaid-header-controls {
+            margin-bottom: 15px;
+        }
+        
+        .mermaid-filter-controls {
+            margin-top: 15px;
+        }
+        
+        .mermaid-container {
+            transform-origin: center top;
+            transition: transform 0.3s ease;
+        }
+        
         .mermaid-syntax {
             margin-top: 20px;
             background-color: var(--vscode-textCodeBlock-background);
@@ -1051,6 +1064,9 @@ function getEmbeddedJavaScript(flowMap) {
             if (tabName === 'mermaid') {
                 console.log('[DEBUG] Mermaid tab activated, checking if Mermaid is loaded...');
                 
+                // Initialize role filter for Mermaid tab
+                initializeMermaidRoleFilter();
+                
                 if (typeof mermaid !== 'undefined') {
                     console.log('[DEBUG] Mermaid library is loaded, initializing...');
                     setTimeout(() => {
@@ -1207,6 +1223,235 @@ function getEmbeddedJavaScript(flowMap) {
             } else {
                 syntaxDisplay.style.display = 'none';
             }
+        }
+        
+        // Mermaid zoom and filtering functionality
+        let mermaidSelectedRoles = new Set();
+        let mermaidZoom = 1;
+        
+        // Initialize Mermaid role filter when tab is activated
+        function initializeMermaidRoleFilter() {
+            const mermaidRoleFilterOptions = document.getElementById('mermaidRoleFilterOptions');
+            if (!mermaidRoleFilterOptions || mermaidRoleFilterOptions.children.length > 0) {
+                return; // Already initialized
+            }
+            
+            const roles = [...new Set(flowData.pages.map(page => page.roleRequired).filter(role => role))];
+            const hasPublicPages = flowData.pages.some(page => !page.roleRequired);
+            
+            // Clear existing roles selection for Mermaid
+            mermaidSelectedRoles.clear();
+            
+            if (hasPublicPages) {
+                const publicItem = document.createElement('div');
+                publicItem.className = 'role-checkbox-item';
+                publicItem.innerHTML = 
+                    '<input type="checkbox" id="mermaid-role-PUBLIC" checked onchange="handleMermaidRoleChange(this)">' +
+                    '<label for="mermaid-role-PUBLIC">Public Pages</label>';
+                mermaidRoleFilterOptions.appendChild(publicItem);
+                mermaidSelectedRoles.add('PUBLIC');
+            }
+            
+            roles.forEach(role => {
+                const roleItem = document.createElement('div');
+                roleItem.className = 'role-checkbox-item';
+                roleItem.innerHTML = 
+                    '<input type="checkbox" id="mermaid-role-' + role + '" checked onchange="handleMermaidRoleChange(this)">' +
+                    '<label for="mermaid-role-' + role + '">' + role + '</label>';
+                mermaidRoleFilterOptions.appendChild(roleItem);
+                mermaidSelectedRoles.add(role);
+            });
+        }
+        
+        // Handle Mermaid role filter changes
+        function handleMermaidRoleChange(checkbox) {
+            const roleValue = checkbox.id.replace('mermaid-role-', '');
+            
+            if (checkbox.checked) {
+                mermaidSelectedRoles.add(roleValue);
+            } else {
+                mermaidSelectedRoles.delete(roleValue);
+            }
+            
+            // Regenerate and render Mermaid diagram with filtered data
+            updateMermaidDiagram();
+        }
+        
+        // Update Mermaid diagram with current filters
+        function updateMermaidDiagram() {
+            let filteredPages = flowData.pages;
+            if (mermaidSelectedRoles.size > 0) {
+                filteredPages = flowData.pages.filter(page => {
+                    if (mermaidSelectedRoles.has('PUBLIC') && !page.roleRequired) {
+                        return true;
+                    }
+                    return page.roleRequired && mermaidSelectedRoles.has(page.roleRequired);
+                });
+            }
+            
+            const filteredConnections = flowData.connections.filter(conn => 
+                filteredPages.some(page => page.name === conn.from) &&
+                filteredPages.some(page => page.name === conn.to)
+            );
+            
+            const filteredFlowMap = {
+                pages: filteredPages,
+                connections: filteredConnections
+            };
+            
+            // Generate new Mermaid syntax with filtered data
+            const newMermaidSyntax = generateMermaidSyntaxFromFlowMap(filteredFlowMap);
+            
+            // Update the syntax display
+            const syntaxDisplay = document.getElementById('mermaidSyntaxDisplay');
+            if (syntaxDisplay) {
+                syntaxDisplay.textContent = newMermaidSyntax;
+            }
+            
+            // Update and re-render the diagram
+            const mermaidElement = document.getElementById('mermaidDiagram');
+            if (mermaidElement) {
+                mermaidElement.innerHTML = '';
+                mermaidElement.removeAttribute('data-processed');
+                mermaidElement.textContent = newMermaidSyntax;
+                mermaidElement.classList.add('mermaid');
+                
+                // Re-render with current zoom
+                setTimeout(async () => {
+                    try {
+                        await mermaid.run();
+                        applyMermaidZoom();
+                    } catch (error) {
+                        console.error('Error re-rendering Mermaid:', error);
+                    }
+                }, 100);
+            }
+        }
+        
+        // Mermaid zoom functions
+        function mermaidZoomIn() {
+            mermaidZoom = Math.min(mermaidZoom * 1.2, 3);
+            applyMermaidZoom();
+            updateMermaidZoomDisplay();
+        }
+        
+        function mermaidZoomOut() {
+            mermaidZoom = Math.max(mermaidZoom / 1.2, 0.1);
+            applyMermaidZoom();
+            updateMermaidZoomDisplay();
+        }
+        
+        function mermaidResetZoom() {
+            mermaidZoom = 1;
+            applyMermaidZoom();
+            updateMermaidZoomDisplay();
+        }
+        
+        function applyMermaidZoom() {
+            const mermaidContainer = document.getElementById('mermaidContainer');
+            if (mermaidContainer) {
+                mermaidContainer.style.transform = 'scale(' + mermaidZoom + ')';
+            }
+        }
+        
+        function updateMermaidZoomDisplay() {
+            const zoomDisplay = document.getElementById('mermaidZoomLevel');
+            if (zoomDisplay) {
+                zoomDisplay.textContent = Math.round(mermaidZoom * 100) + '%';
+            }
+        }
+        
+        // Helper function to generate Mermaid syntax from flow map (similar to existing function)
+        function generateMermaidSyntaxFromFlowMap(flowMap) {
+            let mermaidCode = "flowchart TD\\n";
+            
+            if (flowMap.pages && flowMap.pages.length > 0) {
+                const usedNodeIds = new Set();
+                
+                flowMap.pages.forEach((page, index) => {
+                    if (!page || !page.name) {
+                        return;
+                    }
+                    
+                    let nodeId = sanitizeNodeIdForMermaid(page.name);
+                    let counter = 1;
+                    while (usedNodeIds.has(nodeId)) {
+                        nodeId = sanitizeNodeIdForMermaid(page.name) + '_' + counter;
+                        counter++;
+                    }
+                    usedNodeIds.add(nodeId);
+                    
+                    const displayText = sanitizeDisplayTextForMermaid(page.titleText || page.name);
+                    const nodeShape = getNodeShapeForPageTypeForMermaid(page.type);
+                    
+                    mermaidCode += "    " + nodeId + nodeShape.start + '"' + displayText + '"' + nodeShape.end + "\\n";
+                });
+                
+                mermaidCode += "\\n";
+                
+                if (flowMap.connections && flowMap.connections.length > 0) {
+                    flowMap.connections.forEach(connection => {
+                        if (!connection || !connection.from || !connection.to) {
+                            return;
+                        }
+                        
+                        const fromId = sanitizeNodeIdForMermaid(connection.from);
+                        const toId = sanitizeNodeIdForMermaid(connection.to);
+                        
+                        if (fromId !== toId && fromId && toId) {
+                            const buttonText = connection.buttonText || "";
+                            
+                            if (buttonText) {
+                                const sanitizedButtonText = sanitizeDisplayTextForMermaid(buttonText);
+                                mermaidCode += "    " + fromId + ' -->|"' + sanitizedButtonText + '"| ' + toId + "\\n";
+                            } else {
+                                mermaidCode += "    " + fromId + " --> " + toId + "\\n";
+                            }
+                        }
+                    });
+                }
+                
+                mermaidCode += "\\n";
+                mermaidCode += "    classDef formPage fill:#e1f5fe,stroke:#01579b,stroke-width:2px\\n";
+                mermaidCode += "    classDef reportPage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px\\n\\n";
+                
+                flowMap.pages.forEach(page => {
+                    if (!page || !page.name) {
+                        return;
+                    }
+                    
+                    const nodeId = sanitizeNodeIdForMermaid(page.name);
+                    if (page.type === 'form') {
+                        mermaidCode += "    class " + nodeId + " formPage\\n";
+                    } else if (page.type === 'report') {
+                        mermaidCode += "    class " + nodeId + " reportPage\\n";
+                    }
+                });
+            } else {
+                mermaidCode += "    NoPages[\\"No pages found in the model\\"]\\n";
+                mermaidCode += "    class NoPages emptyState\\n";
+                mermaidCode += "    classDef emptyState fill:#ffebee,stroke:#c62828,stroke-width:2px\\n";
+            }
+            
+            return mermaidCode;
+        }
+        
+        // Helper functions for Mermaid syntax generation (duplicated to avoid dependency issues)
+        function sanitizeNodeIdForMermaid(name) {
+            return name.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^[^a-zA-Z]/, 'N_');
+        }
+        
+        function sanitizeDisplayTextForMermaid(text) {
+            return text.replace(/"/g, '\\"').replace(/\\n/g, ' ').trim();
+        }
+        
+        function getNodeShapeForPageTypeForMermaid(type) {
+            if (type === 'form') {
+                return { start: '[', end: ']' };
+            } else if (type === 'report') {
+                return { start: '(', end: ')' };
+            }
+            return { start: '[', end: ']' };
         }
     `;
 }
@@ -1427,14 +1672,34 @@ function generateMermaidContent(flowMap) {
     const mermaidSyntax = generateMermaidSyntax(flowMap);
     
     return `
-        <div class="mermaid-controls">
-            <button class="btn" onclick="initializeMermaid()">Render Diagram</button>
-            <button class="btn" onclick="copyMermaidSyntax()">Copy Syntax</button>
-            <button class="btn" onclick="downloadMermaidSVG()">Download SVG</button>
-            <button class="btn" onclick="toggleMermaidSyntax()">Show/Hide Syntax</button>
+        <div class="mermaid-header-controls">
+            <div class="mermaid-controls">
+                <button class="btn" onclick="initializeMermaid()">Render Diagram</button>
+                <button class="btn" onclick="copyMermaidSyntax()">Copy Syntax</button>
+                <button class="btn" onclick="downloadMermaidSVG()">Download SVG</button>
+                <button class="btn" onclick="toggleMermaidSyntax()">Show/Hide Syntax</button>
+            </div>
+            
+            <div class="mermaid-filter-controls">
+                <div class="control-row">
+                    <div class="role-filter">
+                        <div class="role-filter-title">Filter by Role:</div>
+                        <div class="role-filter-options" id="mermaidRoleFilterOptions">
+                            <!-- Role checkboxes will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="mermaidZoomOut()" title="Zoom Out">−</button>
+                        <span class="zoom-level" id="mermaidZoomLevel">100%</span>
+                        <button class="zoom-btn" onclick="mermaidZoomIn()" title="Zoom In">+</button>
+                        <button class="zoom-btn" onclick="mermaidResetZoom()" title="Reset Zoom">⌂</button>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="mermaid-container">
+        <div class="mermaid-container" id="mermaidContainer">
             <div id="mermaidDiagram" class="mermaid">
 ${mermaidSyntax}
             </div>

@@ -10,20 +10,16 @@ userStoriesView.js - 1,220 lines
 modelValidationView.js - 1,217 lines
 hierarchyView.js - 1,176 lines
 ~~pageFlowDiagramView.js - 1,866 lines~~ ✅ COMPLETED - Split into modular structure
- 
 
 test all views in dark mode
 
 stop validating a\bulk change request on approval?
- 
+
 test all form prop updates
 
-
 prop subscriptions
- 
 
 many labels: "Sql Server DB Data Type" > "DB Data Type"
-
 
 help icon buttons on primary treeview items...
 - object
@@ -32,8 +28,6 @@ help icon buttons on primary treeview items...
 - page
 
 test:issue with default values in the inactive dropdowns 
-
-
 
 form detail view...
 - rename columns to controls
@@ -58,8 +52,8 @@ create many diff treeview report items? under report treeview item?...
 
 
 mermaid diagram view...
-- filter on role
-- zoom in and out
+- ~~filter on role~~ ✅ COMPLETED - Added role filtering to Mermaid tab
+- ~~zoom in and out~~ ✅ COMPLETED - Added zoom controls to Mermaid tab
 - graph LR version? others?
 - color coding
 - hover text like graph view
