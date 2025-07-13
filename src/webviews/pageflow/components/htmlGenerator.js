@@ -17,6 +17,7 @@ function generateHTMLContent(flowMap) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Flow Diagram</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     <style>
         ${getEmbeddedCSS()}
     </style>
@@ -294,6 +295,40 @@ function getEmbeddedCSS() {
             display: block;
         }
         
+        .mermaid-container {
+            width: 100%;
+            min-height: 500px;
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            overflow: auto;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .mermaid-controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mermaid-syntax {
+            margin-top: 20px;
+            background-color: var(--vscode-textCodeBlock-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 15px;
+            font-family: var(--vscode-editor-font-family);
+            font-size: 12px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 300px;
+            color: var(--vscode-textPreformat-foreground);
+        }
+        
         .diagram-controls {
             margin-bottom: 15px;
         }
@@ -565,12 +600,22 @@ function getEmbeddedJavaScript(flowMap) {
         // Initialize everything when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[DEBUG] Flow data received:', flowData);
+            console.log('[DEBUG] Mermaid library available:', typeof mermaid !== 'undefined');
+            
             initializeD3();
             populateRoleFilter();
             renderDiagram();
             updateZoomDisplay();
             
             document.getElementById('searchPages').addEventListener('input', searchPages);
+            
+            // Check if Mermaid tab is already active and initialize if needed
+            const mermaidTab = document.getElementById('mermaid');
+            if (mermaidTab && mermaidTab.classList.contains('active')) {
+                setTimeout(() => {
+                    initializeMermaid();
+                }, 500);
+            }
         });
 
         // Initialize D3 components
@@ -994,11 +1039,174 @@ function getEmbeddedJavaScript(flowMap) {
         }
 
         function switchTab(tabName) {
+            console.log('[DEBUG] Switching to tab:', tabName);
+            
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
             document.querySelector('[onclick="switchTab(\\\'' + tabName + '\\\')"]').classList.add('active');
             document.getElementById(tabName).classList.add('active');
+            
+            // Initialize Mermaid when switching to mermaid tab
+            if (tabName === 'mermaid') {
+                console.log('[DEBUG] Mermaid tab activated, checking if Mermaid is loaded...');
+                
+                if (typeof mermaid !== 'undefined') {
+                    console.log('[DEBUG] Mermaid library is loaded, initializing...');
+                    setTimeout(() => {
+                        initializeMermaid();
+                    }, 100);
+                } else {
+                    console.error('[DEBUG] Mermaid library is not loaded!');
+                    const mermaidElement = document.getElementById('mermaidDiagram');
+                    if (mermaidElement) {
+                        mermaidElement.innerHTML = 
+                            '<div style="color: red; padding: 20px; text-align: center; border: 1px solid red; margin: 10px;">' +
+                            '<h3>Mermaid Library Not Loaded</h3>' +
+                            '<p>The Mermaid library failed to load from the CDN.</p>' +
+                            '<p>Please check your internet connection and try refreshing the page.</p>' +
+                            '</div>';
+                    }
+                }
+            }
+        }
+        
+        function initializeMermaid() {
+            try {
+                console.log('[DEBUG] Initializing Mermaid...');
+                
+                // Configure Mermaid with simple, reliable settings
+                mermaid.initialize({
+                    startOnLoad: false,
+                    theme: 'default',
+                    securityLevel: 'loose',
+                    flowchart: {
+                        useMaxWidth: true,
+                        htmlLabels: false,
+                        curve: 'linear',
+                        padding: 15
+                    }
+                });
+                
+                // Get the Mermaid element
+                const mermaidElement = document.getElementById('mermaidDiagram');
+                if (!mermaidElement) {
+                    console.error('[DEBUG] Mermaid element not found');
+                    return;
+                }
+                
+                console.log('[DEBUG] Mermaid element found, content length:', mermaidElement.textContent.length);
+                
+                // Clear any existing content and reset
+                mermaidElement.innerHTML = '';
+                mermaidElement.removeAttribute('data-processed');
+                
+                // Get the syntax from the hidden display element
+                const syntaxDisplay = document.getElementById('mermaidSyntaxDisplay');
+                if (syntaxDisplay && syntaxDisplay.textContent.trim()) {
+                    const mermaidSyntax = syntaxDisplay.textContent.trim();
+                    console.log('[DEBUG] Using syntax from display element, length:', mermaidSyntax.length);
+                    
+                    // Set the content directly
+                    mermaidElement.textContent = mermaidSyntax;
+                    mermaidElement.classList.add('mermaid');
+                } else {
+                    console.log('[DEBUG] Using existing content from mermaid element');
+                }
+                
+                // Try to render with a slight delay
+                setTimeout(async () => {
+                    try {
+                        console.log('[DEBUG] Attempting to render Mermaid diagram...');
+                        await mermaid.run();
+                        console.log('[DEBUG] Mermaid rendering completed successfully');
+                    } catch (error) {
+                        console.error('[DEBUG] Mermaid rendering error:', error);
+                        mermaidElement.innerHTML = 
+                            '<div style="color: red; padding: 20px; text-align: center; border: 1px solid red; margin: 10px;">' +
+                            '<h3>Diagram Rendering Error</h3>' +
+                            '<p>Unable to render the Mermaid diagram.</p>' +
+                            '<p>Error: ' + error.message + '</p>' +
+                            '<p>Check the browser console for more details.</p>' +
+                            '</div>';
+                    }
+                }, 200);
+                
+            } catch (error) {
+                console.error('[DEBUG] Mermaid initialization error:', error);
+                const mermaidElement = document.getElementById('mermaidDiagram');
+                if (mermaidElement) {
+                    mermaidElement.innerHTML = 
+                        '<div style="color: red; padding: 20px; text-align: center; border: 1px solid red; margin: 10px;">' +
+                        '<h3>Mermaid Initialization Error</h3>' +
+                        '<p>Failed to initialize Mermaid library.</p>' +
+                        '<p>Error: ' + error.message + '</p>' +
+                        '</div>';
+                }
+            }
+        }
+        
+        function copyMermaidSyntax() {
+            const syntaxElement = document.getElementById('mermaidSyntaxDisplay');
+            const syntaxText = syntaxElement.textContent;
+            
+            navigator.clipboard.writeText(syntaxText).then(() => {
+                // Show temporary feedback
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = syntaxText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+        
+        function downloadMermaidSVG() {
+            const mermaidElement = document.getElementById('mermaidDiagram');
+            const svgElement = mermaidElement.querySelector('svg');
+            
+            if (svgElement) {
+                // Clone the SVG and add styling
+                const clonedSvg = svgElement.cloneNode(true);
+                clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                
+                // Create a data URL and download
+                const svgData = new XMLSerializer().serializeToString(clonedSvg);
+                const blob = new Blob([svgData], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'page-flow-diagram.svg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+        
+        function toggleMermaidSyntax() {
+            const syntaxDisplay = document.getElementById('mermaidSyntaxDisplay');
+            if (syntaxDisplay.style.display === 'none') {
+                syntaxDisplay.style.display = 'block';
+            } else {
+                syntaxDisplay.style.display = 'none';
+            }
         }
     `;
 }
@@ -1018,6 +1226,7 @@ function generateBodyContent(flowMap) {
     
     <div class="tabs">
         <button class="tab active" onclick="switchTab('diagram')">Diagram</button>
+        <button class="tab" onclick="switchTab('mermaid')">Mermaid</button>
         <button class="tab" onclick="switchTab('statistics')">Statistics</button>
     </div>
     
@@ -1047,6 +1256,10 @@ function generateBodyContent(flowMap) {
         <div class="flow-container" id="flowContainer">
             <svg id="d3Container" class="d3-container"></svg>
         </div>
+    </div>
+    
+    <div id="mermaid" class="tab-content">
+        ${generateMermaidContent(flowMap)}
     </div>
     
     <div id="statistics" class="tab-content">
@@ -1205,10 +1418,214 @@ function generateStatisticsContent(flowMap) {
     `;
 }
 
+/**
+ * Generates the Mermaid content
+ * @param {Object} flowMap Flow map data
+ * @returns {string} Mermaid HTML content
+ */
+function generateMermaidContent(flowMap) {
+    const mermaidSyntax = generateMermaidSyntax(flowMap);
+    
+    return `
+        <div class="mermaid-controls">
+            <button class="btn" onclick="initializeMermaid()">Render Diagram</button>
+            <button class="btn" onclick="copyMermaidSyntax()">Copy Syntax</button>
+            <button class="btn" onclick="downloadMermaidSVG()">Download SVG</button>
+            <button class="btn" onclick="toggleMermaidSyntax()">Show/Hide Syntax</button>
+        </div>
+        
+        <div class="mermaid-container">
+            <div id="mermaidDiagram" class="mermaid">
+${mermaidSyntax}
+            </div>
+        </div>
+        
+        <div id="mermaidSyntaxDisplay" class="mermaid-syntax" style="display: none;">${escapeHtml(mermaidSyntax)}</div>
+    `;
+}
+
+/**
+ * Generates Mermaid syntax from flow map data
+ * @param {Object} flowMap Flow map data
+ * @returns {string} Mermaid syntax
+ */
+function generateMermaidSyntax(flowMap) {
+    let mermaidCode = "flowchart TD\n";
+    
+    // Add nodes for each page
+    if (flowMap.pages && flowMap.pages.length > 0) {
+        // Track used node IDs to prevent duplicates
+        const usedNodeIds = new Set();
+        
+        flowMap.pages.forEach((page, index) => {
+            if (!page || !page.name) {
+                console.warn('Invalid page object at index', index, page);
+                return;
+            }
+            
+            let nodeId = sanitizeNodeId(page.name);
+            
+            // Ensure unique node IDs
+            let counter = 1;
+            while (usedNodeIds.has(nodeId)) {
+                nodeId = sanitizeNodeId(page.name) + '_' + counter;
+                counter++;
+            }
+            usedNodeIds.add(nodeId);
+            
+            const displayText = sanitizeDisplayText(page.titleText || page.name);
+            const nodeShape = getNodeShapeForPageType(page.type);
+            
+            // Add node with appropriate shape and styling
+            mermaidCode += `    ${nodeId}${nodeShape.start}"${displayText}"${nodeShape.end}\n`;
+        });
+        
+        mermaidCode += "\n";
+        
+        // Add connections (excluding self-references which cause syntax errors)
+        if (flowMap.connections && flowMap.connections.length > 0) {
+            flowMap.connections.forEach(connection => {
+                if (!connection || !connection.from || !connection.to) {
+                    console.warn('Invalid connection object', connection);
+                    return;
+                }
+                
+                const fromId = sanitizeNodeId(connection.from);
+                const toId = sanitizeNodeId(connection.to);
+                
+                // Skip self-referencing connections and ensure both nodes exist
+                if (fromId !== toId && fromId && toId) {
+                    const buttonText = connection.buttonText || "";
+                    
+                    if (buttonText) {
+                        const sanitizedButtonText = sanitizeDisplayText(buttonText);
+                        mermaidCode += `    ${fromId} -->|"${sanitizedButtonText}"| ${toId}\n`;
+                    } else {
+                        mermaidCode += `    ${fromId} --> ${toId}\n`;
+                    }
+                }
+            });
+        }
+        
+        mermaidCode += "\n";
+        
+        // Add class definitions for styling
+        mermaidCode += "    classDef formPage fill:#e1f5fe,stroke:#01579b,stroke-width:2px\n";
+        mermaidCode += "    classDef reportPage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px\n";
+        
+        // Apply classes to nodes
+        mermaidCode += "\n";
+        flowMap.pages.forEach(page => {
+            if (!page || !page.name) {
+                return;
+            }
+            
+            const nodeId = sanitizeNodeId(page.name);
+            if (page.type === 'form') {
+                mermaidCode += `    class ${nodeId} formPage\n`;
+            } else if (page.type === 'report') {
+                mermaidCode += `    class ${nodeId} reportPage\n`;
+            }
+        });
+    } else {
+        mermaidCode += "    NoPages[\"No pages found in the model\"]\n";
+        mermaidCode += "    class NoPages emptyState\n";
+        mermaidCode += "    classDef emptyState fill:#ffebee,stroke:#c62828,stroke-width:2px\n";
+    }
+    
+    return mermaidCode;
+}
+
+/**
+ * Escapes HTML characters for safe display
+ * @param {string} text Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+    if (!text) {
+        return '';
+    }
+    
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
+/**
+ * Sanitizes display text for Mermaid syntax
+ * @param {string} text Original text
+ * @returns {string} Sanitized text safe for Mermaid
+ */
+function sanitizeDisplayText(text) {
+    if (!text) {
+        return '';
+    }
+    
+    // Replace problematic characters for Mermaid syntax
+    return text
+        .replace(/"/g, '\\"')  // Escape double quotes
+        .replace(/'/g, "\\'")  // Escape single quotes
+        .replace(/\n/g, ' ')   // Replace newlines with spaces
+        .replace(/\r/g, '')    // Remove carriage returns
+        .replace(/\t/g, ' ')   // Replace tabs with spaces
+        .replace(/\s+/g, ' ')  // Collapse multiple spaces
+        .trim();               // Remove leading/trailing spaces
+}
+
+/**
+ * Sanitizes a node ID for Mermaid syntax
+ * @param {string} name Original name
+ * @returns {string} Sanitized node ID
+ */
+function sanitizeNodeId(name) {
+    if (!name || typeof name !== 'string') {
+        return 'InvalidNode_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    // Replace spaces and special characters with underscores
+    // Ensure it starts with a letter and contains only valid characters
+    let sanitized = name
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '');
+    
+    // Ensure it starts with a letter (Mermaid requirement)
+    if (!/^[a-zA-Z]/.test(sanitized)) {
+        sanitized = 'Node_' + sanitized;
+    }
+    
+    // Ensure minimum length
+    if (sanitized.length < 2) {
+        sanitized = 'Node_' + sanitized + '_' + Math.random().toString(36).substr(2, 5);
+    }
+    
+    return sanitized;
+}
+
+/**
+ * Gets the appropriate node shape for a page type
+ * @param {string} pageType Page type (form, report, etc.)
+ * @returns {Object} Object with start and end shape characters
+ */
+function getNodeShapeForPageType(pageType) {
+    switch (pageType) {
+        case 'form':
+            return { start: '[', end: ']' }; // Rectangle for forms
+        case 'report':
+            return { start: '(', end: ')' }; // Rounded rectangle for reports
+        default:
+            return { start: '[', end: ']' }; // Default rectangle
+    }
+}
+
 module.exports = {
     generateHTMLContent,
     generateBodyContent,
     generateStatisticsContent,
+    generateMermaidContent,
     getEmbeddedCSS,
     getEmbeddedJavaScript
 };

@@ -43,14 +43,17 @@ form detail view...
 - add form wizard
 - edit of a setting does not trigger the unsaved changes flag
 - settings checkboxes should be disabled if checked
+- input variables tab
  
 report details view...
 - setting - Is Basic Header Automatically Added: - not a dropdown
 - columns - list view - Is Filter Available: has extra item
--
+- input variables tab
 
 list view and table view need to be updated when the switch occurs...
 
+editor?...
+- jointjs? https://github.com/clientio/joint
 
 create many diff treeview report items? under report treeview item?...
 - navigation page
@@ -59,6 +62,7 @@ create many diff treeview report items? under report treeview item?...
 
 page layout view...
 - stats are hidden under the fold
+- ~~mermaid shows a syntax error~~ ✅ COMPLETED - Fixed all Mermaid issues including display problems
 
 
 
