@@ -8,14 +8,8 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
  * @param {number} buttonCount Number of buttons in the report
  * @param {number} paramCount Number of parameters in the report
  * @param {string} settingsHtml HTML content for the settings tab
- * @param {string} columnTableHeaders HTML for the column table headers
- * @param {string} columnTableRows HTML for the column table rows
  * @param {string} columnListViewFields HTML for the column list view form fields
- * @param {string} buttonTableHeaders HTML for the button table headers
- * @param {string} buttonTableRows HTML for the button table rows
  * @param {string} buttonListViewFields HTML for the button list view form fields
- * @param {string} paramTableHeaders HTML for the param table headers
- * @param {string} paramTableRows HTML for the param table rows
  * @param {string} paramListViewFields HTML for the param list view form fields
  * @param {string} columnModalHtml HTML for the column modal
  * @param {string} buttonModalHtml HTML for the button modal
@@ -25,9 +19,9 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
  */
 function getMainTemplate(report, columnCount, buttonCount, paramCount, 
                         settingsHtml, 
-                        columnTableHeaders, columnTableRows, columnListViewFields,
-                        buttonTableHeaders, buttonTableRows, buttonListViewFields,
-                        paramTableHeaders, paramTableRows, paramListViewFields,
+                        columnListViewFields,
+                        buttonListViewFields,
+                        paramListViewFields,
                         columnModalHtml, buttonModalHtml, paramModalHtml,
                         clientScript) {
       return `<!DOCTYPE html>
@@ -56,26 +50,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
       <!-- Columns Tab -->
     <div id="columns" class="tab-content">
         <div class="view-icons" data-tab="columns">
-            <div class="view-icons-left">
-                <span class="icon list-icon active" data-view="list">List View</span>
-                <span class="icon table-icon" data-view="table">Table View</span>
-            </div>
             <button id="add-column-btn" class="add-prop-button">Add Column</button>
-        </div>
-
-        <div id="columnsTableView" class="view-content">
-            <div class="table-container">
-                <table id="columns-table">
-                    <thead>
-                        <tr>
-                            ${columnTableHeaders}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${columnTableRows}
-                    </tbody>
-                </table>
-            </div>
         </div>
 
         <div id="columnsListView" class="view-content active">
@@ -100,26 +75,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
       <!-- Buttons Tab -->
     <div id="buttons" class="tab-content">
         <div class="view-icons" data-tab="buttons">
-            <div class="view-icons-left">
-                <span class="icon list-icon active" data-view="list">List View</span>
-                <span class="icon table-icon" data-view="table">Table View</span>
-            </div>
             <button id="add-button-btn" class="add-prop-button">Add Button</button>
-        </div>
-
-        <div id="buttonsTableView" class="view-content">
-            <div class="table-container">
-                <table id="buttons-table">
-                    <thead>
-                        <tr>
-                            ${buttonTableHeaders}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${buttonTableRows}
-                    </tbody>
-                </table>
-            </div>
         </div>
 
         <div id="buttonsListView" class="view-content active">
@@ -144,26 +100,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
       <!-- Filters Tab -->
     <div id="params" class="tab-content">
         <div class="view-icons" data-tab="params">
-            <div class="view-icons-left">
-                <span class="icon list-icon active" data-view="list">List View</span>
-                <span class="icon table-icon" data-view="table">Table View</span>
-            </div>
             <button id="add-param-btn" class="add-prop-button">Add Filter</button>
-        </div>
-
-        <div id="paramsTableView" class="view-content">
-            <div class="table-container">
-                <table id="params-table">
-                    <thead>
-                        <tr>
-                            ${paramTableHeaders}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${paramTableRows}
-                    </tbody>
-                </table>
-            </div>
         </div>
 
         <div id="paramsListView" class="view-content active">

@@ -8,11 +8,8 @@ const { getButtonModalHtml } = require("./templates/buttonModalTemplate");
 const { getParamModalHtml } = require("./templates/paramModalTemplate");
 const { getMainTemplate } = require("./templates/mainTemplate");
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
-const { getColumnsTableTemplate } = require("./templates/columnsTableTemplate");
 const { getColumnsListTemplate } = require("./templates/columnsListTemplate");
-const { getButtonsTableTemplate } = require("./templates/buttonsTableTemplate");
 const { getButtonsListTemplate } = require("./templates/buttonsListTemplate");
-const { getParamsTableTemplate } = require("./templates/paramsTableTemplate");
 const { getParamsListTemplate } = require("./templates/paramsListTemplate");
 const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
 
@@ -39,20 +36,11 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
     // Generate the settings tab content using the template
     const settingsHtml = getSettingsTabTemplate(reportForSettings, reportSchemaProps);
     
-    // Generate the columns tab content using templates
-    const { columnTableHeaders, columnTableRows } = getColumnsTableTemplate(columns, reportColumnsSchema);
-    
     // Generate the columns list view content
     const columnListViewFields = getColumnsListTemplate(reportColumnsSchema);
     
-    // Generate the buttons tab content using templates
-    const { buttonTableHeaders, buttonTableRows } = getButtonsTableTemplate(buttons, reportButtonsSchema);
-    
     // Generate the buttons list view content
     const buttonListViewFields = getButtonsListTemplate(reportButtonsSchema);
-    
-    // Generate the params tab content using templates
-    const { paramTableHeaders, paramTableRows } = getParamsTableTemplate(params, reportParamsSchema);
     
     // Generate the params list view content
     const paramListViewFields = getParamsListTemplate(reportParamsSchema);
@@ -78,9 +66,9 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
         report, 
         columns.length, buttons.length, params.length,
         settingsHtml, 
-        columnTableHeaders, columnTableRows, columnListViewFields,
-        buttonTableHeaders, buttonTableRows, buttonListViewFields,
-        paramTableHeaders, paramTableRows, paramListViewFields,
+        columnListViewFields,
+        buttonListViewFields,
+        paramListViewFields,
         columnModalHtml, buttonModalHtml, paramModalHtml,
         clientScript
     );

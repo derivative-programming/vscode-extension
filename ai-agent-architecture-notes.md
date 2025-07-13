@@ -2,6 +2,24 @@
 
 This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
 
+## Recent Changes
+
+### Report Details View Table View Removal (2025-07-13)
+Removed the table view functionality from all Report Details View tabs (Columns, Buttons, Filters) to simplify the interface:
+- **Files Modified:**
+  - `mainTemplate.js`: Removed table view HTML elements, view switching icons, and simplified parameters
+  - `detailsViewGenerator.js`: Removed table template imports and function calls
+  - `uiEventHandlers.js`: Removed view switching event handlers since only list view remains
+- **UI Changes:**
+  - No more "List View"/"Table View" toggle buttons
+  - Only the list view interface remains for all tabs
+  - Add buttons repositioned where view toggle buttons were
+  - Cleaner, simpler interface with consistent list-based editing
+
+# AppDNA VS Code Extension Architecture Notes
+
+This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
+
 ## Architecture Documentation
 
 ### [UI Components](./docs/architecture/ui-components.md)
