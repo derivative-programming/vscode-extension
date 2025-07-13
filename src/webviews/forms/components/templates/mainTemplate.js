@@ -145,6 +145,12 @@ function getMainTemplate(
     ${outputVarModalHtml}
     
     <script>
+        // Initialize vscode messaging
+        const vscode = acquireVsCodeApi();
+        
+        // Store the form data for reference
+        const form = ${JSON.stringify(form)};
+        
         ${clientScript}
     </script>
 </body>

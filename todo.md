@@ -47,7 +47,6 @@ report details view...
 - columns - list view - Is Filter Available: has extra item
 - input variables tab
 
-list view and table view need to be updated when the switch occurs...
 
 editor?...
 - jointjs? https://github.com/clientio/joint
@@ -92,8 +91,7 @@ find large files and split them up
 
 
 'there is no data provider registered....' on startup  
-
-'list' and 'table' view icon toggle buttons
+ 
  
 add report wizard has dif step design than add data object wizard
 
@@ -129,7 +127,6 @@ functions
         - change data object property setting
         - show object details
         - show object property list
-        - show object property table
     - validation requests
         - show validation request list
         - add validation request

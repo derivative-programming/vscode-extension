@@ -24,6 +24,106 @@ function getFormControlUtilities() {
             inputElement.style.opacity = "1";
         }
     }
+    
+    // Function to set up settings input change handlers 
+    function setupSettingsInputHandlers() {
+        // Handle checkbox changes for settings
+        document.querySelectorAll('.setting-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const propertyName = this.getAttribute('data-prop');
+                const isEnum = this.getAttribute('data-is-enum') === 'true';
+                const inputField = document.getElementById('setting-' + propertyName);
+                
+                if (inputField) {
+                    if (this.checked) {
+                        // Enable the input field
+                        if (isEnum) {
+                            inputField.disabled = false;
+                        } else {
+                            inputField.readOnly = false;
+                        }
+                        updateInputStyle(inputField, true);
+                    } else {
+                        // Disable the input field
+                        if (isEnum) {
+                            inputField.disabled = true;
+                        } else {
+                            inputField.readOnly = true;
+                        }
+                        updateInputStyle(inputField, false);
+                    }
+                    
+                    // Send message to update the model
+                    vscode.postMessage({
+                        command: 'updateSettings',
+                        data: {
+                            property: propertyName,
+                            exists: this.checked,
+                            value: this.checked ? inputField.value : null
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Handle input changes for settings
+        document.querySelectorAll('[id^="setting-"]').forEach(input => {
+            // For select elements, listen for change
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', function() {
+                    const propertyName = this.name;
+                    const checkbox = this.parentElement.querySelector('.setting-checkbox[data-prop="' + propertyName + '"]');
+                    
+                    if (checkbox && checkbox.checked) {
+                        // Send message to update the model
+                        vscode.postMessage({
+                            command: 'updateSettings',
+                            data: {
+                                property: propertyName,
+                                exists: true,
+                                value: this.value
+                            }
+                        });
+                    }
+                });
+            } else {
+                // For text inputs, listen for both input and change events
+                input.addEventListener('input', function() {
+                    const propertyName = this.name;
+                    const checkbox = this.parentElement.querySelector('.setting-checkbox[data-prop="' + propertyName + '"]');
+                    
+                    if (checkbox && checkbox.checked) {
+                        // Send message to update the model
+                        vscode.postMessage({
+                            command: 'updateSettings',
+                            data: {
+                                property: propertyName,
+                                exists: true,
+                                value: this.value
+                            }
+                        });
+                    }
+                });
+                
+                input.addEventListener('change', function() {
+                    const propertyName = this.name;
+                    const checkbox = this.parentElement.querySelector('.setting-checkbox[data-prop="' + propertyName + '"]');
+                    
+                    if (checkbox && checkbox.checked) {
+                        // Send message to update the model
+                        vscode.postMessage({
+                            command: 'updateSettings',
+                            data: {
+                                property: propertyName,
+                                exists: true,
+                                value: this.value
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
     `;
 }
 

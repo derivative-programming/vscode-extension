@@ -53,8 +53,8 @@ function initializeDOMEvents() {
     // Cancel button handlers
     setupCancelButtonHandlers();
     
-    // Move up/down and reorder functionality
-    setupReorderingButtons();
+    // Set up settings input handlers for form changes
+    setupSettingsInputHandlers();
 }
 
 // Setup save modal handlers
@@ -169,61 +169,6 @@ function setupCancelButtonHandlers() {
     });
 }
 
-// Setup reordering buttons
-function setupReorderingButtons() {
-    setupParameterReordering();
-    
-    // Buttons reordering
-    document.querySelectorAll('.move-button-up').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'), 10);
-            if (index > 0) {
-                moveArrayItem('button', index, index - 1);
-            }
-        });
-    });
-    
-    document.querySelectorAll('.move-button-down').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'), 10);
-            if (index < currentButtons.length - 1) {
-                moveArrayItem('button', index, index + 1);
-            }
-        });
-    });
-    
-    // Output Variables reordering
-    document.querySelectorAll('.move-output-var-up').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'), 10);
-            if (index > 0) {
-                moveArrayItem('outputVar', index, index - 1);
-            }
-        });
-    });
-    
-    document.querySelectorAll('.move-output-var-down').forEach(button => {
-        button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'), 10);
-            if (index < currentOutputVars.length - 1) {
-                moveArrayItem('outputVar', index, index + 1);
-            }
-        });
-    });
-    
-    // Reverse buttons
-    document.getElementById('reverse-buttons-btn').addEventListener('click', function() {
-        reverseArray('button');
-    });
-    
-    document.getElementById('reverse-output-vars-btn').addEventListener('click', function() {
-        reverseArray('outputVar');
-    });
-    
-    // Initialize view switching functionality
-    initializeViewSwitching();
-}
-
 // Function to initialize view switching
 function initializeViewSwitching() {
     // Initialize view switcher dropdowns
@@ -276,6 +221,12 @@ function initializeViewSwitching() {
         }
     });
 }
+
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[DEBUG] DOM loaded, initializing events');
+    initializeDOMEvents();
+});
     `;
 }
 

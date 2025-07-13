@@ -148,6 +148,27 @@ function showFormDetails(item, modelService) {
                     }
                     return;
                     
+                case "updateForm":
+                    if (modelService && formReference) {
+                        // Handle form data updates (for backward compatibility with old UI code)
+                        // Update all properties provided in the data
+                        Object.keys(message.data).forEach(property => {
+                            formReference[property] = message.data[property];
+                        });
+                        
+                        // Mark that there are unsaved changes
+                        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                            modelService.markUnsavedChanges();
+                            console.log("[DEBUG] Model marked as having unsaved changes");
+                        }
+                        
+                        // Refresh the tree view to reflect any visible changes
+                        vscode.commands.executeCommand("appdna.refresh");
+                    } else {
+                        console.warn("Cannot update form: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
                 case "updateButton":
                     if (modelService && formReference) {
                         // Update button properties directly on the form
@@ -406,15 +427,112 @@ function closeAllPanels() {
     openPanels.clear();
 }
 
-// Helper functions for updating the model (simplified versions)
-function updateModelDirectly(data, formReference, modelService, panel) {
-    // Implementation would be similar to reports but for form properties
-    console.log("updateModelDirectly called for form");
+// Helper functions for updating the model
+function updateModelDirectly(data, formReference, modelService, panel = null) {
+    try {
+        console.log("[DEBUG] updateModelDirectly called for form");
+        console.log("[DEBUG] formReference before update:", JSON.stringify(formReference, null, 2));
+        
+        // Update parameters if provided
+        if (data.params) {
+            formReference.objectWorkflowParam = data.params;
+        }
+        
+        // Update buttons if provided
+        if (data.buttons) {
+            formReference.objectWorkflowButton = data.buttons;
+        }
+        
+        // Update output variables if provided
+        if (data.outputVars) {
+            formReference.objectWorkflowOutputVar = data.outputVars;
+        }
+        
+        console.log("[DEBUG] formReference after update:", JSON.stringify(formReference, null, 2));
+        
+        // Mark that there are unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log("[DEBUG] Model marked as having unsaved changes");
+        }
+        
+        // Reload the webview with updated model data
+        if (panel && !panel._disposed) {
+            console.log("[DEBUG] Reloading webview with updated model data");
+            
+            // Get schema for regenerating the HTML
+            const schema = loadSchema();
+            const formSchemaProps = getFormSchemaProperties(schema);
+            const formParamsSchema = getFormParamsSchema(schema);
+            const formButtonsSchema = getFormButtonsSchema(schema);
+            const formOutputVarsSchema = getFormOutputVarsSchema(schema);
+            
+            // Regenerate and update the webview HTML with updated model data
+            panel.webview.html = generateDetailsView(
+                formReference, 
+                formSchemaProps, 
+                formParamsSchema, 
+                formButtonsSchema, 
+                formOutputVarsSchema
+            );
+            
+            // If preserveTab was specified, restore the active tab
+            // We use a small delay to ensure the webview DOM is fully updated
+            if (data.preserveTab) {
+                console.log("[DEBUG] Preserving tab:", data.preserveTab);
+                // Alternative: Use setImmediate or just send immediately and let client handle timing
+                panel.webview.postMessage({
+                    command: 'restoreTab',
+                    tabId: data.preserveTab
+                });
+            }
+        }
+        
+        // Refresh the tree view to reflect any visible changes
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error updating model directly:", error);
+    }
 }
 
+/**
+ * Updates settings properties directly on the form in the ModelService instance
+ * @param {Object} data The data containing property update information
+ * @param {Object} formReference Direct reference to the form in the model
+ * @param {Object} modelService The ModelService instance 
+ */
 function updateSettingsDirectly(data, formReference, modelService) {
-    // Implementation would be similar to reports but for form settings
-    console.log("updateSettingsDirectly called for form");
+    try {
+        console.log("[DEBUG] updateSettingsDirectly called for form");
+        console.log("[DEBUG] formReference before update:", JSON.stringify(formReference, null, 2));
+        
+        // Extract property information from the data
+        const { property, exists, value } = data;
+        console.log("[DEBUG] updateSettingsDirectly received:", property, value, typeof value);
+        
+        if (property) {
+            if (exists) {
+                // Add or update the property
+                formReference[property] = value;
+            } else {
+                // Remove the property
+                delete formReference[property];
+            }
+            
+            console.log("[DEBUG] formReference after update:", JSON.stringify(formReference, null, 2));
+            
+            // Mark that there are unsaved changes
+            if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                modelService.markUnsavedChanges();
+                console.log("[DEBUG] Model marked as having unsaved changes");
+            }
+            
+            // Refresh the tree view to reflect any visible changes
+            vscode.commands.executeCommand("appdna.refresh");
+        }
+    } catch (error) {
+        console.error("Error updating settings directly:", error);
+    }
 }
 
 function updateButtonDirectly(data, formReference, modelService) {
@@ -426,27 +544,19 @@ function updateButtonDirectly(data, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
-        
         // Initialize the buttons array if it doesn't exist
-        if (!form.objectWorkflowButton) {
-            form.objectWorkflowButton = [];
+        if (!formReference.objectWorkflowButton) {
+            formReference.objectWorkflowButton = [];
         }
         
         // Check if the button exists
-        if (data.index >= form.objectWorkflowButton.length) {
+        if (data.index >= formReference.objectWorkflowButton.length) {
             console.error(`Button index ${data.index} out of bounds`);
             return;
         }
         
         // Get the button
-        const button = form.objectWorkflowButton[data.index];
+        const button = formReference.objectWorkflowButton[data.index];
         
         if (!button) {
             console.error(`Button at index ${data.index} is undefined`);
@@ -455,8 +565,9 @@ function updateButtonDirectly(data, formReference, modelService) {
         
         // Handle full button update
         if (data.button) {
-            form.objectWorkflowButton[data.index] = data.button;
-            modelService.saveModel();
+            formReference.objectWorkflowButton[data.index] = data.button;
+            modelService.markUnsavedChanges();
+            vscode.commands.executeCommand("appdna.refresh");
             return;
         }
         
@@ -470,8 +581,9 @@ function updateButtonDirectly(data, formReference, modelService) {
                 delete button[data.property];
             }
             
-            // Save the model
-            modelService.saveModel();
+            // Mark as having unsaved changes and refresh
+            modelService.markUnsavedChanges();
+            vscode.commands.executeCommand("appdna.refresh");
         }
     } catch (error) {
         console.error("Error updating button:", error);
@@ -487,27 +599,19 @@ function updateParamDirectly(data, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
-        
         // Initialize the parameters array if it doesn't exist
-        if (!form.objectWorkflowParam) {
-            form.objectWorkflowParam = [];
+        if (!formReference.objectWorkflowParam) {
+            formReference.objectWorkflowParam = [];
         }
         
         // Check if the parameter exists
-        if (data.index >= form.objectWorkflowParam.length) {
+        if (data.index >= formReference.objectWorkflowParam.length) {
             console.error(`Parameter index ${data.index} out of bounds`);
             return;
         }
         
         // Get the parameter
-        const param = form.objectWorkflowParam[data.index];
+        const param = formReference.objectWorkflowParam[data.index];
         
         if (!param) {
             console.error(`Parameter at index ${data.index} is undefined`);
@@ -516,8 +620,9 @@ function updateParamDirectly(data, formReference, modelService) {
         
         // Handle full parameter update
         if (data.param) {
-            form.objectWorkflowParam[data.index] = data.param;
-            modelService.saveModel();
+            formReference.objectWorkflowParam[data.index] = data.param;
+            modelService.markUnsavedChanges();
+            vscode.commands.executeCommand("appdna.refresh");
             return;
         }
         
@@ -531,8 +636,9 @@ function updateParamDirectly(data, formReference, modelService) {
                 delete param[data.property];
             }
             
-            // Save the model
-            modelService.saveModel();
+            // Mark as having unsaved changes and refresh
+            modelService.markUnsavedChanges();
+            vscode.commands.executeCommand("appdna.refresh");
         }
     } catch (error) {
         console.error("Error updating parameter:", error);
@@ -612,27 +718,19 @@ function updateOutputVarProperty(message, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
-        
         // Initialize the output variables array if it doesn't exist
-        if (!form.objectWorkflowOutputVar) {
-            form.objectWorkflowOutputVar = [];
+        if (!formReference.objectWorkflowOutputVar) {
+            formReference.objectWorkflowOutputVar = [];
         }
         
         // Check if the output variable exists
-        if (message.index >= form.objectWorkflowOutputVar.length) {
+        if (message.index >= formReference.objectWorkflowOutputVar.length) {
             console.error(`Output variable index ${message.index} out of bounds`);
             return;
         }
         
         // Update the property
-        form.objectWorkflowOutputVar[message.index][message.property] = message.value;
+        formReference.objectWorkflowOutputVar[message.index][message.property] = message.value;
         
         // Mark as having unsaved changes
         if (modelService && typeof modelService.markUnsavedChanges === 'function') {
@@ -655,27 +753,19 @@ function removeOutputVarProperty(message, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
-        
         // Initialize the output variables array if it doesn't exist
-        if (!form.objectWorkflowOutputVar) {
-            form.objectWorkflowOutputVar = [];
+        if (!formReference.objectWorkflowOutputVar) {
+            formReference.objectWorkflowOutputVar = [];
         }
         
         // Check if the output variable exists
-        if (message.index >= form.objectWorkflowOutputVar.length) {
+        if (message.index >= formReference.objectWorkflowOutputVar.length) {
             console.error(`Output variable index ${message.index} out of bounds`);
             return;
         }
         
         // Remove the property
-        delete form.objectWorkflowOutputVar[message.index][message.property];
+        delete formReference.objectWorkflowOutputVar[message.index][message.property];
         
         // Mark as having unsaved changes
         if (modelService && typeof modelService.markUnsavedChanges === 'function') {
@@ -698,13 +788,8 @@ function moveParamInArray(data, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the parameters array if it doesn't exist
         if (!form.objectWorkflowParam) {
@@ -759,13 +844,8 @@ function moveButtonInArray(data, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the buttons array if it doesn't exist
         if (!form.objectWorkflowButton) {
@@ -820,13 +900,8 @@ function moveOutputVarInArray(data, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the output variables array if it doesn't exist
         if (!form.objectWorkflowOutputVar) {
@@ -878,13 +953,8 @@ function reverseParamArray(formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the parameters array if it doesn't exist
         if (!form.objectWorkflowParam || form.objectWorkflowParam.length <= 1) {
@@ -905,13 +975,8 @@ function reverseButtonArray(formReference, modelService) {
     try {
         console.log("[DEBUG] reverseButtonArray called for form");
         
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         if (!form.objectWorkflowButton || !Array.isArray(form.objectWorkflowButton)) {
             console.warn("[DEBUG] objectWorkflowButton array does not exist");
@@ -946,13 +1011,8 @@ function reverseOutputVarArray(formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the output variables array if it doesn't exist
         if (!form.objectWorkflowOutputVar) {
@@ -989,13 +1049,8 @@ function copyParamInArray(data, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the parameters array if it doesn't exist
         if (!form.objectWorkflowParam) {
@@ -1043,13 +1098,8 @@ function copyButtonInArray(data, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the buttons array if it doesn't exist
         if (!form.objectWorkflowButton) {
@@ -1113,13 +1163,8 @@ function copyOutputVarInArray(message, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the output variables array if it doesn't exist
         if (!form.objectWorkflowOutputVar) {
@@ -1167,13 +1212,8 @@ function addParamToForm(formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the parameters array if it doesn't exist
         if (!form.objectWorkflowParam) {
@@ -1204,13 +1244,8 @@ function addButtonToForm(formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the buttons array if it doesn't exist
         if (!form.objectWorkflowButton) {
@@ -1246,13 +1281,8 @@ function addOutputVarToForm(formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the output variables array if it doesn't exist
         if (!form.objectWorkflowOutputVar) {
@@ -1288,13 +1318,8 @@ function updateParamFull(data, formReference, modelService) {
     }
     
     try {
-        // Get the current form from the model service
-        const form = modelService.getObjectById(formReference.id);
-        
-        if (!form) {
-            console.error(`Form with ID ${formReference.id} not found`);
-            return;
-        }
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
         
         // Initialize the parameters array if it doesn't exist
         if (!form.objectWorkflowParam) {
