@@ -52,8 +52,6 @@ create many diff treeview report items? under report treeview item?...
 
 
 mermaid diagram view...
-- ~~filter on role~~ ✅ COMPLETED - Added role filtering to Mermaid tab
-- ~~zoom in and out~~ ✅ COMPLETED - Added zoom controls to Mermaid tab
 - graph LR version? others?
 - color coding
 - hover text like graph view

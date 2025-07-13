@@ -323,6 +323,39 @@ function getEmbeddedCSS() {
             margin-top: 15px;
         }
         
+        .mermaid-type-controls {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: var(--vscode-editorWidget-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+        }
+        
+        .mermaid-type-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--vscode-editor-foreground);
+        }
+        
+        .mermaid-type-select {
+            width: 100%;
+            max-width: 250px;
+            padding: 8px;
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 4px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-family: var(--vscode-font-family);
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        .mermaid-type-select:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder);
+        }
+        
         .mermaid-container {
             transform-origin: center top;
             transition: transform 0.3s ease;
@@ -609,6 +642,7 @@ function getEmbeddedJavaScript(flowMap) {
         let zoom;
         let selectedRoles = new Set();
         let currentZoom = 1;
+        let mermaidDiagramType = 'flowchart TD'; // Default diagram type
 
         // Initialize everything when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
@@ -1277,6 +1311,15 @@ function getEmbeddedJavaScript(flowMap) {
             updateMermaidDiagram();
         }
         
+        // Handle Mermaid diagram type changes
+        function handleMermaidTypeChange(selectElement) {
+            mermaidDiagramType = selectElement.value;
+            console.log('[DEBUG] Mermaid diagram type changed to:', mermaidDiagramType);
+            
+            // Regenerate and render Mermaid diagram with new type
+            updateMermaidDiagram();
+        }
+        
         // Update Mermaid diagram with current filters
         function updateMermaidDiagram() {
             let filteredPages = flowData.pages;
@@ -1299,7 +1342,7 @@ function getEmbeddedJavaScript(flowMap) {
                 connections: filteredConnections
             };
             
-            // Generate new Mermaid syntax with filtered data
+            // Generate new Mermaid syntax with filtered data and current diagram type
             const newMermaidSyntax = generateMermaidSyntaxFromFlowMap(filteredFlowMap);
             
             // Update the syntax display
@@ -1363,7 +1406,7 @@ function getEmbeddedJavaScript(flowMap) {
         
         // Helper function to generate Mermaid syntax from flow map (similar to existing function)
         function generateMermaidSyntaxFromFlowMap(flowMap) {
-            let mermaidCode = "flowchart TD\\n";
+            let mermaidCode = mermaidDiagramType + "\\n";
             
             if (flowMap.pages && flowMap.pages.length > 0) {
                 const usedNodeIds = new Set();
@@ -1669,7 +1712,7 @@ function generateStatisticsContent(flowMap) {
  * @returns {string} Mermaid HTML content
  */
 function generateMermaidContent(flowMap) {
-    const mermaidSyntax = generateMermaidSyntax(flowMap);
+    const mermaidSyntax = generateMermaidSyntax(flowMap, "flowchart TD");
     
     return `
         <div class="mermaid-header-controls">
@@ -1678,6 +1721,16 @@ function generateMermaidContent(flowMap) {
                 <button class="btn" onclick="copyMermaidSyntax()">Copy Syntax</button>
                 <button class="btn" onclick="downloadMermaidSVG()">Download SVG</button>
                 <button class="btn" onclick="toggleMermaidSyntax()">Show/Hide Syntax</button>
+            </div>
+            
+            <div class="mermaid-type-controls">
+                <div class="mermaid-type-title">Diagram Type:</div>
+                <select id="mermaidTypeSelect" class="mermaid-type-select" onchange="handleMermaidTypeChange(this)">
+                    <option value="flowchart TD">Flowchart Top-Down</option>
+                    <option value="flowchart LR">Flowchart Left-Right</option>
+                    <option value="graph TD">Graph Top-Down</option>
+                    <option value="graph LR">Graph Left-Right</option>
+                </select>
             </div>
             
             <div class="mermaid-filter-controls">
@@ -1712,10 +1765,11 @@ ${mermaidSyntax}
 /**
  * Generates Mermaid syntax from flow map data
  * @param {Object} flowMap Flow map data
+ * @param {string} diagramType Diagram type (e.g., 'flowchart TD', 'flowchart LR', 'graph TD', 'graph LR')
  * @returns {string} Mermaid syntax
  */
-function generateMermaidSyntax(flowMap) {
-    let mermaidCode = "flowchart TD\n";
+function generateMermaidSyntax(flowMap, diagramType = "flowchart TD") {
+    let mermaidCode = diagramType + "\n";
     
     // Add nodes for each page
     if (flowMap.pages && flowMap.pages.length > 0) {
