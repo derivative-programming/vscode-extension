@@ -6,107 +6,124 @@
  */
 function getSaveSubmitHandlers() {
     return `
-    // Property list change handler
-    propsList.addEventListener('change', (event) => {
-        const selectedIndex = event.target.value;
-        const prop = props[selectedIndex];
-
-        // Show property details container when an item is selected
-        propertyDetailsContainer.style.display = 'block';
-
-        // Update form fields with property values
-        propColumns.forEach(propKey => {
-            if (propKey === 'name') return; // Skip name field as it's in the list
-            
-            const fieldId = 'prop' + propKey;
-            const field = document.getElementById(fieldId);
-            const checkbox = document.getElementById(fieldId + 'Editable');
-            
-            if (field && checkbox) {
-                // Check if property exists and is not null or undefined
-                const propertyExists = prop.hasOwnProperty(propKey) && prop[propKey] !== null && prop[propKey] !== undefined;
-                
-                if (field.tagName === 'SELECT') {
-                    if (propertyExists) {
-                        // If property exists, use its value
-                        field.value = prop[propKey];
-                    } else {
-                        // If property doesn't exist, use default value logic
-                        const propSchema = propItemsSchema[propKey] || {};
-                        if (propSchema.default !== undefined) {
-                            // Use the schema's default value if available
-                            field.value = propSchema.default;
-                        } else {
-                            // Otherwise, leave the default that was set in the HTML template
-                            // The template already handles boolean enums and first-option defaults
-                        }
-                    }
-                    field.disabled = !propertyExists;
-                } else {
-                    field.value = propertyExists ? prop[propKey] : '';
-                    field.readOnly = !propertyExists;
-                }
-                
-                checkbox.checked = propertyExists;
-                
-                // If the property exists, disable the checkbox to prevent unchecking
-                if (propertyExists) {
-                    checkbox.disabled = true;
-                    checkbox.setAttribute('data-originally-checked', 'true');
-                } else {
-                    checkbox.disabled = false;
-                    checkbox.removeAttribute('data-originally-checked');
-                }
-                  if (!checkbox.checked) {
-                    field.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
-                    field.style.color = 'var(--vscode-input-disabledForeground, #999)';
-                    field.style.opacity = '0.8';
-                } else {
-                    field.style.backgroundColor = 'var(--vscode-input-background)';
-                    field.style.color = 'var(--vscode-input-foreground)';
-                    field.style.opacity = '1';
-                }
-                
-                // Handle lookup button state for fKObjectName field
-                if (propKey === 'fKObjectName') {
-                    const controlContainer = field.parentElement;
-                    if (controlContainer && controlContainer.classList.contains('control-with-button')) {
-                        const lookupButton = controlContainer.querySelector('.lookup-button');
-                        if (lookupButton) {
-                            lookupButton.disabled = !propertyExists;
-                        }
-                    }
-                }
-            }
-        });
-    });
-
-    // Hide property details when no property is selected
-    propsList.addEventListener('click', (event) => {
-        if (!propsList.value) {
-            propertyDetailsContainer.style.display = 'none';
-        }
-    });
-
-    // Add Property button click handler
-    document.getElementById("addProp").addEventListener("click", function() {
-        // Call the function to create and show the modal
-        createPropertyModal();
-        
-        // After adding the property, update the model with the new property
-        document.addEventListener('propertyAdded', function(e) {
-            vscode.postMessage({
-                command: "updateModel",
-                data: {
-                    name: objectName,
-                    props: props
-                }
-            });
-        }, { once: true });
-    });
-
     // Add change event listeners to all form fields for real-time updates
     function setupRealTimeUpdates() {
+        // Set up property list selection handlers
+        const propsList = document.getElementById('propsList');
+        const propertyDetailsContainer = document.getElementById('propertyDetailsContainer');
+        
+        if (propsList && propertyDetailsContainer) {
+            // Remove existing event listeners to prevent duplicates
+            const newPropsList = propsList.cloneNode(true);
+            propsList.parentNode.replaceChild(newPropsList, propsList);
+            
+            // Property list change handler
+            newPropsList.addEventListener('change', (event) => {
+                const selectedIndex = event.target.value;
+                const prop = props[selectedIndex];
+
+                // Show property details container when an item is selected
+                propertyDetailsContainer.style.display = 'block';
+
+                // Update form fields with property values
+                propColumns.forEach(propKey => {
+                    if (propKey === 'name') return; // Skip name field as it's in the list
+                    
+                    const fieldId = 'prop' + propKey;
+                    const field = document.getElementById(fieldId);
+                    const checkbox = document.getElementById(fieldId + 'Editable');
+                    
+                    if (field && checkbox) {
+                        // Check if property exists and is not null or undefined
+                        const propertyExists = prop.hasOwnProperty(propKey) && prop[propKey] !== null && prop[propKey] !== undefined;
+                        
+                        if (field.tagName === 'SELECT') {
+                            if (propertyExists) {
+                                // If property exists, use its value
+                                field.value = prop[propKey];
+                            } else {
+                                // If property doesn't exist, use default value logic
+                                const propSchema = propItemsSchema[propKey] || {};
+                                if (propSchema.default !== undefined) {
+                                    // Use the schema's default value if available
+                                    field.value = propSchema.default;
+                                } else {
+                                    // Otherwise, leave the default that was set in the HTML template
+                                    // The template already handles boolean enums and first-option defaults
+                                }
+                            }
+                            field.disabled = !propertyExists;
+                        } else {
+                            field.value = propertyExists ? prop[propKey] : '';
+                            field.readOnly = !propertyExists;
+                        }
+                        
+                        checkbox.checked = propertyExists;
+                        
+                        // If the property exists, disable the checkbox to prevent unchecking
+                        if (propertyExists) {
+                            checkbox.disabled = true;
+                            checkbox.setAttribute('data-originally-checked', 'true');
+                        } else {
+                            checkbox.disabled = false;
+                            checkbox.removeAttribute('data-originally-checked');
+                        }
+                          if (!checkbox.checked) {
+                            field.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+                            field.style.color = 'var(--vscode-input-disabledForeground, #999)';
+                            field.style.opacity = '0.8';
+                        } else {
+                            field.style.backgroundColor = 'var(--vscode-input-background)';
+                            field.style.color = 'var(--vscode-input-foreground)';
+                            field.style.opacity = '1';
+                        }
+                        
+                        // Handle lookup button state for fKObjectName field
+                        if (propKey === 'fKObjectName') {
+                            const controlContainer = field.parentElement;
+                            if (controlContainer && controlContainer.classList.contains('control-with-button')) {
+                                const lookupButton = controlContainer.querySelector('.lookup-button');
+                                if (lookupButton) {
+                                    lookupButton.disabled = !propertyExists;
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Hide property details when no property is selected
+            newPropsList.addEventListener('click', (event) => {
+                if (!newPropsList.value) {
+                    propertyDetailsContainer.style.display = 'none';
+                }
+            });
+        }
+        
+        // Add Property button event handler
+        const addPropButton = document.getElementById("addProp");
+        if (addPropButton) {
+            // Remove existing event listeners to prevent duplicates
+            const newAddPropButton = addPropButton.cloneNode(true);
+            addPropButton.parentNode.replaceChild(newAddPropButton, addPropButton);
+            
+            newAddPropButton.addEventListener("click", function() {
+                // Call the function to create and show the modal
+                createPropertyModal();
+                
+                // After adding the property, update the model with the new property
+                document.addEventListener('propertyAdded', function(e) {
+                    vscode.postMessage({
+                        command: "updateModel",
+                        data: {
+                            name: objectName,
+                            props: props
+                        }
+                    });
+                }, { once: true });
+            });
+        }
+        
         // For property details form
         const form = document.getElementById('propDetailsForm');
         if (form) {
@@ -118,9 +135,25 @@ function getSaveSubmitHandlers() {
                 const checkbox = document.getElementById(fieldId + 'Editable');
                 
                 if (field) {
-                    // Add change event listener to input/select fields
-                    field.addEventListener('change', () => updatePropertyField(propKey, field, checkbox));
-                    field.addEventListener('input', () => updatePropertyField(propKey, field, checkbox));
+                    // Use debounced input for real-time feedback and change for final updates
+                    let inputTimeout;
+                    
+                    field.addEventListener('input', () => {
+                        // Clear previous timeout
+                        clearTimeout(inputTimeout);
+                        
+                        // Set a new timeout to update after user stops typing
+                        inputTimeout = setTimeout(() => {
+                            updatePropertyField(propKey, field, checkbox);
+                        }, 300); // 300ms delay
+                    });
+                    
+                    // Also listen for change event (when field loses focus)
+                    field.addEventListener('change', () => {
+                        // Clear any pending input timeout since we're doing an immediate update
+                        clearTimeout(inputTimeout);
+                        updatePropertyField(propKey, field, checkbox);
+                    });
                 }
                 
                 if (checkbox) {
@@ -212,20 +245,31 @@ function getSaveSubmitHandlers() {
                     }
                 });
             } else {
+                let settingsInputTimeout;
+                
                 field.addEventListener('input', function() {
                     if (checkbox.checked) {
-                        vscode.postMessage({
-                            command: "updateSettings",
-                            data: {
-                                property: key,
-                                exists: true,
-                                value: field.value
-                            }
-                        });
+                        // Clear previous timeout
+                        clearTimeout(settingsInputTimeout);
+                        
+                        // Set a new timeout to update after user stops typing
+                        settingsInputTimeout = setTimeout(() => {
+                            vscode.postMessage({
+                                command: "updateSettings",
+                                data: {
+                                    property: key,
+                                    exists: true,
+                                    value: field.value
+                                }
+                            });
+                        }, 300); // 300ms delay
                     }
                 });
+                
                 field.addEventListener('change', function() {
                     if (checkbox.checked) {
+                        // Clear any pending input timeout since we're doing an immediate update
+                        clearTimeout(settingsInputTimeout);
                         vscode.postMessage({
                             command: "updateSettings",
                             data: {
@@ -289,8 +333,25 @@ function getSaveSubmitHandlers() {
                 const checkbox = row.querySelector('.prop-checkbox[data-prop="' + propKey + '"]');
                 
                 if (input) {
-                    input.addEventListener('change', () => updateTableField(index, propKey, input, checkbox));
-                    input.addEventListener('input', () => updateTableField(index, propKey, input, checkbox));
+                    // Use debounced input for real-time feedback and change for final updates
+                    let tableInputTimeout;
+                    
+                    input.addEventListener('input', () => {
+                        // Clear previous timeout
+                        clearTimeout(tableInputTimeout);
+                        
+                        // Set a new timeout to update after user stops typing
+                        tableInputTimeout = setTimeout(() => {
+                            updateTableField(index, propKey, input, checkbox);
+                        }, 300); // 300ms delay
+                    });
+                    
+                    // Also listen for change event (when field loses focus)
+                    input.addEventListener('change', () => {
+                        // Clear any pending input timeout since we're doing an immediate update
+                        clearTimeout(tableInputTimeout);
+                        updateTableField(index, propKey, input, checkbox);
+                    });
                 }
                 
                 if (checkbox) {
@@ -357,6 +418,12 @@ function getSaveSubmitHandlers() {
                     props: props
                 }
             });
+            
+            // Reload the table view if it exists (to sync changes from list view)
+            if (typeof window.reloadPropertiesTableView === 'function') {
+                console.log('Calling reloadPropertiesTableView from updatePropertyField');
+                setTimeout(() => window.reloadPropertiesTableView(), 10);
+            }
         }
     }
     
@@ -374,6 +441,12 @@ function getSaveSubmitHandlers() {
                     props: props
                 }
             });
+            
+            // Reload the list view if it exists (to sync changes from table view)
+            if (typeof window.reloadPropertiesListView === 'function') {
+                console.log('Calling reloadPropertiesListView from updateTableField');
+                setTimeout(() => window.reloadPropertiesListView(), 10);
+            }
         }
     }
     

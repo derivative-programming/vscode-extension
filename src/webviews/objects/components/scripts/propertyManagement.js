@@ -89,6 +89,12 @@ function getPropertyManagementFunctions() {
         
         // Dispatch propertyAdded event to trigger model update and mark unsaved changes
         document.dispatchEvent(new CustomEvent('propertyAdded'));
+        
+        // Reload the list view to ensure the new property appears there too
+        if (typeof window.reloadPropertiesListView === 'function') {
+            console.log('Calling reloadPropertiesListView from addNewProperty');
+            setTimeout(() => window.reloadPropertiesListView(), 10);
+        }
     }
     
     // Function to update the properties counter in the tab label

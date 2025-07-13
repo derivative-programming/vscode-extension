@@ -270,6 +270,9 @@ function getLookupItemManagementFunctions() {
                     lookupItemsList.value = index;
                 }
             }
+            
+            // Update the table view to sync changes from list view
+            updateLookupItemsTable();
 
             // Save changes to model
             saveLookupItemsToModel();
@@ -474,6 +477,11 @@ function getLookupItemManagementFunctions() {
                     
                     if (!lookupItems[rowIndex]) lookupItems[rowIndex] = {};
                     lookupItems[rowIndex][propName] = this.value;
+                    
+                    // Update the list display if name or displayName changed
+                    if (propName === 'name' || propName === 'displayName') {
+                        updateLookupItemsList();
+                    }
                     
                     saveLookupItemsToModel();
                 });

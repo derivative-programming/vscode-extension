@@ -58,6 +58,23 @@ function getUIEventHandlers() {
                         viewElement.style.display = 'block';
                         viewElement.classList.add('active');
                         console.log('Activated view:', view + 'View');
+                        
+                        // Completely reload the view content with current model data when switching views
+                        setTimeout(() => {
+                            if (view === 'propsTable' && typeof window.reloadPropertiesTableView === 'function') {
+                                console.log('Reloading properties table view from view switch');
+                                window.reloadPropertiesTableView();
+                            } else if (view === 'propsList' && typeof window.reloadPropertiesListView === 'function') {
+                                console.log('Reloading properties list view from view switch');
+                                window.reloadPropertiesListView();
+                            } else if (view === 'lookupTable' && typeof window.reloadLookupItemsTableView === 'function') {
+                                console.log('Reloading lookup items table view from view switch');
+                                window.reloadLookupItemsTableView();
+                            } else if (view === 'lookupList' && typeof window.reloadLookupItemsListView === 'function') {
+                                console.log('Reloading lookup items list view from view switch');
+                                window.reloadLookupItemsListView();
+                            }
+                        }, 50);
                     } else {
                         console.error('View not found:', view + 'View');
                     }
