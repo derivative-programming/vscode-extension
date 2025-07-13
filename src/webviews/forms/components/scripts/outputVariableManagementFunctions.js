@@ -123,6 +123,16 @@ function getOutputVariableManagementFunctions() {
                             value: this.checked ? field.value : null
                         }
                     });
+                    
+                    // Update the local currentOutputVars array
+                    const currentOutputVarIndex = parseInt(selectedIndex);
+                    if (this.checked) {
+                        // Add or update the property in the local array
+                        currentOutputVars[currentOutputVarIndex][outputVarKey] = field.value;
+                    } else {
+                        // Remove the property from the local array
+                        delete currentOutputVars[currentOutputVarIndex][outputVarKey];
+                    }
                 });
                 
                 // Update model when input value changes
@@ -140,6 +150,10 @@ function getOutputVariableManagementFunctions() {
                             value: field.value
                         }
                     });
+                    
+                    // Update the local currentOutputVars array
+                    const currentOutputVarIndex = parseInt(selectedIndex);
+                    currentOutputVars[currentOutputVarIndex][outputVarKey] = field.value;
                 };
                 
                 if (field.tagName === 'SELECT') {
@@ -225,6 +239,16 @@ function getOutputVariableManagementFunctions() {
                     value: this.checked ? inputElement.value : null
                 }
             });
+            
+            // Update the local currentOutputVars array
+            const outputVarIndex = parseInt(index);
+            if (this.checked) {
+                // Add or update the property in the local array
+                currentOutputVars[outputVarIndex][propName] = inputElement.value;
+            } else {
+                // Remove the property from the local array
+                delete currentOutputVars[outputVarIndex][propName];
+            }
         });
     });
 
@@ -250,6 +274,10 @@ function getOutputVariableManagementFunctions() {
                     value: input.value
                 }
             });
+            
+            // Update the local currentOutputVars array
+            const outputVarIndex = parseInt(index);
+            currentOutputVars[outputVarIndex][propName] = input.value;
         };
         
         if (input.tagName === 'SELECT') {

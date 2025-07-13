@@ -111,10 +111,20 @@ function getColumnManagementFunctions() {
                     // Update the column in the model when checkbox changes
                     const selectedIndex = columnsList.value;
                     if (selectedIndex !== '' && selectedIndex >= 0) {
+                        // Update the local currentColumns array first
+                        const currentColumnIndex = parseInt(selectedIndex);
+                        if (this.checked) {
+                            // Add or update the property in the local array
+                            currentColumns[currentColumnIndex][columnKey] = field.value;
+                        } else {
+                            // Remove the property from the local array
+                            delete currentColumns[currentColumnIndex][columnKey];
+                        }
+                        
                         vscode.postMessage({
                             command: 'updateColumn',
                             data: {
-                                index: parseInt(selectedIndex),
+                                index: currentColumnIndex,
                                 property: columnKey,
                                 exists: this.checked,
                                 value: this.checked ? field.value : undefined
@@ -128,10 +138,15 @@ function getColumnManagementFunctions() {
                     if (checkbox.checked) {
                         const selectedIndex = columnsList.value;
                         if (selectedIndex !== '' && selectedIndex >= 0) {
+                            const currentColumnIndex = parseInt(selectedIndex);
+                            
+                            // Update the local currentColumns array first
+                            currentColumns[currentColumnIndex][columnKey] = this.value;
+                            
                             vscode.postMessage({
                                 command: 'updateColumn',
                                 data: {
-                                    index: parseInt(selectedIndex),
+                                    index: currentColumnIndex,
                                     property: columnKey,
                                     exists: true,
                                     value: this.value
@@ -212,6 +227,16 @@ function getColumnManagementFunctions() {
                     value: this.checked ? inputElement.value : null
                 }
             });
+            
+            // Update the local currentColumns array
+            const columnIndex = parseInt(index);
+            if (this.checked) {
+                // Add or update the property in the local array
+                currentColumns[columnIndex][propName] = inputElement.value;
+            } else {
+                // Remove the property from the local array
+                delete currentColumns[columnIndex][propName];
+            }
         });
     });
     
@@ -237,6 +262,10 @@ function getColumnManagementFunctions() {
                     value: input.value
                 }
             });
+            
+            // Update the local currentColumns array
+            const columnIndex = parseInt(index);
+            currentColumns[columnIndex][propName] = input.value;
         };
         
         if (input.tagName === 'SELECT') {

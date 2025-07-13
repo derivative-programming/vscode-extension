@@ -123,6 +123,16 @@ function getParameterManagementFunctions() {
                             value: this.checked ? field.value : null
                         }
                     });
+                    
+                    // Update the local currentParams array
+                    const currentParamIndex = parseInt(selectedIndex);
+                    if (this.checked) {
+                        // Add or update the property in the local array
+                        currentParams[currentParamIndex][paramKey] = field.value;
+                    } else {
+                        // Remove the property from the local array
+                        delete currentParams[currentParamIndex][paramKey];
+                    }
                 });
                 
                 // Update model when input value changes
@@ -140,6 +150,10 @@ function getParameterManagementFunctions() {
                             value: field.value
                         }
                     });
+                    
+                    // Update the local currentParams array
+                    const currentParamIndex = parseInt(selectedIndex);
+                    currentParams[currentParamIndex][paramKey] = field.value;
                 };
                 
                 if (field.tagName === 'SELECT') {
@@ -228,6 +242,16 @@ function getParameterManagementFunctions() {
                     value: this.checked ? inputElement.value : null
                 }
             });
+            
+            // Update the local currentParams array
+            const paramIndex = parseInt(index);
+            if (this.checked) {
+                // Add or update the property in the local array
+                currentParams[paramIndex][propName] = inputElement.value;
+            } else {
+                // Remove the property from the local array
+                delete currentParams[paramIndex][propName];
+            }
         });
     });
 
@@ -256,6 +280,10 @@ function getParameterManagementFunctions() {
                     value: input.value
                 }
             });
+            
+            // Update the local currentParams array
+            const paramIndex = parseInt(index);
+            currentParams[paramIndex][propName] = input.value;
         };
         
         if (input.tagName === 'SELECT') {

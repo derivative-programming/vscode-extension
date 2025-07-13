@@ -123,6 +123,16 @@ function getButtonManagementFunctions() {
                             value: this.checked ? field.value : null
                         }
                     });
+                    
+                    // Update the local currentButtons array
+                    const currentButtonIndex = parseInt(selectedIndex);
+                    if (this.checked) {
+                        // Add or update the property in the local array
+                        currentButtons[currentButtonIndex][buttonKey] = field.value;
+                    } else {
+                        // Remove the property from the local array
+                        delete currentButtons[currentButtonIndex][buttonKey];
+                    }
                 });
                 
                 // Update model when input value changes
@@ -140,6 +150,10 @@ function getButtonManagementFunctions() {
                             value: field.value
                         }
                     });
+                    
+                    // Update the local currentButtons array
+                    const currentButtonIndex = parseInt(selectedIndex);
+                    currentButtons[currentButtonIndex][buttonKey] = field.value;
                 };
                 
                 if (field.tagName === 'SELECT') {
@@ -225,6 +239,16 @@ function getButtonManagementFunctions() {
                     value: this.checked ? inputElement.value : null
                 }
             });
+            
+            // Update the local currentButtons array
+            const buttonIndex = parseInt(index);
+            if (this.checked) {
+                // Add or update the property in the local array
+                currentButtons[buttonIndex][propName] = inputElement.value;
+            } else {
+                // Remove the property from the local array
+                delete currentButtons[buttonIndex][propName];
+            }
         });
     });
 
@@ -250,6 +274,10 @@ function getButtonManagementFunctions() {
                     value: input.value
                 }
             });
+            
+            // Update the local currentButtons array
+            const buttonIndex = parseInt(index);
+            currentButtons[buttonIndex][propName] = input.value;
         };
         
         if (input.tagName === 'SELECT') {
