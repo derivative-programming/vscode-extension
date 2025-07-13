@@ -1728,8 +1728,6 @@ function generateMermaidContent(flowMap) {
                 <select id="mermaidTypeSelect" class="mermaid-type-select" onchange="handleMermaidTypeChange(this)">
                     <option value="flowchart TD">Flowchart Top-Down</option>
                     <option value="flowchart LR">Flowchart Left-Right</option>
-                    <option value="graph TD">Graph Top-Down</option>
-                    <option value="graph LR">Graph Left-Right</option>
                 </select>
             </div>
             

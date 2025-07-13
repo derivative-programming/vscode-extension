@@ -504,7 +504,7 @@ Added role filtering and zoom functionality to the Mermaid tab in the page flow 
 2. **HTML Structure:**
    - Added diagram type dropdown section in `generateMermaidContent()` function
    - Placed dropdown above the role filter controls for logical grouping
-   - Options include: Flowchart Top-Down, Flowchart Left-Right, Graph Top-Down, Graph Left-Right
+   - Options include: Flowchart Top-Down, Flowchart Left-Right
 
 3. **JavaScript Functionality:**
    - Added `mermaidDiagramType` global variable with default value 'flowchart TD'
