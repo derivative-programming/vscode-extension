@@ -2,12 +2,13 @@
 
 /**
  * File: uiEventHandlers.js
- * Purpose: Handles UI event binding for tabs and view switching in form details
+ * Purpose: Handles UI event binding for tabs in form details
  * Created: 2025-07-06
+ * Modified: 2025-07-13 - Removed view switching since only list view remains
  */
 
 /**
- * Handles UI event binding for tabs and view switching
+ * Handles UI event binding for tabs
  * @returns {string} JavaScript code as a string for UI event handling
  */
 function getUIEventHandlers() {
@@ -152,69 +153,6 @@ function getUIEventHandlers() {
                     });
                 });
             });
-        });
-
-        // View switching functionality for each tab
-        document.addEventListener('click', (event) => {
-            // Check if the clicked element is a view icon
-            const iconElement = event.target.closest('.icon');
-            if (!iconElement) {
-                return;
-            }
-            
-            const view = iconElement.getAttribute('data-view');
-            const viewIconsContainer = iconElement.closest('.view-icons');
-            const currentTab = viewIconsContainer ? viewIconsContainer.getAttribute('data-tab') : null;
-            
-            console.log('Switching to view:', view, 'in tab:', currentTab);
-            
-            if (!currentTab) {
-                return;
-            }
-            
-            // Update active state of icons within this tab
-            viewIconsContainer.querySelectorAll('.icon').forEach(icon => {
-                icon.classList.remove('active');
-            });
-            iconElement.classList.add('active');
-            
-            // Hide all views in the current tab
-            const currentTabContent = document.getElementById(currentTab);
-            if (currentTabContent) {
-                currentTabContent.querySelectorAll('.view-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // Show selected view in the current tab based on naming convention
-                // Tab naming varies between forms tabs:
-                // params -> paramsListView/paramsTableView
-                // buttons -> buttons-list-view/buttons-table-view (with hyphens!)
-                // outputVars -> outputVarsListView/outputVarsTableView
-                let viewId = '';
-                if (currentTab === 'buttons') {
-                    // Special case for buttons tab which uses hyphens
-                    if (view === 'list') {
-                        viewId = 'buttons-list-view';
-                    } else if (view === 'table') {
-                        viewId = 'buttons-table-view';
-                    }
-                } else {
-                    // Standard pattern for params and outputVars tabs
-                    if (view === 'list') {
-                        viewId = currentTab + 'ListView';
-                    } else if (view === 'table') {
-                        viewId = currentTab + 'TableView';
-                    }
-                }
-                
-                const selectedView = document.getElementById(viewId);
-                if (selectedView) {
-                    selectedView.classList.add('active');
-                    console.log('Successfully switched to view:', viewId);
-                } else {
-                    console.warn('Could not find view element with ID:', viewId);
-                }
-            }
         });
     });
 

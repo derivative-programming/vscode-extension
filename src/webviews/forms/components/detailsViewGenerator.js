@@ -3,11 +3,9 @@
 // Import helpers and templates
 const { getDetailViewStyles } = require("../styles/detailsViewStyles");
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
-const { getParamsTableTemplate, getParamPropertiesToHide } = require("./templates/paramsTableTemplate");
 const { getParamsListTemplate } = require("./templates/paramsListTemplate");
-const { getButtonsTableTemplate } = require("./templates/buttonsTableTemplate");
 const { getButtonsListTemplate } = require("./templates/buttonsListTemplate");
-const { getOutputVarsTableTemplate, getOutputVarsListTemplate } = require("./templates/outputVarsTableTemplate");
+const { getOutputVarsListTemplate } = require("./templates/outputVarsTableTemplate");
 const { getParamModalHtml, getButtonModalHtml, getOutputVarModalHtml } = require("./templates/modalTemplates");
 const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
 const { getMainTemplate } = require("./templates/mainTemplate");
@@ -61,26 +59,13 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
         console.log("[DEBUG] Generating settings tab...");
         const settingsHtml = getSettingsTabTemplate(formForSettings, formSchemaProps);
         
-        // Get properties to hide for parameters
-        const paramPropertiesToHide = getParamPropertiesToHide();
-        
-        // Generate the params tab content using templates
-        console.log("[DEBUG] Generating params tab...");
-        const { paramTableHeaders, paramTableRows } = getParamsTableTemplate(params, formParamsSchema);
-        
         // Generate the params list view content
+        console.log("[DEBUG] Generating params list view...");
         const paramListViewFields = getParamsListTemplate(formParamsSchema);
         
-        // Generate the buttons tab content using templates
-        console.log("[DEBUG] Generating buttons tab...");
-        const { buttonTableHeaders, buttonTableRows } = getButtonsTableTemplate(buttons, formButtonsSchema);
-        
         // Generate the buttons list view content
+        console.log("[DEBUG] Generating buttons list view...");
         const buttonListViewFields = getButtonsListTemplate(formButtonsSchema);
-        
-        // Generate the output variables tab content using templates
-        console.log("[DEBUG] Generating output variables tab...");
-        const { outputVarTableHeaders, outputVarTableRows } = getOutputVarsTableTemplate(outputVars, formOutputVarsSchema);
         
         // Generate the output variables list view content
         console.log("[DEBUG] Generating output variables list view...");
@@ -94,8 +79,6 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
         
         // Get additional data for dynamic rendering
         const styles = getDetailViewStyles();
-        const paramProperties = Object.keys(formParamsSchema)
-            .filter(key => !paramPropertiesToHide.includes(key.toLowerCase()));
         
         // Generate client-side JavaScript with modular scripts
         console.log("[DEBUG] Generating client script...");
@@ -123,14 +106,8 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
             buttons.length,
             outputVars.length,
             settingsHtml,
-            paramTableHeaders,
-            paramTableRows,
             paramListViewFields,
-            buttonTableHeaders,
-            buttonTableRows,
             buttonListViewFields,
-            outputVarTableHeaders,
-            outputVarTableRows,
             outputVarListViewFields,
             paramModalHtml,
             buttonModalHtml,

@@ -316,30 +316,6 @@ function getButtonManagementFunctions() {
     
     // Button tab functionality
     function initializeButtonTabFunctionality() {
-        // Set up view switching for the buttons tab
-        const buttonsListViewIcon = document.querySelector('.view-icons[data-tab="buttons"] .list-icon');
-        const buttonsTableViewIcon = document.querySelector('.view-icons[data-tab="buttons"] .table-icon');
-        const buttonsListView = document.getElementById('buttons-list-view');
-        const buttonsTableView = document.getElementById('buttons-table-view');
-        
-        if (buttonsListViewIcon && buttonsTableViewIcon) {
-            // List view button
-            buttonsListViewIcon.addEventListener('click', () => {
-                buttonsTableViewIcon.classList.remove('active');
-                buttonsListViewIcon.classList.add('active');
-                buttonsTableView.classList.remove('active');
-                buttonsListView.classList.add('active');
-            });
-            
-            // Table view button
-            buttonsTableViewIcon.addEventListener('click', () => {
-                buttonsListViewIcon.classList.remove('active');
-                buttonsTableViewIcon.classList.add('active');
-                buttonsListView.classList.remove('active');
-                buttonsTableView.classList.add('active');
-            });
-        }
-        
         // Initialize button list view buttons
         initializeButtonListButtons();
     }

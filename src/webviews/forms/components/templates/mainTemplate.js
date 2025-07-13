@@ -8,14 +8,8 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
  * @param {number} buttonCount Number of buttons in the form
  * @param {number} outputVarCount Number of output variables in the form
  * @param {string} settingsHtml HTML content for the settings tab
- * @param {string} paramTableHeaders HTML headers for parameters table
- * @param {string} paramTableRows HTML rows for parameters table
  * @param {string} paramListViewFields HTML fields for parameters list view
- * @param {string} buttonTableHeaders HTML headers for buttons table
- * @param {string} buttonTableRows HTML rows for buttons table
  * @param {string} buttonListViewFields HTML fields for buttons list view
- * @param {string} outputVarTableHeaders HTML headers for output variables table
- * @param {string} outputVarTableRows HTML rows for output variables table
  * @param {string} outputVarListViewFields HTML fields for output variables list view
  * @param {string} paramModalHtml HTML for the parameter modal
  * @param {string} buttonModalHtml HTML for the button modal
@@ -29,14 +23,8 @@ function getMainTemplate(
     buttonCount, 
     outputVarCount,
     settingsHtml, 
-    paramTableHeaders, 
-    paramTableRows, 
     paramListViewFields,
-    buttonTableHeaders, 
-    buttonTableRows, 
     buttonListViewFields,
-    outputVarTableHeaders, 
-    outputVarTableRows, 
     outputVarListViewFields,
     paramModalHtml,
     buttonModalHtml,
@@ -69,28 +57,7 @@ function getMainTemplate(
     
     <div id="params" class="tab-content">
         <div class="view-icons" data-tab="params">
-            <div class="view-icons-left">
-                <span class="icon list-icon active" data-view="list">List View</span>
-                <span class="icon table-icon" data-view="table">Table View</span>
-            </div>
             <button id="add-param-btn" class="add-prop-button">Add Parameter</button>
-        </div>
-
-        <div id="paramsTableView" class="view-content">
-            <div class="table-container">
-                <table id="params-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            ${paramTableHeaders}
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${paramTableRows}
-                    </tbody>
-                </table>
-            </div>
         </div>
 
         <div id="paramsListView" class="view-content active">
@@ -118,38 +85,7 @@ function getMainTemplate(
     
     <div id="buttons" class="tab-content">
         <div class="view-icons" data-tab="buttons">
-            <div class="view-icons-left">
-                <span class="icon list-icon active" data-view="list">List View</span>
-                <span class="icon table-icon" data-view="table">Table View</span>
-            </div>
-            <div class="view-icons-right">
-                <label for="buttons-view-switcher">View: </label>
-                <select id="buttons-view-switcher">
-                    <option value="list">List</option>
-                    <option value="table">Table</option>
-                </select>
-            </div>
-            <div class="action-buttons">
-                <button id="add-button-btn">Add Button</button>
-                <button id="reverse-buttons-btn">Reverse Order</button>
-            </div>
-        </div>
-
-        <div id="buttons-table-view" class="view-content">
-            <div class="table-container">
-                <table id="buttons-table" class="data-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            ${buttonTableHeaders}
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${buttonTableRows}
-                    </tbody>
-                </table>
-            </div>
+            <button id="add-button-btn" class="add-prop-button">Add Button</button>
         </div>
 
         <div id="buttons-list-view" class="view-content active">
@@ -175,28 +111,7 @@ function getMainTemplate(
     
     <div id="outputVars" class="tab-content">
         <div class="view-icons" data-tab="outputVars">
-            <div class="view-icons-left">
-                <span class="icon list-icon active" data-view="list">List View</span>
-                <span class="icon table-icon" data-view="table">Table View</span>
-            </div>
             <button id="add-output-var-btn" class="add-prop-button">Add Output Variable</button>
-        </div>
-
-        <div id="outputVarsTableView" class="view-content">
-            <div class="table-container">
-                <table id="outputVars-table" class="data-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            ${outputVarTableHeaders}
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${outputVarTableRows}
-                    </tbody>
-                </table>
-            </div>
         </div>
 
         <div id="outputVarsListView" class="view-content active">

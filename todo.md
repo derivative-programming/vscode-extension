@@ -97,6 +97,9 @@ find large files and split them up
  
 add report wizard has dif step design than add data object wizard
 
+data object lookup tab...
+- need to leave the field to trigger the unsaved changes exist flag
+
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button

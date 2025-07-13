@@ -262,30 +262,6 @@ function getOutputVariableManagementFunctions() {
 
     // Output variable tab functionality
     function initializeOutputVariableTabFunctionality() {
-        // Set up view switching for the output variables tab
-        const outputVarsListViewIcon = document.querySelector('.view-icons[data-tab="outputVars"] .list-icon');
-        const outputVarsTableViewIcon = document.querySelector('.view-icons[data-tab="outputVars"] .table-icon');
-        const outputVarsListView = document.getElementById('outputVarsListView');
-        const outputVarsTableView = document.getElementById('outputVarsTableView');
-        
-        if (outputVarsListViewIcon && outputVarsTableViewIcon) {
-            // List view button
-            outputVarsListViewIcon.addEventListener('click', () => {
-                outputVarsTableViewIcon.classList.remove('active');
-                outputVarsListViewIcon.classList.add('active');
-                outputVarsTableView.classList.remove('active');
-                outputVarsListView.classList.add('active');
-            });
-            
-            // Table view button
-            outputVarsTableViewIcon.addEventListener('click', () => {
-                outputVarsListViewIcon.classList.remove('active');
-                outputVarsTableViewIcon.classList.add('active');
-                outputVarsListView.classList.remove('active');
-                outputVarsTableView.classList.add('active');
-            });
-        }
-        
         // Initialize output variable buttons
         initializeOutputVariableButtons();
     }

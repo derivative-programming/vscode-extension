@@ -4,6 +4,21 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### Form Details View Table View Removal (2025-07-13)
+Removed the table view functionality from all Form Details View tabs (Parameters, Buttons, Output Variables) to simplify the interface:
+- **Files Modified:**
+  - `mainTemplate.js`: Removed table view HTML elements, view switching icons, and simplified parameters
+  - `detailsViewGenerator.js`: Removed table template imports and function calls
+  - `uiEventHandlers.js`: Removed view switching event handlers since only list view remains
+  - `parameterManagementFunctions.js`: Removed table view initialization and switching code
+  - `buttonManagementFunctions.js`: Removed table view initialization and switching code
+  - `outputVariableManagementFunctions.js`: Removed table view initialization and switching code
+- **UI Changes:**
+  - No more "List View"/"Table View" toggle buttons
+  - Only the list view interface remains for all tabs
+  - Add buttons repositioned where view toggle buttons were
+  - Cleaner, simpler interface with consistent list-based editing
+
 ### Report Details View Table View Removal (2025-07-13)
 Removed the table view functionality from all Report Details View tabs (Columns, Buttons, Filters) to simplify the interface:
 - **Files Modified:**

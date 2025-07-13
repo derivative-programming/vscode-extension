@@ -402,30 +402,6 @@ function getParameterManagementFunctions() {
 
     // Initialize parameter tab functionality
     function initializeParameterTabFunctionality() {
-        // Set up view switching for the parameters tab
-        const paramsListViewIcon = document.querySelector('.view-icons[data-tab="params"] .list-icon');
-        const paramsTableViewIcon = document.querySelector('.view-icons[data-tab="params"] .table-icon');
-        const paramsListView = document.getElementById('paramsListView');
-        const paramsTableView = document.getElementById('paramsTableView');
-        
-        if (paramsListViewIcon && paramsTableViewIcon) {
-            // List view button
-            paramsListViewIcon.addEventListener('click', () => {
-                paramsTableViewIcon.classList.remove('active');
-                paramsListViewIcon.classList.add('active');
-                paramsTableView.classList.remove('active');
-                paramsListView.classList.add('active');
-            });
-            
-            // Table view button
-            paramsTableViewIcon.addEventListener('click', () => {
-                paramsListViewIcon.classList.remove('active');
-                paramsTableViewIcon.classList.add('active');
-                paramsListView.classList.remove('active');
-                paramsTableView.classList.add('active');
-            });
-        }
-        
         setupParameterReordering();
     }
     
