@@ -4,6 +4,24 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### Mermaid Zoom & Pan Functionality Improvements (2025-07-19)
+Fixed erratic zoom behavior in the Mermaid diagram tab in the Page Flow View:
+- **Key Improvements:**
+  - Corrected transform origin issues for consistent zoom behavior
+  - Refined mouse position calculation for accurate cursor-centered zoom
+  - Improved touch event handling for reliable mobile experience
+  - Standardized zoom application across all zoom functions
+  - Fixed reset zoom to properly center the diagram
+- **Zoom Implementation Differences:**
+  - **Graph Tab:** Uses D3.js built-in zoom behavior with sophisticated event handling
+  - **Mermaid Tab:** Uses CSS transforms with custom event handlers
+  - Both now support mouse wheel zoom, drag panning, and touch gestures
+- **Technical Considerations:**
+  - Variable zoom factors (1.05-1.2) based on zoom level for precision
+  - Transform origin maintained at mouse position during zoom
+  - State management via mermaidZoom and mermaidPan variables
+  - Event handlers initialized when switching to Mermaid tab
+
 ### Form Details View Table View Removal (2025-07-13)
 Removed the table view functionality from all Form Details View tabs (Parameters, Buttons, Output Variables) to simplify the interface:
 - **Files Modified:**
@@ -423,6 +441,36 @@ Successfully refactored the large pageFlowDiagramView.js file (1866 lines) into 
 
 ### Benefits:
 - Reduced main file from 1866 lines to ~140 lines
+
+## Mermaid Diagram Tab Enhancement (July 18, 2025)
+
+Enhanced the Mermaid diagram tab in the Page Flow view to provide the same level of zoom/pan interaction as the D3.js graph view:
+
+### Key Improvements:
+- **Enhanced Zoom Functionality**: 
+  - Mouse wheel zoom centered on mouse position
+  - Variable zoom factors based on zoom level (1.15, 1.1, 1.05)
+  - Zoom range from 0.05 to 20 (matching D3 graph)
+  - Smooth zoom transitions
+
+- **Advanced Pan Support**:
+  - Drag-to-pan using mouse button
+  - Proper cursor feedback (grab/grabbing)
+  - Mobile device touch support
+
+- **Improved Touch Support**:
+  - Pinch to zoom gesture with proper centering
+  - Single finger pan gesture
+  - Prevents default scroll behavior for better experience
+
+### Implementation Details:
+- Uses CSS transforms for both translation (pan) and scaling (zoom)
+- State variables track zoom level (mermaidZoom) and pan position (mermaidPanX, mermaidPanY)
+- Dynamically adjusts container dimensions based on content and zoom level
+- Maintains proper transform origin for intuitive zoom behavior
+- Initializes automatically after Mermaid diagram rendering
+
+The result is a consistent interaction model across both visualization tabs, with the Mermaid diagram now offering the same level of intuitive navigation as the D3.js graph view.
 - Improved maintainability and readability
 - Better separation of concerns
 - Easier testing and debugging

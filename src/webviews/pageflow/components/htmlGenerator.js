@@ -309,7 +309,8 @@ function getEmbeddedCSS() {
             padding: 20px;
             box-sizing: border-box;
             position: relative;
-            transition: all 0.3s ease;
+            transition: transform 0.2s ease; /* Improved transition for smoother zoom/pan */
+            transform-origin: 0 0; /* Set transform origin to top-left for better pan behavior */
         }
         
         .mermaid-controls {
@@ -362,19 +363,23 @@ function getEmbeddedCSS() {
         }
         
         .mermaid-container {
-            transform-origin: center center;
-            transition: transform 0.3s ease;
+            transform-origin: 0 0; /* Changed to top-left for more predictable behavior */
+            transition: transform 0.15s ease; /* Reduced transition time for more responsive feel */
+            margin: 0 auto;
+            text-align: center;
         }
         
         .mermaid-viewport {
             width: 100%;
             height: 80vh;
-            overflow: auto;
+            overflow: hidden;
             border: 1px solid var(--vscode-panel-border);
             border-radius: 4px;
             background-color: var(--vscode-editor-background);
             position: relative;
-            scroll-behavior: smooth;
+            cursor: grab;
+            margin: 0 auto;
+            text-align: center;
         }
         
         .mermaid-viewport::-webkit-scrollbar {
@@ -1290,6 +1295,12 @@ function getEmbeddedJavaScript(flowMap) {
                         console.log('[DEBUG] Attempting to render Mermaid diagram...');
                         await mermaid.run();
                         console.log('[DEBUG] Mermaid rendering completed successfully');
+                        
+                        // Initialize zoom and pan functionality after successful render
+                        setTimeout(() => {
+                            console.log('[DEBUG] Initializing Mermaid zoom and pan functionality');
+                            initMermaidZoomPan();
+                        }, 100);
                     } catch (error) {
                         console.error('[DEBUG] Mermaid rendering error:', error);
                         mermaidElement.innerHTML = 
@@ -1491,37 +1502,111 @@ function getEmbeddedJavaScript(flowMap) {
             }
         }
         
-        // Mermaid zoom functions
+        // Mermaid zoom and pan variables
+        let mermaidPanX = 0;
+        let mermaidPanY = 0;
+        let mermaidIsPanning = false;
+        let mermaidStartX = 0;
+        let mermaidStartY = 0;
+        let mermaidLastPanX = 0;
+        let mermaidLastPanY = 0;
+        
+        // Enhanced Mermaid zoom functions with mouse wheel zoom and panning support
         function mermaidZoomIn() {
             // Use variable zoom increments like the main diagram
-            let zoomFactor = 1.2;
+            let zoomFactor = 1.1; // Reduced for smoother zooming
             if (mermaidZoom > 5) {
-                zoomFactor = 1.1;
-            } else if (mermaidZoom > 10) {
                 zoomFactor = 1.05;
+            } else if (mermaidZoom > 10) {
+                zoomFactor = 1.03;
             }
             
-            mermaidZoom = Math.min(mermaidZoom * zoomFactor, 20);
-            applyMermaidZoom();
-            updateMermaidZoomDisplay();
+            const mermaidViewport = document.querySelector('.mermaid-viewport');
+            if (mermaidViewport) {
+                // Get viewport dimensions
+                const viewportRect = mermaidViewport.getBoundingClientRect();
+                const centerX = viewportRect.width / 2;
+                const centerY = viewportRect.height / 2;
+                
+                // Convert center point to original coordinate space
+                const centerXInOriginalSpace = (centerX - mermaidPanX) / mermaidZoom;
+                const centerYInOriginalSpace = (centerY - mermaidPanY) / mermaidZoom;
+                
+                // Update zoom level
+                mermaidZoom = Math.min(mermaidZoom * zoomFactor, 20);
+                
+                // Calculate new pan position to keep center fixed
+                mermaidPanX = centerX - centerXInOriginalSpace * mermaidZoom;
+                mermaidPanY = centerY - centerYInOriginalSpace * mermaidZoom;
+                
+                // Apply the transformation and update display
+                applyMermaidZoom();
+                updateMermaidZoomDisplay();
+            } else {
+                mermaidZoom = Math.min(mermaidZoom * zoomFactor, 20);
+                applyMermaidZoom();
+                updateMermaidZoomDisplay();
+            }
         }
         
         function mermaidZoomOut() {
             // Use variable zoom increments like the main diagram
-            let zoomFactor = 1.2;
+            let zoomFactor = 1.1; // Reduced for smoother zooming
             if (mermaidZoom > 5) {
-                zoomFactor = 1.1;
-            } else if (mermaidZoom > 10) {
                 zoomFactor = 1.05;
+            } else if (mermaidZoom > 10) {
+                zoomFactor = 1.03;
             }
             
-            mermaidZoom = Math.max(mermaidZoom / zoomFactor, 0.05);
-            applyMermaidZoom();
-            updateMermaidZoomDisplay();
+            const mermaidViewport = document.querySelector('.mermaid-viewport');
+            if (mermaidViewport) {
+                // Get viewport dimensions
+                const viewportRect = mermaidViewport.getBoundingClientRect();
+                const centerX = viewportRect.width / 2;
+                const centerY = viewportRect.height / 2;
+                
+                // Convert center point to original coordinate space
+                const centerXInOriginalSpace = (centerX - mermaidPanX) / mermaidZoom;
+                const centerYInOriginalSpace = (centerY - mermaidPanY) / mermaidZoom;
+                
+                // Update zoom level
+                mermaidZoom = Math.max(mermaidZoom / zoomFactor, 0.05);
+                
+                // Calculate new pan position to keep center fixed
+                mermaidPanX = centerX - centerXInOriginalSpace * mermaidZoom;
+                mermaidPanY = centerY - centerYInOriginalSpace * mermaidZoom;
+                
+                // Apply the transformation and update display
+                applyMermaidZoom();
+                updateMermaidZoomDisplay();
+            } else {
+                mermaidZoom = Math.max(mermaidZoom / zoomFactor, 0.05);
+                applyMermaidZoom();
+                updateMermaidZoomDisplay();
+            }
         }
         
         function mermaidResetZoom() {
             mermaidZoom = 1;
+            
+            // Center the diagram in the viewport
+            const mermaidViewport = document.querySelector('.mermaid-viewport');
+            const mermaidContainer = document.getElementById('mermaidContainer');
+            
+            if (mermaidViewport && mermaidContainer) {
+                const viewportRect = mermaidViewport.getBoundingClientRect();
+                
+                // Center horizontally
+                mermaidPanX = (viewportRect.width - mermaidContainer.offsetWidth) / 2;
+                if (mermaidPanX < 0) mermaidPanX = 20; // Minimum padding
+                
+                // Position near the top with some margin
+                mermaidPanY = 20; 
+            } else {
+                mermaidPanX = 0;
+                mermaidPanY = 0;
+            }
+            
             applyMermaidZoom();
             updateMermaidZoomDisplay();
         }
@@ -1531,49 +1616,35 @@ function getEmbeddedJavaScript(flowMap) {
             const mermaidDiagram = document.getElementById('mermaidDiagram');
             
             if (mermaidContainer && mermaidDiagram) {
-                // Apply transform to the SVG element inside the mermaid diagram, not the container
+                // Apply transform with both zoom and pan to the container
+                // Use 0 0 transform origin for more predictable behavior
+                mermaidContainer.style.transformOrigin = '0 0';
+                mermaidContainer.style.transform = 'translate(' + mermaidPanX + 'px, ' + mermaidPanY + 'px) scale(' + mermaidZoom + ')';
+                
+                // Get the SVG element
                 const svgElement = mermaidDiagram.querySelector('svg');
                 if (svgElement) {
-                    svgElement.style.transform = 'scale(' + mermaidZoom + ')';
-                    svgElement.style.transformOrigin = 'center center';
-                    
                     // Get the original SVG dimensions
                     const bbox = svgElement.getBBox ? svgElement.getBBox() : { width: 800, height: 600 };
                     const originalWidth = bbox.width || 800;
                     const originalHeight = bbox.height || 600;
                     
-                    // Calculate scaled dimensions
-                    const scaledWidth = originalWidth * mermaidZoom;
-                    const scaledHeight = originalHeight * mermaidZoom;
-                    
-                    // Set container size to accommodate scaled content with padding
+                    // Set container size to original content size (not scaled)
+                    // The scaling will be handled by the transform
                     const padding = 40;
-                    mermaidContainer.style.width = (scaledWidth + padding * 2) + 'px';
-                    mermaidContainer.style.height = (scaledHeight + padding * 2) + 'px';
+                    mermaidContainer.style.width = (originalWidth + padding * 2) + 'px';
+                    mermaidContainer.style.height = (originalHeight + padding * 2) + 'px';
                     mermaidContainer.style.padding = padding + 'px';
-                    
-                    // Center the container within the viewport
-                    mermaidContainer.style.margin = '0 auto';
                 } else {
                     // Fallback for when SVG is not yet rendered
-                    mermaidContainer.style.transform = 'scale(' + mermaidZoom + ')';
-                    mermaidContainer.style.transformOrigin = 'center center';
-                    
-                    // Add extra padding when zoomed to prevent clipping
                     const basePadding = 20;
-                    const extraPadding = Math.max(0, (mermaidZoom - 1) * 200);
-                    const totalPadding = basePadding + extraPadding;
+                    mermaidContainer.style.padding = basePadding + 'px';
                     
-                    mermaidContainer.style.padding = totalPadding + 'px';
-                    
-                    // Ensure minimum dimensions scale appropriately
+                    // Set reasonable defaults for dimensions
                     const baseMinWidth = 800;
                     const baseMinHeight = 500;
-                    const scaledMinWidth = baseMinWidth * mermaidZoom;
-                    const scaledMinHeight = baseMinHeight * mermaidZoom;
-                    
-                    mermaidContainer.style.minWidth = scaledMinWidth + 'px';
-                    mermaidContainer.style.minHeight = scaledMinHeight + 'px';
+                    mermaidContainer.style.minWidth = baseMinWidth + 'px';
+                    mermaidContainer.style.minHeight = baseMinHeight + 'px';
                 }
             }
         }
@@ -1582,6 +1653,159 @@ function getEmbeddedJavaScript(flowMap) {
             const zoomDisplay = document.getElementById('mermaidZoomLevel');
             if (zoomDisplay) {
                 zoomDisplay.textContent = Math.round(mermaidZoom * 100) + '%';
+            }
+        }
+        
+        // Initialize mouse wheel zoom and panning for Mermaid diagram
+        function initMermaidZoomPan() {
+            const mermaidViewport = document.querySelector('.mermaid-viewport');
+            const mermaidContainer = document.getElementById('mermaidContainer');
+            
+            if (mermaidViewport && mermaidContainer) {
+                // Set initial cursor style
+                mermaidViewport.style.cursor = 'grab';
+                
+                // Mouse wheel zoom (centered on mouse position)
+                mermaidViewport.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    
+                    // Get mouse position relative to the container with current transform
+                    const rect = mermaidViewport.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    // Convert to position in the original coordinate space
+                    const mouseXInOriginalSpace = (mouseX - mermaidPanX) / mermaidZoom;
+                    const mouseYInOriginalSpace = (mouseY - mermaidPanY) / mermaidZoom;
+                    
+                    const oldZoom = mermaidZoom;
+                    
+                    // Calculate zoom factor based on current zoom level for better precision
+                    let zoomFactor = 1.1; // Reduced for smoother zooming
+                    if (mermaidZoom > 5) {
+                        zoomFactor = 1.05; // Smaller increments at high zoom
+                    } else if (mermaidZoom > 10) {
+                        zoomFactor = 1.03; // Even smaller increments at very high zoom
+                    }
+                    
+                    // Apply zoom based on wheel direction
+                    if (e.deltaY < 0) {
+                        mermaidZoom = Math.min(mermaidZoom * zoomFactor, 20);
+                    } else {
+                        mermaidZoom = Math.max(mermaidZoom / zoomFactor, 0.05);
+                    }
+                    
+                    // Calculate new pan position to keep mouse point fixed
+                    // This is the key formula for stable zooming:
+                    // - Transform the mouse point back to original space
+                    // - Apply new zoom to that point
+                    // - Offset so mouse stays in same screen position
+                    mermaidPanX = mouseX - mouseXInOriginalSpace * mermaidZoom;
+                    mermaidPanY = mouseY - mouseYInOriginalSpace * mermaidZoom;
+                    
+                    // Apply the transformation and update display
+                    applyMermaidZoom();
+                    updateMermaidZoomDisplay();
+                }, { passive: false });
+                
+                // Pan functionality (drag)
+                mermaidViewport.addEventListener('mousedown', function(e) {
+                    if (e.button !== 0) return; // Only respond to left mouse button
+                    mermaidIsPanning = true;
+                    mermaidStartX = e.clientX;
+                    mermaidStartY = e.clientY;
+                    mermaidLastPanX = mermaidPanX;
+                    mermaidLastPanY = mermaidPanY;
+                    mermaidViewport.style.cursor = 'grabbing';
+                });
+                
+                document.addEventListener('mousemove', function(e) {
+                    if (!mermaidIsPanning) return;
+                    mermaidPanX = mermaidLastPanX + (e.clientX - mermaidStartX);
+                    mermaidPanY = mermaidLastPanY + (e.clientY - mermaidStartY);
+                    applyMermaidZoom();
+                });
+                
+                document.addEventListener('mouseup', function() {
+                    if (mermaidIsPanning) {
+                        mermaidIsPanning = false;
+                        mermaidViewport.style.cursor = 'grab';
+                    }
+                });
+                
+                // Touch support for mobile devices
+                mermaidViewport.addEventListener('touchstart', function(e) {
+                    if (e.touches.length === 1) {
+                        mermaidIsPanning = true;
+                        mermaidStartX = e.touches[0].clientX;
+                        mermaidStartY = e.touches[0].clientY;
+                        mermaidLastPanX = mermaidPanX;
+                        mermaidLastPanY = mermaidPanY;
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                mermaidViewport.addEventListener('touchmove', function(e) {
+                    if (mermaidIsPanning && e.touches.length === 1) {
+                        mermaidPanX = mermaidLastPanX + (e.touches[0].clientX - mermaidStartX);
+                        mermaidPanY = mermaidLastPanY + (e.touches[0].clientY - mermaidStartY);
+                        applyMermaidZoom();
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                mermaidViewport.addEventListener('touchend', function() {
+                    mermaidIsPanning = false;
+                });
+                
+                // Initialize pinch zoom for touch devices
+                let initialDistance = 0;
+                let initialZoom = 1;
+                
+                mermaidViewport.addEventListener('touchstart', function(e) {
+                    if (e.touches.length === 2) {
+                        initialDistance = Math.hypot(
+                            e.touches[0].clientX - e.touches[1].clientX,
+                            e.touches[0].clientY - e.touches[1].clientY
+                        );
+                        initialZoom = mermaidZoom;
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                mermaidViewport.addEventListener('touchmove', function(e) {
+                    if (e.touches.length === 2) {
+                        const distance = Math.hypot(
+                            e.touches[0].clientX - e.touches[1].clientX,
+                            e.touches[0].clientY - e.touches[1].clientY
+                        );
+                        
+                        const center = {
+                            x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                            y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+                        };
+                        
+                        const rect = mermaidViewport.getBoundingClientRect();
+                        const pinchCenterX = center.x - rect.left;
+                        const pinchCenterY = center.y - rect.top;
+                        
+                        // Convert pinch center to original coordinate space
+                        const pinchCenterXInOriginalSpace = (pinchCenterX - mermaidPanX) / mermaidZoom;
+                        const pinchCenterYInOriginalSpace = (pinchCenterY - mermaidPanY) / mermaidZoom;
+                        
+                        // Calculate new zoom with smoother factor
+                        const oldZoom = mermaidZoom;
+                        mermaidZoom = Math.min(20, Math.max(0.05, initialZoom * distance / initialDistance));
+                        
+                        // Calculate new pan position to keep pinch center fixed
+                        mermaidPanX = pinchCenterX - pinchCenterXInOriginalSpace * mermaidZoom;
+                        mermaidPanY = pinchCenterY - pinchCenterYInOriginalSpace * mermaidZoom;
+                        
+                        applyMermaidZoom();
+                        updateMermaidZoomDisplay();
+                        e.preventDefault();
+                    }
+                }, { passive: false });
             }
         }
         
