@@ -131,6 +131,11 @@ function getEmbeddedCSS() {
             position: relative;
             overflow: hidden;
             background-color: var(--vscode-editor-background);
+            cursor: grab;
+        }
+        
+        .flow-container:active {
+            cursor: grabbing;
         }
         
         .d3-container {
@@ -299,12 +304,12 @@ function getEmbeddedCSS() {
             width: 100%;
             min-height: 500px;
             background-color: var(--vscode-editor-background);
-            border: 1px solid var(--vscode-panel-border);
-            border-radius: 4px;
-            overflow: auto;
+            overflow: visible;
             text-align: center;
             padding: 20px;
             box-sizing: border-box;
+            position: relative;
+            transition: all 0.3s ease;
         }
         
         .mermaid-controls {
@@ -357,8 +362,38 @@ function getEmbeddedCSS() {
         }
         
         .mermaid-container {
-            transform-origin: center top;
+            transform-origin: center center;
             transition: transform 0.3s ease;
+        }
+        
+        .mermaid-viewport {
+            width: 100%;
+            height: 80vh;
+            overflow: auto;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            background-color: var(--vscode-editor-background);
+            position: relative;
+            scroll-behavior: smooth;
+        }
+        
+        .mermaid-viewport::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .mermaid-viewport::-webkit-scrollbar-track {
+            background: var(--vscode-scrollbarSlider-background);
+            border-radius: 6px;
+        }
+        
+        .mermaid-viewport::-webkit-scrollbar-thumb {
+            background: var(--vscode-scrollbarSlider-background);
+            border-radius: 6px;
+        }
+        
+        .mermaid-viewport::-webkit-scrollbar-thumb:hover {
+            background: var(--vscode-scrollbarSlider-hoverBackground);
         }
         
         .mermaid-syntax {
@@ -653,6 +688,7 @@ function getEmbeddedJavaScript(flowMap) {
             populateRoleFilter();
             renderDiagram();
             updateZoomDisplay();
+            addKeyboardNavigation();
             
             document.getElementById('searchPages').addEventListener('input', searchPages);
             
@@ -689,7 +725,7 @@ function getEmbeddedJavaScript(flowMap) {
             
             // Create zoom behavior
             zoom = d3.zoom()
-                .scaleExtent([0.1, 3])
+                .scaleExtent([0.05, 20])
                 .on('zoom', (event) => {
                     g.attr('transform', event.transform);
                     currentZoom = event.transform.k;
@@ -698,6 +734,74 @@ function getEmbeddedJavaScript(flowMap) {
             
             svg.call(zoom);
             g = svg.append('g');
+        }
+
+        // Add keyboard navigation support
+        function addKeyboardNavigation() {
+            document.addEventListener('keydown', function(event) {
+                // Only handle keyboard events when the diagram tab is active
+                const diagramTab = document.getElementById('diagram');
+                if (!diagramTab || !diagramTab.classList.contains('active')) {
+                    return;
+                }
+                
+                // Prevent default behavior for our handled keys
+                const handledKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Equal', 'Minus', 'Digit0'];
+                if (handledKeys.includes(event.code) || (event.key === '+' || event.key === '-' || event.key === '0')) {
+                    event.preventDefault();
+                }
+                
+                const currentTransform = d3.zoomTransform(svg.node());
+                const panStep = 50 / currentTransform.k; // Adjust pan step based on zoom level
+                
+                switch(event.code) {
+                    case 'ArrowUp':
+                        // Pan up
+                        svg.transition().duration(200).call(
+                            zoom.transform,
+                            d3.zoomIdentity.translate(currentTransform.x, currentTransform.y + panStep).scale(currentTransform.k)
+                        );
+                        break;
+                    case 'ArrowDown':
+                        // Pan down
+                        svg.transition().duration(200).call(
+                            zoom.transform,
+                            d3.zoomIdentity.translate(currentTransform.x, currentTransform.y - panStep).scale(currentTransform.k)
+                        );
+                        break;
+                    case 'ArrowLeft':
+                        // Pan left
+                        svg.transition().duration(200).call(
+                            zoom.transform,
+                            d3.zoomIdentity.translate(currentTransform.x + panStep, currentTransform.y).scale(currentTransform.k)
+                        );
+                        break;
+                    case 'ArrowRight':
+                        // Pan right
+                        svg.transition().duration(200).call(
+                            zoom.transform,
+                            d3.zoomIdentity.translate(currentTransform.x - panStep, currentTransform.y).scale(currentTransform.k)
+                        );
+                        break;
+                    case 'Equal':
+                    case 'NumpadAdd':
+                        // Zoom in (+ key)
+                        if (event.key === '+' || event.shiftKey) {
+                            zoomIn();
+                        }
+                        break;
+                    case 'Minus':
+                    case 'NumpadSubtract':
+                        // Zoom out (- key)
+                        zoomOut();
+                        break;
+                    case 'Digit0':
+                    case 'Numpad0':
+                        // Reset zoom (0 key)
+                        resetZoom();
+                        break;
+                }
+            });
         }
 
         // Populate role filter
@@ -1061,7 +1165,15 @@ function getEmbeddedJavaScript(flowMap) {
 
         function zoomIn() {
             const currentTransform = d3.zoomTransform(svg.node());
-            const newScale = Math.min(currentTransform.k * 1.2, 3);
+            // Use different zoom increments based on current zoom level for better precision
+            let zoomFactor = 1.2;
+            if (currentTransform.k > 5) {
+                zoomFactor = 1.1; // Smaller increments at high zoom
+            } else if (currentTransform.k > 10) {
+                zoomFactor = 1.05; // Even smaller increments at very high zoom
+            }
+            
+            const newScale = Math.min(currentTransform.k * zoomFactor, 20);
             svg.transition().duration(300).call(
                 zoom.transform,
                 d3.zoomIdentity.translate(currentTransform.x, currentTransform.y).scale(newScale)
@@ -1070,7 +1182,15 @@ function getEmbeddedJavaScript(flowMap) {
 
         function zoomOut() {
             const currentTransform = d3.zoomTransform(svg.node());
-            const newScale = Math.max(currentTransform.k / 1.2, 0.1);
+            // Use different zoom increments based on current zoom level
+            let zoomFactor = 1.2;
+            if (currentTransform.k > 5) {
+                zoomFactor = 1.1; // Smaller increments at high zoom
+            } else if (currentTransform.k > 10) {
+                zoomFactor = 1.05; // Even smaller increments at very high zoom
+            }
+            
+            const newScale = Math.max(currentTransform.k / zoomFactor, 0.05);
             svg.transition().duration(300).call(
                 zoom.transform,
                 d3.zoomIdentity.translate(currentTransform.x, currentTransform.y).scale(newScale)
@@ -1373,13 +1493,29 @@ function getEmbeddedJavaScript(flowMap) {
         
         // Mermaid zoom functions
         function mermaidZoomIn() {
-            mermaidZoom = Math.min(mermaidZoom * 1.2, 3);
+            // Use variable zoom increments like the main diagram
+            let zoomFactor = 1.2;
+            if (mermaidZoom > 5) {
+                zoomFactor = 1.1;
+            } else if (mermaidZoom > 10) {
+                zoomFactor = 1.05;
+            }
+            
+            mermaidZoom = Math.min(mermaidZoom * zoomFactor, 20);
             applyMermaidZoom();
             updateMermaidZoomDisplay();
         }
         
         function mermaidZoomOut() {
-            mermaidZoom = Math.max(mermaidZoom / 1.2, 0.1);
+            // Use variable zoom increments like the main diagram
+            let zoomFactor = 1.2;
+            if (mermaidZoom > 5) {
+                zoomFactor = 1.1;
+            } else if (mermaidZoom > 10) {
+                zoomFactor = 1.05;
+            }
+            
+            mermaidZoom = Math.max(mermaidZoom / zoomFactor, 0.05);
             applyMermaidZoom();
             updateMermaidZoomDisplay();
         }
@@ -1392,8 +1528,53 @@ function getEmbeddedJavaScript(flowMap) {
         
         function applyMermaidZoom() {
             const mermaidContainer = document.getElementById('mermaidContainer');
-            if (mermaidContainer) {
-                mermaidContainer.style.transform = 'scale(' + mermaidZoom + ')';
+            const mermaidDiagram = document.getElementById('mermaidDiagram');
+            
+            if (mermaidContainer && mermaidDiagram) {
+                // Apply transform to the SVG element inside the mermaid diagram, not the container
+                const svgElement = mermaidDiagram.querySelector('svg');
+                if (svgElement) {
+                    svgElement.style.transform = 'scale(' + mermaidZoom + ')';
+                    svgElement.style.transformOrigin = 'center center';
+                    
+                    // Get the original SVG dimensions
+                    const bbox = svgElement.getBBox ? svgElement.getBBox() : { width: 800, height: 600 };
+                    const originalWidth = bbox.width || 800;
+                    const originalHeight = bbox.height || 600;
+                    
+                    // Calculate scaled dimensions
+                    const scaledWidth = originalWidth * mermaidZoom;
+                    const scaledHeight = originalHeight * mermaidZoom;
+                    
+                    // Set container size to accommodate scaled content with padding
+                    const padding = 40;
+                    mermaidContainer.style.width = (scaledWidth + padding * 2) + 'px';
+                    mermaidContainer.style.height = (scaledHeight + padding * 2) + 'px';
+                    mermaidContainer.style.padding = padding + 'px';
+                    
+                    // Center the container within the viewport
+                    mermaidContainer.style.margin = '0 auto';
+                } else {
+                    // Fallback for when SVG is not yet rendered
+                    mermaidContainer.style.transform = 'scale(' + mermaidZoom + ')';
+                    mermaidContainer.style.transformOrigin = 'center center';
+                    
+                    // Add extra padding when zoomed to prevent clipping
+                    const basePadding = 20;
+                    const extraPadding = Math.max(0, (mermaidZoom - 1) * 200);
+                    const totalPadding = basePadding + extraPadding;
+                    
+                    mermaidContainer.style.padding = totalPadding + 'px';
+                    
+                    // Ensure minimum dimensions scale appropriately
+                    const baseMinWidth = 800;
+                    const baseMinHeight = 500;
+                    const scaledMinWidth = baseMinWidth * mermaidZoom;
+                    const scaledMinHeight = baseMinHeight * mermaidZoom;
+                    
+                    mermaidContainer.style.minWidth = scaledMinWidth + 'px';
+                    mermaidContainer.style.minHeight = scaledMinHeight + 'px';
+                }
             }
         }
         
@@ -1538,6 +1719,11 @@ function generateBodyContent(flowMap) {
                     <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
                     <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom">⌂</button>
                 </div>
+            </div>
+            
+            <div class="navigation-help" style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 10px; padding: 8px; background-color: var(--vscode-editorWidget-background); border-radius: 4px;">
+                <strong>Navigation:</strong> 
+                Arrow keys to pan • +/- to zoom • 0 to reset • Mouse wheel to zoom • Drag to pan • Drag nodes to reposition
             </div>
         </div>
         
@@ -1748,11 +1934,18 @@ function generateMermaidContent(flowMap) {
                     </div>
                 </div>
             </div>
+            
+            <div class="navigation-help" style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 10px; padding: 8px; background-color: var(--vscode-editorWidget-background); border-radius: 4px;">
+                <strong>Navigation:</strong> 
+                +/- buttons to zoom • Mouse wheel to zoom • Drag to pan • Scroll to navigate zoomed content
+            </div>
         </div>
         
-        <div class="mermaid-container" id="mermaidContainer">
-            <div id="mermaidDiagram" class="mermaid">
+        <div class="mermaid-viewport">
+            <div class="mermaid-container" id="mermaidContainer">
+                <div id="mermaidDiagram" class="mermaid">
 ${mermaidSyntax}
+                </div>
             </div>
         </div>
         

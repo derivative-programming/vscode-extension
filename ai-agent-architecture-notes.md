@@ -485,44 +485,116 @@ Added role filtering and zoom functionality to the Mermaid tab in the page flow 
 - Consistent UI pattern between both visualization tabs
 - Smooth transitions and visual feedback for all interactions
 
-## Page Flow View - Mermaid Diagram Type Selector Enhancement
+## Checkbox Behavior Implementation
 
-**Date:** July 13, 2025
+### Property Toggle Checkboxes in Table Views
+When implementing property toggle checkboxes in table views (Forms, Reports, Objects), the following pattern must be followed for correct behavior:
 
-**Enhancement:** Added a diagram type dropdown to the Mermaid tab in the page flow view.
+1. **Template Implementation**: Checkboxes must use `"checked disabled"` when property exists:
+   ```javascript
+   `<input type="checkbox" class="property-checkbox" ${propertyExists ? "checked disabled" : ""} ${originallyChecked}>`
+   ```
 
-**Components Modified:**
-- `src/webviews/pageflow/components/htmlGenerator.js`
+2. **Event Handler Implementation**: Must prevent unchecking of existing properties:
+   ```javascript
+   checkbox.addEventListener('change', function() {
+       // Don't allow unchecking of properties that already exist in the model
+       if (this.hasAttribute('data-originally-checked')) {
+           this.checked = true;
+           return;
+       }
+       
+       if (this.checked) {
+           // Enable input and disable checkbox to prevent unchecking
+           this.disabled = true;
+           this.setAttribute('data-originally-checked', 'true');
+       }
+   });
+   ```
 
-**Changes Made:**
+3. **CSS Class Names**: Different views use different class names:
+   - Forms parameters: `property-toggle`
+   - Forms buttons: `button-checkbox`
+   - Forms output variables: `outputvar-checkbox`
+   - Reports columns: `column-checkbox`
+   - Reports buttons: `button-checkbox`
+   - Objects properties: `prop-checkbox`
 
-1. **CSS Enhancements:**
-   - Added `.mermaid-type-controls` styles for the new dropdown container
-   - Added `.mermaid-type-title` styles for the dropdown label
-   - Added `.mermaid-type-select` styles for the dropdown element with VS Code theming
+This pattern ensures users cannot accidentally remove existing properties from the model, only add new ones.
 
-2. **HTML Structure:**
-   - Added diagram type dropdown section in `generateMermaidContent()` function
-   - Placed dropdown above the role filter controls for logical grouping
-   - Options include: Flowchart Top-Down, Flowchart Left-Right
+## Data Object Properties View Synchronization (2024-07-13)
 
-3. **JavaScript Functionality:**
-   - Added `mermaidDiagramType` global variable with default value 'flowchart TD'
-   - Added `handleMermaidTypeChange()` function to respond to dropdown changes
-   - Updated `generateMermaidSyntax()` function to accept diagram type parameter
-   - Updated `generateMermaidSyntaxFromFlowMap()` to use global diagram type variable
-   - Diagram automatically re-renders when type is changed
+### Issue Identified
+The data object properties tab has both list and table views that allow users to edit property values. However, changes made in one view were not being reflected in the other view when switching between them.
 
-**User Experience:**
-- Users can now select different diagram layouts for Mermaid diagrams
-- Changes are applied immediately with automatic re-rendering
-- Dropdown follows VS Code design system and theming
-- Works in conjunction with existing role filtering and zoom controls
+### Root Cause
+- Both views update the in-memory `props` array when changes are made
+- However, when switching views, the UI controls were not being refreshed with the current state of the `props` array
+- This caused inconsistent data display between list and table views
 
-**Technical Notes:**
-- Diagram type changes trigger full diagram regeneration with current filters applied
-- Default diagram type remains 'flowchart TD' for backward compatibility
-- Function signatures updated to support optional diagram type parameter
+### Solution Implemented (Revised July 13, 2025)
+1. **Added View Refresh Functions** in `clientScriptTemplate.js`:
+   - `window.refreshPropertiesTableView()` - Updates table view with current model data
+   - `window.refreshPropertiesListView()` - Updates list view with current model data  
+   - `window.refreshLookupItemsTableView()` - Updates lookup items table view
+   - `window.refreshLookupItemsListView()` - Updates lookup items list view
+   - Functions are defined globally on `window` object to ensure accessibility across modules
+
+2. **Enhanced View Switching Logic**:
+   - Modified the view switching event handler in `uiEventHandlers.js` to call appropriate refresh functions when switching views
+   - Added small timeout delay (50ms) to ensure DOM is ready and pending updates are complete
+   - Added extensive console logging for debugging synchronization issues
+
+3. **Added Cross-View Updates**:
+   - Modified `updatePropertyField()` in `saveSubmitHandlers.js` to refresh table view when list view changes
+   - Modified `updateTableField()` in `saveSubmitHandlers.js` to refresh list view when table view changes
+   - Modified `addNewProperty()` in `propertyManagement.js` to refresh list view after adding properties
+   - All refresh calls use small timeout delays to handle timing issues
+
+4. **Lookup Items Synchronization**:
+   - Enhanced `saveLookupItemChanges()` to update table view when list view changes
+   - Enhanced table input change handlers to update list view when table changes
+   - Refresh functions access lookup items via `window.objectData.lookupItem` for proper scope access
+
+### Key Files Modified
+- `src/webviews/objects/components/templates/clientScriptTemplate.js` - Added global refresh functions with proper scope access
+- `src/webviews/objects/components/scripts/uiEventHandlers.js` - Added view switching refresh calls with timing delays
+- `src/webviews/objects/components/scripts/saveSubmitHandlers.js` - Added cross-view update calls with debugging
+- `src/webviews/objects/components/scripts/propertyManagement.js` - Added refresh call after property addition
+- `src/webviews/objects/components/scripts/lookupItemManagement.js` - Enhanced lookup item synchronization
+
+### Technical Implementation Details (Revised)
+- Refresh functions are defined globally on `window` object to ensure accessibility across all modules
+- Functions access global variables (`props`, `propColumns`, `propItemsSchema`) defined in client script scope
+- Lookup items are accessed via `window.objectData.lookupItem` to handle local variable scope properly
+- Small timeout delays (10-50ms) are used to handle timing issues where DOM or data updates need completion
+- Extensive console logging added for debugging synchronization issues
+- Both properties and lookup items follow the same synchronization pattern with proper error handling
+
+## Form Details View Issues and Fixes
+
+### Issues Found (2025-07-13):
+1. **Empty Implementation Functions**: The `updateModelDirectly` and `updateSettingsDirectly` functions in `formDetailsView.js` were placeholder functions that only logged messages, not actually updating the model.
+
+2. **Command Name Mismatch**: The form UI event handlers were sending an `updateForm` command, but the message handler was only expecting `updateSettings` and `updateModel` commands.
+
+3. **Missing Settings Handlers**: The form control utilities lacked proper event handlers to send `updateSettings` commands for individual property changes.
+
+### Fixes Applied:
+1. **Implemented Model Update Functions**: Added proper implementations for `updateModelDirectly` and `updateSettingsDirectly` in `formDetailsView.js`, following the same pattern as the working report details view.
+
+2. **Added updateForm Command Handler**: Added a new case for handling `updateForm` commands for backward compatibility.
+
+3. **Enhanced Form Control Utilities**: Added `setupSettingsInputHandlers()` function to properly handle checkbox and input changes for settings, sending `updateSettings` commands with proper property/exists/value structure.
+
+4. **Fixed UI Event Handlers**: Removed conflicting updateForm logic from `uiEventHandlers.js` and integrated the proper settings handlers through the DOM initialization.
+
+5. **Connected DOM Initialization**: Ensured `setupSettingsInputHandlers()` is called during DOM initialization to properly wire up the event handlers.
+
+### Key Pattern for Model Updates:
+- Settings changes send: `{ command: 'updateSettings', data: { property, exists, value } }`
+- The backend handles individual property updates and calls `modelService.markUnsavedChanges()`
+- Tree view is refreshed with `vscode.commands.executeCommand("appdna.refresh")`
 
 ## Local Array Synchronization Pattern (Added 2025-07-13)
 
@@ -553,28 +625,3 @@ When implementing details views with list views (Forms, Reports, Objects), chang
 ### Example Files:
 - `columnManagementFunctions.js` - Column property changes
 - Similar pattern needed for buttons, parameters, etc.
-
-## Form Details View Issues and Fixes
-
-### Issues Found (2025-07-13):
-1. **Empty Implementation Functions**: The `updateModelDirectly` and `updateSettingsDirectly` functions in `formDetailsView.js` were placeholder functions that only logged messages, not actually updating the model.
-
-2. **Command Name Mismatch**: The form UI event handlers were sending an `updateForm` command, but the message handler was only expecting `updateSettings` and `updateModel` commands.
-
-3. **Missing Settings Handlers**: The form control utilities lacked proper event handlers to send `updateSettings` commands for individual property changes.
-
-### Fixes Applied:
-1. **Implemented Model Update Functions**: Added proper implementations for `updateModelDirectly` and `updateSettingsDirectly` in `formDetailsView.js`, following the same pattern as the working report details view.
-
-2. **Added updateForm Command Handler**: Added a new case for handling `updateForm` commands for backward compatibility.
-
-3. **Enhanced Form Control Utilities**: Added `setupSettingsInputHandlers()` function to properly handle checkbox and input changes for settings, sending `updateSettings` commands with proper property/exists/value structure.
-
-4. **Fixed UI Event Handlers**: Removed conflicting updateForm logic from `uiEventHandlers.js` and integrated the proper settings handlers through the DOM initialization.
-
-5. **Connected DOM Initialization**: Ensured `setupSettingsInputHandlers()` is called during DOM initialization to properly wire up the event handlers.
-
-### Key Pattern for Model Updates:
-- Settings changes send: `{ command: 'updateSettings', data: { property, exists, value } }`
-- The backend handles individual property updates and calls `modelService.markUnsavedChanges()`
-- Tree view is refreshed with `vscode.commands.executeCommand("appdna.refresh")`
