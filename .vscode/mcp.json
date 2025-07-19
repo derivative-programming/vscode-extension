@@ -37,7 +37,7 @@
     "command": "${execPath}",
     "args": [
       "${workspaceFolder}",
-      "--extensionDevelopmentPath=${execPath}/extensions/derivative-programming.appdna-1.0.3",
+      "--extensionDevelopmentPath=${execPath}/extensions/derivative-programming.appdna-1.0.4",
       "--command=appdna.startMCPServer"
     ]
   }
