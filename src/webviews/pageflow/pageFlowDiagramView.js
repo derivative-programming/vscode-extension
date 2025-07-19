@@ -100,16 +100,6 @@ async function showPageFlowDiagram(context, modelService) {
                     }
                     return;
                 
-                case 'refreshDiagram':
-                    // Handle refresh request by sending fresh data to the webview
-                    const refreshedObjects = modelService.getAllObjects();
-                    const refreshedFlowMap = buildFlowMap(extractPagesFromModel(refreshedObjects || []));
-                    currentPanel.webview.postMessage({
-                        command: 'updateFlowData',
-                        flowData: refreshedFlowMap
-                    });
-                    return;
-                
                 case 'downloadFile':
                     // Handle file download request from webview
                     if (message.fileName && message.content) {

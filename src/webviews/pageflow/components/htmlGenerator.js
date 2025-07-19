@@ -1220,10 +1220,6 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
         }
 
-        function refreshDiagram() {
-            vscode.postMessage({ command: 'refreshDiagram' });
-        }
-
         function switchTab(tabName) {
             console.log('[DEBUG] Switching to tab:', tabName);
             
@@ -1257,6 +1253,12 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                             '</div>';
                     }
                 }
+            }
+            
+            // Initialize statistics role filter when switching to statistics tab
+            if (tabName === 'statistics') {
+                console.log('[DEBUG] Statistics tab activated, initializing role filter...');
+                initializeStatisticsRoleFilter();
             }
         }
         
@@ -1947,6 +1949,151 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             }
             return { start: '[', end: ']' };
         }
+        
+        // Statistics role filtering variables
+        let statisticsSelectedRoles = new Set();
+        
+        // Initialize statistics role filter when tab is activated
+        function initializeStatisticsRoleFilter() {
+            const statisticsRoleFilterOptions = document.getElementById('statisticsRoleFilterOptions');
+            if (!statisticsRoleFilterOptions || statisticsRoleFilterOptions.children.length > 0) {
+                console.log('[DEBUG] Statistics role filter already initialized or container not found');
+                return;
+            }
+            
+            console.log('[DEBUG] Initializing statistics role filter');
+            const roles = [...new Set(flowData.pages.map(page => page.roleRequired).filter(role => role))];
+            
+            // Add Public Pages if there are pages without roles
+            const hasPublicPages = flowData.pages.some(page => !page.roleRequired);
+            
+            if (hasPublicPages) {
+                const publicItem = document.createElement('div');
+                publicItem.className = 'role-checkbox-item';
+                publicItem.innerHTML = 
+                    '<input type="checkbox" id="statistics-role-PUBLIC" checked onchange="handleStatisticsRoleChange(this)">' +
+                    '<label for="statistics-role-PUBLIC">Public Pages</label>';
+                statisticsRoleFilterOptions.appendChild(publicItem);
+                statisticsSelectedRoles.add('PUBLIC');
+            }
+            
+            roles.forEach(role => {
+                const roleItem = document.createElement('div');
+                roleItem.className = 'role-checkbox-item';
+                roleItem.innerHTML = 
+                    '<input type="checkbox" id="statistics-role-' + role + '" checked onchange="handleStatisticsRoleChange(this)">' +
+                    '<label for="statistics-role-' + role + '">' + role + '</label>';
+                statisticsRoleFilterOptions.appendChild(roleItem);
+                statisticsSelectedRoles.add(role);
+            });
+        }
+        
+        // Handle statistics role filter changes
+        function handleStatisticsRoleChange(checkbox) {
+            const roleValue = checkbox.id.replace('statistics-role-', '');
+            
+            if (checkbox.checked) {
+                statisticsSelectedRoles.add(roleValue);
+            } else {
+                statisticsSelectedRoles.delete(roleValue);
+            }
+            
+            // Update statistics with filtered data
+            updateStatisticsContent();
+        }
+        
+        // Update statistics content with current role filters
+        function updateStatisticsContent() {
+            let filteredPages = flowData.pages;
+            if (statisticsSelectedRoles.size > 0) {
+                filteredPages = flowData.pages.filter(page => {
+                    if (!page.roleRequired) {
+                        return statisticsSelectedRoles.has('PUBLIC');
+                    }
+                    return statisticsSelectedRoles.has(page.roleRequired);
+                });
+            }
+            
+            // Recalculate statistics based on filtered pages
+            const formPages = filteredPages.filter(page => page.type === 'form').length;
+            const reportPages = filteredPages.filter(page => page.type === 'report').length;
+            const totalPages = filteredPages.length;
+            
+            // Calculate connections for filtered pages
+            const filteredPageNames = new Set(filteredPages.map(page => page.name));
+            const connections = flowData.connections || [];
+            const filteredConnections = connections.filter(conn => 
+                filteredPageNames.has(conn.from) && filteredPageNames.has(conn.to)
+            );
+            
+            // Update statistics numbers
+            const statisticsNumbers = document.getElementById('statisticsNumbers');
+            if (statisticsNumbers) {
+                statisticsNumbers.innerHTML = 
+                    '<div class="stat">' +
+                        '<div class="stat-number">' + totalPages + '</div>' +
+                        '<div class="stat-label">Total Pages</div>' +
+                    '</div>' +
+                    '<div class="stat">' +
+                        '<div class="stat-number">' + formPages + '</div>' +
+                        '<div class="stat-label">Form Pages</div>' +
+                    '</div>' +
+                    '<div class="stat">' +
+                        '<div class="stat-number">' + reportPages + '</div>' +
+                        '<div class="stat-label">Report Pages</div>' +
+                    '</div>' +
+                    '<div class="stat">' +
+                        '<div class="stat-number">' + filteredConnections.length + '</div>' +
+                        '<div class="stat-label">Connections</div>' +
+                    '</div>';
+            }
+            
+            // Update detailed statistics
+            const statisticsDetails = document.getElementById('statisticsDetails');
+            if (statisticsDetails) {
+                // Calculate detailed breakdowns for filtered pages
+                const reportsByType = {};
+                filteredPages.filter(page => page.type === 'report').forEach(page => {
+                    const vizType = (page.visualizationType || 'grid').toLowerCase();
+                    if (!reportsByType[vizType]) {
+                        reportsByType[vizType] = 0;
+                    }
+                    reportsByType[vizType]++;
+                });
+                
+                const roleBreakdown = {};
+                filteredPages.forEach(page => {
+                    const role = page.roleRequired || 'Public';
+                    if (!roleBreakdown[role]) {
+                        roleBreakdown[role] = 0;
+                    }
+                    roleBreakdown[role]++;
+                });
+                
+                let detailsHtml = '<h4>Page Breakdown by Type:</h4><ul>';
+                detailsHtml += '<li><strong>Forms:</strong> ' + formPages + ' pages (workflows with isPage=true)</li>';
+                detailsHtml += '<li><strong>Reports:</strong> ' + reportPages + ' pages</li>';
+                
+                if (Object.keys(reportsByType).length > 0) {
+                    detailsHtml += '</ul><h4>Report Types:</h4><ul>';
+                    Object.entries(reportsByType).forEach(([type, count]) => {
+                        detailsHtml += '<li><strong>' + type.charAt(0).toUpperCase() + type.slice(1) + ':</strong> ' + count + ' pages</li>';
+                    });
+                }
+                
+                detailsHtml += '</ul><h4>Pages by Role:</h4><ul>';
+                Object.entries(roleBreakdown).forEach(([role, count]) => {
+                    detailsHtml += '<li><strong>' + role + ':</strong> ' + count + ' pages</li>';
+                });
+                
+                detailsHtml += '</ul><h4>Connections:</h4><ul>';
+                detailsHtml += '<li><strong>Total Connections:</strong> ' + filteredConnections.length + '</li>';
+                detailsHtml += '<li><strong>Average Connections per Page:</strong> ' + (totalPages > 0 ? (filteredConnections.length / totalPages).toFixed(2) : '0') + '</li>';
+                detailsHtml += '</ul>';
+                
+                statisticsDetails.innerHTML = detailsHtml;
+            }
+        }
     `;
 }
 
@@ -1958,9 +2105,6 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
 function generateBodyContent(flowMap) {
     return `<div class="header">
         <div class="title">Page Flow Diagram</div>
-        <div class="controls">
-            <button class="btn" onclick="refreshDiagram()">Refresh</button>
-        </div>
     </div>
     
     <div class="tabs">
@@ -2076,10 +2220,19 @@ function generateStatisticsContent(flowMap) {
     const roles = Array.from(rolesSet).sort();
     
     return `
+        <div class="mermaid-header-controls">
+            <div class="role-filter">
+                <div class="role-filter-title">Filter by Role:</div>
+                <div class="role-filter-options" id="statisticsRoleFilterOptions">
+                    <!-- Role checkboxes will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
         <div class="info-panel">
             <div class="info-panel-title">Page Flow Statistics</div>
             
-            <div class="stats">
+            <div class="stats" id="statisticsNumbers">
                 <div class="stat">
                     <div class="stat-number">${totalPages}</div>
                     <div class="stat-label">Total Pages</div>
@@ -2122,9 +2275,10 @@ function generateStatisticsContent(flowMap) {
                 </div>
             </div>
             
-            <h4>Page Breakdown by Type:</h4>
-            <ul>
-                <li><strong>Forms:</strong> ${formPages} pages (workflows with isPage=true)</li>
+            <div id="statisticsDetails">
+                <h4>Page Breakdown by Type:</h4>
+                <ul>
+                    <li><strong>Forms:</strong> ${formPages} pages (workflows with isPage=true)</li>
                 <li><strong>Reports:</strong> ${reportPages} pages (reports with isPage=true)</li>
             </ul>
             
