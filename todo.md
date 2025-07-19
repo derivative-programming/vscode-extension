@@ -51,22 +51,23 @@ create many diff treeview report items? under report treeview item?...
 - detail page
 
 page flow...
-- only visible buttons
-- not ignored buttons
 - no refresh button top right corner
 - put role filtering on page flow stats tab
 
 mermaid diagram view...
+- graph LR version? others?
+- less sensitive to mouse zoom movements
 - color coding
-- download svg not working
-- remove copy syntax
+- ~~download svg not working~~ ✅ COMPLETED - Enhanced download SVG function with better error handling and debugging
+- ~~remove copy syntax~~ ✅ COMPLETED - Removed Copy Syntax button and function from mermaid tab
 - 'render diagram' > refresh icon button
 - no show\hide context button
 
 - hover text like graph view
 - click to view details like graph view
 - search like graph view
-- ~~enhance zoom/pan functionality to match graph view~~ ✅ COMPLETED - Added mouse wheel zoom and drag pan support
+- enhance zoom/pan functionality to match graph view
+ Added mouse wheel zoom and drag pan support
 
 
 sample page views...

@@ -73,7 +73,10 @@ function extractButtonsFromWorkflow(workflow) {
     // Extract object workflow buttons with destination targets
     if (workflow.objectWorkflowButton && Array.isArray(workflow.objectWorkflowButton)) {
         workflow.objectWorkflowButton.forEach(button => {
-            if (button.destinationTargetName) {
+            // Only include buttons that have destination targets and are visible and not ignored
+            if (button.destinationTargetName && 
+                (!button.hasOwnProperty('isVisible') || button.isVisible !== "false") && 
+                (!button.hasOwnProperty('isIgnored') || button.isIgnored !== "true")) {
                 buttons.push({
                     buttonName: button.buttonText || 'Button',
                     buttonText: button.buttonText,
@@ -99,7 +102,11 @@ function extractButtonsFromReport(report) {
     // Extract report buttons (excluding breadcrumb buttons as requested)
     if (report.reportButton && Array.isArray(report.reportButton)) {
         report.reportButton.forEach(button => {
-            if (button.destinationTargetName && button.buttonType !== "breadcrumb") {
+            // Only include buttons that have destination targets, are not breadcrumb buttons, and are visible and not ignored
+            if (button.destinationTargetName && 
+                button.buttonType !== "breadcrumb" &&
+                (!button.hasOwnProperty('isVisible') || button.isVisible !== "false") && 
+                (!button.hasOwnProperty('isIgnored') || button.isIgnored !== "true")) {
                 buttons.push({
                     buttonName: button.buttonName || button.buttonText,
                     buttonText: button.buttonText,
@@ -114,7 +121,11 @@ function extractButtonsFromReport(report) {
     // Extract report column buttons with destinations
     if (report.reportColumn && Array.isArray(report.reportColumn)) {
         report.reportColumn.forEach(column => {
-            if (column.isButton === "true" && column.destinationTargetName) {
+            // Only include column buttons that have destination targets and are visible and not ignored
+            if (column.isButton === "true" && 
+                column.destinationTargetName &&
+                (!column.hasOwnProperty('isVisible') || column.isVisible !== "false") && 
+                (!column.hasOwnProperty('isIgnored') || column.isIgnored !== "true")) {
                 buttons.push({
                     buttonName: column.name,
                     buttonText: column.buttonText,

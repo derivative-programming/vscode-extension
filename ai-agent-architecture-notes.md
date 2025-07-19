@@ -4,6 +4,56 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### Page Flow Mermaid SVG Download Enhancement (2025-07-19)
+Enhanced the "Download SVG" functionality in the Mermaid tab of the Page Flow view to properly work within VS Code webview restrictions and include role filtering information and app name in the filename:
+- **Key Improvements:**
+  - **VS Code API Integration:** Uses VS Code's native file save dialog instead of browser download methods
+  - **Webview Sandbox Compatibility:** Bypasses webview sandbox restrictions that block direct downloads and popups
+  - **Native File Dialog:** Triggers VS Code's native "Save As" dialog for proper file saving experience
+  - **Role-Aware Filenames:** Automatically includes selected roles in the filename for better organization
+  - **App Name Integration:** Includes the app name from the model at the start of the filename for project identification
+  - Added comprehensive error handling and debugging logs
+  - Enhanced SVG styling for better appearance when saved
+- **Files Modified:**
+  - `htmlGenerator.js`: Updated `downloadMermaidSVG()` to use VS Code API and generate app-name and role-aware filenames
+  - `pageFlowDiagramView.js`: Added `handleFileDownload()` function, message handler, and direct model access for app name
+- **Technical Details:**
+  - **Message-Based Architecture:** Webview sends download request via `vscode.postMessage()`
+  - **Native File Operations:** Uses `vscode.window.showSaveDialog()` and `vscode.workspace.fs.writeFile()`
+  - **Proper File Filtering:** Sets up .svg file filter in save dialog
+  - **Direct Model Access:** Gets app name directly from model memory via `modelService.getCurrentModel().appName`
+  - **Role-Based Filenames:** Uses `mermaidSelectedRoles` to generate descriptive filenames like `myapp-page-flow-mermaid-diagram-roles-admin-user.svg`
+  - **User Feedback:** Shows success/error messages and button state changes
+  - **Error Handling:** Comprehensive error catching with user-friendly messages
+  - **Filename Sanitization:** Converts app name and roles to lowercase and removes special characters for filesystem compatibility
+
+### Page Flow Mermaid Tab Copy Syntax Button Removal (2025-07-19)
+Removed the "Copy Syntax" button from the Mermaid tab in the Page Flow view to simplify the interface:
+- **Files Modified:**
+  - `htmlGenerator.js`: Removed "Copy Syntax" button from mermaid controls and removed `copyMermaidSyntax()` function
+- **UI Changes:**
+  - Simplified mermaid controls to only include: "Render Diagram", "Download SVG", and "Show/Hide Syntax" buttons
+  - Removed clipboard functionality for copying mermaid syntax code
+- **Technical Details:**
+  - Removed button: `<button class="btn" onclick="copyMermaidSyntax()">Copy Syntax</button>`
+  - Removed JavaScript function: `copyMermaidSyntax()` including clipboard API and fallback logic
+
+### Page Flow View Button Filtering Enhancement (2025-07-18)
+Enhanced the page flow view to properly filter out buttons that should not be included in connection calculations:
+- **Key Improvements:**
+  - Added proper existence checks using `hasOwnProperty()` before checking property values
+  - Added filtering for buttons with `isVisible = "false"` in button extraction
+  - Added filtering for buttons with `isIgnored = "true"` in button extraction
+  - Applied filters to both form buttons (`objectWorkflowButton`) and report buttons (`reportButton`, `reportColumn`)
+- **Files Modified:**
+  - `pageExtractor.js`: Updated `extractButtonsFromWorkflow()` and `extractButtonsFromReport()` functions
+- **Technical Details:**
+  - Form buttons: Filter `objectWorkflowButton` arrays for workflow objects
+  - Report buttons: Filter both `reportButton` and `reportColumn` arrays for report objects
+  - Column buttons: Only include when `isButton = "true"` and passes visibility/ignored checks
+  - Breadcrumb buttons: Continue to be excluded as before (`buttonType !== "breadcrumb"`)
+  - **Property Existence Checks:** Uses `(!button.hasOwnProperty('isVisible') || button.isVisible !== "false")` pattern to handle cases where properties don't exist
+
 ### Mermaid Zoom & Pan Functionality Improvements (2025-07-19)
 Fixed erratic zoom behavior in the Mermaid diagram tab in the Page Flow View:
 - **Key Improvements:**

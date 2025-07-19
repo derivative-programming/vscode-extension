@@ -7,9 +7,10 @@
 /**
  * Generates the HTML content for the page flow diagram webview
  * @param {Object} flowMap Flow map data
+ * @param {string} appName App name from the model
  * @returns {string} HTML content
  */
-function generateHTMLContent(flowMap) {
+function generateHTMLContent(flowMap, appName = '') {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,7 +27,7 @@ function generateHTMLContent(flowMap) {
     ${generateBodyContent(flowMap)}
     
     <script>
-        ${getEmbeddedJavaScript(flowMap)}
+        ${getEmbeddedJavaScript(flowMap, appName)}
     </script>
 </body>
 </html>`;
@@ -670,12 +671,14 @@ function getEmbeddedCSS() {
 /**
  * Gets embedded JavaScript content
  * @param {Object} flowMap Flow map data
+ * @param {string} appName App name from the model
  * @returns {string} JavaScript content
  */
-function getEmbeddedJavaScript(flowMap) {
+function getEmbeddedJavaScript(flowMap, appName = '') {
     return `
         const vscode = acquireVsCodeApi();
         const flowData = ${JSON.stringify(flowMap)};
+        const appName = '${appName}'; // App name for filename generation
         let simulation;
         let svg;
         let g;
@@ -688,6 +691,7 @@ function getEmbeddedJavaScript(flowMap) {
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[DEBUG] Flow data received:', flowData);
             console.log('[DEBUG] Mermaid library available:', typeof mermaid !== 'undefined');
+            console.log('[DEBUG] App name for filename:', appName);
             
             initializeD3();
             populateRoleFilter();
@@ -703,6 +707,16 @@ function getEmbeddedJavaScript(flowMap) {
                 setTimeout(() => {
                     initializeMermaid();
                 }, 500);
+            }
+        });
+
+        // Handle messages from the extension
+        window.addEventListener('message', event => {
+            const message = event.data;
+            switch (message.command) {
+                case 'updateFlowData':
+                    // Handle refresh data updates if needed
+                    break;
             }
         });
 
@@ -1327,57 +1341,89 @@ function getEmbeddedJavaScript(flowMap) {
             }
         }
         
-        function copyMermaidSyntax() {
-            const syntaxElement = document.getElementById('mermaidSyntaxDisplay');
-            const syntaxText = syntaxElement.textContent;
-            
-            navigator.clipboard.writeText(syntaxText).then(() => {
-                // Show temporary feedback
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            }).catch(() => {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = syntaxText;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            });
-        }
-        
         function downloadMermaidSVG() {
+            console.log('[DEBUG] Download SVG function called');
             const mermaidElement = document.getElementById('mermaidDiagram');
+            
+            if (!mermaidElement) {
+                console.error('[DEBUG] Mermaid element not found');
+                alert('Error: Mermaid diagram element not found. Please ensure the diagram is rendered first.');
+                return;
+            }
+            
+            console.log('[DEBUG] Mermaid element found, looking for SVG...');
             const svgElement = mermaidElement.querySelector('svg');
             
-            if (svgElement) {
+            if (!svgElement) {
+                console.error('[DEBUG] SVG element not found in mermaid diagram');
+                console.log('[DEBUG] Mermaid element content:', mermaidElement.innerHTML);
+                alert('Error: No SVG found in the diagram. Please render the diagram first using the "Render Diagram" button.');
+                return;
+            }
+            
+            console.log('[DEBUG] SVG element found, proceeding with download...');
+            
+            try {
                 // Clone the SVG and add styling
                 const clonedSvg = svgElement.cloneNode(true);
                 clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
                 
-                // Create a data URL and download
+                // Add some basic styling to ensure the SVG looks good when saved
+                const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+                styleElement.textContent = 
+                    'text { font-family: Arial, sans-serif; font-size: 14px; }' +
+                    '.node rect, .node circle, .node ellipse, .node polygon { fill: #f9f9f9; stroke: #333; stroke-width: 1px; }' +
+                    '.edge path { stroke: #333; stroke-width: 2px; fill: none; }' +
+                    '.edge polygon { fill: #333; stroke: #333; }';
+                clonedSvg.insertBefore(styleElement, clonedSvg.firstChild);
+                
+                // Create a proper SVG document
                 const svgData = new XMLSerializer().serializeToString(clonedSvg);
-                const blob = new Blob([svgData], { type: 'image/svg+xml' });
-                const url = URL.createObjectURL(blob);
+                const fullSvgData = '<?xml version="1.0" encoding="UTF-8"?>\\n' + svgData;
                 
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'page-flow-diagram.svg';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                console.log('[DEBUG] SVG data prepared, length:', fullSvgData.length);
+                
+                // Generate filename with app name and selected roles
+                let fileName = '';
+                if (appName) {
+                    fileName = appName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-page-flow-mermaid-diagram';
+                } else {
+                    fileName = 'page-flow-mermaid-diagram';
+                }
+                
+                if (mermaidSelectedRoles && mermaidSelectedRoles.size > 0) {
+                    const rolesList = Array.from(mermaidSelectedRoles).sort();
+                    const rolesStr = rolesList.join('-');
+                    fileName = fileName + '-roles-' + rolesStr.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                }
+                fileName = fileName + '.svg';
+                
+                console.log('[DEBUG] Generated filename:', fileName);
+                
+                // Use VS Code API to handle the download instead of browser methods
+                vscode.postMessage({
+                    command: 'downloadFile',
+                    fileName: fileName,
+                    content: fullSvgData,
+                    mimeType: 'image/svg+xml'
+                });
+                
+                console.log('[DEBUG] Download request sent to VS Code');
+                
+                // Show user feedback
+                const originalButton = event.target;
+                if (originalButton) {
+                    const originalText = originalButton.textContent;
+                    originalButton.textContent = 'Download Requested...';
+                    setTimeout(() => {
+                        originalButton.textContent = originalText;
+                    }, 3000);
+                }
+                
+            } catch (error) {
+                console.error('[DEBUG] Error during SVG download:', error);
+                alert('Error downloading SVG: ' + error.message + '\\n\\nTry refreshing the page and rendering the diagram again.');
             }
         }
         
@@ -2128,7 +2174,6 @@ function generateMermaidContent(flowMap) {
         <div class="mermaid-header-controls">
             <div class="mermaid-controls">
                 <button class="btn" onclick="initializeMermaid()">Render Diagram</button>
-                <button class="btn" onclick="copyMermaidSyntax()">Copy Syntax</button>
                 <button class="btn" onclick="downloadMermaidSVG()">Download SVG</button>
                 <button class="btn" onclick="toggleMermaidSyntax()">Show/Hide Syntax</button>
             </div>

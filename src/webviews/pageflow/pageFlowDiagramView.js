@@ -62,7 +62,7 @@ async function showPageFlowDiagram(context, modelService) {
     );
     
     // Get HTML content
-    const htmlContent = await getWebviewContent(context, allObjects || []);
+    const htmlContent = await getWebviewContent(context, allObjects || [], modelService);
     currentPanel.webview.html = htmlContent;
     
     // Handle messages from the webview
@@ -110,6 +110,13 @@ async function showPageFlowDiagram(context, modelService) {
                     });
                     return;
                 
+                case 'downloadFile':
+                    // Handle file download request from webview
+                    if (message.fileName && message.content) {
+                        handleFileDownload(message.fileName, message.content, message.mimeType);
+                    }
+                    return;
+                
                 case 'error':
                     vscode.window.showErrorMessage(message.message);
                     return;
@@ -151,17 +158,68 @@ function closePageFlowView() {
  * Generates the HTML content for the webview
  * @param {vscode.ExtensionContext} context Extension context
  * @param {Array} allObjects Array of all objects from the model
+ * @param {Object} modelService ModelService instance
  * @returns {string} HTML content
  */
-async function getWebviewContent(context, allObjects) {
+async function getWebviewContent(context, allObjects, modelService) {
     // Extract pages and build flow map
     const pages = extractPagesFromModel(allObjects);
     const flowMap = buildFlowMap(pages);
     
-    console.log('[DEBUG] Final flow map:', flowMap);
+    // Get app name from the model
+    let appName = '';
+    if (modelService && modelService.isFileLoaded()) {
+        const rootModel = modelService.getCurrentModel();
+        appName = rootModel?.appName || '';
+    }
     
-    // Generate HTML using the modular generator
-    return generateHTMLContent(flowMap);
+    console.log('[DEBUG] Final flow map:', flowMap);
+    console.log('[DEBUG] App name for filename:', appName);
+    
+    // Generate HTML using the modular generator, passing the app name
+    return generateHTMLContent(flowMap, appName);
+}
+
+/**
+ * Handles file download requests from the webview
+ * @param {string} fileName Name of the file to download
+ * @param {string} content File content
+ * @param {string} mimeType MIME type of the file
+ */
+async function handleFileDownload(fileName, content, mimeType) {
+    try {
+        // Show save dialog to user
+        const saveOptions = {
+            defaultUri: vscode.Uri.file(fileName),
+            filters: {}
+        };
+        
+        // Set up file filters based on MIME type
+        if (mimeType && mimeType.includes('svg')) {
+            saveOptions.filters['SVG Files'] = ['svg'];
+        } else {
+            saveOptions.filters['All Files'] = ['*'];
+        }
+        
+        const fileUri = await vscode.window.showSaveDialog(saveOptions);
+        
+        if (fileUri) {
+            // Write the file content
+            const buffer = Buffer.from(content, 'utf8');
+            await vscode.workspace.fs.writeFile(fileUri, buffer);
+            
+            // Show success message
+            const fileName = fileUri.fsPath.split(/[\\/]/).pop();
+            vscode.window.showInformationMessage(`File saved successfully: ${fileName}`);
+            
+            console.log('[DEBUG] File saved successfully:', fileUri.fsPath);
+        } else {
+            console.log('[DEBUG] User cancelled file save dialog');
+        }
+    } catch (error) {
+        console.error('[DEBUG] Error saving file:', error);
+        vscode.window.showErrorMessage('Error saving file: ' + error.message);
+    }
 }
 
 module.exports = {
