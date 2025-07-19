@@ -8,6 +8,8 @@ import { JsonTreeItem } from '../models/types';
 
 // Import from the JavaScript wrapper (following report details pattern)
 const formDetailsView = require('../webviews/formDetailsView');
+// Import the Add Form Wizard webview
+const { showAddFormWizard } = require('../webviews/addFormWizardView');
 
 /**
  * Command handler for showing form details
@@ -32,7 +34,7 @@ export async function showFormDetailsCommand(item: JsonTreeItem, modelService: a
 }
 
 /**
- * Command handler for adding a form using the wizard (placeholder - not implemented yet)
+ * Command handler for adding a form using the wizard
  * @param modelService The ModelService instance
  */
 export async function addFormCommand(modelService: any): Promise<void> {
@@ -42,8 +44,8 @@ export async function addFormCommand(modelService: any): Promise<void> {
     }
     
     try {
-        // TODO: Implement form wizard similar to report wizard
-        vscode.window.showInformationMessage('Add Form wizard is not implemented yet. This feature is coming soon!');
+        // Show the add form wizard
+        showAddFormWizard(modelService);
         
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

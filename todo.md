@@ -1,19 +1,19 @@
 Agent todo items...
 
 
+add Title on wizard views above step display
+
 form detail view...
-- add form wizard...
-owner data object
-role required
-no visualization step
-no target data object step
-adding a child object? yes\no
+- ~~step 1: remove cancel button~~ ✅ COMPLETED - Removed cancel button from step 1 of form wizard
+~~no target data object step~~ ✅ COMPLETED - Target object only for new instance creation
+~~adding a child object? yes\no~~ ✅ COMPLETED - Step 3: New instance question
 
-action you are performing? (Save, Delete, etc.)
+~~action you are performing? (Save, Delete, etc.)~~ ✅ COMPLETED - Step 4b: Action selection
 
-last step...
-form name? [ownerobject name][rolerequired][action][child obj name if available]
-form title?
+~~last step...~~ ✅ COMPLETED - Step 5: Form details
+~~form name? [ownerobject name][rolerequired][action][child obj name if available]~~ ✅ COMPLETED - Auto-generated form name
+~~form title?~~ ✅ COMPLETED - Auto-generated form title
+~~default title in format [Action] [OwnerObjectName] or [Action] [ChildObjectName]~~ ✅ COMPLETED - Updated form title generation to use format [Action] [ObjectName]
 
 
 data object lookup tab...

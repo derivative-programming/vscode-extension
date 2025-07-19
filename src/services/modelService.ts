@@ -215,7 +215,34 @@ export class ModelService {
         }
         
         return allReports;
-    }    /**
+    }
+
+    /**
+     * Get all forms (objectWorkflow with isPage=true) from all objects across all namespaces
+     * @returns Array of all form objects
+     */
+    public getAllForms(): any[] {
+        // Get all objects from all namespaces
+        const allObjects = this.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            return [];
+        }
+
+        // Flatten the arrays of forms from all objects
+        const allForms: any[] = [];
+        
+        for (const object of allObjects) {
+            if (object.objectWorkflow && Array.isArray(object.objectWorkflow)) {
+                // Filter for forms (objectWorkflow with isPage=true)
+                const forms = object.objectWorkflow.filter((workflow: any) => workflow.isPage === "true");
+                allForms.push(...forms);
+            }
+        }
+        
+        return allForms;
+    }
+
+    /**
      * Clear the cached model data
      */
     public clearCache(): void {

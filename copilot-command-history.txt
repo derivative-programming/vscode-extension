@@ -1,1 +1,9 @@
 2025-01-19: Added plus icon button to Forms treeview item similar to Reports - created addForm command stub in package.json, formCommands.ts, and registerCommands.ts. Command shows placeholder message since form wizard is not implemented yet.
+2025-01-19: Created complete Add Form Wizard (addFormWizardView.js) with 5-step process: 1) Owner object selection, 2) Role selection (with skip logic), 3) New instance question, 4a) Target object selection OR 4b) Action selection, 5) Form name/title. Updated formCommands.ts and modelService.ts to support form creation. Wizard creates form objects with proper structure including objectWorkflowButton array.
+2025-01-19: Fixed role list population in Form Wizard step 2 - changed from using objectProperty to using lookupItem.displayName to match Report Wizard implementation.
+2025-01-19: Fixed Form Wizard step 4b issues: 1) Step indicator now shows active for both step 4a and 4b by mapping to progress-step-4, 2) Back button navigation from step 4 variants properly handled to go to step 3.
+2025-01-19: Changed Form Wizard Step 4b from dropdown to textbox for custom action input. Users can now enter custom actions in PascalCase format (e.g., Save, Delete, UpdateStatus). Action is optional with validation for PascalCase format when provided.
+2025-01-19: Updated Form Wizard to default action to 'Add' when creating new data object instance - applies to both form name and form title generation in the final step.
+2025-01-19: Removed cancel button from step 1 of Form Wizard - cleaned up HTML and event listener for cleaner step 1 interface.
+2025-01-19: Updated form title generation to use format [Action] [OwnerObjectName] or [Action] [ChildObjectName] - action appears first, followed by the appropriate object name.
+2025-01-19: Right-justified Next button in Form Wizard step 1 by adding spacer div to match button alignment with other steps.
