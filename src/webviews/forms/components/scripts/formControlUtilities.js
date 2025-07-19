@@ -43,6 +43,9 @@ function getFormControlUtilities() {
                             inputField.readOnly = false;
                         }
                         updateInputStyle(inputField, true);
+                        
+                        // Disable the checkbox to prevent unchecking
+                        this.disabled = true;
                     } else {
                         // Disable the input field
                         if (isEnum) {

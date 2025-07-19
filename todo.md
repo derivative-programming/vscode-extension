@@ -30,7 +30,6 @@ help icon buttons on primary treeview items...
 test:issue with default values in the inactive dropdowns 
 
 form detail view...
-- rename columns to controls
 - add form wizard
 - edit of a setting does not trigger the unsaved changes flag
 - ~~settings checkboxes should be disabled if checked~~ ✅ COMPLETED - Fixed for all tabs (settings, parameters, buttons, output variables)
