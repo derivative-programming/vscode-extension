@@ -87,6 +87,9 @@ function getSettingsTabTemplate(form, formSchemaProps) {
         .map(([prop, schema]) => {
             // Check if property has enum values
             const hasEnum = schema.enum && Array.isArray(schema.enum);
+            // Check if it's a boolean enum (containing only true/false values)
+            const isBooleanEnum = hasEnum && schema.enum.length === 2 && 
+                schema.enum.every(val => val === true || val === false || val === "true" || val === "false");
             
             // Get description for tooltip
             const tooltip = schema.description ? `title="${schema.description}"` : "";
@@ -100,7 +103,25 @@ function getSettingsTabTemplate(form, formSchemaProps) {
                 // Generate select dropdown for enum values
                 inputField = `<select id="setting-${prop}" name="${prop}" ${tooltip} ${!propertyExists ? "readonly disabled" : ""}>
                     ${schema.enum.map(option => {
-                        const isSelected = form[prop] === option;
+                        let isSelected = false;
+                        
+                        if (propertyExists) {
+                            // Use the actual form value if property exists
+                            isSelected = form[prop] === option;
+                        } else {
+                            // Property doesn't exist - set defaults
+                            if (schema.default !== undefined) {
+                                // Use the schema's default value if available
+                                isSelected = option === schema.default;
+                            } else if (isBooleanEnum) {
+                                // Default to 'false' for boolean enums if no default specified
+                                isSelected = (option === false || option === "false");
+                            } else if (schema.enum.indexOf(option) === 0) {
+                                // For non-boolean enums with no default, select the first option
+                                isSelected = true;
+                            }
+                        }
+                        
                         return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
                     }).join("")}
                 </select>`;

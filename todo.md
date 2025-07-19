@@ -31,8 +31,6 @@ test:issue with default values in the inactive dropdowns
 
 form detail view...
 - add form wizard
-- edit of a setting does not trigger the unsaved changes flag
-- ~~settings checkboxes should be disabled if checked~~ ✅ COMPLETED - Fixed for all tabs (settings, parameters, buttons, output variables)
 - input variables tab
  
 report details view...

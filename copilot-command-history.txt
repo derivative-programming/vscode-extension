@@ -1,3 +1,5 @@
+2025-01-19: Fixed form details settings tab boolean dropdown defaults - updated settingsTabTemplate.js to default boolean dropdowns (true/false) to "false" when property doesn't exist, matching behavior of other tabs. Added logic to detect boolean enums and apply appropriate default values: schema default if specified, false for boolean enums, or first option for other enum types.
+
 2025-01-19: Fixed form details view settings tab to disable checkboxes when checked - added missing logic in formControlUtilities.js to set this.disabled = true when a settings checkbox is checked, ensuring consistency with other tabs (parameters, buttons, output variables) where checkboxes become disabled once checked to prevent unchecking.
 
 2025-01-19: Changed the "Parameters" tab text to "Input Controls" in form detail view - updated mainTemplate.js to rename the tab label from "Parameters (${paramCount})" to "Input Controls (${paramCount})", also updated the "Add Parameter" button to "Add Input Control", and changed unnamed parameter labels from "Unnamed Parameter" to "Unnamed Input Control" for consistency.
