@@ -8,6 +8,11 @@
 
 2025-01-19: User requested to review the page flow view. Examined the page flow diagram implementation which has been successfully refactored from a large monolithic file into a modular structure with separate components for helpers, scripts, styles, and HTML generation.
 
+2025-07-19: User asked about typical button colors in dark mode for VS Code extensions
+2025-07-19: User requested to use VS Code button colors that adapt to light/dark theme  
+2025-07-19: Updated styles.css with VS Code CSS variables for theme-aware button styling
+2025-07-19: User requested to look for other buttons used in the extension - found multiple button classes across webviews
+
 2025-01-19: Added search functionality to Mermaid tab in page flow view. Implemented searchPagesMermaid() function with highlighting support, added search input box to Mermaid content, created synchronized search between diagram and Mermaid tabs, updated generateMermaidSyntax() to support search highlighting classes (searchHighlight and searchPartial), modified switchTab() function to sync search values when switching between tabs, and ensured proper event listener management to avoid duplicates.
 
 2025-01-19: Fixed Mermaid search highlighting issue - the colors weren't changing for search matches because the generateMermaidSyntaxFromFlowMap() function was missing the search highlighting logic. Updated the function to include searchHighlight and searchPartial class definitions and apply them with priority over normal styling. Added debug logging to track search matches and highlight generation. Now Mermaid diagrams properly display green highlighting for exact matches and light green for partial matches when searching.
@@ -560,4 +565,5 @@ A d d i n g   c o m m a n d   t o   c o m m a n d   h i s t o r y . . . 
  
  2 0 2 5 - 0 7 - 1 9   -   ' r e m o v e   t h e   r e f r e s h   b u t t o n   a t   t h e   t o p   r i g h t   o f   t h e   p a g e   f l o w   v i e w '   -   R e m o v e d   t h e   r e f r e s h   b u t t o n   f r o m   t h e   p a g e   f l o w   d i a g r a m   h e a d e r   c o n t r o l s   s e c t i o n   i n   h t m l G e n e r a t o r . j s .   A l s o   r e m o v e d   t h e   u n u s e d   r e f r e s h D i a g r a m ( )   J a v a S c r i p t   f u n c t i o n   a n d   t h e   c o r r e s p o n d i n g   ' r e f r e s h D i a g r a m '   m e s s a g e   h a n d l e r   i n   p a g e F l o w D i a g r a m V i e w . j s   s i n c e   t h e   b u t t o n   w a s   t h e   o n l y   w a y   t o   t r i g g e r   t h e   r e f r e s h   f u n c t i o n a l i t y .   T h e   p a g e   f l o w   v i e w   n o w   h a s   a   c l e a n e r   h e a d e r   w i t h   j u s t   t h e   t i t l e . 
  
- 
+ Command: startMCPServerCommand
+Command: stopMCPServerCommand

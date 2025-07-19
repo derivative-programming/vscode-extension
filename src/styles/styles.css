@@ -56,21 +56,86 @@ input[readonly], select[disabled] {
   order: 2;
 }
 
+/* VS Code theme-aware button styling */
+button {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+button.secondary {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border: 1px solid var(--vscode-contrastBorder);
+}
+
+button.secondary:hover:not(:disabled) {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
 /* Disabled button styling */
 button:disabled,
 .modal-buttons button:disabled {
-  background-color: #464647 !important;
-  color: #888888 !important;
+  background-color: var(--vscode-button-background) !important;
+  color: var(--vscode-button-foreground) !important;
   cursor: not-allowed !important;
-  opacity: 0.5 !important;
-  border: 1px solid #555555 !important;
+  opacity: 0.4 !important;
+  border: 1px solid var(--vscode-contrastBorder) !important;
   box-shadow: none !important;
 }
 
 button:disabled:hover,
 .modal-buttons button:disabled:hover {
-  background-color: #464647 !important;
-  color: #888888 !important;
+  background-color: var(--vscode-button-background) !important;
+  color: var(--vscode-button-foreground) !important;
   cursor: not-allowed !important;
   box-shadow: none !important;
+}
+
+/* Icon button styling */
+button.icon-button {
+  background-color: transparent;
+  color: var(--vscode-foreground);
+  border: none;
+  padding: 4px;
+  border-radius: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.icon-button:hover:not(:disabled) {
+  background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+/* Danger/destructive button styling */
+button.danger {
+  background-color: var(--vscode-inputValidation-errorBackground);
+  color: var(--vscode-inputValidation-errorForeground);
+  border: 1px solid var(--vscode-inputValidation-errorBorder);
+}
+
+button.danger:hover:not(:disabled) {
+  background-color: var(--vscode-inputValidation-errorBackground);
+  opacity: 0.9;
+}
+
+/* Success button styling */
+button.success {
+  background-color: var(--vscode-testing-iconPassed);
+  color: var(--vscode-button-foreground);
+}
+
+button.success:hover:not(:disabled) {
+  background-color: var(--vscode-testing-iconPassed);
+  opacity: 0.9;
 }

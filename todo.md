@@ -67,9 +67,7 @@ demo view...
 - tell the user to fabricate the demo html files?
 
 cant use ctrl-a as first part of sequence. its select all.
-
-report details view...
-- default values for inactive dropdowns seem incorrct. formdetails view too.
+ 
 
 fabrication requests view...
 - add a button to open the output folder in the file explorer
