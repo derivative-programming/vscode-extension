@@ -1,20 +1,6 @@
 Agent todo items...
 
 
-form detail view...
-- add form wizard...
-owner object
-role required
-adding a child object?
-action you are performing? (Save, Delete, etc.)
-form name? [ownerobject name][rolerequired][action][child obj name if available]
-form title?
-
-administrator in role list on report wizard?
-
-data object lookup tab...
-- need to leave the field to trigger the unsaved changes exist flag
-
 
 any large files left?
 - split up large files into smaller ones

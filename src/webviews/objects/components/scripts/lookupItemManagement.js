@@ -148,6 +148,7 @@ function getLookupItemManagementFunctions() {
 
             // Add save handler if not already added
             if (!form.dataset.listenerAdded) {
+                // Handle change events (form delegation)
                 form.addEventListener('change', function(e) {
                     if (selectedLookupItemIndex !== null) {
                         if (e.target.type === 'checkbox') {
@@ -191,11 +192,26 @@ function getLookupItemManagementFunctions() {
                                 }
                             }
                         } else {
-                            // Handle regular field change
+                            // Handle regular field change (immediate update on focus loss)
                             saveLookupItemChanges(selectedLookupItemIndex, e.target.name, e.target.value);
                         }
                     }
                 });
+                
+                // Handle input events with debouncing (like Properties and Settings tabs)
+                let listFormInputTimeout;
+                form.addEventListener('input', function(e) {
+                    if (selectedLookupItemIndex !== null && e.target.type !== 'checkbox') {
+                        // Clear previous timeout
+                        clearTimeout(listFormInputTimeout);
+                        
+                        // Set a new timeout to update after user stops typing
+                        listFormInputTimeout = setTimeout(() => {
+                            saveLookupItemChanges(selectedLookupItemIndex, e.target.name, e.target.value);
+                        }, 300); // 300ms delay to match Properties and Settings tabs
+                    }
+                });
+                
                 form.dataset.listenerAdded = 'true';
             }
             
@@ -459,9 +475,48 @@ function getLookupItemManagementFunctions() {
                     saveLookupItemsToModel();
                 });
                 
-                // Handle input changes
+                // Handle input changes with debouncing (like Properties and Settings tabs)
+                let lookupInputTimeout;
+                
+                // Input event for real-time feedback with debouncing
+                inputElement.addEventListener('input', function() {
+                    if (!checkbox.checked) return;
+                    
+                    const rowIndex = parseInt(checkbox.getAttribute('data-index'));
+                    const propName = checkbox.getAttribute('data-prop');
+                    
+                    // Clear previous timeout
+                    clearTimeout(lookupInputTimeout);
+                    
+                    // Set a new timeout to update after user stops typing
+                    lookupInputTimeout = setTimeout(() => {
+                        // Validate name property for maximum length
+                        if (propName === 'name' && this.value && this.value.length > 50) {
+                            // Show error and revert to previous value
+                            this.value = lookupItems[rowIndex][propName] || '';
+                            alert('Lookup item name cannot be longer than 50 characters.');
+                            this.focus();
+                            return;
+                        }
+                        
+                        if (!lookupItems[rowIndex]) lookupItems[rowIndex] = {};
+                        lookupItems[rowIndex][propName] = this.value;
+                        
+                        // Update the list display if name or displayName changed
+                        if (propName === 'name' || propName === 'displayName') {
+                            updateLookupItemsList();
+                        }
+                        
+                        saveLookupItemsToModel();
+                    }, 300); // 300ms delay to match Properties and Settings tabs
+                });
+                
+                // Change event for immediate update when field loses focus
                 inputElement.addEventListener('change', function() {
                     if (!checkbox.checked) return;
+                    
+                    // Clear any pending input timeout since we're doing an immediate update
+                    clearTimeout(lookupInputTimeout);
                     
                     const rowIndex = parseInt(checkbox.getAttribute('data-index'));
                     const propName = checkbox.getAttribute('data-prop');
