@@ -834,7 +834,7 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 const publicItem = document.createElement('div');
                 publicItem.className = 'role-checkbox-item';
                 publicItem.innerHTML = 
-                    '<input type="checkbox" id="role-PUBLIC" checked onchange="handleRoleChange(this)">' +
+                    '<input type="checkbox" id="role-PUBLIC" checked onchange="handleRoleChange(this, \\'diagram\\')">' +
                     '<label for="role-PUBLIC">Public Pages</label>';
                 roleFilterOptions.appendChild(publicItem);
                 selectedRoles.add('PUBLIC');
@@ -844,24 +844,61 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 const roleItem = document.createElement('div');
                 roleItem.className = 'role-checkbox-item';
                 roleItem.innerHTML = 
-                    '<input type="checkbox" id="role-' + role + '" checked onchange="handleRoleChange(this)">' +
+                    '<input type="checkbox" id="role-' + role + '" checked onchange="handleRoleChange(this, \\'diagram\\')">' +
                     '<label for="role-' + role + '">' + role + '</label>';
                 roleFilterOptions.appendChild(roleItem);
                 selectedRoles.add(role);
             });
         }
 
-        // Handle role changes
-        function handleRoleChange(checkbox) {
-            const roleValue = checkbox.id.replace('role-', '');
+        // Handle role changes (unified for all tabs)
+        function handleRoleChange(checkbox, sourceTab) {
+            let roleValue;
             
+            // Extract role value based on source tab
+            if (sourceTab === 'mermaid') {
+                roleValue = checkbox.id.replace('mermaid-role-', '');
+            } else if (sourceTab === 'statistics') {
+                roleValue = checkbox.id.replace('statistics-role-', '');
+            } else {
+                roleValue = checkbox.id.replace('role-', '');
+            }
+            
+            // Update shared selectedRoles
             if (checkbox.checked) {
                 selectedRoles.add(roleValue);
             } else {
                 selectedRoles.delete(roleValue);
             }
             
-            renderDiagram();
+            // Sync checkboxes across all tabs
+            syncRoleFiltersAcrossTabs(roleValue, checkbox.checked);
+            
+            // Update content for ALL tabs to keep them synchronized
+            renderDiagram(); // Update diagram tab
+            updateMermaidDiagram(); // Update mermaid tab
+            updateStatisticsContent(); // Update statistics tab
+        }
+        
+        // Sync role filter checkboxes across all tabs
+        function syncRoleFiltersAcrossTabs(roleValue, isChecked) {
+            // Update diagram tab checkbox
+            const diagramCheckbox = document.getElementById('role-' + roleValue);
+            if (diagramCheckbox) {
+                diagramCheckbox.checked = isChecked;
+            }
+            
+            // Update mermaid tab checkbox
+            const mermaidCheckbox = document.getElementById('mermaid-role-' + roleValue);
+            if (mermaidCheckbox) {
+                mermaidCheckbox.checked = isChecked;
+            }
+            
+            // Update statistics tab checkbox
+            const statisticsCheckbox = document.getElementById('statistics-role-' + roleValue);
+            if (statisticsCheckbox) {
+                statisticsCheckbox.checked = isChecked;
+            }
         }
 
         // Search functionality
@@ -1394,8 +1431,8 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                     fileName = 'page-flow-mermaid-diagram';
                 }
                 
-                if (mermaidSelectedRoles && mermaidSelectedRoles.size > 0) {
-                    const rolesList = Array.from(mermaidSelectedRoles).sort();
+                if (selectedRoles && selectedRoles.size > 0) {
+                    const rolesList = Array.from(selectedRoles).sort();
                     const rolesStr = rolesList.join('-');
                     fileName = fileName + '-roles-' + rolesStr.toLowerCase().replace(/[^a-z0-9-]/g, '');
                 }
@@ -1438,8 +1475,7 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             }
         }
         
-        // Mermaid zoom and filtering functionality
-        let mermaidSelectedRoles = new Set();
+        // Mermaid zoom functionality
         let mermaidZoom = 1;
         
         // Initialize Mermaid role filter when tab is activated
@@ -1452,42 +1488,25 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             const roles = [...new Set(flowData.pages.map(page => page.roleRequired).filter(role => role))];
             const hasPublicPages = flowData.pages.some(page => !page.roleRequired);
             
-            // Clear existing roles selection for Mermaid
-            mermaidSelectedRoles.clear();
-            
             if (hasPublicPages) {
                 const publicItem = document.createElement('div');
                 publicItem.className = 'role-checkbox-item';
+                const isChecked = selectedRoles.has('PUBLIC');
                 publicItem.innerHTML = 
-                    '<input type="checkbox" id="mermaid-role-PUBLIC" checked onchange="handleMermaidRoleChange(this)">' +
+                    '<input type="checkbox" id="mermaid-role-PUBLIC" ' + (isChecked ? 'checked' : '') + ' onchange="handleRoleChange(this, \\'mermaid\\')">' +
                     '<label for="mermaid-role-PUBLIC">Public Pages</label>';
                 mermaidRoleFilterOptions.appendChild(publicItem);
-                mermaidSelectedRoles.add('PUBLIC');
             }
             
             roles.forEach(role => {
                 const roleItem = document.createElement('div');
                 roleItem.className = 'role-checkbox-item';
+                const isChecked = selectedRoles.has(role);
                 roleItem.innerHTML = 
-                    '<input type="checkbox" id="mermaid-role-' + role + '" checked onchange="handleMermaidRoleChange(this)">' +
+                    '<input type="checkbox" id="mermaid-role-' + role + '" ' + (isChecked ? 'checked' : '') + ' onchange="handleRoleChange(this, \\'mermaid\\')">' +
                     '<label for="mermaid-role-' + role + '">' + role + '</label>';
                 mermaidRoleFilterOptions.appendChild(roleItem);
-                mermaidSelectedRoles.add(role);
             });
-        }
-        
-        // Handle Mermaid role filter changes
-        function handleMermaidRoleChange(checkbox) {
-            const roleValue = checkbox.id.replace('mermaid-role-', '');
-            
-            if (checkbox.checked) {
-                mermaidSelectedRoles.add(roleValue);
-            } else {
-                mermaidSelectedRoles.delete(roleValue);
-            }
-            
-            // Regenerate and render Mermaid diagram with filtered data
-            updateMermaidDiagram();
         }
         
         // Handle Mermaid diagram type changes
@@ -1502,12 +1521,12 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
         // Update Mermaid diagram with current filters
         function updateMermaidDiagram() {
             let filteredPages = flowData.pages;
-            if (mermaidSelectedRoles.size > 0) {
+            if (selectedRoles.size > 0) {
                 filteredPages = flowData.pages.filter(page => {
-                    if (mermaidSelectedRoles.has('PUBLIC') && !page.roleRequired) {
+                    if (selectedRoles.has('PUBLIC') && !page.roleRequired) {
                         return true;
                     }
-                    return page.roleRequired && mermaidSelectedRoles.has(page.roleRequired);
+                    return page.roleRequired && selectedRoles.has(page.roleRequired);
                 });
             }
             
@@ -1950,9 +1969,6 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             return { start: '[', end: ']' };
         }
         
-        // Statistics role filtering variables
-        let statisticsSelectedRoles = new Set();
-        
         // Initialize statistics role filter when tab is activated
         function initializeStatisticsRoleFilter() {
             const statisticsRoleFilterOptions = document.getElementById('statisticsRoleFilterOptions');
@@ -1970,47 +1986,33 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             if (hasPublicPages) {
                 const publicItem = document.createElement('div');
                 publicItem.className = 'role-checkbox-item';
+                const isChecked = selectedRoles.has('PUBLIC');
                 publicItem.innerHTML = 
-                    '<input type="checkbox" id="statistics-role-PUBLIC" checked onchange="handleStatisticsRoleChange(this)">' +
+                    '<input type="checkbox" id="statistics-role-PUBLIC" ' + (isChecked ? 'checked' : '') + ' onchange="handleRoleChange(this, \\'statistics\\')">' +
                     '<label for="statistics-role-PUBLIC">Public Pages</label>';
                 statisticsRoleFilterOptions.appendChild(publicItem);
-                statisticsSelectedRoles.add('PUBLIC');
             }
             
             roles.forEach(role => {
                 const roleItem = document.createElement('div');
                 roleItem.className = 'role-checkbox-item';
+                const isChecked = selectedRoles.has(role);
                 roleItem.innerHTML = 
-                    '<input type="checkbox" id="statistics-role-' + role + '" checked onchange="handleStatisticsRoleChange(this)">' +
+                    '<input type="checkbox" id="statistics-role-' + role + '" ' + (isChecked ? 'checked' : '') + ' onchange="handleRoleChange(this, \\'statistics\\')">' +
                     '<label for="statistics-role-' + role + '">' + role + '</label>';
                 statisticsRoleFilterOptions.appendChild(roleItem);
-                statisticsSelectedRoles.add(role);
             });
-        }
-        
-        // Handle statistics role filter changes
-        function handleStatisticsRoleChange(checkbox) {
-            const roleValue = checkbox.id.replace('statistics-role-', '');
-            
-            if (checkbox.checked) {
-                statisticsSelectedRoles.add(roleValue);
-            } else {
-                statisticsSelectedRoles.delete(roleValue);
-            }
-            
-            // Update statistics with filtered data
-            updateStatisticsContent();
         }
         
         // Update statistics content with current role filters
         function updateStatisticsContent() {
             let filteredPages = flowData.pages;
-            if (statisticsSelectedRoles.size > 0) {
+            if (selectedRoles.size > 0) {
                 filteredPages = flowData.pages.filter(page => {
                     if (!page.roleRequired) {
-                        return statisticsSelectedRoles.has('PUBLIC');
+                        return selectedRoles.has('PUBLIC');
                     }
-                    return statisticsSelectedRoles.has(page.roleRequired);
+                    return selectedRoles.has(page.roleRequired);
                 });
             }
             
