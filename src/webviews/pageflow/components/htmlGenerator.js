@@ -1560,11 +1560,11 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
         // Enhanced Mermaid zoom functions with mouse wheel zoom and panning support
         function mermaidZoomIn() {
             // Use variable zoom increments like the main diagram
-            let zoomFactor = 1.1; // Reduced for smoother zooming
+            let zoomFactor = 1.05; // Reduced for less sensitive zooming
             if (mermaidZoom > 5) {
-                zoomFactor = 1.05;
-            } else if (mermaidZoom > 10) {
                 zoomFactor = 1.03;
+            } else if (mermaidZoom > 10) {
+                zoomFactor = 1.02;
             }
             
             const mermaidViewport = document.querySelector('.mermaid-viewport');
@@ -1597,11 +1597,11 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
         
         function mermaidZoomOut() {
             // Use variable zoom increments like the main diagram
-            let zoomFactor = 1.1; // Reduced for smoother zooming
+            let zoomFactor = 1.05; // Reduced for less sensitive zooming
             if (mermaidZoom > 5) {
-                zoomFactor = 1.05;
-            } else if (mermaidZoom > 10) {
                 zoomFactor = 1.03;
+            } else if (mermaidZoom > 10) {
+                zoomFactor = 1.02;
             }
             
             const mermaidViewport = document.querySelector('.mermaid-viewport');
@@ -1727,11 +1727,11 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                     const oldZoom = mermaidZoom;
                     
                     // Calculate zoom factor based on current zoom level for better precision
-                    let zoomFactor = 1.1; // Reduced for smoother zooming
+                    let zoomFactor = 1.05; // Reduced for less sensitive zooming
                     if (mermaidZoom > 5) {
-                        zoomFactor = 1.05; // Smaller increments at high zoom
+                        zoomFactor = 1.03; // Smaller increments at high zoom
                     } else if (mermaidZoom > 10) {
-                        zoomFactor = 1.03; // Even smaller increments at very high zoom
+                        zoomFactor = 1.02; // Even smaller increments at very high zoom
                     }
                     
                     // Apply zoom based on wheel direction
