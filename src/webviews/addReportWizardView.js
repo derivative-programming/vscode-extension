@@ -46,8 +46,8 @@ function showAddReportWizard(modelService) {
     let roleObjects = [];
     if (modelService && modelService.isFileLoaded()) {
         allObjects = modelService.getAllObjects();
-        // Filter to get Role objects
-        roleObjects = allObjects.filter(obj => obj.name === 'Role' || (obj.name && obj.name.toLowerCase().includes('role')));
+        // Filter to get Role objects (only exact match for 'Role')
+        roleObjects = allObjects.filter(obj => obj.name === 'Role');
     }
     
     // Generate the HTML for the wizard

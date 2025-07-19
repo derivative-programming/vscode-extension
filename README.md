@@ -5,7 +5,7 @@
 
 A professional VS Code extension for building application models and automatically generating source code for multiple platforms and languages.
 
-Transform your development workflow: design your application model once, then generate complete source code for .NET, Python, Web applications, iOS Apps, Android Apps, AR/VR applications, and more. Pull the generated code into your repositories and accelerate your development process.
+Transform your development workflow: design your application model once, then generate complete source code for .NET, Python, Web applications, Mobile Apps, AR/VR applications (planned), and more. Pull the generated code into your repositories and accelerate your development process.
 
 ## Features
 
@@ -28,7 +28,7 @@ Transform your development workflow: design your application model once, then ge
 - **Model Services Integration**: Connect to cloud-based AI services for intelligent processing
 - **Feature Catalog**: Browse and select from a library of pre-built model features
 - **AI Processing**: Submit models for AI-assisted enhancement and validation
-- **Multi-Platform Fabrication**: Generate code for .NET, Python, Web, iOS, Android, AR/VR applications
+- **Multi-Platform Fabrication**: Generate code for .NET, Python, Web, Mobile, AR/VR (planned) applications
 - **Blueprint Catalog**: Select from fabrication templates for different application types
 - **Validation Services**: Automated model validation with improvement suggestions
 

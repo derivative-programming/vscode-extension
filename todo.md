@@ -1,11 +1,16 @@
 Agent todo items...
 
 
->>test all form prop updates
-
 form detail view...
-- add form wizard
+- add form wizard...
+owner object
+role required
+adding a child object?
+action you are performing? (Save, Delete, etc.)
+form name? [ownerobject name][rolerequired][action][child obj name if available]
+form title?
 
+~~administrator in role list on report wizard?~~ ✅ COMPLETED - Fixed role detection to only look for exact 'Role' object name
 
 data object lookup tab...
 - need to leave the field to trigger the unsaved changes exist flag
