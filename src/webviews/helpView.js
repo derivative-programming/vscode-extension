@@ -128,6 +128,24 @@ class HelpPanel {
             margin-right: 8px;
             vertical-align: middle;
         }
+        h4 {
+            color: var(--vscode-editor-foreground);
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        ul {
+            margin-top: 8px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 4px;
+        }
+        strong {
+            color: var(--vscode-editor-foreground);
+            font-family: var(--vscode-editor-font-family, 'Consolas', monospace);
+        }
     </style>
 </head>
 <body>
@@ -161,6 +179,48 @@ class HelpPanel {
                     <li>Extension version</li>
                     <li>Steps to reproduce the issue</li>
                     <li>Expected vs actual behavior</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <div class="help-section-title">⌨️ Keyboard Shortcuts</div>
+            <div class="help-section-content">
+                All shortcuts use the <strong>Alt+A</strong> prefix to avoid conflicts with VS Code shortcuts:
+                
+                <h4>File Operations</h4>
+                <ul>
+                    <li><strong>Alt+A N</strong> - Create new AppDNA model file</li>
+                    <li><strong>Alt+A S</strong> - Save model to file</li>
+                </ul>
+
+                <h4>Add Items</h4>
+                <ul>
+                    <li><strong>Alt+A O</strong> - Add new data object</li>
+                    <li><strong>Alt+A R</strong> - Add new report</li>
+                    <li><strong>Alt+A F</strong> - Add new form</li>
+                </ul>
+
+                <h4>View Controls</h4>
+                <ul>
+                    <li><strong>Alt+A E</strong> - Expand all top level items</li>
+                    <li><strong>Alt+A C</strong> - Collapse all top level items</li>
+                    <li><strong>Alt+A T</strong> - Refresh view (re<strong>T</strong>resh)</li>
+                    <li><strong>Alt+A I</strong> - Show filter (f<strong>I</strong>lter)</li>
+                    <li><strong>Alt+A X</strong> - Clear filter (clear = <strong>X</strong>)</li>
+                </ul>
+
+                <h4>Diagrams & Views</h4>
+                <ul>
+                    <li><strong>Alt+A H</strong> - Show hierarchy diagram</li>
+                    <li><strong>Alt+A P</strong> - Show page flow diagram</li>
+                </ul>
+
+                <h4>Settings & Help</h4>
+                <ul>
+                    <li><strong>Alt+A G</strong> - Show AppDNA settings (confi<strong>G</strong>)</li>
+                    <li><strong>Alt+A W</strong> - Show welcome screen</li>
+                    <li><strong>Alt+A Q</strong> - Show help (<strong>Q</strong>uestion)</li>
                 </ul>
             </div>
         </div>

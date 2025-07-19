@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - File watching with conflict detection
 - Property existence control via checkboxes
 - Tooltips displaying schema descriptions
-- Keyboard shortcuts for common actions (Ctrl+A O, Ctrl+A S)
+- Keyboard shortcuts for common actions (comprehensive Alt+A combinations)
 - Code generation capabilities
 - Hierarchical model filtering and search
 - Settings configuration for external service URLs

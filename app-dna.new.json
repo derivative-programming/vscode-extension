@@ -114,46 +114,6 @@
               }
             ],
             "objectWorkflow": [
-              {
-                "name": "PacAddForm",
-                "titleText": "Add New Pac",
-                "isPage": "true",
-                "isAuthorizationRequired": "true",
-                "roleRequired": "Admin",
-                "layoutName": "DefaultLayout",
-                "formTitleText": "Create New Pac",
-                "formIntroText": "Please fill in the details for the new Pac.",
-                "objectWorkflowParam": [
-                  {
-                    "name": "Description",
-                    "sqlServerDBDataType": "nvarchar",
-                    "sqlServerDBDataTypeSize": "500",
-                    "labelText": "Description",
-                    "isRequired": "true",
-                    "isVisible": "true"
-                  },
-                  {
-                    "name": "Name",
-                    "sqlServerDBDataType": "nvarchar",
-                    "sqlServerDBDataTypeSize": "100",
-                    "labelText": "Name",
-                    "isRequired": "true",
-                    "isVisible": "true"
-                  }
-                ],
-                "objectWorkflowButton": [
-                  {
-                    "buttonType": "submit",
-                    "buttonText": "Create Pac",
-                    "isVisible": "true"
-                  },
-                  {
-                    "buttonType": "cancel",
-                    "buttonText": "Cancel",
-                    "isVisible": "true"
-                  }
-                ]
-              }
             ],
             "report": [],
             "isSoftDeleteUsed": "false",

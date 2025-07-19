@@ -39,7 +39,7 @@ Transform your development workflow: design your application model once, then ge
 - **Tooltips & Descriptions**: Schema descriptions shown as helpful tooltips
 - **Visual Diagrams**: Hierarchy diagrams and page flow visualizations
 - **MCP Integration**: Model Context Protocol server for external tool integration
-- **Keyboard Shortcuts**: Quick access to common actions (`Ctrl+A O` for new object, `Ctrl+A S` for save)
+- **Keyboard Shortcuts**: Quick access to common actions with Alt+A combinations
 
 ## Getting Started
 
@@ -62,8 +62,34 @@ The extension provides a comprehensive workflow for model-driven development:
 9. **Manual Model Editing** - Fine-tune your model and iterate
 
 ### Quick Actions
-- `Ctrl+A O` - Add new data object
-- `Ctrl+A S` - Save model to file
+## Keyboard Shortcuts
+
+All shortcuts use the simple `Alt+A [key]` format to avoid conflicts with standard VS Code shortcuts:
+
+### File Operations
+- `Alt+A N` - Create new AppDNA model file
+- `Alt+A S` - Save model to file
+
+### Add Items
+- `Alt+A O` - Add new data object
+- `Alt+A R` - Add new report
+- `Alt+A F` - Add new form
+
+### View Controls
+- `Alt+A E` - Expand all top level items
+- `Alt+A C` - Collapse all top level items
+- `Alt+A T` - Refresh view (re**T**resh)
+- `Alt+A I` - Show filter (f**I**lter)
+- `Alt+A X` - Clear filter (clear = **X**)
+
+### Diagrams & Views
+- `Alt+A H` - Show hierarchy diagram
+- `Alt+A P` - Show page flow diagram
+
+### Settings & Help
+- `Alt+A G` - Show AppDNA settings (confi**G**)
+- `Alt+A W` - Show welcome screen
+- `Alt+A Q` - Show help (**Q**uestion)
 - **Welcome View** - Access the guided workflow anytime
 - **Tree View** - Navigate and manage your model structure
 

@@ -1109,7 +1109,6 @@ Successfully added a 'Forms' section to the tree view that displays object workf
 **5. Test Data** (`app-dna.new.json`):
 - Added sample object workflow with `isPage=true` for testing
 - Includes parameters and buttons to demonstrate full structure
-- Named "PacAddForm" with proper form configuration
 
 ### UI Features Implemented
 - ✅ Forms section appears above Reports in tree view

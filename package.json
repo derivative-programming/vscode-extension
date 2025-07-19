@@ -337,12 +337,64 @@
     ],
     "keybindings": [
       {
-        "command": "appdna.addObject",
-        "key": "ctrl+a o"
+        "command": "appdna.addFile",
+        "key": "alt+a n"
       },
       {
         "command": "appdna.saveFile",
-        "key": "ctrl+a s"
+        "key": "alt+a s"
+      },
+      {
+        "command": "appdna.addObject",
+        "key": "alt+a o"
+      },
+      {
+        "command": "appdna.addReport",
+        "key": "alt+a r"
+      },
+      {
+        "command": "appdna.addForm",
+        "key": "alt+a f"
+      },
+      {
+        "command": "appdna.refreshView",
+        "key": "alt+a t"
+      },
+      {
+        "command": "appdna.expandAllTopLevel",
+        "key": "alt+a e"
+      },
+      {
+        "command": "appdna.collapseAllTopLevel",
+        "key": "alt+a c"
+      },
+      {
+        "command": "appdna.showFilter",
+        "key": "alt+a i"
+      },
+      {
+        "command": "appdna.clearFilter",
+        "key": "alt+a x"
+      },
+      {
+        "command": "appdna.showHierarchyDiagram",
+        "key": "alt+a h"
+      },
+      {
+        "command": "appdna.showPageFlowDiagram",
+        "key": "alt+a p"
+      },
+      {
+        "command": "appdna.showAppDNASettings",
+        "key": "alt+a g"
+      },
+      {
+        "command": "appdna.showHelp",
+        "key": "alt+a q"
+      },
+      {
+        "command": "appdna.showWelcome",
+        "key": "alt+a w"
       }
     ]
   },

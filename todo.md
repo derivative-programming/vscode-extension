@@ -62,9 +62,6 @@ demo view...
 - clickable demo that stays on the same view?
 - tell the user to fabricate the demo html files?
 
-cant use ctrl-a as first part of sequence. its select all.
- 
-
 fabrication requests view...
 - add a button to open the output folder in the file explorer
 - allow for a deployment script to be run after fabrication results are downloaded
@@ -223,6 +220,9 @@ win app...
                 "titleText": "Customer User Customer Email Request List Test",
                 "visualizationType": "Grid"
               },
+*************************
+low priority
+********************88
 
 model services api todo...
 - add search query on all request list endpoints
@@ -237,6 +237,7 @@ Java - Hibernate
 C# - Entity Framework
 
 PHP - Doctrine 
+
 
 
 
