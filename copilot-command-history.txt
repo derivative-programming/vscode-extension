@@ -1,3 +1,5 @@
+2025-01-19: Changed the "Parameters" tab text to "Input Controls" in form detail view - updated mainTemplate.js to rename the tab label from "Parameters (${paramCount})" to "Input Controls (${paramCount})", also updated the "Add Parameter" button to "Add Input Control", and changed unnamed parameter labels from "Unnamed Parameter" to "Unnamed Input Control" for consistency.
+
 2025-01-13: Fixed role filtering synchronization bug in page flow view - modified handleRoleChange() function to update ALL tabs' content (renderDiagram(), updateMermaidDiagram(), updateStatisticsContent()) when any role checkbox changes, instead of only updating the source tab. Now when you change role selections in any tab, all other tabs immediately reflect the same filtered content for truly synchronized experience across diagram, mermaid, and statistics views.
 
 2025-01-19: User requested to review the page flow view. Examined the page flow diagram implementation which has been successfully refactored from a large monolithic file into a modular structure with separate components for helpers, scripts, styles, and HTML generation.
