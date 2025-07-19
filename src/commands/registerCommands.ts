@@ -674,10 +674,17 @@ export function registerCommands(
 
     // Register show form details command
     // Import and delegate to formCommands module
-    const { showFormDetailsCommand } = require('./formCommands');
+    const { showFormDetailsCommand, addFormCommand } = require('./formCommands');
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showFormDetails', (node: JsonTreeItem) => {
             showFormDetailsCommand(node, modelService);
+        })
+    );
+
+    // Register add form command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.addForm', () => {
+            addFormCommand(modelService);
         })
     );
 

@@ -3,14 +3,18 @@ Agent todo items...
 
 form detail view...
 - add form wizard...
-owner object
+owner data object
 role required
-adding a child object?
+no visualization step
+no target data object step
+adding a child object? yes\no
+
 action you are performing? (Save, Delete, etc.)
+
+last step...
 form name? [ownerobject name][rolerequired][action][child obj name if available]
 form title?
 
-~~administrator in role list on report wizard?~~ ✅ COMPLETED - Fixed role detection to only look for exact 'Role' object name
 
 data object lookup tab...
 - need to leave the field to trigger the unsaved changes exist flag

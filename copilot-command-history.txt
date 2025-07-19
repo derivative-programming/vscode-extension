@@ -1,0 +1,1 @@
+2025-01-19: Added plus icon button to Forms treeview item similar to Reports - created addForm command stub in package.json, formCommands.ts, and registerCommands.ts. Command shows placeholder message since form wizard is not implemented yet.

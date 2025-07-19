@@ -122,6 +122,12 @@
           "icon": "$(add)"
         },
         {
+          "command": "appdna.addForm",
+          "when": "viewItem =~ /forms.*/",
+          "group": "inline@1",
+          "icon": "$(add)"
+        },
+        {
           "command": "appdna.showHierarchyDiagram",
           "when": "viewItem =~ /dataObjects.*showHierarchy/",
           "group": "inline",
@@ -195,6 +201,11 @@
       {
         "command": "appdna.addReport",
         "title": "Add Report",
+        "icon": "$(add)"
+      },
+      {
+        "command": "appdna.addForm",
+        "title": "Add Form",
         "icon": "$(add)"
       },
       {

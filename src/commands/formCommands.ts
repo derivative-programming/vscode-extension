@@ -32,6 +32,26 @@ export async function showFormDetailsCommand(item: JsonTreeItem, modelService: a
 }
 
 /**
+ * Command handler for adding a form using the wizard (placeholder - not implemented yet)
+ * @param modelService The ModelService instance
+ */
+export async function addFormCommand(modelService: any): Promise<void> {
+    if (!modelService || !modelService.isFileLoaded()) {
+        vscode.window.showErrorMessage('No model file is loaded. Please open or create a model file first.');
+        return;
+    }
+    
+    try {
+        // TODO: Implement form wizard similar to report wizard
+        vscode.window.showInformationMessage('Add Form wizard is not implemented yet. This feature is coming soon!');
+        
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        vscode.window.showErrorMessage(`Failed to open Add Form Wizard: ${errorMessage}`);
+    }
+}
+
+/**
  * Register all form-related commands
  * @param context The extension context
  * @param modelService The ModelService instance
@@ -41,6 +61,13 @@ export function registerFormCommands(context: vscode.ExtensionContext, modelServ
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showFormDetails', (node: JsonTreeItem) => {
             showFormDetailsCommand(node, modelService);
+        })
+    );
+    
+    // Register the command to add a form
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.addForm', () => {
+            addFormCommand(modelService);
         })
     );
 }
