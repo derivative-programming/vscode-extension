@@ -88,7 +88,7 @@ find large files and split them up
 'there is no data provider registered....' on startup  
  
  
-add report wizard has dif step design than add data object wizard
+~~add report wizard has dif step design than add data object wizard~~ ✅ COMPLETED - Updated report wizard progress indicator styling to match object wizard design
  
 report details view...
 - allow creation of column destination button

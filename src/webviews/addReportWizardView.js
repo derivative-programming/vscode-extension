@@ -395,12 +395,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                 .progress-indicator {
                     display: flex;
                     justify-content: space-between;
-                    margin-bottom: 30px;
+                    margin-bottom: 20px;
                     padding: 10px 0;
                     border-bottom: 1px solid var(--vscode-panel-border);
                 }
                 .progress-step {
-                    padding: 5px 10px;
+                    flex: 1;
+                    text-align: center;
+                    padding: 8px;
                     border-radius: 3px;
                     background-color: var(--vscode-badge-background);
                     color: var(--vscode-badge-foreground);
