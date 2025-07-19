@@ -52,7 +52,6 @@ create many diff treeview report items? under report treeview item?...
 
 
 mermaid diagram view...
-- color coding
 - 'render diagram' > refresh icon button
 - no show\hide context button
 - hover text like graph view - difficult

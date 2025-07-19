@@ -2285,10 +2285,7 @@ function generateBodyContent(flowMap) {
                 </div>
             </div>
             
-            <div class="navigation-help" style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 10px; padding: 8px; background-color: var(--vscode-editorWidget-background); border-radius: 4px;">
-                <strong>Navigation:</strong> 
-                Arrow keys to pan • +/- to zoom • 0 to reset • Mouse wheel to zoom • Drag to pan • Drag nodes to reposition
-            </div>
+
         </div>
         
         <div class="flow-container" id="flowContainer">
@@ -2512,10 +2509,7 @@ function generateMermaidContent(flowMap) {
                 </div>
             </div>
             
-            <div class="navigation-help" style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 10px; padding: 8px; background-color: var(--vscode-editorWidget-background); border-radius: 4px;">
-                <strong>Navigation:</strong> 
-                +/- buttons to zoom • Mouse wheel to zoom • Drag to pan • Scroll to navigate zoomed content
-            </div>
+
         </div>
         
         <div class="mermaid-viewport">
