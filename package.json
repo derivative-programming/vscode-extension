@@ -2,7 +2,7 @@
   "name": "appdna",
   "publisher": "derivative-programming",
   "displayName": "AppDNA Model Builder",
-  "description": "A professional VS Code extension for building and managing AppDNA model files with schema-driven UI, code generation, and Model Context Protocol support for GitHub Copilot integration.",
+  "description": "Build application models and generate code for multiple platforms (.NET, Python, Web, Mobile). Professional schema-driven UI with GitHub Copilot integration via Model Context Protocol.",
   "version": "1.0.4",
   "engines": {
     "vscode": "^1.99.0"
@@ -13,13 +13,15 @@
     "Programming Languages"
   ],
   "keywords": [
+    "code generation",
+    "model driven development", 
+    "multi-platform",
+    "scaffolding",
     "appdna",
-    "model",
-    "code generator",
     "json schema",
+    "copilot",
     "mcp",
-    "model context protocol",
-    "copilot"
+    "model context protocol"
   ],
   "repository": {
     "type": "git",

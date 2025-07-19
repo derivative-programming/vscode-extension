@@ -1,3 +1,39 @@
+2025-01-19 14:23:00 - User: review my help view and home view and primary treeview items to update the readme of the primary features of the extension
+
+User requested to review the help view, home view (welcome view), and primary tree view items to update the README with accurate information about the extension's actual features. This will involve examining the actual UI components and updating the documentation to match what users actually see in the extension.
+
+After reviewing the code, I found the actual extension structure:
+
+**Primary Tree View Structure:**
+- PROJECT (Settings, Lexicon*, User Stories*, MCP Servers*)
+- DATA OBJECTS (Schema-based business objects)  
+- PAGES* (Forms, Reports - only when advanced properties enabled)
+- MODEL SERVICES (Login/Register, Feature Catalog, AI Processing, Validation, Blueprint Catalog, Fabrication)
+
+*Advanced properties only (configurable)
+
+**Welcome View Workflow (9 steps):**
+1. Create New Project Model
+2. Update Project Settings
+3. Register/Login to Model Services
+4. Add Model Features
+5. Request Model AI Processing
+6. Request Model Validation
+7. Select Blueprints to Fabricate
+8. Request Model Fabrication
+9. Manual Model Editing
+
+**Key Features:**
+- Schema-driven dynamic UI generation from JSON schema
+- Tree view with hierarchical object navigation
+- Form-based detail editors for objects/reports/forms
+- Filtering capabilities for different object types
+- MCP (Model Context Protocol) server integration
+- Cloud-based AI processing and code generation services
+- Visual diagrams (hierarchy, page flow)
+- Real-time model validation
+- Multi-platform code generation (.NET, Python, Web, Mobile, AR/VR)
+
 2025-01-19: Fixed form details settings tab boolean dropdown defaults - updated settingsTabTemplate.js to default boolean dropdowns (true/false) to "false" when property doesn't exist, matching behavior of other tabs. Added logic to detect boolean enums and apply appropriate default values: schema default if specified, false for boolean enums, or first option for other enum types.
 
 2025-01-19: Fixed form details view settings tab to disable checkboxes when checked - added missing logic in formControlUtilities.js to set this.disabled = true when a settings checkbox is checked, ensuring consistency with other tabs (parameters, buttons, output variables) where checkboxes become disabled once checked to prevent unchecking.
@@ -15,6 +51,7 @@
 2025-07-19: Changed default value for 'show advanced settings' checkbox to checked by default - updated fileUtils.ts defaultShowAdvancedProperties from false to true, and appDnaSettingsView.js to use nullish coalescing operator (??) to default to true when value is undefined
 2025-07-19: Enhanced AppDNA settings view to create default config file if not found - modified _loadConfig() to create app-dna.config.json with defaults when missing, updated generateConfigFileContent() to default showAdvancedProperties to true, and removed appDnaConfigExists requirement from package.json menu condition so settings gear always appears when model file exists
 2025-07-19: Fixed config file structure inconsistency - updated getModelFileNameFromConfig() in fileUtils.ts to create full config structure instead of minimal {modelFile} only, and enhanced _loadConfig() to detect and upgrade incomplete config files while preserving existing values
+2025-07-19: Reviewed and improved marketplace description - updated package.json description to be more user-benefit focused, improved README introduction for better marketplace appeal, and optimized keywords for better discoverability
 
 2025-01-19: Added search functionality to Mermaid tab in page flow view. Implemented searchPagesMermaid() function with highlighting support, added search input box to Mermaid content, created synchronized search between diagram and Mermaid tabs, updated generateMermaidSyntax() to support search highlighting classes (searchHighlight and searchPartial), modified switchTab() function to sync search values when switching between tabs, and ensured proper event listener management to avoid duplicates.
 

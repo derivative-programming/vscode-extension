@@ -3,51 +3,116 @@
 [![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/derivative-programming.appdna)](https://marketplace.visualstudio.com/items?itemName=derivative-programming.appdna)
 [![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/derivative-programming.appdna)](https://marketplace.visualstudio.com/items?itemName=derivative-programming.appdna)
 
-A professional VS Code extension for building and managing AppDNA model files with schema-driven UI and code generation capabilities.
+A professional VS Code extension for building application models and automatically generating source code for multiple platforms and languages.
 
-If we can create a model of your application, then we can generate a large amount of source code automatically. The source code generated can be for many different language (.net, python, etc.) and for many diffierent application types (API, Web, IOS App, Android App, Augmented Reality App, Virtual Reality App, etc.). Once generated, you can pull in any of the generated source code you like into your own source code repository.
+Transform your development workflow: design your application model once, then generate complete source code for .NET, Python, Web applications, iOS Apps, Android Apps, AR/VR applications, and more. Pull the generated code into your repositories and accelerate your development process.
 
 ## Features
 
 ### 🏗️ Schema-Driven Model Builder
 - **Dynamic UI Generation**: All forms and controls are automatically generated from your JSON schema
 - **Real-time Validation**: Instant feedback as you edit with schema-based validation
-- **Professional Interface**: Clean, VS Code-integrated design with tree view navigation
+- **Professional Interface**: Clean, VS Code-integrated design with hierarchical tree view navigation
 
-### 📝 Intelligent Editing
-- **Tree View Navigation**: Navigate your JSON structure easily in the sidebar
+### 📝 Intelligent Model Editing
+- **Tree View Navigation**: Navigate your project structure with organized sections:
+  - **PROJECT**: Settings, lexicon, user stories, and MCP server management
+  - **DATA OBJECTS**: Schema-based business entities with filtering and search
+  - **PAGES**: Forms and reports (when advanced properties are enabled)
+  - **MODEL SERVICES**: AI-powered processing and code generation services
 - **Form-Based Editor**: Edit JSON properties using intuitive, dynamically generated forms
 - **Right-Click Context Menus**: Add, edit, and manage items with convenient context menus
-- **Live JSON Preview**: View the generated JSON in real-time as you make changes
+- **Advanced Filtering**: Filter objects, reports, and forms independently for focused navigation
 
-### ⚡ Advanced Features
+### ⚡ AI-Powered Code Generation
+- **Model Services Integration**: Connect to cloud-based AI services for intelligent processing
+- **Feature Catalog**: Browse and select from a library of pre-built model features
+- **AI Processing**: Submit models for AI-assisted enhancement and validation
+- **Multi-Platform Fabrication**: Generate code for .NET, Python, Web, iOS, Android, AR/VR applications
+- **Blueprint Catalog**: Select from fabrication templates for different application types
+- **Validation Services**: Automated model validation with improvement suggestions
+
+### 🔧 Advanced Development Features
 - **File Watching**: Automatic detection of external file changes
 - **In-Memory Editing**: Changes are made in-memory and saved only when you choose
 - **Property Control**: Toggle property existence with checkboxes - unchecked means the property is omitted from JSON
 - **Tooltips & Descriptions**: Schema descriptions shown as helpful tooltips
-- **Keyboard Shortcuts**: Quick access to common actions
+- **Visual Diagrams**: Hierarchy diagrams and page flow visualizations
+- **MCP Integration**: Model Context Protocol server for external tool integration
+- **Keyboard Shortcuts**: Quick access to common actions (`Ctrl+A O` for new object, `Ctrl+A S` for save)
 
 ## Getting Started
 
+### Quick Start
 1. **Install the Extension**: Search for "AppDNA Model Builder" in the VS Code marketplace
-2. **Open Your Project**: Open a folder containing your AppDNA model files
-3. **Start Building**: Use the AppDNA sidebar to create and manage your models
-4. **Generate Code**: Use the built-in code generation features
+2. **Open Your Project**: Open a folder where you want to create your AppDNA model
+3. **Follow the Welcome Workflow**: The extension provides a guided 9-step workflow:
+
+### AppDNA Development Workflow
+The extension provides a comprehensive workflow for model-driven development:
+
+1. **Create New Project Model** - Start with a new AppDNA JSON model file
+2. **Update Project Settings** - Configure project metadata and context information  
+3. **Register/Login to Model Services** - Access AI-powered cloud services
+4. **Add Model Features** - Browse and select features from the feature catalog
+5. **Request Model AI Processing** - Enhance your model with AI assistance
+6. **Request Model Validation** - Validate and improve your model structure
+7. **Select Fabrication Blueprints** - Choose templates for code generation
+8. **Request Model Fabrication** - Generate source code for multiple platforms
+9. **Manual Model Editing** - Fine-tune your model and iterate
 
 ### Quick Actions
-- `Ctrl+A O` - Add new object
+- `Ctrl+A O` - Add new data object
 - `Ctrl+A S` - Save model to file
+- **Welcome View** - Access the guided workflow anytime
+- **Tree View** - Navigate and manage your model structure
 
 ## Extension Interface
 
 ![AppDNA Extension](https://github.com/derivative-programming/vscode-extension/blob/main/media/screenshot.png)
 
-The extension provides:
-- **Sidebar Tree View**: Navigate your model structure
-- **Detail Panels**: Edit individual objects and properties
+The extension provides a comprehensive interface with multiple views:
+
+### Tree View (Sidebar)
+- **PROJECT**: Configuration settings, lexicon management, user stories, MCP servers
+- **DATA OBJECTS**: Business entities with hierarchical organization and filtering
+- **PAGES**: Forms and reports for user interface design (advanced feature)
+- **MODEL SERVICES**: AI-powered processing, validation, and code generation services
+
+### Detail Panels
+- **Schema-Driven Forms**: Dynamic property editors generated from JSON schema
+- **Tabbed Interface**: Organized editing for complex objects (Settings, Parameters, Buttons, etc.)
+- **Property Toggles**: Checkbox controls to include/exclude properties from JSON output
+- **Validation Feedback**: Real-time schema validation with helpful error messages
+
+### Additional Views
+- **Welcome View**: Guided workflow with 9 development steps
+- **Help View**: Documentation links and support resources
+- **Settings View**: Extension configuration and preferences
 - **Command Palette**: Access all extension features via `Ctrl+Shift+P`
 
+### Visual Tools
+- **Hierarchy Diagrams**: Visualize object relationships and dependencies
+- **Page Flow Diagrams**: Map user interface navigation and workflows
+- **Search & Filter**: Find and organize models efficiently across all object types
+
 A Windows app version of this extension is available [here](https://github.com/derivative-programming/ModelWinApp).
+
+## Model Context Protocol (MCP) Integration
+
+The extension includes built-in MCP server capabilities for seamless integration with AI assistants and external tools:
+
+### MCP Server Features
+- **Local MCP Server**: Starts/stops a local MCP server for direct integration
+- **HTTP Server Bridge**: Provides HTTP access to MCP functionality for web-based tools
+- **Real-time Status**: Visual indicators show server running/stopped states in the tree view
+- **Tool Integration**: Exposes AppDNA model operations as MCP tools for AI assistants
+
+### Server Management
+- Start/stop servers directly from the PROJECT section in the tree view
+- Automatic port management and conflict resolution
+- Status monitoring with visual feedback
+- Configurable server settings through AppDNA configuration
 
 ## Requirements
 
@@ -55,9 +120,23 @@ A Windows app version of this extension is available [here](https://github.com/d
 
 ## Extension Settings
 
-This extension contributes the following settings:
+This extension provides comprehensive configuration through both VS Code settings and AppDNA-specific configuration:
 
-- `appDNA.modelServiceUrl`: Configure the URL for external model generation service (default: https://modelservicesapi.derivative-programming.com)
+### VS Code Settings
+- `appDNA.modelServiceUrl`: Configure the URL for external Model Services API (default: https://modelservicesapi.derivative-programming.com)
+
+### AppDNA Configuration (app-dna.config.json)
+The extension creates and manages an `app-dna.config.json` file in your workspace with these configurable options:
+
+- **Output Path**: Directory where generated code files will be saved (relative to workspace root)
+- **Show Advanced Properties**: Controls visibility of advanced tree view items (Lexicon, User Stories, MCP Servers, Pages)
+- **Expand Nodes on Load**: Automatically expands all tree view sections when a model is loaded
+- **Model File Name**: Specify custom name for your AppDNA model file (default: app-dna.json)
+
+### Configuration Access
+- **Settings Gear Icon**: Click the gear icon in the AppDNA tree view title bar
+- **AppDNA Settings View**: User-friendly interface for editing configuration properties
+- **Automatic Configuration**: Extension creates default configuration on first use
 
 ## Known Issues
 
