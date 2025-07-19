@@ -7,3 +7,7 @@
 2025-01-19: Removed cancel button from step 1 of Form Wizard - cleaned up HTML and event listener for cleaner step 1 interface.
 2025-01-19: Updated form title generation to use format [Action] [OwnerObjectName] or [Action] [ChildObjectName] - action appears first, followed by the appropriate object name.
 2025-01-19: Right-justified Next button in Form Wizard step 1 by adding spacer div to match button alignment with other steps.
+2025-01-19: Added Enter key support for Form Action textbox in step 4b - pressing Enter now clicks the Next button for better keyboard navigation.
+2025-01-19: Added Enter key support for Target Data Object dropdown in step 4a - pressing Enter now clicks the Next button for consistent keyboard navigation.
+2025-01-19: Added Enter key support for Form Name and Form Title textboxes in step 5 - pressing Enter now clicks the Create Form button to complete the wizard.
+2025-01-19: Fixed form creation to set isAuthorizationRequired to "false" when no role is required, rather than omitting the property.

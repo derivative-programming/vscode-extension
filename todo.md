@@ -1,20 +1,16 @@
 Agent todo items...
 
 
-add Title on wizard views above step display
-
 form detail view...
-- ~~step 1: remove cancel button~~ ✅ COMPLETED - Removed cancel button from step 1 of form wizard
-~~no target data object step~~ ✅ COMPLETED - Target object only for new instance creation
-~~adding a child object? yes\no~~ ✅ COMPLETED - Step 3: New instance question
+- add form wizard...
+owner object
+role required
+adding a child object?
+action you are performing? (Save, Delete, etc.)
+form name? [ownerobject name][rolerequired][action][child obj name if available]
+form title?
 
-~~action you are performing? (Save, Delete, etc.)~~ ✅ COMPLETED - Step 4b: Action selection
-
-~~last step...~~ ✅ COMPLETED - Step 5: Form details
-~~form name? [ownerobject name][rolerequired][action][child obj name if available]~~ ✅ COMPLETED - Auto-generated form name
-~~form title?~~ ✅ COMPLETED - Auto-generated form title
-~~default title in format [Action] [OwnerObjectName] or [Action] [ChildObjectName]~~ ✅ COMPLETED - Updated form title generation to use format [Action] [ObjectName]
-
+administrator in role list on report wizard?
 
 data object lookup tab...
 - need to leave the field to trigger the unsaved changes exist flag
@@ -92,7 +88,7 @@ find large files and split them up
 'there is no data provider registered....' on startup  
  
  
-~~add report wizard has dif step design than add data object wizard~~ ✅ COMPLETED - Updated report wizard progress indicator styling to match object wizard design
+add report wizard has dif step design than add data object wizard
  
 report details view...
 - allow creation of column destination button

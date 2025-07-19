@@ -80,6 +80,8 @@ function showAddFormWizard(modelService) {
                             newForm.isAuthorizationRequired = "true";
                             newForm.roleRequired = roleRequired;
                             newForm.layoutName = roleRequired + "Layout";
+                        } else {
+                            newForm.isAuthorizationRequired = "false";
                         }
                         
                         if (isCreatingNewInstance && targetObjectName) {
@@ -855,6 +857,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                     generateFormTitle();
                 });
                 
+                // Handle step 4a keyboard navigation
+                document.getElementById('step4a').addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && !document.getElementById('step4aNextBtn').disabled) {
+                        event.preventDefault();
+                        document.getElementById('step4aNextBtn').click();
+                    }
+                });
+                
                 // Step 4b: Action Selection
                 document.getElementById('formAction').addEventListener('input', function() {
                     selectedAction = this.value.trim();
@@ -892,6 +902,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                     generateFormTitle();
                 });
                 
+                // Handle step 4b keyboard navigation
+                document.getElementById('step4b').addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && !document.getElementById('step4bNextBtn').disabled) {
+                        event.preventDefault();
+                        document.getElementById('step4bNextBtn').click();
+                    }
+                });
+                
                 // Step 5: Form Details
                 document.getElementById('formName').addEventListener('input', validateFormName);
                 document.getElementById('formTitle').addEventListener('input', validateFormTitle);
@@ -912,6 +930,14 @@ function generateWizardHTML(allObjects, roleObjects) {
                         command: 'createForm',
                         data: formData
                     });
+                });
+                
+                // Handle step 5 keyboard navigation
+                document.getElementById('step5').addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && !document.getElementById('createFormBtn').disabled) {
+                        event.preventDefault();
+                        document.getElementById('createFormBtn').click();
+                    }
                 });
             </script>
         </body>
