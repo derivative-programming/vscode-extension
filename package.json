@@ -102,7 +102,7 @@
         },
         {
           "command": "appdna.showAppDNASettings",
-          "when": "view == appdna && appDnaFileExists && appDnaConfigExists",
+          "when": "view == appdna && appDnaFileExists",
           "group": "navigation@1"
         }
       ],

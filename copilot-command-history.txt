@@ -13,6 +13,8 @@
 2025-07-19: Updated styles.css with VS Code CSS variables for theme-aware button styling
 2025-07-19: User requested to look for other buttons used in the extension - found multiple button classes across webviews
 2025-07-19: Changed default value for 'show advanced settings' checkbox to checked by default - updated fileUtils.ts defaultShowAdvancedProperties from false to true, and appDnaSettingsView.js to use nullish coalescing operator (??) to default to true when value is undefined
+2025-07-19: Enhanced AppDNA settings view to create default config file if not found - modified _loadConfig() to create app-dna.config.json with defaults when missing, updated generateConfigFileContent() to default showAdvancedProperties to true, and removed appDnaConfigExists requirement from package.json menu condition so settings gear always appears when model file exists
+2025-07-19: Fixed config file structure inconsistency - updated getModelFileNameFromConfig() in fileUtils.ts to create full config structure instead of minimal {modelFile} only, and enhanced _loadConfig() to detect and upgrade incomplete config files while preserving existing values
 
 2025-01-19: Added search functionality to Mermaid tab in page flow view. Implemented searchPagesMermaid() function with highlighting support, added search input box to Mermaid content, created synchronized search between diagram and Mermaid tabs, updated generateMermaidSyntax() to support search highlighting classes (searchHighlight and searchPartial), modified switchTab() function to sync search values when switching between tabs, and ensured proper event listener management to avoid duplicates.
 

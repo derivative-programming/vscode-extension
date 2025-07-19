@@ -47,8 +47,21 @@ export function getModelFileNameFromConfig(workspaceFolder: string): string {
                 return config.modelFile;
             }
         } else {
-            // Create config file with default value
-            fs.writeFileSync(configPath, JSON.stringify({ modelFile: defaultModelFile }, null, 2), "utf8");
+            // Create config file with full default structure
+            const defaultConfig = {
+                version: "1.0.0",
+                modelFile: defaultModelFile,
+                settings: { 
+                    codeGeneration: {
+                        outputPath: "./fabrication_results"
+                    },
+                    editor: {
+                        showAdvancedProperties: true,
+                        expandNodesOnLoad: false
+                    }
+                }
+            };
+            fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2), "utf8");
         }
     } catch (err) {
         console.warn("Could not read or create config file:", err);

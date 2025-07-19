@@ -267,7 +267,7 @@ function generateConfigFileContent(modelFileName: string): string {
                 outputPath: "./fabrication_results"
             },
             editor: {
-                showAdvancedProperties: false,
+                showAdvancedProperties: true,
                 expandNodesOnLoad: false
             }
         }

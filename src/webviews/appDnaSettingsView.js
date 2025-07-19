@@ -92,6 +92,7 @@ class AppDNASettingsPanel {
 
     /**
      * Loads the current config file and sends it to the webview
+     * Creates a default config file if it doesn't exist or is incomplete
      */
     _loadConfig() {
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -103,20 +104,88 @@ class AppDNASettingsPanel {
         const configPath = path.join(workspaceFolder, 'app-dna.config.json');
         
         try {
+            let config;
+            let needsUpdate = false;
+            
             if (fs.existsSync(configPath)) {
                 const configRaw = fs.readFileSync(configPath, 'utf8');
-                const config = JSON.parse(configRaw);
+                config = JSON.parse(configRaw);
                 
-                this.panel.webview.postMessage({
-                    command: "configLoaded",
-                    config: config
-                });
+                // Check if config has the complete structure
+                if (!config.version || !config.settings || !config.settings.codeGeneration || !config.settings.editor) {
+                    console.log('Incomplete config detected, updating to full structure');
+                    needsUpdate = true;
+                }
             } else {
-                vscode.window.showErrorMessage('Config file not found.');
+                needsUpdate = true;
             }
+            
+            if (needsUpdate) {
+                // Create or update to full config structure
+                const defaultConfig = this._createDefaultConfig(workspaceFolder);
+                
+                // Preserve existing values if they exist
+                if (config) {
+                    defaultConfig.modelFile = config.modelFile || defaultConfig.modelFile;
+                    if (config.settings) {
+                        if (config.settings.codeGeneration) {
+                            defaultConfig.settings.codeGeneration.outputPath = config.settings.codeGeneration.outputPath || defaultConfig.settings.codeGeneration.outputPath;
+                        }
+                        if (config.settings.editor) {
+                            defaultConfig.settings.editor.showAdvancedProperties = config.settings.editor.showAdvancedProperties ?? defaultConfig.settings.editor.showAdvancedProperties;
+                            defaultConfig.settings.editor.expandNodesOnLoad = config.settings.editor.expandNodesOnLoad || defaultConfig.settings.editor.expandNodesOnLoad;
+                        }
+                    }
+                }
+                
+                config = defaultConfig;
+                fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+                console.log('Created/updated AppDNA config file at:', configPath);
+                
+                // Update the context to show that config now exists
+                vscode.commands.executeCommand('setContext', 'appDnaConfigExists', true);
+            }
+            
+            this.panel.webview.postMessage({
+                command: "configLoaded",
+                config: config
+            });
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to load config: ${error.message}`);
         }
+    }
+
+    /**
+     * Creates a default configuration object
+     * @param {string} workspaceFolder The workspace folder path
+     * @returns {object} Default configuration object
+     */
+    _createDefaultConfig(workspaceFolder) {
+        // Try to find an existing model file
+        let modelFileName = 'app-dna.json';
+        const possibleModelFiles = ['app-dna.json', 'app-dna.new.json'];
+        
+        for (const fileName of possibleModelFiles) {
+            const modelPath = path.join(workspaceFolder, fileName);
+            if (fs.existsSync(modelPath)) {
+                modelFileName = fileName;
+                break;
+            }
+        }
+        
+        return {
+            version: "1.0.0",
+            modelFile: modelFileName,
+            settings: { 
+                codeGeneration: {
+                    outputPath: "./fabrication_results"
+                },
+                editor: {
+                    showAdvancedProperties: true,
+                    expandNodesOnLoad: false
+                }
+            }
+        };
     }
 
     /**
