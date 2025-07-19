@@ -123,7 +123,7 @@ export function getExpandNodesOnLoadFromConfig(workspaceFolder: string): boolean
  */
 export function getShowAdvancedPropertiesFromConfig(workspaceFolder: string): boolean {
     const configPath = workspaceFolder ? workspaceFolder + "/app-dna.config.json" : null;
-    const defaultShowAdvancedProperties = false;
+    const defaultShowAdvancedProperties = true;
     if (!configPath) {
         return defaultShowAdvancedProperties;
     }

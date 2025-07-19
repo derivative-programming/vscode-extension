@@ -329,7 +329,7 @@ class AppDNASettingsPanel {
             function loadConfigIntoForm(config) {
                 // Set default values if settings don't exist
                 outputPathInput.value = config.settings?.codeGeneration?.outputPath || './fabrication_results';
-                showAdvancedPropertiesInput.checked = config.settings?.editor?.showAdvancedProperties || false;
+                showAdvancedPropertiesInput.checked = config.settings?.editor?.showAdvancedProperties ?? true;
                 expandNodesOnLoadInput.checked = config.settings?.editor?.expandNodesOnLoad || false;
             }
             
