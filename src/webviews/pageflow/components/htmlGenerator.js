@@ -701,6 +701,12 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             
             document.getElementById('searchPages').addEventListener('input', searchPages);
             
+            // Add event listener for Mermaid search
+            const mermaidSearchInput = document.getElementById('searchPagesMermaid');
+            if (mermaidSearchInput) {
+                mermaidSearchInput.addEventListener('input', searchPagesMermaid);
+            }
+            
             // Check if Mermaid tab is already active and initialize if needed
             const mermaidTab = document.getElementById('mermaid');
             if (mermaidTab && mermaidTab.classList.contains('active')) {
@@ -924,7 +930,67 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 }
             });
             
+            // Synchronize search with Mermaid tab
+            const mermaidSearchInput = document.getElementById('searchPagesMermaid');
+            if (mermaidSearchInput) {
+                mermaidSearchInput.value = document.getElementById('searchPages').value;
+            }
+            
             renderDiagram();
+        }
+
+        // Mermaid search functionality
+        function searchPagesMermaid() {
+            const searchText = document.getElementById('searchPagesMermaid').value.toLowerCase();
+            console.log('[DEBUG] Mermaid search triggered with text:', searchText);
+            
+            // Clear previous search highlights
+            flowData.pages.forEach(page => {
+                page.searchHighlight = false;
+                page.searchPartial = false;
+            });
+            
+            let exactMatches = 0;
+            let partialMatches = 0;
+            
+            // If search is not empty, apply highlighting
+            if (searchText.trim()) {
+                flowData.pages.forEach(page => {
+                    const pageName = page.name.toLowerCase();
+                    const pageTitle = (page.titleText || '').toLowerCase();
+                    
+                    if (pageName === searchText || pageTitle === searchText) {
+                        page.searchHighlight = true;
+                        page.searchPartial = false;
+                        exactMatches++;
+                    } else if (pageName.includes(searchText) || pageTitle.includes(searchText)) {
+                        page.searchHighlight = false;
+                        page.searchPartial = true;
+                        partialMatches++;
+                    }
+                });
+            }
+            
+            console.log('[DEBUG] Search results - Exact matches:', exactMatches, 'Partial matches:', partialMatches);
+            
+            // Synchronize search with diagram tab
+            const diagramSearchInput = document.getElementById('searchPages');
+            if (diagramSearchInput) {
+                diagramSearchInput.value = document.getElementById('searchPagesMermaid').value;
+            }
+            
+            // Update the Mermaid diagram with highlighting
+            updateMermaidDiagram();
+        }
+
+        // Synchronize search from diagram to Mermaid tab
+        function syncSearchToMermaid() {
+            const mermaidSearchInput = document.getElementById('searchPagesMermaid');
+            const diagramSearchInput = document.getElementById('searchPages');
+            
+            if (mermaidSearchInput && diagramSearchInput) {
+                mermaidSearchInput.value = diagramSearchInput.value;
+            }
         }
 
         // Get CSS class for page node
@@ -1273,6 +1339,22 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 // Initialize role filter for Mermaid tab
                 initializeMermaidRoleFilter();
                 
+                // Add search event listener for Mermaid tab and sync search values
+                const mermaidSearchInput = document.getElementById('searchPagesMermaid');
+                const diagramSearchInput = document.getElementById('searchPages');
+                if (mermaidSearchInput) {
+                    // Remove existing listener first to avoid duplicates
+                    mermaidSearchInput.removeEventListener('input', searchPagesMermaid);
+                    mermaidSearchInput.addEventListener('input', searchPagesMermaid);
+                    
+                    // Sync search value from diagram tab
+                    if (diagramSearchInput) {
+                        mermaidSearchInput.value = diagramSearchInput.value;
+                    }
+                    
+                    console.log('[DEBUG] Added Mermaid search event listener and synchronized search value');
+                }
+                
                 if (typeof mermaid !== 'undefined') {
                     console.log('[DEBUG] Mermaid library is loaded, initializing...');
                     setTimeout(() => {
@@ -1289,6 +1371,15 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                             '<p>Please check your internet connection and try refreshing the page.</p>' +
                             '</div>';
                     }
+                }
+            }
+            
+            // Synchronize search when switching to diagram tab
+            if (tabName === 'diagram') {
+                const diagramSearchInput = document.getElementById('searchPages');
+                const mermaidSearchInput = document.getElementById('searchPagesMermaid');
+                if (diagramSearchInput && mermaidSearchInput) {
+                    diagramSearchInput.value = mermaidSearchInput.value;
                 }
             }
             
@@ -1896,7 +1987,7 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                     }
                     usedNodeIds.add(nodeId);
                     
-                    const displayText = sanitizeDisplayTextForMermaid(page.titleText || page.name);
+                    const displayText = formatMermaidDisplayTextInternal(page.titleText, page.name);
                     const nodeShape = getNodeShapeForPageTypeForMermaid(page.type);
                     
                     mermaidCode += "    " + nodeId + nodeShape.start + '"' + displayText + '"' + nodeShape.end + "\\n";
@@ -1928,7 +2019,15 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 
                 mermaidCode += "\\n";
                 mermaidCode += "    classDef formPage fill:#e1f5fe,stroke:#01579b,stroke-width:2px\\n";
-                mermaidCode += "    classDef reportPage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px\\n\\n";
+                mermaidCode += "    classDef reportPage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px\\n";
+                
+                // Add search highlighting class definitions
+                mermaidCode += "    classDef searchHighlight fill:#22c55e,stroke:#15803d,stroke-width:4px\\n";
+                mermaidCode += "    classDef searchPartial fill:#4ade80,stroke:#16a34a,stroke-width:3px\\n";
+                mermaidCode += "\\n";
+                
+                let highlightCount = 0;
+                let partialCount = 0;
                 
                 flowMap.pages.forEach(page => {
                     if (!page || !page.name) {
@@ -1936,12 +2035,25 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                     }
                     
                     const nodeId = sanitizeNodeIdForMermaid(page.name);
-                    if (page.type === 'form') {
-                        mermaidCode += "    class " + nodeId + " formPage\\n";
-                    } else if (page.type === 'report') {
-                        mermaidCode += "    class " + nodeId + " reportPage\\n";
+                    
+                    // Apply search highlighting classes first (they take priority)
+                    if (page.searchHighlight) {
+                        mermaidCode += "    class " + nodeId + " searchHighlight\\n";
+                        highlightCount++;
+                    } else if (page.searchPartial) {
+                        mermaidCode += "    class " + nodeId + " searchPartial\\n";
+                        partialCount++;
+                    } else {
+                        // Apply normal type-based styling
+                        if (page.type === 'form') {
+                            mermaidCode += "    class " + nodeId + " formPage\\n";
+                        } else if (page.type === 'report') {
+                            mermaidCode += "    class " + nodeId + " reportPage\\n";
+                        }
                     }
                 });
+                
+                console.log('[DEBUG] Mermaid syntax generated with', highlightCount, 'highlighted nodes and', partialCount, 'partial match nodes');
             } else {
                 mermaidCode += "    NoPages[\\"No pages found in the model\\"]\\n";
                 mermaidCode += "    class NoPages emptyState\\n";
@@ -1954,6 +2066,18 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
         // Helper functions for Mermaid syntax generation (duplicated to avoid dependency issues)
         function sanitizeNodeIdForMermaid(name) {
             return name.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^[^a-zA-Z]/, 'N_');
+        }
+        
+        function formatMermaidDisplayTextInternal(titleText, name) {
+            if (!titleText || titleText === name) {
+                // If no title text or title is same as name, just show the name
+                return sanitizeDisplayTextForMermaid(name);
+            } else {
+                // Show both title and name in format: "Title (Name)"
+                const sanitizedTitle = sanitizeDisplayTextForMermaid(titleText);
+                const sanitizedName = sanitizeDisplayTextForMermaid(name);
+                return sanitizedTitle + " (" + sanitizedName + ")";
+            }
         }
         
         function sanitizeDisplayTextForMermaid(text) {
@@ -2328,6 +2452,10 @@ function generateMermaidContent(flowMap) {
     
     return `
         <div class="mermaid-header-controls">
+            <div class="search-box">
+                <input type="text" id="searchPagesMermaid" placeholder="Search pages by name or title..." />
+            </div>
+            
             <div class="mermaid-controls">
                 <button class="btn" onclick="initializeMermaid()">Render Diagram</button>
                 <button class="btn" onclick="downloadMermaidSVG()">Download SVG</button>
@@ -2408,7 +2536,7 @@ function generateMermaidSyntax(flowMap, diagramType = "flowchart TD") {
             }
             usedNodeIds.add(nodeId);
             
-            const displayText = sanitizeDisplayText(page.titleText || page.name);
+            const displayText = formatMermaidDisplayText(page.titleText, page.name);
             const nodeShape = getNodeShapeForPageType(page.type);
             
             // Add node with appropriate shape and styling
@@ -2448,6 +2576,10 @@ function generateMermaidSyntax(flowMap, diagramType = "flowchart TD") {
         mermaidCode += "    classDef formPage fill:#e1f5fe,stroke:#01579b,stroke-width:2px\n";
         mermaidCode += "    classDef reportPage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px\n";
         
+        // Add search highlighting class definitions
+        mermaidCode += "    classDef searchHighlight fill:#22c55e,stroke:#15803d,stroke-width:4px\n";
+        mermaidCode += "    classDef searchPartial fill:#4ade80,stroke:#16a34a,stroke-width:3px\n";
+        
         // Apply classes to nodes
         mermaidCode += "\n";
         flowMap.pages.forEach(page => {
@@ -2456,10 +2588,19 @@ function generateMermaidSyntax(flowMap, diagramType = "flowchart TD") {
             }
             
             const nodeId = sanitizeNodeId(page.name);
-            if (page.type === 'form') {
-                mermaidCode += `    class ${nodeId} formPage\n`;
-            } else if (page.type === 'report') {
-                mermaidCode += `    class ${nodeId} reportPage\n`;
+            
+            // Apply search highlighting classes first (they take priority)
+            if (page.searchHighlight) {
+                mermaidCode += `    class ${nodeId} searchHighlight\n`;
+            } else if (page.searchPartial) {
+                mermaidCode += `    class ${nodeId} searchPartial\n`;
+            } else {
+                // Apply normal type-based styling
+                if (page.type === 'form') {
+                    mermaidCode += `    class ${nodeId} formPage\n`;
+                } else if (page.type === 'report') {
+                    mermaidCode += `    class ${nodeId} reportPage\n`;
+                }
             }
         });
     } else {
@@ -2487,6 +2628,24 @@ function escapeHtml(text) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#x27;');
+}
+
+/**
+ * Formats display text with both title and name for Mermaid diagrams
+ * @param {string} titleText The title text
+ * @param {string} name The name
+ * @returns {string} Formatted display text
+ */
+function formatMermaidDisplayText(titleText, name) {
+    if (!titleText || titleText === name) {
+        // If no title text or title is same as name, just show the name
+        return sanitizeDisplayText(name);
+    } else {
+        // Show both title and name in format: "Title (Name)"
+        const sanitizedTitle = sanitizeDisplayText(titleText);
+        const sanitizedName = sanitizeDisplayText(name);
+        return sanitizedTitle + " (" + sanitizedName + ")";
+    }
 }
 
 /**
