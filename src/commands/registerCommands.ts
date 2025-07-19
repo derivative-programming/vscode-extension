@@ -14,6 +14,7 @@ import { startMCPServerCommand, stopMCPServerCommand } from './mcpCommands';
 import { startMCPHttpServerCommand, stopMCPHttpServerCommand } from './mcpHttpCommands';
 import * as objectDetailsView from '../webviews/objectDetailsView';
 import * as reportDetailsView from '../webviews/reportDetailsView';
+import * as formDetailsView from '../webviews/formDetailsView';
 import { ModelService } from '../services/modelService';
 import { openModelExplorer } from '../webviews/modelExplorerView';
 import { showWelcomeView, WelcomePanel } from '../webviews/welcomeView';
@@ -82,7 +83,15 @@ export function registerCommands(
             let openReportPanelsToReopen = [];
             if (reportDetailsView && typeof reportDetailsView.getOpenPanelItems === "function") {
                 openReportPanelsToReopen = reportDetailsView.getOpenPanelItems();
-            }            // Store reference to project settings panel if open
+            }
+            
+            // Store references to any open form details panels before refreshing
+            let openFormPanelsToReopen = [];
+            if (formDetailsView && typeof formDetailsView.getOpenPanelItems === "function") {
+                openFormPanelsToReopen = formDetailsView.getOpenPanelItems();
+            }
+            
+            // Store reference to project settings panel if open
             const projectSettingsData = typeof getProjectSettingsPanel === "function" ? getProjectSettingsPanel() : null;
             
             // Store reference to lexicon view panel if open
@@ -110,6 +119,11 @@ export function registerCommands(
             // Close all open report details panels
             if (reportDetailsView && typeof reportDetailsView.closeAllPanels === "function") {
                 reportDetailsView.closeAllPanels();
+            }
+            
+            // Close all open form details panels
+            if (formDetailsView && typeof formDetailsView.closeAllPanels === "function") {
+                formDetailsView.closeAllPanels();
             }
             
             // Close project settings panel if open
@@ -186,6 +200,13 @@ export function registerCommands(
             if (openReportPanelsToReopen.length > 0 && reportDetailsView) {
                 for (const item of openReportPanelsToReopen) {
                     reportDetailsView.showReportDetails(item, modelService);
+                }
+            }
+            
+            // Reopen any form details panels that were previously open with fresh data
+            if (openFormPanelsToReopen.length > 0 && formDetailsView) {
+                for (const item of openFormPanelsToReopen) {
+                    formDetailsView.showFormDetails(item, modelService);
                 }
             }
             

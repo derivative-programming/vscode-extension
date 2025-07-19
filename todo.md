@@ -1,5 +1,16 @@
 Agent todo items...
 
+
+>>test all form prop updates
+
+form detail view...
+- add form wizard
+
+
+data object lookup tab...
+- need to leave the field to trigger the unsaved changes exist flag
+
+
 any large files left?
 - split up large files into smaller ones
 modelFabricationView.js - 1,524 lines
@@ -13,7 +24,6 @@ hierarchyView.js - 1,176 lines
 
 stop validating a\bulk change request on approval?
 
-test all form prop updates
 
 prop subscriptions
 
@@ -25,10 +35,7 @@ help icon buttons on primary treeview items...
 - report
 - page
 
-test:issue with default values in the inactive dropdowns 
-
 form detail view...
-- add form wizard
 - input variables tab
  
 report details view...
@@ -73,15 +80,11 @@ fabrication requests view...
  
 find large files and split them up
 
-
 'there is no data provider registered....' on startup  
  
  
 add report wizard has dif step design than add data object wizard
-
-data object lookup tab...
-- need to leave the field to trigger the unsaved changes exist flag
-
+ 
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button

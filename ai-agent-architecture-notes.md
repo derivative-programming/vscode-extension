@@ -4,6 +4,20 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### Form Details View External Change Handling Fix (2025-01-19)
+**Critical Issue Fixed:** Form details views were not included in the external file change handling process, causing them to show stale data when the model JSON file was modified outside VS Code.
+
+- **Problem:** Form details views were missing from the refresh process in `registerCommands.ts` while object and report details views were properly handled
+- **Root Cause:** Missing import, missing panel tracking, and missing close/reopen handling for form details views
+- **Solution Implemented:**
+  1. **Added Import:** `import * as formDetailsView from '../webviews/formDetailsView';`
+  2. **Phase 1 - Panel Tracking:** Added `openFormPanelsToReopen` array to store open form panels before refresh
+  3. **Phase 2 - Panel Cleanup:** Added `formDetailsView.closeAllPanels()` to close stale form panels
+  4. **Phase 4 - Panel Restoration:** Added loop to reopen form panels with fresh data using `formDetailsView.showFormDetails()`
+- **Impact:** Form details views now behave consistently with other view types during external model file changes
+- **Files Modified:** `src/commands/registerCommands.ts`
+- **Functions Utilized:** `getOpenPanelItems()`, `closeAllPanels()`, `showFormDetails()` from form details view implementation
+
 ### Page Flow Mermaid SVG Download Enhancement (2025-07-19)
 Enhanced the "Download SVG" functionality in the Mermaid tab of the Page Flow view to properly work within VS Code webview restrictions and include role filtering information and app name in the filename:
 - **Key Improvements:**
