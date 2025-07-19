@@ -57,9 +57,6 @@ mermaid diagram view...
 - no show\hide context button
 - hover text like graph view - difficult
 - click to view details like graph view - difficult
-- search like graph view
-- enhance zoom/pan functionality to match graph view
- Added mouse wheel zoom and drag pan support
 
 
 sample page views...

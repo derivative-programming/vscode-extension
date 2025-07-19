@@ -2018,8 +2018,11 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 }
                 
                 mermaidCode += "\\n";
-                mermaidCode += "    classDef formPage fill:#e1f5fe,stroke:#01579b,stroke-width:2px\\n";
-                mermaidCode += "    classDef reportPage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px\\n";
+                mermaidCode += "    classDef formPage fill:#e3f2fd,stroke:#1565c0,stroke-width:2px\\n";
+                mermaidCode += "    classDef reportGrid fill:#fff3e0,stroke:#ef6c00,stroke-width:2px\\n";
+                mermaidCode += "    classDef reportNavigation fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px\\n";
+                mermaidCode += "    classDef reportDetail fill:#ffebee,stroke:#c62828,stroke-width:2px\\n";
+                mermaidCode += "    classDef reportOther fill:#fffde7,stroke:#f9a825,stroke-width:2px\\n";
                 
                 // Add search highlighting class definitions
                 mermaidCode += "    classDef searchHighlight fill:#22c55e,stroke:#15803d,stroke-width:4px\\n";
@@ -2044,11 +2047,32 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                         mermaidCode += "    class " + nodeId + " searchPartial\\n";
                         partialCount++;
                     } else {
-                        // Apply normal type-based styling
+                        // Apply visualization-based styling to match D3.js graph
                         if (page.type === 'form') {
                             mermaidCode += "    class " + nodeId + " formPage\\n";
                         } else if (page.type === 'report') {
-                            mermaidCode += "    class " + nodeId + " reportPage\\n";
+                            const vizType = (page.visualizationType || 'grid').toLowerCase();
+                            switch (vizType) {
+                                case 'grid':
+                                case 'table':
+                                    mermaidCode += "    class " + nodeId + " reportGrid\\n";
+                                    break;
+                                case 'navigation':
+                                case 'twocolumn':
+                                case 'two column':
+                                case 'detailtwocolumn':
+                                    mermaidCode += "    class " + nodeId + " reportNavigation\\n";
+                                    break;
+                                case 'detail':
+                                case 'threecolumn':
+                                case 'three column':
+                                case 'detailthreecolumn':
+                                    mermaidCode += "    class " + nodeId + " reportDetail\\n";
+                                    break;
+                                default:
+                                    mermaidCode += "    class " + nodeId + " reportOther\\n";
+                                    break;
+                            }
                         }
                     }
                 });
@@ -2573,8 +2597,11 @@ function generateMermaidSyntax(flowMap, diagramType = "flowchart TD") {
         mermaidCode += "\n";
         
         // Add class definitions for styling
-        mermaidCode += "    classDef formPage fill:#e1f5fe,stroke:#01579b,stroke-width:2px\n";
-        mermaidCode += "    classDef reportPage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px\n";
+        mermaidCode += "    classDef formPage fill:#e3f2fd,stroke:#1565c0,stroke-width:2px\n";
+        mermaidCode += "    classDef reportGrid fill:#fff3e0,stroke:#ef6c00,stroke-width:2px\n";
+        mermaidCode += "    classDef reportNavigation fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px\n";
+        mermaidCode += "    classDef reportDetail fill:#ffebee,stroke:#c62828,stroke-width:2px\n";
+        mermaidCode += "    classDef reportOther fill:#fffde7,stroke:#f9a825,stroke-width:2px\n";
         
         // Add search highlighting class definitions
         mermaidCode += "    classDef searchHighlight fill:#22c55e,stroke:#15803d,stroke-width:4px\n";
@@ -2595,11 +2622,32 @@ function generateMermaidSyntax(flowMap, diagramType = "flowchart TD") {
             } else if (page.searchPartial) {
                 mermaidCode += `    class ${nodeId} searchPartial\n`;
             } else {
-                // Apply normal type-based styling
+                // Apply visualization-based styling to match D3.js graph
                 if (page.type === 'form') {
                     mermaidCode += `    class ${nodeId} formPage\n`;
                 } else if (page.type === 'report') {
-                    mermaidCode += `    class ${nodeId} reportPage\n`;
+                    const vizType = (page.visualizationType || 'grid').toLowerCase();
+                    switch (vizType) {
+                        case 'grid':
+                        case 'table':
+                            mermaidCode += `    class ${nodeId} reportGrid\n`;
+                            break;
+                        case 'navigation':
+                        case 'twocolumn':
+                        case 'two column':
+                        case 'detailtwocolumn':
+                            mermaidCode += `    class ${nodeId} reportNavigation\n`;
+                            break;
+                        case 'detail':
+                        case 'threecolumn':
+                        case 'three column':
+                        case 'detailthreecolumn':
+                            mermaidCode += `    class ${nodeId} reportDetail\n`;
+                            break;
+                        default:
+                            mermaidCode += `    class ${nodeId} reportOther\n`;
+                            break;
+                    }
                 }
             }
         });
