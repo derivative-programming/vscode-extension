@@ -67,8 +67,8 @@ async function showPagePreview(context, modelService) {
                     break;
                 case 'showReportDetails':
                     console.log('[DEBUG] PagePreview - Show report details requested:', message.reportName);
-                    // Navigate to report details view (future implementation)
-                    vscode.window.showInformationMessage(`Report details view for ${message.reportName} not yet implemented.`);
+                    // Navigate to report details view
+                    showReportDetailsForPreview(message.reportName, message.objectName, modelService);
                     break;
             }
         },
@@ -126,12 +126,36 @@ function showFormDetailsForPreview(formName, objectName, modelService) {
             tooltip: `${formName} (${objectName})`
         };
         
-        // Import and call the form details view
-        const { showFormDetails } = require('../formDetailsView');
+        // Import and call the form details view (JavaScript file)
+        const { showFormDetails } = require('../formDetailsView.js');
         showFormDetails(mockTreeItem, modelService);
     } catch (error) {
         console.error('[ERROR] PagePreview - Error showing form details:', error);
         vscode.window.showErrorMessage(`Error opening form details: ${error.message}`);
+    }
+}
+
+/**
+ * Shows report details for a report selected in the preview
+ * @param {string} reportName The name of the report to show details for
+ * @param {string} objectName The name of the parent object
+ * @param {Object} modelService ModelService instance
+ */
+function showReportDetailsForPreview(reportName, objectName, modelService) {
+    try {
+        // Create a mock tree item similar to what the tree view would create
+        const mockTreeItem = {
+            label: reportName,
+            contextValue: 'report',
+            tooltip: `${reportName} (${objectName})`
+        };
+        
+        // Import and call the report details view (JavaScript file)
+        const { showReportDetails } = require('../reportDetailsView.js');
+        showReportDetails(mockTreeItem, modelService);
+    } catch (error) {
+        console.error('[ERROR] PagePreview - Error showing report details:', error);
+        vscode.window.showErrorMessage(`Error opening report details: ${error.message}`);
     }
 }
 

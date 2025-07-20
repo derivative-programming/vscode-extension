@@ -146,4 +146,7 @@ Command: Expand all top level tree items in the AppDNA tree view
  
  2 0 2 5 - 0 7 - 2 0   1 0 : 4 0 : 3 4   -   A d d e d   c o n d i t i o n a l   v i s i b i l i t y   f o r   r e p o r t   s e c t i o n s :   b r e a d c r u m b s   h i d d e n   i f   i s B r e a d c r u m b S e c t i o n H i d d e n = t r u e ,   f i l t e r s   h i d d e n   i f   i s F i l t e r S e c t i o n H i d d e n = t r u e ,   p a g i n a t i o n   h i d d e n   i f   i s P a g i n g A v a i l a b l e = f a l s e 
  
+ 2 0 2 5 - 0 7 - 2 0   1 3 : 3 0 : 0 6   -   M o d i f i e d   D e t a i l T h r e e C o l u m n   l a y o u t   t o   b e   a   t w o - c o l u m n   t a b l e   w i t h   n a m e / v a l u e   t a b l e   i n   f i r s t   c o l u m n   a n d   a c t i o n s   t a b l e   i n   s e c o n d   c o l u m n  
+ 2 0 2 5 - 0 7 - 2 0   1 3 : 3 3 : 4 1   -   F i x e d   ' v i e w   f u l l   p a g e   d e t a i l s '   b u t t o n   f u n c t i o n a l i t y   i n   p a g e P r e v i e w V i e w . j s   b y   i m p l e m e n t i n g   p r o p e r   m e s s a g e   h a n d l e r s   f o r   s h o w F o r m D e t a i l s   a n d   s h o w R e p o r t D e t a i l s   c o m m a n d s  
+ 2 0 2 5 - 0 7 - 2 0   1 3 : 3 5 : 1 7   -   U p d a t e d   D e t a i l T h r e e C o l u m n   s t y l i n g :   r e m o v e d   a l t e r n a t i n g   b a c k g r o u n d   c o l o r s   f r o m   b o t h   t a b l e s ,   m a d e   b u t t o n s   1 0 0 %   w i d t h ,   a n d   r e m o v e d   ' A c t i o n s '   t i t l e  
  

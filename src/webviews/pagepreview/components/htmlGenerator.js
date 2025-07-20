@@ -593,7 +593,7 @@ function generateCSS() {
             font-size: 12px;
             font-weight: 500;
             transition: background-color 0.2s;
-            min-width: 60px;
+            width: 100%;
         }
         
         .grid-action-btn:hover {
@@ -805,10 +805,6 @@ function generateCSS() {
             background-color: var(--vscode-list-activeSelectionBackground);
         }
         
-        .report-detail-table tbody tr:nth-child(even) td.detail-value {
-            background-color: var(--vscode-editor-inactiveSelectionBackground);
-        }
-        
         /* Responsive design for detail table */
         @media (max-width: 768px) {
             .report-detail-table td.detail-header,
@@ -830,23 +826,19 @@ function generateCSS() {
         /* Report Detail Three-Column Styles */
         .report-detail-three-container {
             margin: 20px 0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
         }
         
         .detail-data-section {
-            margin-bottom: 20px;
+            flex: 2;
+            min-width: 0;
         }
         
         .detail-buttons-section {
-            margin-top: 20px;
-        }
-        
-        .detail-buttons-title {
-            margin: 0 0 15px 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--vscode-foreground);
-            border-bottom: 1px solid var(--vscode-panel-border);
-            padding-bottom: 8px;
+            flex: 1;
+            min-width: 250px;
         }
         
         .report-detail-buttons-table {
@@ -859,60 +851,43 @@ function generateCSS() {
             overflow: hidden;
         }
         
-        .report-detail-buttons-table td.detail-button-header {
-            background-color: var(--vscode-list-hoverBackground);
-            font-weight: 600;
-            color: var(--vscode-foreground);
-            border-bottom: 1px solid var(--vscode-panel-border);
-            border-right: 1px solid var(--vscode-panel-border);
-            padding: 12px 15px;
-            text-align: left;
-            vertical-align: middle;
-            width: 30%;
-            min-width: 150px;
-        }
-        
-        .report-detail-buttons-table td.detail-button-value {
+        .report-detail-buttons-table td.detail-button-single {
             background-color: var(--vscode-editor-background);
             color: var(--vscode-foreground);
             border-bottom: 1px solid var(--vscode-panel-border);
             padding: 12px 15px;
-            text-align: left;
+            text-align: center;
             vertical-align: middle;
-            width: 70%;
+            width: 100%;
         }
         
         .report-detail-buttons-table tbody tr:hover {
             background-color: var(--vscode-list-hoverBackground);
         }
         
-        .report-detail-buttons-table tbody tr:hover td.detail-button-header {
+        .report-detail-buttons-table tbody tr:hover td.detail-button-single {
             background-color: var(--vscode-list-activeSelectionBackground);
-        }
-        
-        .report-detail-buttons-table tbody tr:nth-child(even) td.detail-button-value {
-            background-color: var(--vscode-editor-inactiveSelectionBackground);
         }
         
         /* Responsive design for three-column detail */
         @media (max-width: 768px) {
-            .report-detail-buttons-table td.detail-button-header,
-            .report-detail-buttons-table td.detail-button-value {
+            .report-detail-three-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .detail-data-section {
+                flex: none;
+            }
+            
+            .detail-buttons-section {
+                flex: none;
+                min-width: auto;
+            }
+            
+            .report-detail-buttons-table td.detail-button-single {
                 padding: 10px 12px;
                 font-size: 12px;
-            }
-            
-            .report-detail-buttons-table td.detail-button-header {
-                width: 40%;
-                min-width: 120px;
-            }
-            
-            .report-detail-buttons-table td.detail-button-value {
-                width: 60%;
-            }
-            
-            .detail-buttons-title {
-                font-size: 14px;
             }
         }
         
@@ -2336,28 +2311,21 @@ function generateJavaScript(allObjects) {
                 html += '</div>'; // End detail-data-section
             }
             
-            // Second table: Button columns in separate table
+            // Second table: Button columns in single-column actions table
             if (buttonColumns.length > 0) {
                 html += '<div class="detail-buttons-section">';
-                html += '<h4 class="detail-buttons-title">Actions</h4>';
                 html += '<table class="report-detail-buttons-table" id="reportDetailButtonsTable">';
                 html += '<tbody>';
                 
                 buttonColumns.forEach(column => {
-                    const headerText = column.headerText || '';
                     const buttonText = column.buttonText || (column.headerText && column.headerText.trim()) || 'Action';
                     const destinationTargetName = column.destinationTargetName || '';
                     const isAsyncWorkflow = column.isButtonAsyncObjWF === "true";
                     
                     html += '<tr>';
                     
-                    // First column: Button header/description
-                    html += '<td class="detail-button-header">';
-                    html += headerText || '&nbsp;';
-                    html += '</td>';
-                    
-                    // Second column: Button
-                    html += '<td class="detail-button-value">';
+                    // Single column: Button only
+                    html += '<td class="detail-button-single">';
                     
                     if (destinationTargetName && !isAsyncWorkflow) {
                         // Clickable button that changes selected page
