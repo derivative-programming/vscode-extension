@@ -7,15 +7,45 @@
 
 /**
  * Generates the complete HTML content for the page preview view
- * @param {Array} pages Array of page objects from pageExtractor
  * @param {Array} allObjects Array of all objects from model
  * @returns {string} Complete HTML content for the webview
  */
-function generateHTMLContent(pages, allObjects) {
-    const uniqueRoles = [...new Set(pages.map(page => page.roleRequired).filter(role => role))];
-    const hasPublicPages = pages.some(page => !page.roleRequired);
+function generateHTMLContent(allObjects) {
+    // Extract unique roles and check for public pages from objectWorkflow and report objects
+    const uniqueRoles = new Set();
+    let hasPublicPages = false;
     
-    console.log('[DEBUG] PagePreview HTML Generator - Unique roles:', uniqueRoles);
+    allObjects.forEach(obj => {
+        // Check objectWorkflow items with isPage=true
+        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+            obj.objectWorkflow.forEach(workflow => {
+                if (workflow.isPage === "true") {
+                    if (workflow.roleRequired) {
+                        uniqueRoles.add(workflow.roleRequired);
+                    } else {
+                        hasPublicPages = true;
+                    }
+                }
+            });
+        }
+        
+        // Check report items with isPage=true
+        if (obj.report && Array.isArray(obj.report)) {
+            obj.report.forEach(report => {
+                if (report.isPage === "true") {
+                    if (report.roleRequired) {
+                        uniqueRoles.add(report.roleRequired);
+                    } else {
+                        hasPublicPages = true;
+                    }
+                }
+            });
+        }
+    });
+    
+    const uniqueRolesArray = Array.from(uniqueRoles);
+    
+    console.log('[DEBUG] PagePreview HTML Generator - Unique roles:', uniqueRolesArray);
     console.log('[DEBUG] PagePreview HTML Generator - Has public pages:', hasPublicPages);
     
     return `
@@ -38,7 +68,7 @@ function generateHTMLContent(pages, allObjects) {
                 <div class="filter-section">
                     <h3 class="filter-title">Filter by Role</h3>
                     <div class="role-filter-options" id="roleFilterOptions">
-                        ${generateRoleFilterHTML(uniqueRoles, hasPublicPages)}
+                        ${generateRoleFilterHTML(uniqueRolesArray, hasPublicPages)}
                     </div>
                 </div>
                 
@@ -67,7 +97,7 @@ function generateHTMLContent(pages, allObjects) {
             </div>
         </div>
         
-        ${generateJavaScript(pages, allObjects)}
+        ${generateJavaScript(allObjects)}
     </body>
     </html>
     `;
@@ -207,6 +237,77 @@ function generateCSS() {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+        }
+
+        .page-breadcrumb {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .breadcrumb-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb-button {
+            background: none;
+            border: none;
+            color: var(--vscode-textLink-foreground);
+            text-decoration: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 13px;
+            transition: background-color 0.2s;
+        }
+
+        .breadcrumb-button:hover {
+            background-color: var(--vscode-list-hoverBackground);
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
+            user-select: none;
+        }
+
+        /* Back button styles */
+        .back-button-section {
+            margin: 15px 0 20px 0;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: 1px solid var(--vscode-button-border, transparent);
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .back-button:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+
+        .back-button-icon {
+            font-size: 14px;
+            font-weight: bold;
         }
 
         .page-header {
@@ -399,6 +500,112 @@ function generateCSS() {
             background-color: var(--vscode-button-hoverBackground);
         }
         
+        /* Report Grid Styles */
+        .report-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+        }
+        
+        .report-grid th {
+            background-color: var(--vscode-list-hoverBackground);
+            color: var(--vscode-foreground);
+            font-weight: 600;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid var(--vscode-panel-border);
+            border-right: 1px solid var(--vscode-panel-border);
+            font-size: 13px;
+        }
+        
+        .report-grid th:last-child {
+            border-right: none;
+        }
+        
+        .report-grid td {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            border-right: 1px solid var(--vscode-panel-border);
+            color: var(--vscode-foreground);
+            font-size: 13px;
+        }
+        
+        .report-grid td:last-child {
+            border-right: none;
+        }
+        
+        .report-grid tbody tr:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        
+        .report-grid tbody tr:nth-child(even) {
+            background-color: var(--vscode-list-inactiveSelectionBackground);
+        }
+        
+        .report-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: var(--vscode-textBlockQuote-background);
+            border-left: 4px solid var(--vscode-textBlockQuote-border);
+            font-size: 13px;
+            color: var(--vscode-foreground);
+        }
+        
+        .report-filters {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: var(--vscode-input-background);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 3px;
+        }
+        
+        .report-filters h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--vscode-foreground);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-field {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 150px;
+        }
+        
+        .filter-label {
+            font-size: 12px;
+            color: var(--vscode-foreground);
+            font-weight: 500;
+        }
+        
+        .filter-input {
+            padding: 6px 10px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .filter-input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+        
         /* Empty state */
         .empty-state {
             text-align: center;
@@ -474,59 +681,125 @@ function generateRoleFilterHTML(uniqueRoles, hasPublicPages) {
 
 /**
  * Generates JavaScript code for the page preview view
- * @param {Array} pages Array of page objects
- * @param {Array} allObjects Array of all objects from model
+ * @param {Array} allObjects Array of all objects from model (containing objectWorkflow and report arrays)
  * @returns {string} JavaScript code block
  */
-function generateJavaScript(pages, allObjects) {
-    // Sanitize pages data to prevent JavaScript errors
-    const sanitizedPages = pages.map(page => ({
-        name: page.name || '',
-        titleText: page.titleText || '',
-        introText: page.introText || '',
-        formTitleText: page.formTitleText || '',
-        formIntroText: page.formIntroText || '',
-        type: page.type || 'form',
-        objectName: page.objectName || '',
-        parameters: (page.parameters || []).map(param => ({
-            name: param.name || '',
-            labelText: param.labelText || '',
-            sqlServerDBDataType: param.sqlServerDBDataType || '',
-            sqlServerDBDataTypeSize: param.sqlServerDBDataTypeSize || '',
-            isRequired: param.isRequired || 'false',
-            isVisible: param.isVisible || 'true',
-            isIgnored: param.isIgnored || 'false',
-            isReadOnly: param.isReadOnly || 'false',
-            isFKLookup: param.isFKLookup || 'false',
-            isFKList: param.isFKList || 'false',
-            isEncrypted: param.isEncrypted || 'false',
-            defaultValue: param.defaultValue || '',
-            codeDescription: param.codeDescription || '',
-            detailsText: param.detailsText || '',
-            isSecured: param.isSecured || 'false',
-            inputControl: param.inputControl || ''
-        })),
-        buttons: (page.buttons || []).map(button => ({
-            buttonName: button.buttonName || '',
-            buttonText: button.buttonText || '',
-            isVisible: button.isVisible || 'true',
-            isButtonCallToAction: button.isButtonCallToAction || 'false',
-            destinationTargetName: button.destinationTargetName || '',
-            destinationContextObjectName: button.destinationContextObjectName || ''
-        })),
-        roleRequired: page.roleRequired || '',
-        visualizationType: page.visualizationType || 'grid'
-    }));
+function generateJavaScript(allObjects) {
+    // Extract all pages (objectWorkflow and report items with isPage="true") directly from objects
+    const allPages = [];
+    const uniqueRoles = new Set();
+    
+    allObjects.forEach(obj => {
+        // Extract form pages from objectWorkflow
+        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+            obj.objectWorkflow.forEach(workflow => {
+                if (workflow.isPage === "true") {
+                    allPages.push({
+                        ...workflow,
+                        objectName: obj.name,
+                        pageType: 'form'
+                    });
+                    if (workflow.roleRequired) {
+                        uniqueRoles.add(workflow.roleRequired);
+                    }
+                }
+            });
+        }
+        
+        // Extract report pages from report
+        if (obj.report && Array.isArray(obj.report)) {
+            obj.report.forEach(report => {
+                if (report.isPage === "true") {
+                    allPages.push({
+                        ...report,
+                        objectName: obj.name,
+                        pageType: 'report'
+                    });
+                    if (report.roleRequired) {
+                        uniqueRoles.add(report.roleRequired);
+                    }
+                }
+            });
+        }
+    });
 
     return `
     <script>
         // Global variables
-        let allPages = ${JSON.stringify(sanitizedPages, null, 2)};
-        let selectedRoles = new Set(['PUBLIC', ${pages.map(p => p.roleRequired).filter(r => r).map(r => `'${r}'`).join(', ')}]);
+        let allPages = ${JSON.stringify(allPages, null, 2)};
+        let allObjects = ${JSON.stringify(allObjects || [], null, 2)};
+        let selectedRoles = new Set(['PUBLIC', ${Array.from(uniqueRoles).map(r => `'${r}'`).join(', ')}]);
         let currentSelectedPage = null;
         
         console.log('[DEBUG] PagePreview - Initialized with pages:', allPages);
+        console.log('[DEBUG] PagePreview - Initialized with objects:', allObjects);
         console.log('[DEBUG] PagePreview - Initial selected roles:', Array.from(selectedRoles));
+        
+        // Determine if a page is a form or report by searching through all objects
+        function determinePageType(pageName) {
+            console.log('[DEBUG] PagePreview - Determining type for page:', pageName);
+            
+            // Search through all objects for this page name
+            for (const obj of allObjects) {
+                // Check if it's a report
+                if (obj.report && Array.isArray(obj.report)) {
+                    const foundReport = obj.report.find(report => 
+                        report.name === pageName && report.isPage === "true"
+                    );
+                    if (foundReport) {
+                        console.log('[DEBUG] PagePreview - Found as report in object:', obj.name);
+                        return 'report';
+                    }
+                }
+                
+                // Check if it's a form (objectWorkflow)
+                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                    const foundForm = obj.objectWorkflow.find(workflow => 
+                        workflow.name === pageName && workflow.isPage === "true"
+                    );
+                    if (foundForm) {
+                        console.log('[DEBUG] PagePreview - Found as form in object:', obj.name);
+                        return 'form';
+                    }
+                }
+            }
+            
+            console.warn('[WARN] PagePreview - Could not find page type for:', pageName);
+            return null;
+        }
+        
+        // Get the actual objectWorkflow or report object for a page
+        function getPageObject(pageName) {
+            console.log('[DEBUG] PagePreview - Getting page object for:', pageName);
+            
+            // Search through all objects for this page name
+            for (const obj of allObjects) {
+                // Check if it's a report
+                if (obj.report && Array.isArray(obj.report)) {
+                    const foundReport = obj.report.find(report => 
+                        report.name === pageName && report.isPage === "true"
+                    );
+                    if (foundReport) {
+                        console.log('[DEBUG] PagePreview - Found report object:', foundReport.name);
+                        return { ...foundReport, objectName: obj.name, pageType: 'report' };
+                    }
+                }
+                
+                // Check if it's a form (objectWorkflow)
+                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                    const foundForm = obj.objectWorkflow.find(workflow => 
+                        workflow.name === pageName && workflow.isPage === "true"
+                    );
+                    if (foundForm) {
+                        console.log('[DEBUG] PagePreview - Found form object:', foundForm.name);
+                        return { ...foundForm, objectName: obj.name, pageType: 'form' };
+                    }
+                }
+            }
+            
+            console.warn('[WARN] PagePreview - Could not find page object for:', pageName);
+            return null;
+        }
         
         // Initialize the view
         document.addEventListener('DOMContentLoaded', function() {
@@ -584,7 +857,6 @@ function generateJavaScript(pages, allObjects) {
                     ? page.name + ' - ' + page.titleText
                     : page.name;
                 option.textContent = displayText;
-                option.setAttribute('data-type', page.type);
                 option.setAttribute('data-name', page.name);
                 option.setAttribute('data-object', page.objectName);
                 dropdown.appendChild(option);
@@ -622,12 +894,22 @@ function generateJavaScript(pages, allObjects) {
             console.log('[DEBUG] PagePreview - Selected page:', selectedPage);
             currentSelectedPage = selectedPage;
             
-            if (selectedPage.type === 'form') {
-                showFormPreview(selectedPage);
-            } else if (selectedPage.type === 'report') {
-                showReportPreview(selectedPage);
+            // Get the actual objectWorkflow or report object
+            const actualPageObject = getPageObject(selectedPage.name);
+            if (!actualPageObject) {
+                console.error('[ERROR] PagePreview - Could not find actual page object for:', selectedPage.name);
+                hidePreview();
+                return;
+            }
+            
+            console.log('[DEBUG] PagePreview - Found actual page object:', actualPageObject);
+            
+            if (actualPageObject.pageType === 'form') {
+                showFormPreview(actualPageObject);
+            } else if (actualPageObject.pageType === 'report') {
+                showReportPreview(actualPageObject);
             } else {
-                console.warn('[WARN] PagePreview - Unknown page type:', selectedPage.type);
+                console.warn('[WARN] PagePreview - Unknown page type for:', selectedPage.name);
                 hidePreview();
             }
         }
@@ -689,19 +971,143 @@ function generateJavaScript(pages, allObjects) {
             previewSection.scrollIntoView({ behavior: 'smooth' });
         }
         
-        // Generate HTML for form preview
-        function generateFormPreviewHTML(page) {
-            console.log('[DEBUG] PagePreview - Generating form preview HTML for:', page.name);
+        // Generate breadcrumb navigation HTML
+        function generateBreadcrumbHTML(page) {
+            console.log('[DEBUG] PagePreview - generateBreadcrumbHTML called for page:', page.name);
+            
+            // Get buttons from reportButton array only (breadcrumbs only exist there)
+            const reportButtons = page.reportButton || [];
+            
+            if (reportButtons.length === 0) {
+                console.log('[DEBUG] PagePreview - No report buttons found for page:', page.name);
+                // No breadcrumbs if no report buttons exist
+                return '';
+            }
+            
+            console.log('[DEBUG] PagePreview - Page report buttons:', reportButtons);
+            
+            // Filter buttons to only include breadcrumb type buttons that should be shown
+            const breadcrumbButtons = reportButtons.filter(button => 
+                button.buttonType === "breadcrumb" && 
+                button.isVisible !== "false" && 
+                (button.isIgnored || "false") !== "true"
+            );
+            
+            if (breadcrumbButtons.length === 0) {
+                console.log('[DEBUG] PagePreview - No breadcrumb buttons found. All report buttons:', reportButtons.map(b => ({ type: b.buttonType, text: b.buttonText, visible: b.isVisible, ignored: b.isIgnored })));
+                // No breadcrumbs if no breadcrumb buttons exist
+                return '';
+            }
+            
+            console.log('[DEBUG] PagePreview - Generating breadcrumb HTML, found buttons:', breadcrumbButtons.length);
+            
+            let html = '<div class="page-breadcrumb">';
+            html += '<nav class="breadcrumb-nav" role="navigation" aria-label="Breadcrumb">';
+            
+            breadcrumbButtons.forEach((button, index) => {
+                html += '<div class="breadcrumb-item">';
+                
+                // Add separator before each item except the first
+                if (index > 0) {
+                    html += '<span class="breadcrumb-separator" aria-hidden="true">›</span>';
+                }
+                
+                const buttonText = button.buttonText || button.buttonName || 'Page';
+                
+                // Make breadcrumb clickable if it has destination
+                if (button.destinationTargetName) {
+                    const contextObjectName = button.destinationContextObjectName || '';
+                    html += '<button class="breadcrumb-button" type="button" onclick="navigateToPage(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
+                    html += buttonText;
+                    html += '</button>';
+                } else {
+                    // Non-clickable breadcrumb (current page)
+                    html += '<span class="breadcrumb-button" style="cursor: default; color: var(--vscode-foreground);">';
+                    html += buttonText;
+                    html += '</span>';
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '</nav>';
+            html += '</div>';
+            
+            return html;
+        }
+        
+        // Generate back button HTML for reports
+        function generateReportBackButton(page) {
+            console.log('[DEBUG] PagePreview - generateReportBackButton called for page:', page.name);
+            
+            // Get buttons from reportButton array
+            const reportButtons = page.reportButton || [];
+            
+            if (reportButtons.length === 0) {
+                console.log('[DEBUG] PagePreview - No report buttons found for page:', page.name);
+                return '';
+            }
+            
+            console.log('[DEBUG] PagePreview - Page report buttons:', reportButtons);
+            
+            // Filter buttons to only include back type buttons that should be shown
+            const backButtons = reportButtons.filter(button => 
+                button.buttonType === "back" && 
+                button.isVisible !== "false" && 
+                (button.isIgnored || "false") !== "true"
+            );
+            
+            if (backButtons.length === 0) {
+                console.log('[DEBUG] PagePreview - No back buttons found. All report buttons:', reportButtons.map(b => ({ type: b.buttonType, text: b.buttonText, visible: b.isVisible, ignored: b.isIgnored })));
+                return '';
+            }
+            
+            console.log('[DEBUG] PagePreview - Generating back button HTML, found buttons:', backButtons.length);
+            
+            let html = '<div class="back-button-section">';
+            
+            backButtons.forEach((button) => {
+                const buttonText = button.buttonText || button.buttonName || 'Back';
+                
+                // Make back button clickable if it has destination
+                if (button.destinationTargetName) {
+                    const contextObjectName = button.destinationContextObjectName || '';
+                    html += '<button class="back-button" type="button" onclick="navigateToPage(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
+                    html += '<span class="back-button-icon">←</span>';
+                    html += buttonText;
+                    html += '</button>';
+                } else {
+                    // Non-clickable back button
+                    html += '<button class="back-button" type="button" disabled>';
+                    html += '<span class="back-button-icon">←</span>';
+                    html += buttonText;
+                    html += '</button>';
+                }
+            });
+            
+            html += '</div>';
+            
+            return html;
+        }
+        
+        // Generate HTML for form preview using actual objectWorkflow object
+        function generateFormPreviewHTML(workflowObj) {
+            console.log('[DEBUG] PagePreview - Generating form preview HTML for:', workflowObj.name);
             
             let html = '<div class="page-preview-container">';
             
+            // Breadcrumb navigation (above page header) - use objectWorkflowButton for breadcrumbs
+            if (workflowObj.objectWorkflowButton && workflowObj.objectWorkflowButton.length > 0) {
+                html += generateBreadcrumbHTML({ buttons: workflowObj.objectWorkflowButton });
+            }
+            
             // Page header section (outside the form)
             html += '<div class="page-header">';
-            if (page.titleText) {
-                html += '<h1 class="page-title">' + page.titleText + '</h1>';
+            if (workflowObj.titleText) {
+                html += '<h1 class="page-title">' + workflowObj.titleText + '</h1>';
             }
-            if (page.introText) {
-                html += '<p class="page-intro">' + page.introText + '</p>';
+            if (workflowObj.introText) {
+                html += '<p class="page-intro">' + workflowObj.introText + '</p>';
             }
             html += '</div>';
             
@@ -709,22 +1115,22 @@ function generateJavaScript(pages, allObjects) {
             html += '<div class="form-preview">';
             
             // Form header section
-            if (page.formTitleText || page.formIntroText) {
+            if (workflowObj.formTitleText || workflowObj.formIntroText) {
                 html += '<div class="form-header">';
-                if (page.formTitleText) {
-                    html += '<h2 class="form-title">' + page.formTitleText + '</h2>';
+                if (workflowObj.formTitleText) {
+                    html += '<h2 class="form-title">' + workflowObj.formTitleText + '</h2>';
                 }
-                if (page.formIntroText) {
-                    html += '<p class="form-intro">' + page.formIntroText + '</p>';
+                if (workflowObj.formIntroText) {
+                    html += '<p class="form-intro">' + workflowObj.formIntroText + '</p>';
                 }
                 html += '</div>';
             }
             
-            // Form parameters section with actual fields
-            if (page.parameters && page.parameters.length > 0) {
+            // Form parameters section with actual fields - use objectWorkflowParam
+            if (workflowObj.objectWorkflowParam && workflowObj.objectWorkflowParam.length > 0) {
                 html += '<div class="form-section">';
                 
-                page.parameters.forEach(param => {
+                workflowObj.objectWorkflowParam.forEach(param => {
                     if (param.isIgnored === "true" || param.isVisible !== "true") {
                         return; // Skip ignored or hidden parameters
                     }
@@ -762,36 +1168,43 @@ function generateJavaScript(pages, allObjects) {
                 html += '</div>';
             }
             
-            // Form buttons section
-            if (page.buttons && page.buttons.length > 0) {
-                html += '<div class="form-section">';
-                html += '<div class="form-buttons">';
+            // Form buttons section - use objectWorkflowButton
+            if (workflowObj.objectWorkflowButton && workflowObj.objectWorkflowButton.length > 0) {
+                // Filter out breadcrumb buttons since they're displayed above the title
+                const formButtons = workflowObj.objectWorkflowButton.filter(button => 
+                    button.buttonType !== "breadcrumb"
+                );
                 
-                page.buttons.forEach(button => {
-                    // Only show buttons that are visible
-                    if (button.isVisible !== "true") {
-                        return; // Skip hidden buttons
-                    }
+                if (formButtons.length > 0) {
+                    html += '<div class="form-section">';
+                    html += '<div class="form-buttons">';
                     
-                    // Use isButtonCallToAction to determine if button is primary
-                    const buttonClass = button.isButtonCallToAction === "true" ? 'form-button primary' : 'form-button secondary';
-                    const buttonText = button.buttonText || button.buttonName || 'Button';
+                    formButtons.forEach(button => {
+                        // Only show buttons that are visible
+                        if (button.isVisible !== "true") {
+                            return; // Skip hidden buttons
+                        }
+                        
+                        // Use isButtonCallToAction to determine if button is primary
+                        const buttonClass = button.isButtonCallToAction === "true" ? 'form-button primary' : 'form-button secondary';
+                        const buttonText = button.buttonText || button.buttonName || 'Button';
+                        
+                        // Make button clickable if it has destination
+                        if (button.destinationTargetName) {
+                            const contextObjectName = button.destinationContextObjectName || '';
+                            html += '<button class="' + buttonClass + '" type="button" onclick="handleFormButtonClick(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
+                            html += buttonText;
+                            html += '</button>';
+                        } else {
+                            html += '<button class="' + buttonClass + '" type="button" disabled>';
+                            html += buttonText;
+                            html += '</button>';
+                        }
+                    });
                     
-                    // Make button clickable if it has destination
-                    if (button.destinationTargetName) {
-                        const contextObjectName = button.destinationContextObjectName || '';
-                        html += '<button class="' + buttonClass + '" type="button" onclick="handleFormButtonClick(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
-                        html += buttonText;
-                        html += '</button>';
-                    } else {
-                        html += '<button class="' + buttonClass + '" type="button" disabled>';
-                        html += buttonText;
-                        html += '</button>';
-                    }
-                });
-                
-                html += '</div>';
-                html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                }
             } else {
                 // Default buttons if none are defined
                 html += '<div class="form-section">';
@@ -859,29 +1272,319 @@ function generateJavaScript(pages, allObjects) {
             return html;
         }
         
-        // Generate HTML for report preview (placeholder)
+        // Generate HTML for report preview
         function generateReportPreviewHTML(page) {
             console.log('[DEBUG] PagePreview - Generating report preview HTML for:', page.name);
             
-            const roleText = page.roleRequired ? ' (Role: ' + page.roleRequired + ')' : ' (Public)';
+            let html = '<div class="page-preview-container">';
             
-            let html = '<div class="form-preview">';
+            // Breadcrumb navigation (above page header)
+            html += generateBreadcrumbHTML(page);
             
-            // Report header
-            html += '<div class="form-header">';
-            html += '<h2 class="form-title">' + (page.titleText || page.name) + '</h2>';
-            html += '<p class="form-subtitle">Report Preview' + roleText + '</p>';
+            // Page header section (outside the report)
+            html += '<div class="page-header">';
+            if (page.titleText) {
+                html += '<h1 class="page-title">' + page.titleText + '</h1>';
+            }
+            if (page.introText) {
+                html += '<p class="page-intro">' + page.introText + '</p>';
+            }
             html += '</div>';
             
-            // Placeholder content
-            html += '<div class="empty-state">';
-            html += '<p>Report preview functionality will be implemented in a future update.</p>';
-            html += '<p>This report uses visualization type: <strong>' + (page.visualizationType || 'grid') + '</strong></p>';
+            // Back button (after title and intro, before report content)
+            html += generateReportBackButton(page);
+            
+            // Report container (the actual report)
+            html += '<div class="form-preview">';
+            
+            // Report filters section (if reportParam exists)
+            if (page.reportParam && page.reportParam.length > 0) {
+                html += generateReportFilters(page.reportParam);
+            }
+            
+            // Report info bar
+            html += '<div class="report-info">';
+            html += '<span>Showing sample data for report visualization</span>';
+            html += '<span>Visualization: <strong>' + (page.visualizationType || 'grid') + '</strong></span>';
             html += '</div>';
             
-            html += '</div>';
+            // Generate report based on visualization type
+            if (page.visualizationType === 'grid' || !page.visualizationType) {
+                html += generateReportGrid(page);
+            } else {
+                // Placeholder for other visualization types
+                html += '<div class="empty-state">';
+                html += '<p>Visualization type "' + page.visualizationType + '" preview will be implemented in a future update.</p>';
+                html += '<p>Currently supported: <strong>grid</strong></p>';
+                html += '</div>';
+            }
+            
+            html += '</div>'; // End form-preview (report container)
+            html += '</div>'; // End page-preview-container
             
             return html;
+        }
+        
+        // Generate report filters section
+        function generateReportFilters(reportParams) {
+            let html = '<div class="report-filters">';
+            html += '<h4>Report Filters</h4>';
+            
+            // Filter visible and non-ignored report parameters
+            const visibleParams = reportParams.filter(param => 
+                param.isIgnored !== "true" && param.isVisible === "true"
+            );
+            
+            if (visibleParams.length === 0) {
+                html += '<p class="empty-state">No filters configured for this report</p>';
+            } else {
+                // Group parameters in rows of 3
+                for (let i = 0; i < visibleParams.length; i += 3) {
+                    html += '<div class="filter-row">';
+                    
+                    for (let j = i; j < Math.min(i + 3, visibleParams.length); j++) {
+                        const param = visibleParams[j];
+                        html += '<div class="filter-field">';
+                        html += '<label class="filter-label">' + (param.labelText || param.name || 'Filter') + '</label>';
+                        
+                        // Generate filter input based on data type
+                        const filterInput = generateFilterInput(param);
+                        html += filterInput;
+                        
+                        html += '</div>';
+                    }
+                    
+                    html += '</div>';
+                }
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // Generate filter input based on parameter properties
+        function generateFilterInput(param) {
+            const dataType = (param.sqlServerDBDataType || '').toLowerCase();
+            
+            if (param.isFKLookup === "true" || param.isFKList === "true") {
+                // Foreign key lookup - dropdown
+                let html = '<select class="filter-input">';
+                html += '<option value="">All</option>';
+                html += '<option value="sample1">Sample Option 1</option>';
+                html += '<option value="sample2">Sample Option 2</option>';
+                html += '</select>';
+                return html;
+            } else if (dataType.includes('bit') || dataType.includes('boolean')) {
+                // Boolean - select
+                let html = '<select class="filter-input">';
+                html += '<option value="">All</option>';
+                html += '<option value="true">Yes</option>';
+                html += '<option value="false">No</option>';
+                html += '</select>';
+                return html;
+            } else if (dataType.includes('date')) {
+                // Date input
+                return '<input type="date" class="filter-input">';
+            } else if (dataType.includes('int') || dataType.includes('decimal') || 
+                      dataType.includes('float') || dataType.includes('money') || dataType.includes('numeric')) {
+                // Numeric input
+                return '<input type="number" class="filter-input" placeholder="Enter value...">';
+            } else {
+                // Default - text input
+                return '<input type="text" class="filter-input" placeholder="Search...">';
+            }
+        }
+        
+        // Generate report grid
+        function generateReportGrid(page) {
+            let html = '';
+            
+            // Determine columns based on parameters or use default columns
+            const columns = getReportColumns(page);
+            const sampleData = generateSampleReportData(columns, page.objectName);
+            
+            html += '<table class="report-grid">';
+            
+            // Table header
+            html += '<thead>';
+            html += '<tr>';
+            columns.forEach(column => {
+                html += '<th>' + column.displayName + '</th>';
+            });
+            html += '</tr>';
+            html += '</thead>';
+            
+            // Table body
+            html += '<tbody>';
+            sampleData.forEach(row => {
+                html += '<tr>';
+                columns.forEach(column => {
+                    const value = row[column.name] || '';
+                    html += '<td>' + formatCellValue(value, column.dataType) + '</td>';
+                });
+                html += '</tr>';
+            });
+            html += '</tbody>';
+            
+            html += '</table>';
+            
+            return html;
+        }
+        
+        // Get report columns based on page reportColumn array
+        function getReportColumns(page) {
+            const columns = [];
+            
+            // Use reportColumn array if available
+            if (page.reportColumn && page.reportColumn.length > 0) {
+                page.reportColumn.forEach(column => {
+                    // Only include visible and non-ignored columns
+                    if (column.isIgnored !== "true" && column.isVisible !== "false") {
+                        columns.push({
+                            name: column.name || 'field',
+                            displayName: column.headerText || column.labelText || column.name || 'Column',
+                            dataType: column.sqlServerDBDataType || 'varchar'
+                        });
+                    }
+                });
+            }
+            
+            // If no reportColumn array or no visible columns, use default columns based on object name
+            if (columns.length === 0) {
+                const objectName = page.objectName || 'Object';
+                columns.push(
+                    { name: 'id', displayName: 'ID', dataType: 'int' },
+                    { name: 'name', displayName: 'Name', dataType: 'varchar' },
+                    { name: 'description', displayName: 'Description', dataType: 'varchar' },
+                    { name: 'createdDate', displayName: 'Created Date', dataType: 'datetime' },
+                    { name: 'isActive', displayName: 'Active', dataType: 'bit' }
+                );
+            }
+            
+            return columns;
+        }
+        
+        // Generate sample data for report
+        function generateSampleReportData(columns, objectName) {
+            const sampleData = [];
+            const rowCount = 8; // Show 8 sample rows
+            
+            for (let i = 1; i <= rowCount; i++) {
+                const row = {};
+                
+                columns.forEach(column => {
+                    row[column.name] = generateSampleCellValue(column, i, objectName);
+                });
+                
+                sampleData.push(row);
+            }
+            
+            return sampleData;
+        }
+        
+        // Generate sample cell value based on column type
+        function generateSampleCellValue(column, rowIndex, objectName) {
+            const dataType = (column.dataType || '').toLowerCase();
+            const columnName = (column.name || '').toLowerCase();
+            
+            // ID columns
+            if (columnName.includes('id') || dataType.includes('int')) {
+                if (columnName === 'id') return rowIndex;
+                return Math.floor(Math.random() * 1000) + 1;
+            }
+            
+            // Date columns
+            if (dataType.includes('date') || dataType.includes('time') || columnName.includes('date') || columnName.includes('created') || columnName.includes('modified')) {
+                const baseDate = new Date(2024, 0, 1);
+                const randomDays = Math.floor(Math.random() * 365);
+                const sampleDate = new Date(baseDate.getTime() + randomDays * 24 * 60 * 60 * 1000);
+                
+                if (dataType.includes('datetime')) {
+                    return sampleDate.toLocaleString();
+                } else {
+                    return sampleDate.toLocaleDateString();
+                }
+            }
+            
+            // Boolean columns
+            if (dataType.includes('bit') || dataType.includes('boolean') || columnName.includes('active') || columnName.includes('enabled')) {
+                return Math.random() > 0.3 ? 'Yes' : 'No';
+            }
+            
+            // Money/decimal columns
+            if (dataType.includes('money') || dataType.includes('decimal') || dataType.includes('float') || 
+                columnName.includes('price') || columnName.includes('amount') || columnName.includes('cost')) {
+                return '$' + (Math.random() * 10000).toFixed(2);
+            }
+            
+            // Numeric columns
+            if (dataType.includes('int') || dataType.includes('numeric')) {
+                return Math.floor(Math.random() * 1000) + 1;
+            }
+            
+            // Text columns - generate contextual sample data
+            if (columnName.includes('name') || columnName.includes('title')) {
+                const sampleNames = [
+                    objectName + ' Item ' + rowIndex,
+                    'Sample ' + objectName + ' ' + rowIndex,
+                    objectName + ' Entry #' + rowIndex,
+                    'Test ' + objectName + ' ' + String.fromCharCode(64 + rowIndex)
+                ];
+                return sampleNames[rowIndex % sampleNames.length];
+            }
+            
+            if (columnName.includes('description') || columnName.includes('note') || columnName.includes('comment')) {
+                const descriptions = [
+                    'This is a sample description for item ' + rowIndex,
+                    'Example content showing how this field would appear',
+                    'Sample data demonstrating the report layout and formatting',
+                    'Placeholder text for ' + column.displayName.toLowerCase()
+                ];
+                return descriptions[rowIndex % descriptions.length];
+            }
+            
+            if (columnName.includes('email')) {
+                return 'user' + rowIndex + '@example.com';
+            }
+            
+            if (columnName.includes('phone')) {
+                return '(555) ' + String(Math.floor(Math.random() * 900) + 100) + '-' + String(Math.floor(Math.random() * 9000) + 1000);
+            }
+            
+            if (columnName.includes('status') || columnName.includes('state')) {
+                const statuses = ['Active', 'Inactive', 'Pending', 'Completed', 'Draft'];
+                return statuses[rowIndex % statuses.length];
+            }
+            
+            // Default text value
+            return 'Sample ' + column.displayName + ' ' + rowIndex;
+        }
+        
+        // Format cell value for display
+        function formatCellValue(value, dataType) {
+            if (!value) return '';
+            
+            const dataTypeLower = (dataType || '').toLowerCase();
+            
+            // Format dates
+            if (dataTypeLower.includes('date') || dataTypeLower.includes('time')) {
+                if (typeof value === 'string' && value.includes('/')) {
+                    return value; // Already formatted
+                }
+                return new Date(value).toLocaleDateString();
+            }
+            
+            // Format money
+            if (dataTypeLower.includes('money') && !value.toString().includes('$')) {
+                return '$' + parseFloat(value).toFixed(2);
+            }
+            
+            // Format large numbers
+            if (dataTypeLower.includes('int') && parseInt(value) > 9999) {
+                return parseInt(value).toLocaleString();
+            }
+            
+            return value.toString();
         }
         
         // Hide the preview section
@@ -936,6 +1639,45 @@ function generateJavaScript(pages, allObjects) {
             }
         }
         
+        // Handle breadcrumb navigation to change page dropdown
+        function navigateToPage(destinationTargetName, destinationContextObjectName) {
+            console.log('[DEBUG] PagePreview - Breadcrumb clicked, navigating to:', destinationTargetName, destinationContextObjectName);
+            
+            // Find the destination page in our filtered pages
+            const destinationPage = window.filteredPages.find(page => 
+                page.name === destinationTargetName && 
+                (!destinationContextObjectName || page.objectName === destinationContextObjectName)
+            );
+            
+            if (destinationPage) {
+                // Update the dropdown selection to the destination page
+                const dropdown = document.getElementById('pageDropdown');
+                if (dropdown) {
+                    const destinationIndex = window.filteredPages.indexOf(destinationPage);
+                    if (destinationIndex >= 0) {
+                        console.log('[DEBUG] PagePreview - Setting dropdown to index:', destinationIndex, 'for page:', destinationPage.name);
+                        dropdown.value = destinationIndex;
+                        // Trigger the selection change event
+                        handlePageSelection();
+                        
+                        // Scroll to the preview section smoothly
+                        const previewSection = document.getElementById('previewSection');
+                        if (previewSection) {
+                            previewSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    } else {
+                        console.error('[ERROR] PagePreview - Could not find destination page index');
+                    }
+                } else {
+                    console.error('[ERROR] PagePreview - Page dropdown element not found');
+                }
+            } else {
+                console.log('[DEBUG] PagePreview - Destination page not found or not visible with current role filters:', destinationTargetName);
+                // Show a message to the user
+                alert('Destination page "' + destinationTargetName + '" is not available with the current role filters.');
+            }
+        }
+        
         // Handle view details button click
         function handleViewDetails() {
             console.log('[DEBUG] PagePreview - Handle view details clicked');
@@ -945,12 +1687,15 @@ function generateJavaScript(pages, allObjects) {
                 return;
             }
             
-            if (currentSelectedPage.type === 'form') {
+            // Determine page type dynamically
+            const pageType = determinePageType(currentSelectedPage.name);
+            
+            if (pageType === 'form') {
                 viewFormDetails(currentSelectedPage.name, currentSelectedPage.objectName);
-            } else if (currentSelectedPage.type === 'report') {
+            } else if (pageType === 'report') {
                 viewReportDetails(currentSelectedPage.name, currentSelectedPage.objectName);
             } else {
-                console.error('[ERROR] PagePreview - Unknown page type:', currentSelectedPage.type);
+                console.error('[ERROR] PagePreview - Unknown page type for:', currentSelectedPage.name);
             }
         }
         

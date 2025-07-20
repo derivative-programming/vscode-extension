@@ -7,7 +7,6 @@
 
 const vscode = require('vscode');
 const path = require('path');
-const { extractPagesFromModel } = require('../pageflow/helpers/pageExtractor');
 const { generateHTMLContent } = require('./components/htmlGenerator');
 
 let currentPanel = undefined;
@@ -22,15 +21,10 @@ async function showPagePreview(context, modelService) {
     // Store context for later use
     currentContext = context;
     
-    // Get current model data
+    // Get current model data - work directly with objects
     const allObjects = modelService.getAllObjects();
     console.log('[DEBUG] PagePreview - ModelService.getAllObjects() returned:', allObjects);
     console.log('[DEBUG] PagePreview - All objects count:', allObjects ? allObjects.length : 0);
-    
-    // Extract pages from the model
-    const pages = extractPagesFromModel(allObjects || []);
-    console.log('[DEBUG] PagePreview - Extracted pages count:', pages.length);
-    console.log('[DEBUG] PagePreview - Extracted pages:', pages);
     
     // Create or show the webview panel
     const columnToShowIn = vscode.window.activeTextEditor
@@ -91,8 +85,8 @@ async function showPagePreview(context, modelService) {
         context.subscriptions
     );
     
-    // Generate and set the webview content
-    const htmlContent = generateHTMLContent(pages, allObjects);
+    // Generate and set the webview content - pass allObjects directly
+    const htmlContent = generateHTMLContent(allObjects);
     currentPanel.webview.html = htmlContent;
 }
 
@@ -107,13 +101,11 @@ function refreshPagePreviewData(modelService) {
     
     // Get fresh data from model service
     const allObjects = modelService.getAllObjects();
-    const pages = extractPagesFromModel(allObjects || []);
     
     // Send updated data to webview
     currentPanel.webview.postMessage({
         command: 'updatePageData',
         data: {
-            pages: pages,
             allObjects: allObjects
         }
     });
