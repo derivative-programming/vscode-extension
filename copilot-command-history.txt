@@ -51,3 +51,17 @@ Command: Expand all top level tree items in the AppDNA tree view
 2025-07-20: Fixed JavaScript string escaping in template literal - changed single quotes to escaped quotes (\\') in onclick handler generation within the template literal context to prevent JavaScript parsing errors
 
 2025-07-20: Fixed illegal return statement error by adding missing function declaration - added proper "function handleViewDetails()" declaration to wrap orphaned code that was causing JavaScript syntax error
+
+2025-07-20: Improved form preview appearance by removing meta section titles - removed "Form Fields", "Available Actions", and "Actions" headers from form preview to make it look like an actual form rather than a development interface
+
+2025-07-20: Fixed form field descriptions in preview - changed from displaying codeDescription (internal developer notes) to detailsText (user-facing help text) to show appropriate help information under form controls
+
+2025-07-20: Fixed form field visibility logic and added password field support - only show controls when isVisible=true (not false), added isSecured property support for password fields alongside existing isEncrypted check
+
+2025-07-20: Simplified form input generation - removed isReadOnly checks, defaultValue usage, and placeholder text to create cleaner form controls that focus purely on input type and required status
+
+2025-07-20: Removed isEncrypted check from password field detection - password fields now only detected by isSecured="true" or name containing "password", removing the deprecated isEncrypted property check
+
+2025-07-20: Removed horizontal separator line between form controls and buttons - removed border-top from .form-buttons CSS class for cleaner form appearance without visual separation
+
+2025-07-20: Added button visibility and call-to-action support - buttons now only show when isVisible=true, and use isButtonCallToAction=true to determine primary button styling instead of buttonType property

@@ -346,7 +346,6 @@ function generateCSS() {
             justify-content: flex-end;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid var(--vscode-panel-border);
         }
         
         .form-button {
@@ -503,9 +502,18 @@ function generateJavaScript(pages, allObjects) {
             isEncrypted: param.isEncrypted || 'false',
             defaultValue: param.defaultValue || '',
             codeDescription: param.codeDescription || '',
+            detailsText: param.detailsText || '',
+            isSecured: param.isSecured || 'false',
             inputControl: param.inputControl || ''
         })),
-        buttons: page.buttons || [],
+        buttons: (page.buttons || []).map(button => ({
+            buttonName: button.buttonName || '',
+            buttonText: button.buttonText || '',
+            isVisible: button.isVisible || 'true',
+            isButtonCallToAction: button.isButtonCallToAction || 'false',
+            destinationTargetName: button.destinationTargetName || '',
+            destinationContextObjectName: button.destinationContextObjectName || ''
+        })),
         roleRequired: page.roleRequired || '',
         visualizationType: page.visualizationType || 'grid'
     }));
@@ -715,10 +723,9 @@ function generateJavaScript(pages, allObjects) {
             // Form parameters section with actual fields
             if (page.parameters && page.parameters.length > 0) {
                 html += '<div class="form-section">';
-                html += '<h3 class="form-section-title">Form Fields</h3>';
                 
                 page.parameters.forEach(param => {
-                    if (param.isIgnored === "true" || param.isVisible === "false") {
+                    if (param.isIgnored === "true" || param.isVisible !== "true") {
                         return; // Skip ignored or hidden parameters
                     }
                     
@@ -734,8 +741,8 @@ function generateJavaScript(pages, allObjects) {
                     html += inputHTML;
                     
                     // Field description
-                    if (param.codeDescription) {
-                        html += '<div class="form-field-description">' + param.codeDescription + '</div>';
+                    if (param.detailsText) {
+                        html += '<div class="form-field-description">' + param.detailsText + '</div>';
                     }
                     
                     html += '</div>';
@@ -745,7 +752,6 @@ function generateJavaScript(pages, allObjects) {
             } else {
                 // Fallback to sample fields if no parameters defined
                 html += '<div class="form-section">';
-                html += '<h3 class="form-section-title">Form Fields</h3>';
                 
                 html += '<div class="form-field">';
                 html += '<label class="form-field-label">No Parameters Defined</label>';
@@ -759,11 +765,16 @@ function generateJavaScript(pages, allObjects) {
             // Form buttons section
             if (page.buttons && page.buttons.length > 0) {
                 html += '<div class="form-section">';
-                html += '<h3 class="form-section-title">Available Actions</h3>';
                 html += '<div class="form-buttons">';
                 
                 page.buttons.forEach(button => {
-                    const buttonClass = button.buttonType === 'primary' ? 'form-button primary' : 'form-button secondary';
+                    // Only show buttons that are visible
+                    if (button.isVisible !== "true") {
+                        return; // Skip hidden buttons
+                    }
+                    
+                    // Use isButtonCallToAction to determine if button is primary
+                    const buttonClass = button.isButtonCallToAction === "true" ? 'form-button primary' : 'form-button secondary';
                     const buttonText = button.buttonText || button.buttonName || 'Button';
                     
                     // Make button clickable if it has destination
@@ -784,7 +795,6 @@ function generateJavaScript(pages, allObjects) {
             } else {
                 // Default buttons if none are defined
                 html += '<div class="form-section">';
-                html += '<h3 class="form-section-title">Actions</h3>';
                 html += '<div class="form-buttons">';
                 html += '<button class="form-button secondary" type="button" disabled>Cancel</button>';
                 html += '<button class="form-button primary" type="button" disabled>Save</button>';
@@ -801,17 +811,14 @@ function generateJavaScript(pages, allObjects) {
         // Generate form input based on parameter properties
         function generateFormInput(param) {
             let html = '';
-            const isReadOnly = param.isReadOnly === "true";
             const isRequired = param.isRequired === "true";
-            const defaultValue = param.defaultValue || '';
-            const placeholder = defaultValue || (param.labelText || param.name || 'Enter value');
             
             // Determine input type based on SQL Server data type and other properties
             const dataType = (param.sqlServerDBDataType || '').toLowerCase();
             
             if (param.isFKLookup === "true" || param.isFKList === "true") {
                 // Foreign key lookup - dropdown
-                html += '<select class="form-field-input"' + (isReadOnly ? ' disabled' : '') + (isRequired ? ' required' : '') + '>';
+                html += '<select class="form-field-input"' + (isRequired ? ' required' : '') + '>';
                 html += '<option value="">Select ' + (param.labelText || param.name || 'option') + '...</option>';
                 html += '<option value="sample1">Sample Option 1</option>';
                 html += '<option value="sample2">Sample Option 2</option>';
@@ -820,33 +827,33 @@ function generateJavaScript(pages, allObjects) {
                       param.inputControl === 'textarea' || 
                       (param.sqlServerDBDataTypeSize && parseInt(param.sqlServerDBDataTypeSize) > 255)) {
                 // Large text - textarea
-                html += '<textarea class="form-field-input form-field-textarea" placeholder="' + placeholder + '"' +
-                        (isReadOnly ? ' readonly' : '') + (isRequired ? ' required' : '') + '></textarea>';
+                html += '<textarea class="form-field-input form-field-textarea"' +
+                        (isRequired ? ' required' : '') + '></textarea>';
             } else if (dataType.includes('bit') || dataType.includes('boolean')) {
                 // Boolean - checkbox
                 html += '<div class="checkbox-container">';
-                html += '<input type="checkbox" class="form-field-checkbox"' + (isReadOnly ? ' disabled' : '') + '>';
+                html += '<input type="checkbox" class="form-field-checkbox">';
                 html += '<span class="checkbox-label">' + (param.labelText || param.name || 'Yes/No') + '</span>';
                 html += '</div>';
             } else if (dataType.includes('int') || dataType.includes('decimal') || 
                       dataType.includes('float') || dataType.includes('money') || dataType.includes('numeric')) {
                 // Numeric input
-                html += '<input type="number" class="form-field-input" placeholder="' + placeholder + '"' +
-                        (isReadOnly ? ' readonly' : '') + (isRequired ? ' required' : '') + '>';
+                html += '<input type="number" class="form-field-input"' +
+                        (isRequired ? ' required' : '') + '>';
             } else if (dataType.includes('date') || dataType.includes('time')) {
                 // Date/time input
                 const inputType = dataType.includes('time') && !dataType.includes('date') ? 'time' : 
                                  dataType.includes('datetime') ? 'datetime-local' : 'date';
                 html += '<input type="' + inputType + '" class="form-field-input"' +
-                        (isReadOnly ? ' readonly' : '') + (isRequired ? ' required' : '') + '>';
-            } else if (param.isEncrypted === "true" || param.name && param.name.toLowerCase().includes('password')) {
+                        (isRequired ? ' required' : '') + '>';
+            } else if (param.isSecured === "true" || param.name && param.name.toLowerCase().includes('password')) {
                 // Password input
-                html += '<input type="password" class="form-field-input" placeholder="' + placeholder + '"' +
-                        (isReadOnly ? ' readonly' : '') + (isRequired ? ' required' : '') + '>';
+                html += '<input type="password" class="form-field-input"' +
+                        (isRequired ? ' required' : '') + '>';
             } else {
                 // Default - text input
-                html += '<input type="text" class="form-field-input" placeholder="' + placeholder + '"' +
-                        (isReadOnly ? ' readonly' : '') + (isRequired ? ' required' : '') + '>';
+                html += '<input type="text" class="form-field-input"' +
+                        (isRequired ? ' required' : '') + '>';
             }
             
             return html;
