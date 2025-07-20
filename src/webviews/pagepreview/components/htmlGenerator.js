@@ -505,12 +505,14 @@ function generateCSS() {
             margin: 20px 0;
             border: 1px solid var(--vscode-panel-border);
             border-radius: 4px;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
             background-color: var(--vscode-editor-background);
         }
         
         .report-grid {
             width: 100%;
+            min-width: 600px; /* Minimum width to trigger horizontal scroll */
             border-collapse: collapse;
             margin: 0;
             background-color: var(--vscode-editor-background);
@@ -575,6 +577,61 @@ function generateCSS() {
             border-right: none;
         }
         
+        .report-grid td.button-cell {
+            padding: 8px 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .grid-action-btn {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: 1px solid var(--vscode-button-border, transparent);
+            padding: 4px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            min-width: 60px;
+        }
+        
+        .grid-action-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .grid-action-btn:active {
+            background-color: var(--vscode-button-background);
+            opacity: 0.8;
+        }
+        
+        .grid-action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .grid-action-btn.async-btn {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+        
+        .grid-action-btn.async-btn:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+        
+        /* Data checkbox styles */
+        .data-checkbox {
+            cursor: default;
+            accent-color: var(--vscode-checkbox-border);
+            margin: 0;
+            vertical-align: middle;
+        }
+        
+        .data-checkbox:disabled {
+            opacity: 0.8;
+            cursor: default;
+        }
+        
         .report-grid td.row-number {
             text-align: center;
             font-weight: 500;
@@ -600,7 +657,81 @@ function generateCSS() {
             border-top: 1px solid var(--vscode-panel-border);
             font-size: 12px;
             color: var(--vscode-descriptionForeground);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .pagination-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .pagination-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            flex-grow: 1;
+        }
+        
+        .pagination-right {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .pagination-label {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            margin: 0;
+        }
+        
+        .pagination-select {
+            padding: 4px 8px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .pagination-btn {
+            padding: 4px 8px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: 1px solid var(--vscode-button-border, transparent);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            min-width: 32px;
             text-align: center;
+        }
+        
+        .pagination-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination-info {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            margin: 0 8px;
+        }
+        
+        .row-count-info {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
         }
         
         .report-grid-empty {
@@ -622,6 +753,166 @@ function generateCSS() {
             .report-grid td.row-number {
                 width: 40px;
                 padding: 8px 5px;
+            }
+        }
+        
+        /* Report Detail Two-Column Styles */
+        .report-detail-container {
+            margin: 20px 0;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            background-color: var(--vscode-editor-background);
+        }
+        
+        .report-detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            background-color: var(--vscode-editor-background);
+        }
+        
+        .report-detail-table td.detail-header {
+            background-color: var(--vscode-list-hoverBackground);
+            font-weight: 600;
+            color: var(--vscode-foreground);
+            border-bottom: 1px solid var(--vscode-panel-border);
+            border-right: 1px solid var(--vscode-panel-border);
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: top;
+            width: 30%;
+            min-width: 150px;
+        }
+        
+        .report-detail-table td.detail-value {
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-foreground);
+            border-bottom: 1px solid var(--vscode-panel-border);
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: top;
+            word-wrap: break-word;
+            width: 70%;
+        }
+        
+        .report-detail-table tbody tr:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        
+        .report-detail-table tbody tr:hover td.detail-header {
+            background-color: var(--vscode-list-activeSelectionBackground);
+        }
+        
+        .report-detail-table tbody tr:nth-child(even) td.detail-value {
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
+        }
+        
+        /* Responsive design for detail table */
+        @media (max-width: 768px) {
+            .report-detail-table td.detail-header,
+            .report-detail-table td.detail-value {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+            
+            .report-detail-table td.detail-header {
+                width: 40%;
+                min-width: 120px;
+            }
+            
+            .report-detail-table td.detail-value {
+                width: 60%;
+            }
+        }
+        
+        /* Report Detail Three-Column Styles */
+        .report-detail-three-container {
+            margin: 20px 0;
+        }
+        
+        .detail-data-section {
+            margin-bottom: 20px;
+        }
+        
+        .detail-buttons-section {
+            margin-top: 20px;
+        }
+        
+        .detail-buttons-title {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--vscode-foreground);
+            border-bottom: 1px solid var(--vscode-panel-border);
+            padding-bottom: 8px;
+        }
+        
+        .report-detail-buttons-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .report-detail-buttons-table td.detail-button-header {
+            background-color: var(--vscode-list-hoverBackground);
+            font-weight: 600;
+            color: var(--vscode-foreground);
+            border-bottom: 1px solid var(--vscode-panel-border);
+            border-right: 1px solid var(--vscode-panel-border);
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: middle;
+            width: 30%;
+            min-width: 150px;
+        }
+        
+        .report-detail-buttons-table td.detail-button-value {
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-foreground);
+            border-bottom: 1px solid var(--vscode-panel-border);
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: middle;
+            width: 70%;
+        }
+        
+        .report-detail-buttons-table tbody tr:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        
+        .report-detail-buttons-table tbody tr:hover td.detail-button-header {
+            background-color: var(--vscode-list-activeSelectionBackground);
+        }
+        
+        .report-detail-buttons-table tbody tr:nth-child(even) td.detail-button-value {
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
+        }
+        
+        /* Responsive design for three-column detail */
+        @media (max-width: 768px) {
+            .report-detail-buttons-table td.detail-button-header,
+            .report-detail-buttons-table td.detail-button-value {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+            
+            .report-detail-buttons-table td.detail-button-header {
+                width: 40%;
+                min-width: 120px;
+            }
+            
+            .report-detail-buttons-table td.detail-button-value {
+                width: 60%;
+            }
+            
+            .detail-buttons-title {
+                font-size: 14px;
             }
         }
         
@@ -729,7 +1020,6 @@ function generateCSS() {
             gap: 10px;
             margin-top: 15px;
             padding-top: 10px;
-            border-top: 1px solid var(--vscode-input-border);
         }
         
         .filter-action-button {
@@ -858,6 +1148,8 @@ function generateCSS() {
             padding: 10px;
             border-top: 1px solid var(--vscode-widget-border);
             background-color: var(--vscode-editor-background);
+            display: flex;
+            justify-content: flex-end;
         }
         
         .export-button {
@@ -1573,11 +1865,15 @@ function generateJavaScript(allObjects) {
             // Generate report based on visualization type
             if (page.visualizationType === 'Grid' || !page.visualizationType) {
                 html += generateReportGrid(page);
+            } else if (page.visualizationType === 'DetailTwoColumn') {
+                html += generateReportDetailTwoColumn(page);
+            } else if (page.visualizationType === 'DetailThreeColumn') {
+                html += generateReportDetailThreeColumn(page);
             } else {
                 // Placeholder for other visualization types
                 html += '<div class="empty-state">';
                 html += '<p>Visualization type "' + page.visualizationType + '" preview will be implemented in a future update.</p>';
-                html += '<p>Currently supported: <strong>Grid</strong></p>';
+                html += '<p>Currently supported: <strong>Grid, DetailTwoColumn, DetailThreeColumn</strong></p>';
                 html += '</div>';
             }
             
@@ -1780,7 +2076,7 @@ function generateJavaScript(allObjects) {
             // Data columns
             columns.forEach((column, index) => {
                 html += '<th class="sortable" data-column="' + index + '" onclick="sortReportGrid(' + index + ')">';
-                html += column.displayName;
+                html += column.displayName || '&nbsp;'; // Use non-breaking space if no display name
                 html += '</th>';
             });
             html += '</tr>';
@@ -1793,9 +2089,47 @@ function generateJavaScript(allObjects) {
                 
                 // Data cells
                 columns.forEach(column => {
-                    const value = row[column.name] || '';
-                    const formattedValue = formatCellValue(value, column.dataType);
-                    html += '<td title="' + formattedValue + '">' + formattedValue + '</td>';
+                    if (column.isButton === "true") {
+                        // Generate button cell
+                        const buttonText = column.buttonText || (column.displayName && column.displayName.trim()) || 'Action';
+                        const destinationTargetName = column.destinationTargetName || '';
+                        const isAsyncWorkflow = column.isButtonAsyncObjWF === "true";
+                        
+                        html += '<td class="button-cell">';
+                        if (destinationTargetName && !isAsyncWorkflow) {
+                            // Clickable button that changes selected page
+                            const contextObjectName = column.destinationContextObjectName || '';
+                            html += '<button class="grid-action-btn" type="button" onclick="handleGridButtonClick(\\'' + destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
+                            html += buttonText;
+                            html += '</button>';
+                        } else if (destinationTargetName && isAsyncWorkflow) {
+                            // Non-navigating button (async workflow)
+                            html += '<button class="grid-action-btn async-btn" type="button" onclick="handleAsyncGridButton(\\'' + destinationTargetName + '\\')">';
+                            html += buttonText;
+                            html += '</button>';
+                        } else {
+                            // Disabled button with no destination
+                            html += '<button class="grid-action-btn" type="button" disabled>';
+                            html += buttonText;
+                            html += '</button>';
+                        }
+                        html += '</td>';
+                    } else {
+                        // Generate regular data cell
+                        const value = row[column.name] || '';
+                        const dataType = (column.dataType || '').toLowerCase();
+                        
+                        // Handle bit/boolean columns specially
+                        if (dataType.includes('bit') || dataType.includes('boolean')) {
+                            const isChecked = value === 'Yes' || value === true || value === 'true' || value === 1 || value === '1';
+                            const titleValue = isChecked ? 'Yes' : 'No';
+                            const checkboxHTML = '<input type="checkbox" class="data-checkbox" ' + (isChecked ? 'checked' : '') + ' disabled>';
+                            html += '<td title="' + titleValue + '">' + checkboxHTML + '</td>';
+                        } else {
+                            const formattedValue = formatCellValue(value, column.dataType);
+                            html += '<td title="' + formattedValue + '">' + formattedValue + '</td>';
+                        }
+                    }
                 });
                 html += '</tr>';
             });
@@ -1853,6 +2187,210 @@ function generateJavaScript(allObjects) {
             return html;
         }
         
+        // Generate report detail two-column view
+        function generateReportDetailTwoColumn(page) {
+            // Determine columns based on parameters or use default columns
+            const columns = getReportColumns(page);
+            const sampleData = generateSampleReportData(columns, page.objectName);
+            
+            if (columns.length === 0) {
+                return '<div class="report-grid-container"><div class="report-grid-empty">No columns configured for this report</div></div>';
+            }
+            
+            if (sampleData.length === 0) {
+                return '<div class="report-grid-container"><div class="report-grid-empty">No data available</div></div>';
+            }
+            
+            // Use the first row of sample data for the detail view
+            const detailRow = sampleData[0];
+            
+            let html = '<div class="report-detail-container">';
+            html += '<table class="report-detail-table" id="reportDetailTable">';
+            
+            // Table body with two columns: Header Text | Value
+            html += '<tbody>';
+            
+            columns.forEach(column => {
+                const headerText = column.headerText || '';
+                
+                html += '<tr>';
+                
+                // First column: Header text
+                html += '<td class="detail-header">';
+                html += headerText || '&nbsp;';
+                html += '</td>';
+                
+                // Second column: Value or Button
+                html += '<td class="detail-value">';
+                
+                if (column.isButton === "true") {
+                    // Generate button in detail value cell
+                    const buttonText = column.buttonText || (column.headerText && column.headerText.trim()) || 'Action';
+                    const destinationTargetName = column.destinationTargetName || '';
+                    const isAsyncWorkflow = column.isButtonAsyncObjWF === "true";
+                    
+                    if (destinationTargetName && !isAsyncWorkflow) {
+                        // Clickable button that changes selected page
+                        const contextObjectName = column.destinationContextObjectName || '';
+                        html += '<button class="grid-action-btn" type="button" onclick="handleGridButtonClick(\\'' + destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
+                        html += buttonText;
+                        html += '</button>';
+                    } else if (destinationTargetName && isAsyncWorkflow) {
+                        // Non-navigating button (async workflow)
+                        html += '<button class="grid-action-btn async-btn" type="button" onclick="handleAsyncGridButton(\\'' + destinationTargetName + '\\')">';
+                        html += buttonText;
+                        html += '</button>';
+                    } else {
+                        // Disabled button with no destination
+                        html += '<button class="grid-action-btn" type="button" disabled>';
+                        html += buttonText;
+                        html += '</button>';
+                    }
+                } else {
+                    // Regular data value
+                    const value = detailRow[column.name] || '';
+                    const dataType = (column.dataType || '').toLowerCase();
+                    
+                    // Handle bit/boolean columns specially  
+                    if (dataType.includes('bit') || dataType.includes('boolean')) {
+                        const isChecked = value === 'Yes' || value === true || value === 'true' || value === 1 || value === '1';
+                        const checkboxHTML = '<input type="checkbox" class="data-checkbox" ' + (isChecked ? 'checked' : '') + ' disabled>';
+                        html += checkboxHTML;
+                    } else {
+                        const formattedValue = formatCellValue(value, column.dataType);
+                        html += formattedValue;
+                    }
+                }
+                
+                html += '</td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>'; // End report-detail-container
+            
+            return html;
+        }
+        
+        // Generate report detail three-column view (data in two columns, buttons in separate table)
+        function generateReportDetailThreeColumn(page) {
+            // Determine columns based on parameters or use default columns
+            const columns = getReportColumns(page);
+            const sampleData = generateSampleReportData(columns, page.objectName);
+            
+            if (columns.length === 0) {
+                return '<div class="report-grid-container"><div class="report-grid-empty">No columns configured for this report</div></div>';
+            }
+            
+            if (sampleData.length === 0) {
+                return '<div class="report-grid-container"><div class="report-grid-empty">No data available</div></div>';
+            }
+            
+            // Separate data columns from button columns
+            const dataColumns = columns.filter(column => column.isButton !== "true");
+            const buttonColumns = columns.filter(column => column.isButton === "true");
+            
+            // Use the first row of sample data for the detail view
+            const detailRow = sampleData[0];
+            
+            let html = '<div class="report-detail-three-container">';
+            
+            // First table: Two-column data table (header + value)
+            if (dataColumns.length > 0) {
+                html += '<div class="detail-data-section">';
+                html += '<table class="report-detail-table" id="reportDetailDataTable">';
+                html += '<tbody>';
+                
+                dataColumns.forEach(column => {
+                    const headerText = column.headerText || '';
+                    const value = detailRow[column.name] || '';
+                    
+                    html += '<tr>';
+                    
+                    // First column: Header text
+                    html += '<td class="detail-header">';
+                    html += headerText || '&nbsp;';
+                    html += '</td>';
+                    
+                    // Second column: Value
+                    html += '<td class="detail-value">';
+                    const dataType = (column.dataType || '').toLowerCase();
+                    
+                    // Handle bit/boolean columns specially  
+                    if (dataType.includes('bit') || dataType.includes('boolean')) {
+                        const isChecked = value === 'Yes' || value === true || value === 'true' || value === 1 || value === '1';
+                        const checkboxHTML = '<input type="checkbox" class="data-checkbox" ' + (isChecked ? 'checked' : '') + ' disabled>';
+                        html += checkboxHTML;
+                    } else {
+                        const formattedValue = formatCellValue(value, column.dataType);
+                        html += formattedValue;
+                    }
+                    
+                    html += '</td>';
+                    html += '</tr>';
+                });
+                
+                html += '</tbody>';
+                html += '</table>';
+                html += '</div>'; // End detail-data-section
+            }
+            
+            // Second table: Button columns in separate table
+            if (buttonColumns.length > 0) {
+                html += '<div class="detail-buttons-section">';
+                html += '<h4 class="detail-buttons-title">Actions</h4>';
+                html += '<table class="report-detail-buttons-table" id="reportDetailButtonsTable">';
+                html += '<tbody>';
+                
+                buttonColumns.forEach(column => {
+                    const headerText = column.headerText || '';
+                    const buttonText = column.buttonText || (column.headerText && column.headerText.trim()) || 'Action';
+                    const destinationTargetName = column.destinationTargetName || '';
+                    const isAsyncWorkflow = column.isButtonAsyncObjWF === "true";
+                    
+                    html += '<tr>';
+                    
+                    // First column: Button header/description
+                    html += '<td class="detail-button-header">';
+                    html += headerText || '&nbsp;';
+                    html += '</td>';
+                    
+                    // Second column: Button
+                    html += '<td class="detail-button-value">';
+                    
+                    if (destinationTargetName && !isAsyncWorkflow) {
+                        // Clickable button that changes selected page
+                        const contextObjectName = column.destinationContextObjectName || '';
+                        html += '<button class="grid-action-btn" type="button" onclick="handleGridButtonClick(\\'' + destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
+                        html += buttonText;
+                        html += '</button>';
+                    } else if (destinationTargetName && isAsyncWorkflow) {
+                        // Non-navigating button (async workflow)
+                        html += '<button class="grid-action-btn async-btn" type="button" onclick="handleAsyncGridButton(\\'' + destinationTargetName + '\\')">';
+                        html += buttonText;
+                        html += '</button>';
+                    } else {
+                        // Disabled button with no destination
+                        html += '<button class="grid-action-btn" type="button" disabled>';
+                        html += buttonText;
+                        html += '</button>';
+                    }
+                    
+                    html += '</td>';
+                    html += '</tr>';
+                });
+                
+                html += '</tbody>';
+                html += '</table>';
+                html += '</div>'; // End detail-buttons-section
+            }
+            
+            html += '</div>'; // End report-detail-three-container
+            
+            return html;
+        }
+        
         // Get report columns based on page reportColumn array
         function getReportColumns(page) {
             const columns = [];
@@ -1862,11 +2400,23 @@ function generateJavaScript(allObjects) {
                 page.reportColumn.forEach(column => {
                     // Only include visible and non-ignored columns
                     if ((column.isIgnored || "false") !== "true" && column.isVisible !== "false") {
-                        columns.push({
+                        const columnObj = {
                             name: column.name || 'field',
-                            displayName: column.headerText || column.labelText || column.name || 'Column',
+                            displayName: column.headerText || '',
+                            headerText: column.headerText || '',
                             dataType: column.sqlServerDBDataType || 'varchar'
-                        });
+                        };
+                        
+                        // Add button properties if this column is a button
+                        if (column.isButton === "true") {
+                            columnObj.isButton = column.isButton;
+                            columnObj.buttonText = column.buttonText;
+                            columnObj.destinationTargetName = column.destinationTargetName;
+                            columnObj.destinationContextObjectName = column.destinationContextObjectName;
+                            columnObj.isButtonAsyncObjWF = column.isButtonAsyncObjWF;
+                        }
+                        
+                        columns.push(columnObj);
                     }
                 });
             }
@@ -1960,7 +2510,7 @@ function generateJavaScript(allObjects) {
                     'This is a sample description for item ' + rowIndex,
                     'Example content showing how this field would appear',
                     'Sample data demonstrating the report layout and formatting',
-                    'Placeholder text for ' + column.displayName.toLowerCase()
+                    'Placeholder text for ' + (column.displayName ? column.displayName.toLowerCase() : 'column')
                 ];
                 return descriptions[rowIndex % descriptions.length];
             }
@@ -1979,7 +2529,7 @@ function generateJavaScript(allObjects) {
             }
             
             // Default text value
-            return 'Sample ' + column.displayName + ' ' + rowIndex;
+            return 'Sample ' + (column.displayName || 'Data') + ' ' + rowIndex;
         }
         
         // Format cell value for display
@@ -2103,6 +2653,48 @@ function generateJavaScript(allObjects) {
                 }
                 alert(actionName + ' action destination page "' + destinationTargetName + '" is not available with the current role filters.');
             }
+        }
+        
+        // Handle grid button click to navigate to destination (non-async workflows only)
+        function handleGridButtonClick(destinationTargetName, destinationContextObjectName) {
+            console.log('[DEBUG] PagePreview - Grid button clicked:', destinationTargetName, destinationContextObjectName);
+            
+            // Find the destination page in our filtered pages
+            const destinationPage = window.filteredPages.find(page => 
+                page.name === destinationTargetName && 
+                (!destinationContextObjectName || page.objectName === destinationContextObjectName)
+            );
+            
+            if (destinationPage) {
+                // Update the dropdown selection to the destination page
+                const dropdown = document.getElementById('pageDropdown');
+                if (dropdown) {
+                    const destinationIndex = window.filteredPages.indexOf(destinationPage);
+                    if (destinationIndex >= 0) {
+                        dropdown.value = destinationIndex;
+                        // Trigger the selection change event
+                        handlePageSelection();
+                        
+                        // Scroll to the preview section
+                        const previewSection = document.getElementById('previewSection');
+                        if (previewSection) {
+                            previewSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                }
+            } else {
+                console.log('[DEBUG] PagePreview - Grid button destination page not found or not visible with current role filters:', destinationTargetName);
+                alert('Grid button destination page "' + destinationTargetName + '" is not available with the current role filters.');
+            }
+        }
+        
+        // Handle async grid button click (no page navigation)
+        function handleAsyncGridButton(destinationTargetName) {
+            console.log('[DEBUG] PagePreview - Async grid button clicked:', destinationTargetName);
+            
+            // For async workflow buttons, we don't change the page selection
+            // In a real implementation, this would trigger an async workflow
+            alert('Async workflow "' + destinationTargetName + '" would be triggered. No page navigation occurs for async workflows.');
         }
         
         // Handle breadcrumb navigation to change page dropdown
