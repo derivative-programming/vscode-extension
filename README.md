@@ -103,7 +103,21 @@ All shortcuts use the simple `Alt+A [key]` format to avoid conflicts with standa
 
 ## Extension Interface
 
-![AppDNA Extension](https://github.com/derivative-programming/vscode-extension/blob/main/media/screenshot.png)
+![AppDNA Extension Overview](https://github.com/derivative-programming/vscode-extension/blob/main/media/screenshot.png)
+
+### Page Preview Feature
+
+![Page Preview Interface](https://github.com/derivative-programming/vscode-extension/blob/main/media/page-preview-screenshot.png)
+
+### Page Flow Diagrams
+
+![Page Flow Flowchart View](https://github.com/derivative-programming/vscode-extension/blob/main/media/page-flow-flowchart-screenshot.png)
+
+![Page Flow Graph View](https://github.com/derivative-programming/vscode-extension/blob/main/media/page-flow-graph-screenshot.png)
+
+### User Stories Management
+
+![User Stories Interface](https://github.com/derivative-programming/vscode-extension/blob/main/media/userstories-screenshot.png)
 
 The extension provides a comprehensive interface with multiple views:
 

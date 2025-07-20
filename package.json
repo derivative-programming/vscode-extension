@@ -3,7 +3,7 @@
   "publisher": "derivative-programming",
   "displayName": "AppDNA Model Builder",
   "description": "Build application models and generate code for multiple platforms (.NET, Python, Web, Mobile). Professional schema-driven UI with GitHub Copilot integration via Model Context Protocol.",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "engines": {
     "vscode": "^1.99.0"
   },
@@ -37,23 +37,6 @@
     "color": "#1e1e1e",
     "theme": "dark"
   },
-  "screenshots": [
-    {
-      "path": "media/screenshot.png"
-    },
-    {
-      "path": "media/page-preview-screenshot.png"
-    },
-    {
-      "path": "media/page-flow-flowchart-screenshot.png"
-    },
-    {
-      "path": "media/page-flow-graph-screenshot.png"
-    },
-    {
-      "path": "media/userstories-screenshot.png"
-    }
-  ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "mcp": "./dist/mcp/stdioBridge.js",

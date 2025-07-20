@@ -38,19 +38,25 @@ Your extension is now ready for marketplace publishing! Here's what has been com
 3. Create a new publisher with ID "derivative-programming"
 4. Verify your publisher account
 
-### Step 2: Create Icon (Optional but Recommended)
+### Step 2: Add Screenshots to README (✅ COMPLETED)
+**Important**: VS Code Marketplace displays screenshots from your README.md file, not from package.json!
+- ✅ Added all 5 screenshots to README.md with proper markdown image syntax
+- ✅ Screenshots will display on marketplace once published
+- ✅ Images are hosted on GitHub and referenced with full URLs
+
+### Step 3: Create Icon (Optional but Recommended)
 1. Create a 128x128 PNG icon using the SVG template at `media/icon.svg`
 2. Save as `media/icon.png`
-3. Add back to package.json: `"icon": "media/icon.png"`
+3. Already configured in package.json: `"icon": "media/icon.png"`
 4. Rebuild package with: `vsce package`
 
-### Step 3: Set Up Personal Access Token
+### Step 4: Set Up Personal Access Token
 1. Go to Azure DevOps: https://dev.azure.com
 2. Click on your profile → Personal Access Tokens
 3. Create new token with "Marketplace (publish)" scope
 4. Copy the token for publishing
 
-### Step 4: Publish Extension
+### Step 5: Publish Extension
 Option A - Using vsce CLI:
 ```bash
 vsce login derivative-programming
@@ -78,9 +84,9 @@ Option B - Upload via Web Portal:
 - [x] Working extension that builds successfully
 - [x] Proper version number (1.0.0)
 
-### Recommended ⚠️
+### Recommended ✅
 - [ ] Icon (128x128 PNG) - See ICON-CREATION-INSTRUCTIONS.md
-- [x] Screenshots/GIFs for README
+- [x] Screenshots in README.md (5 screenshots added)
 - [x] Comprehensive feature documentation
 - [x] Proper categorization and keywords
 
@@ -119,4 +125,30 @@ To update your published extension:
 
 **Your extension is ready for the VS Code Marketplace! 🎉**
 
-The appdna-1.0.0.vsix file has been created and is ready for publishing.
+The appdna-1.0.4.vsix file has been created and is ready for publishing.
+
+## 🔧 Screenshots Troubleshooting
+
+### Why Screenshots Weren't Showing
+- ❌ **Wrong Method**: The `screenshots` array in package.json is NOT used by VS Code Marketplace
+- ✅ **Correct Method**: Screenshots must be embedded in README.md using markdown image syntax
+- ✅ **Fixed**: All 5 screenshots now properly added to README.md
+
+### How VS Code Marketplace Displays Images
+1. **README.md Images**: The marketplace renders your README.md and displays any images embedded in it
+2. **GitHub Hosting**: Images are hosted on GitHub and referenced with full URLs
+3. **Automatic Display**: No special configuration needed - just proper markdown syntax
+
+### Screenshot Display Requirements
+- ✅ Images must be in your GitHub repository (in `media/` folder)
+- ✅ Must use full GitHub URLs in README.md
+- ✅ Must use proper markdown image syntax: `![Alt Text](URL)`
+- ✅ Images should be high resolution (screenshots are 1920x1080+)
+
+### After Publishing
+Your 5 screenshots will appear in the marketplace description:
+1. **Main Extension Overview** - Shows tree view and overall interface
+2. **Page Preview Feature** - Demonstrates role-based filtering
+3. **Page Flow Flowchart** - Shows flowchart-style diagrams
+4. **Page Flow Graph** - Shows graph-style page relationships
+5. **User Stories Management** - Displays user story interface
