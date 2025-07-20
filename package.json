@@ -33,6 +33,27 @@
   "homepage": "https://github.com/derivative-programming/vscode-extension#readme",
   "license": "MIT",
   "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "screenshots": [
+    {
+      "path": "media/screenshot.png"
+    },
+    {
+      "path": "media/page-preview-screenshot.png"
+    },
+    {
+      "path": "media/page-flow-flowchart-screenshot.png"
+    },
+    {
+      "path": "media/page-flow-graph-screenshot.png"
+    },
+    {
+      "path": "media/userstories-screenshot.png"
+    }
+  ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "mcp": "./dist/mcp/stdioBridge.js",
