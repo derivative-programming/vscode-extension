@@ -501,12 +501,19 @@ function generateCSS() {
         }
         
         /* Report Grid Styles */
+        .report-grid-container {
+            margin: 20px 0;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: var(--vscode-editor-background);
+        }
+        
         .report-grid {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 0;
             background-color: var(--vscode-editor-background);
-            border: 1px solid var(--vscode-panel-border);
         }
         
         .report-grid th {
@@ -518,10 +525,41 @@ function generateCSS() {
             border-bottom: 2px solid var(--vscode-panel-border);
             border-right: 1px solid var(--vscode-panel-border);
             font-size: 13px;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .report-grid th:hover {
+            background-color: var(--vscode-list-activeSelectionBackground);
+        }
+        
+        .report-grid th.sortable::after {
+            content: '↕';
+            position: absolute;
+            right: 8px;
+            opacity: 0.5;
+            font-size: 11px;
+        }
+        
+        .report-grid th.sortable.sort-asc::after {
+            content: '↑';
+            opacity: 1;
+        }
+        
+        .report-grid th.sortable.sort-desc::after {
+            content: '↓';
+            opacity: 1;
         }
         
         .report-grid th:last-child {
             border-right: none;
+        }
+        
+        .report-grid th.row-number {
+            width: 60px;
+            text-align: center;
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
         }
         
         .report-grid td {
@@ -530,10 +568,18 @@ function generateCSS() {
             border-right: 1px solid var(--vscode-panel-border);
             color: var(--vscode-foreground);
             font-size: 13px;
+            vertical-align: top;
         }
         
         .report-grid td:last-child {
             border-right: none;
+        }
+        
+        .report-grid td.row-number {
+            text-align: center;
+            font-weight: 500;
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
+            color: var(--vscode-descriptionForeground);
         }
         
         .report-grid tbody tr:hover {
@@ -542,6 +588,41 @@ function generateCSS() {
         
         .report-grid tbody tr:nth-child(even) {
             background-color: var(--vscode-list-inactiveSelectionBackground);
+        }
+        
+        .report-grid tbody tr:hover td.row-number {
+            background-color: var(--vscode-list-activeSelectionBackground);
+        }
+        
+        .report-grid-footer {
+            padding: 10px 15px;
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
+            border-top: 1px solid var(--vscode-panel-border);
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            text-align: center;
+        }
+        
+        .report-grid-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+        }
+        
+        /* Responsive design for grid */
+        @media (max-width: 768px) {
+            .report-grid th,
+            .report-grid td {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+            
+            .report-grid th.row-number,
+            .report-grid td.row-number {
+                width: 40px;
+                padding: 8px 5px;
+            }
         }
         
         .report-info {
@@ -562,6 +643,42 @@ function generateCSS() {
             background-color: var(--vscode-input-background);
             border: 1px solid var(--vscode-input-border);
             border-radius: 3px;
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        
+        .filter-title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .filter-collapse-button {
+            background: none;
+            border: none;
+            color: var(--vscode-foreground);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+        
+        .filter-collapse-button:hover {
+            background-color: var(--vscode-toolbar-hoverBackground);
+        }
+        
+        .filter-content {
+            display: block;
         }
         
         .report-filters h4 {
@@ -606,6 +723,49 @@ function generateCSS() {
             outline-offset: -1px;
         }
         
+        .filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid var(--vscode-input-border);
+        }
+        
+        .filter-action-button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+            min-width: 60px;
+        }
+        
+        .filter-action-button.primary {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        
+        .filter-action-button.primary:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .filter-action-button.secondary {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+        
+        .filter-action-button.secondary:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+        
+        .filter-action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         /* Empty state */
         .empty-state {
             text-align: center;
@@ -638,6 +798,98 @@ function generateCSS() {
                 flex-direction: column;
                 align-items: stretch;
             }
+        }
+        
+        .report-action-buttons {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--vscode-editor-background);
+            border-bottom: 1px solid var(--vscode-widget-border);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .report-action-btn {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: 1px solid var(--vscode-button-border, transparent);
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .report-action-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .report-action-btn:active {
+            background-color: var(--vscode-button-background);
+            opacity: 0.8;
+        }
+        
+        .report-action-btn:disabled {
+            background-color: var(--vscode-button-background);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .report-action-btn.add-button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        
+        .report-action-btn.add-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .action-button-icon {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .report-export-section {
+            padding: 10px;
+            border-top: 1px solid var(--vscode-widget-border);
+            background-color: var(--vscode-editor-background);
+        }
+        
+        .export-button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: 1px solid var(--vscode-button-border, transparent);
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .export-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .export-button:active {
+            background-color: var(--vscode-button-background);
+            opacity: 0.8;
+        }
+        
+        .export-icon {
+            font-size: 14px;
+        }
+        
+        .export-text {
+            font-size: 13px;
         }
     </style>
     `;
@@ -1131,16 +1383,19 @@ function generateJavaScript(allObjects) {
                 html += '<div class="form-section">';
                 
                 workflowObj.objectWorkflowParam.forEach(param => {
-                    if (param.isIgnored === "true" || param.isVisible !== "true") {
+                    if ((param.isIgnored || "false") === "true" || param.isVisible !== "true") {
                         return; // Skip ignored or hidden parameters
                     }
                     
                     html += '<div class="form-field">';
                     
-                    // Field label
-                    const labelText = param.labelText || param.name || 'Field';
-                    const isRequired = param.isRequired === "true";
-                    html += '<label class="form-field-label">' + labelText + (isRequired ? ' *' : '') + '</label>';
+                    // Only show label for non-checkbox fields (checkboxes have their own label text)
+                    if (!isCheckboxParameter(param)) {
+                        // Field label
+                        const labelText = param.labelText || param.name || 'Field';
+                        const isRequired = param.isRequired === "true";
+                        html += '<label class="form-field-label">' + labelText + (isRequired ? ' *' : '') + '</label>';
+                    }
                     
                     // Generate input based on data type and properties
                     const inputHTML = generateFormInput(param);
@@ -1180,9 +1435,9 @@ function generateJavaScript(allObjects) {
                     html += '<div class="form-buttons">';
                     
                     formButtons.forEach(button => {
-                        // Only show buttons that are visible
-                        if (button.isVisible !== "true") {
-                            return; // Skip hidden buttons
+                        // Only show buttons that are visible and not ignored
+                        if ((button.isVisible || "true") !== "true" || (button.isIgnored || "false") === "true") {
+                            return; // Skip hidden or ignored buttons
                         }
                         
                         // Use isButtonCallToAction to determine if button is primary
@@ -1221,6 +1476,12 @@ function generateJavaScript(allObjects) {
             return html;
         }
         
+        // Helper function to determine if a parameter will be rendered as a checkbox
+        function isCheckboxParameter(param) {
+            const dataType = (param.sqlServerDBDataType || '').toLowerCase();
+            return dataType.includes('bit') || dataType.includes('boolean');
+        }
+        
         // Generate form input based on parameter properties
         function generateFormInput(param) {
             let html = '';
@@ -1246,7 +1507,9 @@ function generateJavaScript(allObjects) {
                 // Boolean - checkbox
                 html += '<div class="checkbox-container">';
                 html += '<input type="checkbox" class="form-field-checkbox">';
-                html += '<span class="checkbox-label">' + (param.labelText || param.name || 'Yes/No') + '</span>';
+                const labelText = param.labelText || param.name || 'Yes/No';
+                const isRequired = param.isRequired === "true";
+                html += '<span class="checkbox-label">' + labelText + (isRequired ? ' *' : '') + '</span>';
                 html += '</div>';
             } else if (dataType.includes('int') || dataType.includes('decimal') || 
                       dataType.includes('float') || dataType.includes('money') || dataType.includes('numeric')) {
@@ -1278,8 +1541,10 @@ function generateJavaScript(allObjects) {
             
             let html = '<div class="page-preview-container">';
             
-            // Breadcrumb navigation (above page header)
-            html += generateBreadcrumbHTML(page);
+            // Breadcrumb navigation (above page header) - only show if not hidden
+            if (page.isBreadcrumbSectionHidden !== "true") {
+                html += generateBreadcrumbHTML(page);
+            }
             
             // Page header section (outside the report)
             html += '<div class="page-header">';
@@ -1297,25 +1562,22 @@ function generateJavaScript(allObjects) {
             // Report container (the actual report)
             html += '<div class="form-preview">';
             
-            // Report filters section (if reportParam exists)
-            if (page.reportParam && page.reportParam.length > 0) {
+            // Report action buttons (add and other types) - above filters
+            html += generateReportActionButtons(page);
+            
+            // Report filters section (if reportParam exists and not hidden)
+            if (page.reportParam && page.reportParam.length > 0 && page.isFilterSectionHidden !== "true") {
                 html += generateReportFilters(page.reportParam);
             }
             
-            // Report info bar
-            html += '<div class="report-info">';
-            html += '<span>Showing sample data for report visualization</span>';
-            html += '<span>Visualization: <strong>' + (page.visualizationType || 'grid') + '</strong></span>';
-            html += '</div>';
-            
             // Generate report based on visualization type
-            if (page.visualizationType === 'grid' || !page.visualizationType) {
+            if (page.visualizationType === 'Grid' || !page.visualizationType) {
                 html += generateReportGrid(page);
             } else {
                 // Placeholder for other visualization types
                 html += '<div class="empty-state">';
                 html += '<p>Visualization type "' + page.visualizationType + '" preview will be implemented in a future update.</p>';
-                html += '<p>Currently supported: <strong>grid</strong></p>';
+                html += '<p>Currently supported: <strong>Grid</strong></p>';
                 html += '</div>';
             }
             
@@ -1325,40 +1587,139 @@ function generateJavaScript(allObjects) {
             return html;
         }
         
-        // Generate report filters section
-        function generateReportFilters(reportParams) {
-            let html = '<div class="report-filters">';
-            html += '<h4>Report Filters</h4>';
+        // Generate report action buttons (add, other types) above filters section
+        function generateReportActionButtons(page) {
+            console.log('[DEBUG] PagePreview - generateReportActionButtons called for page:', page.name);
             
-            // Filter visible and non-ignored report parameters
-            const visibleParams = reportParams.filter(param => 
-                param.isIgnored !== "true" && param.isVisible === "true"
+            // Get buttons from reportButton array
+            const reportButtons = page.reportButton || [];
+            
+            if (reportButtons.length === 0) {
+                console.log('[DEBUG] PagePreview - No report buttons found for page:', page.name);
+                return '';
+            }
+            
+            console.log('[DEBUG] PagePreview - Page report buttons:', reportButtons);
+            
+            // Filter buttons to only include action type buttons (excluding breadcrumb and back)
+            const actionButtons = reportButtons.filter(button => 
+                button.buttonType !== "breadcrumb" && 
+                button.buttonType !== "back" && 
+                button.isVisible !== "false" && 
+                (button.isIgnored || "false") !== "true"
             );
             
-            if (visibleParams.length === 0) {
-                html += '<p class="empty-state">No filters configured for this report</p>';
-            } else {
-                // Group parameters in rows of 3
-                for (let i = 0; i < visibleParams.length; i += 3) {
-                    html += '<div class="filter-row">';
+            if (actionButtons.length === 0) {
+                console.log('[DEBUG] PagePreview - No action buttons found. All report buttons:', reportButtons.map(b => ({ type: b.buttonType, text: b.buttonText, visible: b.isVisible, ignored: b.isIgnored })));
+                return '';
+            }
+            
+            console.log('[DEBUG] PagePreview - Generating action buttons HTML, found buttons:', actionButtons.length);
+            
+            let html = '<div class="report-action-buttons">';
+            
+            actionButtons.forEach((button) => {
+                const buttonText = button.buttonText || button.buttonName || 'Action';
+                const buttonType = button.buttonType || 'button';
+                
+                // Determine button style based on type
+                let buttonClass = 'report-action-btn';
+                if (buttonType === 'add') {
+                    buttonClass += ' add-button';
+                } else {
+                    buttonClass += ' action-button';
+                }
+                
+                // Make button clickable if it has destination
+                if (button.destinationTargetName) {
+                    const contextObjectName = button.destinationContextObjectName || '';
+                    html += '<button class="' + buttonClass + '" type="button" onclick="handleReportActionClick(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\', \\'' + buttonType + '\\')">';
                     
-                    for (let j = i; j < Math.min(i + 3, visibleParams.length); j++) {
-                        const param = visibleParams[j];
-                        html += '<div class="filter-field">';
-                        html += '<label class="filter-label">' + (param.labelText || param.name || 'Filter') + '</label>';
-                        
-                        // Generate filter input based on data type
-                        const filterInput = generateFilterInput(param);
-                        html += filterInput;
-                        
-                        html += '</div>';
+                    // Add appropriate icon for button type
+                    if (buttonType === 'add') {
+                        html += '<span class="action-button-icon">+</span>';
+                    } else if (buttonType === 'edit') {
+                        html += '<span class="action-button-icon">✎</span>';
+                    } else if (buttonType === 'delete') {
+                        html += '<span class="action-button-icon">×</span>';
+                    } else if (buttonType === 'refresh' || buttonType === 'reload') {
+                        html += '<span class="action-button-icon">↻</span>';
+                    } else if (buttonType === 'export') {
+                        html += '<span class="action-button-icon">📊</span>';
+                    } else {
+                        html += '<span class="action-button-icon">▶</span>';
                     }
+                    
+                    html += buttonText;
+                    html += '</button>';
+                } else {
+                    // Non-clickable button
+                    html += '<button class="' + buttonClass + '" type="button" disabled>';
+                    
+                    // Add appropriate icon for button type
+                    if (buttonType === 'add') {
+                        html += '<span class="action-button-icon">+</span>';
+                    } else {
+                        html += '<span class="action-button-icon">▶</span>';
+                    }
+                    
+                    html += buttonText;
+                    html += '</button>';
+                }
+            });
+            
+            html += '</div>';
+            
+            return html;
+        }
+        
+        // Generate report filters section
+        function generateReportFilters(reportParams) {
+            // Filter visible and non-ignored report parameters
+            const visibleParams = reportParams.filter(param => 
+                (param.isIgnored || "false") !== "true" && param.isVisible === "true"
+            );
+            
+            // Don't show filters section if no visible parameters
+            if (visibleParams.length === 0) {
+                return '';
+            }
+            
+            let html = '<div class="report-filters">';
+            html += '<div class="filter-header">';
+            html += '<h4 class="filter-title" onclick="toggleFilters()">Report Filters</h4>';
+            html += '<button class="filter-collapse-button" onclick="toggleFilters()" title="Collapse/Expand Filters">▼</button>';
+            html += '</div>';
+            
+            html += '<div class="filter-content" id="filterContent">';
+            
+            // Group parameters in rows of 3
+            for (let i = 0; i < visibleParams.length; i += 3) {
+                html += '<div class="filter-row">';
+                
+                for (let j = i; j < Math.min(i + 3, visibleParams.length); j++) {
+                    const param = visibleParams[j];
+                    html += '<div class="filter-field">';
+                    html += '<label class="filter-label">' + (param.labelText || param.name || 'Filter') + '</label>';
+                    
+                    // Generate filter input based on data type
+                    const filterInput = generateFilterInput(param);
+                    html += filterInput;
                     
                     html += '</div>';
                 }
+                
+                html += '</div>';
             }
             
+            // Filter action buttons at bottom right
+            html += '<div class="filter-actions">';
+            html += '<button class="filter-action-button secondary" onclick="clearFilters()" type="button">Clear</button>';
+            html += '<button class="filter-action-button primary" onclick="searchFilters()" type="button">Search</button>';
             html += '</div>';
+            
+            html += '</div>'; // End filter-content
+            html += '</div>'; // End report-filters
             return html;
         }
         
@@ -1397,36 +1758,97 @@ function generateJavaScript(allObjects) {
         
         // Generate report grid
         function generateReportGrid(page) {
-            let html = '';
-            
             // Determine columns based on parameters or use default columns
             const columns = getReportColumns(page);
             const sampleData = generateSampleReportData(columns, page.objectName);
             
-            html += '<table class="report-grid">';
+            if (columns.length === 0) {
+                return '<div class="report-grid-container"><div class="report-grid-empty">No columns configured for this report</div></div>';
+            }
+            
+            if (sampleData.length === 0) {
+                return '<div class="report-grid-container"><div class="report-grid-empty">No data available</div></div>';
+            }
+            
+            let html = '<div class="report-grid-container">';
+            html += '<table class="report-grid" id="reportGrid">';
             
             // Table header
             html += '<thead>';
             html += '<tr>';
-            columns.forEach(column => {
-                html += '<th>' + column.displayName + '</th>';
+            
+            // Data columns
+            columns.forEach((column, index) => {
+                html += '<th class="sortable" data-column="' + index + '" onclick="sortReportGrid(' + index + ')">';
+                html += column.displayName;
+                html += '</th>';
             });
             html += '</tr>';
             html += '</thead>';
             
             // Table body
             html += '<tbody>';
-            sampleData.forEach(row => {
+            sampleData.forEach((row, rowIndex) => {
                 html += '<tr>';
+                
+                // Data cells
                 columns.forEach(column => {
                     const value = row[column.name] || '';
-                    html += '<td>' + formatCellValue(value, column.dataType) + '</td>';
+                    const formattedValue = formatCellValue(value, column.dataType);
+                    html += '<td title="' + formattedValue + '">' + formattedValue + '</td>';
                 });
                 html += '</tr>';
             });
             html += '</tbody>';
             
             html += '</table>';
+            
+            // Grid footer with pagination controls (only show if paging is available)
+            if (page.isPagingAvailable !== "false") {
+                html += '<div class="report-grid-footer">';
+                
+                // Left side - Items per page dropdown
+                html += '<div class="pagination-left">';
+                html += '<label for="itemsPerPage" class="pagination-label">Items per page:</label>';
+                html += '<select id="itemsPerPage" class="pagination-select" onchange="changeItemsPerPage()">';
+                html += '<option value="10" selected>10</option>';
+                html += '<option value="25">25</option>';
+                html += '<option value="50">50</option>';
+                html += '<option value="100">100</option>';
+                html += '</select>';
+                html += '</div>';
+                
+                // Center - Pagination controls
+                html += '<div class="pagination-center">';
+                html += '<button class="pagination-btn" onclick="goToFirstPage()" title="First Page">⟪</button>';
+                html += '<button class="pagination-btn" onclick="goToPreviousPage()" title="Previous Page">❮</button>';
+                html += '<span class="pagination-info">Page 1 of 1</span>';
+                html += '<button class="pagination-btn" onclick="goToNextPage()" title="Next Page">❯</button>';
+                html += '<button class="pagination-btn" onclick="goToLastPage()" title="Last Page">⟫</button>';
+                html += '</div>';
+                
+                // Right side - Row count indicator
+                html += '<div class="pagination-right">';
+                const totalRows = Math.floor(Math.random() * 200) + 150; // Simulate total available rows (150-349)
+                const startRow = 1;
+                const endRow = Math.min(sampleData.length, 10); // Currently showing up to 10 items
+                html += '<span class="row-count-info">Showing ' + startRow + ' - ' + endRow + ' of ' + totalRows + ' rows</span>';
+                html += '</div>';
+                
+                html += '</div>'; // End report-grid-footer
+            }
+            
+            // Export buttons section (only show if export buttons are not hidden)
+            if (page.isExportButtonsHidden !== "true") {
+                html += '<div class="report-export-section">';
+                html += '<button class="export-button" onclick="exportToCSV()" title="Export to CSV">';
+                html += '<span class="export-icon">📊</span>';
+                html += '<span class="export-text">Export to CSV</span>';
+                html += '</button>';
+                html += '</div>';
+            }
+            
+            html += '</div>'; // End report-grid-container
             
             return html;
         }
@@ -1439,7 +1861,7 @@ function generateJavaScript(allObjects) {
             if (page.reportColumn && page.reportColumn.length > 0) {
                 page.reportColumn.forEach(column => {
                     // Only include visible and non-ignored columns
-                    if (column.isIgnored !== "true" && column.isVisible !== "false") {
+                    if ((column.isIgnored || "false") !== "true" && column.isVisible !== "false") {
                         columns.push({
                             name: column.name || 'field',
                             displayName: column.headerText || column.labelText || column.name || 'Column',
@@ -1639,6 +2061,50 @@ function generateJavaScript(allObjects) {
             }
         }
         
+        // Handle report action button click to navigate to destination
+        function handleReportActionClick(destinationTargetName, destinationContextObjectName, buttonType) {
+            console.log('[DEBUG] PagePreview - Report action button clicked:', destinationTargetName, destinationContextObjectName, buttonType);
+            
+            // Find the destination page in our filtered pages
+            const destinationPage = window.filteredPages.find(page => 
+                page.name === destinationTargetName && 
+                (!destinationContextObjectName || page.objectName === destinationContextObjectName)
+            );
+            
+            if (destinationPage) {
+                // Update the dropdown selection to the destination page
+                const dropdown = document.getElementById('pageDropdown');
+                if (dropdown) {
+                    const destinationIndex = window.filteredPages.indexOf(destinationPage);
+                    if (destinationIndex >= 0) {
+                        dropdown.value = destinationIndex;
+                        // Trigger the selection change event
+                        handlePageSelection();
+                        
+                        // Scroll to the preview section
+                        const previewSection = document.getElementById('previewSection');
+                        if (previewSection) {
+                            previewSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                }
+            } else {
+                console.log('[DEBUG] PagePreview - Destination page not found or not visible with current role filters:', destinationTargetName);
+                // Show a message to the user based on button type
+                let actionName = 'Action';
+                if (buttonType === 'add') {
+                    actionName = 'Add';
+                } else if (buttonType === 'edit') {
+                    actionName = 'Edit';
+                } else if (buttonType === 'delete') {
+                    actionName = 'Delete';
+                } else if (buttonType === 'export') {
+                    actionName = 'Export';
+                }
+                alert(actionName + ' action destination page "' + destinationTargetName + '" is not available with the current role filters.');
+            }
+        }
+        
         // Handle breadcrumb navigation to change page dropdown
         function navigateToPage(destinationTargetName, destinationContextObjectName) {
             console.log('[DEBUG] PagePreview - Breadcrumb clicked, navigating to:', destinationTargetName, destinationContextObjectName);
@@ -1725,6 +2191,178 @@ function generateJavaScript(allObjects) {
             }
         }
         
+        // Toggle filter section collapse/expand
+        function toggleFilters() {
+            const filterContent = document.getElementById('filterContent');
+            const collapseButton = document.querySelector('.filter-collapse-button');
+            
+            if (!filterContent || !collapseButton) return;
+            
+            const isCollapsed = filterContent.style.display === 'none';
+            
+            if (isCollapsed) {
+                filterContent.style.display = 'block';
+                collapseButton.textContent = '▼';
+                collapseButton.title = 'Collapse Filters';
+            } else {
+                filterContent.style.display = 'none';
+                collapseButton.textContent = '▶';
+                collapseButton.title = 'Expand Filters';
+            }
+        }
+        
+        // Clear all filter inputs
+        function clearFilters() {
+            console.log('[DEBUG] PagePreview - Clearing all filters');
+            
+            const filterInputs = document.querySelectorAll('.filter-input');
+            filterInputs.forEach(input => {
+                if (input.tagName.toLowerCase() === 'select') {
+                    input.value = '';
+                } else {
+                    input.value = '';
+                }
+            });
+        }
+        
+        // Execute filter search (placeholder for actual filtering logic)
+        function searchFilters() {
+            console.log('[DEBUG] PagePreview - Executing filter search');
+            
+            // Get all filter values
+            const filterValues = {};
+            const filterInputs = document.querySelectorAll('.filter-input');
+            
+            filterInputs.forEach(input => {
+                const label = input.closest('.filter-field').querySelector('.filter-label').textContent;
+                filterValues[label] = input.value;
+            });
+            
+            console.log('[DEBUG] PagePreview - Filter values:', filterValues);
+            
+            // In a real implementation, this would filter the report data
+            // For preview, we just log the action
+            alert('Filter search executed. In a real report, this would filter the data based on the selected criteria.');
+        }
+        
+        // Sort report grid by column
+        function sortReportGrid(columnIndex) {
+            console.log('[DEBUG] PagePreview - Sorting grid by column:', columnIndex);
+            
+            const table = document.getElementById('reportGrid');
+            if (!table) return;
+            
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const header = table.querySelector('thead th[data-column="' + columnIndex + '"]');
+            
+            if (!header || rows.length === 0) return;
+            
+            // Determine sort direction
+            let sortDirection = 'asc';
+            if (header.classList.contains('sort-asc')) {
+                sortDirection = 'desc';
+            }
+            
+            // Clear all sort indicators
+            table.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+            
+            // Add sort indicator to current column
+            header.classList.add('sort-' + sortDirection);
+            
+            // Sort rows (no row number column)
+            const sortedRows = rows.sort((a, b) => {
+                const cellA = a.cells[columnIndex]; // Direct column index
+                const cellB = b.cells[columnIndex];
+                
+                if (!cellA || !cellB) return 0;
+                
+                let valueA = cellA.textContent.trim();
+                let valueB = cellB.textContent.trim();
+                
+                // Try to parse as numbers if possible
+                const numA = parseFloat(valueA.replace(/[$,]/g, ''));
+                const numB = parseFloat(valueB.replace(/[$,]/g, ''));
+                
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return sortDirection === 'asc' ? numA - numB : numB - numA;
+                }
+                
+                // Parse dates
+                const dateA = new Date(valueA);
+                const dateB = new Date(valueB);
+                
+                if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+                    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+                }
+                
+                // String comparison
+                const result = valueA.localeCompare(valueB);
+                return sortDirection === 'asc' ? result : -result;
+            });
+            
+            // Re-append sorted rows
+            sortedRows.forEach((row) => {
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Pagination functions for report grid
+        function changeItemsPerPage() {
+            console.log('[DEBUG] PagePreview - Items per page changed');
+            const select = document.getElementById('itemsPerPage');
+            const itemsPerPage = parseInt(select.value);
+            
+            // In a real implementation, this would reload the data with new page size
+            alert('Items per page changed to: ' + itemsPerPage + '. In a real report, this would reload the data.');
+        }
+        
+        function goToFirstPage() {
+            console.log('[DEBUG] PagePreview - Go to first page');
+            updatePaginationInfo(1);
+            alert('Navigate to first page. In a real report, this would load the first page of data.');
+        }
+        
+        function goToPreviousPage() {
+            console.log('[DEBUG] PagePreview - Go to previous page');
+            // Simulate going to previous page
+            alert('Navigate to previous page. In a real report, this would load the previous page of data.');
+        }
+        
+        function goToNextPage() {
+            console.log('[DEBUG] PagePreview - Go to next page');
+            updatePaginationInfo(2);
+            alert('Navigate to next page. In a real report, this would load the next page of data.');
+        }
+        
+        function goToLastPage() {
+            console.log('[DEBUG] PagePreview - Go to last page');
+            updatePaginationInfo(15); // Simulate page 15 as last page
+            alert('Navigate to last page. In a real report, this would load the last page of data.');
+        }
+        
+        function updatePaginationInfo(currentPage) {
+            const paginationInfo = document.querySelector('.pagination-info');
+            const totalPages = 15; // Simulate 15 total pages
+            
+            if (paginationInfo) {
+                paginationInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+            }
+            
+            // Update row count info
+            const rowCountInfo = document.querySelector('.row-count-info');
+            if (rowCountInfo) {
+                const itemsPerPage = parseInt(document.getElementById('itemsPerPage').value) || 10;
+                const totalRows = 234; // Simulate total available rows
+                const startRow = (currentPage - 1) * itemsPerPage + 1;
+                const endRow = Math.min(currentPage * itemsPerPage, totalRows);
+                
+                rowCountInfo.textContent = 'Showing ' + startRow + ' - ' + endRow + ' of ' + totalRows + ' rows';
+            }
+        }
+        
         // Handle messages from extension
         if (typeof vscode !== 'undefined') {
             window.addEventListener('message', event => {
@@ -1738,6 +2376,99 @@ function generateJavaScript(allObjects) {
                         break;
                 }
             });
+        }
+        
+        function exportToCSV() {
+            console.log('[DEBUG] PagePreview - Export to CSV started');
+            
+            try {
+                // Get the table
+                const table = document.querySelector('.report-grid table');
+                if (!table) {
+                    alert('No table found to export.');
+                    return;
+                }
+                
+                // Get headers (skip row number column if it exists)
+                const headers = [];
+                const headerCells = table.querySelectorAll('thead th');
+                headerCells.forEach((th, index) => {
+                    if (!th.classList.contains('row-number')) {
+                        headers.push(th.textContent.trim());
+                    }
+                });
+                
+                // Get data rows (skip row number column if it exists)
+                const rows = [];
+                const dataRows = table.querySelectorAll('tbody tr');
+                dataRows.forEach(tr => {
+                    const rowData = [];
+                    const cells = tr.querySelectorAll('td');
+                    cells.forEach((td, index) => {
+                        // Skip row number column
+                        const correspondingHeader = table.querySelector('thead th:nth-child(' + (index + 1) + ')');
+                        if (!correspondingHeader || !correspondingHeader.classList.contains('row-number')) {
+                            // Clean the cell value and handle commas in CSV
+                            let cellValue = td.textContent.trim();
+                            // Escape quotes and wrap in quotes if contains comma, quote, or newline
+                            if (cellValue.includes('"')) {
+                                cellValue = cellValue.replace(/"/g, '""');
+                            }
+                            if (cellValue.includes(',') || cellValue.includes('"') || cellValue.includes('\\n') || cellValue.includes('\\r')) {
+                                cellValue = '"' + cellValue + '"';
+                            }
+                            rowData.push(cellValue);
+                        }
+                    });
+                    rows.push(rowData);
+                });
+                
+                // Create CSV content
+                let csvContent = '';
+                
+                // Add headers
+                csvContent += headers.join(',') + '\\n';
+                
+                // Add data rows
+                rows.forEach(row => {
+                    csvContent += row.join(',') + '\\n';
+                });
+                
+                // Create and download the file
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                
+                // Create a unique filename with timestamp
+                const now = new Date();
+                const timestamp = now.getFullYear() + 
+                    String(now.getMonth() + 1).padStart(2, '0') + 
+                    String(now.getDate()).padStart(2, '0') + '_' +
+                    String(now.getHours()).padStart(2, '0') + 
+                    String(now.getMinutes()).padStart(2, '0') + 
+                    String(now.getSeconds()).padStart(2, '0');
+                
+                const filename = 'report_export_' + timestamp + '.csv';
+                
+                if (link.download !== undefined) {
+                    // Feature detection for download attribute
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    console.log('[DEBUG] PagePreview - CSV exported as ' + filename);
+                } else {
+                    // Fallback for older browsers
+                    alert('CSV export is not supported in this browser. Please use a modern browser.');
+                }
+                
+            } catch (error) {
+                console.error('[ERROR] PagePreview - Export to CSV failed:', error);
+                alert('Failed to export CSV. Please try again.');
+            }
         }
     </script>
     `;
