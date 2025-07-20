@@ -24,6 +24,13 @@ Transform your development workflow: design your application model once, then ge
 - **Right-Click Context Menus**: Add, edit, and manage items with convenient context menus
 - **Advanced Filtering**: Filter objects, reports, and forms independently for focused navigation
 
+### 📱 Page Preview & UI Design
+- **Page Preview**: Interactive preview of forms and reports before full implementation
+- **Role-Based Filtering**: Filter page previews by user roles and access requirements
+- **Form Preview**: See how forms will appear to users with parameter fields and buttons
+- **Real-Time Updates**: Preview updates automatically as you modify your model
+- **Navigation Integration**: Seamlessly switch between preview and detailed editing
+
 ### ⚡ AI-Powered Code Generation
 - **Model Services Integration**: Connect to cloud-based AI services for intelligent processing
 - **Feature Catalog**: Browse and select from a library of pre-built model features
@@ -85,6 +92,7 @@ All shortcuts use the simple `Alt+A [key]` format to avoid conflicts with standa
 ### Diagrams & Views
 - `Alt+A H` - Show hierarchy diagram
 - `Alt+A P` - Show page flow diagram
+- `Alt+A V` - Show page preview
 
 ### Settings & Help
 - `Alt+A G` - Show AppDNA settings (confi**G**)
@@ -113,6 +121,7 @@ The extension provides a comprehensive interface with multiple views:
 
 ### Additional Views
 - **Welcome View**: Guided workflow with 9 development steps
+- **Page Preview View**: Interactive preview of forms and reports with role-based filtering
 - **Help View**: Documentation links and support resources
 - **Settings View**: Extension configuration and preferences
 - **Command Palette**: Access all extension features via `Ctrl+Shift+P`
@@ -120,9 +129,39 @@ The extension provides a comprehensive interface with multiple views:
 ### Visual Tools
 - **Hierarchy Diagrams**: Visualize object relationships and dependencies
 - **Page Flow Diagrams**: Map user interface navigation and workflows
+- **Page Preview**: Interactive preview of forms and reports with role-based filtering
 - **Search & Filter**: Find and organize models efficiently across all object types
 
 A Windows app version of this extension is available [here](https://github.com/derivative-programming/ModelWinApp).
+
+## Page Preview Feature
+
+The Page Preview feature provides an interactive way to preview your forms and reports before full implementation, helping you visualize the user experience during the design phase.
+
+### Key Features
+- **Role-Based Filtering**: Filter pages by user roles to see what different user types can access
+- **Interactive Form Preview**: See how forms will appear with parameter fields, buttons, and layout
+- **Real-Time Updates**: Preview updates automatically when you modify your model
+- **Navigation Integration**: Switch seamlessly between preview and detailed form/report editing
+- **Professional Styling**: Preview uses VS Code theme for consistent, professional appearance
+
+### How to Use
+1. **Access the Preview**: Click the eye icon next to "PAGES" in the tree view, or use `Alt+A V`
+2. **Filter by Role**: Use checkboxes to filter pages by required user roles
+3. **Select a Page**: Choose from the dropdown of available forms and reports
+4. **Preview Content**: View the page layout, fields, and available actions
+5. **Open Details**: Click "View Full Page Details" to open the complete form/report editor
+
+### Requirements
+- Enable "Show Advanced Properties" in AppDNA settings to see the PAGES section
+- Forms and reports must have `isPage="true"` property to appear in preview
+- Role requirements are determined by `roleRequired` property on forms/reports
+
+The Page Preview feature is particularly useful for:
+- **UI/UX Design**: Visualizing user interfaces before implementation
+- **Role Planning**: Understanding access patterns and user workflows
+- **Client Demos**: Showing stakeholders how the application will look and function
+- **Development Planning**: Identifying form requirements and user interactions
 
 ## Model Context Protocol (MCP) Integration
 
