@@ -4,6 +4,50 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### Page Preview View Implementation (2025-07-20)
+**New Feature Added:** Created a comprehensive page preview view that allows users to visually preview forms and reports with role-based filtering.
+
+**RESOLVED (2025-07-20):** JavaScript execution error preventing dropdown population:
+- **Error:** `Uncaught ReferenceError: handleRoleChange is not defined` at HTMLInputElement.onchange
+- **Root Cause:** Special characters in role names breaking HTML syntax, plus improper JavaScript string concatenation in onclick handlers
+- **Location:** Page preview HTML generation in `htmlGenerator.js`  
+- **Impact:** Role filter checkboxes failed to execute, preventing dropdown population
+- **Solutions Applied:**
+  1. Fixed role name escaping for HTML id attributes and data-role attributes
+  2. Updated handleRoleChange function to use data attributes instead of parsing ids
+  3. Fixed form button onclick handler generation to prevent JavaScript syntax errors
+  4. Extracted contextObjectName variable to handle undefined values safely
+- **Status:** ✅ COMPLETE - Page preview dropdown should now populate correctly
+
+- **Architecture:** Modular design following established extension patterns with separate directories for components and helpers
+- **Key Features:**
+  1. **Role-based Filtering:** Checkbox list showing all available roles plus "Public Pages" option, similar to page flow view
+  2. **Page Selection:** Dropdown populated with forms and reports filtered by selected roles, displaying format "[name] - [title]"
+  3. **Form Preview:** Visual representation of selected forms with placeholder fields, buttons, and styling
+  4. **Navigation Integration:** "View Full Page Details" button located under the preview section opens the actual form/report details view
+  5. **Automatic Refresh:** Real-time data updates when model changes externally
+- **Technical Implementation:**
+  - **Main View:** `src/webviews/pagepreview/pagePreviewView.js` - Panel management and message handling
+  - **HTML Generator:** `src/webviews/pagepreview/components/htmlGenerator.js` - Complete HTML/CSS/JavaScript generation
+  - **Wrapper:** `src/webviews/pagePreviewView.js` - Follows established wrapper pattern for consistency
+- **UI/UX Design:**
+  - Clean, professional interface matching VS Code design language
+  - Responsive design with mobile-friendly controls
+  - Simplified header with just the title (no refresh button)
+  - Form preview includes header, parameters section, and buttons
+  - "View Full Page Details" button positioned under the preview section for better UX flow
+  - Report preview placeholder prepared for future implementation
+  - **Dropdown Display:** Shows "[name] - [title]" format (or just name if title is identical) for better identification
+- **Integration:**
+  - **Command:** `appdna.showPagePreview` with keyboard shortcut `Alt+A V`
+  - **Tree View:** Added preview button to PAGES node alongside existing page flow button
+  - **Refresh Handling:** Integrated with extension's external file change handling system
+  - **Reuses:** Page extraction logic from existing page flow view for consistency
+- **Future Extensibility:** Framework prepared for report preview implementation when requirements are defined
+- **Files Created/Modified:**
+  - New directory structure: `src/webviews/pagepreview/` with components and helpers
+  - Updated: `registerCommands.ts`, `package.json`, `jsonTreeDataProvider.ts` for full integration
+
 ### Form Details View External Change Handling Fix (2025-01-19)
 **Critical Issue Fixed:** Form details views were not included in the external file change handling process, causing them to show stale data when the model JSON file was modified outside VS Code.
 

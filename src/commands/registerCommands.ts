@@ -39,6 +39,7 @@ import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCat
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
 import { showPageFlowDiagram, getPageFlowPanel, closePageFlowView } from '../webviews/pageFlowDiagramView';
+import { showPagePreview, getPagePreviewPanel, closePagePreviewView } from '../webviews/pagePreviewView';
 import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand, showFormFilterInputCommand, clearFormFilterCommand } from './filterTreeViewCommands';
 // Import showAppDNASettingsView and related functions
 import { showAppDNASettingsView, reloadAppDNASettingsPanel } from '../webviews/appDnaSettingsView';
@@ -111,6 +112,9 @@ export function registerCommands(
             
             // Store reference to page flow diagram panel if open
             const pageFlowData = typeof getPageFlowPanel === "function" ? getPageFlowPanel() : null;
+            
+            // Store reference to page preview panel if open
+            const pagePreviewData = typeof getPagePreviewPanel === "function" ? getPagePreviewPanel() : null;
               // Close all open object details panels
             if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
                 objectDetailsView.closeAllPanels();
@@ -159,6 +163,11 @@ export function registerCommands(
             // Close page flow diagram panel if open
             if (typeof closePageFlowView === "function") {
                 closePageFlowView();
+            }
+            
+            // Close page preview panel if open
+            if (typeof closePagePreviewView === "function") {
+                closePagePreviewView();
             }
             
             // Reload the model file into memory
@@ -240,6 +249,11 @@ export function registerCommands(
             // Reopen page flow diagram panel if it was open
             if (pageFlowData && pageFlowData.context) {
                 showPageFlowDiagram(pageFlowData.context, modelService);
+            }
+            
+            // Reopen page preview panel if it was open
+            if (pagePreviewData && pagePreviewData.context) {
+                showPagePreview(pagePreviewData.context, modelService);
             }
         })
     );
@@ -605,6 +619,38 @@ export function registerCommands(
             
             // Show the page flow diagram view
             await showPageFlowDiagram(context, modelService);
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showPagePreview', async () => {
+            console.log('[DEBUG] Page preview command triggered');
+            console.log('[DEBUG] modelService.isFileLoaded():', modelService.isFileLoaded());
+            
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+                return;
+            }
+            
+            // Additional debug info about the loaded model
+            try {
+                const currentModel = modelService.getCurrentModel();
+                console.log('[DEBUG] Current model exists:', !!currentModel);
+                if (currentModel) {
+                    console.log('[DEBUG] Current model keys:', Object.keys(currentModel));
+                    if (currentModel.namespace) {
+                        console.log('[DEBUG] Number of namespaces:', currentModel.namespace.length);
+                    }
+                }
+                
+                const allObjects = modelService.getAllObjects();
+                console.log('[DEBUG] getAllObjects() in command:', allObjects ? allObjects.length : 'null/undefined');
+            } catch (error) {
+                console.log('[DEBUG] Error getting model info:', error);
+            }
+            
+            // Show the page preview view
+            await showPagePreview(context, modelService);
         })
     );
           

@@ -1,6 +1,58 @@
 Agent todo items...
 
 
+prop subscriptions
+"propSubscription": [
+              {
+                "destinationContextObjectName": "AIAssistantThread",
+                "destinationTargetName": "AIAssistantThreadConfigDetails",
+                "isIgnored": "true"
+              }
+            ],
+
+flows
+
+apis
+
+page preview views...
+- form
+- report Grid
+- report DetailTwoCColumn
+- report DetailThreeColumn
+
+- on click of a button, change the selection dropdown to the destination of the button
+
+preview form...
+- display pageTitleText
+- display pageIntroText
+- display formTitleText
+- display formIntroText
+
+- display fields with placeholders...
+  - display all form params as controls. data type determines what control is used.
+
+- display form buttons at the bottom. 
+- on click of a button, change the selection dropdown to the destination of the button
+
+demo view...
+- use a sqllite db?
+- clickable demo that stays on the same view?
+- tell the user to fabricate the demo html files?
+
+add report...
+- API Get
+
+
+ 
+report details view...
+- allow creation of column destination button
+- allow creation of column async flow button
+- add button - multiselect
+- add button - breadcrumb
+- import breadcrumb buttons from another report
+- columns - subscribe to owner obj properties
+- columns - subscribe to target child obj properties
+
 
 any large files left?
 - split up large files into smaller ones
@@ -15,8 +67,7 @@ hierarchyView.js - 1,176 lines
 
 stop validating a\bulk change request on approval?
 
-
-prop subscriptions
+ 
 
 many labels: "Sql Server DB Data Type" > "DB Data Type"
 
@@ -51,17 +102,6 @@ mermaid diagram view...
 - click to view details like graph view - difficult
 
 
-sample page views...
-- form
-- report grid
-- report two col nav
-- report three col detail
-
-demo view...
-- use a sqllite db?
-- clickable demo that stays on the same view?
-- tell the user to fabricate the demo html files?
-
 fabrication requests view...
 - add a button to open the output folder in the file explorer
 - allow for a deployment script to be run after fabrication results are downloaded
@@ -69,19 +109,7 @@ fabrication requests view...
 find large files and split them up
 
 'there is no data provider registered....' on startup  
- 
- 
-add report wizard has dif step design than add data object wizard
- 
-report details view...
-- allow creation of column destination button
-- allow creation of column async flow button
-- add button - multiselect
-- add button - breadcrumb
-- import breadcrumb buttons from another report
-- columns - subscribe to owner obj properties
-- columns - subscribe to target child obj properties
-
+  
 change requests... 
 - on approve all, show processing animation while all are processed
 - show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
@@ -108,10 +136,7 @@ functions
         - get validation request details
         - show validation request details
         - show validation request change request list
-
-add report...
-- API Get
-
+ 
   
 test:When completed, create a report item in the owner data object report array. Add the new report item to the treeview. Open the new report item in the report details view.
 
@@ -222,7 +247,7 @@ win app...
               },
 *************************
 low priority
-********************88
+*************************
 
 model services api todo...
 - add search query on all request list endpoints

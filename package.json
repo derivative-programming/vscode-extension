@@ -140,6 +140,12 @@
           "icon": "$(list-flat)"
         },
         {
+          "command": "appdna.showPagePreview",
+          "when": "viewItem =~ /pages.*showPagePreview/",
+          "group": "inline",
+          "icon": "$(preview)"
+        },
+        {
           "command": "appdna.showReportFilter",
           "when": "viewItem =~ /reports.*showReportFilter/",
           "group": "inline",
@@ -284,6 +290,11 @@
         "icon": "$(outline-view-icon)"
       },
       {
+        "command": "appdna.showPagePreview",
+        "title": "Show Page Preview",
+        "icon": "$(preview)"
+      },
+      {
         "command": "appdna.showFilter",
         "title": "Filter Tree View",
         "icon": "$(filter)"
@@ -383,6 +394,10 @@
       {
         "command": "appdna.showPageFlowDiagram",
         "key": "alt+a p"
+      },
+      {
+        "command": "appdna.showPagePreview",
+        "key": "alt+a v"
       },
       {
         "command": "appdna.showAppDNASettings",

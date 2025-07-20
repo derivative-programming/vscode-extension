@@ -25,8 +25,12 @@ function extractPagesFromModel(allObjects) {
                     const page = {
                         name: workflow.name,
                         titleText: workflow.titleText || workflow.name,
+                        introText: workflow.introText,
+                        formTitleText: workflow.formTitleText,
+                        formIntroText: workflow.formIntroText,
                         type: 'form',
                         objectName: obj.name,
+                        parameters: workflow.objectWorkflowParam || [],
                         buttons: extractButtonsFromWorkflow(workflow),
                         roleRequired: workflow.roleRequired
                     };
@@ -45,6 +49,9 @@ function extractPagesFromModel(allObjects) {
                     const page = {
                         name: report.name,
                         titleText: report.titleText || report.name,
+                        introText: report.introText,
+                        formTitleText: report.formTitleText,
+                        formIntroText: report.formIntroText,
                         type: 'report',
                         visualizationType: report.visualizationType || 'grid', // Default to grid if not specified
                         objectName: obj.name,

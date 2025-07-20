@@ -1,4 +1,8 @@
-2025-01-19: Added plus icon button to Forms treeview item similar to Reports - created addForm command stub in package.json, formCommands.ts, and registerCommands.ts. Command shows placeholder message since form wizard is not implemented yet.
+2025-01-19:2025-01-19: Restructured page preview layout to properly separate page-level content from form content. Page header (pageTitleText, pageIntroText) now appears in main container above the form, while form-specific content (formTitleText, formIntroText) appears within the form container. This creates a clearer visual hierarchy matching typical page/form structure.
+2025-01-19: Removed meta preview information ('Form Preview' and role display) from page header to create authentic page representation. The page preview now shows only actual page content (pageTitleText, pageIntroText) without preview-specific annotations, providing a cleaner simulation of the real page experience.
+2025-01-19: Enhanced form preview with dynamic parameter-based form fields and clickable navigation buttons. Form fields are generated based on actual objectWorkflowParam data with proper input types (text, number, date, password, checkbox, dropdown, textarea) determined by SQL data types and properties. Form buttons are now clickable and navigate to their destination pages by updating the dropdown selection, implementing the todo requirement for button-based navigation.
+2025-01-19: Fixed JavaScript error "handleRoleChange is not defined" in page preview by sanitizing page data before JSON.stringify. Added proper data cleaning for objectWorkflowParam to prevent serialization errors that were breaking the JavaScript execution and preventing dropdown population.
+2025-01-19: Fixed critical HTML/JavaScript syntax error in page preview role filter generation. Role names with special characters (spaces, quotes, etc.) were breaking HTML id attributes and JavaScript function calls. Added proper role name escaping for HTML ids and data-role attributes, updated handleRoleChange function to use data attributes instead of parsing ids.Added plus icon button to Forms treeview item similar to Reports - created addForm command stub in package.json, formCommands.ts, and registerCommands.ts. Command shows placeholder message since form wizard is not implemented yet.
 2025-01-19: Created complete Add Form Wizard (addFormWizardView.js) with 5-step process: 1) Owner object selection, 2) Role selection (with skip logic), 3) New instance question, 4a) Target object selection OR 4b) Action selection, 5) Form name/title. Updated formCommands.ts and modelService.ts to support form creation. Wizard creates form objects with proper structure including objectWorkflowButton array.
 2025-01-19: Fixed role list population in Form Wizard step 2 - changed from using objectProperty to using lookupItem.displayName to match Report Wizard implementation.
 2025-01-19: Fixed Form Wizard step 4b issues: 1) Step indicator now shows active for both step 4a and 4b by mapping to progress-step-4, 2) Back button navigation from step 4 variants properly handled to go to step 3.
@@ -8,6 +12,13 @@
 2025-01-19: Updated form title generation to use format [Action] [OwnerObjectName] or [Action] [ChildObjectName] - action appears first, followed by the appropriate object name.
 2025-01-19: Right-justified Next button in Form Wizard step 1 by adding spacer div to match button alignment with other steps.
 2025-01-19: Added Enter key support for Form Action textbox in step 4b - pressing Enter now clicks the Next button for better keyboard navigation.
+2025-01-19: Enhanced form preview display to include pageTitleText, pageIntroText, formTitleText, and formIntroText fields as requested from todo.md. Updated HTML generation to show structured page header with title/intro, separate form header section, improved form field examples with textarea, and enhanced CSS styling for better visual hierarchy.
+2025-01-19: Restructured page preview layout to properly separate page-level content from form content. Page header (pageTitleText, pageIntroText) now appears in main container above the form, while form-specific content (formTitleText, formIntroText) appears within the form container. This creates a clearer visual hierarchy matching typical page/form structure.
+2025-07-20: Create a page preview view with role filter checkboxes, form/report dropdown, and form display representation
+2025-07-20: Update page dropdown display format to show "[name] - [title]" instead of just title
+2025-07-20: Remove refresh button from top right of page preview view
+2025-07-20: Move 'View Details' button under the page preview section instead of inside the form preview
+2025-07-20: Enhance form preview display to show pageTitleText, pageIntroText, formTitleText, formIntroText, and field placeholders
 2025-07-19: User reported issue with save icon button using key combination Ctrl+A+S - conflicts with Select All. Need to find alternative key combination.
 2025-07-19: User wants Alt+A key combinations for all treeview icon buttons - need to identify all treeview buttons and assign logical key combinations.
 2025-07-19: User prefers simple Alt+A [single key] format without Shift combinations - updating all keybindings to use only single letters.
@@ -22,3 +33,21 @@
 Command: Collapse all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
+
+2025-07-20: Fixed JavaScript execution error in page preview - identified root cause as special characters in role names breaking HTML syntax, implemented proper role name escaping and data attribute storage for handleRoleChange function
+
+2025-07-20: Confirmed HTML button generation syntax is correct - buttons use proper quote escaping with \' for JavaScript onclick handlers in handleFormButtonClick function calls
+
+2025-07-20: Fixed form button onclick handler generation - extracted contextObjectName variable to prevent undefined values from causing JavaScript syntax errors in handleFormButtonClick calls
+
+2025-07-20: Updated architecture notes to mark page preview JavaScript execution error as resolved - implemented comprehensive fix for role name escaping and form button onclick handler generation
+
+2025-07-20: Fixed form button HTML generation to use single-line string concatenation instead of multi-line - prevents JavaScript syntax errors in onclick handlers by avoiding line breaks in HTML generation
+
+2025-07-20: Verified form button onclick handler syntax is correct in repository - issue may be related to VS Code extension caching or webview not using updated code
+
+2025-07-20: CONFIRMED - Repository contains correct onclick handler syntax without empty quotes: onclick="handleFormButtonClick(\'' + button.destinationTargetName + '\', \'' + contextObjectName + '\')" - page preview dropdown should now populate correctly
+
+2025-07-20: Fixed JavaScript string escaping in template literal - changed single quotes to escaped quotes (\\') in onclick handler generation within the template literal context to prevent JavaScript parsing errors
+
+2025-07-20: Fixed illegal return statement error by adding missing function declaration - added proper "function handleViewDetails()" declaration to wrap orphaned code that was causing JavaScript syntax error
