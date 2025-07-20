@@ -136,12 +136,13 @@ The appdna-1.0.4.vsix file has been created and is ready for publishing.
 
 ### How VS Code Marketplace Displays Images
 1. **README.md Images**: The marketplace renders your README.md and displays any images embedded in it
-2. **GitHub Hosting**: Images are hosted on GitHub and referenced with full URLs
+2. **GitHub Raw URLs**: Images must use `raw.githubusercontent.com` URLs, NOT `github.com/blob/` URLs
 3. **Automatic Display**: No special configuration needed - just proper markdown syntax
 
 ### Screenshot Display Requirements
 - ✅ Images must be in your GitHub repository (in `media/` folder)
-- ✅ Must use full GitHub URLs in README.md
+- ✅ Must use **raw GitHub URLs**: `https://raw.githubusercontent.com/owner/repo/branch/path`
+- ❌ **Don't use blob URLs**: `https://github.com/owner/repo/blob/branch/path` (causes broken images)
 - ✅ Must use proper markdown image syntax: `![Alt Text](URL)`
 - ✅ Images should be high resolution (screenshots are 1920x1080+)
 
