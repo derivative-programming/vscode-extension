@@ -97,6 +97,10 @@ function generateHTMLContent(allObjects) {
             </div>
         </div>
         
+        <script>
+            // Initialize VS Code webview API
+            const vscode = acquireVsCodeApi();
+        </script>
         ${generateJavaScript(allObjects)}
     </body>
     </html>
@@ -619,6 +623,11 @@ function generateCSS() {
             background-color: var(--vscode-button-secondaryHoverBackground);
         }
         
+        /* Limit button width in DetailTwoColumn view */
+        .report-detail-container .grid-action-btn {
+            max-width: 250px;
+        }
+        
         /* Data checkbox styles */
         .data-checkbox {
             cursor: default;
@@ -764,13 +773,25 @@ function generateCSS() {
             overflow-x: auto;
             overflow-y: hidden;
             background-color: var(--vscode-editor-background);
+            width: fit-content;
+            max-width: 800px;
+        }
+        
+        .report-detail-container.no-headers {
+            width: fit-content;
+            max-width: 600px;
         }
         
         .report-detail-table {
-            width: 100%;
+            width: auto;
+            min-width: 400px;
             border-collapse: collapse;
             margin: 0;
             background-color: var(--vscode-editor-background);
+        }
+        
+        .report-detail-table.no-headers {
+            min-width: 300px;
         }
         
         .report-detail-table td.detail-header {
@@ -786,6 +807,15 @@ function generateCSS() {
             min-width: 150px;
         }
         
+        .report-detail-table.no-headers td.detail-header {
+            width: 0;
+            min-width: 0;
+            max-width: 0;
+            padding: 12px 0;
+            border-right: none;
+            overflow: hidden;
+        }
+        
         .report-detail-table td.detail-value {
             background-color: var(--vscode-editor-background);
             color: var(--vscode-foreground);
@@ -795,6 +825,10 @@ function generateCSS() {
             vertical-align: top;
             word-wrap: break-word;
             width: 70%;
+        }
+        
+        .report-detail-table.no-headers td.detail-value {
+            width: 100%;
         }
         
         .report-detail-table tbody tr:hover {
@@ -807,6 +841,26 @@ function generateCSS() {
         
         /* Responsive design for detail table */
         @media (max-width: 768px) {
+            .report-detail-container {
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            .report-detail-container.no-headers {
+                max-width: 100%;
+                width: fit-content;
+                min-width: 250px;
+            }
+            
+            .report-detail-table {
+                min-width: 100%;
+            }
+            
+            .report-detail-table.no-headers {
+                min-width: 250px;
+                width: auto;
+            }
+            
             .report-detail-table td.detail-header,
             .report-detail-table td.detail-value {
                 padding: 10px 12px;
@@ -818,8 +872,18 @@ function generateCSS() {
                 min-width: 120px;
             }
             
+            .report-detail-table.no-headers td.detail-header {
+                width: 0;
+                min-width: 0;
+                padding: 10px 0;
+            }
+            
             .report-detail-table td.detail-value {
                 width: 60%;
+            }
+            
+            .report-detail-table.no-headers td.detail-value {
+                width: 100%;
             }
         }
         
@@ -2176,11 +2240,21 @@ function generateJavaScript(allObjects) {
                 return '<div class="report-grid-container"><div class="report-grid-empty">No data available</div></div>';
             }
             
+            // Check if all header texts are empty
+            const hasHeaderTexts = columns.some(column => {
+                const headerText = column.headerText || '';
+                return headerText.trim().length > 0;
+            });
+            
             // Use the first row of sample data for the detail view
             const detailRow = sampleData[0];
             
-            let html = '<div class="report-detail-container">';
-            html += '<table class="report-detail-table" id="reportDetailTable">';
+            // Add CSS class based on whether there are header texts
+            const containerClass = hasHeaderTexts ? 'report-detail-container' : 'report-detail-container no-headers';
+            const tableClass = hasHeaderTexts ? 'report-detail-table' : 'report-detail-table no-headers';
+            
+            let html = '<div class="' + containerClass + '">';
+            html += '<table class="' + tableClass + '" id="reportDetailTable">';
             
             // Table body with two columns: Header Text | Value
             html += '<tbody>';
@@ -2729,12 +2803,24 @@ function generateJavaScript(allObjects) {
         function viewFormDetails(formName, objectName) {
             console.log('[DEBUG] PagePreview - View form details requested:', formName, objectName);
             
-            if (typeof vscode !== 'undefined') {
+            // Check if VS Code API is available
+            console.log('[DEBUG] PagePreview - VS Code API available:', typeof vscode !== 'undefined');
+            if (typeof vscode === 'undefined') {
+                console.error('[ERROR] PagePreview - VS Code API not available in webview context');
+                console.error('[ERROR] PagePreview - Cannot open form details view - missing vscode API');
+                return;
+            }
+            
+            console.log('[DEBUG] PagePreview - About to post message to extension');
+            try {
                 vscode.postMessage({
                     command: 'showFormDetails',
                     formName: formName,
                     objectName: objectName
                 });
+                console.log('[DEBUG] PagePreview - Successfully posted message to extension');
+            } catch (error) {
+                console.error('[ERROR] PagePreview - Error posting message:', error);
             }
         }
         
@@ -2742,12 +2828,24 @@ function generateJavaScript(allObjects) {
         function viewReportDetails(reportName, objectName) {
             console.log('[DEBUG] PagePreview - View report details requested:', reportName, objectName);
             
-            if (typeof vscode !== 'undefined') {
+            // Check if VS Code API is available
+            console.log('[DEBUG] PagePreview - VS Code API available:', typeof vscode !== 'undefined');
+            if (typeof vscode === 'undefined') {
+                console.error('[ERROR] PagePreview - VS Code API not available in webview context');
+                console.error('[ERROR] PagePreview - Cannot open report details view - missing vscode API');
+                return;
+            }
+            
+            console.log('[DEBUG] PagePreview - About to post message to extension');
+            try {
                 vscode.postMessage({
                     command: 'showReportDetails',
                     reportName: reportName,
                     objectName: objectName
                 });
+                console.log('[DEBUG] PagePreview - Successfully posted message to extension');
+            } catch (error) {
+                console.error('[ERROR] PagePreview - Error posting message:', error);
             }
         }
         

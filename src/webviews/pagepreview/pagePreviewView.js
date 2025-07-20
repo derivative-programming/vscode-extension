@@ -54,6 +54,8 @@ async function showPagePreview(context, modelService) {
     // Handle messages from the webview
     currentPanel.webview.onDidReceiveMessage(
         message => {
+            console.log('[DEBUG] PagePreview - Received message from webview:', message);
+            
             switch (message.command) {
                 case 'refresh':
                     console.log('[DEBUG] PagePreview - Refresh requested');
@@ -61,14 +63,17 @@ async function showPagePreview(context, modelService) {
                     refreshPagePreviewData(modelService);
                     break;
                 case 'showFormDetails':
-                    console.log('[DEBUG] PagePreview - Show form details requested:', message.formName);
+                    console.log('[DEBUG] PagePreview - Show form details requested:', message.formName, message.objectName);
                     // Navigate to form details view
                     showFormDetailsForPreview(message.formName, message.objectName, modelService);
                     break;
                 case 'showReportDetails':
-                    console.log('[DEBUG] PagePreview - Show report details requested:', message.reportName);
+                    console.log('[DEBUG] PagePreview - Show report details requested:', message.reportName, message.objectName);
                     // Navigate to report details view
                     showReportDetailsForPreview(message.reportName, message.objectName, modelService);
+                    break;
+                default:
+                    console.warn('[WARN] PagePreview - Unknown command received:', message.command);
                     break;
             }
         },
@@ -118,6 +123,8 @@ function refreshPagePreviewData(modelService) {
  * @param {Object} modelService ModelService instance
  */
 function showFormDetailsForPreview(formName, objectName, modelService) {
+    console.log('[DEBUG] PagePreview - showFormDetailsForPreview called with:', formName, objectName);
+    
     try {
         // Create a mock tree item similar to what the tree view would create
         const mockTreeItem = {
@@ -126,11 +133,20 @@ function showFormDetailsForPreview(formName, objectName, modelService) {
             tooltip: `${formName} (${objectName})`
         };
         
+        console.log('[DEBUG] PagePreview - Created mock tree item:', mockTreeItem);
+        console.log('[DEBUG] PagePreview - ModelService available:', !!modelService);
+        
         // Import and call the form details view (JavaScript file)
+        console.log('[DEBUG] PagePreview - About to require formDetailsView.js');
         const { showFormDetails } = require('../formDetailsView.js');
-        showFormDetails(mockTreeItem, modelService);
+        console.log('[DEBUG] PagePreview - Successfully required formDetailsView, showFormDetails:', !!showFormDetails);
+        
+        console.log('[DEBUG] PagePreview - About to call showFormDetails');
+        const result = showFormDetails(mockTreeItem, modelService);
+        console.log('[DEBUG] PagePreview - showFormDetails returned:', result);
     } catch (error) {
         console.error('[ERROR] PagePreview - Error showing form details:', error);
+        console.error('[ERROR] PagePreview - Error stack:', error.stack);
         vscode.window.showErrorMessage(`Error opening form details: ${error.message}`);
     }
 }
@@ -142,6 +158,8 @@ function showFormDetailsForPreview(formName, objectName, modelService) {
  * @param {Object} modelService ModelService instance
  */
 function showReportDetailsForPreview(reportName, objectName, modelService) {
+    console.log('[DEBUG] PagePreview - showReportDetailsForPreview called with:', reportName, objectName);
+    
     try {
         // Create a mock tree item similar to what the tree view would create
         const mockTreeItem = {
@@ -150,11 +168,20 @@ function showReportDetailsForPreview(reportName, objectName, modelService) {
             tooltip: `${reportName} (${objectName})`
         };
         
+        console.log('[DEBUG] PagePreview - Created mock tree item:', mockTreeItem);
+        console.log('[DEBUG] PagePreview - ModelService available:', !!modelService);
+        
         // Import and call the report details view (JavaScript file)
+        console.log('[DEBUG] PagePreview - About to require reportDetailsView.js');
         const { showReportDetails } = require('../reportDetailsView.js');
-        showReportDetails(mockTreeItem, modelService);
+        console.log('[DEBUG] PagePreview - Successfully required reportDetailsView, showReportDetails:', !!showReportDetails);
+        
+        console.log('[DEBUG] PagePreview - About to call showReportDetails');
+        const result = showReportDetails(mockTreeItem, modelService);
+        console.log('[DEBUG] PagePreview - showReportDetails returned:', result);
     } catch (error) {
         console.error('[ERROR] PagePreview - Error showing report details:', error);
+        console.error('[ERROR] PagePreview - Error stack:', error.stack);
         vscode.window.showErrorMessage(`Error opening report details: ${error.message}`);
     }
 }
