@@ -3596,6 +3596,74 @@ function generateJavaScript(allObjects) {
                             console.error('[ERROR] PagePreview - Could not find target page after refresh:', targetPageName);
                         }
                         break;
+                        
+                    case 'selectPageAndShowPreview':
+                        console.log('[DEBUG] PagePreview - Received select page and show preview request for:', message.data.pageName);
+                        
+                        const selectPageName = message.data.pageName;
+                        
+                        // First, make sure all roles are selected and no filter is applied
+                        console.log('[DEBUG] PagePreview - Clearing filters and selecting all roles');
+                        
+                        // Clear text filter
+                        currentFilter = '';
+                        const filterInput = document.getElementById('filterInput');
+                        if (filterInput) {
+                            filterInput.value = '';
+                        }
+                        
+                        // Select all roles
+                        const roleCheckboxes = document.querySelectorAll('.role-checkbox');
+                        if (roleCheckboxes.length > 0) {
+                            roleCheckboxes.forEach(checkbox => {
+                                checkbox.checked = true;
+                            });
+                            // Update selected roles
+                            selectedRoles = Array.from(roleCheckboxes).map(cb => cb.value);
+                            console.log('[DEBUG] PagePreview - Selected all roles:', selectedRoles);
+                        }
+                        
+                        // Update filter button visibility
+                        updateFilterButtonVisibility();
+                        
+                        // Update page dropdown with all pages
+                        updatePageDropdown();
+                        
+                        console.log('[DEBUG] PagePreview - Looking for page:', selectPageName);
+                        console.log('[DEBUG] PagePreview - Available filtered pages:', window.filteredPages ? window.filteredPages.map(p => '"' + p.name + '"') : 'null');
+                        
+                        // Find and select the target page
+                        const targetSelectPage = window.filteredPages.find(page => page.name === selectPageName);
+                        
+                        if (targetSelectPage) {
+                            console.log('[DEBUG] PagePreview - Found target page for selection:', targetSelectPage.name);
+                            
+                            // Update the dropdown selection
+                            const pageDropdown = document.getElementById('pageDropdown');
+                            for (let i = 0; i < pageDropdown.options.length; i++) {
+                                if (pageDropdown.options[i].value === targetSelectPage.name) {
+                                    pageDropdown.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                            
+                            // Set the current selected page and show the preview
+                            currentSelectedPage = targetSelectPage;
+                            
+                            // Determine page type and show preview
+                            const pageType = determinePageType(targetSelectPage.name);
+                            if (pageType === 'form') {
+                                showFormPreview(targetSelectPage);
+                            } else if (pageType === 'report') {
+                                showReportPreview(targetSelectPage);
+                            }
+                            
+                            console.log('[DEBUG] PagePreview - Successfully selected and previewed page:', selectPageName);
+                        } else {
+                            console.warn('[WARN] PagePreview - Could not find target page for selection:', selectPageName);
+                            console.log('[DEBUG] PagePreview - Available pages:', window.filteredPages.map(p => p.name));
+                        }
+                        break;
                 }
             });
         }

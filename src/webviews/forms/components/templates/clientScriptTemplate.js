@@ -45,6 +45,30 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             const outputVarSchema = ${JSON.stringify(outputVarSchema)};
             const formName = "${formName || ''}";
 
+            // View Preview functionality
+            window.openPagePreview = function(formName, isPage) {
+                console.log('[DEBUG] FormDetails - Opening page preview for form name:', JSON.stringify(formName));
+                console.log('[DEBUG] FormDetails - Form name type:', typeof formName);
+                console.log('[DEBUG] FormDetails - Form name length:', formName ? formName.length : 'null/undefined');
+                console.log('[DEBUG] FormDetails - isPage:', isPage);
+                
+                if (!formName) {
+                    console.error('[ERROR] FormDetails - No form name provided');
+                    return;
+                }
+                
+                if (isPage !== 'true') {
+                    console.warn('[WARN] FormDetails - Form is not marked as a page (isPage !== "true")');
+                    // Still try to open it, as the user might want to see it anyway
+                }
+                
+                // Send message to extension to open page preview
+                vscode.postMessage({
+                    command: 'openPagePreview',
+                    formName: formName
+                });
+            };
+
             // Modal functionality for add modals
             ${getModalFunctionality()}
 

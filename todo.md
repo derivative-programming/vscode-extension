@@ -2,7 +2,7 @@ Agent todo items...
  
 feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.?
 
-on details view, add a button to open the page preview view with the current page selected.  eye icon?
+on details view, add a button to open the page preview view with the current page selected.  eye icon? ✅ COMPLETED
 
 prop subscriptions
 "propSubscription": [
@@ -18,7 +18,6 @@ flows
 apis
  
 preview page...
-- refresh button to rebuild page preview from model in memory. next to 'page preview' title text ✅ COMPLETED
 - mobile views?
 
 preview form...

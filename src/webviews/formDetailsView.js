@@ -16,9 +16,10 @@ const { showFormDetails, refreshAll, getOpenPanelItems, closeAllPanels } = requi
  * Shows form details in a webview
  * @param {Object} item The tree item representing the form
  * @param {Object} modelService ModelService instance
+ * @param {vscode.ExtensionContext} context Extension context (optional)
  */
-function showFormDetailsWrapper(item, modelService) {
-    return showFormDetails(item, modelService);
+function showFormDetailsWrapper(item, modelService, context) {
+    return showFormDetails(item, modelService, context);
 }
 
 /**

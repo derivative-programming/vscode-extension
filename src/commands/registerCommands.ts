@@ -723,7 +723,7 @@ export function registerCommands(
     const { showFormDetailsCommand, addFormCommand } = require('./formCommands');
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showFormDetails', (node: JsonTreeItem) => {
-            showFormDetailsCommand(node, modelService);
+            showFormDetailsCommand(node, modelService, context);
         })
     );
 

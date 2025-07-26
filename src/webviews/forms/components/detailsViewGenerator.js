@@ -26,9 +26,10 @@ const { getMainTemplate } = require("./templates/mainTemplate");
  * @param {Object} formParamsSchema Schema properties for form parameters (objectWorkflowParam)
  * @param {Object} formButtonsSchema Schema properties for form buttons (objectWorkflowButton)
  * @param {Object} formOutputVarsSchema Schema properties for form output variables (objectWorkflowOutputVar)
+ * @param {string} codiconsUri URI for the codicon CSS file
  * @returns {string} HTML content
  */
-function generateDetailsView(form, formSchemaProps, formParamsSchema, formButtonsSchema, formOutputVarsSchema) {
+function generateDetailsView(form, formSchemaProps, formParamsSchema, formButtonsSchema, formOutputVarsSchema, codiconsUri) {
     console.log("[DEBUG] generateDetailsView called with:", {
         form: form,
         formSchemaPropsKeys: formSchemaProps ? Object.keys(formSchemaProps) : [],
@@ -112,7 +113,8 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
             paramModalHtml,
             buttonModalHtml,
             outputVarModalHtml,
-            clientScript
+            clientScript,
+            codiconsUri
         );
         
         console.log("[DEBUG] generateDetailsView completed successfully");

@@ -80,7 +80,7 @@ async function showPageFlowDiagram(context, modelService) {
                         
                         // Call the showFormDetails function
                         const formDetailsView = require('../formDetailsView');
-                        formDetailsView.showFormDetails(mockTreeItem, modelService);
+                        formDetailsView.showFormDetails(mockTreeItem, modelService, currentContext);
                     }
                     return;
                 

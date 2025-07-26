@@ -1,5 +1,6 @@
 "use strict";
 const vscode = require("vscode");
+const path = require("path");
 const { loadSchema, getFormSchemaProperties, getFormParamsSchema, getFormButtonsSchema, getFormOutputVarsSchema } = require("./helpers/schemaLoader");
 const { generateDetailsView } = require("./components/detailsViewGenerator");
 
@@ -9,12 +10,30 @@ const activePanels = new Map();
 // Registry to track all open form details panels
 const openPanels = new Map();
 
+// Store context for later use
+let currentContext = undefined;
+
 /**
  * Opens a webview panel displaying details for a form
  * @param {Object} item The tree item representing the form
  * @param {Object} modelService The ModelService instance
+ * @param {vscode.ExtensionContext} context Extension context (optional, uses stored context if not provided)
  */
-function showFormDetails(item, modelService) {
+function showFormDetails(item, modelService, context) {
+    // Store context for later use if provided
+    if (context) {
+        currentContext = context;
+    }
+    
+    // Use provided context or fallback to stored context
+    const extensionContext = context || currentContext;
+    
+    if (!extensionContext) {
+        console.error('Extension context not available for form details view');
+        vscode.window.showErrorMessage('Extension context not available. Please try again.');
+        return;
+    }
+    
     // Create a normalized panel ID to ensure consistency
     const normalizedLabel = item.label.trim().toLowerCase();
     const panelId = `formDetails-${normalizedLabel}`;
@@ -35,7 +54,10 @@ function showFormDetails(item, modelService) {
         vscode.ViewColumn.One, 
         { 
             enableScripts: true,
-            retainContextWhenHidden: true
+            retainContextWhenHidden: true,
+            localResourceRoots: [
+                vscode.Uri.file(path.join(extensionContext.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist'))
+            ]
         }
     );
       
@@ -104,6 +126,11 @@ function showFormDetails(item, modelService) {
     const formButtonsSchema = getFormButtonsSchema(schema);
     const formOutputVarsSchema = getFormOutputVarsSchema(schema);
     
+    // Generate codicon URI for the webview
+    const codiconsUri = panel.webview.asWebviewUri(
+        vscode.Uri.file(path.join(extensionContext.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css'))
+    );
+    
     try {
         // Set the HTML content with the full form data
         panel.webview.html = generateDetailsView(
@@ -111,7 +138,8 @@ function showFormDetails(item, modelService) {
             formSchemaProps, 
             formParamsSchema, 
             formButtonsSchema, 
-            formOutputVarsSchema
+            formOutputVarsSchema,
+            codiconsUri
         );
     } catch (error) {
         console.error("Error generating details view:", error);
@@ -337,6 +365,48 @@ function showFormDetails(item, modelService) {
                         updateParamFull(message.data, formReference, modelService);
                     } else {
                         console.warn("Cannot update parameter: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "openPagePreview":
+                    console.log('[DEBUG] FormDetails - Open page preview requested for form name:', JSON.stringify(message.formName));
+                    console.log('[DEBUG] FormDetails - Message object:', JSON.stringify(message));
+                    // Use VS Code command to open page preview instead of calling directly
+                    try {
+                        // Execute the page preview command which handles context properly
+                        vscode.commands.executeCommand('appdna.showPagePreview').then(() => {
+                            // Wait a brief moment for the page preview to open, then select the form
+                            setTimeout(() => {
+                                try {
+                                    const { getPagePreviewPanel } = require("../pagepreview/pagePreviewView");
+                                    const pagePreviewResult = getPagePreviewPanel();
+                                    const pagePreviewPanel = pagePreviewResult ? pagePreviewResult.panel : null;
+                                    
+                                    if (pagePreviewPanel && pagePreviewPanel.webview && message.formName) {
+                                        console.log('[DEBUG] FormDetails - Sending select page message to opened page preview for:', JSON.stringify(message.formName));
+                                        pagePreviewPanel.webview.postMessage({
+                                            command: 'selectPageAndShowPreview',
+                                            data: { pageName: message.formName }
+                                        });
+                                    } else {
+                                        console.warn('[WARN] FormDetails - Page preview panel not available after opening');
+                                        console.log('[DEBUG] FormDetails - Panel result:', !!pagePreviewResult);
+                                        console.log('[DEBUG] FormDetails - Panel exists:', !!pagePreviewPanel);
+                                        console.log('[DEBUG] FormDetails - Panel webview exists:', !!(pagePreviewPanel && pagePreviewPanel.webview));
+                                        console.log('[DEBUG] FormDetails - Form name provided:', !!message.formName);
+                                    }
+                                } catch (error) {
+                                    console.error('[ERROR] FormDetails - Failed to select form in page preview:', error);
+                                }
+                            }, 1000); // Wait 1 second for page preview to fully load
+                        }).catch((error) => {
+                            console.error('[ERROR] FormDetails - Failed to open page preview via command:', error);
+                            vscode.window.showErrorMessage(`Failed to open page preview: ${error.message}`);
+                        });
+                        
+                    } catch (error) {
+                        console.error('[ERROR] FormDetails - Failed to execute page preview command:', error);
+                        vscode.window.showErrorMessage(`Failed to open page preview: ${error.message}`);
                     }
                     return;
             }

@@ -176,7 +176,7 @@ function showFormDetailsForPreview(formName, objectName, modelService) {
         console.log('[DEBUG] PagePreview - Successfully required formDetailsView, showFormDetails:', !!showFormDetails);
         
         console.log('[DEBUG] PagePreview - About to call showFormDetails');
-        const result = showFormDetails(mockTreeItem, modelService);
+        const result = showFormDetails(mockTreeItem, modelService, currentContext);
         console.log('[DEBUG] PagePreview - showFormDetails returned:', result);
     } catch (error) {
         console.error('[ERROR] PagePreview - Error showing form details:', error);
@@ -241,8 +241,35 @@ function closePagePreviewView() {
     }
 }
 
+/**
+ * Shows the page preview view with a specific form selected
+ * @param {vscode.ExtensionContext} context Extension context
+ * @param {Object} modelService ModelService instance
+ * @param {string} formName The name of the form to select in the preview
+ */
+async function showPagePreviewWithSelection(context, modelService, formName) {
+    console.log('[DEBUG] PagePreview - showPagePreviewWithSelection called for form:', formName);
+    
+    // First open the regular page preview
+    await showPagePreview(context, modelService);
+    
+    // If we have a panel and a form name, send a message to select the form
+    if (currentPanel && formName) {
+        console.log('[DEBUG] PagePreview - Sending select page message for:', formName);
+        
+        // Send message to webview to select the specific page
+        currentPanel.webview.postMessage({
+            command: 'selectPageAndShowPreview',
+            data: {
+                pageName: formName
+            }
+        });
+    }
+}
+
 module.exports = {
     showPagePreview,
+    showPagePreviewWithSelection,
     getPagePreviewPanel,
     closePagePreviewView
 };

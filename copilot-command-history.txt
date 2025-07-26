@@ -1,4 +1,5 @@
 2025-01-20: Fixed broken image URLs in README.md by replacing GitHub blob URLs with raw GitHub URLs. Changed all image URLs from 'github.com/blob/main/' to 'raw.githubusercontent.com/main/' format which is required for proper image display on VS Code Marketplace. Updated MARKETPLACE-PUBLISHING-GUIDE.md to document the correct URL format and explain why blob URLs cause broken images.
+2025-07-26: Added hover effect to view preview button with !important declarations to match icon buttons on preview view
 2025-01-20: Fixed VS Code Marketplace screenshot display issue. Removed invalid 'screenshots' array from package.json (not supported by VS Code extensions) and properly added all 5 screenshots to README.md using markdown image syntax with GitHub URLs. Updated MARKETPLACE-PUBLISHING-GUIDE.md to correct the misinformation and add troubleshooting section explaining that VS Code Marketplace displays images from README.md, not package.json configuration.
 
 July 26, 2025: Review page preview view and change lower title format from 'Page Preview' to '[page name] Preview'
@@ -22,5 +23,15 @@ July 26, 2025: Add page count display showing total and filtered counts in selec
 July 26, 2025: Add edit icon button to page preview title and remove 'view full page details' button
 
 July 26, 2025: Add refresh icon button next to edit button in page preview section to rebuild from model in memory
+
+July 26, 2025: Add 'view preview' icon button to form details view title to open page preview with current form selected
+
+July 26, 2025: Update view preview button to use eye icon only, move next to title, and ensure page preview opens if not already open
+
+July 26, 2025: Fix icon display issue in form details view by reviewing page preview icon button implementation and fix page selection not working - Fixed codicon CSS path to use context.extensionPath instead of relative path, increased page selection timeout to 1000ms, and added debug logging to identify page matching issues
+
+Fix 'context is not defined' error in form details view - Added context parameter to showFormDetails function chain, updated function signatures in formDetailsView.js, formCommands.ts, registerCommands.ts, pagePreviewView.js, and pageFlowDiagramView.js to properly pass extension context for codicon CSS loading
+
+Fix page selection error and improve icon visibility - Fixed getPagePreviewPanel access pattern (panel.webview instead of result.webview), added enhanced debug logging for page preview communication, and added visible fallback icon and debugging CSS for view preview button visibility
 
 Command: Expand all top level tree items in the AppDNA tree view

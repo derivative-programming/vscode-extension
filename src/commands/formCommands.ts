@@ -15,8 +15,9 @@ const { showAddFormWizard } = require('../webviews/addFormWizardView');
  * Command handler for showing form details
  * @param item The tree item representing the form
  * @param modelService The ModelService instance
+ * @param context The extension context
  */
-export async function showFormDetailsCommand(item: JsonTreeItem, modelService: any): Promise<void> {
+export async function showFormDetailsCommand(item: JsonTreeItem, modelService: any, context?: any): Promise<void> {
     try {
         // Ensure the formDetailsView module is loaded correctly
         if (!formDetailsView || typeof formDetailsView.showFormDetails !== 'function') {
@@ -24,8 +25,8 @@ export async function showFormDetailsCommand(item: JsonTreeItem, modelService: a
             return;
         }
 
-        // Use the formDetailsView implementation with modelService
-        formDetailsView.showFormDetails(item, modelService);
+        // Use the formDetailsView implementation with modelService and context
+        formDetailsView.showFormDetails(item, modelService, context);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         console.error('Error showing form details:', errorMessage);
