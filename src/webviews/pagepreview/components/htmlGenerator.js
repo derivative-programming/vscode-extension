@@ -1369,6 +1369,17 @@ function generateCSS() {
                 font-size: 12px;
                 padding: 8px 0;
             }
+            
+            .report-action-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .report-action-buttons-left,
+            .report-action-buttons-right {
+                justify-content: center;
+                margin-left: 0;
+            }
         }
         
         .report-action-buttons {
@@ -1377,8 +1388,25 @@ function generateCSS() {
             background-color: var(--vscode-editor-background);
             border-bottom: 1px solid var(--vscode-widget-border);
             display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .report-action-buttons-left {
+            display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .report-action-buttons-right {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-left: auto;
         }
         
         .report-action-btn {
@@ -2385,59 +2413,92 @@ function generateJavaScript(allObjects) {
             
             console.log('[DEBUG] PagePreview - Generating action buttons HTML, found buttons:', actionButtons.length);
             
+            // Separate buttons into left-aligned and right-aligned groups
+            const leftAlignedButtons = actionButtons.filter(button => 
+                button.buttonType !== 'add' && button.buttonType !== 'other'
+            );
+            const rightAlignedButtons = actionButtons.filter(button => 
+                button.buttonType === 'add' || button.buttonType === 'other'
+            );
+            
             let html = '<div class="report-action-buttons">';
             
-            actionButtons.forEach((button) => {
-                const buttonText = button.buttonText || button.buttonName || 'Action';
-                const buttonType = button.buttonType || 'button';
-                
-                // Determine button style based on type
-                let buttonClass = 'report-action-btn';
-                if (buttonType === 'add') {
-                    buttonClass += ' add-button';
-                } else {
-                    buttonClass += ' action-button';
-                }
-                
-                // Make button clickable if it has destination
-                if (button.destinationTargetName) {
-                    const contextObjectName = button.destinationContextObjectName || '';
-                    html += '<button class="' + buttonClass + '" type="button" onclick="handleReportActionClick(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\', \\'' + buttonType + '\\')">';
-                    
-                    // Add appropriate icon for button type
-                    if (buttonType === 'add') {
-                        html += '<span class="action-button-icon">+</span>';
-                    } else if (buttonType === 'edit') {
-                        html += '<span class="action-button-icon">✎</span>';
-                    } else if (buttonType === 'delete') {
-                        html += '<span class="action-button-icon">×</span>';
-                    } else if (buttonType === 'refresh' || buttonType === 'reload') {
-                        html += '<span class="action-button-icon">↻</span>';
-                    } else if (buttonType === 'export') {
-                        html += '<span class="action-button-icon">📊</span>';
-                    } else {
-                        html += '<span class="action-button-icon">▶</span>';
-                    }
-                    
-                    html += buttonText;
-                    html += '</button>';
-                } else {
-                    // Non-clickable button
-                    html += '<button class="' + buttonClass + '" type="button" disabled>';
-                    
-                    // Add appropriate icon for button type
-                    if (buttonType === 'add') {
-                        html += '<span class="action-button-icon">+</span>';
-                    } else {
-                        html += '<span class="action-button-icon">▶</span>';
-                    }
-                    
-                    html += buttonText;
-                    html += '</button>';
-                }
-            });
+            // Left-aligned buttons container
+            if (leftAlignedButtons.length > 0) {
+                html += '<div class="report-action-buttons-left">';
+                leftAlignedButtons.forEach((button) => {
+                    html += generateReportActionButton(button);
+                });
+                html += '</div>';
+            }
+            
+            // Right-aligned buttons container
+            if (rightAlignedButtons.length > 0) {
+                html += '<div class="report-action-buttons-right">';
+                rightAlignedButtons.forEach((button) => {
+                    html += generateReportActionButton(button);
+                });
+                html += '</div>';
+            }
             
             html += '</div>';
+            
+            return html;
+        }
+        
+        // Helper function to generate individual report action button HTML
+        function generateReportActionButton(button) {
+            const buttonText = button.buttonText || button.buttonName || 'Action';
+            const buttonType = button.buttonType || 'button';
+            
+            // Determine button style based on type
+            let buttonClass = 'report-action-btn';
+            if (buttonType === 'add') {
+                buttonClass += ' add-button';
+            } else {
+                buttonClass += ' action-button';
+            }
+            
+            let html = '';
+            
+            // Make button clickable if it has destination
+            if (button.destinationTargetName) {
+                const contextObjectName = button.destinationContextObjectName || '';
+                html += '<button class="' + buttonClass + '" type="button" onclick="handleReportActionClick(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\', \\'' + buttonType + '\\')">';
+                
+                // Add appropriate icon for button type
+                if (buttonType === 'add') {
+                    html += '<span class="action-button-icon">+</span>';
+                } else if (buttonType === 'edit') {
+                    html += '<span class="action-button-icon">✎</span>';
+                } else if (buttonType === 'delete') {
+                    html += '<span class="action-button-icon">×</span>';
+                } else if (buttonType === 'refresh' || buttonType === 'reload') {
+                    html += '<span class="action-button-icon">↻</span>';
+                } else if (buttonType === 'export') {
+                    html += '<span class="action-button-icon">📊</span>';
+                } else {
+                    html += '<span class="action-button-icon">▶</span>';
+                }
+                
+                html += buttonText;
+                html += '</button>';
+            } else {
+                // Non-clickable button
+                html += '<button class="' + buttonClass + '" type="button" disabled>';
+                
+                // Add appropriate icon for button type
+                if (buttonType === 'add') {
+                    html += '<span class="action-button-icon">+</span>';
+                } else {
+                    html += '<span class="action-button-icon">▶</span>';
+                }
+                
+                html += buttonText;
+                html += '</button>';
+            }
+            
+            return html;
             
             return html;
         }

@@ -20,14 +20,12 @@ preview page...
 - mobile views?
 
 preview form...
-- display if auto submitted
 - show actual lookup items in dropdowns
 - show data and datetime fields
 - if conditional button, show in hover text and show '(?)' with button text
 - header display
 
 preview report grid view...
-- other and add type buttons are right justified
 - horizontal scrollbar shoudl be above the pageing controls and below (or part of) the table
 - if conditional button, show in hover text and show '(?)' with button text
 - date and datetime filter fields
