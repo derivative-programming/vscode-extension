@@ -145,6 +145,25 @@ This file serves as the main index for architecture documentation. The detailed 
 - **Files Modified:** `src/webviews/pagepreview/components/htmlGenerator.js`
 - **User Experience:** Users can easily filter large page lists by name or title text
 
+### Page Count Display (2025-07-26)
+**Feature:** Added page count display showing total and filtered counts in select page section
+- **Display Logic:**
+  1. **No Filtering:** Shows "X pages" (total count only)
+  2. **Role Filtering Only:** Shows "X of Y pages shown" (role-filtered vs total)
+  3. **Text Filtering Active:** Shows "X of Y pages shown (Z total)" (text-filtered vs role-filtered vs total)
+- **UI Design:**
+  1. **Positioning:** Below dropdown, right-aligned, italic text
+  2. **Styling:** Uses VS Code description foreground color (subtle/muted)
+  3. **Size:** 12px font size for unobtrusive display
+  4. **Updates:** Real-time updates as filtering changes
+- **Technical Implementation:**
+  1. **Function:** `updatePageCountDisplay(totalPages, filteredCount, roleFilteredCount)`
+  2. **Integration:** Called from `updatePageDropdown()` with current counts
+  3. **String Building:** Uses concatenation for compatibility (no template literals)
+  4. **Element:** `<div class="page-count-display" id="pageCountDisplay">`
+- **User Experience:** Provides clear feedback on filtering effectiveness and total available pages
+- **Files Modified:** `src/webviews/pagepreview/components/htmlGenerator.js`
+
 ### Form Details View External Change Handling Fix (2025-01-19)
 **Critical Issue Fixed:** Form details views were not included in the external file change handling process, causing them to show stale data when the model JSON file was modified outside VS Code.
 

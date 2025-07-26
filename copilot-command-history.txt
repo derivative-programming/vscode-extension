@@ -17,4 +17,6 @@ July 26, 2025: Debug and fix refresh button not reloading dropdown issue - fix u
 
 July 26, 2025: Add filter icon button next to refresh button with modal for filtering dropdown items and cancel filter button
 
+July 26, 2025: Add page count display showing total and filtered counts in select page section
+
 Command: Expand all top level tree items in the AppDNA tree view

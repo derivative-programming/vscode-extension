@@ -93,6 +93,9 @@ function generateHTMLContent(allObjects, codiconsUri) {
                     <select class="page-dropdown" id="pageDropdown" onchange="handlePageSelection()">
                         <option value="">Select a page to preview...</option>
                     </select>
+                    <div class="page-count-display" id="pageCountDisplay">
+                        Loading pages...
+                    </div>
                 </div>
                 
                 <!-- Filter Modal -->
@@ -299,6 +302,14 @@ function generateCSS() {
         .page-dropdown:focus {
             outline: 1px solid var(--vscode-focusBorder);
             outline-offset: -1px;
+        }
+        
+        .page-count-display {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            text-align: right;
+            font-style: italic;
         }
         
         /* Filter Modal Styles */
@@ -1700,6 +1711,9 @@ function generateJavaScript(allObjects) {
             // Update the global filtered pages for selection handling
             window.filteredPages = finalFilteredPages;
             
+            // Update page count display
+            updatePageCountDisplay(allPages.length, finalFilteredPages.length, filteredPages.length);
+            
             // Hide preview if current selection is no longer valid
             if (currentSelectedPage && !filteredPages.some(p => p.name === currentSelectedPage.name)) {
                 hidePreview();
@@ -1838,6 +1852,29 @@ function generateJavaScript(allObjects) {
                     cancelFilterButton.style.display = 'none';
                 }
             }
+        }
+        
+        // Update page count display with current totals
+        function updatePageCountDisplay(totalPages, filteredCount, roleFilteredCount) {
+            const pageCountDisplay = document.getElementById('pageCountDisplay');
+            if (!pageCountDisplay) {
+                return;
+            }
+            
+            let displayText = '';
+            
+            if (currentFilter) {
+                // Filter is active - show filtered count out of role-filtered total
+                displayText = filteredCount + ' of ' + roleFilteredCount + ' pages shown (' + totalPages + ' total)';
+            } else if (roleFilteredCount < totalPages) {
+                // Only role filtering active - show role-filtered count out of total
+                displayText = roleFilteredCount + ' of ' + totalPages + ' pages shown';
+            } else {
+                // No filtering - show total count
+                displayText = totalPages + ' pages';
+            }
+            
+            pageCountDisplay.textContent = displayText;
         }
         
         // Show preview for a form
