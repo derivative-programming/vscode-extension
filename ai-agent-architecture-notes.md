@@ -118,6 +118,33 @@ This file serves as the main index for architecture documentation. The detailed 
 - **Files Modified:** `src/webviews/pagepreview/components/htmlGenerator.js`
 - **User Experience:** Refresh button now properly reloads dropdown with current model data
 
+### Page Preview Filter Functionality (2025-07-26)
+**Feature:** Added filter and cancel filter buttons with modal for filtering dropdown items
+- **Implementation:** Filter icon button that shows modal, cancel filter button that appears when filter is active
+- **UI Design:**
+  1. **Button Layout:** Filter and cancel filter buttons positioned between title and refresh button
+  2. **Toggle Behavior:** Filter button hidden when filter active, cancel filter button shown instead
+  3. **Modal Design:** Centered modal with proper VS Code styling and overlay
+  4. **Accessibility:** Keyboard support (Enter to apply, Escape to close), click overlay to close
+- **Filter Logic:**
+  1. **Cascading Filters:** Text filter applied after role filtering for combined functionality
+  2. **Search Scope:** Searches both page name and titleText (case insensitive)
+  3. **Real-time Updates:** Dropdown updates immediately when filter applied or cleared
+  4. **State Management:** Filter state preserved across role changes
+- **User Experience:**
+  1. **Intuitive Controls:** Filter button becomes cancel button when filter active
+  2. **Visual Feedback:** Clear indication when filter is applied
+  3. **Easy Clearing:** Single click to clear filter and return to full list
+  4. **Search As You Type:** Modal remembers previous filter text
+- **Technical Implementation:**
+  1. **Global State:** `currentFilter` variable tracks active filter text
+  2. **Button Management:** `updateFilterButtonVisibility()` controls button display
+  3. **Filter Application:** Text filter applied in `updatePageDropdown()` after role filtering
+  4. **Event Handling:** Modal keyboard events and overlay click handling
+- **Integration:** Works seamlessly with existing role filtering and alphabetical sorting
+- **Files Modified:** `src/webviews/pagepreview/components/htmlGenerator.js`
+- **User Experience:** Users can easily filter large page lists by name or title text
+
 ### Form Details View External Change Handling Fix (2025-01-19)
 **Critical Issue Fixed:** Form details views were not included in the external file change handling process, causing them to show stale data when the model JSON file was modified outside VS Code.
 

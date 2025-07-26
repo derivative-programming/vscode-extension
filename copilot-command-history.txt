@@ -15,4 +15,6 @@ July 26, 2025: Review and fix refresh icon button display by comparing with mode
 
 July 26, 2025: Debug and fix refresh button not reloading dropdown issue - fix undefined allPages error
 
+July 26, 2025: Add filter icon button next to refresh button with modal for filtering dropdown items and cancel filter button
+
 Command: Expand all top level tree items in the AppDNA tree view

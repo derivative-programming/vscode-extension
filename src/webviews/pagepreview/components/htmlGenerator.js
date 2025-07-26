@@ -78,13 +78,41 @@ function generateHTMLContent(allObjects, codiconsUri) {
                 <div class="selection-section">
                     <div class="selection-header">
                         <h3 class="selection-title">Select Page</h3>
-                        <button class="refresh-button" id="refreshButton" onclick="handleRefreshPages()" title="Refresh pages from model">
-                            <span class="codicon codicon-refresh"></span>
-                        </button>
+                        <div class="selection-buttons">
+                            <button class="filter-button" id="filterButton" onclick="handleShowFilter()" title="Filter pages">
+                                <span class="codicon codicon-filter"></span>
+                            </button>
+                            <button class="cancel-filter-button" id="cancelFilterButton" onclick="handleClearFilter()" title="Clear filter" style="display: none;">
+                                <span class="codicon codicon-close"></span>
+                            </button>
+                            <button class="refresh-button" id="refreshButton" onclick="handleRefreshPages()" title="Refresh pages from model">
+                                <span class="codicon codicon-refresh"></span>
+                            </button>
+                        </div>
                     </div>
                     <select class="page-dropdown" id="pageDropdown" onchange="handlePageSelection()">
                         <option value="">Select a page to preview...</option>
                     </select>
+                </div>
+                
+                <!-- Filter Modal -->
+                <div class="filter-modal" id="filterModal" style="display: none;">
+                    <div class="filter-modal-content">
+                        <div class="filter-modal-header">
+                            <h3>Filter Pages</h3>
+                            <button class="modal-close-button" onclick="handleCloseFilterModal()">
+                                <span class="codicon codicon-close"></span>
+                            </button>
+                        </div>
+                        <div class="filter-modal-body">
+                            <label for="filterInput">Filter by name (case insensitive):</label>
+                            <input type="text" id="filterInput" class="filter-input" placeholder="Enter text to filter pages..." />
+                        </div>
+                        <div class="filter-modal-footer">
+                            <button class="filter-apply-button" onclick="handleApplyFilter()">Apply Filter</button>
+                            <button class="filter-cancel-button" onclick="handleCloseFilterModal()">Cancel</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Preview Section -->
@@ -218,6 +246,14 @@ function generateCSS() {
             margin-bottom: 15px;
         }
         
+        .selection-buttons {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .filter-button,
+        .cancel-filter-button,
         .refresh-button {
             background: none;
             border: none;
@@ -230,15 +266,21 @@ function generateCSS() {
             transition: background 0.15s;
         }
         
+        .filter-button:hover,
+        .cancel-filter-button:hover,
         .refresh-button:hover {
             background: var(--vscode-toolbar-hoverBackground);
         }
         
+        .filter-button:active,
+        .cancel-filter-button:active,
         .refresh-button:active {
             background: var(--vscode-toolbar-activeBackground);
             transform: scale(0.95);
         }
         
+        .filter-button .codicon,
+        .cancel-filter-button .codicon,
         .refresh-button .codicon {
             font-size: 16px;
         }
@@ -257,6 +299,119 @@ function generateCSS() {
         .page-dropdown:focus {
             outline: 1px solid var(--vscode-focusBorder);
             outline-offset: -1px;
+        }
+        
+        /* Filter Modal Styles */
+        .filter-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .filter-modal-content {
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            min-width: 400px;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .filter-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+        
+        .filter-modal-header h3 {
+            margin: 0;
+            color: var(--vscode-foreground);
+        }
+        
+        .modal-close-button {
+            background: none;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        
+        .modal-close-button:hover {
+            background: var(--vscode-toolbar-hoverBackground);
+        }
+        
+        .filter-modal-body {
+            padding: 20px;
+        }
+        
+        .filter-modal-body label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--vscode-foreground);
+            font-weight: bold;
+        }
+        
+        .filter-input {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 3px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+        
+        .filter-input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+        
+        .filter-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 15px 20px;
+            border-top: 1px solid var(--vscode-panel-border);
+        }
+        
+        .filter-apply-button,
+        .filter-cancel-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.15s;
+        }
+        
+        .filter-apply-button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        
+        .filter-apply-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .filter-cancel-button {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+        
+        .filter-cancel-button:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
         }
         
         /* Preview Section Styles */
@@ -1426,6 +1581,34 @@ function generateJavaScript(allObjects) {
         // Initialize the view
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[DEBUG] PagePreview - DOM loaded, initializing...');
+            
+            // Initialize filter button visibility
+            updateFilterButtonVisibility();
+            
+            // Add keyboard event listeners for filter modal
+            const filterInput = document.getElementById('filterInput');
+            if (filterInput) {
+                filterInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleApplyFilter();
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        handleCloseFilterModal();
+                    }
+                });
+            }
+            
+            // Add modal overlay click to close
+            const filterModal = document.getElementById('filterModal');
+            if (filterModal) {
+                filterModal.addEventListener('click', function(e) {
+                    if (e.target === filterModal) {
+                        handleCloseFilterModal();
+                    }
+                });
+            }
+            
             updatePageDropdown();
         });
         
@@ -1470,11 +1653,24 @@ function generateJavaScript(allObjects) {
                 return selectedRoles.has(page.roleRequired);
             });
             
-            console.log('[DEBUG] PagePreview - Filtered pages count:', filteredPages.length);
-            console.log('[DEBUG] PagePreview - Filtered pages:', filteredPages);
+            console.log('[DEBUG] PagePreview - Role filtered pages count:', filteredPages.length);
+            
+            // Apply text filter if one is active
+            let finalFilteredPages = filteredPages;
+            if (currentFilter) {
+                const filterLower = currentFilter.toLowerCase();
+                finalFilteredPages = filteredPages.filter(page => {
+                    const nameMatch = page.name.toLowerCase().includes(filterLower);
+                    const titleMatch = page.titleText && page.titleText.toLowerCase().includes(filterLower);
+                    return nameMatch || titleMatch;
+                });
+                console.log('[DEBUG] PagePreview - Text filtered pages count:', finalFilteredPages.length, 'for filter:', currentFilter);
+            }
+            
+            console.log('[DEBUG] PagePreview - Final filtered pages count:', finalFilteredPages.length);
             
             // Sort filtered pages alphabetically by display text
-            filteredPages.sort((a, b) => {
+            finalFilteredPages.sort((a, b) => {
                 const displayTextA = a.titleText && a.titleText !== a.name 
                     ? a.name + ' - ' + a.titleText
                     : a.name;
@@ -1488,7 +1684,7 @@ function generateJavaScript(allObjects) {
             dropdown.innerHTML = '<option value="">Select a page to preview...</option>';
             
             // Add filtered pages
-            filteredPages.forEach((page, index) => {
+            finalFilteredPages.forEach((page, index) => {
                 const option = document.createElement('option');
                 option.value = index;
                 // Display format: [name] - [title] (or just name if no title)
@@ -1502,7 +1698,7 @@ function generateJavaScript(allObjects) {
             });
             
             // Update the global filtered pages for selection handling
-            window.filteredPages = filteredPages;
+            window.filteredPages = finalFilteredPages;
             
             // Hide preview if current selection is no longer valid
             if (currentSelectedPage && !filteredPages.some(p => p.name === currentSelectedPage.name)) {
@@ -1561,6 +1757,87 @@ function generateJavaScript(allObjects) {
             vscode.postMessage({
                 command: 'refresh'
             });
+        }
+        
+        // Global variable to store current filter text
+        let currentFilter = '';
+        
+        // Handle show filter button click - shows the filter modal
+        function handleShowFilter() {
+            console.log('[DEBUG] PagePreview - Showing filter modal...');
+            
+            const modal = document.getElementById('filterModal');
+            const filterInput = document.getElementById('filterInput');
+            
+            if (modal && filterInput) {
+                // Set current filter value in the input
+                filterInput.value = currentFilter;
+                modal.style.display = 'flex';
+                filterInput.focus();
+            }
+        }
+        
+        // Handle close filter modal
+        function handleCloseFilterModal() {
+            console.log('[DEBUG] PagePreview - Closing filter modal...');
+            
+            const modal = document.getElementById('filterModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Handle apply filter
+        function handleApplyFilter() {
+            console.log('[DEBUG] PagePreview - Applying filter...');
+            
+            const filterInput = document.getElementById('filterInput');
+            if (filterInput) {
+                const filterText = filterInput.value.trim();
+                currentFilter = filterText;
+                
+                console.log('[DEBUG] PagePreview - Filter text:', filterText);
+                
+                // Update button visibility
+                updateFilterButtonVisibility();
+                
+                // Update dropdown with filtered results
+                updatePageDropdown();
+                
+                // Close modal
+                handleCloseFilterModal();
+            }
+        }
+        
+        // Handle clear filter button click
+        function handleClearFilter() {
+            console.log('[DEBUG] PagePreview - Clearing filter...');
+            
+            currentFilter = '';
+            
+            // Update button visibility
+            updateFilterButtonVisibility();
+            
+            // Update dropdown to show all pages
+            updatePageDropdown();
+        }
+        
+        // Update filter button visibility based on current filter state
+        function updateFilterButtonVisibility() {
+            const filterButton = document.getElementById('filterButton');
+            const cancelFilterButton = document.getElementById('cancelFilterButton');
+            
+            if (filterButton && cancelFilterButton) {
+                if (currentFilter) {
+                    // Filter is active - hide filter button, show cancel button
+                    filterButton.style.display = 'none';
+                    cancelFilterButton.style.display = 'flex';
+                } else {
+                    // No filter - show filter button, hide cancel button
+                    filterButton.style.display = 'flex';
+                    cancelFilterButton.style.display = 'none';
+                }
+            }
         }
         
         // Show preview for a form
