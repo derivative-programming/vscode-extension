@@ -82,7 +82,7 @@ function generateHTMLContent(allObjects) {
                 
                 <!-- Preview Section -->
                 <div class="preview-section" id="previewSection" style="display: none;">
-                    <h3 class="preview-title">Page Preview</h3>
+                    <h3 class="preview-title" id="previewTitle">Page Preview</h3>
                     <div class="preview-content" id="previewContent">
                         <!-- Form/report preview will be generated here -->
                     </div>
@@ -1503,12 +1503,16 @@ function generateJavaScript(allObjects) {
             
             const previewSection = document.getElementById('previewSection');
             const previewContent = document.getElementById('previewContent');
+            const previewTitle = document.getElementById('previewTitle');
             const viewDetailsSection = document.getElementById('viewDetailsSection');
             
-            if (!previewSection || !previewContent) {
+            if (!previewSection || !previewContent || !previewTitle) {
                 console.error('[ERROR] PagePreview - Preview elements not found');
                 return;
             }
+            
+            // Update the preview title with the page name
+            previewTitle.textContent = page.name + " Preview";
             
             // Generate form preview HTML
             const formHTML = generateFormPreviewHTML(page);
@@ -1532,12 +1536,16 @@ function generateJavaScript(allObjects) {
             
             const previewSection = document.getElementById('previewSection');
             const previewContent = document.getElementById('previewContent');
+            const previewTitle = document.getElementById('previewTitle');
             const viewDetailsSection = document.getElementById('viewDetailsSection');
             
-            if (!previewSection || !previewContent) {
+            if (!previewSection || !previewContent || !previewTitle) {
                 console.error('[ERROR] PagePreview - Preview elements not found');
                 return;
             }
+            
+            // Update the preview title with the page name
+            previewTitle.textContent = page.name + " Preview";
             
             // Show placeholder for report preview
             previewContent.innerHTML = generateReportPreviewHTML(page);
@@ -2606,10 +2614,15 @@ function generateJavaScript(allObjects) {
             console.log('[DEBUG] PagePreview - Hiding preview');
             
             const previewSection = document.getElementById('previewSection');
+            const previewTitle = document.getElementById('previewTitle');
             const viewDetailsSection = document.getElementById('viewDetailsSection');
             
             if (previewSection) {
                 previewSection.style.display = 'none';
+            }
+            
+            if (previewTitle) {
+                previewTitle.textContent = 'Page Preview';
             }
             
             if (viewDetailsSection) {

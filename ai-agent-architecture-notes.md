@@ -48,6 +48,18 @@ This file serves as the main index for architecture documentation. The detailed 
   - New directory structure: `src/webviews/pagepreview/` with components and helpers
   - Updated: `registerCommands.ts`, `package.json`, `jsonTreeDataProvider.ts` for full integration
 
+### Page Preview Title Enhancement (2025-07-26)
+**Enhancement:** Dynamic preview title that changes based on selected page
+- **Issue:** Preview section had static "Page Preview" title regardless of selected page
+- **Solution:** Added dynamic title that shows "[page name] Preview" format when a page is selected
+- **Implementation:**
+  1. Added `id="previewTitle"` to the preview title element in HTML generator
+  2. Updated `showFormPreview()` function to set title using `page.name + " Preview"`
+  3. Updated `showReportPreview()` function to set title using `page.name + " Preview"`
+  4. Updated `hidePreview()` function to reset title back to default "Page Preview"
+- **Files Modified:** `src/webviews/pagepreview/components/htmlGenerator.js`
+- **User Experience:** Users now see clear indication of which page they are previewing using the page name
+
 ### Form Details View External Change Handling Fix (2025-01-19)
 **Critical Issue Fixed:** Form details views were not included in the external file change handling process, causing them to show stale data when the model JSON file was modified outside VS Code.
 

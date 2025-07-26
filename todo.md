@@ -1,5 +1,6 @@
 Agent todo items...
-
+ 
+feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.?
 
 prop subscriptions
 "propSubscription": [
@@ -13,26 +14,40 @@ prop subscriptions
 flows
 
 apis
-
-page preview views...
-- form
-- report Grid
-- report DetailTwoCColumn
-- report DetailThreeColumn
-
-- on click of a button, change the selection dropdown to the destination of the button
+ 
+preview page...
+- show '[page name] - Page Preview' in title text instead of 'Page Preview' above the preview
+- 'select page' dropdown should display items in alpha order of display text
+- to the right of 'select page' dropdown show filter button  to show filter text modal and filter the dropdown items. they hide filter button and show clear filter button
+- refresh button to rebuild page preview from model in memory. next to 'page preview' title text
+- edit button next to 'page preview' title text instead of 'view full page details' button at the bottom
+- mobile views?
 
 preview form...
-- display pageTitleText
-- display pageIntroText
-- display formTitleText
-- display formIntroText
+- display formfootertext
+- display if auto submitted
+- actually display no controls if there are no controls
+- show actual lookup items in dropdowns
+- show data and datetime fields
+- if conditional button, show in hover text and show '(?)' with button text
+- header display
 
-- display fields with placeholders...
-  - display all form params as controls. data type determines what control is used.
+preview report grid view...
+- other and add type buttons are right justified
+- horizontal scrollbar shoudl be above the pageing controls and below (or part of) the table
+- if conditional button, show in hover text and show '(?)' with button text
+- date and datetime filter fields
+- header display
 
-- display form buttons at the bottom. 
-- on click of a button, change the selection dropdown to the destination of the button
+- preview report navigation view...
+- if conditional button, show in hover text and show '(?)' with button text
+- header display
+
+preview report three column view...
+- if conditional button, show in hover text and show '(?)' with button text
+- header display
+
+
 
 demo view...
 - use a sqllite db?

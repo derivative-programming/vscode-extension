@@ -20,7 +20,7 @@ function getFormPropertiesToIgnore() {
         "badgecountpropertyname",
         "isheaderlabelsvisible",
         "isreportdetaillabelcolumnvisible",
-        "formintrotext",
+        // "formintrotext",
         "isazureblobstorageused",
         "azuretablenameoverride",
         "isazuretableprimarykeycolumndatetime",
