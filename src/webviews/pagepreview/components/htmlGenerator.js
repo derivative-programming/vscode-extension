@@ -662,6 +662,17 @@ function generateCSS() {
             font-style: italic;
         }
         
+        .auto-submit-notice {
+            font-size: 13px;
+            color: var(--vscode-notificationsInfoIcon-foreground);
+            background-color: var(--vscode-notificationCenterHeader-background);
+            border: 1px solid var(--vscode-notificationCenterHeader-border);
+            padding: 8px 12px;
+            border-radius: 3px;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+        
         .checkbox-container {
             display: flex;
             align-items: center;
@@ -1346,6 +1357,12 @@ function generateCSS() {
             .form-buttons {
                 flex-direction: column;
                 align-items: stretch;
+            }
+            
+            .auto-submit-notice {
+                font-size: 12px;
+                padding: 6px 10px;
+                margin-bottom: 10px;
             }
             
             .form-footer-text {
@@ -2122,6 +2139,15 @@ function generateJavaScript(allObjects) {
                 if (workflowObj.formIntroText) {
                     html += '<p class="form-intro">' + workflowObj.formIntroText + '</p>';
                 }
+                html += '</div>';
+            }
+            
+            // Auto-submit notification - display prominently when isAutoSubmit is true
+            if (workflowObj.isAutoSubmit === "true") {
+                html += '<div class="form-section">';
+                html += '<div class="auto-submit-notice">';
+                html += 'Note: this form will be automatically submitted';
+                html += '</div>';
                 html += '</div>';
             }
             

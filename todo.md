@@ -21,7 +21,6 @@ preview page...
 
 preview form...
 - display if auto submitted
-- actually display no controls if there are no controls
 - show actual lookup items in dropdowns
 - show data and datetime fields
 - if conditional button, show in hover text and show '(?)' with button text
