@@ -122,9 +122,14 @@ function generateHTMLContent(allObjects, codiconsUri) {
                 <div class="preview-section" id="previewSection" style="display: none;">
                     <div class="preview-header">
                         <h3 class="preview-title" id="previewTitle">Page Preview</h3>
-                        <button class="icon-button edit-button" id="editPageButton" onclick="handleEditPage()" title="Edit page details" style="display: none;">
-                            <i class="codicon codicon-edit"></i>
-                        </button>
+                        <div class="preview-buttons">
+                            <button class="icon-button refresh-preview-button" id="refreshPreviewButton" onclick="handleRefreshPreview()" title="Refresh page preview from model" style="display: none;">
+                                <i class="codicon codicon-refresh"></i>
+                            </button>
+                            <button class="icon-button edit-button" id="editPageButton" onclick="handleEditPage()" title="Edit page details" style="display: none;">
+                                <i class="codicon codicon-edit"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="preview-content" id="previewContent">
                         <!-- Form/report preview will be generated here -->
@@ -214,6 +219,12 @@ function generateCSS() {
             flex: 1;
         }
         
+        .preview-buttons {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        
         .role-filter-options {
             display: flex;
             flex-wrap: wrap;
@@ -269,6 +280,7 @@ function generateCSS() {
         .filter-button,
         .cancel-filter-button,
         .refresh-button,
+        .refresh-preview-button,
         .edit-button {
             background: none;
             border: none;
@@ -284,6 +296,7 @@ function generateCSS() {
         .filter-button:hover,
         .cancel-filter-button:hover,
         .refresh-button:hover,
+        .refresh-preview-button:hover,
         .edit-button:hover {
             background: var(--vscode-toolbar-hoverBackground);
         }
@@ -291,6 +304,7 @@ function generateCSS() {
         .filter-button:active,
         .cancel-filter-button:active,
         .refresh-button:active,
+        .refresh-preview-button:active,
         .edit-button:active {
             background: var(--vscode-toolbar-activeBackground);
             transform: scale(0.95);
@@ -299,6 +313,7 @@ function generateCSS() {
         .filter-button .codicon,
         .cancel-filter-button .codicon,
         .refresh-button .codicon,
+        .refresh-preview-button .codicon,
         .edit-button .codicon {
             font-size: 16px;
         }
@@ -1875,6 +1890,7 @@ function generateJavaScript(allObjects) {
             const previewContent = document.getElementById('previewContent');
             const previewTitle = document.getElementById('previewTitle');
             const editPageButton = document.getElementById('editPageButton');
+            const refreshPreviewButton = document.getElementById('refreshPreviewButton');
             
             if (!previewSection || !previewContent || !previewTitle) {
                 console.error('[ERROR] PagePreview - Preview elements not found');
@@ -1891,9 +1907,12 @@ function generateJavaScript(allObjects) {
             // Show the preview section
             previewSection.style.display = 'block';
             
-            // Show the edit button
+            // Show the buttons
             if (editPageButton) {
                 editPageButton.style.display = 'inline-block';
+            }
+            if (refreshPreviewButton) {
+                refreshPreviewButton.style.display = 'inline-block';
             }
             
             // Scroll to preview section
@@ -1908,6 +1927,7 @@ function generateJavaScript(allObjects) {
             const previewContent = document.getElementById('previewContent');
             const previewTitle = document.getElementById('previewTitle');
             const editPageButton = document.getElementById('editPageButton');
+            const refreshPreviewButton = document.getElementById('refreshPreviewButton');
             
             if (!previewSection || !previewContent || !previewTitle) {
                 console.error('[ERROR] PagePreview - Preview elements not found');
@@ -1923,9 +1943,12 @@ function generateJavaScript(allObjects) {
             // Show the preview section
             previewSection.style.display = 'block';
             
-            // Show the edit button
+            // Show the buttons
             if (editPageButton) {
                 editPageButton.style.display = 'inline-block';
+            }
+            if (refreshPreviewButton) {
+                refreshPreviewButton.style.display = 'inline-block';
             }
             
             // Scroll to preview section
@@ -2986,6 +3009,7 @@ function generateJavaScript(allObjects) {
             const previewSection = document.getElementById('previewSection');
             const previewTitle = document.getElementById('previewTitle');
             const editPageButton = document.getElementById('editPageButton');
+            const refreshPreviewButton = document.getElementById('refreshPreviewButton');
             
             if (previewSection) {
                 previewSection.style.display = 'none';
@@ -2997,6 +3021,10 @@ function generateJavaScript(allObjects) {
             
             if (editPageButton) {
                 editPageButton.style.display = 'none';
+            }
+            
+            if (refreshPreviewButton) {
+                refreshPreviewButton.style.display = 'none';
             }
             
             currentSelectedPage = null;
@@ -3159,6 +3187,26 @@ function generateJavaScript(allObjects) {
                 // Show a message to the user
                 alert('Destination page "' + destinationTargetName + '" is not available with the current role filters.');
             }
+        }
+        
+        // Handle refresh preview button click
+        function handleRefreshPreview() {
+            console.log('[DEBUG] PagePreview - Handle refresh preview clicked');
+            
+            if (!currentSelectedPage) {
+                console.error('[ERROR] PagePreview - No page selected');
+                return;
+            }
+            
+            // Store the current page name to re-select after refresh
+            const currentPageName = currentSelectedPage.name;
+            console.log('[DEBUG] PagePreview - Refreshing preview for page:', currentPageName);
+            
+            // Request fresh data from the extension and then re-show the preview
+            vscode.postMessage({
+                command: 'refreshPreview',
+                pageName: currentPageName
+            });
         }
         
         // Handle edit page button click
@@ -3473,6 +3521,80 @@ function generateJavaScript(allObjects) {
                         
                         // Refresh the dropdown
                         updatePageDropdown();
+                        break;
+                        
+                    case 'updatePageDataAndShowPreview':
+                        console.log('[DEBUG] PagePreview - Received page data update and show preview request for:', message.data.pageName);
+                        
+                        // Update allObjects and extract pages from the fresh data
+                        allObjects = message.data.allObjects || [];
+                        
+                        // Extract pages from the updated allObjects
+                        const refreshedPages = [];
+                        allObjects.forEach(obj => {
+                            // Extract form pages from objectWorkflow
+                            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                obj.objectWorkflow.forEach(workflow => {
+                                    if (workflow.isPage === "true") {
+                                        refreshedPages.push({
+                                            ...workflow,
+                                            objectName: obj.name,
+                                            pageType: 'form'
+                                        });
+                                    }
+                                });
+                            }
+                            
+                            // Extract report pages from report array
+                            if (obj.report && Array.isArray(obj.report)) {
+                                obj.report.forEach(report => {
+                                    if (report.isPage === "true") {
+                                        refreshedPages.push({
+                                            ...report,
+                                            objectName: obj.name,
+                                            pageType: 'report'
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // Update the global allPages variable
+                        allPages = refreshedPages;
+                        console.log('[DEBUG] PagePreview - Updated pages count after refresh:', allPages.length);
+                        
+                        // Refresh the dropdown
+                        updatePageDropdown();
+                        
+                        // Find and show the specific page
+                        const targetPageName = message.data.pageName;
+                        const targetPage = allPages.find(page => page.name === targetPageName);
+                        
+                        if (targetPage) {
+                            console.log('[DEBUG] PagePreview - Found target page for refresh preview:', targetPage.name);
+                            
+                            // Update the dropdown selection
+                            const pageDropdown = document.getElementById('pageDropdown');
+                            for (let i = 0; i < pageDropdown.options.length; i++) {
+                                if (pageDropdown.options[i].value === targetPage.name) {
+                                    pageDropdown.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                            
+                            // Set the current selected page and show the preview
+                            currentSelectedPage = targetPage;
+                            
+                            // Determine page type and show preview
+                            const pageType = determinePageType(targetPage.name);
+                            if (pageType === 'form') {
+                                showFormPreview(targetPage);
+                            } else if (pageType === 'report') {
+                                showReportPreview(targetPage);
+                            }
+                        } else {
+                            console.error('[ERROR] PagePreview - Could not find target page after refresh:', targetPageName);
+                        }
                         break;
                 }
             });

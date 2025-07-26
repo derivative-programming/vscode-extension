@@ -21,4 +21,6 @@ July 26, 2025: Add page count display showing total and filtered counts in selec
 
 July 26, 2025: Add edit icon button to page preview title and remove 'view full page details' button
 
+July 26, 2025: Add refresh icon button next to edit button in page preview section to rebuild from model in memory
+
 Command: Expand all top level tree items in the AppDNA tree view

@@ -18,7 +18,7 @@ flows
 apis
  
 preview page...
-- refresh button to rebuild page preview from model in memory. next to 'page preview' title text 
+- refresh button to rebuild page preview from model in memory. next to 'page preview' title text ✅ COMPLETED
 - mobile views?
 
 preview form...

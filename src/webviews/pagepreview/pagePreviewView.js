@@ -63,6 +63,11 @@ async function showPagePreview(context, modelService) {
                     // Refresh the page preview data
                     refreshPagePreviewData(modelService);
                     break;
+                case 'refreshPreview':
+                    console.log('[DEBUG] PagePreview - Refresh preview requested for page:', message.pageName);
+                    // Refresh the page preview data and then show preview for specific page
+                    refreshPagePreviewDataAndShowPage(modelService, message.pageName);
+                    break;
                 case 'showFormDetails':
                     console.log('[DEBUG] PagePreview - Show form details requested:', message.formName, message.objectName);
                     // Navigate to form details view
@@ -118,6 +123,29 @@ function refreshPagePreviewData(modelService) {
         command: 'updatePageData',
         data: {
             allObjects: allObjects
+        }
+    });
+}
+
+/**
+ * Refreshes the page preview data and then shows preview for a specific page
+ * @param {Object} modelService ModelService instance
+ * @param {string} pageName The name of the page to show preview for
+ */
+function refreshPagePreviewDataAndShowPage(modelService, pageName) {
+    if (!currentPanel) {
+        return;
+    }
+    
+    // Get fresh data from model service
+    const allObjects = modelService.getAllObjects();
+    
+    // Send updated data to webview and request to show specific page
+    currentPanel.webview.postMessage({
+        command: 'updatePageDataAndShowPreview',
+        data: {
+            allObjects: allObjects,
+            pageName: pageName
         }
     });
 }
