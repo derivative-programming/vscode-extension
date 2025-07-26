@@ -60,6 +60,64 @@ This file serves as the main index for architecture documentation. The detailed 
 - **Files Modified:** `src/webviews/pagepreview/components/htmlGenerator.js`
 - **User Experience:** Users now see clear indication of which page they are previewing using the page name
 
+### Page Dropdown Alphabetical Sorting (2025-07-26)
+**Enhancement:** Page dropdown now displays items in alphabetical order
+- **Issue:** Pages were displayed in the order they were filtered, not alphabetically
+- **Solution:** Added sorting logic to display pages alphabetically by their display text
+- **Implementation:**
+  1. Added sorting function that compares display text (name - title format) case-insensitively
+  2. Sorting applied after filtering but before populating dropdown options
+  3. Uses `localeCompare()` for proper string comparison including international characters
+- **Files Modified:** `src/webviews/pagepreview/components/htmlGenerator.js`
+- **User Experience:** Users can now easily find pages in the dropdown as they are sorted alphabetically
+
+### Page Selection Refresh Button (2025-07-26)
+**Enhancement:** Added refresh icon button to page selection section
+- **Feature:** Refresh button in the top-right of the "Select Page" section to reload pages from model in memory
+- **Implementation:**
+  1. Added flex header layout with title on left and refresh button on right
+  2. Refresh button uses VS Code codicon-style refresh icon (SVG)
+  3. Button styled to match VS Code theme colors with hover and active states
+  4. `handleRefreshPages()` function sends 'refresh' command to extension
+  5. Reuses existing refresh mechanism from pagePreviewView.js
+- **Files Modified:** `src/webviews/pagepreview/components/htmlGenerator.js`
+- **User Experience:** Users can manually refresh page data without closing and reopening the view
+
+### Page Preview Codicon Integration Fix (2025-07-26)
+**Bug Fix:** Fixed refresh icon button display by implementing proper VS Code codicon support
+- **Issue:** Refresh button was using custom SVG instead of VS Code codicons, causing display inconsistencies
+- **Root Cause:** Page preview view was missing codicon CSS integration that other views use
+- **Solution:** Implemented complete codicon support following model feature catalog pattern
+- **Implementation:**
+  1. Added codicon CSS localResourceRoots to webview panel configuration
+  2. Generated codicon URI using webview.asWebviewUri for proper security
+  3. Updated generateHTMLContent() to accept and include codicon CSS link in HTML head
+  4. Replaced custom SVG with proper `<span class="codicon codicon-refresh"></span>`
+  5. Updated refresh button CSS to match VS Code design patterns (transparent background, hover effects)
+  6. Set codicon font-size to 16px for consistent icon sizing
+- **Files Modified:** 
+  - `src/webviews/pagepreview/pagePreviewView.js`
+  - `src/webviews/pagepreview/components/htmlGenerator.js`
+- **User Experience:** Refresh button now displays correctly with proper VS Code styling and icon consistency
+
+### Page Preview Refresh Functionality Fix (2025-07-26)
+**Bug Fix:** Fixed refresh button not reloading dropdown due to data structure mismatch
+- **Issue:** Clicking refresh button caused "Cannot read properties of undefined (reading 'filter')" error
+- **Root Cause:** Message handler expected `message.data.pages` but extension was sending `message.data.allObjects`
+- **Analysis:** 
+  1. Refresh button called `handleRefreshPages()` → sent 'refresh' command to extension
+  2. Extension called `refreshPagePreviewData()` → sent 'updatePageData' with `allObjects`
+  3. Webview message handler tried to use `message.data.pages` which was undefined
+  4. `updatePageDropdown()` called `allPages.filter()` on undefined variable
+- **Solution:** Updated message handler to properly extract pages from allObjects data
+- **Implementation:**
+  1. Modified 'updatePageData' handler to process `message.data.allObjects`
+  2. Added page extraction logic (forms from objectWorkflow, reports from report array)
+  3. Added safety check in `updatePageDropdown()` for undefined/non-array `allPages` 
+  4. Ensured extracted pages include objectName and pageType properties
+- **Files Modified:** `src/webviews/pagepreview/components/htmlGenerator.js`
+- **User Experience:** Refresh button now properly reloads dropdown with current model data
+
 ### Form Details View External Change Handling Fix (2025-01-19)
 **Critical Issue Fixed:** Form details views were not included in the external file change handling process, causing them to show stale data when the model JSON file was modified outside VS Code.
 

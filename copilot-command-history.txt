@@ -5,4 +5,14 @@ July 26, 2025: Review page preview view and change lower title format from 'Page
 
 July 26, 2025: Fix page preview title to use page name instead of page title text
 
+July 26, 2025: Implement alphabetical sorting for page dropdown items
+
+July 26, 2025: Add refresh icon button to 'select page' section to repopulate dropdown from model in memory
+
+July 26, 2025: Remove blue background color from refresh button
+
+July 26, 2025: Review and fix refresh icon button display by comparing with model feature catalog view
+
+July 26, 2025: Debug and fix refresh button not reloading dropdown issue - fix undefined allPages error
+
 Command: Expand all top level tree items in the AppDNA tree view

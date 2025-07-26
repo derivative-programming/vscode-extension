@@ -8,9 +8,10 @@
 /**
  * Generates the complete HTML content for the page preview view
  * @param {Array} allObjects Array of all objects from model
+ * @param {string} codiconsUri URI for codicon CSS file
  * @returns {string} Complete HTML content for the webview
  */
-function generateHTMLContent(allObjects) {
+function generateHTMLContent(allObjects, codiconsUri) {
     // Extract unique roles and check for public pages from objectWorkflow and report objects
     const uniqueRoles = new Set();
     let hasPublicPages = false;
@@ -55,6 +56,7 @@ function generateHTMLContent(allObjects) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Page Preview</title>
+        <link href="${codiconsUri}" rel="stylesheet" />
         ${generateCSS()}
     </head>
     <body>
@@ -74,7 +76,12 @@ function generateHTMLContent(allObjects) {
                 
                 <!-- Page Selection Section -->
                 <div class="selection-section">
-                    <h3 class="selection-title">Select Page</h3>
+                    <div class="selection-header">
+                        <h3 class="selection-title">Select Page</h3>
+                        <button class="refresh-button" id="refreshButton" onclick="handleRefreshPages()" title="Refresh pages from model">
+                            <span class="codicon codicon-refresh"></span>
+                        </button>
+                    </div>
                     <select class="page-dropdown" id="pageDropdown" onchange="handlePageSelection()">
                         <option value="">Select a page to preview...</option>
                     </select>
@@ -202,6 +209,38 @@ function generateCSS() {
             border: 1px solid var(--vscode-panel-border);
             border-radius: 4px;
             padding: 20px;
+        }
+        
+        .selection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .refresh-button {
+            background: none;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        
+        .refresh-button:hover {
+            background: var(--vscode-toolbar-hoverBackground);
+        }
+        
+        .refresh-button:active {
+            background: var(--vscode-toolbar-activeBackground);
+            transform: scale(0.95);
+        }
+        
+        .refresh-button .codicon {
+            font-size: 16px;
         }
         
         .page-dropdown {
@@ -1417,6 +1456,12 @@ function generateJavaScript(allObjects) {
                 return;
             }
             
+            // Safety check: ensure allPages is defined
+            if (!allPages || !Array.isArray(allPages)) {
+                console.warn('[WARN] PagePreview - allPages is not defined or not an array, skipping dropdown update');
+                return;
+            }
+            
             // Filter pages based on selected roles
             const filteredPages = allPages.filter(page => {
                 if (!page.roleRequired) {
@@ -1427,6 +1472,17 @@ function generateJavaScript(allObjects) {
             
             console.log('[DEBUG] PagePreview - Filtered pages count:', filteredPages.length);
             console.log('[DEBUG] PagePreview - Filtered pages:', filteredPages);
+            
+            // Sort filtered pages alphabetically by display text
+            filteredPages.sort((a, b) => {
+                const displayTextA = a.titleText && a.titleText !== a.name 
+                    ? a.name + ' - ' + a.titleText
+                    : a.name;
+                const displayTextB = b.titleText && b.titleText !== b.name 
+                    ? b.name + ' - ' + b.titleText
+                    : b.name;
+                return displayTextA.toLowerCase().localeCompare(displayTextB.toLowerCase());
+            });
             
             // Clear existing options (except the first one)
             dropdown.innerHTML = '<option value="">Select a page to preview...</option>';
@@ -1495,6 +1551,16 @@ function generateJavaScript(allObjects) {
                 console.warn('[WARN] PagePreview - Unknown page type for:', selectedPage.name);
                 hidePreview();
             }
+        }
+        
+        // Handle refresh pages button click - refreshes page data from model in memory
+        function handleRefreshPages() {
+            console.log('[DEBUG] PagePreview - Refreshing pages from model...');
+            
+            // Request fresh data from the extension
+            vscode.postMessage({
+                command: 'refresh'
+            });
         }
         
         // Show preview for a form
@@ -3042,7 +3108,45 @@ function generateJavaScript(allObjects) {
                 switch (message.command) {
                     case 'updatePageData':
                         console.log('[DEBUG] PagePreview - Received page data update');
-                        allPages = message.data.pages;
+                        
+                        // Update allObjects and extract pages from the fresh data
+                        allObjects = message.data.allObjects || [];
+                        
+                        // Extract pages from the updated allObjects
+                        const updatedPages = [];
+                        allObjects.forEach(obj => {
+                            // Extract form pages from objectWorkflow
+                            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                obj.objectWorkflow.forEach(workflow => {
+                                    if (workflow.isPage === "true") {
+                                        updatedPages.push({
+                                            ...workflow,
+                                            objectName: obj.name,
+                                            pageType: 'form'
+                                        });
+                                    }
+                                });
+                            }
+                            
+                            // Extract report pages from report array
+                            if (obj.report && Array.isArray(obj.report)) {
+                                obj.report.forEach(report => {
+                                    if (report.isPage === "true") {
+                                        updatedPages.push({
+                                            ...report,
+                                            objectName: obj.name,
+                                            pageType: 'report'
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // Update the global allPages variable
+                        allPages = updatedPages;
+                        console.log('[DEBUG] PagePreview - Updated pages count:', allPages.length);
+                        
+                        // Refresh the dropdown
                         updatePageDropdown();
                         break;
                 }

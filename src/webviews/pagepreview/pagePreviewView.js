@@ -46,7 +46,8 @@ async function showPagePreview(context, modelService) {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: [
-                vscode.Uri.file(path.join(context.extensionPath, 'media'))
+                vscode.Uri.file(path.join(context.extensionPath, 'media')),
+                vscode.Uri.file(path.join(context.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist'))
             ]
         }
     );
@@ -90,8 +91,13 @@ async function showPagePreview(context, modelService) {
         context.subscriptions
     );
     
-    // Generate and set the webview content - pass allObjects directly
-    const htmlContent = generateHTMLContent(allObjects);
+    // Generate codicon URI for the webview
+    const codiconsUri = currentPanel.webview.asWebviewUri(
+        vscode.Uri.file(path.join(context.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css'))
+    );
+    
+    // Generate and set the webview content - pass allObjects and codicon URI
+    const htmlContent = generateHTMLContent(allObjects, codiconsUri);
     currentPanel.webview.html = htmlContent;
 }
 
