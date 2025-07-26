@@ -725,6 +725,19 @@ function generateCSS() {
             color: var(--vscode-button-secondaryForeground);
         }
         
+        .conditional-visibility-indicator {
+            color: var(--vscode-charts-orange);
+            font-weight: bold;
+            font-size: 11px;
+            margin-left: 4px;
+            cursor: help;
+            opacity: 0.8;
+        }
+        
+        .conditional-visibility-indicator:hover {
+            opacity: 1;
+        }
+        
         .form-footer-text {
             margin-top: 15px;
             padding: 10px 0;
@@ -2058,16 +2071,23 @@ function generateJavaScript(allObjects) {
                 
                 const buttonText = button.buttonText || button.buttonName || 'Page';
                 
+                // Create conditional visibility indicator if conditionalVisiblePropertyName is set
+                let conditionalIndicator = '';
+                if (button.conditionalVisiblePropertyName && button.conditionalVisiblePropertyName.trim() !== '') {
+                    const hoverText = 'Conditional button - shown when ' + button.conditionalVisiblePropertyName + ' is true';
+                    conditionalIndicator = ' <span class="conditional-visibility-indicator" title="' + hoverText + '">{?}</span>';
+                }
+                
                 // Make breadcrumb clickable if it has destination
                 if (button.destinationTargetName) {
                     const contextObjectName = button.destinationContextObjectName || '';
                     html += '<button class="breadcrumb-button" type="button" onclick="navigateToPage(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
-                    html += buttonText;
+                    html += buttonText + conditionalIndicator;
                     html += '</button>';
                 } else {
                     // Non-clickable breadcrumb (current page)
                     html += '<span class="breadcrumb-button" style="cursor: default; color: var(--vscode-foreground);">';
-                    html += buttonText;
+                    html += buttonText + conditionalIndicator;
                     html += '</span>';
                 }
                 
@@ -2113,18 +2133,25 @@ function generateJavaScript(allObjects) {
             backButtons.forEach((button) => {
                 const buttonText = button.buttonText || button.buttonName || 'Back';
                 
+                // Create conditional visibility indicator if conditionalVisiblePropertyName is set
+                let conditionalIndicator = '';
+                if (button.conditionalVisiblePropertyName && button.conditionalVisiblePropertyName.trim() !== '') {
+                    const hoverText = 'Conditional button - shown when ' + button.conditionalVisiblePropertyName + ' is true';
+                    conditionalIndicator = ' <span class="conditional-visibility-indicator" title="' + hoverText + '">{?}</span>';
+                }
+                
                 // Make back button clickable if it has destination
                 if (button.destinationTargetName) {
                     const contextObjectName = button.destinationContextObjectName || '';
                     html += '<button class="back-button" type="button" onclick="navigateToPage(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
                     html += '<span class="back-button-icon">←</span>';
-                    html += buttonText;
+                    html += buttonText + conditionalIndicator;
                     html += '</button>';
                 } else {
                     // Non-clickable back button
                     html += '<button class="back-button" type="button" disabled>';
                     html += '<span class="back-button-icon">←</span>';
-                    html += buttonText;
+                    html += buttonText + conditionalIndicator;
                     html += '</button>';
                 }
             });
@@ -2235,15 +2262,22 @@ function generateJavaScript(allObjects) {
                         const buttonClass = button.isButtonCallToAction === "true" ? 'form-button primary' : 'form-button secondary';
                         const buttonText = button.buttonText || button.buttonName || 'Button';
                         
+                        // Create conditional visibility indicator if conditionalVisiblePropertyName is set
+                        let conditionalIndicator = '';
+                        if (button.conditionalVisiblePropertyName && button.conditionalVisiblePropertyName.trim() !== '') {
+                            const hoverText = 'Conditional button - shown when ' + button.conditionalVisiblePropertyName + ' is true';
+                            conditionalIndicator = ' <span class="conditional-visibility-indicator" title="' + hoverText + '">{?}</span>';
+                        }
+                        
                         // Make button clickable if it has destination
                         if (button.destinationTargetName) {
                             const contextObjectName = button.destinationContextObjectName || '';
                             html += '<button class="' + buttonClass + '" type="button" onclick="handleFormButtonClick(\\'' + button.destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
-                            html += buttonText;
+                            html += buttonText + conditionalIndicator;
                             html += '</button>';
                         } else {
                             html += '<button class="' + buttonClass + '" type="button" disabled>';
-                            html += buttonText;
+                            html += buttonText + conditionalIndicator;
                             html += '</button>';
                         }
                     });
@@ -2459,6 +2493,13 @@ function generateJavaScript(allObjects) {
                 buttonClass += ' action-button';
             }
             
+            // Create conditional visibility indicator if conditionalVisiblePropertyName is set
+            let conditionalIndicator = '';
+            if (button.conditionalVisiblePropertyName && button.conditionalVisiblePropertyName.trim() !== '') {
+                const hoverText = 'Conditional button - shown when ' + button.conditionalVisiblePropertyName + ' is true';
+                conditionalIndicator = ' <span class="conditional-visibility-indicator" title="' + hoverText + '">{?}</span>';
+            }
+            
             let html = '';
             
             // Make button clickable if it has destination
@@ -2481,7 +2522,7 @@ function generateJavaScript(allObjects) {
                     html += '<span class="action-button-icon">▶</span>';
                 }
                 
-                html += buttonText;
+                html += buttonText + conditionalIndicator;
                 html += '</button>';
             } else {
                 // Non-clickable button
@@ -2494,11 +2535,9 @@ function generateJavaScript(allObjects) {
                     html += '<span class="action-button-icon">▶</span>';
                 }
                 
-                html += buttonText;
+                html += buttonText + conditionalIndicator;
                 html += '</button>';
             }
-            
-            return html;
             
             return html;
         }
@@ -2629,22 +2668,29 @@ function generateJavaScript(allObjects) {
                         const destinationTargetName = column.destinationTargetName || '';
                         const isAsyncWorkflow = column.isButtonAsyncObjWF === "true";
                         
+                        // Create conditional visibility indicator if conditionalVisiblePropertyName is set
+                        let conditionalIndicator = '';
+                        if (column.conditionalVisiblePropertyName && column.conditionalVisiblePropertyName.trim() !== '') {
+                            const hoverText = 'Conditional button - shown when ' + column.conditionalVisiblePropertyName + ' is true';
+                            conditionalIndicator = ' <span class="conditional-visibility-indicator" title="' + hoverText + '">{?}</span>';
+                        }
+                        
                         html += '<td class="button-cell">';
                         if (destinationTargetName && !isAsyncWorkflow) {
                             // Clickable button that changes selected page
                             const contextObjectName = column.destinationContextObjectName || '';
                             html += '<button class="grid-action-btn" type="button" onclick="handleGridButtonClick(\\'' + destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
-                            html += buttonText;
+                            html += buttonText + conditionalIndicator;
                             html += '</button>';
                         } else if (destinationTargetName && isAsyncWorkflow) {
                             // Non-navigating button (async workflow)
                             html += '<button class="grid-action-btn async-btn" type="button" onclick="handleAsyncGridButton(\\'' + destinationTargetName + '\\')">';
-                            html += buttonText;
+                            html += buttonText + conditionalIndicator;
                             html += '</button>';
                         } else {
                             // Disabled button with no destination
                             html += '<button class="grid-action-btn" type="button" disabled>';
-                            html += buttonText;
+                            html += buttonText + conditionalIndicator;
                             html += '</button>';
                         }
                         html += '</td>';
@@ -2773,21 +2819,28 @@ function generateJavaScript(allObjects) {
                     const destinationTargetName = column.destinationTargetName || '';
                     const isAsyncWorkflow = column.isButtonAsyncObjWF === "true";
                     
+                    // Create conditional visibility indicator if conditionalVisiblePropertyName is set
+                    let conditionalIndicator = '';
+                    if (column.conditionalVisiblePropertyName && column.conditionalVisiblePropertyName.trim() !== '') {
+                        const hoverText = 'Conditional button - shown when ' + column.conditionalVisiblePropertyName + ' is true';
+                        conditionalIndicator = ' <span class="conditional-visibility-indicator" title="' + hoverText + '">{?}</span>';
+                    }
+                    
                     if (destinationTargetName && !isAsyncWorkflow) {
                         // Clickable button that changes selected page
                         const contextObjectName = column.destinationContextObjectName || '';
                         html += '<button class="grid-action-btn" type="button" onclick="handleGridButtonClick(\\'' + destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
-                        html += buttonText;
+                        html += buttonText + conditionalIndicator;
                         html += '</button>';
                     } else if (destinationTargetName && isAsyncWorkflow) {
                         // Non-navigating button (async workflow)
                         html += '<button class="grid-action-btn async-btn" type="button" onclick="handleAsyncGridButton(\\'' + destinationTargetName + '\\')">';
-                        html += buttonText;
+                        html += buttonText + conditionalIndicator;
                         html += '</button>';
                     } else {
                         // Disabled button with no destination
                         html += '<button class="grid-action-btn" type="button" disabled>';
-                        html += buttonText;
+                        html += buttonText + conditionalIndicator;
                         html += '</button>';
                     }
                 } else {
@@ -2891,6 +2944,13 @@ function generateJavaScript(allObjects) {
                     const destinationTargetName = column.destinationTargetName || '';
                     const isAsyncWorkflow = column.isButtonAsyncObjWF === "true";
                     
+                    // Create conditional visibility indicator if conditionalVisiblePropertyName is set
+                    let conditionalIndicator = '';
+                    if (column.conditionalVisiblePropertyName && column.conditionalVisiblePropertyName.trim() !== '') {
+                        const hoverText = 'Conditional button - shown when ' + column.conditionalVisiblePropertyName + ' is true';
+                        conditionalIndicator = ' <span class="conditional-visibility-indicator" title="' + hoverText + '">{?}</span>';
+                    }
+                    
                     html += '<tr>';
                     
                     // Single column: Button only
@@ -2900,17 +2960,17 @@ function generateJavaScript(allObjects) {
                         // Clickable button that changes selected page
                         const contextObjectName = column.destinationContextObjectName || '';
                         html += '<button class="grid-action-btn" type="button" onclick="handleGridButtonClick(\\'' + destinationTargetName + '\\', \\'' + contextObjectName + '\\')">';
-                        html += buttonText;
+                        html += buttonText + conditionalIndicator;
                         html += '</button>';
                     } else if (destinationTargetName && isAsyncWorkflow) {
                         // Non-navigating button (async workflow)
                         html += '<button class="grid-action-btn async-btn" type="button" onclick="handleAsyncGridButton(\\'' + destinationTargetName + '\\')">';
-                        html += buttonText;
+                        html += buttonText + conditionalIndicator;
                         html += '</button>';
                     } else {
                         // Disabled button with no destination
                         html += '<button class="grid-action-btn" type="button" disabled>';
-                        html += buttonText;
+                        html += buttonText + conditionalIndicator;
                         html += '</button>';
                     }
                     

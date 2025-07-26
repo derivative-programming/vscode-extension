@@ -8,6 +8,8 @@
 
 July 26, 2025: Review page preview view and change lower title format from 'Page Preview' to '[page name] Preview'
 
+2025-07-26: Review page preview view display of a form. If a button has the property conditionalVisiblePropertyName set then show a {?} with the button and hover text describing when it is shown.
+
 July 26, 2025: Fix page preview title to use page name instead of page title text
 
 July 26, 2025: Implement alphabetical sorting for page dropdown items
