@@ -2157,18 +2157,8 @@ function generateJavaScript(allObjects) {
                 });
                 
                 html += '</div>';
-            } else {
-                // Fallback to sample fields if no parameters defined
-                html += '<div class="form-section">';
-                
-                html += '<div class="form-field">';
-                html += '<label class="form-field-label">No Parameters Defined</label>';
-                html += '<input type="text" class="form-field-input" placeholder="This form has no parameters configured" readonly>';
-                html += '<div class="form-field-description">Configure parameters in the form details to see actual fields here</div>';
-                html += '</div>';
-                
-                html += '</div>';
-            }
+            } 
+            // Note: When no parameters are defined, we don't show any placeholder text
             
             // Form buttons section - use objectWorkflowButton
             if (workflowObj.objectWorkflowButton && workflowObj.objectWorkflowButton.length > 0) {
@@ -2207,15 +2197,8 @@ function generateJavaScript(allObjects) {
                     html += '</div>';
                     html += '</div>';
                 }
-            } else {
-                // Default buttons if none are defined
-                html += '<div class="form-section">';
-                html += '<div class="form-buttons">';
-                html += '<button class="form-button secondary" type="button" disabled>Cancel</button>';
-                html += '<button class="form-button primary" type="button" disabled>Save</button>';
-                html += '</div>';
-                html += '</div>';
-            }
+            } 
+            // Note: When no buttons are defined, we don't show default buttons
             
             // Form footer text section - display below buttons if formFooterText has a value
             if (workflowObj.formFooterText && workflowObj.formFooterText.trim() !== '') {

@@ -20,7 +20,6 @@ preview page...
 - mobile views?
 
 preview form...
-- display formfootertext
 - display if auto submitted
 - actually display no controls if there are no controls
 - show actual lookup items in dropdowns

@@ -41,4 +41,5 @@ Fix page selection error and improve icon visibility - Fixed getPagePreviewPanel
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 
-2025-07-26: Review the page preview view of a form. Form has a setting formFooterText. If it has a value, display the text on the form preview on the line under the buttons. Left justified
+2025-07-26: Implemented formFooterText display in page preview view for forms
+2025-07-26: Removed placeholder content from form preview when no controls are defined
