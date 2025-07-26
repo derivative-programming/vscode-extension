@@ -714,6 +714,16 @@ function generateCSS() {
             color: var(--vscode-button-secondaryForeground);
         }
         
+        .form-footer-text {
+            margin-top: 15px;
+            padding: 10px 0;
+            color: var(--vscode-foreground);
+            font-size: 13px;
+            line-height: 1.5;
+            text-align: left;
+            border-top: 1px solid var(--vscode-widget-border);
+        }
+        
         /* Report Grid Styles */
         .report-grid-container {
             margin: 20px 0;
@@ -1336,6 +1346,11 @@ function generateCSS() {
             .form-buttons {
                 flex-direction: column;
                 align-items: stretch;
+            }
+            
+            .form-footer-text {
+                font-size: 12px;
+                padding: 8px 0;
             }
         }
         
@@ -2198,6 +2213,15 @@ function generateJavaScript(allObjects) {
                 html += '<div class="form-buttons">';
                 html += '<button class="form-button secondary" type="button" disabled>Cancel</button>';
                 html += '<button class="form-button primary" type="button" disabled>Save</button>';
+                html += '</div>';
+                html += '</div>';
+            }
+            
+            // Form footer text section - display below buttons if formFooterText has a value
+            if (workflowObj.formFooterText && workflowObj.formFooterText.trim() !== '') {
+                html += '<div class="form-section">';
+                html += '<div class="form-footer-text">';
+                html += workflowObj.formFooterText;
                 html += '</div>';
                 html += '</div>';
             }

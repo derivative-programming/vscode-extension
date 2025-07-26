@@ -2,7 +2,6 @@ Agent todo items...
  
 feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.?
 
-on details view, add a button to open the page preview view with the current page selected.  eye icon? ✅ COMPLETED
 
 prop subscriptions
 "propSubscription": [
