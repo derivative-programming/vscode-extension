@@ -1,5 +1,9 @@
 2025-01-20: Fixed broken image URLs in README.md by replacing GitHub blob URLs with raw GitHub URLs. Changed all image URLs from 'github.com/blob/main/' to 'raw.githubusercontent.com/main/' format which is required for proper image display on VS Code Marketplace. Updated MARKETPLACE-PUBLISHING-GUIDE.md to document the correct URL format and explain why blob URLs cause broken images.
 2025-07-26: Added hover effect to view preview button with !important declarations to match icon buttons on preview view
+2025-07-26: Added eye icon button to report details view - includes header container layout, view preview button styling with hover effects, openPagePreview function in client script, context parameter support, codicons URI handling, and openPagePreview message handler for cross-view navigation to page preview
+2025-07-26: Fixed extension context not available error for report details view by adding showReportDetailsCommand wrapper function that ensures context is properly passed from command registration scope
+2025-07-26: Fixed extension context issue in page preview view - updated showReportDetailsForPreview to pass currentContext parameter when calling showReportDetails, matching the pattern already used for forms
+2025-07-26: Fixed incorrect import paths for reportDetailsView module - corrected paths from '../webviews/reportDetailsView' to '../webviews/reports/reportDetailsView' in commands and updated wrapper function to pass context parameter through
 2025-01-20: Fixed VS Code Marketplace screenshot display issue. Removed invalid 'screenshots' array from package.json (not supported by VS Code extensions) and properly added all 5 screenshots to README.md using markdown image syntax with GitHub URLs. Updated MARKETPLACE-PUBLISHING-GUIDE.md to correct the misinformation and add troubleshooting section explaining that VS Code Marketplace displays images from README.md, not package.json configuration.
 
 July 26, 2025: Review page preview view and change lower title format from 'Page Preview' to '[page name] Preview'
@@ -34,4 +38,5 @@ Fix 'context is not defined' error in form details view - Added context paramete
 
 Fix page selection error and improve icon visibility - Fixed getPagePreviewPanel access pattern (panel.webview instead of result.webview), added enhanced debug logging for page preview communication, and added visible fallback icon and debugging CSS for view preview button visibility
 
+Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view

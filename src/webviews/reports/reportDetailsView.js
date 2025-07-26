@@ -1,5 +1,6 @@
 "use strict";
 const vscode = require("vscode");
+const path = require("path");
 const { loadSchema, getReportSchemaProperties, getReportColumnsSchema, getReportButtonsSchema, getReportParamsSchema } = require("./helpers/schemaLoader");
 const { formatLabel } = require("./helpers/reportDataHelper");
 const { generateDetailsView } = require("./components/detailsViewGenerator");
@@ -10,12 +11,30 @@ const activePanels = new Map();
 // Registry to track all open report details panels
 const openPanels = new Map();
 
+// Store context for later use
+let currentContext = undefined;
+
 /**
  * Opens a webview panel displaying details for a report
  * @param {Object} item The tree item representing the report
  * @param {Object} modelService The ModelService instance
+ * @param {vscode.ExtensionContext} context Extension context (optional, uses stored context if not provided)
  */
-function showReportDetails(item, modelService) {
+function showReportDetails(item, modelService, context) {
+    // Store context for later use if provided
+    if (context) {
+        currentContext = context;
+    }
+    
+    // Use provided context or fallback to stored context
+    const extensionContext = context || currentContext;
+    
+    if (!extensionContext) {
+        console.error('Extension context not available for report details view');
+        vscode.window.showErrorMessage('Extension context not available. Please try again.');
+        return;
+    }
+    
     // Create a normalized panel ID to ensure consistency
     const normalizedLabel = item.label.trim().toLowerCase();
     const panelId = `reportDetails-${normalizedLabel}`;
@@ -36,7 +55,10 @@ function showReportDetails(item, modelService) {
         vscode.ViewColumn.One, 
         { 
             enableScripts: true,
-            retainContextWhenHidden: true
+            retainContextWhenHidden: true,
+            localResourceRoots: [
+                vscode.Uri.file(path.join(extensionContext.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist'))
+            ]
         }
     );
       
@@ -100,13 +122,19 @@ function showReportDetails(item, modelService) {
     const reportButtonsSchema = getReportButtonsSchema(schema);
     const reportParamsSchema = getReportParamsSchema(schema);
     
+    // Generate codicon URI for the webview
+    const codiconsUri = panel.webview.asWebviewUri(
+        vscode.Uri.file(path.join(extensionContext.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css'))
+    );
+    
     // Set the HTML content with the full report data
     panel.webview.html = generateDetailsView(
         reportData, 
         reportSchemaProps, 
         reportColumnsSchema, 
         reportButtonsSchema, 
-        reportParamsSchema
+        reportParamsSchema,
+        codiconsUri
     );
     
     // Handle messages from the webview
@@ -210,6 +238,48 @@ function showReportDetails(item, modelService) {
                         console.warn("Cannot reverse params: ModelService not available or report reference not found");
                     }
                     return;
+                    
+                case "openPagePreview":
+                    console.log('[DEBUG] ReportDetails - Open page preview requested for report name:', JSON.stringify(message.formName));
+                    console.log('[DEBUG] ReportDetails - Message object:', JSON.stringify(message));
+                    // Use VS Code command to open page preview instead of calling directly
+                    try {
+                        // Execute the page preview command which handles context properly
+                        vscode.commands.executeCommand('appdna.showPagePreview').then(() => {
+                            // Wait a brief moment for the page preview to open, then select the report
+                            setTimeout(() => {
+                                try {
+                                    const { getPagePreviewPanel } = require("../pagepreview/pagePreviewView");
+                                    const pagePreviewResult = getPagePreviewPanel();
+                                    const pagePreviewPanel = pagePreviewResult ? pagePreviewResult.panel : null;
+                                    
+                                    if (pagePreviewPanel && pagePreviewPanel.webview && message.formName) {
+                                        console.log('[DEBUG] ReportDetails - Sending select page message to opened page preview for:', JSON.stringify(message.formName));
+                                        pagePreviewPanel.webview.postMessage({
+                                            command: 'selectPageAndShowPreview',
+                                            data: { pageName: message.formName }
+                                        });
+                                    } else {
+                                        console.warn('[WARN] ReportDetails - Page preview panel not available after opening');
+                                        console.log('[DEBUG] ReportDetails - Panel result:', !!pagePreviewResult);
+                                        console.log('[DEBUG] ReportDetails - Panel exists:', !!pagePreviewPanel);
+                                        console.log('[DEBUG] ReportDetails - Panel webview exists:', !!(pagePreviewPanel && pagePreviewPanel.webview));
+                                        console.log('[DEBUG] ReportDetails - Report name provided:', !!message.formName);
+                                    }
+                                } catch (error) {
+                                    console.error('[ERROR] ReportDetails - Failed to select report in page preview:', error);
+                                }
+                            }, 1000); // Wait 1 second for page preview to fully load
+                        }).catch((error) => {
+                            console.error('[ERROR] ReportDetails - Failed to open page preview via command:', error);
+                            vscode.window.showErrorMessage(`Failed to open page preview: ${error.message}`);
+                        });
+                        
+                    } catch (error) {
+                        console.error('[ERROR] ReportDetails - Failed to execute page preview command:', error);
+                        vscode.window.showErrorMessage(`Failed to open page preview: ${error.message}`);
+                    }
+                    return;
             }
         }
     );
@@ -257,13 +327,23 @@ function refreshAll() {
             const reportButtonsSchema = getReportButtonsSchema(schema);
             const reportParamsSchema = getReportParamsSchema(schema);
             
+            // Generate codicon URI for the webview (use stored context)
+            const extensionContext = currentContext;
+            let codiconsUri = '';
+            if (extensionContext) {
+                codiconsUri = panel.webview.asWebviewUri(
+                    vscode.Uri.file(path.join(extensionContext.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css'))
+                );
+            }
+            
             // Update the HTML content
             panel.webview.html = generateDetailsView(
                 reportData, 
                 reportSchemaProps, 
                 reportColumnsSchema, 
                 reportButtonsSchema, 
-                reportParamsSchema
+                reportParamsSchema,
+                codiconsUri
             );
         }
     }
@@ -341,13 +421,23 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
             const reportColumnsSchema = getReportColumnsSchema(schema);
             const reportButtonsSchema = getReportButtonsSchema(schema);
             const reportParamsSchema = getReportParamsSchema(schema);
+            
+            // Generate codicon URI for the webview (use stored context)
+            const extensionContext = currentContext;
+            let codiconsUri = '';
+            if (extensionContext) {
+                codiconsUri = panel.webview.asWebviewUri(
+                    vscode.Uri.file(path.join(extensionContext.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css'))
+                );
+            }
               // Regenerate and update the webview HTML with updated model data
             panel.webview.html = generateDetailsView(
                 reportReference, 
                 reportSchemaProps, 
                 reportColumnsSchema, 
                 reportButtonsSchema, 
-                reportParamsSchema
+                reportParamsSchema,
+                codiconsUri
             );
             
             // If preserveTab was specified, restore the active tab

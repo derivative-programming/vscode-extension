@@ -7,9 +7,32 @@ import * as vscode from 'vscode';
 import { JsonTreeItem } from '../models/types';
 
 // Import from the JavaScript wrapper (following object details pattern)
-const reportDetailsView = require('../webviews/reportDetailsView');
+const reportDetailsView = require('../webviews/reports/reportDetailsView');
 // Import the Add Report Wizard webview
 const { showAddReportWizard } = require('../webviews/addReportWizardView');
+
+/**
+ * Command handler for showing report details
+ * @param item The tree item representing the report
+ * @param modelService The ModelService instance
+ * @param context The extension context
+ */
+export async function showReportDetailsCommand(item: JsonTreeItem, modelService: any, context?: vscode.ExtensionContext): Promise<void> {
+    try {
+        // Ensure the reportDetailsView module is loaded correctly
+        if (!reportDetailsView || typeof reportDetailsView.showReportDetails !== 'function') {
+            vscode.window.showErrorMessage('Failed to load reportDetailsView module. Please check the extension setup.');
+            return;
+        }
+
+        // Use the reportDetailsView implementation with modelService and context
+        reportDetailsView.showReportDetails(item, modelService, context);
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('Error showing report details:', errorMessage);
+        vscode.window.showErrorMessage(`Failed to open Report Details: ${errorMessage}`);
+    }
+}
 
 /**
  * Command handler for adding a report using the wizard
@@ -40,14 +63,7 @@ export function registerReportCommands(context: vscode.ExtensionContext, modelSe
     // Register the command to show report details
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showReportDetails', (node: JsonTreeItem) => {
-            // Ensure the reportDetailsView module is loaded correctly
-            if (!reportDetailsView || typeof reportDetailsView.showReportDetails !== 'function') {
-                vscode.window.showErrorMessage('Failed to load reportDetailsView module. Please check the extension setup.');
-                return;
-            }
-
-            // Use the reportDetailsView implementation with modelService only
-            reportDetailsView.showReportDetails(node, modelService);
+            showReportDetailsCommand(node, modelService, context);
         })
     );
     

@@ -6,7 +6,7 @@
 
 "use strict";
 const vscode = require("vscode");
-const { showReportDetails } = require("./reportDetailsView");
+const { showReportDetails } = require("./reports/reportDetailsView");
 
 // Track the active wizard panel to avoid duplicates
 let activeWizardPanel = null;

@@ -207,11 +207,11 @@ function showReportDetailsForPreview(reportName, objectName, modelService) {
         
         // Import and call the report details view (JavaScript file)
         console.log('[DEBUG] PagePreview - About to require reportDetailsView.js');
-        const { showReportDetails } = require('../reportDetailsView.js');
+        const { showReportDetails } = require('../reports/reportDetailsView.js');
         console.log('[DEBUG] PagePreview - Successfully required reportDetailsView, showReportDetails:', !!showReportDetails);
         
         console.log('[DEBUG] PagePreview - About to call showReportDetails');
-        const result = showReportDetails(mockTreeItem, modelService);
+        const result = showReportDetails(mockTreeItem, modelService, currentContext);
         console.log('[DEBUG] PagePreview - showReportDetails returned:', result);
     } catch (error) {
         console.error('[ERROR] PagePreview - Error showing report details:', error);

@@ -23,19 +23,73 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                         buttonListViewFields,
                         paramListViewFields,
                         columnModalHtml, buttonModalHtml, paramModalHtml,
-                        clientScript) {
+                        clientScript, codiconsUri) {
       return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report Details: ${report.name || 'Unknown Report'}</title>
+    <link href="${codiconsUri}" rel="stylesheet" />
     <style>
         ${getDetailViewStyles()}
+        
+        /* View Preview Button Styles */
+        .header-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .header-title {
+            margin: 0;
+        }
+        
+        .view-preview-button {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+        }
+        
+        .view-preview-button:hover {
+            background: var(--vscode-toolbar-hoverBackground) !important;
+            background-color: var(--vscode-toolbar-hoverBackground) !important;
+        }
+        
+        .view-preview-button:active {
+            background: var(--vscode-toolbar-activeBackground);
+            transform: scale(0.95);
+        }
+        
+        .view-preview-button .codicon {
+            font-size: 16px;
+        }
+        
+        /* Hide the emoji fallback icon - we only want the codicon */
+        .view-preview-button .icon-text {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
-    <h1>Details for ${report.name || 'Unknown Report'} Report</h1>
+    <div class="header-container">
+        <h1 class="header-title">Details for ${report.name || 'Unknown Report'} Report</h1>
+        <button class="view-preview-button" onclick="openPagePreview('${report.name || ''}', '${report.isPage === 'true' ? 'true' : 'false'}')" title="View page preview">
+            <i class="codicon codicon-eye"></i>
+            <span class="icon-text">👁</span>
+        </button>
+    </div>
       <div class="tabs">
         <div class="tab active" data-tab="settings">Settings</div>
         <div class="tab" data-tab="columns">Columns (${columnCount})</div>

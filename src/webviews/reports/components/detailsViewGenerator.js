@@ -20,9 +20,10 @@ const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
  * @param {Object} reportColumnsSchema Schema properties for report columns
  * @param {Object} reportButtonsSchema Schema properties for report buttons
  * @param {Object} reportParamsSchema Schema properties for report params
+ * @param {string} codiconsUri URI for the codicon CSS file
  * @returns {string} HTML content
  */
-function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema) {
+function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema, codiconsUri) {
     const columns = report.reportColumn || [];
     const buttons = report.reportButton || [];
     const params = report.reportParam || [];
@@ -70,7 +71,8 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
         buttonListViewFields,
         paramListViewFields,
         columnModalHtml, buttonModalHtml, paramModalHtml,
-        clientScript
+        clientScript,
+        codiconsUri
     );
 }
 

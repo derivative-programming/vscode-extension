@@ -13,7 +13,7 @@ import { newProjectCommand, openProjectCommand, saveProjectCommand } from './pro
 import { startMCPServerCommand, stopMCPServerCommand } from './mcpCommands';
 import { startMCPHttpServerCommand, stopMCPHttpServerCommand } from './mcpHttpCommands';
 import * as objectDetailsView from '../webviews/objectDetailsView';
-import * as reportDetailsView from '../webviews/reportDetailsView';
+import * as reportDetailsView from '../webviews/reports/reportDetailsView';
 import * as formDetailsView from '../webviews/formDetailsView';
 import { ModelService } from '../services/modelService';
 import { openModelExplorer } from '../webviews/modelExplorerView';
@@ -208,7 +208,7 @@ export function registerCommands(
             // Reopen any report details panels that were previously open with fresh data
             if (openReportPanelsToReopen.length > 0 && reportDetailsView) {
                 for (const item of openReportPanelsToReopen) {
-                    reportDetailsView.showReportDetails(item, modelService);
+                    reportDetailsView.showReportDetails(item, modelService, context);
                 }
             }
             

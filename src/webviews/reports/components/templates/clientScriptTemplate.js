@@ -47,6 +47,24 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
 
             // Modal functionality for add modals
             ${getModalFunctionality()}
+            
+            // Page Preview Function
+            function openPagePreview(reportName, isPage) {
+                console.log('[DEBUG] ReportDetails - Open page preview requested for report name:', JSON.stringify(reportName));
+                console.log('[DEBUG] ReportDetails - isPage:', isPage);
+                
+                if (vscode && reportName) {
+                    vscode.postMessage({
+                        command: 'openPagePreview',
+                        formName: reportName
+                    });
+                } else {
+                    console.warn('[WARN] ReportDetails - Cannot open page preview: vscode API or report name not available');
+                }
+            }
+            
+            // Make function globally available
+            window.openPagePreview = openPagePreview;
 
             // UI Event Handlers for tabs and view switching
             ${getUIEventHandlers()}

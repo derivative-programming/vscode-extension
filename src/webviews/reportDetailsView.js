@@ -7,9 +7,10 @@ const { showReportDetails, refreshAll, getOpenPanelItems, closeAllPanels } = req
  * Shows report details in a webview
  * @param {Object} item The tree item representing the report
  * @param {Object} modelService ModelService instance
+ * @param {vscode.ExtensionContext} context Extension context
  */
-function showReportDetailsWrapper(item, modelService) {
-    return showReportDetails(item, modelService);
+function showReportDetailsWrapper(item, modelService, context) {
+    return showReportDetails(item, modelService, context);
 }
 
 /**
