@@ -120,17 +120,15 @@ function generateHTMLContent(allObjects, codiconsUri) {
                 
                 <!-- Preview Section -->
                 <div class="preview-section" id="previewSection" style="display: none;">
-                    <h3 class="preview-title" id="previewTitle">Page Preview</h3>
+                    <div class="preview-header">
+                        <h3 class="preview-title" id="previewTitle">Page Preview</h3>
+                        <button class="icon-button edit-button" id="editPageButton" onclick="handleEditPage()" title="Edit page details" style="display: none;">
+                            <i class="codicon codicon-edit"></i>
+                        </button>
+                    </div>
                     <div class="preview-content" id="previewContent">
                         <!-- Form/report preview will be generated here -->
                     </div>
-                </div>
-                
-                <!-- View Details Section -->
-                <div class="view-details-section" id="viewDetailsSection" style="display: none;">
-                    <button class="view-details-button" id="viewDetailsButton" onclick="handleViewDetails()">
-                        View Full Page Details
-                    </button>
                 </div>
             </div>
         </div>
@@ -203,6 +201,19 @@ function generateCSS() {
             font-weight: 600;
         }
         
+        /* Preview Header Layout */
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .preview-header .preview-title {
+            margin: 0;
+            flex: 1;
+        }
+        
         .role-filter-options {
             display: flex;
             flex-wrap: wrap;
@@ -257,7 +268,8 @@ function generateCSS() {
         
         .filter-button,
         .cancel-filter-button,
-        .refresh-button {
+        .refresh-button,
+        .edit-button {
             background: none;
             border: none;
             color: var(--vscode-foreground);
@@ -271,20 +283,23 @@ function generateCSS() {
         
         .filter-button:hover,
         .cancel-filter-button:hover,
-        .refresh-button:hover {
+        .refresh-button:hover,
+        .edit-button:hover {
             background: var(--vscode-toolbar-hoverBackground);
         }
         
         .filter-button:active,
         .cancel-filter-button:active,
-        .refresh-button:active {
+        .refresh-button:active,
+        .edit-button:active {
             background: var(--vscode-toolbar-activeBackground);
             transform: scale(0.95);
         }
         
         .filter-button .codicon,
         .cancel-filter-button .codicon,
-        .refresh-button .codicon {
+        .refresh-button .codicon,
+        .edit-button .codicon {
             font-size: 16px;
         }
         
@@ -682,31 +697,6 @@ function generateCSS() {
         .form-button.secondary {
             background-color: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
-        }
-        
-        /* View Details Section */
-        .view-details-section {
-            background-color: var(--vscode-editor-background);
-            border: 1px solid var(--vscode-panel-border);
-            border-radius: 4px;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .view-details-button {
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            border: 1px solid var(--vscode-button-border, transparent);
-            padding: 12px 24px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        
-        .view-details-button:hover {
-            background-color: var(--vscode-button-hoverBackground);
         }
         
         /* Report Grid Styles */
@@ -1884,7 +1874,7 @@ function generateJavaScript(allObjects) {
             const previewSection = document.getElementById('previewSection');
             const previewContent = document.getElementById('previewContent');
             const previewTitle = document.getElementById('previewTitle');
-            const viewDetailsSection = document.getElementById('viewDetailsSection');
+            const editPageButton = document.getElementById('editPageButton');
             
             if (!previewSection || !previewContent || !previewTitle) {
                 console.error('[ERROR] PagePreview - Preview elements not found');
@@ -1901,9 +1891,9 @@ function generateJavaScript(allObjects) {
             // Show the preview section
             previewSection.style.display = 'block';
             
-            // Show the view details section
-            if (viewDetailsSection) {
-                viewDetailsSection.style.display = 'block';
+            // Show the edit button
+            if (editPageButton) {
+                editPageButton.style.display = 'inline-block';
             }
             
             // Scroll to preview section
@@ -1917,7 +1907,7 @@ function generateJavaScript(allObjects) {
             const previewSection = document.getElementById('previewSection');
             const previewContent = document.getElementById('previewContent');
             const previewTitle = document.getElementById('previewTitle');
-            const viewDetailsSection = document.getElementById('viewDetailsSection');
+            const editPageButton = document.getElementById('editPageButton');
             
             if (!previewSection || !previewContent || !previewTitle) {
                 console.error('[ERROR] PagePreview - Preview elements not found');
@@ -1933,9 +1923,9 @@ function generateJavaScript(allObjects) {
             // Show the preview section
             previewSection.style.display = 'block';
             
-            // Show the view details section
-            if (viewDetailsSection) {
-                viewDetailsSection.style.display = 'block';
+            // Show the edit button
+            if (editPageButton) {
+                editPageButton.style.display = 'inline-block';
             }
             
             // Scroll to preview section
@@ -2995,7 +2985,7 @@ function generateJavaScript(allObjects) {
             
             const previewSection = document.getElementById('previewSection');
             const previewTitle = document.getElementById('previewTitle');
-            const viewDetailsSection = document.getElementById('viewDetailsSection');
+            const editPageButton = document.getElementById('editPageButton');
             
             if (previewSection) {
                 previewSection.style.display = 'none';
@@ -3005,8 +2995,8 @@ function generateJavaScript(allObjects) {
                 previewTitle.textContent = 'Page Preview';
             }
             
-            if (viewDetailsSection) {
-                viewDetailsSection.style.display = 'none';
+            if (editPageButton) {
+                editPageButton.style.display = 'none';
             }
             
             currentSelectedPage = null;
@@ -3168,6 +3158,27 @@ function generateJavaScript(allObjects) {
                 console.log('[DEBUG] PagePreview - Destination page not found or not visible with current role filters:', destinationTargetName);
                 // Show a message to the user
                 alert('Destination page "' + destinationTargetName + '" is not available with the current role filters.');
+            }
+        }
+        
+        // Handle edit page button click
+        function handleEditPage() {
+            console.log('[DEBUG] PagePreview - Handle edit page clicked');
+            
+            if (!currentSelectedPage) {
+                console.error('[ERROR] PagePreview - No page selected');
+                return;
+            }
+            
+            // Determine page type dynamically
+            const pageType = determinePageType(currentSelectedPage.name);
+            
+            if (pageType === 'form') {
+                viewFormDetails(currentSelectedPage.name, currentSelectedPage.objectName);
+            } else if (pageType === 'report') {
+                viewReportDetails(currentSelectedPage.name, currentSelectedPage.objectName);
+            } else {
+                console.error('[ERROR] PagePreview - Unknown page type for:', currentSelectedPage.name);
             }
         }
         

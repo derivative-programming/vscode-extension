@@ -18,11 +18,7 @@ flows
 apis
  
 preview page...
-- show '[page name] - Page Preview' in title text instead of 'Page Preview' above the preview
-- 'select page' dropdown should display items in alpha order of display text
-- to the right of 'select page' dropdown show filter button  to show filter text modal and filter the dropdown items. they hide filter button and show clear filter button
-- refresh button to rebuild page preview from model in memory. next to 'page preview' title text
-- edit button next to 'page preview' title text instead of 'view full page details' button at the bottom
+- refresh button to rebuild page preview from model in memory. next to 'page preview' title text 
 - mobile views?
 
 preview form...

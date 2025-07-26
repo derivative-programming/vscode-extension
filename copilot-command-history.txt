@@ -19,4 +19,6 @@ July 26, 2025: Add filter icon button next to refresh button with modal for filt
 
 July 26, 2025: Add page count display showing total and filtered counts in select page section
 
+July 26, 2025: Add edit icon button to page preview title and remove 'view full page details' button
+
 Command: Expand all top level tree items in the AppDNA tree view
