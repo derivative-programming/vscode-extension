@@ -224,6 +224,14 @@ function getDOMInitialization() {
                         command: 'moveColumn',
                         data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 }
                     });
+                    
+                    // Update selection to the new position and refresh button states
+                    setTimeout(() => {
+                        if (columnsList) {
+                            columnsList.selectedIndex = selectedIndex - 1;
+                            updateMoveButtonStates(columnsList, moveUpColumnsButton, moveDownColumnsButton);
+                        }
+                    }, 100);
                 }
             });
         }
@@ -237,6 +245,14 @@ function getDOMInitialization() {
                         command: 'moveColumn',
                         data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 }
                     });
+                    
+                    // Update selection to the new position and refresh button states
+                    setTimeout(() => {
+                        if (columnsList) {
+                            columnsList.selectedIndex = selectedIndex + 1;
+                            updateMoveButtonStates(columnsList, moveUpColumnsButton, moveDownColumnsButton);
+                        }
+                    }, 100);
                 }
             });
         }
@@ -313,6 +329,14 @@ function getDOMInitialization() {
                         command: 'moveButton',
                         data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 }
                     });
+                    
+                    // Update selection to the new position and refresh button states
+                    setTimeout(() => {
+                        if (buttonsList) {
+                            buttonsList.selectedIndex = selectedIndex - 1;
+                            updateMoveButtonStates(buttonsList, moveUpButtonsButton, moveDownButtonsButton);
+                        }
+                    }, 100);
                 }
             });
         }
@@ -326,6 +350,14 @@ function getDOMInitialization() {
                         command: 'moveButton',
                         data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 }
                     });
+                    
+                    // Update selection to the new position and refresh button states
+                    setTimeout(() => {
+                        if (buttonsList) {
+                            buttonsList.selectedIndex = selectedIndex + 1;
+                            updateMoveButtonStates(buttonsList, moveUpButtonsButton, moveDownButtonsButton);
+                        }
+                    }, 100);
                 }
             });
         }
@@ -402,6 +434,14 @@ function getDOMInitialization() {
                         command: 'moveParam',
                         data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 }
                     });
+                    
+                    // Update selection to the new position and refresh button states
+                    setTimeout(() => {
+                        if (paramsList) {
+                            paramsList.selectedIndex = selectedIndex - 1;
+                            updateMoveButtonStates(paramsList, moveUpParamsButton, moveDownParamsButton);
+                        }
+                    }, 100);
                 }
             });
         }
@@ -415,6 +455,14 @@ function getDOMInitialization() {
                         command: 'moveParam',
                         data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 }
                     });
+                    
+                    // Update selection to the new position and refresh button states
+                    setTimeout(() => {
+                        if (paramsList) {
+                            paramsList.selectedIndex = selectedIndex + 1;
+                            updateMoveButtonStates(paramsList, moveUpParamsButton, moveDownParamsButton);
+                        }
+                    }, 100);
                 }
             });
         }
@@ -426,6 +474,36 @@ function getDOMInitialization() {
                 });
             });
         }
+        
+        // Initialize move button states and add change listeners
+        // This needs to be done after DOM is ready and updateMoveButtonStates is available
+        setTimeout(() => {
+            if (typeof updateMoveButtonStates === 'function') {
+                // Columns
+                if (columnsList && moveUpColumnsButton && moveDownColumnsButton) {
+                    updateMoveButtonStates(columnsList, moveUpColumnsButton, moveDownColumnsButton);
+                    columnsList.addEventListener('change', () => {
+                        updateMoveButtonStates(columnsList, moveUpColumnsButton, moveDownColumnsButton);
+                    });
+                }
+                
+                // Buttons
+                if (buttonsList && moveUpButtonsButton && moveDownButtonsButton) {
+                    updateMoveButtonStates(buttonsList, moveUpButtonsButton, moveDownButtonsButton);
+                    buttonsList.addEventListener('change', () => {
+                        updateMoveButtonStates(buttonsList, moveUpButtonsButton, moveDownButtonsButton);
+                    });
+                }
+                
+                // Parameters
+                if (paramsList && moveUpParamsButton && moveDownParamsButton) {
+                    updateMoveButtonStates(paramsList, moveUpParamsButton, moveDownParamsButton);
+                    paramsList.addEventListener('change', () => {
+                        updateMoveButtonStates(paramsList, moveUpParamsButton, moveDownParamsButton);
+                    });
+                }
+            }
+        }, 100);
     }
     `;
 }

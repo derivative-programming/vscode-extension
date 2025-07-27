@@ -188,7 +188,7 @@ function showReportDetails(item, modelService, context) {
                 case "moveColumn":
                     if (modelService && reportReference) {
                         // Move column in the array
-                        moveColumnInArray(message.data, reportReference, modelService);
+                        moveColumnInArray(message.data, reportReference, modelService, panel);
                     } else {
                         console.warn("Cannot move column: ModelService not available or report reference not found");
                     }
@@ -197,7 +197,7 @@ function showReportDetails(item, modelService, context) {
                 case "moveButton":
                     if (modelService && reportReference) {
                         // Move button in the array
-                        moveButtonInArray(message.data, reportReference, modelService);
+                        moveButtonInArray(message.data, reportReference, modelService, panel);
                     } else {
                         console.warn("Cannot move button: ModelService not available or report reference not found");
                     }
@@ -206,7 +206,7 @@ function showReportDetails(item, modelService, context) {
                 case "moveParam":
                     if (modelService && reportReference) {
                         // Move param in the array
-                        moveParamInArray(message.data, reportReference, modelService);
+                        moveParamInArray(message.data, reportReference, modelService, panel);
                     } else {
                         console.warn("Cannot move param: ModelService not available or report reference not found");
                     }
@@ -659,8 +659,9 @@ function updateParamDirectly(data, reportReference, modelService) {
  * @param {Object} data Data containing fromIndex and toIndex
  * @param {Object} reportReference Direct reference to the report object
  * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
  */
-function moveColumnInArray(data, reportReference, modelService) {
+function moveColumnInArray(data, reportReference, modelService, panel) {
     try {
         console.log("[DEBUG] moveColumnInArray called");
         
@@ -692,6 +693,14 @@ function moveColumnInArray(data, reportReference, modelService) {
             console.log("[DEBUG] Marked unsaved changes after column move");
         }
         
+        // Send message to webview to refresh the columns list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshColumnsList',
+                data: reportReference.reportColumn
+            });
+        }
+        
         // Refresh the view
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
@@ -704,8 +713,9 @@ function moveColumnInArray(data, reportReference, modelService) {
  * @param {Object} data Data containing fromIndex and toIndex
  * @param {Object} reportReference Direct reference to the report object
  * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
  */
-function moveButtonInArray(data, reportReference, modelService) {
+function moveButtonInArray(data, reportReference, modelService, panel) {
     try {
         console.log("[DEBUG] moveButtonInArray called");
         
@@ -737,6 +747,14 @@ function moveButtonInArray(data, reportReference, modelService) {
             console.log("[DEBUG] Marked unsaved changes after button move");
         }
         
+        // Send message to webview to refresh the buttons list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshButtonsList',
+                data: reportReference.reportButton
+            });
+        }
+        
         // Refresh the view
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
@@ -749,8 +767,9 @@ function moveButtonInArray(data, reportReference, modelService) {
  * @param {Object} data Data containing fromIndex and toIndex
  * @param {Object} reportReference Direct reference to the report object
  * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
  */
-function moveParamInArray(data, reportReference, modelService) {
+function moveParamInArray(data, reportReference, modelService, panel) {
     try {
         console.log("[DEBUG] moveParamInArray called");
         
@@ -780,6 +799,14 @@ function moveParamInArray(data, reportReference, modelService) {
         if (modelService && typeof modelService.markUnsavedChanges === 'function') {
             modelService.markUnsavedChanges();
             console.log("[DEBUG] Marked unsaved changes after param move");
+        }
+        
+        // Send message to webview to refresh the params list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: reportReference.reportParam
+            });
         }
         
         // Refresh the view

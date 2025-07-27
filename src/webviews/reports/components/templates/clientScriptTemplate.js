@@ -105,6 +105,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             function refreshColumnsList(newColumns) {
                 const columnsList = document.getElementById('columnsList');
                 if (columnsList) {
+                    const currentSelection = columnsList.selectedIndex;
                     columnsList.innerHTML = '';
                     newColumns.forEach((column, index) => {
                         const option = document.createElement('option');
@@ -112,6 +113,19 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                         option.textContent = column.name || 'Unnamed Column';
                         columnsList.appendChild(option);
                     });
+                    
+                    // Restore selection if still valid
+                    if (currentSelection >= 0 && currentSelection < newColumns.length) {
+                        columnsList.selectedIndex = currentSelection;
+                    }
+                    
+                    // Update move button states
+                    const moveUpButton = document.getElementById('moveUpColumnsButton');
+                    const moveDownButton = document.getElementById('moveDownColumnsButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(columnsList, moveUpButton, moveDownButton);
+                    }
+                    
                     console.log('[DEBUG] Columns list refreshed with', newColumns.length, 'items');
                 }
             }
@@ -119,6 +133,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             function refreshButtonsList(newButtons) {
                 const buttonsList = document.getElementById('buttonsList');
                 if (buttonsList) {
+                    const currentSelection = buttonsList.selectedIndex;
                     buttonsList.innerHTML = '';
                     newButtons.forEach((button, index) => {
                         const option = document.createElement('option');
@@ -126,6 +141,19 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                         option.textContent = button.buttonName || 'Unnamed Button';
                         buttonsList.appendChild(option);
                     });
+                    
+                    // Restore selection if still valid
+                    if (currentSelection >= 0 && currentSelection < newButtons.length) {
+                        buttonsList.selectedIndex = currentSelection;
+                    }
+                    
+                    // Update move button states
+                    const moveUpButton = document.getElementById('moveUpButtonsButton');
+                    const moveDownButton = document.getElementById('moveDownButtonsButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(buttonsList, moveUpButton, moveDownButton);
+                    }
+                    
                     console.log('[DEBUG] Buttons list refreshed with', newButtons.length, 'items');
                 }
             }
@@ -133,6 +161,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             function refreshParamsList(newParams) {
                 const paramsList = document.getElementById('paramsList');
                 if (paramsList) {
+                    const currentSelection = paramsList.selectedIndex;
                     paramsList.innerHTML = '';
                     newParams.forEach((param, index) => {
                         const option = document.createElement('option');
@@ -140,7 +169,40 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                         option.textContent = param.name || 'Unnamed Parameter';
                         paramsList.appendChild(option);
                     });
+                    
+                    // Restore selection if still valid
+                    if (currentSelection >= 0 && currentSelection < newParams.length) {
+                        paramsList.selectedIndex = currentSelection;
+                    }
+                    
+                    // Update move button states
+                    const moveUpButton = document.getElementById('moveUpParamsButton');
+                    const moveDownButton = document.getElementById('moveDownParamsButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(paramsList, moveUpButton, moveDownButton);
+                    }
+                    
                     console.log('[DEBUG] Params list refreshed with', newParams.length, 'items');
+                }
+            }
+            
+            // Update move button states helper function (must be defined here for refresh functions)
+            function updateMoveButtonStates(listElement, moveUpButton, moveDownButton) {
+                if (!listElement || !moveUpButton || !moveDownButton) return;
+                
+                const selectedIndex = listElement.selectedIndex;
+                const hasSelection = selectedIndex >= 0;
+                const isFirstItem = selectedIndex === 0;
+                const isLastItem = selectedIndex === listElement.options.length - 1;
+                
+                // Disable both buttons if no selection
+                if (!hasSelection) {
+                    moveUpButton.disabled = true;
+                    moveDownButton.disabled = true;
+                } else {
+                    // Enable/disable based on position
+                    moveUpButton.disabled = isFirstItem;
+                    moveDownButton.disabled = isLastItem;
                 }
             }
 
