@@ -120,7 +120,7 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
             ${cells}
             <td class="action-column">
                 <button class="action-button edit-outputvar" data-index="${index}" title="Edit this output variable">Edit</button>
-                <button class="action-button copy-outputvar" data-index="${index}" title="Copy this output variable">Copy</button>
+                <button class="action-button copy-outputvar" data-index="${index}" title="Copy this output variable">Copy List</button>
                 <button class="action-button move-up-outputvar" data-index="${index}" ${index === 0 ? 'disabled' : ''} title="Move up">▲</button>
                 <button class="action-button move-down-outputvar" data-index="${index}" ${index === safeOutputVars.length - 1 ? 'disabled' : ''} title="Move down">▼</button>
             </td>

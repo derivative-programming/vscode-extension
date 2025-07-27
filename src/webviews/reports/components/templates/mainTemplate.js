@@ -113,7 +113,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                     ${(report.reportColumn || []).map((column, index) => `<option value="${index}">${column.name || 'Unnamed Column'}</option>`).join('')}
                 </select>
                 <div class="list-buttons">
-                    <button id="copyColumnsButton" class="copy-props-button">Copy</button>
+                    <button id="copyColumnsButton" class="copy-props-button">Copy List</button>
                     <button id="moveUpColumnsButton" class="move-button">Move Up</button>
                     <button id="moveDownColumnsButton" class="move-button">Move Down</button>
                     <button id="reverseColumnsButton" class="reverse-button">Reverse</button>
@@ -138,7 +138,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                     ${(report.reportButton || []).map((button, index) => `<option value="${index}">${button.buttonName || 'Unnamed Button'}</option>`).join('')}
                 </select>
                 <div class="list-buttons">
-                    <button id="copyButtonsButton" class="copy-props-button">Copy</button>
+                    <button id="copyButtonsButton" class="copy-props-button">Copy List</button>
                     <button id="moveUpButtonsButton" class="move-button">Move Up</button>
                     <button id="moveDownButtonsButton" class="move-button">Move Down</button>
                     <button id="reverseButtonsButton" class="reverse-button">Reverse</button>
@@ -163,7 +163,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                     ${(report.reportParam || []).map((param, index) => `<option value="${index}">${param.name || 'Unnamed Parameter'}</option>`).join('')}
                 </select>
                 <div class="list-buttons">
-                    <button id="copyParamsButton" class="copy-props-button">Copy</button>
+                    <button id="copyParamsButton" class="copy-props-button">Copy List</button>
                     <button id="moveUpParamsButton" class="move-button">Move Up</button>
                     <button id="moveDownParamsButton" class="move-button">Move Down</button>
                     <button id="reverseParamsButton" class="reverse-button">Reverse</button>

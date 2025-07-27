@@ -110,7 +110,7 @@ function getButtonsTableTemplate(buttons, buttonsSchema) {
             ${cells}
             <td class="action-column">
                 <button class="action-button edit-button" data-index="${index}" title="Edit this button">Edit</button>
-                <button class="action-button copy-button" data-index="${index}" title="Copy this button">Copy</button>
+                <button class="action-button copy-button" data-index="${index}" title="Copy this button">Copy List</button>
                 <button class="action-button move-up-button" data-index="${index}" ${index === 0 ? 'disabled' : ''} title="Move up">▲</button>
                 <button class="action-button move-down-button" data-index="${index}" ${index === safeButtons.length - 1 ? 'disabled' : ''} title="Move down">▼</button>
             </td>

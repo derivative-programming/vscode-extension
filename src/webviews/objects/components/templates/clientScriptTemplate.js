@@ -196,7 +196,7 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                                 \${props.map((prop, index) => \`<option value="\${index}">\${prop.name || 'Unnamed Property'}</option>\`).join('')}
                             </select>
                             <div class="list-buttons">
-                                <button id="copyPropsButton" class="copy-props-button">Copy</button>
+                                <button id="copyPropsButton" class="copy-props-button">Copy List</button>
                             </div>
                         </div>
                         <div id="propertyDetailsContainer" class="details-container" style="display: none;">
@@ -273,7 +273,7 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                                 \${lookupItems.map((item, index) => \`<option value="\${index}">\${item.name || 'Unnamed Item'}</option>\`).join('')}
                             </select>
                             <div class="list-buttons">
-                                <button id="copyLookupItemsButton" class="copy-lookup-items-button">Copy</button>
+                                <button id="copyLookupItemsButton" class="copy-lookup-items-button">Copy List</button>
                                 <button id="moveUpLookupItemsButton" class="move-button">Move Up</button>
                                 <button id="moveDownLookupItemsButton" class="move-button">Move Down</button>
                                 <button id="reverseLookupItemsButton" class="reverse-button">Reverse</button>

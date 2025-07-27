@@ -125,7 +125,7 @@ function getMainTemplate(
                     }).join('')}
                 </select>
                 <div class="list-buttons">
-                    <button id="copyParamsButton" class="copy-props-button">Copy</button>
+                    <button id="copyParamsButton" class="copy-props-button">Copy List</button>
                     <button id="moveUpParamsButton" class="move-button">Move Up</button>
                     <button id="moveDownParamsButton" class="move-button">Move Down</button>
                     <button id="reverseParamsButton" class="reverse-button">Reverse</button>
@@ -155,7 +155,7 @@ function getMainTemplate(
                     }).join('')}
                 </select>
                 <div class="list-buttons">
-                    <button id="copyButtonButton" class="copy-props-button">Copy</button>
+                    <button id="copyButtonButton" class="copy-props-button">Copy List</button>
                     <button id="moveUpButtonButton" class="move-button">Move Up</button>
                     <button id="moveDownButtonButton" class="move-button">Move Down</button>
                     <button id="reverseButtonsButton" class="reverse-button">Reverse</button>
@@ -183,7 +183,7 @@ function getMainTemplate(
                     }).join('')}
                 </select>
                 <div class="list-buttons">
-                    <button id="copyOutputVarButton" class="copy-props-button">Copy</button>
+                    <button id="copyOutputVarButton" class="copy-props-button">Copy List</button>
                     <button id="moveUpOutputVarButton" class="move-button">Move Up</button>
                     <button id="moveDownOutputVarButton" class="move-button">Move Down</button>
                     <button id="reverseOutputVarButton" class="reverse-button">Reverse</button>

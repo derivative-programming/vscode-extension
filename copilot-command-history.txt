@@ -48,6 +48,7 @@ Command: Expand all top level tree items in the AppDNA tree view
 
 2025-07-26: Implemented formFooterText display in page preview view for forms
 2025-07-26: Removed placeholder content from form preview when no controls are defined
+2025-01-27: change all the buttons with text 'Copy' to 'Copy List'
 2025-07-26: Added auto-submit notification display in form preview when isAutoSubmit=true
 2025-07-26: Right-justified 'other' and 'add' type buttons in report grid view action buttons
 
