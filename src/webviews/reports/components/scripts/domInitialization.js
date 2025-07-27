@@ -44,6 +44,9 @@ function getDOMInitialization() {
         setupColumnModal();
         setupButtonModal();
         setupParamModal();
+        
+        // Setup list button event handlers
+        setupListButtonHandlers();
     });
 
     // Modal functionality for columns
@@ -152,6 +155,276 @@ function getDOMInitialization() {
                 e.preventDefault();
                 saveParamChanges();
             };
+        }
+    }
+    
+    // Setup list button event handlers for Copy, Move Up, Move Down, Reverse
+    function setupListButtonHandlers() {
+        // Columns list buttons
+        const copyColumnsButton = document.getElementById('copyColumnsButton');
+        const moveUpColumnsButton = document.getElementById('moveUpColumnsButton');
+        const moveDownColumnsButton = document.getElementById('moveDownColumnsButton');
+        const reverseColumnsButton = document.getElementById('reverseColumnsButton');
+        const columnsList = document.getElementById('columnsList');
+        
+        if (copyColumnsButton) {
+            copyColumnsButton.addEventListener('click', () => {
+                try {
+                    // Get all column names from the list
+                    if (!columnsList) return;
+                    
+                    const columnList = [];
+                    for (let i = 0; i < columnsList.options.length; i++) {
+                        columnList.push(columnsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = columnList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Columns copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyColumnsButton.textContent;
+                            copyColumnsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyColumnsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy columns: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyColumnsButton.textContent;
+                        copyColumnsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyColumnsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying columns: ', err);
+                }
+            });
+        }
+        
+        if (moveUpColumnsButton) {
+            moveUpColumnsButton.addEventListener('click', () => {
+                const selectedIndex = columnsList ? columnsList.selectedIndex : -1;
+                if (selectedIndex > 0) {
+                    vscode.postMessage({
+                        command: 'moveColumn',
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 }
+                    });
+                }
+            });
+        }
+        
+        if (moveDownColumnsButton) {
+            moveDownColumnsButton.addEventListener('click', () => {
+                const selectedIndex = columnsList ? columnsList.selectedIndex : -1;
+                const listLength = columnsList ? columnsList.options.length : 0;
+                if (selectedIndex >= 0 && selectedIndex < listLength - 1) {
+                    vscode.postMessage({
+                        command: 'moveColumn',
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 }
+                    });
+                }
+            });
+        }
+        
+        if (reverseColumnsButton) {
+            reverseColumnsButton.addEventListener('click', () => {
+                vscode.postMessage({
+                    command: 'reverseColumn'
+                });
+            });
+        }
+        
+        // Buttons list buttons
+        const copyButtonsButton = document.getElementById('copyButtonsButton');
+        const moveUpButtonsButton = document.getElementById('moveUpButtonsButton');
+        const moveDownButtonsButton = document.getElementById('moveDownButtonsButton');
+        const reverseButtonsButton = document.getElementById('reverseButtonsButton');
+        const buttonsList = document.getElementById('buttonsList');
+        
+        if (copyButtonsButton) {
+            copyButtonsButton.addEventListener('click', () => {
+                try {
+                    // Get all button names from the list
+                    if (!buttonsList) return;
+                    
+                    const buttonList = [];
+                    for (let i = 0; i < buttonsList.options.length; i++) {
+                        buttonList.push(buttonsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = buttonList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Buttons copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyButtonsButton.textContent;
+                            copyButtonsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyButtonsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy buttons: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyButtonsButton.textContent;
+                        copyButtonsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButtonsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying buttons: ', err);
+                }
+            });
+        }
+        
+        if (moveUpButtonsButton) {
+            moveUpButtonsButton.addEventListener('click', () => {
+                const selectedIndex = buttonsList ? buttonsList.selectedIndex : -1;
+                if (selectedIndex > 0) {
+                    vscode.postMessage({
+                        command: 'moveButton',
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 }
+                    });
+                }
+            });
+        }
+        
+        if (moveDownButtonsButton) {
+            moveDownButtonsButton.addEventListener('click', () => {
+                const selectedIndex = buttonsList ? buttonsList.selectedIndex : -1;
+                const listLength = buttonsList ? buttonsList.options.length : 0;
+                if (selectedIndex >= 0 && selectedIndex < listLength - 1) {
+                    vscode.postMessage({
+                        command: 'moveButton',
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 }
+                    });
+                }
+            });
+        }
+        
+        if (reverseButtonsButton) {
+            reverseButtonsButton.addEventListener('click', () => {
+                vscode.postMessage({
+                    command: 'reverseButton'
+                });
+            });
+        }
+        
+        // Parameters (Filters) list buttons
+        const copyParamsButton = document.getElementById('copyParamsButton');
+        const moveUpParamsButton = document.getElementById('moveUpParamsButton');
+        const moveDownParamsButton = document.getElementById('moveDownParamsButton');
+        const reverseParamsButton = document.getElementById('reverseParamsButton');
+        const paramsList = document.getElementById('paramsList');
+        
+        if (copyParamsButton) {
+            copyParamsButton.addEventListener('click', () => {
+                try {
+                    // Get all parameter names from the list
+                    if (!paramsList) return;
+                    
+                    const paramList = [];
+                    for (let i = 0; i < paramsList.options.length; i++) {
+                        paramList.push(paramsList.options[i].text);
+                    }
+                    
+                    // Create formatted text for copying
+                    const textToCopy = paramList.join('\\n');
+                    
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            console.log('Parameters copied to clipboard');
+                            // Provide visual feedback
+                            const originalText = copyParamsButton.textContent;
+                            copyParamsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyParamsButton.textContent = originalText;
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy parameters: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const originalText = copyParamsButton.textContent;
+                        copyParamsButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyParamsButton.textContent = originalText;
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Error copying parameters: ', err);
+                }
+            });
+        }
+        
+        if (moveUpParamsButton) {
+            moveUpParamsButton.addEventListener('click', () => {
+                const selectedIndex = paramsList ? paramsList.selectedIndex : -1;
+                if (selectedIndex > 0) {
+                    vscode.postMessage({
+                        command: 'moveParam',
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 }
+                    });
+                }
+            });
+        }
+        
+        if (moveDownParamsButton) {
+            moveDownParamsButton.addEventListener('click', () => {
+                const selectedIndex = paramsList ? paramsList.selectedIndex : -1;
+                const listLength = paramsList ? paramsList.options.length : 0;
+                if (selectedIndex >= 0 && selectedIndex < listLength - 1) {
+                    vscode.postMessage({
+                        command: 'moveParam',
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 }
+                    });
+                }
+            });
+        }
+        
+        if (reverseParamsButton) {
+            reverseParamsButton.addEventListener('click', () => {
+                vscode.postMessage({
+                    command: 'reverseParam'
+                });
+            });
         }
     }
     `;

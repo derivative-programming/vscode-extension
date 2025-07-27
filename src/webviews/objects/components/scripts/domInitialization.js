@@ -78,33 +78,40 @@ function getDOMInitialization() {
             toggleEditable(fieldId + 'Editable', fieldId);
         });
         
-        // Set up copy button functionality
-        const copyPropsButton = document.getElementById('copyPropsButton');
-        if (copyPropsButton) {
-            copyPropsButton.addEventListener('click', () => {
+        // Set up copy button functionality using event delegation
+        document.addEventListener('click', (event) => {
+            if (event.target && event.target.id === 'copyPropsButton') {
+                console.log('Copy button clicked via delegation!');
+                event.preventDefault();
                 try {
                     // Get all property names from the list
                     const propsList = document.getElementById('propsList');
+                    console.log('Props list element found:', propsList);
                     if (!propsList) return;
                     
                     const propertyList = [];
                     for (let i = 0; i < propsList.options.length; i++) {
                         propertyList.push(propsList.options[i].text);
                     }
+                    console.log('Property list to copy:', propertyList);
                     
                     // Create formatted text for copying
                     const textToCopy = propertyList.join('\\n');
+                    console.log('Text to copy:', textToCopy);
                     
                     // Copy to clipboard using the modern Clipboard API
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(textToCopy).then(() => {
                             console.log('Properties copied to clipboard');
                             // Provide visual feedback
-                            const originalText = copyPropsButton.textContent;
-                            copyPropsButton.textContent = 'Copied!';
-                            setTimeout(() => {
-                                copyPropsButton.textContent = originalText;
-                            }, 2000);
+                            const copyPropsButton = document.getElementById('copyPropsButton');
+                            if (copyPropsButton) {
+                                const originalText = copyPropsButton.textContent;
+                                copyPropsButton.textContent = 'Copied!';
+                                setTimeout(() => {
+                                    copyPropsButton.textContent = originalText;
+                                }, 2000);
+                            }
                         }).catch(err => {
                             console.error('Failed to copy properties: ', err);
                         });
@@ -118,45 +125,53 @@ function getDOMInitialization() {
                         document.body.removeChild(textArea);
                         
                         // Provide visual feedback
-                        const originalText = copyPropsButton.textContent;
-                        copyPropsButton.textContent = 'Copied!';
-                        setTimeout(() => {
-                            copyPropsButton.textContent = originalText;
-                        }, 2000);
+                        const copyPropsButton = document.getElementById('copyPropsButton');
+                        if (copyPropsButton) {
+                            const originalText = copyPropsButton.textContent;
+                            copyPropsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyPropsButton.textContent = originalText;
+                            }, 2000);
+                        }
                     }
                 } catch (err) {
                     console.error('Error copying properties: ', err);
                 }
-            });
-        }
-        
-        // Set up copy button functionality for lookup items
-        const copyLookupItemsButton = document.getElementById('copyLookupItemsButton');
-        if (copyLookupItemsButton) {
-            copyLookupItemsButton.addEventListener('click', () => {
+            }
+            
+            // Handle lookup items copy button with event delegation
+            if (event.target && event.target.id === 'copyLookupItemsButton') {
+                console.log('Lookup items copy button clicked via delegation!');
+                event.preventDefault();
                 try {
                     // Get all lookup item names from the list
                     const lookupItemsList = document.getElementById('lookupItemsList');
+                    console.log('Lookup items list element found:', lookupItemsList);
                     if (!lookupItemsList) return;
                     
                     const lookupItemList = [];
                     for (let i = 0; i < lookupItemsList.options.length; i++) {
                         lookupItemList.push(lookupItemsList.options[i].text);
                     }
+                    console.log('Lookup item list to copy:', lookupItemList);
                     
                     // Create formatted text for copying
                     const textToCopy = lookupItemList.join('\\n');
+                    console.log('Lookup items text to copy:', textToCopy);
                     
                     // Copy to clipboard using the modern Clipboard API
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(textToCopy).then(() => {
                             console.log('Lookup items copied to clipboard');
                             // Provide visual feedback
-                            const originalText = copyLookupItemsButton.textContent;
-                            copyLookupItemsButton.textContent = 'Copied!';
-                            setTimeout(() => {
-                                copyLookupItemsButton.textContent = originalText;
-                            }, 2000);
+                            const copyLookupItemsButton = document.getElementById('copyLookupItemsButton');
+                            if (copyLookupItemsButton) {
+                                const originalText = copyLookupItemsButton.textContent;
+                                copyLookupItemsButton.textContent = 'Copied!';
+                                setTimeout(() => {
+                                    copyLookupItemsButton.textContent = originalText;
+                                }, 2000);
+                            }
                         }).catch(err => {
                             console.error('Failed to copy lookup items: ', err);
                         });
@@ -170,17 +185,20 @@ function getDOMInitialization() {
                         document.body.removeChild(textArea);
                         
                         // Provide visual feedback
-                        const originalText = copyLookupItemsButton.textContent;
-                        copyLookupItemsButton.textContent = 'Copied!';
-                        setTimeout(() => {
-                            copyLookupItemsButton.textContent = originalText;
-                        }, 2000);
+                        const copyLookupItemsButton = document.getElementById('copyLookupItemsButton');
+                        if (copyLookupItemsButton) {
+                            const originalText = copyLookupItemsButton.textContent;
+                            copyLookupItemsButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyLookupItemsButton.textContent = originalText;
+                            }, 2000);
+                        }
                     }
                 } catch (err) {
                     console.error('Error copying lookup items: ', err);
                 }
-            });
-        }
+            }
+        });
     });
     `;
 }

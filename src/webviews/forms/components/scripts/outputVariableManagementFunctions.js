@@ -300,15 +300,56 @@ function getOutputVariableManagementFunctions() {
         
         // Handle copy, move up/down, and reverse buttons for output variables
         document.getElementById('copyOutputVarButton')?.addEventListener('click', () => {
-            if (!outputVarsList.value) {
-                return;
+            try {
+                // Get all output variable names from the list
+                if (!outputVarsList) return;
+                
+                const outputVarList = [];
+                for (let i = 0; i < outputVarsList.options.length; i++) {
+                    outputVarList.push(outputVarsList.options[i].text);
+                }
+                
+                // Create formatted text for copying
+                const textToCopy = outputVarList.join('\\n');
+                
+                // Copy to clipboard using the modern Clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        console.log('Output variables copied to clipboard');
+                        // Provide visual feedback
+                        const copyButton = document.getElementById('copyOutputVarButton');
+                        if (copyButton) {
+                            const originalText = copyButton.textContent;
+                            copyButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyButton.textContent = originalText;
+                            }, 2000);
+                        }
+                    }).catch(err => {
+                        console.error('Failed to copy output variables: ', err);
+                    });
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    // Provide visual feedback
+                    const copyButton = document.getElementById('copyOutputVarButton');
+                    if (copyButton) {
+                        const originalText = copyButton.textContent;
+                        copyButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.textContent = originalText;
+                        }, 2000);
+                    }
+                }
+            } catch (err) {
+                console.error('Error copying output variables: ', err);
             }
-            
-            const selectedIndex = parseInt(outputVarsList.value);
-            vscode.postMessage({
-                command: 'copyOutputVar',
-                index: selectedIndex
-            });
         });
         
         document.getElementById('moveUpOutputVarButton')?.addEventListener('click', () => {

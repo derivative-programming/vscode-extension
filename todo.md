@@ -1,7 +1,18 @@
 Agent todo items...
+
+
+forms...
+-  js errors on saveModel fixed - replaced modelService.saveModel() calls with markUnsavedChanges() in form details view
+-  move up/down controls and buttons now works - added refreshPanel() to update webview immediately
+-  add input control button now works - added refreshPanel() to update webview immediately  
+-  add button button now works - added refreshPanel() to update webview immediately
+-  add output variable button now works - added refreshPanel() to update webview immediately
+-  add buttons now open modals for user input - fixed add buttons to show modal forms instead of creating items with default values
+
  
 feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.?
 
+split arch guidance into separate files again
 
 prop subscriptions
 "propSubscription": [
@@ -22,21 +33,17 @@ preview page...
 preview form...
 - show actual lookup items in dropdowns
 - show data and datetime fields
-- if conditional button, show in hover text and show '(?)' with button text
 - header display
 
 preview report grid view...
 - horizontal scrollbar shoudl be above the pageing controls and below (or part of) the table
-- if conditional button, show in hover text and show '(?)' with button text
 - date and datetime filter fields
 - header display
 
 - preview report navigation view...
-- if conditional button, show in hover text and show '(?)' with button text
 - header display
 
 preview report three column view...
-- if conditional button, show in hover text and show '(?)' with button text
 - header display
 
 
@@ -70,7 +77,6 @@ modelAIProcessingView.js - 1,275 lines
 userStoriesView.js - 1,220 lines
 modelValidationView.js - 1,217 lines
 hierarchyView.js - 1,176 lines
-~~pageFlowDiagramView.js - 1,866 lines~~ ✅ COMPLETED - Split into modular structure
 
 stop validating a\bulk change request on approval?
 

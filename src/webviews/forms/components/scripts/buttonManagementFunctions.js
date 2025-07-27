@@ -294,15 +294,56 @@ function getButtonManagementFunctions() {
         
         // Handle copy, move up/down, and reverse buttons for buttons
         document.getElementById('copyButtonButton')?.addEventListener('click', () => {
-            if (!buttonsList.value) {
-                return;
+            try {
+                // Get all button names from the list
+                if (!buttonsList) return;
+                
+                const buttonList = [];
+                for (let i = 0; i < buttonsList.options.length; i++) {
+                    buttonList.push(buttonsList.options[i].text);
+                }
+                
+                // Create formatted text for copying
+                const textToCopy = buttonList.join('\\n');
+                
+                // Copy to clipboard using the modern Clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        console.log('Buttons copied to clipboard');
+                        // Provide visual feedback
+                        const copyButton = document.getElementById('copyButtonButton');
+                        if (copyButton) {
+                            const originalText = copyButton.textContent;
+                            copyButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyButton.textContent = originalText;
+                            }, 2000);
+                        }
+                    }).catch(err => {
+                        console.error('Failed to copy buttons: ', err);
+                    });
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    // Provide visual feedback
+                    const copyButton = document.getElementById('copyButtonButton');
+                    if (copyButton) {
+                        const originalText = copyButton.textContent;
+                        copyButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.textContent = originalText;
+                        }, 2000);
+                    }
+                }
+            } catch (err) {
+                console.error('Error copying buttons: ', err);
             }
-            
-            const selectedIndex = parseInt(buttonsList.value);
-            vscode.postMessage({
-                command: 'copyButton',
-                index: selectedIndex
-            });
         });
         
         document.getElementById('moveUpButtonButton')?.addEventListener('click', () => {

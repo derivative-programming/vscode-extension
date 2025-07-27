@@ -368,6 +368,60 @@ function getParameterManagementFunctions() {
         document.getElementById('reverse-params-btn')?.addEventListener('click', function() {
             reverseArray('param');
         });
+        
+        // Copy button for parameters
+        document.getElementById('copyParamsButton')?.addEventListener('click', () => {
+            try {
+                // Get all parameter names from the list
+                if (!paramsList) return;
+                
+                const paramList = [];
+                for (let i = 0; i < paramsList.options.length; i++) {
+                    paramList.push(paramsList.options[i].text);
+                }
+                
+                // Create formatted text for copying
+                const textToCopy = paramList.join('\\n');
+                
+                // Copy to clipboard using the modern Clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        console.log('Parameters copied to clipboard');
+                        // Provide visual feedback
+                        const copyButton = document.getElementById('copyParamsButton');
+                        if (copyButton) {
+                            const originalText = copyButton.textContent;
+                            copyButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyButton.textContent = originalText;
+                            }, 2000);
+                        }
+                    }).catch(err => {
+                        console.error('Failed to copy parameters: ', err);
+                    });
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    // Provide visual feedback
+                    const copyButton = document.getElementById('copyParamsButton');
+                    if (copyButton) {
+                        const originalText = copyButton.textContent;
+                        copyButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.textContent = originalText;
+                        }, 2000);
+                    }
+                }
+            } catch (err) {
+                console.error('Error copying parameters: ', err);
+            }
+        });
     }
 
     // Array item moving function for parameters
