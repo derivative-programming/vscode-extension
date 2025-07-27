@@ -107,10 +107,70 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 }
             });
             
+            // Initialize move button states when page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                // Set up event listeners for list selection changes
+                const paramsList = document.getElementById('paramsList');
+                const buttonsList = document.getElementById('buttonsList');
+                const outputVarsList = document.getElementById('outputVarsList');
+                
+                if (paramsList) {
+                    paramsList.addEventListener('change', function() {
+                        const moveUpButton = document.getElementById('moveUpParamsButton');
+                        const moveDownButton = document.getElementById('moveDownParamsButton');
+                        if (moveUpButton && moveDownButton) {
+                            updateMoveButtonStates(paramsList, moveUpButton, moveDownButton);
+                        }
+                    });
+                    
+                    // Initialize button states
+                    const moveUpButton = document.getElementById('moveUpParamsButton');
+                    const moveDownButton = document.getElementById('moveDownParamsButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(paramsList, moveUpButton, moveDownButton);
+                    }
+                }
+                
+                if (buttonsList) {
+                    buttonsList.addEventListener('change', function() {
+                        const moveUpButton = document.getElementById('moveUpButtonButton');
+                        const moveDownButton = document.getElementById('moveDownButtonButton');
+                        if (moveUpButton && moveDownButton) {
+                            updateMoveButtonStates(buttonsList, moveUpButton, moveDownButton);
+                        }
+                    });
+                    
+                    // Initialize button states
+                    const moveUpButton = document.getElementById('moveUpButtonButton');
+                    const moveDownButton = document.getElementById('moveDownButtonButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(buttonsList, moveUpButton, moveDownButton);
+                    }
+                }
+                
+                if (outputVarsList) {
+                    outputVarsList.addEventListener('change', function() {
+                        const moveUpButton = document.getElementById('moveUpOutputVarButton');
+                        const moveDownButton = document.getElementById('moveDownOutputVarButton');
+                        if (moveUpButton && moveDownButton) {
+                            updateMoveButtonStates(outputVarsList, moveUpButton, moveDownButton);
+                        }
+                    });
+                    
+                    // Initialize button states
+                    const moveUpButton = document.getElementById('moveUpOutputVarButton');
+                    const moveDownButton = document.getElementById('moveDownOutputVarButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(outputVarsList, moveUpButton, moveDownButton);
+                    }
+                }
+            });
+            
             // List refresh functions
             function refreshParamsList(newParams) {
                 const paramsList = document.getElementById('paramsList');
                 if (paramsList) {
+                    const currentSelection = paramsList.selectedIndex;
                     paramsList.innerHTML = '';
                     newParams.forEach((param, index) => {
                         const option = document.createElement('option');
@@ -118,6 +178,19 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                         option.textContent = param.name || 'Unnamed Parameter';
                         paramsList.appendChild(option);
                     });
+                    
+                    // Restore selection if still valid
+                    if (currentSelection >= 0 && currentSelection < newParams.length) {
+                        paramsList.selectedIndex = currentSelection;
+                    }
+                    
+                    // Update move button states
+                    const moveUpButton = document.getElementById('moveUpParamsButton');
+                    const moveDownButton = document.getElementById('moveDownParamsButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(paramsList, moveUpButton, moveDownButton);
+                    }
+                    
                     console.log('[DEBUG] Params list refreshed with', newParams.length, 'items');
                 }
             }
@@ -125,6 +198,7 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             function refreshButtonsList(newButtons) {
                 const buttonsList = document.getElementById('buttonsList');
                 if (buttonsList) {
+                    const currentSelection = buttonsList.selectedIndex;
                     buttonsList.innerHTML = '';
                     newButtons.forEach((button, index) => {
                         const option = document.createElement('option');
@@ -132,6 +206,19 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                         option.textContent = button.buttonText || button.buttonName || 'Unnamed Button';
                         buttonsList.appendChild(option);
                     });
+                    
+                    // Restore selection if still valid
+                    if (currentSelection >= 0 && currentSelection < newButtons.length) {
+                        buttonsList.selectedIndex = currentSelection;
+                    }
+                    
+                    // Update move button states
+                    const moveUpButton = document.getElementById('moveUpButtonButton');
+                    const moveDownButton = document.getElementById('moveDownButtonButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(buttonsList, moveUpButton, moveDownButton);
+                    }
+                    
                     console.log('[DEBUG] Buttons list refreshed with', newButtons.length, 'items');
                 }
             }
@@ -139,6 +226,7 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             function refreshOutputVarsList(newOutputVars) {
                 const outputVarsList = document.getElementById('outputVarsList');
                 if (outputVarsList) {
+                    const currentSelection = outputVarsList.selectedIndex;
                     outputVarsList.innerHTML = '';
                     newOutputVars.forEach((outputVar, index) => {
                         const option = document.createElement('option');
@@ -146,7 +234,40 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                         option.textContent = outputVar.name || 'Unnamed Output Variable';
                         outputVarsList.appendChild(option);
                     });
+                    
+                    // Restore selection if still valid
+                    if (currentSelection >= 0 && currentSelection < newOutputVars.length) {
+                        outputVarsList.selectedIndex = currentSelection;
+                    }
+                    
+                    // Update move button states
+                    const moveUpButton = document.getElementById('moveUpOutputVarButton');
+                    const moveDownButton = document.getElementById('moveDownOutputVarButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(outputVarsList, moveUpButton, moveDownButton);
+                    }
+                    
                     console.log('[DEBUG] Output vars list refreshed with', newOutputVars.length, 'items');
+                }
+            }
+            
+            // Update move button states helper function
+            function updateMoveButtonStates(listElement, moveUpButton, moveDownButton) {
+                if (!listElement || !moveUpButton || !moveDownButton) return;
+                
+                const selectedIndex = listElement.selectedIndex;
+                const hasSelection = selectedIndex >= 0;
+                const isFirstItem = selectedIndex === 0;
+                const isLastItem = selectedIndex === listElement.options.length - 1;
+                
+                // Disable both buttons if no selection
+                if (!hasSelection) {
+                    moveUpButton.disabled = true;
+                    moveDownButton.disabled = true;
+                } else {
+                    // Enable/disable based on position
+                    moveUpButton.disabled = isFirstItem;
+                    moveDownButton.disabled = isLastItem;
                 }
             }
 

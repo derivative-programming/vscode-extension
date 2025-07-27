@@ -245,18 +245,37 @@ function showFormDetails(item, modelService, context) {
                 case "moveParam":
                     if (modelService && formReference) {
                         // Move param in the array
-                        moveParamInArray(message.data, formReference, modelService);
+                        moveParamInArray(message.data, formReference, modelService, panel);
                     } else {
                         console.warn("Cannot move param: ModelService not available or form reference not found");
                     }
                     return;
                     
+                case "reorderFormParam":
+                    if (modelService && formReference) {
+                        // Handle parameter reordering from parameter management functions
+                        moveParamInArray(message.data, formReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot reorder param: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
                 case "moveButton":
                     if (modelService && formReference) {
-                        // Move button in the array
-                        moveButtonInArray(message.data, formReference, modelService);
+                        // Move button in the array - data is directly on message object
+                        const moveData = { fromIndex: message.fromIndex, toIndex: message.toIndex };
+                        moveButtonInArray(moveData, formReference, modelService, panel);
                     } else {
                         console.warn("Cannot move button: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "reorderFormButton":
+                    if (modelService && formReference) {
+                        // Handle button reordering from button management functions
+                        moveButtonInArray(message.data, formReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot reorder button: ModelService not available or form reference not found");
                     }
                     return;
                     
@@ -271,10 +290,20 @@ function showFormDetails(item, modelService, context) {
                     
                 case "moveOutputVar":
                     if (modelService && formReference) {
-                        // Move output variable in the array
-                        moveOutputVarInArray(message.data, formReference, modelService);
+                        // Move output variable in the array - data is directly on message object
+                        const moveData = { fromIndex: message.fromIndex, toIndex: message.toIndex };
+                        moveOutputVarInArray(moveData, formReference, modelService, panel);
                     } else {
                         console.warn("Cannot move output variable: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "reorderFormOutputVar":
+                    if (modelService && formReference) {
+                        // Handle output variable reordering from output variable management functions
+                        moveOutputVarInArray(message.data, formReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot reorder output variable: ModelService not available or form reference not found");
                     }
                     return;
                     
@@ -841,168 +870,165 @@ function removeOutputVarProperty(message, formReference, modelService) {
     }
 }
 
-function moveParamInArray(data, formReference, modelService) {
-    console.log(`moveParamInArray called with data:`, data);
-    
-    if (!formReference || !data || data.index === undefined || !data.direction || !modelService) {
-        console.error("Missing required data for parameter move operation");
-        return;
-    }
-    
+/**
+ * Moves a parameter in the objectWorkflowParam array
+ * @param {Object} data Data containing fromIndex and toIndex
+ * @param {Object} formReference Direct reference to the form object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
+ */
+function moveParamInArray(data, formReference, modelService, panel) {
     try {
-        // Use the form reference directly since it's already the form object
-        const form = formReference;
+        console.log("[DEBUG] moveParamInArray called");
         
-        // Initialize the parameters array if it doesn't exist
-        if (!form.objectWorkflowParam) {
-            form.objectWorkflowParam = [];
-            return; // Nothing to move in an empty array
-        }
+        const { fromIndex, toIndex } = data;
+        console.log("[DEBUG] Moving param from index", fromIndex, "to index", toIndex);
         
-        // Check if the parameter exists
-        if (data.index >= form.objectWorkflowParam.length) {
-            console.error(`Parameter index ${data.index} out of bounds`);
+        if (!formReference.objectWorkflowParam || !Array.isArray(formReference.objectWorkflowParam)) {
+            console.warn("[DEBUG] objectWorkflowParam array does not exist");
             return;
         }
         
-        const params = form.objectWorkflowParam;
-        const currentIndex = data.index;
-        let newIndex;
+        const array = formReference.objectWorkflowParam;
         
-        // Calculate the new index based on the direction
-        if (data.direction === 'up') {
-            if (currentIndex <= 0) {
-                return; // Already at the top
-            }
-            newIndex = currentIndex - 1;
-        } else if (data.direction === 'down') {
-            if (currentIndex >= params.length - 1) {
-                return; // Already at the bottom
-            }
-            newIndex = currentIndex + 1;
-        } else {
-            console.error("Invalid direction for move operation:", data.direction);
+        // Validate indices
+        if (fromIndex < 0 || fromIndex >= array.length || toIndex < 0 || toIndex >= array.length) {
+            console.warn("[DEBUG] Invalid indices for move operation");
             return;
         }
         
-        // Swap the parameters
-        const temp = params[currentIndex];
-        params[currentIndex] = params[newIndex];
-        params[newIndex] = temp;
+        // Move the item
+        const itemToMove = array.splice(fromIndex, 1)[0];
+        array.splice(toIndex, 0, itemToMove);
         
-        // Save the model
-        modelService.saveModel();
+        console.log("[DEBUG] Param moved successfully");
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log("[DEBUG] Marked unsaved changes after param move");
+        }
+        
+        // Send message to webview to refresh the params list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: formReference.objectWorkflowParam
+            });
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
-        console.error("Error moving parameter:", error);
+        console.error("Error moving param:", error);
     }
 }
 
-function moveButtonInArray(data, formReference, modelService) {
-    console.log(`moveButtonInArray called with data:`, data);
-    
-    if (!formReference || !data || data.index === undefined || !data.direction || !modelService) {
-        console.error("Missing required data for button move operation");
-        return;
-    }
-    
+/**
+ * Moves a button in the objectWorkflowButton array
+ * @param {Object} data Data containing fromIndex and toIndex
+ * @param {Object} formReference Direct reference to the form object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
+ */
+function moveButtonInArray(data, formReference, modelService, panel) {
     try {
-        // Use the form reference directly since it's already the form object
-        const form = formReference;
+        console.log("[DEBUG] moveButtonInArray called");
         
-        // Initialize the buttons array if it doesn't exist
-        if (!form.objectWorkflowButton) {
-            form.objectWorkflowButton = [];
-            return; // Nothing to move in an empty array
-        }
+        const { fromIndex, toIndex } = data;
+        console.log("[DEBUG] Moving button from index", fromIndex, "to index", toIndex);
         
-        // Check if the button exists
-        if (data.index >= form.objectWorkflowButton.length) {
-            console.error(`Button index ${data.index} out of bounds`);
+        if (!formReference.objectWorkflowButton || !Array.isArray(formReference.objectWorkflowButton)) {
+            console.warn("[DEBUG] objectWorkflowButton array does not exist");
             return;
         }
         
-        const buttons = form.objectWorkflowButton;
-        const currentIndex = data.index;
-        let newIndex;
+        const array = formReference.objectWorkflowButton;
         
-        // Calculate the new index based on the direction
-        if (data.direction === 'up') {
-            if (currentIndex <= 0) {
-                return; // Already at the top
-            }
-            newIndex = currentIndex - 1;
-        } else if (data.direction === 'down') {
-            if (currentIndex >= buttons.length - 1) {
-                return; // Already at the bottom
-            }
-            newIndex = currentIndex + 1;
-        } else {
-            console.error("Invalid direction for move operation:", data.direction);
+        // Validate indices
+        if (fromIndex < 0 || fromIndex >= array.length || toIndex < 0 || toIndex >= array.length) {
+            console.warn("[DEBUG] Invalid indices for move operation");
             return;
         }
         
-        // Swap the buttons
-        const temp = buttons[currentIndex];
-        buttons[currentIndex] = buttons[newIndex];
-        buttons[newIndex] = temp;
+        // Move the item
+        const itemToMove = array.splice(fromIndex, 1)[0];
+        array.splice(toIndex, 0, itemToMove);
         
-        // Save the model
-        modelService.saveModel();
+        console.log("[DEBUG] Button moved successfully");
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+            console.log("[DEBUG] Marked unsaved changes after button move");
+        }
+        
+        // Send message to webview to refresh the buttons list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshButtonsList',
+                data: formReference.objectWorkflowButton
+            });
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error moving button:", error);
     }
 }
 
-function moveOutputVarInArray(data, formReference, modelService) {
-    console.log(`moveOutputVarInArray called with data:`, data);
-    
-    if (!formReference || !data || !data.hasOwnProperty('fromIndex') || !data.hasOwnProperty('toIndex') || !modelService) {
-        console.error("Missing required data for output variable move operation");
-        return;
-    }
-    
+/**
+ * Moves an output variable in the objectWorkflowOutputVar array
+ * @param {Object} data Data containing fromIndex and toIndex
+ * @param {Object} formReference Direct reference to the form object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
+ */
+function moveOutputVarInArray(data, formReference, modelService, panel) {
     try {
-        // Use the form reference directly since it's already the form object
-        const form = formReference;
+        console.log("[DEBUG] moveOutputVarInArray called");
         
-        // Initialize the output variables array if it doesn't exist
-        if (!form.objectWorkflowOutputVar) {
-            form.objectWorkflowOutputVar = [];
-            return; // Nothing to move in an empty array
-        }
+        const { fromIndex, toIndex } = data;
+        console.log("[DEBUG] Moving output var from index", fromIndex, "to index", toIndex);
         
-        // Check if the output variable exists
-        const fromIndex = data.fromIndex;
-        const toIndex = data.toIndex;
-        
-        if (fromIndex < 0 || fromIndex >= form.objectWorkflowOutputVar.length) {
-            console.error(`Output variable fromIndex ${fromIndex} out of bounds`);
+        if (!formReference.objectWorkflowOutputVar || !Array.isArray(formReference.objectWorkflowOutputVar)) {
+            console.warn("[DEBUG] objectWorkflowOutputVar array does not exist");
             return;
         }
         
-        if (toIndex < 0 || toIndex >= form.objectWorkflowOutputVar.length) {
-            console.error(`Output variable toIndex ${toIndex} out of bounds`);
+        const array = formReference.objectWorkflowOutputVar;
+        
+        // Validate indices
+        if (fromIndex < 0 || fromIndex >= array.length || toIndex < 0 || toIndex >= array.length) {
+            console.warn("[DEBUG] Invalid indices for move operation");
             return;
         }
         
-        // Get the output variable to move
-        const outputVarToMove = form.objectWorkflowOutputVar[fromIndex];
+        // Move the item
+        const itemToMove = array.splice(fromIndex, 1)[0];
+        array.splice(toIndex, 0, itemToMove);
         
-        // Remove from current position
-        form.objectWorkflowOutputVar.splice(fromIndex, 1);
-        
-        // Add at new position
-        form.objectWorkflowOutputVar.splice(toIndex, 0, outputVarToMove);
+        console.log("[DEBUG] Output var moved successfully");
         
         // Mark as having unsaved changes
         if (modelService && typeof modelService.markUnsavedChanges === 'function') {
             modelService.markUnsavedChanges();
+            console.log("[DEBUG] Marked unsaved changes after output var move");
         }
         
-        // Refresh the UI
+        // Send message to webview to refresh the output vars list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshOutputVarsList',
+                data: formReference.objectWorkflowOutputVar
+            });
+        }
+        
+        // Refresh the view
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
-        console.error("Error moving output variable:", error);
+        console.error("Error moving output var:", error);
     }
 }
 

@@ -422,6 +422,47 @@ function getParameterManagementFunctions() {
                 console.error('Error copying parameters: ', err);
             }
         });
+        
+        // Main move button event handlers
+        document.getElementById('moveUpParamsButton')?.addEventListener('click', () => {
+            if (!paramsList.value) {
+                return;
+            }
+            
+            const selectedIndex = parseInt(paramsList.value);
+            if (selectedIndex > 0) {
+                vscode.postMessage({
+                    command: 'moveParam',
+                    data: {
+                        fromIndex: selectedIndex,
+                        toIndex: selectedIndex - 1
+                    }
+                });
+            }
+        });
+        
+        document.getElementById('moveDownParamsButton')?.addEventListener('click', () => {
+            if (!paramsList.value) {
+                return;
+            }
+            
+            const selectedIndex = parseInt(paramsList.value);
+            if (selectedIndex < currentParams.length - 1) {
+                vscode.postMessage({
+                    command: 'moveParam',
+                    data: {
+                        fromIndex: selectedIndex,
+                        toIndex: selectedIndex + 1
+                    }
+                });
+            }
+        });
+        
+        document.getElementById('reverseParamsButton')?.addEventListener('click', () => {
+            vscode.postMessage({
+                command: 'reverseParam'
+            });
+        });
     }
 
     // Array item moving function for parameters
