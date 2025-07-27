@@ -96,13 +96,13 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 
                 switch (message.command) {
                     case 'refreshParamsList':
-                        refreshParamsList(message.data);
+                        refreshParamsList(message.data, message.newSelection);
                         break;
                     case 'refreshButtonsList':
-                        refreshButtonsList(message.data);
+                        refreshButtonsList(message.data, message.newSelection);
                         break;
                     case 'refreshOutputVarsList':
-                        refreshOutputVarsList(message.data);
+                        refreshOutputVarsList(message.data, message.newSelection);
                         break;
                 }
             });
@@ -167,10 +167,10 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             });
             
             // List refresh functions
-            function refreshParamsList(newParams) {
+            function refreshParamsList(newParams, newSelection = null) {
                 const paramsList = document.getElementById('paramsList');
                 if (paramsList) {
-                    const currentSelection = paramsList.selectedIndex;
+                    const currentSelection = newSelection !== null ? newSelection : paramsList.selectedIndex;
                     paramsList.innerHTML = '';
                     newParams.forEach((param, index) => {
                         const option = document.createElement('option');
@@ -195,10 +195,10 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 }
             }
             
-            function refreshButtonsList(newButtons) {
+            function refreshButtonsList(newButtons, newSelection = null) {
                 const buttonsList = document.getElementById('buttonsList');
                 if (buttonsList) {
-                    const currentSelection = buttonsList.selectedIndex;
+                    const currentSelection = newSelection !== null ? newSelection : buttonsList.selectedIndex;
                     buttonsList.innerHTML = '';
                     newButtons.forEach((button, index) => {
                         const option = document.createElement('option');
@@ -223,10 +223,10 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 }
             }
             
-            function refreshOutputVarsList(newOutputVars) {
+            function refreshOutputVarsList(newOutputVars, newSelection = null) {
                 const outputVarsList = document.getElementById('outputVarsList');
                 if (outputVarsList) {
-                    const currentSelection = outputVarsList.selectedIndex;
+                    const currentSelection = newSelection !== null ? newSelection : outputVarsList.selectedIndex;
                     outputVarsList.innerHTML = '';
                     newOutputVars.forEach((outputVar, index) => {
                         const option = document.createElement('option');

@@ -913,7 +913,8 @@ function moveParamInArray(data, formReference, modelService, panel) {
         if (panel && panel.webview) {
             panel.webview.postMessage({
                 command: 'refreshParamsList',
-                data: formReference.objectWorkflowParam
+                data: formReference.objectWorkflowParam,
+                newSelection: toIndex
             });
         }
         
@@ -967,7 +968,8 @@ function moveButtonInArray(data, formReference, modelService, panel) {
         if (panel && panel.webview) {
             panel.webview.postMessage({
                 command: 'refreshButtonsList',
-                data: formReference.objectWorkflowButton
+                data: formReference.objectWorkflowButton,
+                newSelection: toIndex
             });
         }
         
@@ -1021,7 +1023,8 @@ function moveOutputVarInArray(data, formReference, modelService, panel) {
         if (panel && panel.webview) {
             panel.webview.postMessage({
                 command: 'refreshOutputVarsList',
-                data: formReference.objectWorkflowOutputVar
+                data: formReference.objectWorkflowOutputVar,
+                newSelection: toIndex
             });
         }
         
