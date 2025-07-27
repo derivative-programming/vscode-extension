@@ -2944,11 +2944,18 @@ function generateJavaScript(allObjects) {
                     const destinationTargetName = column.destinationTargetName || '';
                     const isAsyncWorkflow = column.isButtonAsyncObjWF === "true";
                     
+                    console.log('[DEBUG] PagePreview - Three Column Button:', {
+                        buttonText: buttonText,
+                        conditionalVisiblePropertyName: column.conditionalVisiblePropertyName,
+                        hasConditionalProperty: !!(column.conditionalVisiblePropertyName && column.conditionalVisiblePropertyName.trim() !== '')
+                    });
+                    
                     // Create conditional visibility indicator if conditionalVisiblePropertyName is set
                     let conditionalIndicator = '';
                     if (column.conditionalVisiblePropertyName && column.conditionalVisiblePropertyName.trim() !== '') {
                         const hoverText = 'Conditional button - shown when ' + column.conditionalVisiblePropertyName + ' is true';
                         conditionalIndicator = ' <span class="conditional-visibility-indicator" title="' + hoverText + '">{?}</span>';
+                        console.log('[DEBUG] PagePreview - Adding conditional indicator for button:', buttonText, 'property:', column.conditionalVisiblePropertyName);
                     }
                     
                     html += '<tr>';
@@ -2997,21 +3004,14 @@ function generateJavaScript(allObjects) {
                 page.reportColumn.forEach(column => {
                     // Only include visible and non-ignored columns
                     if ((column.isIgnored || "false") !== "true" && column.isVisible !== "false") {
-                        const columnObj = {
-                            name: column.name || 'field',
-                            displayName: column.headerText || '',
-                            headerText: column.headerText || '',
-                            dataType: column.sqlServerDBDataType || 'varchar'
-                        };
+                        // Copy all properties from the original column
+                        const columnObj = { ...column };
                         
-                        // Add button properties if this column is a button
-                        if (column.isButton === "true") {
-                            columnObj.isButton = column.isButton;
-                            columnObj.buttonText = column.buttonText;
-                            columnObj.destinationTargetName = column.destinationTargetName;
-                            columnObj.destinationContextObjectName = column.destinationContextObjectName;
-                            columnObj.isButtonAsyncObjWF = column.isButtonAsyncObjWF;
-                        }
+                        // Ensure required display properties have fallback values
+                        columnObj.name = columnObj.name || 'field';
+                        columnObj.displayName = columnObj.headerText || columnObj.displayName || '';
+                        columnObj.headerText = columnObj.headerText || '';
+                        columnObj.dataType = columnObj.sqlServerDBDataType || columnObj.dataType || 'varchar';
                         
                         columns.push(columnObj);
                     }
