@@ -134,6 +134,74 @@ function getModalFunctionality() {
         }, 10);
     }
 
+    // Function to create and show the Add Column modal
+    function createAddColumnModal() {
+        // Create modal dialog for adding columns
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        
+        // Import the modal HTML template
+        const modalContent = getAddColumnModalHtml();
+        
+        // Set the modal content
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+        
+        // Wait for DOM to be ready before attaching event listeners
+        setTimeout(() => {
+            // Show the modal
+            modal.style.display = "flex";
+            
+            // Attach event listeners after modal is in DOM and visible
+            attachColumnModalEventListeners(modal);
+            
+            // Focus on the column name input when modal opens (single column tab is active by default)
+            const columnNameInput = modal.querySelector("#columnName");
+            if (columnNameInput) {
+                columnNameInput.focus();
+            }
+        }, 10);
+    }
+
+    // Function to create and show the Add Parameter modal
+    function createAddParamModal() {
+        // Create modal dialog for adding parameters
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        
+        // Import the modal HTML template
+        const modalContent = getAddParamModalHtml();
+        
+        // Set the modal content
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+        
+        // Wait for DOM to be ready before attaching event listeners
+        setTimeout(() => {
+            // Show the modal
+            modal.style.display = "flex";
+            
+            // Attach event listeners after modal is in DOM and visible
+            attachParamModalEventListeners(modal);
+            
+            // Focus on the param name input when modal opens (single param tab is active by default)
+            const paramNameInput = modal.querySelector("#paramName");
+            if (paramNameInput) {
+                paramNameInput.focus();
+            }
+        }, 10);
+    }
+
+    // Global helper functions for validation and text generation
+    
+    // Helper function to generate button text from button name
+    function generateButtonText(buttonName) {
+        // Convert PascalCase to space-separated words
+        // Handle cases like "FirstName" -> "First Name", "AppDNA" -> "App DNA"
+        return buttonName.replace(/([a-z])([A-Z])/g, '$1 $2')
+                        .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+    }
+
     // Function to attach event listeners to the button modal
     function attachButtonModalEventListeners(modal) {
         // Tab switching in modal
@@ -226,14 +294,6 @@ function getModalFunctionality() {
             return null; // Valid
         }
         
-        // Helper function to generate button text from button name
-        function generateButtonText(buttonName) {
-            // Convert PascalCase to space-separated words
-            // Handle cases like "FirstName" -> "First Name", "AppDNA" -> "App DNA"
-            return buttonName.replace(/([a-z])([A-Z])/g, '$1 $2')
-                            .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
-        }
-        
         // Add single button button event listener
         modal.querySelector("#addSingleButton").addEventListener("click", function() {
             const buttonName = modal.querySelector("#buttonName").value.trim();
@@ -298,6 +358,299 @@ function getModalFunctionality() {
                 command: 'updateModel',
                 data: {
                     buttons: updatedButtons,
+                    preserveTab: currentTabId
+                }
+            });
+            
+            // Close the modal
+            document.body.removeChild(modal);
+        });
+    }
+
+    // Function to attach event listeners to the column modal
+    function attachColumnModalEventListeners(modal) {
+        // Tab switching in modal
+        modal.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                // Update active tab
+                modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                // Update visible tab content
+                modal.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+                
+                // Set focus based on which tab is now active
+                setTimeout(() => {
+                    if (tabId === 'singleAdd') {
+                        const columnNameInput = modal.querySelector("#columnName");
+                        if (columnNameInput) {
+                            columnNameInput.focus();
+                        }
+                    } else if (tabId === 'bulkAdd') {
+                        const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
+                        if (bulkColumnsTextarea) {
+                            bulkColumnsTextarea.focus();
+                        }
+                    }
+                }, 10);
+            });
+        });
+
+        // Close modal when clicking the x button
+        modal.querySelector(".close-button").addEventListener("click", function() {
+            document.body.removeChild(modal);
+        });
+
+        // Close modal when clicking outside the modal content
+        modal.addEventListener("click", function(event) {
+            if (event.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+        
+        // Add Enter key handling for single column input
+        const columnNameInput = modal.querySelector("#columnName");
+        if (columnNameInput) {
+            columnNameInput.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    const addButton = modal.querySelector("#addSingleColumn");
+                    if (addButton && !addButton.disabled) {
+                        addButton.click();
+                    }
+                }
+            });
+        }
+        
+        // Add Enter key handling for bulk columns textarea
+        const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
+        if (bulkColumnsTextarea) {
+            bulkColumnsTextarea.addEventListener("keydown", function(event) {
+                if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    const addButton = modal.querySelector("#addBulkColumns");
+                    if (addButton && !addButton.disabled) {
+                        addButton.click();
+                    }
+                }
+            });
+        }
+
+        // Add single column button event listener
+        modal.querySelector("#addSingleColumn").addEventListener("click", function() {
+            const columnName = modal.querySelector("#columnName").value.trim();
+            const errorElement = modal.querySelector("#singleValidationError");
+            
+            // Validate column name
+            const validationError = validateColumnName(columnName);
+            if (validationError) {
+                errorElement.textContent = validationError;
+                return;
+            }
+            
+            // Clear any validation errors
+            errorElement.textContent = "";
+            
+            // Add the new column
+            addNewColumn(columnName);
+            
+            // Close the modal
+            document.body.removeChild(modal);
+        });
+        
+        // Add bulk columns button event listener
+        modal.querySelector("#addBulkColumns").addEventListener("click", function() {
+            const bulkColumns = modal.querySelector("#bulkColumns").value;
+            const columnNames = bulkColumns.split("\\n").map(name => name.trim()).filter(name => name);
+            const errorElement = modal.querySelector("#bulkValidationError");
+            
+            // Validate all column names
+            const errors = [];
+            const validColumns = [];
+            
+            columnNames.forEach(name => {
+                const validationError = validateColumnName(name);
+                if (validationError) {
+                    errors.push("\\"" + name + "\\": " + validationError);
+                } else {
+                    validColumns.push(name);
+                }
+            });
+            
+            if (errors.length > 0) {
+                errorElement.innerHTML = errors.join("<br>");
+                return;
+            }
+            
+            // Add all valid columns at once
+            const newColumns = validColumns.map(name => ({
+                name: name,
+                headerText: generateHeaderText(name)
+            }));
+
+            // Add all columns in one operation
+            const updatedColumns = [...currentColumns, ...newColumns];
+            
+            // Get the currently active tab to preserve it after reload
+            const activeTab = document.querySelector('.tab.active');
+            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'columns';
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    columns: updatedColumns,
+                    preserveTab: currentTabId
+                }
+            });
+            
+            // Close the modal
+            document.body.removeChild(modal);
+        });
+    }
+
+    // Function to attach event listeners to the parameter modal
+    function attachParamModalEventListeners(modal) {
+        // Tab switching in modal
+        modal.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                // Update active tab
+                modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                // Update visible tab content
+                modal.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+                
+                // Set focus based on which tab is now active
+                setTimeout(() => {
+                    if (tabId === 'singleAdd') {
+                        const paramNameInput = modal.querySelector("#paramName");
+                        if (paramNameInput) {
+                            paramNameInput.focus();
+                        }
+                    } else if (tabId === 'bulkAdd') {
+                        const bulkParamsTextarea = modal.querySelector("#bulkParams");
+                        if (bulkParamsTextarea) {
+                            bulkParamsTextarea.focus();
+                        }
+                    }
+                }, 10);
+            });
+        });
+
+        // Close modal when clicking the x button
+        modal.querySelector(".close-button").addEventListener("click", function() {
+            document.body.removeChild(modal);
+        });
+
+        // Close modal when clicking outside the modal content
+        modal.addEventListener("click", function(event) {
+            if (event.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+        
+        // Add Enter key handling for single param input
+        const paramNameInput = modal.querySelector("#paramName");
+        if (paramNameInput) {
+            paramNameInput.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    const addButton = modal.querySelector("#addSingleParam");
+                    if (addButton && !addButton.disabled) {
+                        addButton.click();
+                    }
+                }
+            });
+        }
+        
+        // Add Enter key handling for bulk params textarea
+        const bulkParamsTextarea = modal.querySelector("#bulkParams");
+        if (bulkParamsTextarea) {
+            bulkParamsTextarea.addEventListener("keydown", function(event) {
+                if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    const addButton = modal.querySelector("#addBulkParams");
+                    if (addButton && !addButton.disabled) {
+                        addButton.click();
+                    }
+                }
+            });
+        }
+
+        // Add single param button event listener
+        modal.querySelector("#addSingleParam").addEventListener("click", function() {
+            const paramName = modal.querySelector("#paramName").value.trim();
+            const errorElement = modal.querySelector("#singleValidationError");
+            
+            // Validate param name
+            const validationError = validateParamName(paramName);
+            if (validationError) {
+                errorElement.textContent = validationError;
+                return;
+            }
+            
+            // Clear any validation errors
+            errorElement.textContent = "";
+            
+            // Add the new param
+            addNewParam(paramName);
+            
+            // Close the modal
+            document.body.removeChild(modal);
+        });
+        
+        // Add bulk params button event listener
+        modal.querySelector("#addBulkParams").addEventListener("click", function() {
+            const bulkParams = modal.querySelector("#bulkParams").value;
+            const paramNames = bulkParams.split("\\n").map(name => name.trim()).filter(name => name);
+            const errorElement = modal.querySelector("#bulkValidationError");
+            
+            // Validate all param names
+            const errors = [];
+            const validParams = [];
+            
+            paramNames.forEach(name => {
+                const validationError = validateParamName(name);
+                if (validationError) {
+                    errors.push("\\"" + name + "\\": " + validationError);
+                } else {
+                    validParams.push(name);
+                }
+            });
+            
+            if (errors.length > 0) {
+                errorElement.innerHTML = errors.join("<br>");
+                return;
+            }
+            
+            // Add all valid params at once
+            const newParams = validParams.map(name => ({
+                name: name
+            }));
+
+            // Add all params in one operation
+            const updatedParams = [...currentParams, ...newParams];
+            
+            // Get the currently active tab to preserve it after reload
+            const activeTab = document.querySelector('.tab.active');
+            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'params';
+            
+            // Send message to update the model
+            vscode.postMessage({
+                command: 'updateModel',
+                data: {
+                    params: updatedParams,
                     preserveTab: currentTabId
                 }
             });

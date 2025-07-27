@@ -280,6 +280,41 @@ function getButtonManagementFunctions() {
             }
         });
     }
+
+    // Function to add a new button to the report
+    function addNewButton(buttonName) {
+        const newButton = {
+            buttonName: buttonName,
+            buttonType: 'other'
+        };
+                    
+        const buttonText = generateButtonText(buttonName);
+        newButton.buttonText = buttonText;
+
+        // If buttonText starts with 'Add' then its an 'add' button type
+        if (buttonText.startsWith('Add')) {
+            newButton.buttonType = 'add';
+        }
+        
+        // Add to current buttons array for immediate backend update
+        const updatedButtons = [...currentButtons, newButton];
+        
+        // Get the currently active tab to preserve it after reload
+        const activeTab = document.querySelector('.tab.active');
+        const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'buttons';
+        
+        // Send message to update the model - backend will reload the view
+        vscode.postMessage({
+            command: 'updateModel',
+            data: {
+                buttons: updatedButtons,
+                preserveTab: currentTabId
+            }
+        });
+        
+        // Note: View will be automatically reloaded by backend after model update
+        // No need to update frontend UI here - backend will regenerate entire view
+    }
     `;
 }
 

@@ -158,8 +158,31 @@ function getDOMInitialization() {
         }
     }
     
-    // Setup list button event handlers for Copy, Move Up, Move Down, Reverse
+    // Setup list button event handlers for Copy, Move Up, Move Down, Reverse and Add buttons
     function setupListButtonHandlers() {
+        // Add button event handlers
+        const addColumnBtn = document.getElementById('add-column-btn');
+        const addButtonBtn = document.getElementById('add-button-btn');
+        const addParamBtn = document.getElementById('add-param-btn');
+        
+        if (addColumnBtn) {
+            addColumnBtn.addEventListener('click', function() {
+                createAddColumnModal();
+            });
+        }
+        
+        if (addButtonBtn) {
+            addButtonBtn.addEventListener('click', function() {
+                createAddButtonModal();
+            });
+        }
+        
+        if (addParamBtn) {
+            addParamBtn.addEventListener('click', function() {
+                createAddParamModal();
+            });
+        }
+        
         // Columns list buttons
         const copyColumnsButton = document.getElementById('copyColumnsButton');
         const moveUpColumnsButton = document.getElementById('moveUpColumnsButton');
