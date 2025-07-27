@@ -365,7 +365,7 @@ function getParameterManagementFunctions() {
         });
         
         // Reverse buttons
-        document.getElementById('reverse-params-btn')?.addEventListener('click', function() {
+        document.getElementById('reverseParamsButton')?.addEventListener('click', function() {
             reverseArray('param');
         });
         
@@ -462,15 +462,15 @@ function getParameterManagementFunctions() {
         switch(type) {
             case 'param':
                 array = currentParams;
-                command = 'reverseFormParams';
+                command = 'reverseParam';
                 break;
             case 'button':
                 array = currentButtons;
-                command = 'reverseFormButtons';
+                command = 'reverseButtons';
                 break;
             case 'outputVar':
                 array = currentOutputVars;
-                command = 'reverseFormOutputVars';
+                command = 'reverseOutputVar';
                 break;
             default:
                 return;

@@ -215,7 +215,7 @@ function showReportDetails(item, modelService, context) {
                 case "reverseColumn":
                     if (modelService && reportReference) {
                         // Reverse column array
-                        reverseColumnArray(reportReference, modelService);
+                        reverseColumnArray(reportReference, modelService, panel);
                     } else {
                         console.warn("Cannot reverse columns: ModelService not available or report reference not found");
                     }
@@ -224,7 +224,7 @@ function showReportDetails(item, modelService, context) {
                 case "reverseButton":
                     if (modelService && reportReference) {
                         // Reverse button array
-                        reverseButtonArray(reportReference, modelService);
+                        reverseButtonArray(reportReference, modelService, panel);
                     } else {
                         console.warn("Cannot reverse buttons: ModelService not available or report reference not found");
                     }
@@ -233,7 +233,7 @@ function showReportDetails(item, modelService, context) {
                 case "reverseParam":
                     if (modelService && reportReference) {
                         // Reverse param array
-                        reverseParamArray(reportReference, modelService);
+                        reverseParamArray(reportReference, modelService, panel);
                     } else {
                         console.warn("Cannot reverse params: ModelService not available or report reference not found");
                     }
@@ -793,8 +793,9 @@ function moveParamInArray(data, reportReference, modelService) {
  * Reverses the reportColumn array
  * @param {Object} reportReference Direct reference to the report object
  * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
  */
-function reverseColumnArray(reportReference, modelService) {
+function reverseColumnArray(reportReference, modelService, panel) {
     try {
         console.log("[DEBUG] reverseColumnArray called");
         
@@ -821,7 +822,15 @@ function reverseColumnArray(reportReference, modelService) {
             console.log("[DEBUG] Marked unsaved changes after column reverse");
         }
         
-        // Refresh the view
+        // Send message to webview to refresh the columns list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshColumnsList',
+                data: reportReference.reportColumn
+            });
+        }
+        
+        // Refresh only the tree view
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error reversing column array:", error);
@@ -832,8 +841,9 @@ function reverseColumnArray(reportReference, modelService) {
  * Reverses the reportButton array
  * @param {Object} reportReference Direct reference to the report object
  * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
  */
-function reverseButtonArray(reportReference, modelService) {
+function reverseButtonArray(reportReference, modelService, panel) {
     try {
         console.log("[DEBUG] reverseButtonArray called");
         
@@ -860,7 +870,15 @@ function reverseButtonArray(reportReference, modelService) {
             console.log("[DEBUG] Marked unsaved changes after button reverse");
         }
         
-        // Refresh the view
+        // Send message to webview to refresh the buttons list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshButtonsList',
+                data: reportReference.reportButton
+            });
+        }
+        
+        // Refresh only the tree view
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error reversing button array:", error);
@@ -871,8 +889,9 @@ function reverseButtonArray(reportReference, modelService) {
  * Reverses the reportParam array
  * @param {Object} reportReference Direct reference to the report object
  * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
  */
-function reverseParamArray(reportReference, modelService) {
+function reverseParamArray(reportReference, modelService, panel) {
     try {
         console.log("[DEBUG] reverseParamArray called");
         
@@ -899,7 +918,15 @@ function reverseParamArray(reportReference, modelService) {
             console.log("[DEBUG] Marked unsaved changes after param reverse");
         }
         
-        // Refresh the view
+        // Send message to webview to refresh the params list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: reportReference.reportParam
+            });
+        }
+        
+        // Refresh only the tree view
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error reversing param array:", error);

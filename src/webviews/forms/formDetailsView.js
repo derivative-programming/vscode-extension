@@ -281,16 +281,17 @@ function showFormDetails(item, modelService, context) {
                 case "reverseParam":
                     if (modelService && formReference) {
                         // Reverse param array
-                        reverseParamArray(formReference, modelService);
+                        reverseParamArray(formReference, modelService, panel);
                     } else {
                         console.warn("Cannot reverse params: ModelService not available or form reference not found");
                     }
                     return;
                     
                 case "reverseButton":
+                case "reverseButtons":  // Handle both singular and plural
                     if (modelService && formReference) {
                         // Reverse button array
-                        reverseButtonArray(formReference, modelService);
+                        reverseButtonArray(formReference, modelService, panel);
                     } else {
                         console.warn("Cannot reverse buttons: ModelService not available or form reference not found");
                     }
@@ -299,7 +300,7 @@ function showFormDetails(item, modelService, context) {
                 case "reverseOutputVar":
                     if (modelService && formReference) {
                         // Reverse output variable array
-                        reverseOutputVarArray(formReference, modelService);
+                        reverseOutputVarArray(formReference, modelService, panel);
                     } else {
                         console.warn("Cannot reverse output variables: ModelService not available or form reference not found");
                     }
@@ -347,15 +348,6 @@ function showFormDetails(item, modelService, context) {
                         addOutputVarToForm(formReference, modelService);
                     } else {
                         console.warn("Cannot add output variable: ModelService not available or form reference not found");
-                    }
-                    return;
-                    
-                case "reverseParams":
-                    if (modelService && formReference) {
-                        // Reverse the parameters array
-                        reverseParamArray(formReference, modelService);
-                    } else {
-                        console.warn("Cannot reverse parameters: ModelService not available or form reference not found");
                     }
                     return;
                     
@@ -1014,7 +1006,7 @@ function moveOutputVarInArray(data, formReference, modelService) {
     }
 }
 
-function reverseParamArray(formReference, modelService) {
+function reverseParamArray(formReference, modelService, panel) {
     console.log("reverseParamArray called for form");
     
     if (!formReference || !modelService) {
@@ -1034,14 +1026,27 @@ function reverseParamArray(formReference, modelService) {
         // Reverse the parameters array
         form.objectWorkflowParam.reverse();
         
-        // Save the model
-        modelService.saveModel();
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the params list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: form.objectWorkflowParam
+            });
+        }
+        
+        // Refresh only the tree view
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error reversing parameters:", error);
     }
 }
 
-function reverseButtonArray(formReference, modelService) {
+function reverseButtonArray(formReference, modelService, panel) {
     try {
         console.log("[DEBUG] reverseButtonArray called for form");
         
@@ -1065,14 +1070,27 @@ function reverseButtonArray(formReference, modelService) {
         
         console.log("[DEBUG] Button array reversed successfully");
         
-        // Save the model
-        modelService.saveModel();
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the buttons list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshButtonsList',
+                data: form.objectWorkflowButton
+            });
+        }
+        
+        // Refresh only the tree view
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error reversing button array:", error);
     }
 }
 
-function reverseOutputVarArray(formReference, modelService) {
+function reverseOutputVarArray(formReference, modelService, panel) {
     console.log("reverseOutputVarArray called for form");
     
     if (!formReference || !modelService) {
@@ -1103,7 +1121,15 @@ function reverseOutputVarArray(formReference, modelService) {
             modelService.markUnsavedChanges();
         }
         
-        // Refresh the UI
+        // Send message to webview to refresh the output variables list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshOutputVarsList',
+                data: form.objectWorkflowOutputVar
+            });
+        }
+        
+        // Refresh only the tree view
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error reversing output variables array:", error);

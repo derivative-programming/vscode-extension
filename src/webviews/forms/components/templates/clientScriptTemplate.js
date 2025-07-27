@@ -89,6 +89,66 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
 
             // DOM Initialization
             ${getDOMInitialization()}
+            
+            // Message handlers for list refresh updates
+            window.addEventListener('message', event => {
+                const message = event.data;
+                
+                switch (message.command) {
+                    case 'refreshParamsList':
+                        refreshParamsList(message.data);
+                        break;
+                    case 'refreshButtonsList':
+                        refreshButtonsList(message.data);
+                        break;
+                    case 'refreshOutputVarsList':
+                        refreshOutputVarsList(message.data);
+                        break;
+                }
+            });
+            
+            // List refresh functions
+            function refreshParamsList(newParams) {
+                const paramsList = document.getElementById('paramsList');
+                if (paramsList) {
+                    paramsList.innerHTML = '';
+                    newParams.forEach((param, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = param.name || 'Unnamed Parameter';
+                        paramsList.appendChild(option);
+                    });
+                    console.log('[DEBUG] Params list refreshed with', newParams.length, 'items');
+                }
+            }
+            
+            function refreshButtonsList(newButtons) {
+                const buttonsList = document.getElementById('buttonsList');
+                if (buttonsList) {
+                    buttonsList.innerHTML = '';
+                    newButtons.forEach((button, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = button.buttonText || button.buttonName || 'Unnamed Button';
+                        buttonsList.appendChild(option);
+                    });
+                    console.log('[DEBUG] Buttons list refreshed with', newButtons.length, 'items');
+                }
+            }
+            
+            function refreshOutputVarsList(newOutputVars) {
+                const outputVarsList = document.getElementById('outputVarsList');
+                if (outputVarsList) {
+                    outputVarsList.innerHTML = '';
+                    newOutputVars.forEach((outputVar, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = outputVar.name || 'Unnamed Output Variable';
+                        outputVarsList.appendChild(option);
+                    });
+                    console.log('[DEBUG] Output vars list refreshed with', newOutputVars.length, 'items');
+                }
+            }
 
         })();
     `;

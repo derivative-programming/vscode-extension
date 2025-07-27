@@ -83,6 +83,66 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
 
             // DOM Initialization
             ${getDOMInitialization()}
+            
+            // Message handlers for list refresh updates
+            window.addEventListener('message', event => {
+                const message = event.data;
+                
+                switch (message.command) {
+                    case 'refreshColumnsList':
+                        refreshColumnsList(message.data);
+                        break;
+                    case 'refreshButtonsList':
+                        refreshButtonsList(message.data);
+                        break;
+                    case 'refreshParamsList':
+                        refreshParamsList(message.data);
+                        break;
+                }
+            });
+            
+            // List refresh functions
+            function refreshColumnsList(newColumns) {
+                const columnsList = document.getElementById('columnsList');
+                if (columnsList) {
+                    columnsList.innerHTML = '';
+                    newColumns.forEach((column, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = column.name || 'Unnamed Column';
+                        columnsList.appendChild(option);
+                    });
+                    console.log('[DEBUG] Columns list refreshed with', newColumns.length, 'items');
+                }
+            }
+            
+            function refreshButtonsList(newButtons) {
+                const buttonsList = document.getElementById('buttonsList');
+                if (buttonsList) {
+                    buttonsList.innerHTML = '';
+                    newButtons.forEach((button, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = button.buttonName || 'Unnamed Button';
+                        buttonsList.appendChild(option);
+                    });
+                    console.log('[DEBUG] Buttons list refreshed with', newButtons.length, 'items');
+                }
+            }
+            
+            function refreshParamsList(newParams) {
+                const paramsList = document.getElementById('paramsList');
+                if (paramsList) {
+                    paramsList.innerHTML = '';
+                    newParams.forEach((param, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = param.name || 'Unnamed Parameter';
+                        paramsList.appendChild(option);
+                    });
+                    console.log('[DEBUG] Params list refreshed with', newParams.length, 'items');
+                }
+            }
 
         })();
     `;

@@ -48,6 +48,14 @@ Command: Expand all top level tree items in the AppDNA tree view
 
 2025-07-26: Implemented formFooterText display in page preview view for forms
 2025-07-26: Removed placeholder content from form preview when no controls are defined
+
+2025-07-27: Review the 'reverse' button on the three tabs in report details view
+
+2025-07-27: Fixed reverse buttons in report details view not updating display - replaced excessive refreshAll() calls with lightweight targeted list updates. Now when reverse buttons are clicked, backend sends specific refresh messages (refreshColumnsList, refreshButtonsList, refreshParamsList) to webview which updates only the affected select list without regenerating entire view. More efficient approach that only updates what changed.
+
+2025-07-27: Fixed reverse buttons in form details view not updating display - applied same lightweight approach as reports. Added panel parameter to reverse functions, fixed command name inconsistencies (added support for both reverseButton/reverseButtons), removed duplicate reverseParams handler, and added client-side refresh handlers (refreshParamsList, refreshButtonsList, refreshOutputVarsList). Now form reverse buttons update display immediately without heavy webview regeneration.
+
+2025-07-27: Fixed Input Controls tab reverse button not working and Buttons tab showing wrong text - corrected parameterManagementFunctions.js to send 'reverseParam' instead of 'reverseFormParams', fixed button ID from 'reverse-params-btn' to 'reverseParamsButton', and updated refreshButtonsList to use 'buttonText || buttonName' property for proper display text matching the main template pattern.
 2025-01-27: change all the buttons with text 'Copy' to 'Copy List'
 2025-07-26: Added auto-submit notification display in form preview when isAutoSubmit=true
 2025-07-26: Right-justified 'other' and 'add' type buttons in report grid view action buttons
