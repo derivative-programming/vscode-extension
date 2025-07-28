@@ -8,3 +8,4 @@ node_modules
 
 # Test files
 test-*.html
+*.vsix
