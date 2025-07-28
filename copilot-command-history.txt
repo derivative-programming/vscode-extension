@@ -1,3 +1,34 @@
+2025-01-27: Fixed parameter list not refreshing after adding input controls via modal
+- Added webview refresh message (refreshParamsList) to addParamToFormWithName and addParamToForm functions
+- Updated function signatures to accept panel parameter for webview communication
+- Updated function calls to pass panel parameter from message handlers
+- Added newSelection parameter to automatically select newly added parameters in the list
+- Parameter list now immediately updates to show new items when added via modal or regular add button
+- Matches the refresh pattern used by other successful operations like move and reverse functions
+2025-01-27: Fixed "saveModel is not a function" error in form details view add functionality
+- Replaced incorrect modelService.saveModel() calls with markUnsavedChanges() pattern used throughout codebase
+- Added proper UI refresh using vscode.commands.executeCommand("appdna.refresh") after model changes
+- Fixed addParamToForm, addParamToFormWithName, copy parameter, copy button, add button, and update parameter functions
+- Now matches the pattern used in reports view and other form functions for proper model state management
+- Add Input Control modal functionality now works correctly without backend errors
+2025-01-27: Fixed modal styling issues in Add Input Control modal for form details view (updated)
+- Fixed modal CSS to support flexbox centering (added align-items: center and justify-content: center)
+- Changed modal width to fixed 400px with max-width 90vw for better responsiveness
+- Removed margin: auto approach in favor of flexbox centering for proper positioning
+- Increased input padding from 8px to 10px and set explicit font-size to 14px
+- Increased textarea min-height from 80px to 100px for better usability
+- Added modal-specific form-row styling for vertical layout instead of horizontal
+- Modal now properly centers and has appropriately sized inputs and textareas
+2025-01-27: Implemented "Add Input Control" modal functionality for form details view
+- Created addInputControlModalTemplate.js with modal HTML template
+- Created addInputControlModalFunctionality.js with modal JavaScript functionality  
+- Updated clientScriptTemplate.js to include new modal templates and functionality
+- Updated domInitialization.js to use modal instead of direct command
+- Added addParamWithName command handler to formDetailsView.js
+- Added addParamToFormWithName function to handle parameter creation with custom names
+- Modal follows same pattern as "Add Column" modal in reports view with single/bulk tabs
+- Includes validation, Enter key handling, focus management, and error display
+- Supports both single input control addition and bulk addition (one name per line)
 2025-01-20: Fixed broken image URLs in README.md by replacing GitHub blob URLs with raw GitHub URLs. Changed all image URLs from 'github.com/blob/main/' to 'raw.githubusercontent.com/main/' format which is required for proper image display on VS Code Marketplace. Updated MARKETPLACE-PUBLISHING-GUIDE.md to document the correct URL format and explain why blob URLs cause broken images.
 2025-07-27: Fixed form details view selection preservation during move operations to match report behavior. When moving items in form details view, selection was staying at old index instead of following moved item to new position. Updated moveParamInArray, moveButtonInArray, and moveOutputVarInArray functions to include newSelection: toIndex in postMessage. Modified refreshParamsList, refreshButtonsList, and refreshOutputVarsList functions to accept newSelection parameter and use it to set selection to moved item's new position. Updated message handlers to pass newSelection from server to refresh functions. Now selection follows moved item like in report details view.
 2025-07-27: Added missing move button event handlers for Input Controls tab. Parameter management was missing event handlers for moveUpParamsButton and moveDownParamsButton, causing clicks to do nothing. Added event handlers that send moveParam commands with nested data structure {fromIndex, toIndex} to match server expectations. Parameters now properly move up/down when buttons are clicked.

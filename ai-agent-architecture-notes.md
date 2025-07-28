@@ -4,6 +4,29 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### Add Input Control Modal Implementation (2025-01-27)
+**New Feature Added:** Implemented modal functionality for adding input controls (parameters) to forms, replacing the simple direct command with a rich modal interface similar to the "Add Column" modal in reports view.
+
+**Key Learnings:**
+- **Pattern Consistency:** Forms and reports views use different communication patterns - reports use `updateModel` commands for bulk operations while forms use individual commands like `addParam`
+- **Modal Architecture:** Modal templates and functionality are injected into client script template via string interpolation, requiring careful escaping and modular design
+- **File Organization:** New modal functionality follows established patterns with separate template and functionality files in components/templates directory
+- **Command Naming:** Used `addParamWithName` command to distinguish from existing `addParam` command that generates default names
+- **Validation Reuse:** Validation logic (PascalCase, alpha-only, uniqueness) follows same patterns as reports view for consistency
+
+**Technical Implementation:**
+- **Template:** `addInputControlModalTemplate.js` - HTML structure with single/bulk tabs
+- **Functionality:** `addInputControlModalFunctionality.js` - Event handlers and validation logic
+- **Integration:** Updated `clientScriptTemplate.js` to inject modal code
+- **Backend:** Added `addParamWithName` command handler and `addParamToFormWithName` function
+- **UI Updates:** Modified `domInitialization.js` to use modal instead of direct command
+
+**Architecture Patterns Observed:**
+1. **Modular Script Injection:** Client scripts use template literals to inject modular functionality
+2. **Command Variation:** Different views (forms vs reports) handle bulk operations differently
+3. **Template Reuse:** Modal patterns can be reused across views with appropriate customization
+4. **Validation Consistency:** Same validation rules applied across all add operations for user consistency
+
 ### Page Preview View Implementation (2025-07-20)
 **New Feature Added:** Created a comprehensive page preview view that allows users to visually preview forms and reports with role-based filtering.
 

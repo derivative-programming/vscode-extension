@@ -356,9 +356,18 @@ function showFormDetails(item, modelService, context) {
                 case "addParam":
                     if (modelService && formReference) {
                         // Add a new parameter to the form
-                        addParamToForm(formReference, modelService);
+                        addParamToForm(formReference, modelService, panel);
                     } else {
                         console.warn("Cannot add parameter: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "addParamWithName":
+                    if (modelService && formReference) {
+                        // Add a new parameter to the form with specified name
+                        addParamToFormWithName(formReference, modelService, message.data.name, panel);
+                    } else {
+                        console.warn("Cannot add parameter with name: ModelService not available or form reference not found");
                     }
                     return;
                     
@@ -1207,8 +1216,13 @@ function copyParamInArray(data, formReference, modelService) {
         // Insert the copy after the original
         form.objectWorkflowParam.splice(data.index + 1, 0, paramCopy);
         
-        // Save the model
-        modelService.saveModel();
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error copying parameter:", error);
     }
@@ -1266,8 +1280,13 @@ function copyButtonInArray(data, formReference, modelService) {
         // Insert the copy right after the original
         form.objectWorkflowButton.splice(data.index + 1, 0, buttonCopy);
         
-        // Save the model
-        modelService.saveModel();
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error copying button:", error);
     }
@@ -1328,7 +1347,7 @@ function copyOutputVarInArray(message, formReference, modelService) {
     }
 }
 
-function addParamToForm(formReference, modelService) {
+function addParamToForm(formReference, modelService, panel) {
     console.log("addParamToForm called");
     
     if (!formReference || !modelService) {
@@ -1353,10 +1372,70 @@ function addParamToForm(formReference, modelService) {
         // Add the new parameter to the array
         form.objectWorkflowParam.push(newParam);
         
-        // Save the model
-        modelService.saveModel();
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the params list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: form.objectWorkflowParam,
+                newSelection: form.objectWorkflowParam.length - 1 // Select the newly added item
+            });
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding parameter:", error);
+    }
+}
+
+function addParamToFormWithName(formReference, modelService, paramName, panel) {
+    console.log("addParamToFormWithName called with name:", paramName);
+    
+    if (!formReference || !modelService || !paramName) {
+        console.error("Missing required data to add parameter with name");
+        return;
+    }
+    
+    try {
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
+        
+        // Initialize the parameters array if it doesn't exist
+        if (!form.objectWorkflowParam) {
+            form.objectWorkflowParam = [];
+        }
+        
+        // Create a new parameter with the specified name
+        const newParam = {
+            name: paramName
+        };
+        
+        // Add the new parameter to the array
+        form.objectWorkflowParam.push(newParam);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the params list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: form.objectWorkflowParam,
+                newSelection: form.objectWorkflowParam.length - 1 // Select the newly added item
+            });
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding parameter with name:", error);
     }
 }
 
@@ -1385,8 +1464,13 @@ function addButtonToForm(formReference, modelService) {
         // Add the new button to the array
         form.objectWorkflowButton.push(newButton);
         
-        // Save the model
-        modelService.saveModel();
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding button:", error);
     }
@@ -1460,8 +1544,13 @@ function updateParamFull(data, formReference, modelService) {
         // Update the parameter with the new data
         form.objectWorkflowParam[data.index] = data.param;
         
-        // Save the model
-        modelService.saveModel();
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error updating full parameter:", error);
     }

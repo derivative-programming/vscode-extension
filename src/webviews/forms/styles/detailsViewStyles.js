@@ -188,17 +188,18 @@ function getDetailViewStyles() {
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
         }
         
         .modal-content {
             position: relative;
             background-color: var(--vscode-editor-background);
-            margin: 5% auto;
             padding: 20px;
             border: 1px solid var(--vscode-panel-border);
             border-radius: 4px;
-            width: 80%;
-            max-width: 700px;
+            width: 400px;
+            max-width: 90vw;
             max-height: 80vh;
             overflow-y: auto;
         }
@@ -368,22 +369,68 @@ function getDetailViewStyles() {
             margin-bottom: 15px;
         }
         
+        /* Validation styles for forms */
+        .validation-error {
+            color: var(--vscode-errorForeground, #f44336);
+            font-size: 12px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            min-height: 16px;
+        }
+        
+        .field-note {
+            color: var(--vscode-descriptionForeground, #999);
+            font-size: 11px;
+            margin-top: 3px;
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+        
         .modal .form-row label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
         
+        /* Modal form styling - override horizontal form-row for vertical layout */
+        .modal .form-row {
+            display: block;
+            margin-bottom: 15px;
+        }
+        
         .modal .form-row input[type="text"],
         .modal .form-row textarea,
         .modal .form-row select {
             width: 100%;
-            padding: 5px;
+            padding: 10px;
             border: 1px solid var(--vscode-input-border);
             background-color: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
             border-radius: 3px;
             box-sizing: border-box;
+            font-family: var(--vscode-font-family);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .modal .form-row textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .modal .form-row input[type="text"]:focus,
+        .modal .form-row textarea:focus,
+        .modal .form-row select:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder);
+        }
+        
+        .modal .field-note {
+            display: block;
+            margin-top: 5px;
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
+            font-style: italic;
         }
     `;
 }

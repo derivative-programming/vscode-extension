@@ -18,10 +18,8 @@ function initializeDOMEvents() {
     const addParamBtn = document.getElementById('add-param-btn');
     if (addParamBtn) {
         addParamBtn.addEventListener('click', function() {
-            // Send direct message to add a new parameter
-            vscode.postMessage({
-                command: 'addParam'
-            });
+            // Use the new add input control modal instead of direct message
+            createAddInputControlModal();
         });
     }
     
