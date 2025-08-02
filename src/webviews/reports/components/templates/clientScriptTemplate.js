@@ -9,6 +9,8 @@ const { getParameterManagementFunctions } = require("../scripts/parameterManagem
 const { getDOMInitialization } = require("../scripts/domInitialization");
 const { getModalFunctionality } = require("../scripts/modalFunctionality");
 const { getAddColumnModalHtml } = require("./addColumnModalTemplate");
+const { getAddButtonModalHtml } = require("./addButtonModalTemplate");
+const { getAddParamModalHtml } = require("./addParamModalTemplate");
 
 /**
  * File: clientScriptTemplate.js
@@ -52,6 +54,16 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Add Column Modal Template Function
             function getAddColumnModalHtml() {
                 return \`${getAddColumnModalHtml()}\`;
+            }
+            
+            // Add Button Modal Template Function
+            function getAddButtonModalHtml() {
+                return \`${getAddButtonModalHtml()}\`;
+            }
+            
+            // Add Param Modal Template Function
+            function getAddParamModalHtml() {
+                return \`${getAddParamModalHtml()}\`;
             }
             
             // Page Preview Function

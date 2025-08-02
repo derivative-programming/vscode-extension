@@ -167,6 +167,42 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addButton":
+                    if (modelService && reportReference) {
+                        // Add a new button to the report
+                        addButtonToReport(reportReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot add button: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "addButtonWithName":
+                    if (modelService && reportReference) {
+                        // Add a new button to the report with specified name
+                        addButtonToReportWithName(reportReference, modelService, message.data.name, panel);
+                    } else {
+                        console.warn("Cannot add button with name: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "addParam":
+                    if (modelService && reportReference) {
+                        // Add a new param to the report
+                        addParamToReport(reportReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot add param: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "addParamWithName":
+                    if (modelService && reportReference) {
+                        // Add a new param to the report with specified name
+                        addParamToReportWithName(reportReference, modelService, message.data.name, panel);
+                    } else {
+                        console.warn("Cannot add param with name: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
                 case "updateSettings":
                     if (modelService && reportReference) {
                         // Update settings properties directly on the report
@@ -1079,6 +1115,212 @@ function addColumnToReportWithName(reportReference, modelService, columnName, pa
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding column with name:", error);
+    }
+}
+
+/**
+ * Adds a new button to the report
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addButtonToReport(reportReference, modelService, panel) {
+    console.log("addButtonToReport called");
+    
+    if (!reportReference || !modelService) {
+        console.error("Missing required data to add button");
+        return;
+    }
+    
+    try {
+        // Initialize the buttons array if it doesn't exist
+        if (!reportReference.reportButton) {
+            reportReference.reportButton = [];
+        }
+        
+        // Create a new button with a default name
+        const newButton = {
+            buttonName: `NewButton${reportReference.reportButton.length + 1}`,
+            buttonText: `New Button ${reportReference.reportButton.length + 1}`,
+            buttonType: 'other'
+        };
+        
+        // Add the new button to the array
+        reportReference.reportButton.push(newButton);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the buttons list and select the new button
+        if (panel && panel.webview) {
+            const newButtonIndex = reportReference.reportButton.length - 1; // New button is the last one
+            panel.webview.postMessage({
+                command: 'refreshButtonsList',
+                data: reportReference.reportButton,
+                newSelection: newButtonIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding button:", error);
+    }
+}
+
+/**
+ * Adds a new button to the report with user-specified name
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {string} buttonName Name for the new button
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addButtonToReportWithName(reportReference, modelService, buttonName, panel) {
+    console.log("addButtonToReportWithName called with name:", buttonName);
+    
+    if (!reportReference || !modelService || !buttonName) {
+        console.error("Missing required data to add button with name");
+        return;
+    }
+    
+    try {
+        // Initialize the buttons array if it doesn't exist
+        if (!reportReference.reportButton) {
+            reportReference.reportButton = [];
+        }
+        
+        // Create a new button with the specified name
+        const newButton = {
+            buttonName: buttonName,
+            buttonText: buttonName,
+            buttonType: 'other'
+        };
+        
+        // Add the new button to the array
+        reportReference.reportButton.push(newButton);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the buttons list and select the new button
+        if (panel && panel.webview) {
+            const newButtonIndex = reportReference.reportButton.length - 1; // New button is the last one
+            panel.webview.postMessage({
+                command: 'refreshButtonsList',
+                data: reportReference.reportButton,
+                newSelection: newButtonIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding button with name:", error);
+    }
+}
+
+/**
+ * Adds a new param to the report
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addParamToReport(reportReference, modelService, panel) {
+    console.log("addParamToReport called");
+    
+    if (!reportReference || !modelService) {
+        console.error("Missing required data to add param");
+        return;
+    }
+    
+    try {
+        // Initialize the params array if it doesn't exist
+        if (!reportReference.reportParam) {
+            reportReference.reportParam = [];
+        }
+        
+        // Create a new param with a default name
+        const newParam = {
+            name: `NewFilter${reportReference.reportParam.length + 1}`
+        };
+        
+        // Add the new param to the array
+        reportReference.reportParam.push(newParam);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the params list and select the new param
+        if (panel && panel.webview) {
+            const newParamIndex = reportReference.reportParam.length - 1; // New param is the last one
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: reportReference.reportParam,
+                newSelection: newParamIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding param:", error);
+    }
+}
+
+/**
+ * Adds a new param to the report with user-specified name
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {string} paramName Name for the new param
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addParamToReportWithName(reportReference, modelService, paramName, panel) {
+    console.log("addParamToReportWithName called with name:", paramName);
+    
+    if (!reportReference || !modelService || !paramName) {
+        console.error("Missing required data to add param with name");
+        return;
+    }
+    
+    try {
+        // Initialize the params array if it doesn't exist
+        if (!reportReference.reportParam) {
+            reportReference.reportParam = [];
+        }
+        
+        // Create a new param with the specified name
+        const newParam = {
+            name: paramName
+        };
+        
+        // Add the new param to the array
+        reportReference.reportParam.push(newParam);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the params list and select the new param
+        if (panel && panel.webview) {
+            const newParamIndex = reportReference.reportParam.length - 1; // New param is the last one
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: reportReference.reportParam,
+                newSelection: newParamIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding param with name:", error);
     }
 }
 

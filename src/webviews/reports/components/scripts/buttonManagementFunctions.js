@@ -281,39 +281,258 @@ function getButtonManagementFunctions() {
         });
     }
 
-    // Function to add a new button to the report
-    function addNewButton(buttonName) {
-        const newButton = {
-            buttonName: buttonName,
-            buttonType: 'other'
-        };
-                    
-        const buttonText = generateButtonText(buttonName);
-        newButton.buttonText = buttonText;
+    // Add button button click handler
+    document.getElementById('add-button-btn').addEventListener('click', function() {
+        // Use the new add button modal instead of the edit modal
+        createAddButtonModal();
+    });
 
-        // If buttonText starts with 'Add' then its an 'add' button type
-        if (buttonText.startsWith('Add')) {
-            newButton.buttonType = 'add';
-        }
-        
-        // Add to current buttons array for immediate backend update
-        const updatedButtons = [...currentButtons, newButton];
-        
-        // Get the currently active tab to preserve it after reload
-        const activeTab = document.querySelector('.tab.active');
-        const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'buttons';
-        
-        // Send message to update the model - backend will reload the view
+    // Function to add a new button to the report (called from add button modal)
+    function addNewButton(buttonName) {
+        // Send message to add a new button with the specified name
         vscode.postMessage({
-            command: 'updateModel',
+            command: 'addButtonWithName',
             data: {
-                buttons: updatedButtons,
-                preserveTab: currentTabId
+                name: buttonName
             }
         });
         
-        // Note: View will be automatically reloaded by backend after model update
-        // No need to update frontend UI here - backend will regenerate entire view
+        // Note: UI will be automatically updated by the refreshButtonsList message
+        // which will select the newly added button
+    }
+
+    // Function to create and show the Add Button modal
+    let buttonModalCreationInProgress = false;
+    function createAddButtonModal() {
+        console.log('[DEBUG] createAddButtonModal called');
+        
+        // Prevent multiple simultaneous modal creation
+        if (buttonModalCreationInProgress) {
+            console.log('[DEBUG] Button modal creation already in progress, ignoring duplicate call');
+            return;
+        }
+        buttonModalCreationInProgress = true;
+        
+        // Check if modal already exists and clean up any existing modals first
+        const existingModals = document.querySelectorAll('.modal');
+        console.log('[DEBUG] Existing modals before button modal creation:', existingModals.length);
+        if (existingModals.length > 0) {
+            console.log('[DEBUG] Cleaning up existing modals');
+            existingModals.forEach((existingModal, index) => {
+                try {
+                    if (existingModal.parentNode) {
+                        existingModal.parentNode.removeChild(existingModal);
+                        console.log('[DEBUG] Removed existing modal', index);
+                    }
+                } catch (error) {
+                    console.error('[ERROR] Failed to remove existing modal', index, ':', error);
+                }
+            });
+        }
+        // Create modal dialog for adding buttons
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        
+        // Import the modal HTML template (need to create this)
+        const modalContent = getAddButtonModalHtml();
+        
+        // Set the modal content
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+        
+        // Wait for DOM to be ready before attaching event listeners
+        setTimeout(() => {
+            // Show the modal
+            modal.style.display = "flex";
+            
+            // Attach event listeners after modal is in DOM and visible
+            attachButtonModalEventListeners(modal);
+            
+            // Focus on the button name input when modal opens (single button tab is active by default)
+            const buttonNameInput = modal.querySelector("#buttonName");
+            if (buttonNameInput) {
+                buttonNameInput.focus();
+            }
+        }, 10);
+    }
+
+    // Function to attach event listeners to the button modal
+    function attachButtonModalEventListeners(modal) {
+        // Tab switching in modal
+        modal.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                // Update active tab
+                modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                // Update visible tab content
+                modal.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+                
+                // Set focus based on which tab is now active
+                setTimeout(() => {
+                    if (tabId === 'singleAdd') {
+                        const buttonNameInput = modal.querySelector("#buttonName");
+                        if (buttonNameInput) {
+                            buttonNameInput.focus();
+                        }
+                    } else if (tabId === 'bulkAdd') {
+                        const bulkButtonsTextarea = modal.querySelector("#bulkButtons");
+                        if (bulkButtonsTextarea) {
+                            bulkButtonsTextarea.focus();
+                        }
+                    }
+                }, 10);
+            });
+        });
+
+        // Close modal when clicking the x button
+        modal.querySelector(".close-button").addEventListener("click", function() {
+            document.body.removeChild(modal);
+            buttonModalCreationInProgress = false; // Reset flag when modal is closed
+        });
+
+        // Close modal when clicking outside the modal content
+        modal.addEventListener("click", function(event) {
+            if (event.target === modal) {
+                document.body.removeChild(modal);
+                buttonModalCreationInProgress = false; // Reset flag when modal is closed
+            }
+        });
+        
+        // Add Enter key handling for single button input
+        const buttonNameInput = modal.querySelector("#buttonName");
+        if (buttonNameInput) {
+            buttonNameInput.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault(); // Prevent default Enter behavior
+                    const addButton = modal.querySelector("#addSingleButton");
+                    if (addButton && !addButton.disabled) {
+                        addButton.click();
+                    }
+                }
+            });
+        }
+        
+        // Note: No Enter key handling for bulk buttons textarea - users can press Enter to create new lines
+        // Users must click the "Add Buttons" button to submit
+
+        // Validate button name function
+        function validateButtonName(name) {
+            if (!name) {
+                return "Button name cannot be empty";
+            }
+            if (name.length > 100) {
+                return "Button name cannot exceed 100 characters";
+            }
+            if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
+                return "Button name must start with a letter and contain only letters and numbers";
+            }
+            if (currentButtons.some(button => button.buttonName === name)) {
+                return "Button with this name already exists";
+            }
+            return null; // Valid
+        }
+        
+        // Add single button button event listener
+        const addButton = modal.querySelector("#addSingleButton");
+        if (addButton) {
+            console.log('[DEBUG] Add single button button found, attaching event listener');
+            addButton.addEventListener("click", function() {
+                const buttonName = modal.querySelector("#buttonName").value.trim();
+                const errorElement = modal.querySelector("#singleValidationError");
+                
+                const validationError = validateButtonName(buttonName);
+                if (validationError) {
+                    errorElement.textContent = validationError;
+                    return;
+                }
+                
+                // Clear any previous error
+                errorElement.textContent = "";
+                
+                try {
+                    console.log('[DEBUG] Adding new button:', buttonName);
+                    
+                    // Add the new button - backend will handle selection
+                    addNewButton(buttonName);
+                    
+                    console.log('[DEBUG] Attempting to close button modal');
+                    // Close the modal
+                    document.body.removeChild(modal);
+                    buttonModalCreationInProgress = false; // Reset flag when modal is closed
+                    console.log('[DEBUG] Button modal closed successfully');
+                } catch (error) {
+                    console.error("Error adding button:", error);
+                    errorElement.textContent = "Error adding button. Please try again.";
+                }
+            });
+        } else {
+            console.error('[ERROR] Add single button button not found in modal');
+        }
+        
+        // Add bulk buttons button event listener
+        const bulkAddButton = modal.querySelector("#addBulkButtons");
+        if (bulkAddButton) {
+            console.log('[DEBUG] Add bulk buttons button found, attaching event listener');
+            bulkAddButton.addEventListener("click", function() {
+                const bulkButtons = modal.querySelector("#bulkButtons").value;
+                const buttonNames = bulkButtons.split("\\n").map(name => name.trim()).filter(name => name);
+                const errorElement = modal.querySelector("#bulkValidationError");
+                
+                // Validate all button names
+                const errors = [];
+                const validButtons = [];
+                
+                buttonNames.forEach(name => {
+                    const validationError = validateButtonName(name);
+                    if (validationError) {
+                        errors.push('"' + name + '": ' + validationError);
+                    } else {
+                        validButtons.push(name);
+                    }
+                });
+                
+                if (errors.length > 0) {
+                    errorElement.innerHTML = errors.join("<br>");
+                    return;
+                }
+                
+                // Clear any previous error
+                errorElement.textContent = "";
+                
+                try {
+                    console.log('[DEBUG] Adding bulk buttons:', validButtons);
+                    
+                    // Add all buttons in sequence (since backend doesn't handle bulk add yet)
+                    let currentIndex = 0;
+                    function addNextButton() {
+                        if (currentIndex < validButtons.length) {
+                            addNewButton(validButtons[currentIndex]);
+                            currentIndex++;
+                            // Add a small delay between additions to ensure proper backend processing
+                            setTimeout(addNextButton, 50);
+                        }
+                    }
+                    addNextButton();
+                    
+                    console.log('[DEBUG] Attempting to close bulk button modal');
+                    // Close the modal
+                    document.body.removeChild(modal);
+                    buttonModalCreationInProgress = false; // Reset flag when modal is closed
+                    console.log('[DEBUG] Bulk button modal closed successfully');
+                } catch (error) {
+                    console.error("Error adding bulk buttons:", error);
+                    errorElement.textContent = "Error adding buttons. Please try again.";
+                }
+            });
+        } else {
+            console.error('[ERROR] Add bulk buttons button not found in modal');
+        }
     }
     `;
 }

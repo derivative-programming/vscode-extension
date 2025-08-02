@@ -8,6 +8,12 @@
 
 2025-08-02: Removed buttonName property from form button creation - Removed setting of buttonName property in addButtonToFormWithText function and simplified validation to only check buttonText since buttonName is not a valid property according to the form schema. Only buttonText and buttonType are now set when creating new buttons.
 
+2025-08-02: Reviewed report details view for adding columns vs buttons/params. Found that column adding works correctly with automatic selection, but button and param adding is missing the same functionality. Columns send 'addColumnWithName' command and handle 'refreshColumnsList' with newSelection parameter. Buttons and params use 'updateModel' command which reloads entire view without preserving selection.
+
+2025-08-02: Fixed report details view button and param adding - now both have automatic selection like columns. Added missing event listeners, backend functions, and updated to use consistent pattern with refresh messages and newSelection parameter. Issue found: adding button and filter modals don't close after adding items.
+
+2025-08-02: Fixed modal closing issues and found JavaScript error - modalCreationInProgress variable declared multiple times in different management functions causing conflicts. Need to make variable names unique for each management area.
+
 2025-08-02: Fixed new button not appearing in list and auto-selecting - Updated addButtonToFormWithText function to send refreshButtonsList message to webview with newSelection parameter pointing to the newly added button. The function now receives the webview panel as a parameter and uses it to refresh the UI immediately after adding the button, ensuring the new button appears in the list and is automatically selected.
 
 2025-08-02: Debug modal closing issue - fixed missing getAddColumnModalHtml function import

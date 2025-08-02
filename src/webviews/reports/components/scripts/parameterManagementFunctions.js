@@ -284,32 +284,46 @@ function getParameterManagementFunctions() {
 
     // Function to add a new parameter (called from add parameter modal)
     function addNewParam(paramName) {
-        const newParam = {
-            name: paramName
-        };
-        
-        // Add to current parameters array for immediate backend update
-        const updatedParams = [...currentParams, newParam];
-        
-        // Get the currently active tab to preserve it after reload
-        const activeTab = document.querySelector('.tab.active');
-        const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'params';
-        
-        // Send message to update the model - backend will reload the view
+        // Send message to add a new param with the specified name
         vscode.postMessage({
-            command: 'updateModel',
+            command: 'addParamWithName',
             data: {
-                params: updatedParams,
-                preserveTab: currentTabId
+                name: paramName
             }
         });
         
-        // Note: View will be automatically reloaded by backend after model update
-        // No need to update frontend UI here - backend will regenerate entire view
+        // Note: UI will be automatically updated by the refreshParamsList message
+        // which will select the newly added param
     }
 
     // Function to create and show the Add Parameter modal
+    let paramModalCreationInProgress = false;
     function createAddParamModal() {
+        console.log('[DEBUG] createAddParamModal called');
+        
+        // Prevent multiple simultaneous modal creation
+        if (paramModalCreationInProgress) {
+            console.log('[DEBUG] Param modal creation already in progress, ignoring duplicate call');
+            return;
+        }
+        paramModalCreationInProgress = true;
+        
+        // Check if modal already exists and clean up any existing modals first
+        const existingModals = document.querySelectorAll('.modal');
+        console.log('[DEBUG] Existing modals before param modal creation:', existingModals.length);
+        if (existingModals.length > 0) {
+            console.log('[DEBUG] Cleaning up existing modals');
+            existingModals.forEach((existingModal, index) => {
+                try {
+                    if (existingModal.parentNode) {
+                        existingModal.parentNode.removeChild(existingModal);
+                        console.log('[DEBUG] Removed existing modal', index);
+                    }
+                } catch (error) {
+                    console.error('[ERROR] Failed to remove existing modal', index, ':', error);
+                }
+            });
+        }
         // Create modal dialog for adding parameters
         const modal = document.createElement("div");
         modal.className = "modal";
@@ -374,12 +388,14 @@ function getParameterManagementFunctions() {
         // Close modal when clicking the x button
         modal.querySelector(".close-button").addEventListener("click", function() {
             document.body.removeChild(modal);
+            paramModalCreationInProgress = false; // Reset flag when modal is closed
         });
 
         // Close modal when clicking outside the modal content
         modal.addEventListener("click", function(event) {
             if (event.target === modal) {
                 document.body.removeChild(modal);
+                paramModalCreationInProgress = false; // Reset flag when modal is closed
             }
         });
         
@@ -418,71 +434,100 @@ function getParameterManagementFunctions() {
         }
         
         // Add single parameter button event listener
-        modal.querySelector("#addSingleParam").addEventListener("click", function() {
-            const paramName = modal.querySelector("#paramName").value.trim();
-            const errorElement = modal.querySelector("#singleValidationError");
-            
-            const validationError = validateParamName(paramName);
-            if (validationError) {
-                errorElement.textContent = validationError;
-                return;
-            }
-            
-            // Add the new parameter - backend will reload view
-            addNewParam(paramName);
-            
-            // Close the modal
-            document.body.removeChild(modal);
-        });
+        const addButton = modal.querySelector("#addSingleParam");
+        if (addButton) {
+            console.log('[DEBUG] Add single param button found, attaching event listener');
+            addButton.addEventListener("click", function() {
+                const paramName = modal.querySelector("#paramName").value.trim();
+                const errorElement = modal.querySelector("#singleValidationError");
+                
+                const validationError = validateParamName(paramName);
+                if (validationError) {
+                    errorElement.textContent = validationError;
+                    return;
+                }
+                
+                // Clear any previous error
+                errorElement.textContent = "";
+                
+                try {
+                    console.log('[DEBUG] Adding new param:', paramName);
+                    
+                    // Add the new parameter - backend will handle selection
+                    addNewParam(paramName);
+                    
+                    console.log('[DEBUG] Attempting to close param modal');
+                    // Close the modal
+                    document.body.removeChild(modal);
+                    paramModalCreationInProgress = false; // Reset flag when modal is closed
+                    console.log('[DEBUG] Param modal closed successfully');
+                } catch (error) {
+                    console.error("Error adding param:", error);
+                    errorElement.textContent = "Error adding parameter. Please try again.";
+                }
+            });
+        } else {
+            console.error('[ERROR] Add single param button not found in modal');
+        }
         
         // Add bulk parameters button event listener
-        modal.querySelector("#addBulkParams").addEventListener("click", function() {
-            const bulkParams = modal.querySelector("#bulkParams").value;
-            const paramNames = bulkParams.split("\\n").map(name => name.trim()).filter(name => name);
-            const errorElement = modal.querySelector("#bulkValidationError");
-            
-            // Validate all parameter names
-            const errors = [];
-            const validParams = [];
-            
-            paramNames.forEach(name => {
-                const validationError = validateParamName(name);
-                if (validationError) {
-                    errors.push("\\"" + name + "\\": " + validationError);
-                } else {
-                    validParams.push(name);
+        const bulkAddButton = modal.querySelector("#addBulkParams");
+        if (bulkAddButton) {
+            console.log('[DEBUG] Add bulk params button found, attaching event listener');
+            bulkAddButton.addEventListener("click", function() {
+                const bulkParams = modal.querySelector("#bulkParams").value;
+                const paramNames = bulkParams.split("\\n").map(name => name.trim()).filter(name => name);
+                const errorElement = modal.querySelector("#bulkValidationError");
+                
+                // Validate all parameter names
+                const errors = [];
+                const validParams = [];
+                
+                paramNames.forEach(name => {
+                    const validationError = validateParamName(name);
+                    if (validationError) {
+                        errors.push('"' + name + '": ' + validationError);
+                    } else {
+                        validParams.push(name);
+                    }
+                });
+                
+                if (errors.length > 0) {
+                    errorElement.innerHTML = errors.join("<br>");
+                    return;
+                }
+                
+                // Clear any previous error
+                errorElement.textContent = "";
+                
+                try {
+                    console.log('[DEBUG] Adding bulk params:', validParams);
+                    
+                    // Add all parameters in sequence (since backend handles one at a time)
+                    let currentIndex = 0;
+                    function addNextParam() {
+                        if (currentIndex < validParams.length) {
+                            addNewParam(validParams[currentIndex]);
+                            currentIndex++;
+                            // Add a small delay between additions to ensure proper backend processing
+                            setTimeout(addNextParam, 50);
+                        }
+                    }
+                    addNextParam();
+                    
+                    console.log('[DEBUG] Attempting to close bulk param modal');
+                    // Close the modal
+                    document.body.removeChild(modal);
+                    paramModalCreationInProgress = false; // Reset flag when modal is closed
+                    console.log('[DEBUG] Bulk param modal closed successfully');
+                } catch (error) {
+                    console.error("Error adding bulk params:", error);
+                    errorElement.textContent = "Error adding parameters. Please try again.";
                 }
             });
-            
-            if (errors.length > 0) {
-                errorElement.innerHTML = errors.join("<br>");
-                return;
-            }
-            
-            // Add all valid parameters at once
-            const newParams = validParams.map(name => ({
-                name: name
-            }));
-
-            // Add all parameters in one operation
-            const updatedParams = [...currentParams, ...newParams];
-            
-            // Get the currently active tab to preserve it after reload
-            const activeTab = document.querySelector('.tab.active');
-            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'params';
-            
-            // Send message to update the model - backend will reload the view
-            vscode.postMessage({
-                command: 'updateModel',
-                data: {
-                    params: updatedParams,
-                    preserveTab: currentTabId
-                }
-            });
-            
-            // Close the modal
-            document.body.removeChild(modal);
-        });
+        } else {
+            console.error('[ERROR] Add bulk params button not found in modal');
+        }
     }
     `;
 }

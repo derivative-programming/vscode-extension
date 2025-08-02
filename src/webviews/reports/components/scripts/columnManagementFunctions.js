@@ -298,16 +298,16 @@ function getColumnManagementFunctions() {
     }
 
     // Function to create and show the Add Column modal
-    let modalCreationInProgress = false;
+    let columnModalCreationInProgress = false;
     function createAddColumnModal() {
         console.log('[DEBUG] createAddColumnModal called');
         
         // Prevent multiple simultaneous modal creation
-        if (modalCreationInProgress) {
+        if (columnModalCreationInProgress) {
             console.log('[DEBUG] Modal creation already in progress, ignoring duplicate call');
             return;
         }
-        modalCreationInProgress = true;
+        columnModalCreationInProgress = true;
         
         // Check if modal already exists and clean up any existing modals first
         const existingModals = document.querySelectorAll('.modal');
@@ -355,7 +355,7 @@ function getColumnManagementFunctions() {
             }
             
             // Reset the modal creation flag
-            modalCreationInProgress = false;
+            columnModalCreationInProgress = false;
         }, 10);
     }
 
@@ -400,7 +400,7 @@ function getColumnManagementFunctions() {
             closeButton.addEventListener("click", function() {
                 console.log('[DEBUG] Close button clicked');
                 document.body.removeChild(modal);
-                modalCreationInProgress = false; // Reset flag when modal is closed
+                columnModalCreationInProgress = false; // Reset flag when modal is closed
             });
         } else {
             console.error('[ERROR] Close button not found in modal');
@@ -412,7 +412,7 @@ function getColumnManagementFunctions() {
             if (event.target === modal) {
                 console.log('[DEBUG] Clicked outside modal content, closing');
                 document.body.removeChild(modal);
-                modalCreationInProgress = false; // Reset flag when modal is closed
+                columnModalCreationInProgress = false; // Reset flag when modal is closed
             }
         });
         
@@ -487,7 +487,7 @@ function getColumnManagementFunctions() {
                 console.log('[DEBUG] Attempting to close modal');
                 // Close the modal
                 document.body.removeChild(modal);
-                modalCreationInProgress = false; // Reset flag when modal is closed
+                columnModalCreationInProgress = false; // Reset flag when modal is closed
                 console.log('[DEBUG] Modal closed successfully');
             } catch (error) {
                 console.error("Error adding column:", error);

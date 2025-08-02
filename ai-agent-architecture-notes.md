@@ -26,12 +26,18 @@ For bulk add modals with textarea inputs (columns, parameters, buttons):
 - This provides better UX as users expect Enter to create new lines in multi-line text areas
 - Implementation: Remove keydown event listeners for bulk textareas in `modalFunctionality.js`
 
-### Reports View Pattern (Updated)
-- Originally used `updateModel` command which regenerated entire view
-- Updated to use individual `add[ItemType]WithName` commands following forms pattern
-- Now uses `addColumnWithName` command for adding columns
-- Backend sends `refreshColumnsList` with `newSelection` to auto-select new items
-- Examples: `reportDetailsView.js` - `addColumnToReportWithName`
+### Reports View Pattern (Updated - 2025-08-02)
+- **Fixed inconsistency:** Column adding worked correctly with auto-selection, but button and param adding did not
+- **Root cause:** Buttons had no add event listener, params used old `updateModel` approach 
+- **Solution implemented:**
+  - Added `addButtonToReport` and `addButtonToReportWithName` backend functions
+  - Added `addParamToReport` and `addParamToReportWithName` backend functions  
+  - Added missing event listener for `add-button-btn` in buttonManagementFunctions.js
+  - Updated param adding to use `addParamWithName` instead of `updateModel`
+  - All three types (columns, buttons, params) now use consistent pattern:
+    - Backend functions send `refresh[Type]sList` message with `newSelection` parameter
+    - Frontend automatically selects newly added items
+- Examples: `reportDetailsView.js` - `addColumnToReportWithName`, `addButtonToReportWithName`, `addParamToReportWithName`
 
 ### Key Learning
 - Always use the individual add commands with selection rather than full model updates
