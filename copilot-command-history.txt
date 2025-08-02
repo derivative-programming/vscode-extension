@@ -22,7 +22,7 @@
 2025-01-27: Implemented "Add Input Control" modal functionality for form details view
 - Created addInputControlModalTemplate.js with modal HTML template
 - Created addInputControlModalFunctionality.js with modal JavaScript functionality  
-- Updated clientScriptTemplate.js to include new modal templates and functionality
+- Fixed JS syntax error in clientScriptTemplate.js - corrected malformed function declarations in getPropertyModalHtml, getObjectSearchModalHtml, and getLookupItemModalHtml functions. The toString().replace() method was creating invalid JavaScript syntax. Changed to directly call the template functions and properly escape template literals.
 - Updated domInitialization.js to use modal instead of direct command
 - Added addParamWithName command handler to formDetailsView.js
 - Added addParamToFormWithName function to handle parameter creation with custom names
@@ -111,3 +111,6 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
 Command: Expand all top level tree items in the AppDNA tree view
+Command: startMCPServerCommand
+Command: stopMCPServerCommand
+2025-08-02: Fixed JS syntax error in clientScriptTemplate.js - corrected malformed function declarations in getPropertyModalHtml, getObjectSearchModalHtml, and getLookupItemModalHtml functions. The toString().replace() method was creating invalid JavaScript syntax. Changed to directly call the template functions and properly escape template literals.

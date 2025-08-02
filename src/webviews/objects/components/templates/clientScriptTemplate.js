@@ -86,17 +86,17 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
 
                 // Helper function to get property modal HTML
                 function getPropertyModalHtml() {
-                    ${getPropertyModalHtml.toString().replace(/^function getPropertyModalHtml\(\) \{|\}$/g, '')}
+                    return \`${getPropertyModalHtml().replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
                 }
 
                 // Helper function to get object search modal HTML
                 function getObjectSearchModalHtml() {
-                    ${getObjectSearchModalHtml.toString().replace(/^function getObjectSearchModalHtml\(\) \{|\}$/g, '')}
+                    return \`${getObjectSearchModalHtml().replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
                 }
 
                 // Helper function to get lookup item modal HTML
                 function getLookupItemModalHtml() {
-                    ${getLookupItemModalHtml.toString().replace(/^function getLookupItemModalHtml\(\) \{|\}$/g, '')}
+                    return \`${getLookupItemModalHtml().replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
                 }
 
                 // Template functions for view regeneration
