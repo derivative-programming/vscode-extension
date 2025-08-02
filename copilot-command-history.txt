@@ -14,6 +14,10 @@
 
 2025-08-02: Fixed modal closing issues and found JavaScript error - modalCreationInProgress variable declared multiple times in different management functions causing conflicts. Need to make variable names unique for each management area.
 
+2025-08-02: Fixed JavaScript error "Identifier 'modalCreationInProgress' has already been declared" - Made modal creation flags unique by renaming to columnModalCreationInProgress, buttonModalCreationInProgress, and paramModalCreationInProgress to prevent variable conflicts when all management functions are combined in clientScriptTemplate.js.
+
+2025-08-02: Fixed tab display issue in button and filter modals - Bulk Add tab was appearing under Single Add tab instead of side by side. Issue was inconsistent HTML structure between working column modal and broken button/param modals. Fixed by updating addButtonModalTemplate.js and addParamModalTemplate.js to match column modal structure: removed modal-header/modal-body wrapper divs, changed tab-container class to tabs class, changed h3 to h2, and moved close button position. Now all three modal types have consistent structure and proper side-by-side tab display.
+
 2025-08-02: Fixed new button not appearing in list and auto-selecting - Updated addButtonToFormWithText function to send refreshButtonsList message to webview with newSelection parameter pointing to the newly added button. The function now receives the webview panel as a parameter and uses it to refresh the UI immediately after adding the button, ensuring the new button appears in the list and is automatically selected.
 
 2025-08-02: Debug modal closing issue - fixed missing getAddColumnModalHtml function import
