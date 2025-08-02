@@ -354,18 +354,12 @@ function createPropertyModal() {
         });
     }
     
-    // Add Enter key handler for bulk properties textarea
+    // Add Enter key handler for bulk properties textarea - allow normal Enter behavior for new lines
+    // Users must click the button to submit the form
     const bulkPropsInput = modal.querySelector("#bulkProps");
     if (bulkPropsInput) {
-        bulkPropsInput.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault(); // Prevent default Enter behavior (adding newline)
-                const addButton = modal.querySelector("#addBulkProps");
-                if (addButton && !addButton.disabled) {
-                    addButton.click(); // Trigger add properties button click
-                }
-            }
-        });
+        // No special Enter key handling - allows normal textarea behavior where Enter creates new lines
+        // This prevents accidental form submission when user just wants to add a new line
     }
     
     // Add Enter key handler for lookup objects list

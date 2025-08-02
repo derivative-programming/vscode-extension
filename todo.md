@@ -162,7 +162,7 @@ dont validate on model change request approval.
 
 does 'validate all' work?  validate all when view comes up?
    
-bulk add on enter key should not submit modal form
+✅ bulk add on enter key should not submit modal form
 
 report items...
 extension...

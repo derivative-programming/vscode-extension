@@ -4,6 +4,27 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### Bulk Add Property Modal Enter Key Fix (2025-08-02)
+**Issue Fixed:** In the bulk add tab of the property modal, pressing Enter would submit the modal instead of allowing new lines in the textarea.
+
+**Root Cause:** The bulk properties textarea had Enter key handling that was intercepting Enter key presses and submitting the form, preventing normal textarea behavior.
+
+**Solution Implemented:**
+- Removed all Enter key event handling from the `#bulkProps` textarea
+- Allows normal textarea behavior where Enter creates new lines
+- Users must explicitly click the "Add Properties" button to submit
+- Prevents accidental form submission when users just want to add line breaks
+
+**Files Modified:**
+- `src/webviews/objects/components/templates/propertyModalFunctionality.js`
+
+**User Experience Improvement:**
+- Users can now press Enter to create new lines when typing multiple property names
+- No risk of accidental form submission
+- Must explicitly click button to submit, making the action intentional
+
+**Key Learning:** For bulk add textareas where users need to enter multiple items on separate lines, avoid Enter key handling altogether to preserve normal textarea behavior. Let users explicitly submit via button clicks.
+
 ### Auto-Selection of New Properties (2025-08-02)
 **Feature Added:** When a new property is added to a data object, it is now automatically selected in the list view if the list view is currently active.
 

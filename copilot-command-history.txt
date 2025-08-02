@@ -1,3 +1,5 @@
+2025-08-02: Fix bulk add property modal textbox Enter key behavior - remove Enter key handling to allow normal textarea new line behavior
+
 2025-08-02: Implement automatic selection of newly added properties in data object details view list - when a new property is added, automatically select it (or the first one added) in the list view
 
 2025-08-02: Fix issue where typing in property setting value causes list selection to be lost - in data object details view on properties tab list view
