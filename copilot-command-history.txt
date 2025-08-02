@@ -1,3 +1,5 @@
+2025-08-02: Fixed reverse button not working on input controls list - removed duplicate event listener that was causing the reverse operation to execute twice (effectively canceling itself). Removed obsolete reverseArray function and kept only the direct message-sending approach.
+
 2025-08-02: Fix bulk add input control modal textbox Enter key behavior - remove Enter key handling to allow normal textarea new line behavior in the add input control modal bulk tab
 
 2025-08-02: Fixed newly added input controls being invalid selections - Updated refreshParamsList, refreshButtonsList, and refreshOutputVarsList functions to update the client-side arrays (currentParams, currentButtons, currentOutputVars) and trigger change events to display details when items are selected. Previously only the HTML lists were updated but not the underlying data arrays.

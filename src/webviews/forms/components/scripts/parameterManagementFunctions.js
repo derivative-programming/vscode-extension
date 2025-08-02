@@ -370,11 +370,6 @@ function getParameterManagementFunctions() {
             });
         });
         
-        // Reverse buttons
-        document.getElementById('reverseParamsButton')?.addEventListener('click', function() {
-            reverseArray('param');
-        });
-        
         // Copy button for parameters
         document.getElementById('copyParamsButton')?.addEventListener('click', () => {
             try {
@@ -499,33 +494,6 @@ function getParameterManagementFunctions() {
                 fromIndex: fromIndex,
                 toIndex: toIndex
             }
-        });
-    }
-    
-    // Array reversal function for parameters
-    function reverseArray(type) {
-        let array, command;
-        
-        switch(type) {
-            case 'param':
-                array = currentParams;
-                command = 'reverseParam';
-                break;
-            case 'button':
-                array = currentButtons;
-                command = 'reverseButtons';
-                break;
-            case 'outputVar':
-                array = currentOutputVars;
-                command = 'reverseOutputVar';
-                break;
-            default:
-                return;
-        }
-        
-        // Send message to extension to update the model
-        vscode.postMessage({
-            command: command
         });
     }
 
