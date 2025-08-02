@@ -1,5 +1,9 @@
 Agent todo items...
   
+objectworkflows where ispage = false...
+- new treeview item functions
+
+
 
 feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.? 
 
@@ -11,22 +15,19 @@ prop subscriptions
                 "isIgnored": "true"
               }
             ],
-
-flows
+ 
 
 apis
  
-preview page...
-- mobile views?
 
 preview form...
 - show actual lookup items in dropdowns
-- show data and datetime fields
+- ✅ show data and datetime fields
 - header display
 
 preview report grid view...
 - horizontal scrollbar shoudl be above the pageing controls and below (or part of) the table
-- date and datetime filter fields
+- ✅ date and datetime filter fields
 - header display
 
 - preview report navigation view...
@@ -265,6 +266,8 @@ C# - Entity Framework
 
 PHP - Doctrine 
 
+preview page...
+- mobile views?
 
 
 

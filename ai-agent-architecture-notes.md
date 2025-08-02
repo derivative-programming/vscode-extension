@@ -2,6 +2,31 @@
 
 This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
 
+## Code Review Notes (2025-08-02)
+
+### Page Preview Form Controls - Date/DateTime Implementation
+- **Location**: `src/webviews/pagepreview/components/htmlGenerator.js` lines 2346-2351
+- **Implementation**: Date and datetime controls are correctly implemented:
+  - `dataType = "date"` → `<input type="date">` (date picker only)
+  - `dataType = "datetime"` → `<input type="datetime-local">` (date picker + time picker)
+  - `dataType = "time"` → `<input type="time">` (time picker only)
+- **Logic**: Uses `dataType.includes()` checks with proper precedence handling
+- **Data Source**: `param.sqlServerDBDataType` converted to lowercase for comparison
+- **Schema**: Both "date" and "datetime" are valid enum values in app-dna.schema.json
+- **Status**: ✅ Implementation is correct and follows HTML5 input type standards
+
+### Report Grid Filter Date/DateTime Implementation - **FIXED**
+- **Location**: `src/webviews/pagepreview/components/htmlGenerator.js` lines 2615-2618 (function `generateFilterInput`)
+- **Issue Found**: Report grid filters only checked `dataType.includes('date')` for all date types
+- **Problem**: 
+  - `dataType = "datetime"` → was showing `<input type="date">` ❌ (wrong - no time picker)
+  - `dataType = "time"` → was showing `<input type="date">` ❌ (wrong - no time selection)
+- **Fix Applied**: Updated logic to match form input implementation:
+  - `dataType = "date"` → `<input type="date">` ✅ (date picker only)
+  - `dataType = "datetime"` → `<input type="datetime-local">` ✅ (date + time picker)
+  - `dataType = "time"` → `<input type="time">` ✅ (time picker only)
+- **Status**: ✅ **FIXED** - Report grid filters now correctly implement date/datetime/time inputs
+
 ## Architecture Documentation
 
 ### [UI Components](./docs/architecture/ui-components.md)

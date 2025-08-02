@@ -2596,8 +2596,19 @@ function generateJavaScript(allObjects) {
         function generateFilterInput(param) {
             const dataType = (param.sqlServerDBDataType || '').toLowerCase();
             
+            // Debug logging to help troubleshoot datetime dropdown issue
+            console.log('[DEBUG] PagePreview - generateFilterInput called with param:', {
+                name: param.name,
+                sqlServerDBDataType: param.sqlServerDBDataType,
+                dataTypeLowercase: dataType,
+                isFKLookup: param.isFKLookup,
+                isFKList: param.isFKList,
+                labelText: param.labelText
+            });
+            
             if (param.isFKLookup === "true" || param.isFKList === "true") {
                 // Foreign key lookup - dropdown
+                console.log('[DEBUG] PagePreview - Generating FK dropdown for:', param.name);
                 let html = '<select class="filter-input">';
                 html += '<option value="">All</option>';
                 html += '<option value="sample1">Sample Option 1</option>';
@@ -2606,21 +2617,27 @@ function generateJavaScript(allObjects) {
                 return html;
             } else if (dataType.includes('bit') || dataType.includes('boolean')) {
                 // Boolean - select
+                console.log('[DEBUG] PagePreview - Generating boolean dropdown for:', param.name);
                 let html = '<select class="filter-input">';
                 html += '<option value="">All</option>';
                 html += '<option value="true">Yes</option>';
                 html += '<option value="false">No</option>';
                 html += '</select>';
                 return html;
-            } else if (dataType.includes('date')) {
-                // Date input
-                return '<input type="date" class="filter-input">';
+            } else if (dataType.includes('date') || dataType.includes('time')) {
+                // Date/time input - use same logic as form inputs
+                const inputType = dataType.includes('time') && !dataType.includes('date') ? 'time' : 
+                                 dataType.includes('datetime') ? 'datetime-local' : 'date';
+                console.log('[DEBUG] PagePreview - Generating date/time input for:', param.name, 'inputType:', inputType);
+                return '<input type="' + inputType + '" class="filter-input">';
             } else if (dataType.includes('int') || dataType.includes('decimal') || 
                       dataType.includes('float') || dataType.includes('money') || dataType.includes('numeric')) {
                 // Numeric input
+                console.log('[DEBUG] PagePreview - Generating numeric input for:', param.name);
                 return '<input type="number" class="filter-input" placeholder="Enter value...">';
             } else {
                 // Default - text input
+                console.log('[DEBUG] PagePreview - Generating text input for:', param.name);
                 return '<input type="text" class="filter-input" placeholder="Search...">';
             }
         }
