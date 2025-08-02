@@ -262,20 +262,8 @@ function getModalFunctionality() {
             });
         }
         
-        // Add Enter key handling for bulk buttons textarea (Enter submits, Shift+Enter for new line)
-        const bulkButtonsTextarea = modal.querySelector("#bulkButtons");
-        if (bulkButtonsTextarea) {
-            bulkButtonsTextarea.addEventListener("keydown", function(event) {
-                if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault(); // Prevent default Enter behavior
-                    const addButton = modal.querySelector("#addBulkButtons");
-                    if (addButton && !addButton.disabled) {
-                        addButton.click();
-                    }
-                }
-                // Shift+Enter will allow new line (default behavior)
-            });
-        }
+        // Note: No Enter key handling for bulk buttons textarea - users can press Enter to create new lines
+        // Users must click the "Add Buttons" button to submit
 
         // Validate button name function
         function validateButtonName(name) {
@@ -427,19 +415,8 @@ function getModalFunctionality() {
             });
         }
         
-        // Add Enter key handling for bulk columns textarea
-        const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
-        if (bulkColumnsTextarea) {
-            bulkColumnsTextarea.addEventListener("keydown", function(event) {
-                if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    const addButton = modal.querySelector("#addBulkColumns");
-                    if (addButton && !addButton.disabled) {
-                        addButton.click();
-                    }
-                }
-            });
-        }
+        // Note: No Enter key handling for bulk columns textarea - users can press Enter to create new lines
+        // Users must click the "Add Columns" button to submit
 
         // Add single column button event listener
         modal.querySelector("#addSingleColumn").addEventListener("click", function() {
@@ -574,19 +551,8 @@ function getModalFunctionality() {
             });
         }
         
-        // Add Enter key handling for bulk params textarea
-        const bulkParamsTextarea = modal.querySelector("#bulkParams");
-        if (bulkParamsTextarea) {
-            bulkParamsTextarea.addEventListener("keydown", function(event) {
-                if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    const addButton = modal.querySelector("#addBulkParams");
-                    if (addButton && !addButton.disabled) {
-                        addButton.click();
-                    }
-                }
-            });
-        }
+        // Note: No Enter key handling for bulk params textarea - users can press Enter to create new lines
+        // Users must click the "Add Filters" button to submit
 
         // Add single param button event listener
         modal.querySelector("#addSingleParam").addEventListener("click", function() {

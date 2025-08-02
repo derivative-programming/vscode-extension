@@ -430,20 +430,8 @@ function getColumnManagementFunctions() {
             });
         }
         
-        // Add Enter key handling for bulk columns textarea (Enter submits, Shift+Enter for new line)
-        const bulkColumnsTextarea = modal.querySelector("#bulkColumns");
-        if (bulkColumnsTextarea) {
-            bulkColumnsTextarea.addEventListener("keydown", function(event) {
-                if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault(); // Prevent default Enter behavior
-                    const addButton = modal.querySelector("#addBulkColumns");
-                    if (addButton && !addButton.disabled) {
-                        addButton.click();
-                    }
-                }
-                // Shift+Enter will allow new line (default behavior)
-            });
-        }
+        // Note: No Enter key handling for bulk columns textarea - users can press Enter to create new lines
+        // Users must click the "Add Columns" button to submit
 
         // Validate column name function
         function validateColumnName(name) {

@@ -17,6 +17,15 @@ When adding new items (columns, parameters, buttons, etc.) to lists in detail vi
 - More efficient as it only refreshes the list, not the entire view
 - Examples: `formDetailsView.js` - `addParamToFormWithName`, `addButtonToFormWithText`
 
+## Modal Textarea Enter Key Behavior
+
+For bulk add modals with textarea inputs (columns, parameters, buttons):
+- **Single input fields**: Enter key submits the form for quick single-item addition
+- **Bulk textarea fields**: Enter key creates new lines (normal textarea behavior)
+- Users must click the "Add [Items]" button to submit bulk additions
+- This provides better UX as users expect Enter to create new lines in multi-line text areas
+- Implementation: Remove keydown event listeners for bulk textareas in `modalFunctionality.js`
+
 ### Reports View Pattern (Updated)
 - Originally used `updateModel` command which regenerated entire view
 - Updated to use individual `add[ItemType]WithName` commands following forms pattern

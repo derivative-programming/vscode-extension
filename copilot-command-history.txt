@@ -1,5 +1,11 @@
 2025-08-02: review the form details view input controls tab add control process.  I want to do somethign similar for the 'output variables' tab
 
+2025-08-02: review the report details view add column modal bulk add tab.  clicking enter in the bulk textbox should not submit the form
+
+2025-08-02: Fixed report details view add column modal bulk textarea Enter key behavior - Found duplicate implementation in columnManagementFunctions.js that also had Enter submit behavior. Removed Enter key handler from bulk columns textarea to allow normal new line behavior. Now both modalFunctionality.js and columnManagementFunctions.js have consistent behavior where Enter creates new lines in bulk textareas.
+
+2025-08-02: Fix report details view add column modal bulk textarea Enter key behavior - verified fix is in place, removed Enter key submit handling from bulk columns textarea
+
 2025-08-02: Removed buttonName property from form button creation - Removed setting of buttonName property in addButtonToFormWithText function and simplified validation to only check buttonText since buttonName is not a valid property according to the form schema. Only buttonText and buttonType are now set when creating new buttons.
 
 2025-08-02: Fixed new button not appearing in list and auto-selecting - Updated addButtonToFormWithText function to send refreshButtonsList message to webview with newSelection parameter pointing to the newly added button. The function now receives the webview panel as a parameter and uses it to refresh the UI immediately after adding the button, ensuring the new button appears in the list and is automatically selected.
@@ -11,6 +17,7 @@
 2025-08-02: RESOLVED - Modal closing issue fixed by implementing comprehensive modal cleanup and multiple modal detection
 2025-08-02: Simplified modal handling to match form details view pattern - removed unnecessary complexity, now uses simple document.body.removeChild(modal) like forms
 2025-08-02: Fixed modal duplication issue - implemented pre-creation cleanup and duplicate call prevention with modalCreationInProgress flag
+
 
 2025-08-02: Fixed add button modal not appearing - Corrected modal HTML structure where template was creating nested modal divs. The modal functionality creates a div with class 'modal' and sets innerHTML, but the template was returning a full modal wrapper instead of just the modal-content. Fixed by removing the outer modal wrapper from the template and added debug logging to showAddButtonModal function.
 
