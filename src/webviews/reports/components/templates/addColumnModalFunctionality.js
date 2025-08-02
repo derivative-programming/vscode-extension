@@ -138,7 +138,7 @@ function createAddColumnModal() {
         // Generate header text from column name
         const headerText = generateHeaderText(columnName);
         
-        // Add the new column - backend will reload view
+        // Add the new column by sending individual add commands
         addNewColumn(columnName);
         
         // Close the modal
@@ -167,25 +167,24 @@ function createAddColumnModal() {
         if (errors.length > 0) {
             errorElement.innerHTML = errors.join("<br>");
             return;
-        }        // Add all valid columns at once
-        const newColumns = validColumns.map(name => ({
-            name: name,
-            isButton: "false",
-        }));
-        
-        // Add all columns in one operation
-        const updatedColumns = [...currentColumns, ...newColumns];
-        
-        // Send message to update the model - backend will reload the view
-        vscode.postMessage({
-            command: 'updateModel',
-            data: {
-                columns: updatedColumns
-            }
+        }        // Add all valid columns using individual commands
+        validColumns.forEach(name => {
+            addNewColumn(name);
         });
         
         // Close the modal
         document.body.removeChild(modal);
+    });
+}
+
+// Function to add a new column (called from add column modal)
+function addNewColumn(columnName) {
+    // Send message to add a new column with the specified name
+    vscode.postMessage({
+        command: 'addColumnWithName',
+        data: {
+            name: columnName
+        }
     });
 }`;
 }

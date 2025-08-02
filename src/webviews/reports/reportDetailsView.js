@@ -149,6 +149,24 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addColumn":
+                    if (modelService && reportReference) {
+                        // Add a new column to the report
+                        addColumnToReport(reportReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot add column: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "addColumnWithName":
+                    if (modelService && reportReference) {
+                        // Add a new column to the report with specified name
+                        addColumnToReportWithName(reportReference, modelService, message.data.name, panel);
+                    } else {
+                        console.warn("Cannot add column with name: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
                 case "updateSettings":
                     if (modelService && reportReference) {
                         // Update settings properties directly on the report
@@ -447,7 +465,8 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
                 // Alternative: Use setImmediate or just send immediately and let client handle timing
                 panel.webview.postMessage({
                     command: 'restoreTab',
-                    tabId: data.preserveTab
+                    tabId: data.preserveTab,
+                    newColumnIndex: data.newColumnIndex  // Pass the new column index for selection
                 });
             }
         }
@@ -957,6 +976,109 @@ function reverseParamArray(reportReference, modelService, panel) {
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error reversing param array:", error);
+    }
+}
+
+/**
+ * Adds a new column to the report
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addColumnToReport(reportReference, modelService, panel) {
+    console.log("addColumnToReport called");
+    
+    if (!reportReference || !modelService) {
+        console.error("Missing required data to add column");
+        return;
+    }
+    
+    try {
+        // Initialize the columns array if it doesn't exist
+        if (!reportReference.reportColumn) {
+            reportReference.reportColumn = [];
+        }
+        
+        // Create a new column with a default name
+        const newColumn = {
+            name: `NewColumn${reportReference.reportColumn.length + 1}`,
+            isButton: 'false'
+        };
+        
+        // Add the new column to the array
+        reportReference.reportColumn.push(newColumn);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the columns list and select the new column
+        if (panel && panel.webview) {
+            const newColumnIndex = reportReference.reportColumn.length - 1; // New column is the last one
+            panel.webview.postMessage({
+                command: 'refreshColumnsList',
+                data: reportReference.reportColumn,
+                newSelection: newColumnIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding column:", error);
+    }
+}
+
+/**
+ * Adds a new column to the report with user-specified name
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {string} columnName Name for the new column
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addColumnToReportWithName(reportReference, modelService, columnName, panel) {
+    console.log("addColumnToReportWithName called with name:", columnName);
+    
+    if (!reportReference || !modelService || !columnName) {
+        console.error("Missing required data to add column with name");
+        return;
+    }
+    
+    try {
+        // Initialize the columns array if it doesn't exist
+        if (!reportReference.reportColumn) {
+            reportReference.reportColumn = [];
+        }
+        
+        // Create a new column with the specified name
+        const newColumn = {
+            name: columnName,
+            isButton: 'false'
+        };
+        
+        // Add the new column to the array
+        reportReference.reportColumn.push(newColumn);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the columns list and select the new column
+        if (panel && panel.webview) {
+            const newColumnIndex = reportReference.reportColumn.length - 1; // New column is the last one
+            panel.webview.postMessage({
+                command: 'refreshColumnsList',
+                data: reportReference.reportColumn,
+                newSelection: newColumnIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding column with name:", error);
     }
 }
 

@@ -4,6 +4,14 @@
 
 2025-08-02: Fixed new button not appearing in list and auto-selecting - Updated addButtonToFormWithText function to send refreshButtonsList message to webview with newSelection parameter pointing to the newly added button. The function now receives the webview panel as a parameter and uses it to refresh the UI immediately after adding the button, ensuring the new button appears in the list and is automatically selected.
 
+2025-08-02: Debug modal closing issue - fixed missing getAddColumnModalHtml function import
+
+2025-08-02: Debug persistent modal closing issue - console shows backend working but modal not closing
+2025-08-02: Enhanced modal debugging - added checks for multiple modals and comprehensive cleanup logic
+2025-08-02: RESOLVED - Modal closing issue fixed by implementing comprehensive modal cleanup and multiple modal detection
+2025-08-02: Simplified modal handling to match form details view pattern - removed unnecessary complexity, now uses simple document.body.removeChild(modal) like forms
+2025-08-02: Fixed modal duplication issue - implemented pre-creation cleanup and duplicate call prevention with modalCreationInProgress flag
+
 2025-08-02: Fixed add button modal not appearing - Corrected modal HTML structure where template was creating nested modal divs. The modal functionality creates a div with class 'modal' and sets innerHTML, but the template was returning a full modal wrapper instead of just the modal-content. Fixed by removing the outer modal wrapper from the template and added debug logging to showAddButtonModal function.
 
 2025-08-02: Fixed "getAddButtonModalHtml is not defined" error in form details view - Added missing import and client-side template function for the add button modal HTML. The modal functionality was calling getAddButtonModalHtml() but the template function wasn't available in the client-side script. Solution: imported getAddButtonModalHtml from modalTemplates.js and added client-side wrapper function in clientScriptTemplate.js.
@@ -125,6 +133,9 @@ Command: Expand all top level tree items in the AppDNA tree view
 2025-07-26: Right-justified 'other' and 'add' type buttons in report grid view action buttons
 
 2025-07-27: Reviewed report details view buttons under lists - Found inconsistency with form details view pattern. Report details view has 4 buttons (Copy, Move Up, Move Down, Reverse) in each tab (columns, buttons, filters) as shown in mainTemplate.js lines 107-111, 128-132, and 149-153. However, Copy functionality is missing from reportDetailsView.js - no copyColumn, copyButton, or copyParam message handlers or functions exist. Form details view documented to have consistent 5-button pattern (Add, Copy, Move Up, Move Down, Reverse) with all functionality implemented. Report details view needs Copy button implementation added to match the expected pattern.
+2025-08-02: Fixed report details view columns tab add column feature selection issue - When adding new columns, they were being added to the list but not being selected automatically. The issue was that updateModelDirectly regenerates the entire webview HTML without preserving selection state for newly added items. Fixed by adding newColumnIndex parameter to updateModel command and implementing client-side logic to select the newly added column after view refresh.
+2025-08-02: Fixed add column modal not closing issue - Modal was not closing after adding columns due to potential JavaScript errors and synchronous modal removal. Added error handling with try-catch blocks and used setTimeout to delay modal removal, ensuring modal closes properly after column addition. Also added error message clearing for better UX.
+2025-08-02: Fixed missing getAddColumnModalHtml function issue - The createAddColumnModal function was calling getAddColumnModalHtml() but it wasn't available in scope, causing JavaScript errors. Added import of getAddColumnModalHtml from addColumnModalTemplate and defined the function inline in clientScriptTemplate.js to make it available for the column management functions.
 
 2025-07-27: Fixed copy buttons in report details view - Added missing copy functionality to match form details view pattern. Implemented copyColumn, copyButton, and copyParam message handlers in reportDetailsView.js with functions that create deep copies, append " - Copy" to names for uniqueness, insert copies after originals, and save model. Added complete client-side event handlers in domInitialization.js setupListButtonHandlers function for all 12 list buttons (Copy, Move Up, Move Down, Reverse for columns, buttons, and params tabs). Copy buttons now functional and consistent with established form details view pattern.
 

@@ -278,42 +278,58 @@ function getColumnManagementFunctions() {
 
     // Add column button click handler
     document.getElementById('add-column-btn').addEventListener('click', function() {
+        console.log('[DEBUG] Add column button clicked');
         // Use the new add column modal instead of the edit modal
         createAddColumnModal();
     });
 
     // Function to add a new column (called from add column modal)
     function addNewColumn(columnName) {
-        const newColumn = {
-            name: columnName,
-            isButton: 'false'
-        };
-
-        // Add to current columns array for immediate backend update
-        const updatedColumns = [...currentColumns, newColumn];
-        
-        // Get the currently active tab to preserve it after reload
-        const activeTab = document.querySelector('.tab.active');
-        const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'columns';
-        
-        // Send message to update the model - backend will reload the view
+        // Send message to add a new column with the specified name
         vscode.postMessage({
-            command: 'updateModel',
+            command: 'addColumnWithName',
             data: {
-                columns: updatedColumns,
-                preserveTab: currentTabId
+                name: columnName
             }
         });
         
-        // Note: View will be automatically reloaded by backend after model update
-        // No need to update frontend UI here - backend will regenerate entire view
+        // Note: UI will be automatically updated by the refreshColumnsList message
+        // which will select the newly added column
     }
 
     // Function to create and show the Add Column modal
+    let modalCreationInProgress = false;
     function createAddColumnModal() {
+        console.log('[DEBUG] createAddColumnModal called');
+        
+        // Prevent multiple simultaneous modal creation
+        if (modalCreationInProgress) {
+            console.log('[DEBUG] Modal creation already in progress, ignoring duplicate call');
+            return;
+        }
+        modalCreationInProgress = true;
+        
+        // Check if modal already exists and clean up any existing modals first
+        const existingModals = document.querySelectorAll('.modal');
+        console.log('[DEBUG] Existing modals before creation:', existingModals.length);
+        if (existingModals.length > 0) {
+            console.log('[DEBUG] Cleaning up existing modals');
+            existingModals.forEach((existingModal, index) => {
+                try {
+                    if (existingModal.parentNode) {
+                        existingModal.parentNode.removeChild(existingModal);
+                        console.log('[DEBUG] Removed existing modal', index);
+                    }
+                } catch (error) {
+                    console.error('[ERROR] Failed to remove existing modal', index, ':', error);
+                }
+            });
+        }
+        
         // Create modal dialog for adding columns
         const modal = document.createElement("div");
         modal.className = "modal";
+        console.log('[DEBUG] Created new modal element');
         
         // Import the modal HTML template
         const modalContent = getAddColumnModalHtml();
@@ -321,9 +337,11 @@ function getColumnManagementFunctions() {
         // Set the modal content
         modal.innerHTML = modalContent;
         document.body.appendChild(modal);
+        console.log('[DEBUG] Modal added to DOM');
         
         // Wait for DOM to be ready before attaching event listeners
         setTimeout(() => {
+            console.log('[DEBUG] Setting up modal display and event listeners');
             // Show the modal
             modal.style.display = "flex";
             
@@ -335,6 +353,9 @@ function getColumnManagementFunctions() {
             if (columnNameInput) {
                 columnNameInput.focus();
             }
+            
+            // Reset the modal creation flag
+            modalCreationInProgress = false;
         }, 10);
     }
 
@@ -373,14 +394,25 @@ function getColumnManagementFunctions() {
         });
 
         // Close modal when clicking the x button
-        modal.querySelector(".close-button").addEventListener("click", function() {
-            document.body.removeChild(modal);
-        });
+        const closeButton = modal.querySelector(".close-button");
+        if (closeButton) {
+            console.log('[DEBUG] Close button found, attaching event listener');
+            closeButton.addEventListener("click", function() {
+                console.log('[DEBUG] Close button clicked');
+                document.body.removeChild(modal);
+                modalCreationInProgress = false; // Reset flag when modal is closed
+            });
+        } else {
+            console.error('[ERROR] Close button not found in modal');
+        }
 
         // Close modal when clicking outside the modal content
         modal.addEventListener("click", function(event) {
+            console.log('[DEBUG] Modal clicked, target:', event.target.className);
             if (event.target === modal) {
+                console.log('[DEBUG] Clicked outside modal content, closing');
                 document.body.removeChild(modal);
+                modalCreationInProgress = false; // Reset flag when modal is closed
             }
         });
         
@@ -439,7 +471,10 @@ function getColumnManagementFunctions() {
         }
         
         // Add single column button event listener
-        modal.querySelector("#addSingleColumn").addEventListener("click", function() {
+        const addButton = modal.querySelector("#addSingleColumn");
+        if (addButton) {
+            console.log('[DEBUG] Add single column button found, attaching event listener');
+            addButton.addEventListener("click", function() {
             const columnName = modal.querySelector("#columnName").value.trim();
             const errorElement = modal.querySelector("#singleValidationError");
             
@@ -449,15 +484,31 @@ function getColumnManagementFunctions() {
                 return;
             }
             
+            // Clear any previous error
+            errorElement.textContent = "";
+            
             // Generate header text from column name
             const headerText = generateHeaderText(columnName);
             
-            // Add the new column - backend will reload view
-            addNewColumn(columnName);
-            
-            // Close the modal
-            document.body.removeChild(modal);
+            try {
+                console.log('[DEBUG] Adding new column:', columnName);
+                
+                // Add the new column - backend will refresh the list
+                addNewColumn(columnName);
+                
+                console.log('[DEBUG] Attempting to close modal');
+                // Close the modal
+                document.body.removeChild(modal);
+                modalCreationInProgress = false; // Reset flag when modal is closed
+                console.log('[DEBUG] Modal closed successfully');
+            } catch (error) {
+                console.error("Error adding column:", error);
+                errorElement.textContent = "Error adding column. Please try again.";
+            }
         });
+        } else {
+            console.error('[ERROR] Add single column button not found in modal');
+        }
         
         // Add bulk columns button event listener
         modal.querySelector("#addBulkColumns").addEventListener("click", function() {
@@ -483,30 +534,23 @@ function getColumnManagementFunctions() {
                 return;
             }
             
-            // Add all valid columns at once
-            const newColumns = validColumns.map(name => ({
-                name: name,
-                isButton: "false",
-            }));
-
-            // Add all columns in one operation
-            const updatedColumns = [...currentColumns, ...newColumns];
+            // Clear any previous error
+            errorElement.innerHTML = "";
             
-            // Get the currently active tab to preserve it after reload
-            const activeTab = document.querySelector('.tab.active');
-            const currentTabId = activeTab ? activeTab.getAttribute('data-tab') : 'columns';
-            
-            // Send message to update the model - backend will reload the view
-            vscode.postMessage({
-                command: 'updateModel',
-                data: {
-                    columns: updatedColumns,
-                    preserveTab: currentTabId
-                }
-            });
-            
-            // Close the modal
-            document.body.removeChild(modal);
+            try {
+                console.log('[DEBUG] Adding bulk columns:', validColumns);
+                
+                // Add all valid columns using individual commands
+                validColumns.forEach(name => {
+                    addNewColumn(name);
+                });
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            } catch (error) {
+                console.error("Error adding columns:", error);
+                errorElement.textContent = "Error adding columns. Please try again.";
+            }
         });
     }
     `;

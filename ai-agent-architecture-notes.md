@@ -6,6 +6,30 @@ This file serves as the main index for architecture documentation. The detailed 
 
 This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
 
+## Add Item Selection Pattern
+
+When adding new items (columns, parameters, buttons, etc.) to lists in detail views, there are two different patterns used:
+
+### Forms View Pattern (Recommended)
+- Uses individual `add[ItemType]WithName` commands (e.g., `addParamWithName`, `addButtonWithText`)
+- Backend functions create the item and send `refresh[ItemType]sList` message with `newSelection` parameter
+- Client-side refresh functions support `newSelection` parameter to auto-select newly added items
+- More efficient as it only refreshes the list, not the entire view
+- Examples: `formDetailsView.js` - `addParamToFormWithName`, `addButtonToFormWithText`
+
+### Reports View Pattern (Updated)
+- Originally used `updateModel` command which regenerated entire view
+- Updated to use individual `add[ItemType]WithName` commands following forms pattern
+- Now uses `addColumnWithName` command for adding columns
+- Backend sends `refreshColumnsList` with `newSelection` to auto-select new items
+- Examples: `reportDetailsView.js` - `addColumnToReportWithName`
+
+### Key Learning
+- Always use the individual add commands with selection rather than full model updates
+- This provides better UX (immediate selection of new items) and better performance
+- The refresh functions should support `newSelection` parameter for auto-selection
+- Backend should send refresh messages with newSelection pointing to newly added item index
+
 ## Recent Changes
 
 ### Enhanced Add Output Variable Modal for Forms (2025-08-02)

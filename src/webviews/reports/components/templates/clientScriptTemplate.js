@@ -8,6 +8,7 @@ const { getColumnManagementFunctions } = require("../scripts/columnManagementFun
 const { getParameterManagementFunctions } = require("../scripts/parameterManagementFunctions");
 const { getDOMInitialization } = require("../scripts/domInitialization");
 const { getModalFunctionality } = require("../scripts/modalFunctionality");
+const { getAddColumnModalHtml } = require("./addColumnModalTemplate");
 
 /**
  * File: clientScriptTemplate.js
@@ -47,6 +48,11 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
 
             // Modal functionality for add modals
             ${getModalFunctionality()}
+            
+            // Add Column Modal Template Function
+            function getAddColumnModalHtml() {
+                return \`${getAddColumnModalHtml()}\`;
+            }
             
             // Page Preview Function
             function openPagePreview(reportName, isPage) {
@@ -90,22 +96,29 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 
                 switch (message.command) {
                     case 'refreshColumnsList':
-                        refreshColumnsList(message.data);
+                        refreshColumnsList(message.data, message.newSelection);
                         break;
                     case 'refreshButtonsList':
-                        refreshButtonsList(message.data);
+                        refreshButtonsList(message.data, message.newSelection);
                         break;
                     case 'refreshParamsList':
-                        refreshParamsList(message.data);
+                        refreshParamsList(message.data, message.newSelection);
+                        break;
+                    case 'restoreTab':
+                        // Restore the active tab after view reload
+                        restoreActiveTab(message.tabId, message.newColumnIndex);
                         break;
                 }
             });
             
             // List refresh functions
-            function refreshColumnsList(newColumns) {
+            function refreshColumnsList(newColumns, newSelection = null) {
                 const columnsList = document.getElementById('columnsList');
                 if (columnsList) {
-                    const currentSelection = columnsList.selectedIndex;
+                    // Update the currentColumns array
+                    currentColumns = newColumns;
+                    
+                    const currentSelection = newSelection !== null ? newSelection : columnsList.selectedIndex;
                     columnsList.innerHTML = '';
                     newColumns.forEach((column, index) => {
                         const option = document.createElement('option');
@@ -117,6 +130,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     // Restore selection if still valid
                     if (currentSelection >= 0 && currentSelection < newColumns.length) {
                         columnsList.selectedIndex = currentSelection;
+                        
+                        // Trigger the change event to update the details view
+                        columnsList.dispatchEvent(new Event('change'));
                     }
                     
                     // Update move button states
@@ -130,10 +146,13 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 }
             }
             
-            function refreshButtonsList(newButtons) {
+            function refreshButtonsList(newButtons, newSelection = null) {
                 const buttonsList = document.getElementById('buttonsList');
                 if (buttonsList) {
-                    const currentSelection = buttonsList.selectedIndex;
+                    // Update the currentButtons array
+                    currentButtons = newButtons;
+                    
+                    const currentSelection = newSelection !== null ? newSelection : buttonsList.selectedIndex;
                     buttonsList.innerHTML = '';
                     newButtons.forEach((button, index) => {
                         const option = document.createElement('option');
@@ -145,6 +164,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     // Restore selection if still valid
                     if (currentSelection >= 0 && currentSelection < newButtons.length) {
                         buttonsList.selectedIndex = currentSelection;
+                        
+                        // Trigger the change event to update the details view
+                        buttonsList.dispatchEvent(new Event('change'));
                     }
                     
                     // Update move button states
@@ -158,10 +180,13 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 }
             }
             
-            function refreshParamsList(newParams) {
+            function refreshParamsList(newParams, newSelection = null) {
                 const paramsList = document.getElementById('paramsList');
                 if (paramsList) {
-                    const currentSelection = paramsList.selectedIndex;
+                    // Update the currentParams array
+                    currentParams = newParams;
+                    
+                    const currentSelection = newSelection !== null ? newSelection : paramsList.selectedIndex;
                     paramsList.innerHTML = '';
                     newParams.forEach((param, index) => {
                         const option = document.createElement('option');
@@ -173,6 +198,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     // Restore selection if still valid
                     if (currentSelection >= 0 && currentSelection < newParams.length) {
                         paramsList.selectedIndex = currentSelection;
+                        
+                        // Trigger the change event to update the details view
+                        paramsList.dispatchEvent(new Event('change'));
                     }
                     
                     // Update move button states
@@ -203,6 +231,47 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                     // Enable/disable based on position
                     moveUpButton.disabled = isFirstItem;
                     moveDownButton.disabled = isLastItem;
+                }
+            }
+            
+            // Function to restore active tab and optionally select a specific column
+            function restoreActiveTab(tabId, newColumnIndex) {
+                // Restore the active tab
+                if (tabId) {
+                    const tab = document.querySelector('.tab[data-tab="' + tabId + '"]');
+                    const tabContent = document.getElementById(tabId);
+                    
+                    if (tab && tabContent) {
+                        // Remove active class from all tabs and content
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                        
+                        // Add active class to the correct tab and content
+                        tab.classList.add('active');
+                        tabContent.classList.add('active');
+                        
+                        console.log('[DEBUG] Restored active tab:', tabId);
+                    }
+                }
+                
+                // If newColumnIndex is provided and we're on the columns tab, select the new column
+                if (typeof newColumnIndex === 'number' && newColumnIndex >= 0 && tabId === 'columns') {
+                    const columnsList = document.getElementById('columnsList');
+                    if (columnsList && columnsList.options.length > newColumnIndex) {
+                        columnsList.selectedIndex = newColumnIndex;
+                        
+                        // Trigger the change event to show column details
+                        columnsList.dispatchEvent(new Event('change'));
+                        
+                        // Update move button states
+                        const moveUpButton = document.getElementById('moveUpColumnsButton');
+                        const moveDownButton = document.getElementById('moveDownColumnsButton');
+                        if (moveUpButton && moveDownButton) {
+                            updateMoveButtonStates(columnsList, moveUpButton, moveDownButton);
+                        }
+                        
+                        console.log('[DEBUG] Selected newly added column at index:', newColumnIndex);
+                    }
                 }
             }
 
