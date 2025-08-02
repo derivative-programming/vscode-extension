@@ -2,7 +2,7 @@
 
 2025-08-02: review the report details view add column modal bulk add tab.  clicking enter in the bulk textbox should not submit the form
 
-2025-08-02: Fixed report details view add column modal bulk textarea Enter key behavior - Found duplicate implementation in columnManagementFunctions.js that also had Enter submit behavior. Removed Enter key handler from bulk columns textarea to allow normal new line behavior. Now both modalFunctionality.js and columnManagementFunctions.js have consistent behavior where Enter creates new lines in bulk textareas.
+2025-08-02: Fix report details view add filter modal bulk textarea Enter key behavior - verified fix is in place, removed Enter key submit handling from bulk params textarea
 
 2025-08-02: Fix report details view add column modal bulk textarea Enter key behavior - verified fix is in place, removed Enter key submit handling from bulk columns textarea
 

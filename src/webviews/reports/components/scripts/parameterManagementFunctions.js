@@ -397,20 +397,8 @@ function getParameterManagementFunctions() {
             });
         }
         
-        // Add Enter key handling for bulk parameters textarea (Enter submits, Shift+Enter for new line)
-        const bulkParamsTextarea = modal.querySelector("#bulkParams");
-        if (bulkParamsTextarea) {
-            bulkParamsTextarea.addEventListener("keydown", function(event) {
-                if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault(); // Prevent default Enter behavior
-                    const addButton = modal.querySelector("#addBulkParams");
-                    if (addButton && !addButton.disabled) {
-                        addButton.click();
-                    }
-                }
-                // Shift+Enter will allow new line (default behavior)
-            });
-        }
+        // Note: No Enter key handling for bulk params textarea - users can press Enter to create new lines
+        // Users must click the "Add Filters" button to submit
 
         // Validate parameter name function
         function validateParamName(name) {
