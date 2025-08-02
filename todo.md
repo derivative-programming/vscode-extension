@@ -1,9 +1,7 @@
 Agent todo items...
   
- 
-feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.?
 
-split arch guidance into separate files again
+feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.? 
 
 prop subscriptions
 "propSubscription": [

@@ -56,10 +56,8 @@ async function createOrUpdateMcpConfig(): Promise<void> {
         const extensionDevelopmentPath = process.env.VSCODE_EXTENSION_DEVELOPMENT_PATH;
         const isDevEnvironment = extensionDevelopmentPath && workspaceFolder.uri.fsPath.includes(extensionDevelopmentPath);
         
-        if (isDevEnvironment) {
-            console.log('Skipping Copilot configuration in development environment');
-            return;
-        }
+        // Note: We want MCP configuration to work in development mode too for testing
+        console.log(`Creating MCP configuration in ${isDevEnvironment ? 'development' : 'production'} environment`);
 
         // Create .vscode folder if it doesn't exist
         const vscodeFolder = path.join(workspaceFolder.uri.fsPath, '.vscode');
@@ -82,9 +80,25 @@ async function createOrUpdateMcpConfig(): Promise<void> {
             }
         }
         
-        // Ensure settings has github.copilot.advanced and mcp.servers sections
+        // Ensure settings has github.copilot.chat.experimental and mcp.servers sections
+        const extensionPath = vscode.extensions.getExtension('derivative-programming.appdna')?.extensionPath || 
+                             process.env.VSCODE_EXTENSION_DEVELOPMENT_PATH ||
+                             path.dirname(__dirname); // fallback to parent of src
+        
         settings = {
             ...settings,
+            "github.copilot.chat.experimental.mcpServers": {
+                ...(settings["github.copilot.chat.experimental.mcpServers"] || {}),
+                "appdna": {
+                    "command": "node",
+                    "args": [path.join(extensionPath, "dist", "mcp", "stdioBridge.js")],
+                    "env": {
+                        "NODE_ENV": "production",
+                        "APPDNA_MCP_MODE": "true"
+                    }
+                }
+            },
+            // Keep the legacy format for backward compatibility
             "github.copilot.advanced": {
                 ...(settings["github.copilot.advanced"] || {}),
                 "mcp.discovery.enabled": true,
@@ -93,11 +107,11 @@ async function createOrUpdateMcpConfig(): Promise<void> {
                 ...((settings["mcp.servers"] || {})),
                 "AppDNAUserStoryMCP": {
                     "type": "stdio",
-                    "command": "${execPath}",
-                    "args": [
-                        "--extensionDevelopmentPath=${workspaceFolder}",
-                        "--stdio-mcp"
-                    ],
+                    "command": "node",
+                    "args": [path.join(extensionPath, "dist", "mcp", "stdioBridge.js")],
+                    "env": {
+                        "APPDNA_MCP_MODE": "true"
+                    },
                     "transport": "stdio",
                     "enabled": true
                 }
@@ -108,44 +122,59 @@ async function createOrUpdateMcpConfig(): Promise<void> {
         fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
         console.log(`Updated VS Code settings for Copilot MCP integration at ${settingsPath}`);
         
-        // Create or update mcp.json for backward compatibility
+        // Create or update mcp.json for backward compatibility and debugging
         const mcpConfigPath = path.join(vscodeFolder, 'mcp.json');
         const mcpConfig = {
-            "name": "AppDNA User Story MCP",
-            "description": "MCP server for interacting with AppDNA user stories",
-            "version": "1.0.0",
+            "mcpVersion": "2024-11-05",
+            "name": "AppDNA User Story MCP Server",
+            "description": "MCP server for interacting with AppDNA user stories and model data",
+            "version": "1.0.10",
+            "capabilities": {
+                "tools": {
+                    "listChanged": false
+                },
+                "logging": {},
+                "prompts": {
+                    "listChanged": false
+                },
+                "resources": {
+                    "subscribe": false,
+                    "listChanged": false
+                }
+            },
             "tools": [
                 {
-                    "name": "createUserStory",
-                    "description": "Creates a user story and validates its format",
-                    "parameters": {
+                    "name": "create_user_story",
+                    "description": "Creates a user story and validates its format. User stories must follow the format: 'As a [Role], I want to [action] a [object]' or 'A [Role] wants to [action] a [object]'",
+                    "inputSchema": {
                         "type": "object",
                         "properties": {
                             "title": {
                                 "type": "string",
-                                "description": "Title or ID for the user story (optional)"
+                                "description": "Optional title or ID for the user story"
                             },
                             "description": {
                                 "type": "string",
-                                "description": "The user story text following one of these formats:\n" +
-                                "1. A [Role name] wants to [View all, view, add, update, delete] a [object name]\n" +
-                                "2. As a [Role name], I want to [View all, view, add, update, delete] a [object name]"
+                                "description": "The user story text following one of the supported formats"
                             }
                         },
                         "required": ["description"]
                     }
                 },
                 {
-                    "name": "listUserStories",
-                    "description": "Lists all user stories",
-                    "parameters": {
+                    "name": "list_user_stories",
+                    "description": "Lists all existing user stories from the AppDNA model",
+                    "inputSchema": {
                         "type": "object",
-                        "properties": {}
+                        "properties": {},
+                        "additionalProperties": false
                     }
                 }
             ],
             "server": {
-                "type": "stdio"
+                "type": "stdio",
+                "command": "node",
+                "args": [path.join(extensionPath, "dist", "mcp", "stdioBridge.js")]
             }
         };
         

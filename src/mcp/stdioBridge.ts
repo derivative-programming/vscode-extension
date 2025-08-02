@@ -10,10 +10,10 @@ import { MCPServer } from './server';
  */
 export function initializeStdioServer(): void {
     // Check if this is a standalone stdio MCP request
-    const isStdioMcp = process.argv.includes('--stdio-mcp');
+    const isStdioMcp = process.argv.includes('--stdio-mcp') || process.env.APPDNA_MCP_MODE === 'true';
     
     if (isStdioMcp) {
-        console.log('[STDIO MCP] Initializing in stdio mode');
+        console.error('[STDIO MCP] Initializing AppDNA MCP Server in stdio mode');
         
         // Set up the server
         const server = MCPServer.getInstance();
@@ -22,17 +22,24 @@ export function initializeStdioServer(): void {
             process.exit(1);
         });
         
-        // Handle process exit
+        // Handle process exit gracefully
         process.on('SIGINT', () => {
-            console.log('[STDIO MCP] Received SIGINT. Shutting down...');
+            console.error('[STDIO MCP] Received SIGINT. Shutting down...');
             server.stop();
             process.exit(0);
         });
         
         process.on('SIGTERM', () => {
-            console.log('[STDIO MCP] Received SIGTERM. Shutting down...');
+            console.error('[STDIO MCP] Received SIGTERM. Shutting down...');
             server.stop();
             process.exit(0);
+        });
+
+        // Handle uncaught exceptions
+        process.on('uncaughtException', (error) => {
+            console.error('[STDIO MCP] Uncaught exception:', error);
+            server.stop();
+            process.exit(1);
         });
     }
 }

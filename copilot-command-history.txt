@@ -1,4 +1,15 @@
-2025-08-02: review the form details view input controls tab add control process.  I want to do somethign similar for the 'output variables' tab
+2025-08-02: review this extension. It gives a user the ability to create a model that can be used to generate code using other services it provides. Im trying to allow the extension to expose an mcp server so that the user's github copilot chat can interact with the extension.  The mcp searcer doesnt work with the users github copilot chat yet.
+
+2025-08-02: IMPLEMENTED MCP SERVER FIXES FOR GITHUB COPILOT CHAT INTEGRATION:
+- Updated tool schema format from custom inputs/outputs to standard inputSchema format
+- Fixed settings.json configuration to use github.copilot.chat.experimental.mcpServers
+- Enhanced MCP handshake with proper protocol version (2024-11-05) and capabilities
+- Added tools/list method support for tool discovery
+- Improved tool execution to handle both tools/call and mcp/execute methods
+- Enhanced stdio bridge with better process management and environment detection
+- Updated configuration file generation with proper MCP server definitions
+- Created comprehensive types.ts file with MCP protocol definitions
+- Generated COPILOT_MCP_TESTING_GUIDE.md with testing instructions
 
 2025-08-02: review the report details view add column modal bulk add tab.  clicking enter in the bulk textbox should not submit the form
 
@@ -176,4 +187,12 @@ Command: stopMCPServerCommand
  
  2 0 2 5 - 0 8 - 0 2 :   F i x   b u l k   a d d   p r o p e r t y   s a v e   i s s u e   -   m o d i f i e d   a d d N e w P r o p e r t y   t o   a c c e p t   s k i p E v e n t D i s p a t c h   p a r a m e t e r   a n d   u p d a t e d   b u l k   a d d   t o   d i s p a t c h   s i n g l e   e v e n t   a f t e r   a l l   p r o p e r t i e s   a d d e d   i n s t e a d   o f   i n d i v i d u a l   e v e n t s   t h a t   w e r e   i g n o r e d   d u e   t o   o n c e : t r u e   l i s t e n e r 
  
- 
+ Command: startMCPServerCommand
+Command: startMCPServerCommand
+Command: stopMCPServerCommand
+Command: startMCPServerCommand
+Command: stopMCPServerCommand
+Command: startMCPServerCommand
+Command: stopMCPServerCommand
+Command: startMCPServerCommand
+Command: startMCPServerCommand

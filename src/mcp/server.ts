@@ -119,12 +119,22 @@ export class MCPServer {
 
             if (parsedMessage.method === 'initialize') {
                 this.handleInitializeRequest(parsedMessage);
+            } else if (parsedMessage.method === 'tools/list') {
+                this.handleToolsListRequest(parsedMessage);
+            } else if (parsedMessage.method === 'tools/call') {
+                const toolName = parsedMessage.params?.name || 'unknown';
+                vscode.window.showInformationMessage(`MCP Server: GitHub Copilot requested '${toolName}'`);
+                this.handleToolExecution(parsedMessage);
             } else if (parsedMessage.method === 'mcp/execute') {
                 const toolName = parsedMessage.params?.name || 'unknown';
                 vscode.window.showInformationMessage(`MCP Server: GitHub Copilot requested '${toolName}'`);
                 this.handleToolExecution(parsedMessage);
             } else {
-                throw new Error(`Unknown method: ${parsedMessage.method}`);
+                console.log(`[MCP Server] Unknown method: ${parsedMessage.method}`);
+                this.sendErrorResponse({
+                    code: -32601,
+                    message: `Method not found: ${parsedMessage.method}`
+                }, parsedMessage.id);
             }
         } catch (error) {
             console.error('[MCP Server] Error handling message:', error);
@@ -155,26 +165,60 @@ export class MCPServer {
             this.outputChannel.appendLine(`[${new Date().toISOString()}] HANDLING: Initialize request with id ${message.id}`);
         }
 
+        // Enhanced MCP initialization response with proper capabilities
         this.sendMessage({
             jsonrpc: '2.0',
             id: message.id,
             result: {
+                protocolVersion: '2024-11-05',
                 capabilities: {
-                    tools,
-                    transport: ['stdio'],
-                    authentication: ['none'],
-                    json: true,
-                    streaming: true
+                    tools: {
+                        listChanged: false
+                    },
+                    logging: {},
+                    prompts: {
+                        listChanged: false
+                    },
+                    resources: {
+                        subscribe: false,
+                        listChanged: false
+                    },
+                    experimental: {}
                 },
                 serverInfo: {
-                    name: 'AppDNA User Story MCP',
-                    version: '1.0.0',
-                    description: 'MCP server for interacting with AppDNA user stories'
-                }
+                    name: 'AppDNA User Story MCP Server',
+                    version: '1.0.10',
+                    description: 'MCP server for interacting with AppDNA user stories and model data'
+                },
+                tools: tools
             }
         });
 
         vscode.window.showInformationMessage('MCP server initialized for GitHub Copilot');
+    }
+
+    private handleToolsListRequest(message: any): void {
+        if (!message.id) {
+            this.sendErrorResponse({
+                code: -32600,
+                message: 'Invalid Request: Missing id'
+            });
+            return;
+        }
+
+        const tools = this.getToolDefinitions();
+        console.log('[MCP Server] Handling tools/list request with id:', message.id);
+        if (this.outputChannel) {
+            this.outputChannel.appendLine(`[${new Date().toISOString()}] HANDLING: Tools list request with id ${message.id}`);
+        }
+
+        this.sendMessage({
+            jsonrpc: '2.0',
+            id: message.id,
+            result: {
+                tools: tools
+            }
+        });
     }
 
     private async handleToolExecution(message: any): Promise<void> {
@@ -187,24 +231,35 @@ export class MCPServer {
             return;
         }
 
-        const { name, parameters } = params;
+        const { name } = params;
+        // Support both 'parameters' (MCP standard) and 'arguments' (GitHub Copilot format)
+        const toolParams = params.parameters || params.arguments || {};
+        
         try {
             let result;
             if (name === 'create_user_story') {
-                if (!parameters || !parameters.description) {
+                if (!toolParams || !toolParams.description) {
                     throw new Error('Missing required parameter: description');
                 }
-                result = await this.userStoryTools.create_user_story(parameters);
+                result = await this.userStoryTools.create_user_story(toolParams);
             } else if (name === 'list_user_stories') {
                 result = await this.userStoryTools.list_user_stories();
             } else {
                 throw new Error(`Unknown tool: ${name}`);
             }
 
+            // Format response based on MCP specification
             this.sendMessage({
                 jsonrpc: '2.0',
                 id,
-                result
+                result: {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify(result, null, 2)
+                        }
+                    ]
+                }
             });
         } catch (error) {
             console.error(`[MCP Server] Error executing tool ${name}:`, error);
@@ -229,44 +284,22 @@ export class MCPServer {
         return [
             {
                 name: 'create_user_story',
-                description: 'Creates a user story and validates its format',
-                inputs: [
-                    {
-                        name: 'title',
-                        type: 'string',
-                        description: 'Title or ID for the user story (optional)',
-                        required: false
-                    },
-                    {
-                        name: 'description',
-                        type: 'string',
-                        description: 'The user story text following one of these formats:\n' +
-                            '1. A [Role name] wants to [View all, view, add, update, delete] a [object name]\n' +
-                            '2. As a [Role name], I want to [View all, view, add, update, delete] a [object name]',
-                        required: true
-                    }
-                ],
-                outputs: [
-                    {
-                        name: 'id',
-                        type: 'string',
-                        description: 'Generated ID for the created user story'
-                    },
-                    {
-                        name: 'story',
-                        type: 'object',
-                        description: 'The created user story with all details'
-                    }
-                ],
-                parameters: {
+                description: 'Creates a user story and validates its format. User stories must follow the format: "As a [Role], I want to [action] a [object]" or "A [Role] wants to [action] a [object]"',
+                inputSchema: {
                     type: 'object',
                     properties: {
-                        title: { type: 'string', description: 'Title or ID for the user story (optional)' },
+                        title: { 
+                            type: 'string', 
+                            description: 'Optional title or ID for the user story'
+                        },
                         description: {
                             type: 'string',
                             description: 'The user story text following one of these formats:\n' +
                                 '1. A [Role name] wants to [View all, view, add, update, delete] a [object name]\n' +
-                                '2. As a [Role name], I want to [View all, view, add, update, delete] a [object name]'
+                                '2. As a [Role name], I want to [View all, view, add, update, delete] a [object name]\n\n' +
+                                'Examples:\n' +
+                                '- "As a User, I want to add a task"\n' +
+                                '- "A Manager wants to view all reports"'
                         }
                     },
                     required: ['description']
@@ -274,18 +307,11 @@ export class MCPServer {
             },
             {
                 name: 'list_user_stories',
-                description: 'Lists all user stories',
-                inputs: [],
-                outputs: [
-                    {
-                        name: 'stories',
-                        type: 'array',
-                        description: 'List of all user stories'
-                    }
-                ],
-                parameters: {
+                description: 'Lists all existing user stories from the AppDNA model',
+                inputSchema: {
                     type: 'object',
-                    properties: {}
+                    properties: {},
+                    additionalProperties: false
                 }
             }
         ];
