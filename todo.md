@@ -1,17 +1,5 @@
 Agent todo items...
-
-data object details view...
-- ✅ when a prop is added, automaticaly select it in the list view if the list view is open
-
-
-forms...
--  js errors on saveModel fixed - replaced modelService.saveModel() calls with markUnsavedChanges() in form details view
--  move up/down controls and buttons now works - added refreshPanel() to update webview immediately
--  add input control button now works - added refreshPanel() to update webview immediately  
--  add button button now works - added refreshPanel() to update webview immediately
--  add output variable button now works - added refreshPanel() to update webview immediately
--  add buttons now open modals for user input - fixed add buttons to show modal forms instead of creating items with default values
-
+  
  
 feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.?
 
