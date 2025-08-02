@@ -36,10 +36,8 @@ function initializeDOMEvents() {
     const addOutputVarBtn = document.getElementById('add-output-var-btn');
     if (addOutputVarBtn) {
         addOutputVarBtn.addEventListener('click', function() {
-            // Send direct message to add a new output variable
-            vscode.postMessage({
-                command: 'addOutputVar'
-            });
+            // Show the add output variable modal instead of directly adding
+            createAddOutputVariableModal();
         });
     }
     

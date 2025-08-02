@@ -1,3 +1,5 @@
+2025-08-02: review the form details view input controls tab add control process.  I want to do somethign similar for the 'output variables' tab
+
 2025-08-02: Removed buttonName property from form button creation - Removed setting of buttonName property in addButtonToFormWithText function and simplified validation to only check buttonText since buttonName is not a valid property according to the form schema. Only buttonText and buttonType are now set when creating new buttons.
 
 2025-08-02: Fixed new button not appearing in list and auto-selecting - Updated addButtonToFormWithText function to send refreshButtonsList message to webview with newSelection parameter pointing to the newly added button. The function now receives the webview panel as a parameter and uses it to refresh the UI immediately after adding the button, ensuring the new button appears in the list and is automatically selected.

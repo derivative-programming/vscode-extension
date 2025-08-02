@@ -8,6 +8,29 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### Enhanced Add Output Variable Modal for Forms (2025-08-02)
+**Enhancement:** Implemented Add Output Variable modal system similar to Input Controls, providing single and bulk add functionality with comprehensive validation.
+
+**Key Changes:**
+- **Modal-Based System:** Changed from direct add to modal-based system with tabs for single and bulk adding
+- **Two-Tab Interface:** Single Output Variable tab for individual adds, Bulk Add tab for multiple variables at once
+- **Comprehensive Validation:** Name validation (Pascal case, alphanumeric, unique, max 100 chars)
+- **Real-time Feedback:** Error messages displayed for validation failures
+- **Auto-focus:** Input fields automatically focused based on active tab
+- **Enter Key Support:** Single add supports Enter key for quick submission
+- **Bulk Processing:** Bulk add validates all names and reports specific errors per name
+
+**Technical Implementation:**
+- **New Files Created:** 
+  - `addOutputVariableModalTemplate.js` - HTML template for the modal
+  - `addOutputVariableModalFunctionality.js` - JavaScript functionality
+- **Integration Points:**
+  - Updated `clientScriptTemplate.js` to include new modal templates
+  - Modified `domInitialization.js` to call modal instead of direct add
+  - Added `addOutputVarWithName` message handler in `formDetailsView.js`
+  - Created `addOutputVarToFormWithName` function with webview refresh support
+- **Pattern Consistency:** Follows same architectural pattern as Input Controls add system
+
 ### Enhanced Add Button Modal for Forms (2025-08-02)
 **Enhancement:** Updated the form details view "Add Button" functionality to use a modal dialog that prompts the user for button text with uniqueness validation.
 

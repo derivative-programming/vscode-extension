@@ -398,6 +398,15 @@ function showFormDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addOutputVarWithName":
+                    if (modelService && formReference) {
+                        // Add a new output variable to the form with specified name
+                        addOutputVarToFormWithName(formReference, modelService, message.data.name, panel);
+                    } else {
+                        console.warn("Cannot add output variable with name: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
                 case "updateParamFull":
                     if (modelService && formReference) {
                         // Update the complete parameter with new data
@@ -1579,6 +1588,59 @@ function addOutputVarToForm(formReference, modelService) {
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding output variable to form:", error);
+    }
+}
+
+/**
+ * Adds a new output variable to the form with user-specified name
+ * @param {Object} formReference Reference to the form object
+ * @param {Object} modelService ModelService instance
+ * @param {string} outputVarName Name for the new output variable
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addOutputVarToFormWithName(formReference, modelService, outputVarName, panel) {
+    console.log("addOutputVarToFormWithName called with name:", outputVarName);
+    
+    if (!formReference || !modelService || !outputVarName) {
+        console.error("Missing required data to add output variable with name");
+        return;
+    }
+    
+    try {
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
+        
+        // Initialize the output variables array if it doesn't exist
+        if (!form.objectWorkflowOutputVar) {
+            form.objectWorkflowOutputVar = [];
+        }
+        
+        // Create a new output variable with the specified name
+        const newOutputVar = {
+            name: outputVarName
+        };
+        
+        // Add the new output variable to the array
+        form.objectWorkflowOutputVar.push(newOutputVar);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the output vars list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshOutputVarsList',
+                data: form.objectWorkflowOutputVar,
+                newSelection: form.objectWorkflowOutputVar.length - 1 // Select the newly added item
+            });
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding output variable with name:", error);
     }
 }
 

@@ -12,6 +12,8 @@ const { getAddInputControlModalHtml } = require("./addInputControlModalTemplate"
 const { getAddInputControlModalFunctionality } = require("./addInputControlModalFunctionality");
 const { getAddButtonModalFunctionality } = require("./addButtonModalFunctionality");
 const { getAddButtonModalHtml } = require("./modalTemplates");
+const { getAddOutputVariableModalHtml } = require("./addOutputVariableModalTemplate");
+const { getAddOutputVariableModalFunctionality } = require("./addOutputVariableModalFunctionality");
 
 /**
  * File: clientScriptTemplate.js
@@ -86,11 +88,19 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 return \`${getAddButtonModalHtml(null)}\`;
             }
 
+            // Add Output Variable Modal Template Function
+            function getAddOutputVariableModalHtml() {
+                return \`${getAddOutputVariableModalHtml()}\`;
+            }
+
             // Add Input Control Modal Functionality
             ${getAddInputControlModalFunctionality()}
 
             // Add Button Modal Functionality
             ${getAddButtonModalFunctionality()}
+
+            // Add Output Variable Modal Functionality
+            ${getAddOutputVariableModalFunctionality()}
 
             // UI Event Handlers for tabs and view switching
             ${getUIEventHandlers()}
