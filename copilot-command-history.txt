@@ -120,3 +120,7 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: startMCPServerCommand
 Command: stopMCPServerCommand
 2025-08-02: Fixed JS syntax error in clientScriptTemplate.js - corrected malformed function declarations in getPropertyModalHtml, getObjectSearchModalHtml, and getLookupItemModalHtml functions. The toString().replace() method was creating invalid JavaScript syntax. Changed to directly call the template functions and properly escape template literals.
+2 0 2 5 - 0 8 - 0 2 :   F i x   b u l k   a d d   p r o p e r t y   s a v e   i s s u e   -   o n l y   f i r s t   p r o p e r t y   s a v e s   w h e n   b u l k   a d d i n g   m u l t i p l e   p r o p e r t i e s  
+  
+ 2 0 2 5 - 0 8 - 0 2 :   F i x   b u l k   a d d   p r o p e r t y   s a v e   i s s u e   -   m o d i f i e d   a d d N e w P r o p e r t y   t o   a c c e p t   s k i p E v e n t D i s p a t c h   p a r a m e t e r   a n d   u p d a t e d   b u l k   a d d   t o   d i s p a t c h   s i n g l e   e v e n t   a f t e r   a l l   p r o p e r t i e s   a d d e d   i n s t e a d   o f   i n d i v i d u a l   e v e n t s   t h a t   w e r e   i g n o r e d   d u e   t o   o n c e : t r u e   l i s t e n e r  
+ 

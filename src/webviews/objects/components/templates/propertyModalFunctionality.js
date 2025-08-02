@@ -293,10 +293,15 @@ function createPropertyModal() {
             return;
         }
         
-        // Add all valid properties
+        // Add all valid properties (skip individual event dispatch)
         validProps.forEach(name => {
-            addNewProperty(name);
+            addNewProperty(name, true);
         });
+        
+        // Dispatch a single propertyAdded event after all properties are added for bulk operations
+        if (validProps.length > 0) {
+            document.dispatchEvent(new CustomEvent('propertyAdded'));
+        }
         
         // Close the modal
         document.body.removeChild(modal);

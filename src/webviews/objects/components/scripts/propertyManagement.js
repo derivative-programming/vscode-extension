@@ -7,7 +7,7 @@
 function getPropertyManagementFunctions() {
     return `
     // Function to add a new property
-    function addNewProperty(propName) {
+    function addNewProperty(propName, skipEventDispatch = false) {
         // Create new property object
         const newProp = { name: propName };
         
@@ -88,8 +88,10 @@ function getPropertyManagementFunctions() {
         // Update the properties counter in the tab label
         updatePropertiesCounter();
         
-        // Dispatch propertyAdded event to trigger model update and mark unsaved changes
-        document.dispatchEvent(new CustomEvent('propertyAdded'));
+        // Dispatch propertyAdded event to trigger model update and mark unsaved changes (unless skipped for bulk operations)
+        if (!skipEventDispatch) {
+            document.dispatchEvent(new CustomEvent('propertyAdded'));
+        }
         
         // Reload the list view to ensure the new property appears there too
         if (typeof window.reloadPropertiesListView === 'function') {

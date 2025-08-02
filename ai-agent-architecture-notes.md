@@ -25,6 +25,28 @@ This file serves as the main index for architecture documentation. The detailed 
 
 **Key Learning:** For bulk add textareas where users need to enter multiple items on separate lines, avoid Enter key handling altogether to preserve normal textarea behavior. Let users explicitly submit via button clicks.
 
+### Bulk Add Property Save Issue Fix (2025-08-02)
+**Issue Fixed:** In the bulk add tab of the property modal, when adding multiple properties, only the first property would be saved to the model despite all properties appearing in the UI.
+
+**Root Cause:** The `propertyAdded` event listener in `saveSubmitHandlers.js` was set up with `{ once: true }`, meaning it would only handle the first event and then remove itself. When bulk adding, each call to `addNewProperty()` dispatched a `propertyAdded` event, but only the first one triggered the model update.
+
+**Solution Implemented:**
+1. Modified `addNewProperty()` function to accept an optional `skipEventDispatch` parameter
+2. Updated bulk add logic to skip individual event dispatches during bulk operations 
+3. Added a single `propertyAdded` event dispatch after all properties are added in bulk
+
+**Files Modified:**
+- `src/webviews/objects/components/scripts/propertyManagement.js` - Added skipEventDispatch parameter
+- `src/webviews\objects\components\templates\propertyModalFunctionality.js` - Updated bulk add to use skipEventDispatch and dispatch single event
+
+**Technical Details:**
+- Single property add: Works as before with immediate event dispatch
+- Bulk property add: Skips individual events, dispatches one event after all properties added
+- Event listener remains `{ once: true }` but now only receives one event per bulk operation
+- Preserves existing model update and unsaved changes functionality
+
+**Key Learning:** When implementing bulk operations, be careful about event-driven architectures that expect single events. Consider whether individual events or batch events are more appropriate.
+
 ### Auto-Selection of New Properties (2025-08-02)
 **Feature Added:** When a new property is added to a data object, it is now automatically selected in the list view if the list view is currently active.
 
