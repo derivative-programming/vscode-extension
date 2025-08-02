@@ -13,18 +13,19 @@ function getPropertyManagementFunctions() {
         
         // Add to properties array
         props.push(newProp);
+        const newPropIndex = props.length - 1;
         
         // Add to properties list in list view
         const propsList = document.getElementById("propsList");
         const option = document.createElement("option");
-        option.value = props.length - 1;
+        option.value = newPropIndex;
         option.textContent = propName;
         propsList.appendChild(option);
         
         // Add to table in table view
         const tableBody = document.querySelector("#propsTable tbody");
         const row = document.createElement("tr");
-        row.setAttribute("data-index", props.length - 1);
+        row.setAttribute("data-index", newPropIndex);
         
         // Create cells for each property column
         propColumns.forEach(propKey => {
@@ -72,7 +73,7 @@ function getPropertyManagementFunctions() {
                 cell.innerHTML = '<div class="control-with-checkbox">' +
                     inputHTML +
                     '<input type="checkbox" class="prop-checkbox" data-prop="' + propKey + 
-                    '" data-index="' + (props.length - 1) + '" title="Toggle property existence">' +
+                    '" data-index="' + newPropIndex + '" title="Toggle property existence">' +
                     '</div>';
             }
             
@@ -93,7 +94,20 @@ function getPropertyManagementFunctions() {
         // Reload the list view to ensure the new property appears there too
         if (typeof window.reloadPropertiesListView === 'function') {
             console.log('Calling reloadPropertiesListView from addNewProperty');
-            setTimeout(() => window.reloadPropertiesListView(), 10);
+            setTimeout(() => {
+                // Check if we're currently in list view mode
+                const listIcon = document.querySelector('.icon[data-view="propsList"]');
+                const isListViewActive = listIcon && listIcon.classList.contains('active');
+                
+                if (isListViewActive) {
+                    // Reload the list view and auto-select the newly added property
+                    console.log('Auto-selecting newly added property:', propName, 'at index:', newPropIndex);
+                    window.reloadPropertiesListView(false, newPropIndex);
+                } else {
+                    // Just reload without selecting if not in list view
+                    window.reloadPropertiesListView();
+                }
+            }, 10);
         }
     }
     

@@ -177,9 +177,10 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                     }
                 };
                 
-                window.reloadPropertiesListView = function(preserveSelection = false) {
+                window.reloadPropertiesListView = function(preserveSelection = false, selectIndex = -1) {
                     console.log('=== reloadPropertiesListView called ===');
                     console.log('Current props array:', props);
+                    console.log('preserveSelection:', preserveSelection, 'selectIndex:', selectIndex);
                     
                     const propsListView = document.getElementById('propsListView');
                     if (!propsListView) {
@@ -219,18 +220,33 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                             </form>
                         </div>\`;
                         
-                        // Restore selection if requested and valid
-                        if (preserveSelection && currentSelectedIndex >= 0) {
+                        // Determine which index to select
+                        let indexToSelect = -1;
+                        
+                        if (selectIndex >= 0 && selectIndex < props.length) {
+                            // If a specific index is requested and valid, use it
+                            indexToSelect = selectIndex;
+                        } else if (preserveSelection && currentSelectedIndex >= 0 && currentSelectedIndex < props.length) {
+                            // Otherwise, if preserving selection and it's valid, use the previous selection
+                            indexToSelect = currentSelectedIndex;
+                        }
+                        
+                        // Apply selection if we have a valid index
+                        if (indexToSelect >= 0) {
                             const newPropsList = document.getElementById('propsList');
-                            if (newPropsList && currentSelectedIndex < newPropsList.options.length) {
-                                newPropsList.selectedIndex = currentSelectedIndex;
+                            if (newPropsList) {
+                                newPropsList.selectedIndex = indexToSelect;
+                                newPropsList.value = indexToSelect;
+                                
                                 // Show the property details container
                                 const propertyDetailsContainer = document.getElementById('propertyDetailsContainer');
                                 if (propertyDetailsContainer) {
                                     propertyDetailsContainer.style.display = 'block';
                                 }
+                                
                                 // Trigger change event to populate form fields
                                 newPropsList.dispatchEvent(new Event('change'));
+                                console.log('Auto-selected property at index:', indexToSelect);
                             }
                         }
                         

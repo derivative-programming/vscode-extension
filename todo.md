@@ -1,8 +1,8 @@
 Agent todo items...
 
 data object details view...
-- when a prop is added, automaticaly select it in the list view if the list view is open
-- allow move up/down on properties in the list view
+- ✅ when a prop is added, automaticaly select it in the list view if the list view is open
+
 
 forms...
 -  js errors on saveModel fixed - replaced modelService.saveModel() calls with markUnsavedChanges() in form details view

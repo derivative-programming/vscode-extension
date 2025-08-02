@@ -4,6 +4,21 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### Auto-Selection of New Properties (2025-08-02)
+**Feature Added:** When a new property is added to a data object, it is now automatically selected in the list view if the list view is currently active.
+
+**Implementation Details:**
+- Modified `addNewProperty()` function in `propertyManagement.js` to detect if list view is active
+- Enhanced `reloadPropertiesListView()` function with `selectIndex` parameter to allow selection of specific items
+- Added logic to automatically select the newly added property and show its details form
+- Preserved existing functionality for table view and non-active list view scenarios
+
+**Files Modified:**
+- `src/webviews/objects/components/scripts/propertyManagement.js`
+- `src/webviews/objects/components/templates/clientScriptTemplate.js`
+
+**Key Learning:** UI automation should be context-aware - only auto-select when the user is actively working in the list view to avoid disrupting other workflows.
+
 ### WebView List Selection Fix (2025-08-02)
 **Issue Fixed:** Property list selection was being lost when typing in form fields in the data object details view properties tab.
 
