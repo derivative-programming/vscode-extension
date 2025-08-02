@@ -432,6 +432,32 @@ function getDetailViewStyles() {
             font-size: 12px;
             font-style: italic;
         }
+        
+        /* Error message styling */
+        .error-message {
+            color: var(--vscode-errorForeground);
+            background-color: var(--vscode-inputValidation-errorBackground);
+            border: 1px solid var(--vscode-inputValidation-errorBorder);
+            padding: 6px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        /* Help text styling */
+        .help-text {
+            display: block;
+            margin-top: 4px;
+            color: var(--vscode-descriptionForeground);
+            font-size: 11px;
+            line-height: 1.3;
+        }
+        
+        /* Disabled save button styling */
+        .modal button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     `;
 }
 

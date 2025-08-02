@@ -27,10 +27,8 @@ function initializeDOMEvents() {
     const addButtonBtn = document.getElementById('add-button-btn');
     if (addButtonBtn) {
         addButtonBtn.addEventListener('click', function() {
-            // Send direct message to add a new button
-            vscode.postMessage({
-                command: 'addButton'
-            });
+            // Show the add button modal instead of directly adding
+            showAddButtonModal();
         });
     }
     

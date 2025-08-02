@@ -1,3 +1,13 @@
+2025-08-02: Removed buttonName property from form button creation - Removed setting of buttonName property in addButtonToFormWithText function and simplified validation to only check buttonText since buttonName is not a valid property according to the form schema. Only buttonText and buttonType are now set when creating new buttons.
+
+2025-08-02: Fixed new button not appearing in list and auto-selecting - Updated addButtonToFormWithText function to send refreshButtonsList message to webview with newSelection parameter pointing to the newly added button. The function now receives the webview panel as a parameter and uses it to refresh the UI immediately after adding the button, ensuring the new button appears in the list and is automatically selected.
+
+2025-08-02: Fixed add button modal not appearing - Corrected modal HTML structure where template was creating nested modal divs. The modal functionality creates a div with class 'modal' and sets innerHTML, but the template was returning a full modal wrapper instead of just the modal-content. Fixed by removing the outer modal wrapper from the template and added debug logging to showAddButtonModal function.
+
+2025-08-02: Fixed "getAddButtonModalHtml is not defined" error in form details view - Added missing import and client-side template function for the add button modal HTML. The modal functionality was calling getAddButtonModalHtml() but the template function wasn't available in the client-side script. Solution: imported getAddButtonModalHtml from modalTemplates.js and added client-side wrapper function in clientScriptTemplate.js.
+
+2025-08-02: Review the form details view buttons tab 'add button' button. This should ask the user for the button text of the new button. It must be unique for the form. Button type will be 'other'.
+
 2025-08-02: Fixed reverse button not working on input controls list - removed duplicate event listener that was causing the reverse operation to execute twice (effectively canceling itself). Removed obsolete reverseArray function and kept only the direct message-sending approach.
 
 2025-08-02: Fix bulk add input control modal textbox Enter key behavior - remove Enter key handling to allow normal textarea new line behavior in the add input control modal bulk tab

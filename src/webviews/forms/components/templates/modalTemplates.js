@@ -284,21 +284,24 @@ function getAddParamModalHtml(paramsSchema) {
  */
 function getAddButtonModalHtml(buttonsSchema) {
     return `
-    <div id="add-button-modal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <h3>Add New Button</h3>
             
             <form id="add-button-form">
-                <div id="add-button-fields-container"></div>
+                <div class="form-row">
+                    <label for="button-text-input">Button Text:</label>
+                    <input type="text" id="button-text-input" name="buttonText" required placeholder="Enter button text" title="The text that will be displayed on the button">
+                    <small class="help-text">Enter the text to display on the button. This must be unique within the form.</small>
+                </div>
+                <div id="button-text-error" class="error-message" style="display: none;"></div>
                 
                 <div class="form-actions">
                     <button type="button" id="save-add-button">Add</button>
                     <button type="button" id="cancel-add-button">Cancel</button>
                 </div>
             </form>
-        </div>
-    </div>`;
+        </div>`;
 }
 
 /**

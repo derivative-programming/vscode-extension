@@ -380,6 +380,15 @@ function showFormDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addButtonWithText":
+                    if (modelService && formReference) {
+                        // Add a new button to the form with user-specified text and type
+                        addButtonToFormWithText(formReference, modelService, message.data, panel);
+                    } else {
+                        console.warn("Cannot add button with text: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
                 case "addOutputVar":
                     if (modelService && formReference) {
                         // Add a new output variable to the form
@@ -1473,6 +1482,61 @@ function addButtonToForm(formReference, modelService) {
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding button:", error);
+    }
+}
+
+/**
+ * Adds a new button to the form with user-specified text and type
+ * @param {Object} formReference Reference to the form object
+ * @param {Object} modelService ModelService instance
+ * @param {Object} data Data containing buttonText and buttonType
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addButtonToFormWithText(formReference, modelService, data, panel) {
+    console.log("addButtonToFormWithText called with data:", data);
+    
+    if (!formReference || !modelService || !data) {
+        console.error("Missing required data for adding a button with text");
+        return;
+    }
+    
+    try {
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
+        
+        // Initialize the buttons array if it doesn't exist
+        if (!form.objectWorkflowButton) {
+            form.objectWorkflowButton = [];
+        }
+        
+        // Create a new button with user-specified properties
+        const newButton = {
+            buttonText: data.buttonText,
+            buttonType: data.buttonType || 'other'
+        };
+        
+        // Add the new button to the array
+        form.objectWorkflowButton.push(newButton);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the buttons list and select the new button
+        if (panel && panel.webview) {
+            const newButtonIndex = form.objectWorkflowButton.length - 1; // New button is the last one
+            panel.webview.postMessage({
+                command: 'refreshButtonsList',
+                data: form.objectWorkflowButton,
+                newSelection: newButtonIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding button with text:", error);
     }
 }
 

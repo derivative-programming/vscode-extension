@@ -2,7 +2,35 @@
 
 This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
 
+# AppDNA VS Code Extension Architecture Notes
+
+This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
+
 ## Recent Changes
+
+### Enhanced Add Button Modal for Forms (2025-08-02)
+**Enhancement:** Updated the form details view "Add Button" functionality to use a modal dialog that prompts the user for button text with uniqueness validation.
+
+**Key Changes:**
+- **User Input Required:** The "Add Button" button now shows a modal asking for button text instead of auto-generating names
+- **Uniqueness Validation:** Real-time validation ensures button text is unique within the form (checks both buttonText and buttonName properties)
+- **Button Type Set:** New buttons automatically have buttonType set to 'other' as per requirements
+- **Enter Key Support:** Users can press Enter in the text input to add the button
+- **Error Feedback:** Clear error messages shown for empty or duplicate button text
+
+**Files Modified:**
+- `src/webviews/forms/components/scripts/domInitialization.js` - Updated to show modal instead of direct command
+- `src/webviews/forms/components/templates/modalTemplates.js` - Updated add button modal template with text input
+- `src/webviews/forms/components/templates/addButtonModalFunctionality.js` - New file with modal functionality and validation
+- `src/webviews/forms/components/templates/clientScriptTemplate.js` - Included new modal functionality
+- `src/webviews/forms/formDetailsView.js` - Added new `addButtonWithText` command handler and function
+- `src/webviews/forms/styles/detailsViewStyles.js` - Added styling for error messages and help text
+
+**Technical Implementation:**
+- Created `addButtonToFormWithText()` function that accepts buttonText and buttonType from user input
+- Added `addButtonWithText` message command alongside existing `addButton` command
+- Modal validation checks existing buttons array for both buttonText and buttonName conflicts
+- Generated buttonName from buttonText by removing special characters for internal identification
 
 ### Bulk Add Property Modal Enter Key Fix (2025-08-02)
 **Issue Fixed:** In the bulk add tab of the property modal, pressing Enter would submit the modal instead of allowing new lines in the textarea.

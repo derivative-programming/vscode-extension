@@ -10,6 +10,8 @@ const { getDOMInitialization } = require("../scripts/domInitialization");
 const { getModalFunctionality } = require("../scripts/modalFunctionality");
 const { getAddInputControlModalHtml } = require("./addInputControlModalTemplate");
 const { getAddInputControlModalFunctionality } = require("./addInputControlModalFunctionality");
+const { getAddButtonModalFunctionality } = require("./addButtonModalFunctionality");
+const { getAddButtonModalHtml } = require("./modalTemplates");
 
 /**
  * File: clientScriptTemplate.js
@@ -79,8 +81,16 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 return \`${getAddInputControlModalHtml()}\`;
             }
 
+            // Add Button Modal Template Function
+            function getAddButtonModalHtml() {
+                return \`${getAddButtonModalHtml(null)}\`;
+            }
+
             // Add Input Control Modal Functionality
             ${getAddInputControlModalFunctionality()}
+
+            // Add Button Modal Functionality
+            ${getAddButtonModalFunctionality()}
 
             // UI Event Handlers for tabs and view switching
             ${getUIEventHandlers()}
