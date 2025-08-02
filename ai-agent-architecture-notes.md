@@ -4,6 +4,19 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Recent Changes
 
+### WebView List Selection Fix (2025-08-02)
+**Issue Fixed:** Property list selection was being lost when typing in form fields in the data object details view properties tab.
+
+**Root Cause:** The `setupRealTimeUpdates()` function in `saveSubmitHandlers.js` was replacing the `propsList` DOM element with a clone to remove duplicate event listeners, which reset the selected index.
+
+**Solution Implemented:**
+- Added `data-handlers-attached` attribute check to prevent unnecessary element replacement
+- Enhanced selection preservation logic when element replacement is required
+- Modified `reloadPropertiesListView()` to accept `preserveSelection` parameter
+- Prevented unnecessary list view reloading when updating from within the list view
+
+**Key Learning:** When cloning DOM elements to remove event listeners, always preserve important state like selected indices, form values, and other UI state.
+
 ### Add Input Control Modal Implementation (2025-01-27)
 **New Feature Added:** Implemented modal functionality for adding input controls (parameters) to forms, replacing the simple direct command with a rich modal interface similar to the "Add Column" modal in reports view.
 

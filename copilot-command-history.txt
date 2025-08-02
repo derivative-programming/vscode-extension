@@ -1,3 +1,5 @@
+2025-08-02: Fix issue where typing in property setting value causes list selection to be lost - in data object details view on properties tab list view
+
 2025-01-27: Fixed parameter list not refreshing after adding input controls via modal
 - Added webview refresh message (refreshParamsList) to addParamToFormWithName and addParamToForm functions
 - Updated function signatures to accept panel parameter for webview communication

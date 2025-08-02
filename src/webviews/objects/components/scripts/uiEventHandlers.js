@@ -66,13 +66,13 @@ function getUIEventHandlers() {
                                 window.reloadPropertiesTableView();
                             } else if (view === 'propsList' && typeof window.reloadPropertiesListView === 'function') {
                                 console.log('Reloading properties list view from view switch');
-                                window.reloadPropertiesListView();
+                                window.reloadPropertiesListView(true); // Preserve selection when switching views
                             } else if (view === 'lookupTable' && typeof window.reloadLookupItemsTableView === 'function') {
                                 console.log('Reloading lookup items table view from view switch');
                                 window.reloadLookupItemsTableView();
                             } else if (view === 'lookupList' && typeof window.reloadLookupItemsListView === 'function') {
                                 console.log('Reloading lookup items list view from view switch');
-                                window.reloadLookupItemsListView();
+                                window.reloadLookupItemsListView(true); // Preserve selection when switching views
                             }
                         }, 50);
                     } else {

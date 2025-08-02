@@ -13,9 +13,27 @@ function getSaveSubmitHandlers() {
         const propertyDetailsContainer = document.getElementById('propertyDetailsContainer');
         
         if (propsList && propertyDetailsContainer) {
+            // Check if handlers are already attached to avoid replacing the element unnecessarily
+            if (propsList.hasAttribute('data-handlers-attached')) {
+                return; // Handlers already attached, skip to avoid losing selection
+            }
+            
+            // Store the current selected index before replacing the element
+            const currentSelectedIndex = propsList.selectedIndex;
+            
             // Remove existing event listeners to prevent duplicates
             const newPropsList = propsList.cloneNode(true);
             propsList.parentNode.replaceChild(newPropsList, propsList);
+            
+            // Mark that handlers are attached to this element
+            newPropsList.setAttribute('data-handlers-attached', 'true');
+            
+            // Restore the selected index after replacement
+            if (currentSelectedIndex >= 0 && currentSelectedIndex < newPropsList.options.length) {
+                newPropsList.selectedIndex = currentSelectedIndex;
+                // Trigger the change event to update the form fields with the selected property
+                newPropsList.dispatchEvent(new Event('change'));
+            }
             
             // Property list change handler
             newPropsList.addEventListener('change', (event) => {
@@ -419,7 +437,8 @@ function getSaveSubmitHandlers() {
                 }
             });
             
-            // Reload the table view if it exists (to sync changes from list view)
+            // Only reload the table view if it exists (to sync changes from list view)
+            // Don't reload the list view since we're already in it and want to preserve selection
             if (typeof window.reloadPropertiesTableView === 'function') {
                 console.log('Calling reloadPropertiesTableView from updatePropertyField');
                 setTimeout(() => window.reloadPropertiesTableView(), 10);

@@ -177,7 +177,7 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                     }
                 };
                 
-                window.reloadPropertiesListView = function() {
+                window.reloadPropertiesListView = function(preserveSelection = false) {
                     console.log('=== reloadPropertiesListView called ===');
                     console.log('Current props array:', props);
                     
@@ -185,6 +185,20 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                     if (!propsListView) {
                         console.log('Reload skipped - propsListView not found');
                         return;
+                    }
+                    
+                    // Store current selection if requested
+                    let currentSelectedIndex = -1;
+                    let currentSelectedValue = null;
+                    
+                    if (preserveSelection) {
+                        const existingPropsList = document.getElementById('propsList');
+                        if (existingPropsList) {
+                            currentSelectedIndex = existingPropsList.selectedIndex;
+                            if (currentSelectedIndex >= 0) {
+                                currentSelectedValue = existingPropsList.value;
+                            }
+                        }
                     }
                     
                     // Import the list template function (it should be available in the global scope)
@@ -205,7 +219,22 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                             </form>
                         </div>\`;
                         
-                        // Re-initialize event handlers
+                        // Restore selection if requested and valid
+                        if (preserveSelection && currentSelectedIndex >= 0) {
+                            const newPropsList = document.getElementById('propsList');
+                            if (newPropsList && currentSelectedIndex < newPropsList.options.length) {
+                                newPropsList.selectedIndex = currentSelectedIndex;
+                                // Show the property details container
+                                const propertyDetailsContainer = document.getElementById('propertyDetailsContainer');
+                                if (propertyDetailsContainer) {
+                                    propertyDetailsContainer.style.display = 'block';
+                                }
+                                // Trigger change event to populate form fields
+                                newPropsList.dispatchEvent(new Event('change'));
+                            }
+                        }
+                        
+                        // Re-initialize event handlers (this will now check for existing handlers)
                         setupRealTimeUpdates();
                         
                         console.log('Properties list view reloaded successfully');
@@ -253,7 +282,7 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                     }
                 };
                 
-                window.reloadLookupItemsListView = function() {
+                window.reloadLookupItemsListView = function(preserveSelection = false) {
                     console.log('=== reloadLookupItemsListView called ===');
                     const lookupItems = (window.objectData && window.objectData.lookupItem) ? window.objectData.lookupItem : [];
                     console.log('Current lookupItems array:', lookupItems);
@@ -262,6 +291,20 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                     if (!lookupListView) {
                         console.log('Reload skipped - lookupListView not found');
                         return;
+                    }
+                    
+                    // Store current selection if requested
+                    let currentSelectedIndex = -1;
+                    let currentSelectedValue = null;
+                    
+                    if (preserveSelection) {
+                        const existingLookupItemsList = document.getElementById('lookupItemsList');
+                        if (existingLookupItemsList) {
+                            currentSelectedIndex = existingLookupItemsList.selectedIndex;
+                            if (currentSelectedIndex >= 0) {
+                                currentSelectedValue = existingLookupItemsList.value;
+                            }
+                        }
                     }
                     
                     // Use the lookup items template function for list view
@@ -284,6 +327,21 @@ function getClientScriptTemplate(props, propItemsSchema, objectName, allObjects,
                                 \${lookupHtml.formFields}
                             </form>
                         </div>\`;
+                        
+                        // Restore selection if requested and valid
+                        if (preserveSelection && currentSelectedIndex >= 0) {
+                            const newLookupItemsList = document.getElementById('lookupItemsList');
+                            if (newLookupItemsList && currentSelectedIndex < newLookupItemsList.options.length) {
+                                newLookupItemsList.selectedIndex = currentSelectedIndex;
+                                // Show the details container
+                                const lookupItemDetailsContainer = document.getElementById('lookupItemDetailsContainer');
+                                if (lookupItemDetailsContainer) {
+                                    lookupItemDetailsContainer.style.display = 'block';
+                                }
+                                // Trigger change event to populate form fields
+                                newLookupItemsList.dispatchEvent(new Event('change'));
+                            }
+                        }
                         
                         // Re-initialize lookup items functionality
                         if (typeof initializeLookupItems === 'function') {
