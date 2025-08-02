@@ -1,8 +1,16 @@
+2025-08-02: Fix bulk add input control modal textbox Enter key behavior - remove Enter key handling to allow normal textarea new line behavior in the add input control modal bulk tab
+
+2025-08-02: Fixed newly added input controls being invalid selections - Updated refreshParamsList, refreshButtonsList, and refreshOutputVarsList functions to update the client-side arrays (currentParams, currentButtons, currentOutputVars) and trigger change events to display details when items are selected. Previously only the HTML lists were updated but not the underlying data arrays.
+
+2025-08-02: Fixed JavaScript error "Cannot read properties of undefined (reading 'hasOwnProperty')" in form details view - Added null/undefined checks for param, button, and outputVar objects in list selection change handlers before calling hasOwnProperty. Now properly hides details containers when invalid selection occurs instead of throwing errors.
+
 2025-08-02: Fix bulk add property modal textbox Enter key behavior - remove Enter key handling to allow normal textarea new line behavior
 
 2025-08-02: Implement automatic selection of newly added properties in data object details view list - when a new property is added, automatically select it (or the first one added) in the list view
 
 2025-08-02: Fix issue where typing in property setting value causes list selection to be lost - in data object details view on properties tab list view
+
+2025-08-02: Investigate form details view input controls tab issue - when selecting an input control from the listbox, the input control settings do not display on the right side. The issue is in the parameter management functions where the list selection change handler is not properly showing the details container or populating the form fields with the selected parameter's properties.
 
 2025-01-27: Fixed parameter list not refreshing after adding input controls via modal
 - Added webview refresh message (refreshParamsList) to addParamToFormWithName and addParamToForm functions
@@ -120,7 +128,10 @@ Command: Expand all top level tree items in the AppDNA tree view
 Command: startMCPServerCommand
 Command: stopMCPServerCommand
 2025-08-02: Fixed JS syntax error in clientScriptTemplate.js - corrected malformed function declarations in getPropertyModalHtml, getObjectSearchModalHtml, and getLookupItemModalHtml functions. The toString().replace() method was creating invalid JavaScript syntax. Changed to directly call the template functions and properly escape template literals.
-2 0 2 5 - 0 8 - 0 2 :   F i x   b u l k   a d d   p r o p e r t y   s a v e   i s s u e   -   o n l y   f i r s t   p r o p e r t y   s a v e s   w h e n   b u l k   a d d i n g   m u l t i p l e   p r o p e r t i e s  
-  
- 2 0 2 5 - 0 8 - 0 2 :   F i x   b u l k   a d d   p r o p e r t y   s a v e   i s s u e   -   m o d i f i e d   a d d N e w P r o p e r t y   t o   a c c e p t   s k i p E v e n t D i s p a t c h   p a r a m e t e r   a n d   u p d a t e d   b u l k   a d d   t o   d i s p a t c h   s i n g l e   e v e n t   a f t e r   a l l   p r o p e r t i e s   a d d e d   i n s t e a d   o f   i n d i v i d u a l   e v e n t s   t h a t   w e r e   i g n o r e d   d u e   t o   o n c e : t r u e   l i s t e n e r  
+2 0 2 5 - 0 8 - 0 2 :   F i x   b u l k   a d d   p r o p e r t y   s a v e   i s s u e   -   o n l y   f i r s t   p r o p e r t y   s a v e s   w h e n   b u l k   a d d i n g   m u l t i p l e   p r o p e r t i e s 
+ 
+ 
+ 
+ 2 0 2 5 - 0 8 - 0 2 :   F i x   b u l k   a d d   p r o p e r t y   s a v e   i s s u e   -   m o d i f i e d   a d d N e w P r o p e r t y   t o   a c c e p t   s k i p E v e n t D i s p a t c h   p a r a m e t e r   a n d   u p d a t e d   b u l k   a d d   t o   d i s p a t c h   s i n g l e   e v e n t   a f t e r   a l l   p r o p e r t i e s   a d d e d   i n s t e a d   o f   i n d i v i d u a l   e v e n t s   t h a t   w e r e   i g n o r e d   d u e   t o   o n c e : t r u e   l i s t e n e r 
+ 
  

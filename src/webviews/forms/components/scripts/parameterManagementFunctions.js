@@ -23,6 +23,12 @@ function getParameterManagementFunctions() {
             const selectedIndex = event.target.value;
             const param = currentParams[selectedIndex];
 
+            // Only proceed if we have a valid parameter object
+            if (!param) {
+                paramDetailsContainer.style.display = 'none';
+                return;
+            }
+
             // Show param details container when an item is selected
             paramDetailsContainer.style.display = 'block';
 

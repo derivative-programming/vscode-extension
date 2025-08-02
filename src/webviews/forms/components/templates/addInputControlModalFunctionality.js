@@ -93,21 +93,6 @@ function createAddInputControlModal() {
         });
     }
     
-    // Add Enter key handling for bulk input controls textarea (Enter submits, Shift+Enter for new line)
-    const bulkInputControlsTextarea = modal.querySelector("#bulkInputControls");
-    if (bulkInputControlsTextarea) {
-        bulkInputControlsTextarea.addEventListener("keydown", function(event) {
-            if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault(); // Prevent default Enter behavior
-                const addButton = modal.querySelector("#addBulkInputControls");
-                if (addButton && !addButton.disabled) {
-                    addButton.click();
-                }
-            }
-            // Shift+Enter will allow new line (default behavior)
-        });
-    }
-    
     // Validate input control name
     function validateInputControlName(name) {
         if (!name) {

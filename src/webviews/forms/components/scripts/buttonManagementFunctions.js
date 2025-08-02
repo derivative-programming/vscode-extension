@@ -23,6 +23,12 @@ function getButtonManagementFunctions() {
             const selectedIndex = event.target.value;
             const button = currentButtons[selectedIndex];
 
+            // Only proceed if we have a valid button object
+            if (!button) {
+                buttonDetailsContainer.style.display = 'none';
+                return;
+            }
+
             // Show button details container when an item is selected
             buttonDetailsContainer.style.display = 'block';
 

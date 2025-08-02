@@ -180,6 +180,9 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             function refreshParamsList(newParams, newSelection = null) {
                 const paramsList = document.getElementById('paramsList');
                 if (paramsList) {
+                    // Update the currentParams array
+                    currentParams = newParams;
+                    
                     const currentSelection = newSelection !== null ? newSelection : paramsList.selectedIndex;
                     paramsList.innerHTML = '';
                     newParams.forEach((param, index) => {
@@ -192,6 +195,9 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     // Restore selection if still valid
                     if (currentSelection >= 0 && currentSelection < newParams.length) {
                         paramsList.selectedIndex = currentSelection;
+                        
+                        // Trigger the change event to update the details view
+                        paramsList.dispatchEvent(new Event('change'));
                     }
                     
                     // Update move button states
@@ -208,6 +214,9 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             function refreshButtonsList(newButtons, newSelection = null) {
                 const buttonsList = document.getElementById('buttonsList');
                 if (buttonsList) {
+                    // Update the currentButtons array
+                    currentButtons = newButtons;
+                    
                     const currentSelection = newSelection !== null ? newSelection : buttonsList.selectedIndex;
                     buttonsList.innerHTML = '';
                     newButtons.forEach((button, index) => {
@@ -220,6 +229,9 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     // Restore selection if still valid
                     if (currentSelection >= 0 && currentSelection < newButtons.length) {
                         buttonsList.selectedIndex = currentSelection;
+                        
+                        // Trigger the change event to update the details view
+                        buttonsList.dispatchEvent(new Event('change'));
                     }
                     
                     // Update move button states
@@ -236,6 +248,9 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             function refreshOutputVarsList(newOutputVars, newSelection = null) {
                 const outputVarsList = document.getElementById('outputVarsList');
                 if (outputVarsList) {
+                    // Update the currentOutputVars array
+                    currentOutputVars = newOutputVars;
+                    
                     const currentSelection = newSelection !== null ? newSelection : outputVarsList.selectedIndex;
                     outputVarsList.innerHTML = '';
                     newOutputVars.forEach((outputVar, index) => {
@@ -248,6 +263,9 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     // Restore selection if still valid
                     if (currentSelection >= 0 && currentSelection < newOutputVars.length) {
                         outputVarsList.selectedIndex = currentSelection;
+                        
+                        // Trigger the change event to update the details view
+                        outputVarsList.dispatchEvent(new Event('change'));
                     }
                     
                     // Update move button states

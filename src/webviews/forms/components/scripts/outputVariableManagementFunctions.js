@@ -23,6 +23,12 @@ function getOutputVariableManagementFunctions() {
             const selectedIndex = event.target.value;
             const outputVar = currentOutputVars[selectedIndex];
 
+            // Only proceed if we have a valid output variable object
+            if (!outputVar) {
+                outputVarDetailsContainer.style.display = 'none';
+                return;
+            }
+
             // Show output variable details container when an item is selected
             outputVarDetailsContainer.style.display = 'block';
 
