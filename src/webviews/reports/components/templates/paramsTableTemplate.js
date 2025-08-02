@@ -73,7 +73,10 @@ function getParamsTableTemplate(params, reportParamsSchema) {
             if (hasEnum) {
                 // Always show all options in the dropdown but disable it if property doesn't exist or is null/undefined
                 inputField = `<select name="${paramKey}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
-                    ${paramSchema.enum.map(option => {
+                    ${paramSchema.enum
+                        .slice() // Create a copy to avoid mutating the original array
+                        .sort() // Sort alphabetically
+                        .map(option => {
                         let isSelected = false;
                         
                         if (propertyExists) {

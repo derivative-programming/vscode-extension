@@ -41,7 +41,10 @@ function getSettingsTabTemplate(object, objectSchemaProps) {
                 const isLookupField = key === "isLookup";
                 const shouldDisable = !propertyExists || isLookupField;
                 inputField = `<select id="${key}" name="${key}" ${tooltip} ${shouldDisable ? "disabled" : ""}>
-                    ${desc.enum.map(option => {
+                    ${desc.enum
+                        .slice() // Create a copy to avoid mutating the original array
+                        .sort() // Sort alphabetically
+                        .map(option => {
                         // If it's a boolean enum and the property doesn't exist or is null/undefined, default to 'false'
                         const isSelected = isBooleanEnum && !propertyExists ? 
                             (option === false || option === "false") : 

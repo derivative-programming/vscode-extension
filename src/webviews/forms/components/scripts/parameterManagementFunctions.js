@@ -323,7 +323,8 @@ function getParameterManagementFunctions() {
             let input;
             if (hasEnum) {
                 input = document.createElement('select');
-                schema.enum.forEach(option => {
+                // Sort enum options alphabetically before creating option elements
+                schema.enum.slice().sort().forEach(option => {
                     const optionEl = document.createElement('option');
                     optionEl.value = option;
                     optionEl.textContent = option;

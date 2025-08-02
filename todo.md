@@ -22,12 +22,10 @@ apis
 
 preview form...
 - show actual lookup items in dropdowns
-- ✅ show data and datetime fields
 - header display
 
 preview report grid view...
 - horizontal scrollbar shoudl be above the pageing controls and below (or part of) the table
-- ✅ date and datetime filter fields
 - header display
 
 - preview report navigation view...

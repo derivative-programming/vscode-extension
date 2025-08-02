@@ -32,8 +32,9 @@ function getPropertiesListTemplate(propItemsSchema) {
         let inputField = "";
         if (hasEnum) {
             // Always display all enum options even when disabled
+            const sortedOptions = propSchema.enum.slice().sort(); // Create a copy and sort alphabetically
             inputField = `<select id="${fieldId}" name="${propKey}" ${tooltip} disabled>
-                ${propSchema.enum.map(option => {
+                ${sortedOptions.map(option => {
                     // Check if there's a default value in the schema
                     let isSelected = false;
                     
@@ -43,7 +44,7 @@ function getPropertiesListTemplate(propItemsSchema) {
                     } else if (isBooleanEnum) {
                         // Default to 'false' for boolean enums if no default specified
                         isSelected = (option === false || option === "false");
-                    } else if (propSchema.enum.indexOf(option) === 0) {
+                    } else if (sortedOptions.indexOf(option) === 0) {
                         // For non-boolean enums with no default, select the first option
                         isSelected = true;
                     }

@@ -18,6 +18,23 @@ This file serves as the main index for architecture documentation. The detailed 
 ### Report Grid Filter Date/DateTime Implementation - **FIXED**
 - **Location**: `src/webviews/pagepreview/components/htmlGenerator.js` lines 2615-2618 (function `generateFilterInput`)
 - **Issue Found**: Report grid filters only checked `dataType.includes('date')` for all date types
+
+### SQL Server Data Type Dropdown Sorting - **FIXED (2025-08-02)**
+- **Schema Location**: `app-dna.schema.json` - sqlServerDBDataType enum contains: ["nvarchar", "bit", "datetime", "int", "uniqueidentifier", "money", "bigint", "float", "decimal", "date", "varchar", "text"]
+- **Issue**: SQL Server data type dropdowns were not sorted alphabetically across multiple views
+- **Files Updated**: 
+  - All report template files (column, parameter, button modals and table/list templates)
+  - Object property templates (both table and list views)
+  - Project settings view
+  - **Additional Fix**: Object details view property management scripts
+  - **Final Fix**: Properties list template (data object details view properties tab list view)
+- **Implementation**: Added `.slice().sort()` to create sorted copy of enum arrays before mapping to options
+- **Pattern Used**: `schema.enum.slice().sort().map(option => ...)` instead of `schema.enum.map(option => ...)`
+- **Additional Scripts Fixed**:
+  - `src/webviews/objects/components/scripts/propertyManagement.js` - Data object property dropdowns
+  - `src/webviews/objects/components/scripts/lookupItemManagement.js` - Lookup item property dropdowns
+  - `src/webviews/objects/components/templates/propertiesListTemplate.js` - Properties list view dropdowns
+- **Status**: ✅ All SQL Server data type dropdowns now display in alphabetical order
 - **Problem**: 
   - `dataType = "datetime"` → was showing `<input type="date">` ❌ (wrong - no time picker)
   - `dataType = "time"` → was showing `<input type="date">` ❌ (wrong - no time selection)

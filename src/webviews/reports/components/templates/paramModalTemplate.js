@@ -33,10 +33,13 @@ function getParamModalHtml(reportParamsSchema) {
         let inputHtml = '';
         
         if (schema.enum && Array.isArray(schema.enum)) {
-            // Enum should use a select dropdown
-            const options = schema.enum.map(opt => {
-                return `<option value="${opt}">${opt}</option>`;
-            }).join('');
+            // Enum should use a select dropdown - sort options alphabetically
+            const options = schema.enum
+                .slice() // Create a copy to avoid mutating the original array
+                .sort() // Sort alphabetically
+                .map(opt => {
+                    return `<option value="${opt}">${opt}</option>`;
+                }).join('');
             
             inputHtml = `
                 <select id="param-${prop}">

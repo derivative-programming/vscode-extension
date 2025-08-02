@@ -41,7 +41,10 @@ function getParamsListTemplate(reportParamsSchema) {
         if (hasEnum) {
             // Always display all enum options even when disabled
             inputField = `<select id="${fieldId}" name="${paramKey}" ${tooltip} disabled>
-                ${paramSchema.enum.map(option => {
+                ${paramSchema.enum
+                    .slice() // Create a copy to avoid mutating the original array
+                    .sort() // Sort alphabetically
+                    .map(option => {
                     // Check if there's a default value in the schema
                     let isSelected = false;
                     

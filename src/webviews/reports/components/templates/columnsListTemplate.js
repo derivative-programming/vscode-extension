@@ -41,7 +41,10 @@ function getColumnsListTemplate(reportColumnsSchema) {
         if (hasEnum) {
             // Always display all enum options even when disabled
             inputField = `<select id="${fieldId}" name="${columnKey}" ${tooltip} disabled>
-                ${columnSchema.enum.map(option => {
+                ${columnSchema.enum
+                    .slice() // Create a copy to avoid mutating the original array
+                    .sort() // Sort alphabetically
+                    .map(option => {
                     // Check if there's a default value in the schema
                     let isSelected = false;
                     

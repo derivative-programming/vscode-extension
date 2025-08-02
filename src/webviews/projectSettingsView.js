@@ -673,8 +673,9 @@ function getWebviewContent(panel, context, model, schema) {
                     // Enum property - use dropdown
                     inputElement = document.createElement('select');
                     
-                    // Add options
-                    propSchema.enum.forEach(option => {
+                    // Add options - sort alphabetically
+                    const sortedOptions = propSchema.enum.slice().sort(); // Create a copy and sort alphabetically
+                    sortedOptions.forEach(option => {
                         const optionEl = document.createElement('option');
                         optionEl.value = option;
                         optionEl.textContent = option;

@@ -67,7 +67,10 @@ function getButtonsTableTemplate(buttons, reportButtonsSchema) {
             if (hasEnum) {
                 // Always show all options in the dropdown but disable it if property doesn't exist or is null/undefined
                 inputField = `<select name="${buttonKey}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
-                    ${buttonSchema.enum.map(option => {
+                    ${buttonSchema.enum
+                        .slice() // Create a copy to avoid mutating the original array
+                        .sort() // Sort alphabetically
+                        .map(option => {
                         let isSelected = false;
                         
                         if (propertyExists) {

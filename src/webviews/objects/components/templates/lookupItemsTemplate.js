@@ -54,7 +54,10 @@ function getLookupItemsTemplate(lookupItems, lookupItemsSchema) {
             if (hasEnum) {
                 // Always show all options in the dropdown but disable it if property doesn't exist or is null/undefined
                 inputField = `<select name="${propKey}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
-                    ${propSchema.enum.map(option => {
+                    ${propSchema.enum
+                        .slice() // Create a copy to avoid mutating the original array
+                        .sort() // Sort alphabetically
+                        .map(option => {
                         // If it's a boolean enum and the property doesn't exist or is null/undefined, default to 'false'
                         const isSelected = isBooleanEnum && !propertyExists ? 
                             (option === false || option === "false") : 
@@ -100,7 +103,10 @@ function getLookupItemsTemplate(lookupItems, lookupItemsSchema) {
         if (hasEnum) {
             // Always display all enum options even when disabled
             inputField = `<select id="${fieldId}" name="${propKey}" ${tooltip} disabled>
-                ${propSchema.enum.map(option => {
+                ${propSchema.enum
+                    .slice() // Create a copy to avoid mutating the original array
+                    .sort() // Sort alphabetically
+                    .map(option => {
                     // Default to 'false' for boolean enums
                     const isSelected = isBooleanEnum ? (option === false || option === "false") : false;
                     

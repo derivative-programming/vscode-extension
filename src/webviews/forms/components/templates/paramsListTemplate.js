@@ -60,8 +60,9 @@ function getParamsListTemplate(paramSchema) {
         let inputField = "";
         if (hasEnum) {
             // Always display all enum options even when disabled
+            const sortedOptions = schema.enum.slice().sort(); // Create a copy and sort alphabetically
             inputField = `<select id="${fieldId}" name="${propKey}" ${tooltip} disabled>
-                ${schema.enum.map(option => {
+                ${sortedOptions.map(option => {
                     // Check if there's a default value in the schema
                     let isSelected = false;
                     
@@ -71,7 +72,7 @@ function getParamsListTemplate(paramSchema) {
                     } else if (isBooleanEnum) {
                         // Default to 'false' for boolean enums if no default specified
                         isSelected = (option === false || option === "false");
-                    } else if (schema.enum.indexOf(option) === 0) {
+                    } else if (sortedOptions.indexOf(option) === 0) {
                         // For non-boolean enums with no default, select the first option
                         isSelected = true;
                     }

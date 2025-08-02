@@ -46,8 +46,9 @@ function getPropertyManagementFunctions() {
                 if (hasEnum) {
                     inputHTML = '<select name="' + propKey + '" ' + tooltip + ' disabled>';
                     
-                    // Create options
-                    propSchema.enum.forEach((option, index) => {
+                    // Create options - sort alphabetically
+                    const sortedOptions = propSchema.enum.slice().sort(); // Create a copy and sort alphabetically
+                    sortedOptions.forEach((option, index) => {
                         let isSelected = false;
                         
                         if (propSchema.default !== undefined) {
@@ -56,7 +57,7 @@ function getPropertyManagementFunctions() {
                         } else if (isBooleanEnum) {
                             // Default to 'false' for boolean enums if no default specified
                             isSelected = (option === false || option === "false");
-                        } else if (index === 0) {
+                        } else if (sortedOptions.indexOf(option) === 0) {
                             // For non-boolean enums with no default, select the first option
                             isSelected = true;
                         }

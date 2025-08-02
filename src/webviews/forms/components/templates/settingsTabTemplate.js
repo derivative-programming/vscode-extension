@@ -102,7 +102,10 @@ function getSettingsTabTemplate(form, formSchemaProps) {
             if (hasEnum) {
                 // Generate select dropdown for enum values
                 inputField = `<select id="setting-${prop}" name="${prop}" ${tooltip} ${!propertyExists ? "readonly disabled" : ""}>
-                    ${schema.enum.map(option => {
+                    ${schema.enum
+                        .slice() // Create a copy to avoid mutating the original array
+                        .sort() // Sort alphabetically
+                        .map(option => {
                         let isSelected = false;
                         
                         if (propertyExists) {

@@ -76,7 +76,10 @@ function getColumnsTableTemplate(columns, reportColumnsSchema) {
             if (hasEnum) {
                 // Always show all options in the dropdown but disable it if property doesn't exist or is null/undefined
                 inputField = `<select name="${columnKey}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
-                    ${columnSchema.enum.map(option => {
+                    ${columnSchema.enum
+                        .slice() // Create a copy to avoid mutating the original array
+                        .sort() // Sort alphabetically
+                        .map(option => {
                         let isSelected = false;
                         
                         if (propertyExists) {

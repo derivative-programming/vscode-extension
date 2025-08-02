@@ -79,7 +79,10 @@ function getParamsTableTemplate(params, paramsSchema) {
             if (hasEnum) {
                 // Always show all options in the dropdown but disable it if property doesn't exist or is null/undefined
                 inputField = `<select name="${paramKey}" ${tooltip} ${!propertyExists ? "disabled" : ""}>
-                    ${paramSchema.enum.map(option => {
+                    ${paramSchema.enum
+                        .slice() // Create a copy to avoid mutating the original array
+                        .sort() // Sort alphabetically
+                        .map(option => {
                         // If it's a boolean enum and the property doesn't exist or is null/undefined, default to 'false'
                         const isSelected = isBooleanEnum && !propertyExists ? 
                             (option === false || option === "false") : 
@@ -151,7 +154,10 @@ function getParamsListTemplate(paramsSchema) {
         if (hasEnum) {
             // Always display all enum options even when disabled
             inputField = `<select id="${fieldId}" name="${paramKey}" ${tooltip} disabled>
-                ${paramSchema.enum.map(option => {
+                ${paramSchema.enum
+                    .slice() // Create a copy to avoid mutating the original array
+                    .sort() // Sort alphabetically
+                    .map(option => {
                     // Default to 'false' for boolean enums
                     const isSelected = isBooleanEnum ? (option === false || option === "false") : false;
                     

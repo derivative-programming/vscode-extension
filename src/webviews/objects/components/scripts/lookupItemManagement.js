@@ -379,9 +379,10 @@ function getLookupItemManagementFunctions() {
                         
                         let inputField = '';
                         if (hasEnum) {
-                            // Create select dropdown for enum properties
+                            // Create select dropdown for enum properties - sort options alphabetically
                             inputField = '<select name="' + propKey + '" ' + (propertyExists ? '' : 'disabled') + '>';
-                            propSchema.enum.forEach(option => {
+                            const sortedOptions = propSchema.enum.slice().sort(); // Create a copy and sort alphabetically
+                            sortedOptions.forEach(option => {
                                 const isSelected = propertyExists && item[propKey] === option;
                                 inputField += '<option value="' + option + '" ' + (isSelected ? 'selected' : '') + '>' + option + '</option>';
                             });

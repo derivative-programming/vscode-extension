@@ -187,8 +187,9 @@ function createPropertyModal() {
                 if (hasEnum) {
                     inputHTML = '<select name="' + propKey + '" ' + tooltip + (isChecked ? '' : ' disabled') + '>';
                     
-                    // Create options
-                    propSchema.enum.forEach((option, index) => {
+                    // Create options - sort alphabetically
+                    const sortedOptions = propSchema.enum.slice().sort(); // Create a copy and sort alphabetically
+                    sortedOptions.forEach((option, index) => {
                         let isSelected = false;
                         
                         if (defaultValue !== "") {
@@ -197,7 +198,7 @@ function createPropertyModal() {
                             isSelected = option === propSchema.default;
                         } else if (isBooleanEnum) {
                             isSelected = (option === false || option === "false");
-                        } else if (index === 0) {
+                        } else if (sortedOptions.indexOf(option) === 0) {
                             isSelected = true;
                         }
                         

@@ -1,3 +1,17 @@
 2025-08-02: for a report grid view filter of datetime i see a dropdown
 2025-08-02: check the display of report grid filters too
 2025-08-02: review the page preview details view. on a form preview make sure a control of data type 'datetime' shows a date picker and time picker. on date type 'date' its just a date picker
+2025-08-02: on sql server data type properties we show a dropdown on many views. The items in this dropdown should be in alpha order
+2025-08-02: i see data object details view props tab prop setting Sql Server DB Data Type: dropdown as unsorted
+2025-08-02: its the data object details view properties tab list view
+2025-08-02: COMPLETED: Fixed all dropdown sorting across entire extension
+- User request expanded from SQL Server data type dropdowns to "all tabs of the form details view as well" and "all dropdowns, not just sql server data type"
+- Solution: Applied consistent pattern of .slice().sort() before .map() to alphabetically sort all enum-based dropdowns
+- Files modified: 
+  * Report templates (14+ files): All columnTableTemplate, parameterTableTemplate, etc.
+  * Object templates (7+ files): All propertiesTableTemplate, settingsTemplate, lookupItemsTemplate, etc.
+  * Form templates (9+ files): All settingsTabTemplate, paramsTableTemplate, modalTemplates, buttonsTableTemplate, etc.
+  * Script files: parameterManagementFunctions.js
+- Pattern used: schema.enum.slice().sort().map() instead of schema.enum.map()
+- Total enum patterns fixed: 25+ locations across webview templates
+- Verification: Final grep search confirmed no remaining unsorted enum patterns
