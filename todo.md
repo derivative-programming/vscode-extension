@@ -1,6 +1,7 @@
 Agent todo items...
 
- 
+
+
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button
@@ -245,6 +246,69 @@ win app...
                 "titleText": "Customer User Customer Email Request List Test",
                 "visualizationType": "Grid"
               },
+
+
+*************************
+user stories
+*************************
+
+when adding or importing a story, checkbox to optionally automatically add the object and role if they do not exist. checkbox on each
+
+user story - Roles
+- open role data object details page
+- if dne, ask the user if they would like to create one
+
+user story - Role requirements page...
+option to add a role object if dne
+list all roles in dropdown
+button to open role lookup item list
+for each role, what objects should they be able to view all, view, add, update, and/or delete
+down to the data object property, not just data object name
+simple checkbox to mark each requirement.
+one big grid to see all possibilities and easily check what is required
+generate user stories from this
+show what is covered by existing user stories too
+show a list of missing stories. allow user to add them individually
+restricting access to actions is just as important as allowing access to actions
+can restrict at object level too
+filter on multiple roles?
+access options... unassigned, allowed, required, not allowed (radio buttons)
+go down a list, not a table. it will be so long the column headers will be out of sight
+option to hide lines not assigned yet
+each data object has a collapsible list under it, showing all properties
+allow restrict all or allow all option on all actions for one click update
+assignment at object level sets all properties to that value
+
+role requirements validation...
+if you cant view or view all, you cant edit or delete
+
+user story - story list
+on user story list show the page that fulfils it and view\edit icon buttons.
+show number of pages from login that it needs to reach it to perform the action.
+
+user story - page mapping...
+need to be able to map a user story to one or more pages that cover it
+create a new json file that holds this data
+button to run process to make best guess
+lookup icon next to each page name textbox. filter on role and object in story
+allow multiple pages per story
+
+user story - fulfillment report...
+give requirements and stories and story-page mapping, show which requirements are not fulfilled. 
+mapped page must have a path from the login page
+role must be allowed to view all pages in path
+
+user story journey - user page flowchart...
+show a flowchart that shows what the user must do to get there
+
+user story journey- page preview...
+show page preview view with highlighted buttons on how to get there.
+
+user story - QA...
+show a list of all user stories and track which have been QA'd
+hold qa notes
+status - pending, started, success, failure
+
 *************************
 low priority
 *************************
