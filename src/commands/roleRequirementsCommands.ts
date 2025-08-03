@@ -366,6 +366,51 @@ export function registerRoleRequirementsCommands(
                             outline: 1px solid var(--vscode-focusBorder);
                             outline-offset: -1px;
                         }
+                        .access-container {
+                            display: flex;
+                            align-items: center;
+                            gap: 5px;
+                        }
+                        .access-error {
+                            color: var(--vscode-errorForeground);
+                            font-size: 14px;
+                            cursor: help;
+                            line-height: 1;
+                        }
+                        .access-dropdown.has-error {
+                            border-color: var(--vscode-inputValidation-errorBorder);
+                            background-color: var(--vscode-inputValidation-errorBackground);
+                        }
+                        .validation-summary {
+                            margin: 10px 0;
+                            padding: 12px;
+                            border-radius: 3px;
+                            display: none;
+                        }
+                        .validation-summary.success {
+                            background-color: var(--vscode-inputValidation-infoBackground);
+                            border: 1px solid var(--vscode-inputValidation-infoBorder);
+                            color: var(--vscode-inputValidation-infoForeground);
+                        }
+                        .validation-summary.error {
+                            background-color: var(--vscode-inputValidation-errorBackground);
+                            border: 1px solid var(--vscode-inputValidation-errorBorder);
+                            color: var(--vscode-inputValidation-errorForeground);
+                        }
+                        .validation-summary h4 {
+                            margin: 0 0 8px 0;
+                            font-size: 13px;
+                            font-weight: 600;
+                        }
+                        .validation-summary .error-list {
+                            font-size: 12px;
+                            line-height: 1.4;
+                            max-height: 200px;
+                            overflow-y: auto;
+                        }
+                        .validation-summary .error-item {
+                            margin-bottom: 4px;
+                        }
                         .spinner {
                             border: 4px solid rgba(0, 0, 0, 0.1);
                             width: 36px;
@@ -409,9 +454,25 @@ export function registerRoleRequirementsCommands(
                         .refresh-button:hover {
                             background-color: var(--vscode-button-hoverBackground);
                         }
+                        .validate-button {
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: none;
+                            padding: 4px 8px;
+                            cursor: pointer;
+                            border-radius: 3px;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                            margin-right: 8px;
+                        }
+                        .validate-button:hover {
+                            background-color: var(--vscode-button-secondaryHoverBackground);
+                        }
                         .header-actions {
                             display: flex;
                             justify-content: flex-end;
+                            align-items: center;
                             margin-bottom: 10px;
                         }
                         .table-footer {
@@ -576,9 +637,11 @@ export function registerRoleRequirementsCommands(
                             background-color: var(--vscode-button-hoverBackground);
                         }
                         .apply-button:disabled {
-                            opacity: 0.6;
+                            opacity: 0.4;
                             cursor: not-allowed;
-                            background-color: var(--vscode-button-secondaryBackground);
+                            background-color: var(--vscode-input-background);
+                            color: var(--vscode-descriptionForeground);
+                            border: 1px solid var(--vscode-input-border);
                         }
                     </style>
                 </head>
@@ -647,9 +710,16 @@ export function registerRoleRequirementsCommands(
                             <button id="applyButton" class="apply-button" disabled>Apply to Selected</button>
                         </div>
                         <div class="header-actions">
+                            <button id="validateButton" class="validate-button" title="Validate All Requirements">
+                            </button>
                             <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             </button>
                         </div>
+                    </div>
+                    
+                    <div id="validationSummary" class="validation-summary">
+                        <h4 id="validationTitle"></h4>
+                        <div id="validationContent" class="error-list"></div>
                     </div>
                     
                     <div class="table-container">

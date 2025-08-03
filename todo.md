@@ -258,29 +258,12 @@ user story - Roles
 - open role data object details page
 - if dne, ask the user if they would like to create one
 
-user story - Role requirements page...
-option to add a role object if dne
-list all roles in dropdown
-button to open role lookup item list
-for each role, what objects should they be able to view all, view, add, update, and/or delete
-down to the data object property, not just data object name
-simple checkbox to mark each requirement.
-one big grid to see all possibilities and easily check what is required
-generate user stories from this
+suggestions...
+
+role requirements validation... ✅ COMPLETED
+✅ if you cant view or view all, you cant edit or delete - shows validation error next to access dropdown
 show what is covered by existing user stories too
 show a list of missing stories. allow user to add them individually
-restricting access to actions is just as important as allowing access to actions
-can restrict at object level too
-filter on multiple roles?
-access options... unassigned, allowed, required, not allowed (radio buttons)
-go down a list, not a table. it will be so long the column headers will be out of sight
-option to hide lines not assigned yet
-each data object has a collapsible list under it, showing all properties
-allow restrict all or allow all option on all actions for one click update
-assignment at object level sets all properties to that value
-
-role requirements validation...
-if you cant view or view all, you cant edit or delete
 
 user story - story list
 on user story list show the page that fulfils it and view\edit icon buttons.

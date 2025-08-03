@@ -134,6 +134,43 @@ function populateFilterDropdowns() {
 }
 
 // Handle access dropdown change
+// Validation function to check if a role can perform an action
+function validateRoleAccess(role, dataObject, action, access) {
+    // Only validate for Update and Delete actions
+    if (action !== 'Update' && action !== 'Delete') {
+        return { isValid: true, message: '' };
+    }
+    
+    // Only show error for Allowed or Required access levels
+    if (access !== 'Allowed' && access !== 'Required') {
+        return { isValid: true, message: '' };
+    }
+    
+    // Check if role has View or View All access for this data object
+    const viewItem = allItems.find(item => 
+        item.role === role && 
+        item.dataObject === dataObject && 
+        item.action === 'View' &&
+        (item.access === 'Allowed' || item.access === 'Required')
+    );
+    
+    const viewAllItem = allItems.find(item => 
+        item.role === role && 
+        item.dataObject === dataObject && 
+        item.action === 'View All' &&
+        (item.access === 'Allowed' || item.access === 'Required')
+    );
+    
+    if (!viewItem && !viewAllItem) {
+        return { 
+            isValid: false, 
+            message: `Cannot ${action.toLowerCase()} without View or View All access` 
+        };
+    }
+    
+    return { isValid: true, message: '' };
+}
+
 function handleAccessChange(role, dataObject, action, newAccess, requirementsFilePath) {
     console.log("[Webview] Access changed:", { role, dataObject, action, newAccess });
     
@@ -266,6 +303,10 @@ function renderTable() {
                 const td = document.createElement("td");
                 
                 if (col.key === "access") {
+                    // Create a container for the dropdown and error indicator
+                    const container = document.createElement("div");
+                    container.className = "access-container";
+                    
                     // Create access dropdown
                     const select = document.createElement("select");
                     select.className = "access-dropdown";
@@ -281,9 +322,37 @@ function renderTable() {
                         select.appendChild(optionElement);
                     });
                     
+                    // Create error indicator
+                    const errorIndicator = document.createElement("span");
+                    errorIndicator.className = "access-error";
+                    errorIndicator.title = "";
+                    errorIndicator.innerHTML = '<span class="codicon codicon-error"></span>';
+                    errorIndicator.style.display = "none";
+                    
+                    // Validation function for this specific item
+                    const validateAndShowError = (selectedAccess) => {
+                        const validation = validateRoleAccess(item.role, item.dataObject, item.action, selectedAccess);
+                        if (!validation.isValid) {
+                            errorIndicator.style.display = "inline-block";
+                            errorIndicator.title = validation.message;
+                            select.classList.add("has-error");
+                        } else {
+                            errorIndicator.style.display = "none";
+                            errorIndicator.title = "";
+                            select.classList.remove("has-error");
+                        }
+                    };
+                    
+                    // Initial validation
+                    validateAndShowError(item.access);
+                    
                     // Add change event listener
                     select.addEventListener('change', (e) => {
                         const newAccess = e.target.value;
+                        
+                        // Validate the new selection
+                        validateAndShowError(newAccess);
+                        
                         handleAccessChange(
                             item.role, 
                             item.dataObject, 
@@ -293,7 +362,9 @@ function renderTable() {
                         );
                     });
                     
-                    td.appendChild(select);
+                    container.appendChild(select);
+                    container.appendChild(errorIndicator);
+                    td.appendChild(container);
                 } else if (col.key === "dataObject") {
                     // For data object column, display the value with truncation
                     const value = item[col.key] || "";
@@ -398,6 +469,113 @@ function requestRefresh() {
     vscode.postMessage({ command: 'refresh' });
 }
 
+// Validation functions
+function validateAllRequirements() {
+    console.log("[Webview] Running validation on all requirements");
+    
+    const validationErrors = [];
+    const totalItems = allItems.length;
+    
+    // Validate each item
+    allItems.forEach((item, index) => {
+        const validation = validateRoleAccess(item.role, item.dataObject, item.action, item.access);
+        if (!validation.isValid) {
+            validationErrors.push({
+                index: index,
+                role: item.role,
+                dataObject: item.dataObject,
+                action: item.action,
+                access: item.access,
+                message: validation.message
+            });
+        }
+    });
+    
+    // Display validation summary
+    displayValidationSummary(validationErrors, totalItems);
+    
+    // Update error indicators in the table
+    updateTableErrorIndicators();
+    
+    return validationErrors;
+}
+
+function displayValidationSummary(errors, totalItems) {
+    const summaryDiv = document.getElementById('validationSummary');
+    const titleElement = document.getElementById('validationTitle');
+    const contentElement = document.getElementById('validationContent');
+    
+    if (!summaryDiv || !titleElement || !contentElement) {
+        console.error("[Webview] Validation summary elements not found");
+        return;
+    }
+    
+    // Show the summary
+    summaryDiv.style.display = 'block';
+    
+    if (errors.length === 0) {
+        // No errors - success
+        summaryDiv.className = 'validation-summary success';
+        titleElement.innerHTML = '<span class="codicon codicon-check"></span> Validation Passed';
+        contentElement.textContent = `All ${totalItems} role requirements are valid.`;
+    } else {
+        // Has errors
+        summaryDiv.className = 'validation-summary error';
+        titleElement.innerHTML = '<span class="codicon codicon-error"></span> Validation Failed';
+        
+        const errorCount = errors.length;
+        const validCount = totalItems - errorCount;
+        
+        // Create HTML content with proper line breaks
+        let htmlContent = `<div>Found ${errorCount} validation error${errorCount === 1 ? '' : 's'} out of ${totalItems} requirements (${validCount} valid):</div><br>`;
+        
+        // Group errors by type for better readability
+        const errorGroups = {};
+        errors.forEach(error => {
+            const key = error.message;
+            if (!errorGroups[key]) {
+                errorGroups[key] = [];
+            }
+            errorGroups[key].push(error);
+        });
+        
+        Object.keys(errorGroups).forEach(errorType => {
+            const errorList = errorGroups[errorType];
+            htmlContent += `<div><strong>${errorType}:</strong></div>`;
+            errorList.slice(0, 10).forEach(error => {
+                htmlContent += `<div style="margin-left: 16px;">• ${error.role} - ${error.dataObject} - ${error.action}</div>`;
+            });
+            if (errorList.length > 10) {
+                htmlContent += `<div style="margin-left: 16px;">... and ${errorList.length - 10} more</div>`;
+            }
+            htmlContent += '<br>';
+        });
+        
+        contentElement.innerHTML = htmlContent;
+    }
+    
+    // Auto-hide success message after 5 seconds
+    if (errors.length === 0) {
+        setTimeout(() => {
+            summaryDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+
+function updateTableErrorIndicators() {
+    // Re-render the table to ensure all error indicators are updated
+    // This will trigger the validation for each dropdown in renderTable()
+    renderTable();
+    console.log("[Webview] Table re-rendered to update error indicators");
+}
+
+function hideValidationSummary() {
+    const summaryDiv = document.getElementById('validationSummary');
+    if (summaryDiv) {
+        summaryDiv.style.display = 'none';
+    }
+}
+
 // Set up the UI when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log("[Webview] DOM Content loaded for Role Requirements");
@@ -428,6 +606,37 @@ document.addEventListener('DOMContentLoaded', function() {
         // Attach refresh button handler
         refreshBtn.onclick = function() {
             requestRefresh();
+        };
+    }
+    
+    // Setup validate button
+    const validateBtn = document.getElementById("validateButton");
+    if (validateBtn) {
+        validateBtn.innerHTML = '<span class="codicon codicon-check" style="font-size:16px;"></span>';
+        validateBtn.title = "Validate All Requirements";
+        validateBtn.style.background = "var(--vscode-button-secondaryBackground)";
+        validateBtn.style.border = "none";
+        validateBtn.style.color = "var(--vscode-button-secondaryForeground)";
+        validateBtn.style.padding = "4px 8px";
+        validateBtn.style.cursor = "pointer";
+        validateBtn.style.display = "flex";
+        validateBtn.style.alignItems = "center";
+        validateBtn.style.borderRadius = "4px";
+        validateBtn.style.transition = "background 0.15s";
+        validateBtn.style.marginRight = "8px";
+
+        // Add hover effect
+        validateBtn.addEventListener("mouseenter", function() {
+            validateBtn.style.background = "var(--vscode-button-secondaryHoverBackground)";
+        });
+        validateBtn.addEventListener("mouseleave", function() {
+            validateBtn.style.background = "var(--vscode-button-secondaryBackground)";
+        });
+        
+        // Attach validate button handler
+        validateBtn.onclick = function() {
+            hideValidationSummary(); // Hide any previous summary
+            validateAllRequirements();
         };
     }
     
@@ -519,6 +728,32 @@ function setupBulkActions() {
                 return;
             }
             
+            // Check for validation errors in bulk operation
+            const invalidItems = [];
+            selectedRows.forEach(item => {
+                const validation = validateRoleAccess(item.role, item.dataObject, item.action, newAccess);
+                if (!validation.isValid) {
+                    invalidItems.push({
+                        role: item.role,
+                        dataObject: item.dataObject,
+                        action: item.action,
+                        message: validation.message
+                    });
+                }
+            });
+            
+            // Show warning if there are validation errors
+            if (invalidItems.length > 0) {
+                const confirmMessage = `Warning: ${invalidItems.length} of ${selectedRows.length} selected items will have validation errors:\n\n` +
+                    invalidItems.slice(0, 5).map(item => `• ${item.role} - ${item.dataObject} - ${item.action}: ${item.message}`).join('\n') +
+                    (invalidItems.length > 5 ? `\n... and ${invalidItems.length - 5} more` : '') +
+                    '\n\nDo you want to continue anyway?';
+                
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+            }
+            
             console.log(`[Webview] Applying access '${newAccess}' to ${selectedRows.length} selected rows`);
             
             // Apply access change to each selected row
@@ -538,6 +773,11 @@ function setupBulkActions() {
             
             // Re-render the table to show the updated access values
             renderTable();
+            
+            // Run validation after bulk apply to show any new errors
+            setTimeout(() => {
+                validateAllRequirements();
+            }, 100); // Small delay to ensure table is rendered
             
             // Show success message
             console.log(`[Webview] Applied '${newAccess}' access to ${selectedRows.length} role requirements`);
