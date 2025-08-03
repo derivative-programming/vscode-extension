@@ -749,13 +749,18 @@ function generateCSS() {
         }
         
         /* Report Grid Styles */
-        .report-grid-container {
+        .report-grid-wrapper {
             margin: 20px 0;
             border: 1px solid var(--vscode-panel-border);
             border-radius: 4px;
+            background-color: var(--vscode-editor-background);
+        }
+        
+        .report-grid-container {
             overflow-x: auto;
             overflow-y: hidden;
             background-color: var(--vscode-editor-background);
+            border-bottom: 1px solid var(--vscode-panel-border);
         }
         
         .report-grid {
@@ -907,7 +912,6 @@ function generateCSS() {
         .report-grid-footer {
             padding: 10px 15px;
             background-color: var(--vscode-editor-inactiveSelectionBackground);
-            border-top: 1px solid var(--vscode-panel-border);
             font-size: 12px;
             color: var(--vscode-descriptionForeground);
             display: flex;
@@ -1468,7 +1472,6 @@ function generateCSS() {
         
         .report-export-section {
             padding: 10px;
-            border-top: 1px solid var(--vscode-widget-border);
             background-color: var(--vscode-editor-background);
             display: flex;
             justify-content: flex-end;
@@ -2656,7 +2659,10 @@ function generateJavaScript(allObjects) {
                 return '<div class="report-grid-container"><div class="report-grid-empty">No data available</div></div>';
             }
             
-            let html = '<div class="report-grid-container">';
+            let html = '<div class="report-grid-wrapper">';
+            
+            // Scrollable table container
+            html += '<div class="report-grid-container">';
             html += '<table class="report-grid" id="reportGrid">';
             
             // Table header
@@ -2733,6 +2739,7 @@ function generateJavaScript(allObjects) {
             html += '</tbody>';
             
             html += '</table>';
+            html += '</div>'; // End report-grid-container (scrollable table area)
             
             // Grid footer with pagination controls (only show if paging is available)
             if (page.isPagingAvailable !== "false") {
@@ -2779,7 +2786,7 @@ function generateJavaScript(allObjects) {
                 html += '</div>';
             }
             
-            html += '</div>'; // End report-grid-container
+            html += '</div>'; // End report-grid-wrapper
             
             return html;
         }

@@ -15,6 +15,19 @@ This file serves as the main index for architecture documentation. The detailed 
 - **Schema**: Both "date" and "datetime" are valid enum values in app-dna.schema.json
 - **Status**: ✅ Implementation is correct and follows HTML5 input type standards
 
+### Report Grid Scrollbar Positioning - **FIXED** (2025-08-02)
+- **Issue**: Horizontal scrollbar appeared below both pagination controls and export buttons in page preview report grid
+- **Solution**: Restructured HTML to separate scrollable table area from pagination/export controls
+- **Key Changes**:
+  - Added `report-grid-wrapper` as outer container with borders and rounded corners
+  - `report-grid-container` now only contains scrollable table with `overflow-x: auto`
+  - Pagination controls (`report-grid-footer`) positioned after scrollable area
+  - Export buttons (`report-export-section`) positioned after pagination
+  - Updated CSS to remove redundant borders from child elements since wrapper handles borders
+- **Result**: Horizontal scrollbar now appears between table and pagination controls as intended
+- **Files Modified**: `src/webviews/pagepreview/components/htmlGenerator.js` (HTML structure and CSS)
+- **Architecture Pattern**: Wrapper containers for complex components with separated scrollable and control areas
+
 ### Report Grid Filter Date/DateTime Implementation - **FIXED**
 - **Location**: `src/webviews/pagepreview/components/htmlGenerator.js` lines 2615-2618 (function `generateFilterInput`)
 - **Issue Found**: Report grid filters only checked `dataType.includes('date')` for all date types

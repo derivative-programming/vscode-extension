@@ -1,11 +1,4 @@
 Agent todo items...
-  
-objectworkflows where ispage = false...
-- new treeview item functions
-
-
-
-feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.? 
 
 prop subscriptions
 "propSubscription": [
@@ -15,6 +8,23 @@ prop subscriptions
                 "isIgnored": "true"
               }
             ],
+
+report...
+- columns - subscribe to owner obj properties
+- columns - subscribe to target child obj properties
+
+
+forms...
+- columns - subscribe to owner obj properties
+- columns - subscribe to target child obj properties
+
+
+  
+objectworkflows where ispage = false...
+- new treeview item functions
+
+
+
  
 
 apis
@@ -25,7 +35,7 @@ preview form...
 - header display
 
 preview report grid view...
-- horizontal scrollbar shoudl be above the pageing controls and below (or part of) the table
+- ✅ horizontal scrollbar should be above the paging controls and below (or part of) the table - COMPLETED (2025-08-02)
 - header display
 
 - preview report navigation view...
@@ -147,7 +157,6 @@ dont validate on model change request approval.
 
 does 'validate all' work?  validate all when view comes up?
    
-✅ bulk add on enter key should not submit modal form
 
 report items...
 extension...
@@ -268,6 +277,8 @@ preview page...
 - mobile views?
 
 
+
+feature to create a few demo db objects, forms, reports, pages, etc. to show the extension in action.? 
 
 ares changes...
 rearrange register controls on page: fabricate

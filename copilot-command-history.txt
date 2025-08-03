@@ -15,3 +15,14 @@
 - Pattern used: schema.enum.slice().sort().map() instead of schema.enum.map()
 - Total enum patterns fixed: 25+ locations across webview templates
 - Verification: Final grep search confirmed no remaining unsorted enum patterns
+
+2025-08-02: review the page preview view report grid preview.  There is a scrollbar at the bottom under the paging and export controls. it shoudl be between the table and paging controls
+COMPLETED: Fixed report grid scrollbar positioning in page preview
+- Issue: Horizontal scrollbar appeared below both pagination controls and export buttons
+- Solution: Restructured HTML to separate scrollable table area from pagination/export controls
+- Added report-grid-wrapper as outer container with borders
+- report-grid-container now contains only the scrollable table with overflow-x: auto
+- Pagination controls positioned after scrollable area, export buttons after pagination
+- Updated CSS to remove redundant borders since wrapper handles borders
+- Result: Horizontal scrollbar now correctly positioned between table and pagination controls
+- File modified: src/webviews/pagepreview/components/htmlGenerator.js
