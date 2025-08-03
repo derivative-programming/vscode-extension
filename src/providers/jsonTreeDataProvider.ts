@@ -166,7 +166,18 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
                 const showAdvancedProperties = workspaceFolder ? getShowAdvancedPropertiesFromConfig(workspaceFolder) : false;
                 
-                const items = [projectItem, dataObjectsItem];
+                // Create USER STORIES as a top-level item
+                const userStoriesItem = new JsonTreeItem(
+                    'USER STORIES',
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    'userStories'
+                );
+                
+                // Set a book icon for the USER STORIES item
+                userStoriesItem.iconPath = new vscode.ThemeIcon('book');
+                userStoriesItem.tooltip = "User stories and requirements";
+
+                const items = [projectItem, userStoriesItem, dataObjectsItem];
                 
                 // Create PAGES as a top-level item (only if advanced properties are enabled)
                 if (showAdvancedProperties) {
@@ -183,7 +194,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, [PAGES], MODEL SERVICES
+                // Return tree items in order: PROJECT, USER STORIES, DATA OBJECTS, [PAGES], MODEL SERVICES
                 // (PAGES only shown when advanced properties are enabled)
                 return Promise.resolve(items);
             } else {
@@ -233,22 +244,6 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         arguments: []
                     };
                     items.push(lexiconItem);
-                    
-                    // Create User Stories item under PROJECT
-                    const userStoriesItem = new JsonTreeItem(
-                        'User Stories',
-                        vscode.TreeItemCollapsibleState.None,
-                        'projectUserStories'
-                    );
-                    
-                    userStoriesItem.iconPath = new vscode.ThemeIcon('book');
-                    userStoriesItem.tooltip = "Manage user stories";
-                    userStoriesItem.command = {
-                        command: 'appdna.showUserStories',
-                        title: 'Show User Stories',
-                        arguments: []
-                    };
-                    items.push(userStoriesItem);
                     
                     // Create MCP Server item with status indicator
                     const isServerRunning = this.mcpServer.isServerRunning();
@@ -315,6 +310,33 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 return Promise.resolve(items);
             } catch (error) {
                 console.error('Error reading project settings:', error);
+                return Promise.resolve([]);
+            }
+        }
+        
+        // Handle USER STORIES children
+        if (element?.contextValue === 'userStories' && fileExists) {
+            try {
+                const items = [];
+                
+                // Create Stories item under USER STORIES
+                const storiesItem = new JsonTreeItem(
+                    'Stories',
+                    vscode.TreeItemCollapsibleState.None,
+                    'userStoriesStories'
+                );
+                
+                storiesItem.tooltip = "Manage user stories";
+                storiesItem.command = {
+                    command: 'appdna.showUserStories',
+                    title: 'Show User Stories',
+                    arguments: []
+                };
+                items.push(storiesItem);
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading user stories:', error);
                 return Promise.resolve([]);
             }
         }
@@ -673,6 +695,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             // Get the top-level items from the model
             const topLevelItems = [
                 'PROJECT',
+                'USER STORIES',
                 'DATA OBJECTS',
                 'REPORTS',
                 'MODEL SERVICES'
@@ -702,8 +725,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         if (!element) {
             return Promise.resolve(null);
         }
-          // Root-level items (PROJECT, DATA OBJECTS, REPORTS, MODEL SERVICES) have no parent
-        if (['PROJECT', 'DATA OBJECTS', 'REPORTS', 'MODEL SERVICES'].includes(element.label)) {
+          // Root-level items (PROJECT, USER STORIES, DATA OBJECTS, REPORTS, MODEL SERVICES) have no parent
+        if (['PROJECT', 'USER STORIES', 'DATA OBJECTS', 'REPORTS', 'MODEL SERVICES'].includes(element.label)) {
             return Promise.resolve(null);
         }
         
@@ -731,6 +754,15 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 'PROJECT',
                 vscode.TreeItemCollapsibleState.Collapsed,
                 'project'
+            ));
+        }
+        
+        if (element.contextValue?.startsWith('userStories')) {
+            // If this is a user stories-related item, its parent is the USER STORIES item
+            return Promise.resolve(new JsonTreeItem(
+                'USER STORIES',
+                vscode.TreeItemCollapsibleState.Collapsed,
+                'userStories'
             ));
         }
         

@@ -1,3 +1,14 @@
+2025-08-03: COMPLETED: Tree view restructure - Added USER STORIES section and moved Stories
+- User request: "review the treeview. add a 'User Stories' treeview item above the 'Data Objects' item. Move the 'user stories' item under the 'Project' item under it and rename it to 'Stories'"
+- Solution: 
+  - Added new top-level 'USER STORIES' item between PROJECT and DATA OBJECTS
+  - Moved existing 'User Stories' from under PROJECT to be child of new USER STORIES section
+  - Renamed moved item from 'User Stories' to 'Stories'
+  - Updated tree hierarchy order: PROJECT → USER STORIES → DATA OBJECTS → [PAGES] → MODEL SERVICES
+  - Updated expandAllItems(), getParent(), and documentation
+- Files modified: src/providers/jsonTreeDataProvider.ts, docs/architecture/tree-view-structure.md
+- Architecture: Extended tree view structure with dedicated user stories section, maintaining existing command binding
+
 2025-08-02: for a report grid view filter of datetime i see a dropdown
 2025-08-02: check the display of report grid filters too
 2025-08-02: review the page preview details view. on a form preview make sure a control of data type 'datetime' shows a date picker and time picker. on date type 'date' its just a date picker
