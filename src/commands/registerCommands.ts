@@ -30,12 +30,15 @@ import { showProjectSettings, getProjectSettingsPanel, closeProjectSettingsPanel
 import { showLexiconView, getLexiconPanel, closeLexiconPanel } from '../webviews/lexiconView';
 // Import showUserStoriesView and related functions
 import { showUserStoriesView, getUserStoriesPanel, closeUserStoriesPanel } from '../webviews/userStoriesView';
+// Import showUserStoryRoleRequirementsView and related functions
+import { showUserStoryRoleRequirementsView, getUserStoryRoleRequirementsPanel, closeUserStoryRoleRequirementsPanel } from '../webviews/userStoryRoleRequirementsView';
 import { registerModelValidationCommands, closeAllModelValidationPanels } from './modelValidationCommands';
 import { registerModelAIProcessingCommands, closeAllModelAIProcessingPanels } from './modelAIProcessingCommands';
 import { registerModelFabricationCommands, closeAllModelFabricationPanels } from './modelFabricationCommands';
 import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerPageListCommands, getPageListPanel, closePageListPanel } from './pageListCommands';
+import { registerRoleRequirementsCommands, getRoleRequirementsPanel, closeRoleRequirementsPanel } from './roleRequirementsCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
@@ -102,6 +105,9 @@ export function registerCommands(
             // Store reference to user stories panel if open
             const userStoriesData = typeof getUserStoriesPanel === "function" ? getUserStoriesPanel() : null;
             
+            // Store reference to user story role requirements panel if open
+            const roleRequirementsData = typeof getUserStoryRoleRequirementsPanel === "function" ? getUserStoryRoleRequirementsPanel() : null;
+            
             // Store reference to model feature catalog panel if open
             const featureCatalogData = typeof getModelFeatureCatalogPanel === "function" ? getModelFeatureCatalogPanel() : null;
             
@@ -144,6 +150,11 @@ export function registerCommands(
             // Close user stories panel if open
             if (typeof closeUserStoriesPanel === "function") {
                 closeUserStoriesPanel();
+            }
+            
+            // Close user story role requirements panel if open
+            if (typeof closeUserStoryRoleRequirementsPanel === "function") {
+                closeUserStoryRoleRequirementsPanel();
             }
             
             // Close model feature catalog panel if open
@@ -236,6 +247,11 @@ export function registerCommands(
             // Reopen user stories panel if it was open
             if (userStoriesData && userStoriesData.context && userStoriesData.modelService) {
                 showUserStoriesView(userStoriesData.context, modelService);
+            }
+            
+            // Reopen user story role requirements panel if it was open
+            if (roleRequirementsData && roleRequirementsData.context && roleRequirementsData.modelService) {
+                showUserStoryRoleRequirementsView(roleRequirementsData.context, modelService);
             }
               // Reopen model feature catalog panel if it was open
             if (featureCatalogData && featureCatalogData.context && featureCatalogData.modelService) {
@@ -513,6 +529,9 @@ export function registerCommands(
     // Register page list commands
     registerPageListCommands(context, appDNAFilePath, modelService);
     
+    // Register role requirements commands
+    registerRoleRequirementsCommands(context, appDNAFilePath, modelService);
+    
     // Register model AI processing commands
     registerModelAIProcessingCommands(context, appDNAFilePath, modelService);
 
@@ -550,6 +569,33 @@ export function registerCommands(
             
             // Show the user stories view
             showUserStoriesView(context, modelService);
+        })
+    );
+
+    // Register show user story role requirements command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showUserStoryRoleRequirements', async () => {
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+                return;
+            }
+            
+            // Show the user story role requirements view
+            showUserStoryRoleRequirementsView(context, modelService);
+        })
+    );
+
+    // Register show role requirements command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showRoleRequirements', async () => {
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+                return;
+            }
+            
+            // Show the role requirements view - this will be handled by the roleRequirementsCommands.ts
+            // The actual command is registered there as 'appdna.roleRequirements'
+            vscode.commands.executeCommand('appdna.roleRequirements');
         })
     );
     

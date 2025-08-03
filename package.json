@@ -310,6 +310,11 @@
         "icon": "$(table)"
       },
       {
+        "command": "appdna.showRoleRequirements",
+        "title": "Show Role Requirements",
+        "icon": "$(shield)"
+      },
+      {
         "command": "appdna.showFilter",
         "title": "Filter Tree View",
         "icon": "$(filter)"
