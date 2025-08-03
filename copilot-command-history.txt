@@ -8,6 +8,17 @@
 - User request expanded from SQL Server data type dropdowns to "all tabs of the form details view as well" and "all dropdowns, not just sql server data type"
 - Solution: Applied consistent pattern of .slice().sort() before .map() to alphabetically sort all enum-based dropdowns
 - Files modified: 
+
+2025-08-03: COMPLETED: Created new 'Page List' view feature
+- User requested table view similar to model feature catalog showing all pages (forms and reports)
+- Solution: Created complete page list implementation with sorting, filtering, and action buttons
+- Files created:
+  - src/commands/pageListCommands.ts (command registration and data loading from ModelService)
+  - src/webviews/pageListView.js (JavaScript webview with table, sorting, filtering)
+- Files modified:
+  - package.json (added appdna.pageList command and table icon menu item for PAGES tree item)
+- Architecture: Uses ModelService.getAllObjects() to extract forms/reports where isPage='true', provides preview and details buttons
+- Tree integration: PAGES item already had 'showPageList' context value, table icon now appears on PAGES tree item 
   * Report templates (14+ files): All columnTableTemplate, parameterTableTemplate, etc.
   * Object templates (7+ files): All propertiesTableTemplate, settingsTemplate, lookupItemsTemplate, etc.
   * Form templates (9+ files): All settingsTabTemplate, paramsTableTemplate, modalTemplates, buttonsTableTemplate, etc.

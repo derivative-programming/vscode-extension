@@ -35,6 +35,7 @@ import { registerModelAIProcessingCommands, closeAllModelAIProcessingPanels } fr
 import { registerModelFabricationCommands, closeAllModelFabricationPanels } from './modelFabricationCommands';
 import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
+import { registerPageListCommands, getPageListPanel, closePageListPanel } from './pageListCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
@@ -148,6 +149,11 @@ export function registerCommands(
             // Close model feature catalog panel if open
             if (typeof closeModelFeatureCatalogPanel === "function") {
                 closeModelFeatureCatalogPanel();
+            }
+            
+            // Close page list panel if open
+            if (typeof closePageListPanel === "function") {
+                closePageListPanel();
             }
             
             // Close fabrication blueprint catalog panel if open
@@ -481,6 +487,7 @@ export function registerCommands(
                 
                 // Close catalog views
                 closeModelFeatureCatalogPanel();
+                closePageListPanel();
                 closeFabricationBlueprintCatalogPanel();
                 
                 await authService.logout();
@@ -502,6 +509,9 @@ export function registerCommands(
     
     // Register model feature catalog commands
     registerModelFeatureCatalogCommands(context, appDNAFilePath, modelService);
+    
+    // Register page list commands
+    registerPageListCommands(context, appDNAFilePath, modelService);
     
     // Register model AI processing commands
     registerModelAIProcessingCommands(context, appDNAFilePath, modelService);

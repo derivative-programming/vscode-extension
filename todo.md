@@ -1,5 +1,29 @@
 Agent todo items...
 
+
+page table view...
+- show a icon button on the 'Pages' treeview item that resembles a table
+- similar in design to the model feature catalog
+- show a table listing all pages (forms and reports)
+- allow sort on all columns
+- allow filter on all columns
+- columns:
+  - Name ()
+  - Title text
+  - Type (Form/Report)
+  - Report Type (Grid/List/Three Column)
+  - Owner Object
+  - role required
+  - page preview button (similar to 'view page preview' button on form details view and report details view)
+  - view details button similar to clicking a form or report treeview item
+
+
+report details view...
+- allow creation of column destination button
+- allow creation of column async flow button
+- add button - multiselect
+- add button - breadcrumb
+
 prop subscriptions
 "propSubscription": [
               {
@@ -44,12 +68,6 @@ preview report three column view...
 - header display
 
 
-
-demo view...
-- use a sqllite db?
-- clickable demo that stays on the same view?
-- tell the user to fabricate the demo html files?
-
 add report...
 - API Get
 
@@ -93,10 +111,6 @@ report details view...
 editor?...
 - jointjs? https://github.com/clientio/joint
 
-create many diff treeview report items? under report treeview item?...
-- navigation page
-- table page
-- detail page
 
 
 mermaid diagram view...
@@ -277,4 +291,10 @@ ares changes...
 rearrange register controls on page: fabricate
 
  
+
+
+demo view...
+- use a sqllite db?
+- clickable demo that stays on the same view?
+- tell the user to fabricate the demo html files?
 

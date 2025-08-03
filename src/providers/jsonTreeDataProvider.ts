@@ -173,7 +173,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     const pagesItem = new JsonTreeItem(
                         'PAGES',
                         vscode.TreeItemCollapsibleState.Collapsed,
-                        'pages showPageFlow showPagePreview'
+                        'pages showPageFlow showPagePreview showPageList'
                     );
                     pagesItem.iconPath = new vscode.ThemeIcon('browser');
                     pagesItem.tooltip = "User interface pages containing forms and reports";

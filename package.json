@@ -150,6 +150,12 @@
           "icon": "$(preview)"
         },
         {
+          "command": "appdna.pageList",
+          "when": "viewItem =~ /pages.*showPageList/",
+          "group": "inline",
+          "icon": "$(table)"
+        },
+        {
           "command": "appdna.showReportFilter",
           "when": "viewItem =~ /reports.*showReportFilter/",
           "group": "inline",
@@ -297,6 +303,11 @@
         "command": "appdna.showPagePreview",
         "title": "Show Page Preview",
         "icon": "$(preview)"
+      },
+      {
+        "command": "appdna.pageList",
+        "title": "Show Page List",
+        "icon": "$(table)"
       },
       {
         "command": "appdna.showFilter",
