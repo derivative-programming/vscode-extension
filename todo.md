@@ -35,7 +35,6 @@ preview form...
 - header display
 
 preview report grid view...
-- ✅ horizontal scrollbar should be above the paging controls and below (or part of) the table - COMPLETED (2025-08-02)
 - header display
 
 - preview report navigation view...
@@ -57,13 +56,7 @@ add report...
 
  
 report details view...
-- allow creation of column destination button
-- allow creation of column async flow button
-- add button - multiselect
-- add button - breadcrumb
-- import breadcrumb buttons from another report
-- columns - subscribe to owner obj properties
-- columns - subscribe to target child obj properties
+- import breadcrumb buttons from another report 
 
 
 any large files left?

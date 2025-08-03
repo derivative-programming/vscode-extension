@@ -14,86 +14,120 @@ Full extension description is in file 'EXTENSION-DESCRIPTION.md'
 
 ## Architecture Overview
 
-- The extension has a layered architecture:
+- **Layered Architecture**:
   - UI layer (webviews in JavaScript)
-  - Model manipulation layer (ModelService in TypeScript)
+  - Model manipulation layer (ModelService in TypeScript) 
   - Data access layer (ModelDataProvider in TypeScript)
   - Validation layer (schemaValidator in TypeScript)
 
-- Note that src/ folder uses TypeScript, but src/webviews/ subfolders use JavaScript because VS Code extensions run this code separately in webviews.
+- **Language Split**: `src/` uses TypeScript, but `src/webviews/` uses JavaScript because VS Code extensions run this code separately in webviews.
 
-- The ModelService is the central service that manages loading, caching, and saving the AppDNA model file, exposing methods to manipulate the model.
+- **Central Service**: ModelService is the singleton service that manages loading, caching, and saving the AppDNA model file, exposing methods to manipulate the model.
+
+## Critical Developer Workflows
+
+### Build & Development
+- `npm run watch` - Start TypeScript watch mode (default build task)
+- `npm run compile` - One-time TypeScript compilation
+- `npm run package` - Production build for publishing
+- Extension entry point: `./dist/extension.js` (webpack bundled)
+
+### Webview Communication Pattern
+All webviews follow this message-passing pattern:
+```javascript
+// Webview → Extension
+vscode.postMessage({ 
+    command: 'commandName', 
+    data: { /* payload */ } 
+});
+
+// Extension → Webview  
+panel.webview.postMessage({
+    command: 'responseCommand',
+    data: { /* response */ }
+});
+```
+
+### Command Logging Requirement
+**CRITICAL**: For all commands sent to you, log them in `/copilot-command-history.txt` with completion status and architecture notes.
 
 ## UI/UX Guidelines
 
-1. Always load and parse the external JSON schema from "app-dna.schema.json" to obtain all possible properties instead of hardcoding values.
+1. **Schema-Driven Development**: Always load and parse `app-dna.schema.json` to obtain all possible properties instead of hardcoding values.
 
-2. Iterate over the schema's non-array properties and use them to dynamically generate form inputs and other UI elements.
+2. **Dynamic Form Generation**: Iterate over schema's non-array properties to dynamically generate form inputs and UI elements.
 
-3. Use the JSON schema to validate user input and provide real-time feedback on errors or warnings.
+3. **Enum Handling**: If schema property uses an enum, use a select dropdown with **alphabetically sorted options**: `schema.enum.slice().sort().map(...)`
 
-4. If the schema property uses an enum, a select dropdown should be used to restrict data entered.
+4. **Property Existence Pattern**: For controls that modify JSON properties, show a checkbox to control property existence:
+   - Unchecked = property doesn't exist in JSON (control is read-only)
+   - Checked = property exists (control is editable)
+   - Checkbox should be smaller and left-justified against its control
 
-5. A clean, professional, responsive design should be used, similar to the default VS Code design.
+5. **Professional Design**: Use VS Code's design language with proper CSS variables (`var(--vscode-*)`)
 
-6. Tabs should be left justified.
+6. **Tooltips**: Show schema descriptions as tooltips when hovering over controls
 
-7. If a control allows a change of a value in the JSON file that follows the schema, we need to handle the case where the property is missing from the JSON file. If a control allows a change of a property in the JSON file, a checkbox should be shown to the right of it. If the checkbox is unchecked then the control should be read-only. If checked, the control can be modified. An unchecked value means the property does not exist in the JSON file. The checkbox should be relatively smaller than the control and left justified against its corresponding control.
-
-8. Small files are preferred over large files.
-
-9. If you are iterating over all properties in a schema object to allow the user to edit them, you should display the properties in alphabetical order.
-
-10. If a control allows a change of a value in the JSON file that follows the schema, and the schema has a description of the property, the description should be shown in a tooltip when hovering over the control.
-
-11. Read-only controls should have a different background to indicate they're read-only.
- 
-12. Drop down controls do not need a placeholder 'Select ...' options.
+7. **Alphabetical Ordering**: Display properties in alphabetical order when iterating over schema objects
 
 ## Data Flow Guidelines
 
-- Files are loaded into the ModelService via ModelDataProvider
-- Changes are made in-memory and only written to disk when the user clicks save
-- A file watcher monitors the model file for external changes
-- Changes triggered by the extension's save function are ignored by the watcher
+- **File Loading**: ModelService → ModelDataProvider → loads JSON into memory
+- **Change Management**: All changes made in-memory, only written to disk on explicit save
+- **File Watching**: Monitors model file for external changes, ignores extension-triggered saves
+- **Validation**: Real-time validation using JSON schema with visual feedback
 
 ## Coding Style Guidelines
 
-13. For all commands sent to you, log them in a text file: /copilot-command-history.txt
+### JavaScript Preferences
+- Double quotes preferred over single quotes
+- Single quotes preferred over backticks  
+- Regular string concatenation preferred for short templates
+- Avoid nested template literals - create smaller ones separately
 
-14. Comments in the code are encouraged and preferred.
+### TypeScript/JavaScript Split
+- Use TypeScript for extension logic (`src/*.ts`)
+- Use JavaScript for webview content (`src/webviews/*.js`)
+- Webviews communicate via message passing, not direct function calls
 
-15. Delete operations are not given to the user. A user will be able to set an item's property 'isIgnored' (or similar) to true to have it ignored. The user will not be able to delete the item from the JSON file. The user will be able to set the property back to false to have it included again.
+### File Organization
+- Small files preferred over large files
+- Comments at top of each file with name, purpose, and last modified date
+- Architecture learnings go in `ai-agent-architecture-notes.md`
 
-16. Empty lines in a code file are acceptable.
-
-17. Double quotes are preferred over single quotes, and single quotes over backticks in JavaScript.
-
-18. In JavaScript, regular string concatenation is preferred over using template literals that only span a few lines. Backticks will be avoided except for rare cases where multi-line templates are significantly clearer.
-
-19. Template literals should not be built inside large template literals. Create the smaller ones separately.
-
-20. When converting pascal or camel to human readable text with spaces, capital letters that are together should be kept together. For example:
-   - "DNAApp" → "DNA App", not "D N A App"
-   - "AppDNA" → "App DNA", not "App D N A" 
-   - "AppDNATest" → "App DNA Test", not "App D N A Test"
-   - "AppDNATest123" → "App DNA Test 123", not "App D N A Test 123"
-
-21. In each file, add comments at the top with the file name, a brief description of the file's purpose, and the date it was created or last modified. This will help in understanding the context of the code and its evolution over time.
-
-22. In the file ai-agent-architecture-notes.md, add items that you learn along the way about the code base that you can use in the future to quickly understand the code base. This will help you to learn the code base faster and be more efficient in the future.
+### UI Patterns
+- Delete operations are not exposed - use `isIgnored` property pattern instead
+- Empty lines in code files are acceptable and encouraged for readability
 
 ## Extension Components
 
-- **Tree View**: Displays hierarchical model structure in the sidebar
-- **Webviews**: Show object details in editor panels with forms for editing
-- **Commands**: Handle user actions like adding objects, saving files
-- **Services**: Manage data and operations (e.g., ModelService)
+- **Tree View**: `src/providers/jsonTreeDataProvider.ts` - Hierarchical model structure in sidebar
+- **Webviews**: `src/webviews/*.js` - Show object details in editor panels with forms
+- **Commands**: `src/commands/*.ts` - Handle user actions like adding objects, saving files
+- **Services**: `src/services/modelService.ts` - Central data service (singleton pattern)
 
-## File Structure
+## Key Integration Points
 
-- `src/extension.ts` - Main entry point
-- `src/commands/*.ts` - Command implementations
-- `src/services/modelService.ts` - Central data service
-- `src/data/models/*.ts` - Type-specific model classes
-- `src/webviews/*.js` - JavaScript webview implementation
+### Schema Integration
+- Schema file: `app-dna.schema.json` (drives all UI generation)
+- Never hardcode property names or types
+- All dropdowns use sorted enums from schema
+
+### VS Code API Integration
+- Use `get_vscode_api` tool for latest API references
+- Webview panels use message passing exclusively
+- Command registration in `package.json` contributes section
+
+### File System Integration
+- Model files typically named `app-dna.json` (configurable)
+- File watcher pattern prevents save conflicts
+- All file operations go through ModelService/ModelDataProvider
+
+## Architecture Documentation
+
+Detailed architecture notes are organized in:
+- `docs/architecture/` - Specific component architectures 
+- `ai-agent-architecture-notes.md` - AI agent learning index
+- Individual `.md` files for major features (e.g., `PAGE-PREVIEW-TESTING.md`)
+
+Reference these files for deep architectural understanding of complex components like the tree view, webview communication patterns, and UI synchronization strategies.
