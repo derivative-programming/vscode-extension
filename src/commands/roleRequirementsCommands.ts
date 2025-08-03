@@ -525,6 +525,61 @@ export function registerRoleRequirementsCommands(
                             text-overflow: ellipsis;
                             white-space: nowrap;
                         }
+                        .checkbox-column {
+                            width: 40px;
+                            text-align: center;
+                            padding: 4px 8px;
+                        }
+                        .row-checkbox, .select-all-checkbox {
+                            cursor: pointer;
+                            margin: 0;
+                        }
+                        .checkbox-header {
+                            text-align: center;
+                            padding: 4px 8px;
+                        }
+                        .bulk-actions {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 10px;
+                            margin-bottom: 10px;
+                        }
+                        .bulk-actions-left {
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                        }
+                        .bulk-access-dropdown {
+                            background-color: var(--vscode-input-background);
+                            color: var(--vscode-input-foreground);
+                            border: 1px solid var(--vscode-input-border);
+                            border-radius: 2px;
+                            padding: 4px 8px;
+                            font-size: 13px;
+                            min-width: 120px;
+                        }
+                        .bulk-access-dropdown:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
+                        .apply-button {
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border: none;
+                            padding: 4px 12px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                            font-size: 13px;
+                        }
+                        .apply-button:hover {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
+                        .apply-button:disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                            background-color: var(--vscode-button-secondaryBackground);
+                        }
                     </style>
                 </head>
                 <body>
@@ -580,9 +635,21 @@ export function registerRoleRequirementsCommands(
                         </div>
                     </div>
                     
-                    <div class="header-actions">
-                        <button id="refreshButton" class="refresh-button" title="Refresh Table">
-                        </button>
+                    <div class="bulk-actions">
+                        <div class="bulk-actions-left">
+                            <select id="bulkAccessDropdown" class="bulk-access-dropdown">
+                                <option value="">Select Access Level</option>
+                                <option value="Unassigned">Unassigned</option>
+                                <option value="Allowed">Allowed</option>
+                                <option value="Required">Required</option>
+                                <option value="Not Allowed">Not Allowed</option>
+                            </select>
+                            <button id="applyButton" class="apply-button" disabled>Apply to Selected</button>
+                        </div>
+                        <div class="header-actions">
+                            <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="table-container">

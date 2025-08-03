@@ -187,6 +187,16 @@ function renderTable() {
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
     
+    // Add checkbox header column
+    const checkboxTh = document.createElement("th");
+    checkboxTh.className = "checkbox-header";
+    const selectAllCheckbox = document.createElement("input");
+    selectAllCheckbox.type = "checkbox";
+    selectAllCheckbox.className = "select-all-checkbox";
+    selectAllCheckbox.addEventListener('change', handleSelectAll);
+    checkboxTh.appendChild(selectAllCheckbox);
+    headerRow.appendChild(checkboxTh);
+    
     // Define table columns
     const columns = [
         { key: "role", label: "Role", sortable: true },
@@ -238,8 +248,19 @@ function renderTable() {
     
     // Create rows for each item
     if (roleRequirementsData.items && roleRequirementsData.items.length > 0) {
-        roleRequirementsData.items.forEach(item => {
+        roleRequirementsData.items.forEach((item, index) => {
             const row = document.createElement("tr");
+            
+            // Add checkbox column
+            const checkboxTd = document.createElement("td");
+            checkboxTd.className = "checkbox-column";
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className = "row-checkbox";
+            checkbox.dataset.index = index;
+            checkbox.addEventListener('change', updateSelectAllState);
+            checkboxTd.appendChild(checkbox);
+            row.appendChild(checkboxTd);
             
             columns.forEach(col => {
                 const td = document.createElement("td");
@@ -297,13 +318,29 @@ function renderTable() {
                 row.appendChild(td);
             });
             
+            // Add click handler for row (except access column)
+            row.addEventListener('click', (e) => {
+                // Don't toggle if clicking on the access dropdown or checkbox
+                if (e.target.classList.contains('access-dropdown') || 
+                    e.target.classList.contains('row-checkbox')) {
+                    return;
+                }
+                
+                // Toggle the checkbox for this row
+                const checkbox = row.querySelector('.row-checkbox');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    updateSelectAllState();
+                }
+            });
+            
             tbody.appendChild(row);
         });
     } else {
         // No items
         const row = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 4; // Number of columns
+        td.colSpan = 5; // Number of columns (checkbox + 4 data columns)
         td.style.textAlign = "center";
         td.style.padding = "20px";
         td.style.color = "var(--vscode-descriptionForeground)";
@@ -394,6 +431,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
+    // Setup bulk actions
+    setupBulkActions();
+    
     // Setup filter event listeners
     setupFilterEventListeners();
     
@@ -448,3 +488,117 @@ window.addEventListener("message", function(event) {
         }
     }
 });
+
+// Setup bulk actions functionality
+function setupBulkActions() {
+    const applyButton = document.getElementById('applyButton');
+    const bulkAccessDropdown = document.getElementById('bulkAccessDropdown');
+    
+    if (applyButton && bulkAccessDropdown) {
+        // Initially disable the apply button
+        applyButton.disabled = true;
+        
+        // Enable/disable apply button based on selections and dropdown value
+        function updateApplyButtonState() {
+            const selectedRows = getSelectedRows();
+            const hasSelection = selectedRows.length > 0;
+            const hasAccessValue = bulkAccessDropdown.value !== '';
+            
+            applyButton.disabled = !hasSelection || !hasAccessValue;
+        }
+        
+        // Listen to dropdown changes
+        bulkAccessDropdown.addEventListener('change', updateApplyButtonState);
+        
+        // Apply button click handler
+        applyButton.addEventListener('click', () => {
+            const selectedRows = getSelectedRows();
+            const newAccess = bulkAccessDropdown.value;
+            
+            if (selectedRows.length === 0 || !newAccess) {
+                return;
+            }
+            
+            console.log(`[Webview] Applying access '${newAccess}' to ${selectedRows.length} selected rows`);
+            
+            // Apply access change to each selected row
+            selectedRows.forEach(item => {
+                handleAccessChange(
+                    item.role,
+                    item.dataObject,
+                    item.action,
+                    newAccess,
+                    item.requirementsFilePath
+                );
+            });
+            
+            // Reset dropdown after applying
+            bulkAccessDropdown.value = '';
+            updateApplyButtonState();
+            
+            // Re-render the table to show the updated access values
+            renderTable();
+            
+            // Show success message
+            console.log(`[Webview] Applied '${newAccess}' access to ${selectedRows.length} role requirements`);
+        });
+        
+        // Store the update function globally so checkbox handlers can call it
+        window.updateApplyButtonState = updateApplyButtonState;
+    }
+}
+
+// Checkbox handler functions
+function handleSelectAll(event) {
+    const isChecked = event.target.checked;
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    
+    rowCheckboxes.forEach(checkbox => {
+        checkbox.checked = isChecked;
+    });
+    
+    console.log(`[Webview] ${isChecked ? 'Selected' : 'Deselected'} all ${rowCheckboxes.length} rows`);
+    
+    // Update apply button state
+    if (window.updateApplyButtonState) {
+        window.updateApplyButtonState();
+    }
+}
+
+function updateSelectAllState() {
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+    const selectAllCheckbox = document.querySelector('.select-all-checkbox');
+    
+    if (selectAllCheckbox) {
+        if (checkedBoxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedBoxes.length === rowCheckboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+    
+    // Update apply button state
+    if (window.updateApplyButtonState) {
+        window.updateApplyButtonState();
+    }
+}
+
+function getSelectedRows() {
+    const selectedRows = [];
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+    
+    rowCheckboxes.forEach(checkbox => {
+        const index = parseInt(checkbox.dataset.index);
+        if (!isNaN(index) && roleRequirementsData.items[index]) {
+            selectedRows.push(roleRequirementsData.items[index]);
+        }
+    });
+    
+    return selectedRows;
+}
