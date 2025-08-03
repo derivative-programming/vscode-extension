@@ -147,7 +147,7 @@
           "command": "appdna.showPagePreview",
           "when": "viewItem =~ /pages.*showPagePreview/",
           "group": "inline",
-          "icon": "$(preview)"
+          "icon": "$(eye)"
         },
         {
           "command": "appdna.pageList",
@@ -302,7 +302,7 @@
       {
         "command": "appdna.showPagePreview",
         "title": "Show Page Preview",
-        "icon": "$(preview)"
+        "icon": "$(eye)"
       },
       {
         "command": "appdna.pageList",

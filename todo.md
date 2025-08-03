@@ -1,26 +1,6 @@
 Agent todo items...
 
-
-page table view...
-- show a icon button on the 'Pages' treeview item that resembles a table
-- similar in design to the model feature catalog
-- show a table listing all pages (forms and reports)
-- allow sort on all columns
-- allow filter on all columns
-- columns:
-  - Name ()
-  - Title text
-  - Type (Form/Report)
-  - Report Type (Grid/List/Three Column)
-  - Owner Object
-  - role required
-  - page preview button (similar to 'view page preview' button on form details view and report details view)
-  - view details button similar to clicking a form or report treeview item
-
-
-treeview...
-- page preview icon button to the 'eye' icon like we use on the form and report details view
-
+ 
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button

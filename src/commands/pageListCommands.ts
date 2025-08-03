@@ -98,7 +98,7 @@ export function registerPageListCommands(
                 vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'pageListView.js')
             );
             const codiconsUri = panel.webview.asWebviewUri(
-                vscode.Uri.joinPath(context.extensionUri, 'media', 'codicon.css')
+                vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
             );
 
             // Set the HTML content for the webview
@@ -158,6 +158,66 @@ export function registerPageListCommands(
                         }
                         .action-button:hover {
                             background-color: var(--vscode-button-hoverBackground);
+                        }
+                        .preview-button {
+                            background: transparent !important;
+                            background-color: transparent !important;
+                            border: none;
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 6px;
+                            border-radius: 4px;
+                            transition: background 0.15s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            min-width: 28px;
+                            height: 28px;
+                            margin: 0 2px;
+                        }
+                        .preview-button:hover {
+                            background: var(--vscode-toolbar-hoverBackground) !important;
+                            background-color: var(--vscode-toolbar-hoverBackground) !important;
+                        }
+                        .preview-button:active {
+                            background: var(--vscode-toolbar-activeBackground);
+                            transform: scale(0.95);
+                        }
+                        .preview-button .codicon {
+                            font-size: 16px;
+                        }
+                        .edit-button {
+                            background: transparent !important;
+                            background-color: transparent !important;
+                            border: none;
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 6px;
+                            border-radius: 4px;
+                            transition: background 0.15s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            min-width: 28px;
+                            height: 28px;
+                            margin: 0 2px;
+                        }
+                        .edit-button:hover {
+                            background: var(--vscode-toolbar-hoverBackground) !important;
+                            background-color: var(--vscode-toolbar-hoverBackground) !important;
+                        }
+                        .edit-button:active {
+                            background: var(--vscode-toolbar-activeBackground);
+                            transform: scale(0.95);
+                        }
+                        .edit-button .codicon {
+                            font-size: 16px;
+                        }
+                        .actions-container {
+                            display: flex;
+                            gap: 4px;
+                            align-items: center;
+                            justify-content: center;
                         }
                         .spinner {
                             border: 4px solid rgba(0, 0, 0, 0.1);
@@ -352,7 +412,6 @@ export function registerPageListCommands(
                                     <select id="filterReportType">
                                         <option value="">All Report Types</option>
                                         <option value="Grid">Grid</option>
-                                        <option value="List">List</option>
                                         <option value="Three Column">Three Column</option>
                                         <option value="Navigation">Navigation</option>
                                     </select>
@@ -371,7 +430,6 @@ export function registerPageListCommands(
                                 </div>
                             </div>
                             <div class="filter-actions">
-                                <button onclick="applyFilters()" class="filter-button">Apply Filters</button>
                                 <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
                             </div>
                         </div>
@@ -379,8 +437,6 @@ export function registerPageListCommands(
                     
                     <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
-                            <span class="codicon codicon-refresh"></span>
-                            Refresh
                         </button>
                     </div>
                     
@@ -448,7 +504,7 @@ export function registerPageListCommands(
                                         console.error('[ERROR] PageList - Failed to select page in page preview:', error);
                                     }
                                 }, 1000); // Wait 1 second for page preview to fully load
-                            }).catch((error: any) => {
+                            }, (error: any) => {
                                 console.error('[ERROR] PageList - Failed to open page preview via command:', error);
                                 vscode.window.showErrorMessage(`Failed to open page preview: ${error.message}`);
                             });
@@ -546,8 +602,6 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
                             const vizType = report.visualizationType.toLowerCase();
                             if (vizType === 'grid') {
                                 reportType = 'Grid';
-                            } else if (vizType === 'list') {
-                                reportType = 'List';
                             } else if (vizType === 'detailtwocolumn') {
                                 reportType = 'Navigation';
                             } else if (vizType === 'detailthreecolumn') {

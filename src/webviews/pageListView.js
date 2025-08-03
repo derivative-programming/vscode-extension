@@ -231,10 +231,14 @@ function renderTable() {
                 const td = document.createElement("td");
                 
                 if (col.key === "actions") {
+                    // Create action buttons container
+                    const actionsContainer = document.createElement("div");
+                    actionsContainer.className = "actions-container";
+                    
                     // Create action buttons
                     const previewButton = document.createElement("button");
-                    previewButton.className = "action-button";
-                    previewButton.textContent = "Preview";
+                    previewButton.className = "preview-button";
+                    previewButton.innerHTML = '<i class="codicon codicon-eye"></i>';
                     previewButton.title = "View page preview";
                     previewButton.onclick = function(e) {
                         e.stopPropagation();
@@ -245,9 +249,9 @@ function renderTable() {
                     };
                     
                     const detailsButton = document.createElement("button");
-                    detailsButton.className = "action-button";
-                    detailsButton.textContent = "Details";
-                    detailsButton.title = "View page details";
+                    detailsButton.className = "edit-button";
+                    detailsButton.innerHTML = '<i class="codicon codicon-edit"></i>';
+                    detailsButton.title = "Edit page details";
                     detailsButton.onclick = function(e) {
                         e.stopPropagation();
                         vscode.postMessage({
@@ -258,8 +262,9 @@ function renderTable() {
                         });
                     };
                     
-                    td.appendChild(previewButton);
-                    td.appendChild(detailsButton);
+                    actionsContainer.appendChild(previewButton);
+                    actionsContainer.appendChild(detailsButton);
+                    td.appendChild(actionsContainer);
                 } else {
                     // For other columns, display the value
                     const value = item[col.key] || "";
