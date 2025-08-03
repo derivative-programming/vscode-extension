@@ -221,6 +221,97 @@ export function registerPageListCommands(
                             display: flex;
                             align-items: center;
                         }
+                        .filter-section {
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 3px;
+                            margin-bottom: 15px;
+                            background-color: var(--vscode-sideBar-background);
+                        }
+                        .filter-header {
+                            padding: 8px 12px;
+                            cursor: pointer;
+                            user-select: none;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            background-color: var(--vscode-list-hoverBackground);
+                            border-radius: 3px 3px 0 0;
+                        }
+                        .filter-header:hover {
+                            background-color: var(--vscode-list-activeSelectionBackground);
+                        }
+                        .filter-content {
+                            padding: 15px;
+                            border-top: 1px solid var(--vscode-panel-border);
+                        }
+                        .filter-content.collapsed {
+                            display: none;
+                        }
+                        .filter-row {
+                            display: flex;
+                            gap: 15px;
+                            margin-bottom: 10px;
+                            flex-wrap: wrap;
+                        }
+                        .filter-group {
+                            display: flex;
+                            flex-direction: column;
+                            min-width: 150px;
+                            flex: 1;
+                        }
+                        .filter-group label {
+                            font-weight: 600;
+                            margin-bottom: 4px;
+                            font-size: 12px;
+                            color: var(--vscode-foreground);
+                        }
+                        .filter-group input, .filter-group select {
+                            padding: 4px 8px;
+                            border: 1px solid var(--vscode-input-border);
+                            background-color: var(--vscode-input-background);
+                            color: var(--vscode-input-foreground);
+                            border-radius: 2px;
+                            font-size: 13px;
+                        }
+                        .filter-group input:focus, .filter-group select:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
+                        .filter-actions {
+                            display: flex;
+                            gap: 10px;
+                            margin-top: 15px;
+                            padding-top: 10px;
+                            border-top: 1px solid var(--vscode-panel-border);
+                        }
+                        .filter-button {
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border: none;
+                            padding: 6px 12px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                        }
+                        .filter-button:hover {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
+                        .filter-button-secondary {
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: none;
+                            padding: 6px 12px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                        }
+                        .filter-button-secondary:hover {
+                            background-color: var(--vscode-button-secondaryHoverBackground);
+                        }
+                        .table-container {
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 3px;
+                            overflow: hidden;
+                            background-color: var(--vscode-editor-background);
+                        }
                     </style>
                 </head>
                 <body>
@@ -230,13 +321,73 @@ export function registerPageListCommands(
                             Browse all pages (forms and reports) in your model with filtering and sorting capabilities.
                         </p>
                     </div>
+                    
+                    <div class="filter-section">
+                        <div class="filter-header" onclick="toggleFilterSection()">
+                            <span class="codicon codicon-chevron-down" id="filterChevron"></span>
+                            <span>Filters</span>
+                        </div>
+                        <div class="filter-content" id="filterContent">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Name:</label>
+                                    <input type="text" id="filterName" placeholder="Filter by name...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Title:</label>
+                                    <input type="text" id="filterTitle" placeholder="Filter by title...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Type:</label>
+                                    <select id="filterType">
+                                        <option value="">All Types</option>
+                                        <option value="Form">Form</option>
+                                        <option value="Report">Report</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Report Type:</label>
+                                    <select id="filterReportType">
+                                        <option value="">All Report Types</option>
+                                        <option value="Grid">Grid</option>
+                                        <option value="List">List</option>
+                                        <option value="Three Column">Three Column</option>
+                                        <option value="Navigation">Navigation</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Owner Object:</label>
+                                    <select id="filterOwnerObject">
+                                        <option value="">All Objects</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Role Required:</label>
+                                    <select id="filterRoleRequired">
+                                        <option value="">All Roles</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button onclick="applyFilters()" class="filter-button">Apply Filters</button>
+                                <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="header-actions">
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             <span class="codicon codicon-refresh"></span>
                             Refresh
                         </button>
                     </div>
-                    <table id="pageListTable"></table>
+                    
+                    <div class="table-container">
+                        <table id="pageListTable"></table>
+                    </div>
+                    
                     <div class="table-footer">
                         <div class="table-footer-left">
                             <div id="paging"></div>

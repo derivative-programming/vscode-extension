@@ -18,6 +18,9 @@ page table view...
   - view details button similar to clicking a form or report treeview item
 
 
+treeview...
+- page preview icon button to the 'eye' icon like we use on the form and report details view
+
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button
