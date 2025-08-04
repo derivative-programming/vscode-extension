@@ -292,15 +292,8 @@ show page preview view with highlighted buttons on how to get there.
 user story - QA...
 - allow export of this table to a csv file
 
-✅ COMPLETED: Activating extension 'derivative-programming.appdna' failed: Module parse failed: Unterminated string constant - FIXED COMPILATION ERROR
-
-✅ COMPLETED: change refresh button to a refresh icon button. move it to the right side of the header. We do something similar on the 'role requirements' view.
-
-✅ COMPLETED: the icon on the refresh button is not displayed. make sure you import the icons correctly. we do this already on the role requirements view
-
-
-✅ COMPLETED: on click of the row, change the value of the row checkbox.
-
+✅ COMPLETED: the status dropdown just shows pending - if i change it, it goes back to pending. same for bulk update - FIXED dropdown value setting and table re-rendering issues
+  
 ✅ COMPLETED: When applying status in bulk, the table row is not updated
 ✅ COMPLETED: when i set status to Success or failure, the date is not displayed in the date verified column.
 - 

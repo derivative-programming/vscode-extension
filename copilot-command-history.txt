@@ -29,6 +29,23 @@ COMPLETED: Row Click to Toggle Checkbox
   * Maintains existing checkbox functionality while adding row-level interaction
   * Updates selection state and apply button state properly
 
+COMPLETED: Fixed Status Dropdown Value Persistence Issue  
+- Status: ✅ COMPLETED SUCCESSFULLY
+- Request: "the status dropdown just shows pending" & "if i change it, it goes back to pending. same for bulk update"
+- Root Cause Analysis: Multiple issues causing dropdown value problems
+  * Setting dropdown value BEFORE adding option elements (value assignment had no effect)
+  * handleQAStatusChange() was calling renderTable() which destroyed all dropdown states
+  * Table re-rendering was causing dropdown selections to revert to stored values
+- Implementation: Fixed value assignment order and eliminated unnecessary table re-rendering
+- Architecture Pattern: Selective DOM updates instead of full table re-rendering for better UX
+- Features Fixed:
+  * Moved qaStatusSelect.value assignment AFTER options are added to DOM
+  * Eliminated renderTable() call in handleQAStatusChange to preserve dropdown states  
+  * Added data-story-id attribute to rows for efficient element targeting
+  * Implemented selective date cell updates without full table re-render
+  * Status dropdowns now properly show and maintain selected values
+  * Individual and bulk status changes persist correctly
+
 COMPLETED: Fixed Compilation Error in UserStoriesQA Commands
 - Status: ✅ COMPLETED SUCCESSFULLY
 - Request: "Activating extension 'derivative-programming.appdna' failed: Module parse failed: Unterminated string constant (64:0)"

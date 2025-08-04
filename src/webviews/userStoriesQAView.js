@@ -278,6 +278,15 @@ function handleQAStatusChange(storyId, newStatus) {
         // Set date verified if status is success or failure
         if (newStatus === 'success' || newStatus === 'failure') {
             item.dateVerified = new Date().toISOString().split('T')[0];
+            
+            // Update the date cell in the current row without re-rendering entire table
+            const row = document.querySelector(`#qaTableBody tr[data-story-id="${storyId}"]`);
+            if (row) {
+                const dateCell = row.querySelector('.date-verified-column');
+                if (dateCell) {
+                    dateCell.textContent = item.dateVerified;
+                }
+            }
         }
         
         // Also update in allItems
@@ -289,8 +298,8 @@ function handleQAStatusChange(storyId, newStatus) {
             }
         }
         
-        // Re-render table to show updated date
-        renderTable();
+        // Don't re-render table - just update the specific cell data
+        // The dropdown value is already set by the user interaction
         
         // Save the change
         vscode.postMessage({
@@ -407,6 +416,7 @@ function renderTable() {
     if (userStoriesQAData.items && userStoriesQAData.items.length > 0) {
         userStoriesQAData.items.forEach(item => {
             const row = document.createElement("tr");
+            row.setAttribute("data-story-id", item.storyId); // Add story ID to row for easy identification
             
             // Checkbox column
             const checkboxCell = document.createElement("td");
@@ -438,7 +448,6 @@ function renderTable() {
             qaStatusCell.className = "qa-status-column";
             const qaStatusSelect = document.createElement("select");
             qaStatusSelect.className = "qa-status-select";
-            qaStatusSelect.value = item.qaStatus || 'pending';
             
             const statusOptions = [
                 { value: 'pending', text: 'Pending' },
@@ -453,6 +462,9 @@ function renderTable() {
                 optionElement.textContent = option.text;
                 qaStatusSelect.appendChild(optionElement);
             });
+            
+            // Set the value AFTER adding options
+            qaStatusSelect.value = item.qaStatus || 'pending';
             
             qaStatusSelect.addEventListener("change", (e) => {
                 handleQAStatusChange(item.storyId, e.target.value);
