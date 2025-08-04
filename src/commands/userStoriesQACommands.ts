@@ -245,102 +245,117 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     <title>User Stories QA</title>
                     <link href="${codiconsUri}" rel="stylesheet">
                     <style>
-                        body {
-                            font-family: var(--vscode-font-family);
-                            font-size: var(--vscode-font-size);
-                            font-weight: var(--vscode-font-weight);
-                            color: var(--vscode-foreground);
-                            background-color: var(--vscode-editor-background);
-                            margin: 0;
-                            padding: 20px;
-                        }
-                        
-                        .header {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            margin-bottom: 20px;
-                            padding-bottom: 10px;
+                        body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
+                        .validation-header {
+                            padding: 10px 0;
                             border-bottom: 1px solid var(--vscode-panel-border);
+                            margin-bottom: 15px;
                         }
-                        
-                        .header h1 {
+                        .validation-header h2 {
                             margin: 0;
-                            font-size: 18px;
-                            font-weight: 600;
+                            font-size: 1.3em;
+                            font-weight: normal;
+                            color: var(--vscode-editor-foreground);
+                            margin-bottom: 15px;
                         }
-                        
-                        .header .actions {
-                            display: flex;
-                            gap: 10px;
-                        }
-                        
-                        .btn {
-                            background-color: var(--vscode-button-background);
-                            color: var(--vscode-button-foreground);
-                            border: none;
-                            padding: 6px 12px;
-                            cursor: pointer;
-                            border-radius: 2px;
-                            font-size: 12px;
-                        }
-                        
-                        .btn:hover {
-                            background-color: var(--vscode-button-hoverBackground);
-                        }
-                        
-                        .btn-secondary {
+                        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+                        th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
+                        th { background: var(--vscode-sideBar-background); cursor: pointer; font-weight: bold; }
+                        tr:nth-child(even) { background: var(--vscode-sideBarSectionHeader-background); }
+                        tr:hover { background-color: var(--vscode-list-hoverBackground); }
+                        tbody tr { cursor: pointer; }
+                        #paging { margin: 1em 0; padding: 10px 0; text-align: center; }
+                        button { 
+                            margin: 0 4px; 
                             background-color: var(--vscode-button-secondaryBackground);
                             color: var(--vscode-button-secondaryForeground);
+                            border: none;
+                            padding: 4px 8px;
+                            cursor: pointer;
+                            border-radius: 2px;
                         }
-                        
-                        .btn-secondary:hover {
+                        button:disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                        }
+                        button:hover:not(:disabled) {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
+                        .qa-status-select {
+                            width: 100%;
+                            padding: 2px 4px;
+                            border: 1px solid var(--vscode-input-border);
+                            background-color: var(--vscode-input-background);
+                            color: var(--vscode-input-foreground);
+                            border-radius: 2px;
+                        }
+                        .qa-status-select:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
+                        .refresh-button {
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: 1px solid var(--vscode-button-border);
+                            padding: 4px 8px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                            font-size: 13px;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        }
+                        .refresh-button:hover {
                             background-color: var(--vscode-button-secondaryHoverBackground);
                         }
                         
                         .filter-section {
-                            background-color: var(--vscode-sidebar-background);
                             border: 1px solid var(--vscode-panel-border);
-                            border-radius: 4px;
-                            margin-bottom: 20px;
+                            border-radius: 3px;
+                            margin-bottom: 15px;
+                            background-color: var(--vscode-sideBar-background);
                         }
                         
                         .filter-header {
-                            padding: 10px 15px;
-                            background-color: var(--vscode-sideBar-background);
-                            border-bottom: 1px solid var(--vscode-panel-border);
+                            padding: 8px 12px;
                             cursor: pointer;
+                            user-select: none;
                             display: flex;
                             align-items: center;
-                            gap: 8px;
-                            font-weight: 600;
+                            gap: 6px;
+                            background-color: var(--vscode-list-hoverBackground);
+                            border-radius: 3px 3px 0 0;
+                        }
+                        .filter-header:hover {
+                            background-color: var(--vscode-list-activeSelectionBackground);
                         }
                         
                         .filter-content {
                             padding: 15px;
-                            display: grid;
-                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                            gap: 15px;
+                            border-top: 1px solid var(--vscode-panel-border);
                         }
-                        
                         .filter-content.collapsed {
                             display: none;
                         }
-                        
+                        .filter-row {
+                            display: flex;
+                            gap: 15px;
+                            margin-bottom: 10px;
+                            flex-wrap: wrap;
+                        }
                         .filter-group {
                             display: flex;
                             flex-direction: column;
-                            gap: 5px;
+                            min-width: 150px;
+                            flex: 1;
                         }
-                        
                         .filter-group label {
-                            font-size: 12px;
                             font-weight: 600;
+                            margin-bottom: 4px;
+                            font-size: 12px;
                             color: var(--vscode-foreground);
                         }
-                        
-                        .filter-group input,
-                        .filter-group select {
+                        .filter-group input, .filter-group select {
                             padding: 4px 8px;
                             border: 1px solid var(--vscode-input-border);
                             background-color: var(--vscode-input-background);
@@ -348,18 +363,33 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             border-radius: 2px;
                             font-size: 13px;
                         }
-                        
+                        .filter-group input:focus, .filter-group select:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
                         .filter-actions {
                             display: flex;
                             gap: 10px;
-                            align-items: end;
+                            margin-top: 15px;
+                            padding-top: 10px;
+                            border-top: 1px solid var(--vscode-panel-border);
                         }
-                        
+                        .filter-button-secondary {
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: none;
+                            padding: 6px 12px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                        }
+                        .filter-button-secondary:hover {
+                            background-color: var(--vscode-button-secondaryHoverBackground);
+                        }
                         .table-container {
                             border: 1px solid var(--vscode-panel-border);
-                            border-radius: 4px;
-                            overflow: auto;
-                            max-height: 600px;
+                            border-radius: 3px;
+                            overflow: hidden;
+                            background-color: var(--vscode-editor-background);
                         }
                         
                         table {
@@ -397,6 +427,15 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         .checkbox-column {
                             width: 40px;
                             text-align: center;
+                            padding: 4px 8px;
+                        }
+                        .row-checkbox, .select-all-checkbox {
+                            cursor: pointer;
+                            margin: 0;
+                        }
+                        .checkbox-header {
+                            text-align: center;
+                            padding: 4px 8px;
                         }
                         
                         .story-number-column {
@@ -480,7 +519,6 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             gap: 8px;
                         }
                         
-                        .export-button,
                         .refresh-button {
                             background-color: var(--vscode-button-secondaryBackground);
                             color: var(--vscode-button-secondaryForeground);
@@ -494,7 +532,6 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             gap: 4px;
                         }
                         
-                        .export-button:hover,
                         .refresh-button:hover {
                             background-color: var(--vscode-button-secondaryHoverBackground);
                         }
@@ -523,11 +560,15 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             display: flex;
                             justify-content: space-between;
                             align-items: center;
-                            padding: 10px;
-                            background-color: var(--vscode-sideBar-background);
-                            border: 1px solid var(--vscode-panel-border);
-                            border-top: none;
-                            border-radius: 0 0 4px 4px;
+                            margin-top: 10px;
+                        }
+                        .table-footer-left {
+                            display: flex;
+                            align-items: center;
+                        }
+                        .table-footer-right {
+                            display: flex;
+                            align-items: center;
                         }
                         
                         .spinner-overlay {
@@ -559,36 +600,41 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     </style>
                 </head>
                 <body>
-                    <div class="header">
-                        <h1>User Stories - QA</h1>
+                    <div class="validation-header">
+                        <h2>User Stories - QA</h2>
+                        <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
+                            Only stories that have completed 'Model AI Processing' are listed.
+                        </p>
                     </div>
 
                     <div class="filter-section">
                         <div class="filter-header" onclick="toggleFilterSection()">
-                            <i id="filterChevron" class="codicon codicon-chevron-down"></i>
+                            <span class="codicon codicon-chevron-down" id="filterChevron"></span>
                             <span>Filters</span>
                         </div>
-                        <div id="filterContent" class="filter-content">
-                            <div class="filter-group">
-                                <label for="filterStoryNumber">Story Number:</label>
-                                <input type="text" id="filterStoryNumber" placeholder="Filter by story number...">
-                            </div>
-                            <div class="filter-group">
-                                <label for="filterStoryText">Story Text:</label>
-                                <input type="text" id="filterStoryText" placeholder="Filter by story text...">
-                            </div>
-                            <div class="filter-group">
-                                <label for="filterQAStatus">QA Status:</label>
-                                <select id="filterQAStatus">
-                                    <option value="">All Statuses</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="started">Started</option>
-                                    <option value="success">Success</option>
-                                    <option value="failure">Failure</option>
-                                </select>
+                        <div class="filter-content" id="filterContent">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Story Number:</label>
+                                    <input type="text" id="filterStoryNumber" placeholder="Filter by story number...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Story Text:</label>
+                                    <input type="text" id="filterStoryText" placeholder="Filter by story text...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>QA Status:</label>
+                                    <select id="filterQAStatus">
+                                        <option value="">All Statuses</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="started">Started</option>
+                                        <option value="success">Success</option>
+                                        <option value="failure">Failure</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="filter-actions">
-                                <button class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+                                <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
                             </div>
                         </div>
                     </div>
@@ -605,8 +651,8 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             <button id="applyButton" class="apply-button" disabled>Apply to Selected</button>
                         </div>
                         <div class="header-actions">
-                            <button id="exportButton" class="export-button" title="Export to CSV">
-                                <i class="codicon codicon-export"></i> Export
+                            <button id="exportButton" class="icon-button" title="Download CSV">
+                                <i class="codicon codicon-cloud-download"></i>
                             </button>
                             <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             </button>

@@ -291,12 +291,9 @@ show page preview view with highlighted buttons on how to get there.
 
 user story - QA...
 - allow export of this table to a csv file
+- display text under the title that only stories that have completed 'Model AI Processing' are listed.
+- review the design of the 'role requirements' view. The qa view should be updated to show a similar design. 
 
-✅ COMPLETED: the status dropdown just shows pending - if i change it, it goes back to pending. same for bulk update - FIXED dropdown value setting and table re-rendering issues
-  
-✅ COMPLETED: When applying status in bulk, the table row is not updated
-✅ COMPLETED: when i set status to Success or failure, the date is not displayed in the date verified column.
-- 
 
 *************************
 low priority
