@@ -315,6 +315,11 @@
         "icon": "$(shield)"
       },
       {
+        "command": "appdna.userStoriesQA",
+        "title": "User Stories QA",
+        "icon": "$(checklist)"
+      },
+      {
         "command": "appdna.showFilter",
         "title": "Filter Tree View",
         "icon": "$(filter)"

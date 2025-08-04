@@ -260,9 +260,10 @@ user story - Roles
 
 suggestions...
 
-role requirements validation... ✅ COMPLETED
-✅ if you cant view or view all, you cant edit or delete - shows validation error next to access dropdown
+role requirements validation...
 show what is covered by existing user stories too
+
+suggestions (stories to add to fulfil requirements)...
 show a list of missing stories. allow user to add them individually
 
 user story - story list
@@ -270,8 +271,9 @@ on user story list show the page that fulfils it and view\edit icon buttons.
 show number of pages from login that it needs to reach it to perform the action.
 
 user story - page mapping...
+copy the QA view to start
 need to be able to map a user story to one or more pages that cover it
-create a new json file that holds this data
+create a new json file that holds this data... user-story-page-mapping.json
 button to run process to make best guess
 lookup icon next to each page name textbox. filter on role and object in story
 allow multiple pages per story
@@ -288,9 +290,20 @@ user story journey- page preview...
 show page preview view with highlighted buttons on how to get there.
 
 user story - QA...
-show a list of all user stories and track which have been QA'd
-hold qa notes
-status - pending, started, success, failure
+- allow export of this table to a csv file
+
+✅ COMPLETED: Activating extension 'derivative-programming.appdna' failed: Module parse failed: Unterminated string constant - FIXED COMPILATION ERROR
+
+✅ COMPLETED: change refresh button to a refresh icon button. move it to the right side of the header. We do something similar on the 'role requirements' view.
+
+✅ COMPLETED: the icon on the refresh button is not displayed. make sure you import the icons correctly. we do this already on the role requirements view
+
+
+✅ COMPLETED: on click of the row, change the value of the row checkbox.
+
+✅ COMPLETED: When applying status in bulk, the table row is not updated
+✅ COMPLETED: when i set status to Success or failure, the date is not displayed in the date verified column.
+- 
 
 *************************
 low priority
