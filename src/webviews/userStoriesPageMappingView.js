@@ -357,6 +357,95 @@ function updateApplyButtonState() {
     // Could be used for bulk clear mapping operations in the future
 }
 
+// Validate all page names
+function validateAllPageNames() {
+    console.log("[Webview] Running validation on all page names");
+    
+    const validationErrors = [];
+    const totalItems = allItems.length;
+    
+    // Get all unique page names from the model to validate against
+    vscode.postMessage({
+        command: 'getModelPageNames'
+    });
+    
+    // Note: The actual validation will happen in the message handler when we receive the page names
+}
+
+// Process validation results (called from message handler)
+function processPageValidation(modelPageNames) {
+    console.log("[Webview] Processing validation with", modelPageNames.length, "model page names:", modelPageNames);
+    
+    const validationErrors = [];
+    const allPageNames = new Set(modelPageNames.map(name => name.toLowerCase()));
+    
+    console.log("[Webview] Validating against", allItems.length, "stories");
+    
+    // Validate each item's page mappings
+    allItems.forEach((item, index) => {
+        const pageMappings = Array.isArray(item.pageMapping) ? item.pageMapping : [];
+        const ignorePages = Array.isArray(item.ignorePages) ? item.ignorePages : [];
+        
+        console.log(`[Webview] Story ${item.storyNumber}: checking ${pageMappings.length} page mappings and ${ignorePages.length} ignore pages`);
+        
+        // Check page mappings
+        pageMappings.forEach(pageName => {
+            if (pageName && pageName.trim() && !allPageNames.has(pageName.toLowerCase().trim())) {
+                console.log(`[Webview] Invalid page mapping found: "${pageName.trim()}" in story ${item.storyNumber}`);
+                validationErrors.push({
+                    index: index,
+                    storyNumber: item.storyNumber,
+                    type: 'Page Mapping',
+                    pageName: pageName.trim(),
+                    message: `Page "${pageName.trim()}" not found in model`
+                });
+            }
+        });
+        
+        // Check ignore pages
+        ignorePages.forEach(pageName => {
+            if (pageName && pageName.trim() && !allPageNames.has(pageName.toLowerCase().trim())) {
+                console.log(`[Webview] Invalid ignore page found: "${pageName.trim()}" in story ${item.storyNumber}`);
+                validationErrors.push({
+                    index: index,
+                    storyNumber: item.storyNumber,
+                    type: 'Ignore Pages',
+                    pageName: pageName.trim(),
+                    message: `Page "${pageName.trim()}" not found in model`
+                });
+            }
+        });
+    });
+    
+    // Display validation results
+    const validationSummary = document.getElementById('validationSummary');
+    const validationTitle = document.getElementById('validationTitle');
+    const validationContent = document.getElementById('validationContent');
+    const totalItems = allItems.length;
+    
+    if (validationErrors.length === 0) {
+        validationTitle.textContent = `✓ All page names are valid (checked ${totalItems} stories)`;
+        validationContent.innerHTML = '<div style="color: var(--vscode-testing-iconPassed); margin: 10px 0;">No invalid page names found.</div>';
+        validationSummary.style.border = '1px solid var(--vscode-testing-iconPassed)';
+        validationSummary.style.backgroundColor = 'var(--vscode-inputValidation-infoBackground)';
+    } else {
+        validationTitle.textContent = `⚠ Found ${validationErrors.length} invalid page name(s) in ${totalItems} stories`;
+        
+        let errorHtml = '';
+        validationErrors.forEach(error => {
+            errorHtml += `<div class="error-item">
+                <strong>Story ${error.storyNumber}</strong> - ${error.type}: "${error.pageName}" not found in model
+            </div>`;
+        });
+        validationContent.innerHTML = errorHtml;
+        validationSummary.style.border = '1px solid var(--vscode-inputValidation-errorBorder)';
+        validationSummary.style.backgroundColor = 'var(--vscode-inputValidation-errorBackground)';
+    }
+    
+    validationSummary.style.display = 'block';
+    console.log("[Webview] Validation completed:", validationErrors.length, "errors found");
+}
+
 // Export to CSV (global function for onclick)
 function exportToCSV() {
     vscode.postMessage({
@@ -413,6 +502,16 @@ window.addEventListener('message', event => {
             }
             break;
             
+        case 'modelPageNamesReady':
+            console.log('Model page names received for validation');
+            if (message.success !== false) {
+                processPageValidation(message.pageNames || []);
+            } else {
+                console.error('Error getting model page names:', message.error);
+                alert('Error getting model page names: ' + (message.error || 'Unknown error'));
+            }
+            break;
+            
         default:
             console.log('Unknown message:', message);
             break;
@@ -465,6 +564,12 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshButton.addEventListener("mouseleave", function() {
             refreshButton.style.background = "none";
         });
+    }
+    
+    // Setup validate button
+    const validateButton = document.getElementById('validateButton');
+    if (validateButton) {
+        validateButton.addEventListener('click', validateAllPageNames);
     }
     
     // Notify extension that webview is ready

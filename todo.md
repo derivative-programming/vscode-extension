@@ -270,15 +270,9 @@ user story - story list
 on user story list show the page that fulfils it and view\edit icon buttons.
 show number of pages from login that it needs to reach it to perform the action.
 
-user story - page mapping...
-- show text 'Only stories that have completed 'Model AI Processing' are listed.' under the title.
-- above the QA treeview item, add a new item called 'Page Mapping'
-- create a new 'User Story Page Mapping' view. copy the QA view to start
-- Instead of setting a qa status, we will set a page mapping on each row.
-- also have an 'Ignore Pages' column that can hold any page names that do not fulfil the story.
-- we need to be able to map a user story to one or more pages that cover it. Show a textbox to hold the page name.
-- create a new json file that holds this data... user-story-page-mapping.json. use the user story number as the key. dont put the story text in this supplemental file.
-- have an export button to export the mapping to a csv file. similar to the one in the QA view.
+user story - page mapping... 
+- add a button to make a best guess on the page name, next to the refresh button. given the starndard format of a user story, you can deteermine the role and object in the story. if you are adding, the primary object is the parent and the object in the story is the target child. if you are viewing all, the parent object is the owner of the report and the story object is the target child object.
+- add a lookup icon button next to each page name textbox to open a modal displaying all page names with a textbox to filter on text.
 
 
 button to run process to make best guess

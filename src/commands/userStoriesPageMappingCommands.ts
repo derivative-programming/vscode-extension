@@ -562,6 +562,35 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                             0% { transform: rotate(0deg); }
                             100% { transform: rotate(360deg); }
                         }
+                        
+                        .validation-summary {
+                            margin-bottom: 15px;
+                            padding: 10px;
+                            border-radius: 3px;
+                            border: 1px solid var(--vscode-inputValidation-errorBorder);
+                            background-color: var(--vscode-inputValidation-errorBackground);
+                        }
+                        
+                        .validation-summary h4 {
+                            margin: 0 0 10px 0;
+                            color: var(--vscode-errorForeground);
+                            font-size: 14px;
+                        }
+                        
+                        .error-list {
+                            font-size: 13px;
+                            color: var(--vscode-errorForeground);
+                        }
+                        
+                        .error-item {
+                            margin: 5px 0;
+                            padding: 4px 0;
+                            border-bottom: 1px solid var(--vscode-inputValidation-errorBorder);
+                        }
+                        
+                        .error-item:last-child {
+                            border-bottom: none;
+                        }
                     </style>
                 </head>
                 <body>
@@ -604,12 +633,21 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
 
                     <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
                         <div class="header-actions">
+                            <button id="validateButton" class="icon-button" title="Validate All Page Names">
+                                <i class="codicon codicon-check"></i>
+                            </button>
                             <button id="exportButton" class="icon-button" title="Download CSV">
                                 <i class="codicon codicon-cloud-download"></i>
                             </button>
                             <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                                <i class="codicon codicon-refresh"></i>
                             </button>
                         </div>
+                    </div>
+
+                    <div id="validationSummary" class="validation-summary" style="display: none;">
+                        <h4 id="validationTitle"></h4>
+                        <div id="validationContent" class="error-list"></div>
                     </div>
 
                     <div class="table-container">
@@ -763,6 +801,84 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                             } catch (error) {
                                 console.error("[Extension] Error saving CSV to workspace:", error);
                                 vscode.window.showErrorMessage('Failed to save CSV to workspace: ' + error.message);
+                            }
+                            break;
+
+                        case 'getModelPageNames':
+                            try {
+                                console.log("[Extension] Getting model page names for validation");
+                                const model = modelService.getCurrentModel();
+                                const pageNames: string[] = [];
+                                
+                                if (model && model.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
+                                    const namespace = model.namespace[0] as any;
+                                    
+                                    // Get page names from reports where isPage = "true"
+                                    if (namespace.report && Array.isArray(namespace.report)) {
+                                        namespace.report.forEach((report: any) => {
+                                            if (report.isPage === "true" && report.name) {
+                                                pageNames.push(report.name);
+                                            }
+                                        });
+                                    }
+                                    
+                                    // Also check in dataObject reports
+                                    if (namespace.dataObject && Array.isArray(namespace.dataObject)) {
+                                        namespace.dataObject.forEach((dataObj: any) => {
+                                            if (dataObj.report && Array.isArray(dataObj.report)) {
+                                                dataObj.report.forEach((report: any) => {
+                                                    if (report.isPage === "true" && report.name) {
+                                                        pageNames.push(report.name);
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                    
+                                    // Also check in objectWorkflow where isPage = "true"
+                                    if (namespace.objectWorkflow && Array.isArray(namespace.objectWorkflow)) {
+                                        namespace.objectWorkflow.forEach((workflow: any) => {
+                                            if (workflow.isPage === "true" && workflow.name) {
+                                                pageNames.push(workflow.name);
+                                            }
+                                        });
+                                    }
+                                    
+                                    // Also check in dataObject objectWorkflows
+                                    if (namespace.dataObject && Array.isArray(namespace.dataObject)) {
+                                        namespace.dataObject.forEach((dataObj: any) => {
+                                            if (dataObj.objectWorkflow && Array.isArray(dataObj.objectWorkflow)) {
+                                                dataObj.objectWorkflow.forEach((workflow: any) => {
+                                                    if (workflow.isPage === "true" && workflow.name) {
+                                                        pageNames.push(workflow.name);
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                                
+                                // Remove duplicates
+                                const uniquePageNames = [...new Set(pageNames)];
+                                
+                                console.log(`[Extension] Found ${pageNames.length} total page names, ${uniquePageNames.length} unique page names`);
+                                console.log(`[Extension] Page names:`, uniquePageNames);
+                                
+                                panel.webview.postMessage({
+                                    command: 'modelPageNamesReady',
+                                    pageNames: uniquePageNames,
+                                    success: true
+                                });
+                                
+                                console.log(`[Extension] Sent ${uniquePageNames.length} unique page names for validation`);
+                                
+                            } catch (error) {
+                                console.error("[Extension] Error getting model page names:", error);
+                                panel.webview.postMessage({
+                                    command: 'modelPageNamesReady',
+                                    success: false,
+                                    error: error.message
+                                });
                             }
                             break;
 
