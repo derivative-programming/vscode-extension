@@ -309,6 +309,30 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             background-color: var(--vscode-button-secondaryHoverBackground);
                         }
                         
+                        .icon-button {
+                            background: none;
+                            border: none;
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 5px;
+                            margin-left: 5px;
+                            border-radius: 3px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 16px;
+                        }
+                        
+                        .icon-button:hover {
+                            background: var(--vscode-toolbar-hoverBackground);
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        .icon-button:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: 2px;
+                        }
+                        
                         .filter-section {
                             border: 1px solid var(--vscode-panel-border);
                             border-radius: 3px;

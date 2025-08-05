@@ -1,3 +1,15 @@
+August 5, 2025 - User Stories QA View Export Button Background Fix - COMPLETED
+
+COMPLETED: Removed Background Color from User Stories QA Export Button
+- Status: ✅ COMPLETED SUCCESSFULLY  
+- Request: "it seems like the icon button has a background color. remove it"
+- Root Cause: QA view was missing the `.icon-button` CSS class definition with `background: none`
+- Changes Made:
+  * Added `.icon-button` CSS class to userStoriesQACommands.ts matching the working user stories view pattern
+  * Set `background: none` and proper hover/focus states for icon buttons
+  * Export button now displays as a clean icon without background color
+- Architecture: Icon buttons now use consistent styling across both views (user stories and QA)
+
 August 5, 2025 - User Stories QA View Export Button Fix - COMPLETED
 
 COMPLETED: Fixed User Stories QA View Export Button Not Working
