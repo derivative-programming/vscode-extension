@@ -469,6 +469,31 @@ export function registerRoleRequirementsCommands(
                         .validate-button:hover {
                             background-color: var(--vscode-button-secondaryHoverBackground);
                         }
+                        
+                        .icon-button {
+                            background: none;
+                            border: none;
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 5px;
+                            margin-left: 5px;
+                            border-radius: 3px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 16px;
+                        }
+                        
+                        .icon-button:hover {
+                            background: var(--vscode-toolbar-hoverBackground);
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        .icon-button:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: 2px;
+                        }
+                        
                         .header-actions {
                             display: flex;
                             justify-content: flex-end;
@@ -710,7 +735,7 @@ export function registerRoleRequirementsCommands(
                             <button id="applyButton" class="apply-button" disabled>Apply to Selected</button>
                         </div>
                         <div class="header-actions">
-                            <button id="validateButton" class="validate-button" title="Validate All Requirements">
+                            <button id="validateButton" class="icon-button" title="Validate All Requirements">
                             </button>
                             <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             </button>

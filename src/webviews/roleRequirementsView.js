@@ -614,23 +614,25 @@ document.addEventListener('DOMContentLoaded', function() {
     if (validateBtn) {
         validateBtn.innerHTML = '<span class="codicon codicon-check" style="font-size:16px;"></span>';
         validateBtn.title = "Validate All Requirements";
-        validateBtn.style.background = "var(--vscode-button-secondaryBackground)";
+        validateBtn.style.background = "none";
         validateBtn.style.border = "none";
-        validateBtn.style.color = "var(--vscode-button-secondaryForeground)";
-        validateBtn.style.padding = "4px 8px";
+        validateBtn.style.color = "var(--vscode-foreground)";
+        validateBtn.style.padding = "5px";
         validateBtn.style.cursor = "pointer";
         validateBtn.style.display = "flex";
         validateBtn.style.alignItems = "center";
-        validateBtn.style.borderRadius = "4px";
+        validateBtn.style.justifyContent = "center";
+        validateBtn.style.borderRadius = "3px";
         validateBtn.style.transition = "background 0.15s";
         validateBtn.style.marginRight = "8px";
+        validateBtn.style.fontSize = "16px";
 
         // Add hover effect
         validateBtn.addEventListener("mouseenter", function() {
-            validateBtn.style.background = "var(--vscode-button-secondaryHoverBackground)";
+            validateBtn.style.background = "var(--vscode-toolbar-hoverBackground)";
         });
         validateBtn.addEventListener("mouseleave", function() {
-            validateBtn.style.background = "var(--vscode-button-secondaryBackground)";
+            validateBtn.style.background = "none";
         });
         
         // Attach validate button handler
