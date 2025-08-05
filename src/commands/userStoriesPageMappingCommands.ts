@@ -88,6 +88,48 @@ async function loadUserStoriesPageMappingData(panel: vscode.WebviewPanel, modelS
                 if (fs.existsSync(mappingFilePath)) {
                     const mappingContent = fs.readFileSync(mappingFilePath, 'utf8');
                     existingMappingData = JSON.parse(mappingContent);
+                    
+                    // Migration: Convert string fields to arrays if needed
+                    let needsMigration = false;
+                    if (existingMappingData.pageMappings) {
+                        Object.keys(existingMappingData.pageMappings).forEach(storyNumber => {
+                            const mapping = existingMappingData.pageMappings[storyNumber];
+                            
+                            // Convert pageMapping from string to array
+                            if (typeof mapping.pageMapping === 'string') {
+                                mapping.pageMapping = mapping.pageMapping
+                                    .split('\n')
+                                    .map((line: string) => line.trim())
+                                    .filter((line: string) => line.length > 0);
+                                needsMigration = true;
+                            }
+                            
+                            // Convert ignorePages from string to array
+                            if (typeof mapping.ignorePages === 'string') {
+                                mapping.ignorePages = mapping.ignorePages
+                                    .split('\n')
+                                    .map((line: string) => line.trim())
+                                    .filter((line: string) => line.length > 0);
+                                needsMigration = true;
+                            }
+                            
+                            // Ensure arrays exist even if they were empty strings
+                            if (!Array.isArray(mapping.pageMapping)) {
+                                mapping.pageMapping = [];
+                                needsMigration = true;
+                            }
+                            if (!Array.isArray(mapping.ignorePages)) {
+                                mapping.ignorePages = [];
+                                needsMigration = true;
+                            }
+                        });
+                    }
+                    
+                    // Save migrated data if needed
+                    if (needsMigration) {
+                        await savePageMappingData(existingMappingData.pageMappings, mappingFilePath);
+                        console.log("[Extension] Migrated page mapping data from strings to arrays");
+                    }
                 }
             } catch (error) {
                 console.warn("[Extension] Could not load existing page mapping file:", error);
@@ -107,8 +149,8 @@ async function loadUserStoriesPageMappingData(panel: vscode.WebviewPanel, modelS
                 storyId: story.name || '',
                 storyNumber: storyNumber,
                 storyText: story.storyText || '',
-                pageMapping: existingMapping?.pageMapping || '',
-                ignorePages: existingMapping?.ignorePages || '',
+                pageMapping: existingMapping?.pageMapping || [],
+                ignorePages: existingMapping?.ignorePages || [],
                 mappingFilePath: mappingFilePath,
                 selected: false // For checkbox functionality
             });
@@ -666,11 +708,15 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                 const csvRows = [csvHeaders.join(',')];
                                 
                                 items.forEach((item: any) => {
+                                    // Convert arrays to strings for CSV (join with semicolons for readability)
+                                    const pageMapping = Array.isArray(item.pageMapping) ? item.pageMapping.join('; ') : (item.pageMapping || '');
+                                    const ignorePages = Array.isArray(item.ignorePages) ? item.ignorePages.join('; ') : (item.ignorePages || '');
+                                    
                                     const row = [
                                         `"${(item.storyNumber || '').replace(/"/g, '""')}"`,
                                         `"${(item.storyText || '').replace(/"/g, '""')}"`,
-                                        `"${(item.pageMapping || '').replace(/"/g, '""')}"`,
-                                        `"${(item.ignorePages || '').replace(/"/g, '""')}"`
+                                        `"${pageMapping.replace(/"/g, '""')}"`,
+                                        `"${ignorePages.replace(/"/g, '""')}"`
                                     ];
                                     csvRows.push(row.join(','));
                                 });

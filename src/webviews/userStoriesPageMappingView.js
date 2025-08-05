@@ -71,7 +71,15 @@ function applyFilters() {
     let filtered = allItems.filter(item => {
         const matchesStoryNumber = !storyNumberFilter || (item.storyNumber || '').toLowerCase().includes(storyNumberFilter);
         const matchesStoryText = !storyTextFilter || (item.storyText || '').toLowerCase().includes(storyTextFilter);
-        const matchesPageMapping = !pageMappingFilter || (item.pageMapping || '').toLowerCase().includes(pageMappingFilter);
+        
+        // Handle pageMapping as either array or string for backward compatibility
+        let pageMappingText = '';
+        if (Array.isArray(item.pageMapping)) {
+            pageMappingText = item.pageMapping.join(' ').toLowerCase();
+        } else {
+            pageMappingText = (item.pageMapping || '').toLowerCase();
+        }
+        const matchesPageMapping = !pageMappingFilter || pageMappingText.includes(pageMappingFilter);
         
         return matchesStoryNumber && matchesStoryText && matchesPageMapping;
     });
@@ -196,7 +204,8 @@ function renderTable() {
         pageMappingCell.className = 'page-mapping-column';
         const pageMappingInput = document.createElement('textarea');
         pageMappingInput.className = 'page-mapping-input';
-        pageMappingInput.value = item.pageMapping || '';
+        // Convert array to string for display (one page per line)
+        pageMappingInput.value = Array.isArray(item.pageMapping) ? item.pageMapping.join('\n') : (item.pageMapping || '');
         pageMappingInput.placeholder = 'Enter page names (one per line)';
         pageMappingInput.onchange = () => handlePageMappingChange(item.storyId, pageMappingInput.value);
         pageMappingCell.appendChild(pageMappingInput);
@@ -207,7 +216,8 @@ function renderTable() {
         ignorePagesCell.className = 'ignore-pages-column';
         const ignorePagesInput = document.createElement('textarea');
         ignorePagesInput.className = 'ignore-pages-input';
-        ignorePagesInput.value = item.ignorePages || '';
+        // Convert array to string for display (one page per line)
+        ignorePagesInput.value = Array.isArray(item.ignorePages) ? item.ignorePages.join('\n') : (item.ignorePages || '');
         ignorePagesInput.placeholder = 'Enter ignored page names (one per line)';
         ignorePagesInput.onchange = () => handleIgnorePagesChange(item.storyId, ignorePagesInput.value);
         ignorePagesCell.appendChild(ignorePagesInput);
@@ -230,13 +240,19 @@ function renderTable() {
 }
 
 // Handle page mapping change
-function handlePageMappingChange(storyId, pageMapping) {
-    console.log('Page mapping changed for story:', storyId, pageMapping);
+function handlePageMappingChange(storyId, pageMappingText) {
+    console.log('Page mapping changed for story:', storyId, pageMappingText);
+    
+    // Convert text to array (split by lines, filter out empty lines, trim whitespace)
+    const pageMappingArray = pageMappingText
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
     
     // Find the item and update locally
     const item = userStoriesPageMappingData.items.find(i => i.storyId === storyId);
     if (item) {
-        item.pageMapping = pageMapping;
+        item.pageMapping = pageMappingArray;
     }
     
     // Send change to extension
@@ -245,21 +261,27 @@ function handlePageMappingChange(storyId, pageMapping) {
         data: {
             storyId: storyId,
             storyNumber: item ? item.storyNumber : '',
-            pageMapping: pageMapping,
-            ignorePages: item ? item.ignorePages : '',
+            pageMapping: pageMappingArray,
+            ignorePages: item ? item.ignorePages : [],
             mappingFilePath: item ? item.mappingFilePath : ''
         }
     });
 }
 
 // Handle ignore pages change
-function handleIgnorePagesChange(storyId, ignorePages) {
-    console.log('Ignore pages changed for story:', storyId, ignorePages);
+function handleIgnorePagesChange(storyId, ignorePagesText) {
+    console.log('Ignore pages changed for story:', storyId, ignorePagesText);
+    
+    // Convert text to array (split by lines, filter out empty lines, trim whitespace)
+    const ignorePagesArray = ignorePagesText
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
     
     // Find the item and update locally
     const item = userStoriesPageMappingData.items.find(i => i.storyId === storyId);
     if (item) {
-        item.ignorePages = ignorePages;
+        item.ignorePages = ignorePagesArray;
     }
     
     // Send change to extension
@@ -268,8 +290,8 @@ function handleIgnorePagesChange(storyId, ignorePages) {
         data: {
             storyId: storyId,
             storyNumber: item ? item.storyNumber : '',
-            pageMapping: item ? item.pageMapping : '',
-            ignorePages: ignorePages,
+            pageMapping: item ? item.pageMapping : [],
+            ignorePages: ignorePagesArray,
             mappingFilePath: item ? item.mappingFilePath : ''
         }
     });
