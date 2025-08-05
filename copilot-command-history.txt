@@ -1,3 +1,16 @@
+August 5, 2025 - User Stories QA View Export Button Fix - COMPLETED
+
+COMPLETED: Fixed User Stories QA View Export Button Not Working
+- Status: ✅ COMPLETED SUCCESSFULLY
+- Request: "review the user stories qa view. review the export button. It does not work. We are doing something similar on the user stories view that works correctly"
+- Root Cause: QA view was missing the `saveCsvToWorkspace` command handler in the extension
+- Changes Made:
+  * Added `saveCsvToWorkspace` command handler to userStoriesQACommands.ts following the same pattern as userStoriesView
+  * Updated userStoriesQAView.js to send `saveCsvToWorkspace` command instead of attempting direct download
+  * Removed unused `downloadCSV` function from QA view
+  * Now follows the same workflow as working user stories view: webview → extension generates CSV → webview saves to workspace
+- Architecture: Both views now use consistent CSV export pattern: command → generate → save to workspace
+
 August 4, 2025 - QA View Design Update to Match Role Requirements - COMPLETED
 
 COMPLETED: Updated QA View Design to Match Role Requirements View Pattern

@@ -271,9 +271,11 @@ on user story list show the page that fulfils it and view\edit icon buttons.
 show number of pages from login that it needs to reach it to perform the action.
 
 user story - page mapping...
-copy the QA view to start
-need to be able to map a user story to one or more pages that cover it
-create a new json file that holds this data... user-story-page-mapping.json
+- above the QA treeview item, add a new item called 'Page Mapping'
+- create a new 'User Story Page Mapping' view. copy the QA view to start
+- Instead of setting a qa status, we will set a page mapping on each row.
+- we need to be able to map a user story to one or more pages that cover it. Show a textbox to hold the page name.
+- create a new json file that holds this data... user-story-page-mapping.json
 button to run process to make best guess
 lookup icon next to each page name textbox. filter on role and object in story
 allow multiple pages per story
@@ -291,8 +293,6 @@ show page preview view with highlighted buttons on how to get there.
 
 user story - QA...
 - allow export of this table to a csv file
-- display text under the title that only stories that have completed 'Model AI Processing' are listed.
-- review the design of the 'role requirements' view. The qa view should be updated to show a similar design. 
 
 
 *************************

@@ -852,6 +852,28 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             }
                             break;
 
+                        case 'saveCsvToWorkspace':
+                            try {
+                                console.log("[Extension] UserStoriesQA saveCsvToWorkspace requested");
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    throw new Error('No workspace folder is open');
+                                }
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const reportDir = path.join(workspaceRoot, 'user_story_reports');
+                                if (!fs.existsSync(reportDir)) {
+                                    fs.mkdirSync(reportDir, { recursive: true });
+                                }
+                                const filePath = path.join(reportDir, message.data.filename);
+                                fs.writeFileSync(filePath, message.data.content, 'utf8');
+                                vscode.window.showInformationMessage('CSV file saved to workspace: ' + filePath);
+                                vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+                            } catch (error) {
+                                console.error("[Extension] Error saving CSV to workspace:", error);
+                                vscode.window.showErrorMessage('Failed to save CSV to workspace: ' + error.message);
+                            }
+                            break;
+
                         default:
                             console.log("[Extension] Unknown command:", message.command);
                             break;

@@ -253,21 +253,6 @@ function exportToCSV() {
     });
 }
 
-// Download CSV file from blob data
-function downloadCSV(content, filename) {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}
-
 // Handle QA status change
 function handleQAStatusChange(storyId, newStatus) {
     // Find the item and update locally
@@ -581,7 +566,14 @@ window.addEventListener('message', event => {
         case 'csvExportReady':
             console.log('CSV export ready');
             if (message.success !== false) {
-                downloadCSV(message.csvContent, message.filename);
+                // Send CSV content to extension to save to workspace (same pattern as userStoriesView)
+                vscode.postMessage({
+                    command: 'saveCsvToWorkspace',
+                    data: {
+                        content: message.csvContent,
+                        filename: message.filename
+                    }
+                });
             } else {
                 console.error('Error exporting CSV:', message.error);
                 alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
