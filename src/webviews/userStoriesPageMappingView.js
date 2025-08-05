@@ -357,6 +357,167 @@ function updateApplyButtonState() {
     // Could be used for bulk clear mapping operations in the future
 }
 
+// Convert spaced words to camelCase (e.g., "Org Customers" -> "OrgCustomers")
+function convertToCamelCase(text) {
+    if (!text || typeof text !== "string") { return ""; }
+    
+    return text
+        .trim()
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join('');
+}
+
+// Extract role from user story text
+function extractRoleFromUserStory(text) {
+    if (!text || typeof text !== "string") { return ""; }
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract role from: A [Role] wants to...
+    const re1 = /^A\s+\[?(\w+(?:\s+\w+)*)\]?\s+wants to/i;
+    const match1 = t.match(re1);
+    if (match1) { return match1[1]; }
+    
+    // Regex to extract role from: As a [Role], I want to...
+    const re2 = /^As a\s+\[?(\w+(?:\s+\w+)*)\]?\s*,?\s*I want to/i;
+    const match2 = t.match(re2);
+    if (match2) { return match2[1]; }
+    
+    return "";
+}
+
+// Extract action from user story text
+function extractActionFromUserStory(text) {
+    if (!text || typeof text !== "string") { return ""; }
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract action from: ...wants to [action] [a|an|all]... (case insensitive)
+    const re1 = /wants to\s+\[?(view all|view|add|update|delete)\]?\s+(a|an|all)/i;
+    const match1 = t.match(re1);
+    if (match1) { return match1[1].toLowerCase(); }
+    
+    // Regex to extract action from: ...I want to [action] [a|an|all]... (case insensitive)
+    const re2 = /I want to\s+\[?(view all|view|add|update|delete)\]?\s+(a|an|all)/i;
+    const match2 = t.match(re2);
+    if (match2) { return match2[1].toLowerCase(); }
+    
+    return "";
+}
+
+// Extract object from user story text
+function extractObjectFromUserStory(text) {
+    if (!text || typeof text !== "string") { return ""; }
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract object from: ...[action] [a|an|all] [object] (case insensitive)
+    const re = /(?:view all|view|add|update|delete)\]?\s+(?:a|an|all)\s+\[?(\w+(?:\s+\w+)*)\]?$/i;
+    const match = t.match(re);
+    if (match) { 
+        const object = match[1];
+        const objectCamelCase = convertToCamelCase(object);
+        console.log(`[Webview] Extracted object: "${object}", CamelCase: "${objectCamelCase}"`);
+        return object; 
+    }
+    
+    return "";
+}
+
+// Make best guess for page mappings
+function makeBestGuess() {
+    console.log("[Webview] Making best guess for page mappings");
+    
+    // Send request to extension to get model data and generate page mappings
+    vscode.postMessage({
+        command: 'generateBestGuessPageMappings',
+        data: {
+            stories: allItems
+        }
+    });
+}
+
+// Apply best guess page mappings to the UI
+function applyBestGuessPageMappings(mappings) {
+    console.log("[Webview] Applying best guess page mappings:", mappings);
+    
+    mappings.forEach(mapping => {
+        // Find the item in our data
+        const item = allItems.find(i => i.storyNumber === mapping.storyNumber);
+        if (item && mapping.suggestedPages && mapping.suggestedPages.length > 0) {
+            // Get the current ignore pages list for this story
+            const ignorePages = Array.isArray(item.ignorePages) ? item.ignorePages : [];
+            const ignorePagesLowerCase = ignorePages.map(page => page.toLowerCase().trim());
+            
+            // Filter out suggested pages that are already in the ignore list
+            const filteredSuggestions = mapping.suggestedPages.filter(suggestedPage => {
+                const isIgnored = ignorePagesLowerCase.includes(suggestedPage.toLowerCase().trim());
+                if (isIgnored) {
+                    console.log(`[Webview] Skipping suggested page "${suggestedPage}" for story ${item.storyNumber} - already in ignore list`);
+                }
+                return !isIgnored;
+            });
+            
+            console.log(`[Webview] Story ${item.storyNumber}: Original suggestions: ${mapping.suggestedPages.length}, After filtering: ${filteredSuggestions.length}`);
+            
+            // Update the item's page mapping if it's currently empty and we have filtered suggestions
+            if ((!Array.isArray(item.pageMapping) || item.pageMapping.length === 0) && filteredSuggestions.length > 0) {
+                item.pageMapping = filteredSuggestions;
+                
+                // Save the change
+                vscode.postMessage({
+                    command: 'savePageMappingChange',
+                    data: {
+                        storyId: item.storyId,
+                        storyNumber: item.storyNumber,
+                        pageMapping: item.pageMapping,
+                        ignorePages: item.ignorePages || [],
+                        mappingFilePath: item.mappingFilePath
+                    }
+                });
+            }
+        }
+    });
+    
+    // Re-render the table to show the updates
+    renderTable();
+    
+    const appliedCount = mappings.filter(m => {
+        const item = allItems.find(i => i.storyNumber === m.storyNumber);
+        if (!item || !m.suggestedPages || m.suggestedPages.length === 0) {
+            return false;
+        }
+        
+        // Check if any suggestions would actually be applied (not ignored)
+        const ignorePages = Array.isArray(item.ignorePages) ? item.ignorePages : [];
+        const ignorePagesLowerCase = ignorePages.map(page => page.toLowerCase().trim());
+        const filteredSuggestions = m.suggestedPages.filter(suggestedPage => 
+            !ignorePagesLowerCase.includes(suggestedPage.toLowerCase().trim())
+        );
+        
+        return filteredSuggestions.length > 0;
+    }).length;
+    
+    console.log(`[Webview] Applied best guess to ${appliedCount} stories`);
+    
+    // Send message to extension to show notification instead of using alert
+    if (appliedCount > 0) {
+        vscode.postMessage({
+            command: 'showNotification',
+            data: {
+                type: 'info',
+                message: `Best guess applied to ${appliedCount} stories with page suggestions.`
+            }
+        });
+    } else {
+        vscode.postMessage({
+            command: 'showNotification',
+            data: {
+                type: 'warning',
+                message: 'No page suggestions could be generated. Please check that your model has pages defined and user stories follow the expected format.'
+            }
+        });
+    }
+}
+
 // Validate all page names
 function validateAllPageNames() {
     console.log("[Webview] Running validation on all page names");
@@ -512,6 +673,16 @@ window.addEventListener('message', event => {
             }
             break;
             
+        case 'bestGuessPageMappingsReady':
+            console.log('Best guess page mappings received');
+            if (message.success !== false) {
+                applyBestGuessPageMappings(message.mappings || []);
+            } else {
+                console.error('Error generating best guess:', message.error);
+                alert('Error generating best guess: ' + (message.error || 'Unknown error'));
+            }
+            break;
+            
         default:
             console.log('Unknown message:', message);
             break;
@@ -570,6 +741,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const validateButton = document.getElementById('validateButton');
     if (validateButton) {
         validateButton.addEventListener('click', validateAllPageNames);
+    }
+    
+    // Setup best guess button
+    const bestGuessButton = document.getElementById('bestGuessButton');
+    if (bestGuessButton) {
+        bestGuessButton.addEventListener('click', makeBestGuess);
     }
     
     // Notify extension that webview is ready

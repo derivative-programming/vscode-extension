@@ -219,6 +219,239 @@ async function savePageMappingData(pageMappings: any, filePath: string): Promise
 /**
  * Register user stories page mapping commands
  */
+/**
+ * Convert spaced words to camelCase (e.g., "Org Customers" -> "OrgCustomers")
+ */
+function convertToCamelCase(text: string): string {
+    if (!text || typeof text !== "string") { return ""; }
+    
+    return text
+        .trim()
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join('');
+}
+
+/**
+ * Convert plural words to singular (e.g., "Customer Email Requests" -> "Customer Email Request")
+ * This handles common English pluralization patterns for better model object matching
+ */
+function convertToSingular(text: string): string {
+    if (!text || typeof text !== "string") { return ""; }
+    
+    const words = text.trim().split(/\s+/);
+    if (words.length === 0) { return ""; }
+    
+    // Get the last word and convert to singular
+    const lastWord = words[words.length - 1];
+    let singularLastWord = lastWord;
+    
+    // Common pluralization patterns
+    if (lastWord.toLowerCase().endsWith('ies')) {
+        singularLastWord = lastWord.slice(0, -3) + 'y';
+    } else if (lastWord.toLowerCase().endsWith('es')) {
+        // Check for -ses, -xes, -ches, -shes patterns
+        if (lastWord.toLowerCase().endsWith('ses') || 
+            lastWord.toLowerCase().endsWith('xes') || 
+            lastWord.toLowerCase().endsWith('ches') || 
+            lastWord.toLowerCase().endsWith('shes')) {
+            singularLastWord = lastWord.slice(0, -2);
+        } else {
+            singularLastWord = lastWord.slice(0, -1);
+        }
+    } else if (lastWord.toLowerCase().endsWith('s') && lastWord.length > 1) {
+        singularLastWord = lastWord.slice(0, -1);
+    }
+    
+    // Replace the last word with singular form
+    const singularWords = [...words.slice(0, -1), singularLastWord];
+    return singularWords.join(' ');
+}
+
+/**
+ * Find the parent object of a given object in the namespace
+ */
+function findParentObject(objectName: string, allObjects: any[]): any | null {
+    for (const obj of allObjects) {
+        // Check if this object has the target object as a child
+        if (obj.object && Array.isArray(obj.object)) {
+            const childFound = obj.object.find((child: any) => 
+                child.name && child.name.toLowerCase() === objectName.toLowerCase()
+            );
+            if (childFound) {
+                return obj;
+            }
+        }
+        
+        // Also check dataObjects if they exist
+        if (obj.dataObject && Array.isArray(obj.dataObject)) {
+            const childFound = obj.dataObject.find((child: any) => 
+                child.name && child.name.toLowerCase() === objectName.toLowerCase()
+            );
+            if (childFound) {
+                return obj;
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Get all parent objects in hierarchy order (immediate parent first, then grandparent, etc.)
+ */
+function getParentHierarchy(objectName: string, allObjects: any[]): any[] {
+    const parents: any[] = [];
+    let currentObjectName = objectName;
+    
+    while (currentObjectName) {
+        const parent = findParentObject(currentObjectName, allObjects);
+        if (parent && parent.name) {
+            parents.push(parent);
+            currentObjectName = parent.name;
+        } else {
+            break;
+        }
+    }
+    
+    return parents;
+}
+
+/**
+ * Extract role from user story text
+ */
+function extractRoleFromStory(text: string): string {
+    if (!text || typeof text !== "string") { return ""; }
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract role from: A [Role] wants to...
+    const re1 = /^A\s+\[?(\w+(?:\s+\w+)*)\]?\s+wants to/i;
+    const match1 = t.match(re1);
+    if (match1) { return match1[1]; }
+    
+    // Regex to extract role from: As a [Role], I want to...
+    const re2 = /^As a\s+\[?(\w+(?:\s+\w+)*)\]?\s*,?\s*I want to/i;
+    const match2 = t.match(re2);
+    if (match2) { return match2[1]; }
+    
+    return "";
+}
+
+/**
+ * Extract action from user story text
+ */
+function extractActionFromStory(text: string): string {
+    if (!text || typeof text !== "string") { return ""; }
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract action from: ...wants to [action]... (case insensitive)
+    // Updated to handle "view all" properly without requiring additional "a|an|all" after it
+    const re1 = /wants to\s+(view all|view|add|update|delete)(?:\s+(?:a|an|all))?\s+/i;
+    const match1 = t.match(re1);
+    if (match1) { return match1[1].toLowerCase(); }
+    
+    // Regex to extract action from: ...I want to [action]... (case insensitive)
+    const re2 = /I want to\s+(view all|view|add|update|delete)(?:\s+(?:a|an|all))?\s+/i;
+    const match2 = t.match(re2);
+    if (match2) { return match2[1].toLowerCase(); }
+    
+    return "";
+}
+
+/**
+ * Extract object from user story text
+ */
+function extractObjectFromStory(text: string): string {
+    if (!text || typeof text !== "string") { return ""; }
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract object from: ...[action] [object] (case insensitive)
+    // Updated to handle phrases like "Org Customers in a Organization" - extract just "Org Customers"
+    // Also handle "view all [object]" patterns
+    const re = /(?:view all|view|add|update|delete)(?:\s+(?:a|an|all))?\s+([^.!?]+?)(?:\s+in\s+(?:a|an|the)\s+\w+|\s*[\.\!\?]|$)/i;
+    const match = t.match(re);
+    if (match) { 
+        // Clean up the captured object text
+        let objectText = match[1].trim();
+        // Remove any trailing brackets or quotes
+        objectText = objectText.replace(/[\]\)"']*$/, '');
+        return objectText; 
+    }
+    
+    return "";
+}
+
+/**
+ * Check if the user story indicates application-level context (e.g., "in the application", "in the app")
+ */
+function isApplicationLevelContext(text: string): boolean {
+    if (!text || typeof text !== "string") { return false; }
+    const t = text.toLowerCase().trim();
+    
+    // Check for phrases that indicate application-level context
+    return t.includes("in the application") || 
+           t.includes("in the app") ||
+           t.includes("in application") ||
+           t.includes("application-wide") ||
+           t.includes("across the application");
+}
+
+/**
+ * Find the top-level parent object (Pac, Tac, or root object) in the namespace
+ */
+function findTopLevelParent(allObjects: any[]): any | null {
+    // Look for objects commonly used as application root: Pac, Tac
+    const commonRootNames = ['pac', 'tac', 'application', 'app'];
+    
+    for (const rootName of commonRootNames) {
+        const found = allObjects.find(obj => 
+            obj.name && obj.name.toLowerCase() === rootName
+        );
+        if (found) {
+            return found;
+        }
+    }
+    
+    // If no common root found, look for objects that don't have parents
+    // (i.e., objects that are not children of any other object)
+    for (const obj of allObjects) {
+        let isChild = false;
+        for (const potentialParent of allObjects) {
+            if (potentialParent === obj) { continue; }
+            
+            // Check if obj is a child of potentialParent
+            if (potentialParent.object && Array.isArray(potentialParent.object)) {
+                const childFound = potentialParent.object.find((child: any) => 
+                    child.name && child.name.toLowerCase() === obj.name?.toLowerCase()
+                );
+                if (childFound) {
+                    isChild = true;
+                    break;
+                }
+            }
+            
+            if (potentialParent.dataObject && Array.isArray(potentialParent.dataObject)) {
+                const childFound = potentialParent.dataObject.find((child: any) => 
+                    child.name && child.name.toLowerCase() === obj.name?.toLowerCase()
+                );
+                if (childFound) {
+                    isChild = true;
+                    break;
+                }
+            }
+        }
+        
+        // If this object is not a child of any other object, it's a root
+        if (!isChild) {
+            return obj;
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Register user stories page mapping commands
+ */
 export function registerUserStoriesPageMappingCommands(context: vscode.ExtensionContext, modelService: ModelService): void {
     // Register user stories page mapping command
     context.subscriptions.push(
@@ -633,6 +866,9 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
 
                     <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
                         <div class="header-actions">
+                            <button id="bestGuessButton" class="icon-button" title="Generate Best Guess Page Mappings">
+                                <i class="codicon codicon-lightbulb"></i>
+                            </button>
                             <button id="validateButton" class="icon-button" title="Validate All Page Names">
                                 <i class="codicon codicon-check"></i>
                             </button>
@@ -879,6 +1115,366 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                     success: false,
                                     error: error.message
                                 });
+                            }
+                            break;
+
+                        case 'generateBestGuessPageMappings':
+                            try {
+                                console.log("[Extension] Generating best guess page mappings with hierarchical parent search");
+                                const model = modelService.getCurrentModel();
+                                const stories = message.data.stories || [];
+                                const pageMappings: any[] = [];
+                                
+                                if (model && model.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
+                                    const namespace = model.namespace[0] as any;
+                                    
+                                    // Get all pages from the model
+                                    const allPages: any[] = [];
+                                    
+                                    if (namespace.object && Array.isArray(namespace.object)) {
+                                        console.log(`[Extension] Processing ${namespace.object.length} objects for best guess`);
+                                        
+                                        namespace.object.forEach((obj: any, index: number) => {
+                                            console.log(`[Extension] Object ${index}: ${obj.name || 'unnamed'}`);
+                                            
+                                            // Get pages from object reports
+                                            if (obj.report && Array.isArray(obj.report)) {
+                                                obj.report.forEach((report: any) => {
+                                                    if (report.isPage === "true" && report.name) {
+                                                        allPages.push({
+                                                            name: report.name,
+                                                            type: 'report',
+                                                            visualizationType: report.visualizationType,
+                                                            targetChildObject: report.targetChildObject,
+                                                            roleRequired: report.roleRequired,
+                                                            ownerObject: obj.name
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                            
+                                            // Get pages from object objectWorkflows (forms)
+                                            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                                obj.objectWorkflow.forEach((workflow: any) => {
+                                                    if (workflow.isPage === "true" && workflow.name) {
+                                                        allPages.push({
+                                                            name: workflow.name,
+                                                            type: 'form',
+                                                            ownerObject: obj.name,
+                                                            roleRequired: workflow.roleRequired
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                    
+                                    console.log(`[Extension] Found ${allPages.length} pages in model`);
+                                    
+                                    // Log all pages for debugging
+                                    console.log(`[Extension] All pages found:`, allPages.map(p => `${p.name} (${p.type}, ${p.visualizationType || 'no-viz'}, owner: ${p.ownerObject || 'none'}, target: ${p.targetChildObject || 'none'})`));
+                                    
+                                    // Process each story
+                                    stories.forEach((story: any) => {
+                                        const storyText = story.storyText || '';
+                                        const storyNumber = story.storyNumber || '';
+                                        
+                                        // Extract role, action, and object from story
+                                        const role = extractRoleFromStory(storyText);
+                                        const action = extractActionFromStory(storyText);
+                                        const object = extractObjectFromStory(storyText);
+                                        
+                                        console.log(`[Extension] Story ${storyNumber}: "${storyText}"`);
+                                        console.log(`[Extension] Story ${storyNumber}: EXTRACTION DETAILS:`);
+                                        console.log(`[Extension] Story ${storyNumber}: - Raw story: "${storyText}"`);
+                                        console.log(`[Extension] Story ${storyNumber}: - Extracted role: "${role}"`);
+                                        console.log(`[Extension] Story ${storyNumber}: - Extracted action: "${action}"`);
+                                        console.log(`[Extension] Story ${storyNumber}: - Extracted object: "${object}"`);
+                                        
+                                        // Validate extraction with expected results for debugging
+                                        if (storyText.includes("view all Org Customers in a Organization")) {
+                                            console.log(`[Extension] Story ${storyNumber}: VALIDATION - Expected action="view all", object="Org Customers"`);
+                                            console.log(`[Extension] Story ${storyNumber}: VALIDATION - Actual action="${action}", object="${object}"`);
+                                            console.log(`[Extension] Story ${storyNumber}: VALIDATION - ${action === "view all" && object === "Org Customers" ? "✅ PASS" : "❌ FAIL"}`);
+                                            
+                                            // Debug the regex matching with UPDATED pattern
+                                            const debugText = storyText.trim().replace(/\s+/g, " ");
+                                            const debugRe = /I want to\s+(view all|view|add|update|delete)(?:\s+(?:a|an|all))?\s+/i;
+                                            const debugMatch = debugText.match(debugRe);
+                                            console.log(`[Extension] Story ${storyNumber}: DEBUG - Normalized text: "${debugText}"`);
+                                            console.log(`[Extension] Story ${storyNumber}: DEBUG - UPDATED Regex match result:`, debugMatch);
+                                        }
+                                        
+                                        if (storyText.includes("view all Customer Email Requests in a Customer")) {
+                                            console.log(`[Extension] Story ${storyNumber}: VALIDATION - Expected action="view all", object="Customer Email Requests"`);
+                                            console.log(`[Extension] Story ${storyNumber}: VALIDATION - Actual action="${action}", object="${object}"`);
+                                            console.log(`[Extension] Story ${storyNumber}: VALIDATION - ${action === "view all" && object === "Customer Email Requests" ? "✅ PASS" : "❌ FAIL"}`);
+                                        }
+                                        
+                                        if (storyText.includes("view all Organizations in the application")) {
+                                            console.log(`[Extension] Story ${storyNumber}: VALIDATION - Expected action="view all", object="Organizations"`);
+                                            console.log(`[Extension] Story ${storyNumber}: VALIDATION - Actual action="${action}", object="${object}"`);
+                                            console.log(`[Extension] Story ${storyNumber}: VALIDATION - ${action === "view all" && object === "Organizations" ? "✅ PASS" : "❌ FAIL"}`);
+                                        }
+                                        
+                                        if (storyText.includes("in the application")) {
+                                            console.log(`[Extension] Story ${storyNumber}: APPLICATION CONTEXT VALIDATION - Should detect application-level context`);
+                                            console.log(`[Extension] Story ${storyNumber}: APPLICATION CONTEXT VALIDATION - isApplicationLevelContext result: ${isApplicationLevelContext(storyText)}`);
+                                        }
+                                        
+                                        console.log(`[Extension] Story ${storyNumber}: role="${role}", action="${action}", object="${object}"`);
+                                        
+                                        const suggestedPages: string[] = [];
+                                        
+                                        if (role && action && object) {
+                                            // Convert object to different forms for comprehensive matching
+                                            const objectCamelCase = convertToCamelCase(object);
+                                            const objectSingular = convertToSingular(object);
+                                            const objectSingularCamelCase = convertToCamelCase(objectSingular);
+                                            console.log(`[Extension] Story ${storyNumber}: Original="${object}", CamelCase="${objectCamelCase}", Singular="${objectSingular}", SingularCamelCase="${objectSingularCamelCase}"`);
+                                            
+                                            if (action === 'view all') {
+                                                console.log(`[Extension] Story ${storyNumber}: Using hierarchical parent search for 'view all' action`);
+                                                
+                                                // Check if this is an application-level context (e.g., "in the application")
+                                                if (isApplicationLevelContext(storyText)) {
+                                                    console.log(`[Extension] Story ${storyNumber}: Detected application-level context, searching for top-level parent`);
+                                                    
+                                                    const allModelObjects = namespace.object || [];
+                                                    const topLevelParent = findTopLevelParent(allModelObjects);
+                                                    
+                                                    if (topLevelParent) {
+                                                        console.log(`[Extension] Story ${storyNumber}: Found top-level parent "${topLevelParent.name}" for application-level context`);
+                                                        
+                                                        // Look for grid reports in the top-level parent that have our target object as targetChildObject
+                                                        const topLevelReports = allPages.filter(page => 
+                                                            page.type === 'report' && 
+                                                            page.ownerObject === topLevelParent.name &&
+                                                            page.visualizationType === 'Grid' &&
+                                                            ((page.targetChildObject && 
+                                                              (page.targetChildObject.toLowerCase() === object.toLowerCase() ||
+                                                               page.targetChildObject.toLowerCase() === objectCamelCase.toLowerCase() ||
+                                                               page.targetChildObject.toLowerCase() === objectSingular.toLowerCase() ||
+                                                               page.targetChildObject.toLowerCase() === objectSingularCamelCase.toLowerCase()))) &&
+                                                            (!page.roleRequired || page.roleRequired.toLowerCase() === role.toLowerCase())
+                                                        );
+                                                        
+                                                        console.log(`[Extension] Story ${storyNumber}: Application-level search - looking for owner="${topLevelParent.name}" with targets: "${object}"/"${objectCamelCase}"/"${objectSingular}"/"${objectSingularCamelCase}"`);
+                                                        console.log(`[Extension] Story ${storyNumber}: Found ${topLevelReports.length} matching reports in "${topLevelParent.name}":`, topLevelReports.map(p => `${p.name} (target: ${p.targetChildObject})`));
+                                                        
+                                                        if (topLevelReports.length > 0) {
+                                                            console.log(`[Extension] Story ${storyNumber}: Found ${topLevelReports.length} grid reports in top-level parent "${topLevelParent.name}"`);
+                                                            topLevelReports.forEach(page => suggestedPages.push(page.name));
+                                                        } else {
+                                                            console.log(`[Extension] Story ${storyNumber}: No grid reports found in top-level parent "${topLevelParent.name}", trying other top-level objects`);
+                                                            
+                                                            // Also try other common top-level objects like Tac if Pac didn't work
+                                                            const otherTopLevelNames = ['Tac', 'Pac', 'Application', 'App'].filter(name => name !== topLevelParent.name);
+                                                            for (const altName of otherTopLevelNames) {
+                                                                const altReports = allPages.filter(page => 
+                                                                    page.type === 'report' && 
+                                                                    page.visualizationType === 'Grid' &&
+                                                                    page.ownerObject === altName &&
+                                                                    page.targetChildObject && 
+                                                                    (page.targetChildObject.toLowerCase() === object.toLowerCase() ||
+                                                                     page.targetChildObject.toLowerCase() === objectCamelCase.toLowerCase() ||
+                                                                     page.targetChildObject.toLowerCase() === objectSingular.toLowerCase() ||
+                                                                     page.targetChildObject.toLowerCase() === objectSingularCamelCase.toLowerCase()) &&
+                                                                    (!page.roleRequired || page.roleRequired.toLowerCase() === role.toLowerCase())
+                                                                );
+                                                                
+                                                                if (altReports.length > 0) {
+                                                                    console.log(`[Extension] Story ${storyNumber}: Found ${altReports.length} grid reports in alternative top-level object "${altName}":`, altReports.map(p => `${p.name} (target: ${p.targetChildObject})`));
+                                                                    altReports.forEach(page => suggestedPages.push(page.name));
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        console.log(`[Extension] Story ${storyNumber}: No top-level parent found for application-level context`);
+                                                    }
+                                                } else {
+                                                    // Normal hierarchical parent search
+                                                    console.log(`[Extension] Story ${storyNumber}: Using normal hierarchical parent search`);
+                                                
+                                                // For 'view all', traverse up the parent hierarchy to find reports
+                                                const allModelObjects = namespace.object || [];
+                                                
+                                                console.log(`[Extension] Story ${storyNumber}: Searching for object in ${allModelObjects.length} model objects`);
+                                                console.log(`[Extension] Story ${storyNumber}: Model object names:`, allModelObjects.map(obj => obj.name));
+                                                console.log(`[Extension] Story ${storyNumber}: Looking for object forms: "${object}", "${objectCamelCase}", "${objectSingular}", "${objectSingularCamelCase}"`);
+                                                
+                                                // Get parent hierarchy for all forms of the object name
+                                                const parentHierarchy = getParentHierarchy(object, allModelObjects);
+                                                const parentHierarchyCamelCase = getParentHierarchy(objectCamelCase, allModelObjects);
+                                                const parentHierarchySingular = getParentHierarchy(objectSingular, allModelObjects);
+                                                const parentHierarchySingularCamelCase = getParentHierarchy(objectSingularCamelCase, allModelObjects);
+                                                
+                                                // Combine all hierarchies and remove duplicates
+                                                const combinedParents = [...parentHierarchy];
+                                                [parentHierarchyCamelCase, parentHierarchySingular, parentHierarchySingularCamelCase].forEach(hierarchy => {
+                                                    hierarchy.forEach(parent => {
+                                                        if (!combinedParents.find(p => p.name === parent.name)) {
+                                                            combinedParents.push(parent);
+                                                        }
+                                                    });
+                                                });
+                                                
+                                                console.log(`[Extension] Story ${storyNumber}: Parent hierarchy for "${object}":`, combinedParents.map(p => p.name));
+                                                
+                                                // Search through each parent level for grid reports
+                                                let foundReports = false;
+                                                for (const parentObj of combinedParents) {
+                                                    console.log(`[Extension] Story ${storyNumber}: Checking parent "${parentObj.name}" for grid reports`);
+                                                    
+                                                    // Look for grid reports in this parent object that have our target object as targetChildObject
+                                                    // Try all forms: plural, singular, camelCase versions
+                                                    const parentReports = allPages.filter(page => 
+                                                        page.type === 'report' && 
+                                                        page.ownerObject === parentObj.name &&
+                                                        page.visualizationType === 'grid' &&
+                                                        ((page.targetChildObject && 
+                                                          (page.targetChildObject.toLowerCase() === object.toLowerCase() ||
+                                                           page.targetChildObject.toLowerCase() === objectCamelCase.toLowerCase() ||
+                                                           page.targetChildObject.toLowerCase() === objectSingular.toLowerCase() ||
+                                                           page.targetChildObject.toLowerCase() === objectSingularCamelCase.toLowerCase()))) &&
+                                                        (!page.roleRequired || page.roleRequired.toLowerCase() === role.toLowerCase())
+                                                    );
+                                                    
+                                                    if (parentReports.length > 0) {
+                                                        console.log(`[Extension] Story ${storyNumber}: Found ${parentReports.length} grid reports in parent "${parentObj.name}"`);
+                                                        parentReports.forEach(page => suggestedPages.push(page.name));
+                                                        foundReports = true;
+                                                        break; // Found reports at this level, stop searching higher
+                                                    }
+                                                    
+                                                    console.log(`[Extension] Story ${storyNumber}: No grid reports found in parent "${parentObj.name}", checking next parent level`);
+                                                }
+                                                
+                                                if (!foundReports) {
+                                                    console.log(`[Extension] Story ${storyNumber}: No grid reports found in parent hierarchy, trying fallback matching`);
+                                                    console.log(`[Extension] Story ${storyNumber}: Searching ${allPages.length} pages for direct target/owner matches`);
+                                                    console.log(`[Extension] Story ${storyNumber}: Target objects needed: "${object}" / "${objectCamelCase}" / "${objectSingular}" / "${objectSingularCamelCase}"`);
+                                                    
+                                                    // Log available target objects for debugging
+                                                    const allTargets = allPages.filter(p => p.targetChildObject).map(p => `${p.name}→${p.targetChildObject}`);
+                                                    console.log(`[Extension] Story ${storyNumber}: Available target objects:`, allTargets);
+                                                    
+                                                    // Fall back to any grid reports that match (try all forms)
+                                                    const fallbackReports = allPages.filter(page => 
+                                                        page.type === 'report' && 
+                                                        page.visualizationType === 'Grid' &&
+                                                        ((page.targetChildObject && 
+                                                          (page.targetChildObject.toLowerCase() === object.toLowerCase() ||
+                                                           page.targetChildObject.toLowerCase() === objectCamelCase.toLowerCase() ||
+                                                           page.targetChildObject.toLowerCase() === objectSingular.toLowerCase() ||
+                                                           page.targetChildObject.toLowerCase() === objectSingularCamelCase.toLowerCase())) ||
+                                                         (page.ownerObject && 
+                                                          (page.ownerObject.toLowerCase() === object.toLowerCase() ||
+                                                           page.ownerObject.toLowerCase() === objectCamelCase.toLowerCase() ||
+                                                           page.ownerObject.toLowerCase() === objectSingular.toLowerCase() ||
+                                                           page.ownerObject.toLowerCase() === objectSingularCamelCase.toLowerCase()))) &&
+                                                        (!page.roleRequired || page.roleRequired.toLowerCase() === role.toLowerCase())
+                                                    );
+                                                    
+                                                    console.log(`[Extension] Story ${storyNumber}: Found ${fallbackReports.length} fallback reports:`, fallbackReports.map(p => `${p.name} (owner: ${p.ownerObject}, target: ${p.targetChildObject})`));
+                                                    fallbackReports.forEach(page => suggestedPages.push(page.name));
+                                                }
+                                                } // End of normal hierarchical search
+                                                
+                                            } else if (action === 'view') {
+                                                // For 'view' action, use standard matching for DetailThreeColumn reports
+                                                console.log(`[Extension] Story ${storyNumber}: Using standard matching for 'view' action`);
+                                                
+                                                const viewReports = allPages.filter(page => 
+                                                    page.type === 'report' && 
+                                                    page.visualizationType === 'DetailThreeColumn' &&
+                                                    ((page.targetChildObject && 
+                                                      (page.targetChildObject.toLowerCase() === object.toLowerCase() ||
+                                                       page.targetChildObject.toLowerCase() === objectCamelCase.toLowerCase() ||
+                                                       page.targetChildObject.toLowerCase() === objectSingular.toLowerCase() ||
+                                                       page.targetChildObject.toLowerCase() === objectSingularCamelCase.toLowerCase())) ||
+                                                     (page.ownerObject && 
+                                                      (page.ownerObject.toLowerCase() === object.toLowerCase() ||
+                                                       page.ownerObject.toLowerCase() === objectCamelCase.toLowerCase() ||
+                                                       page.ownerObject.toLowerCase() === objectSingular.toLowerCase() ||
+                                                       page.ownerObject.toLowerCase() === objectSingularCamelCase.toLowerCase()))) &&
+                                                    (!page.roleRequired || page.roleRequired.toLowerCase() === role.toLowerCase())
+                                                );
+                                                viewReports.forEach(page => suggestedPages.push(page.name));
+                                                
+                                            } else if (action === 'add' || action === 'update') {
+                                                // For forms, use standard matching with all forms
+                                                console.log(`[Extension] Story ${storyNumber}: Looking for forms for ${action} action`);
+                                                
+                                                const formPages = allPages.filter(page => 
+                                                    page.type === 'form' && 
+                                                    page.ownerObject && 
+                                                    (page.ownerObject.toLowerCase() === object.toLowerCase() ||
+                                                     page.ownerObject.toLowerCase() === objectCamelCase.toLowerCase() ||
+                                                     page.ownerObject.toLowerCase() === objectSingular.toLowerCase() ||
+                                                     page.ownerObject.toLowerCase() === objectSingularCamelCase.toLowerCase()) &&
+                                                    (!page.roleRequired || page.roleRequired.toLowerCase() === role.toLowerCase())
+                                                );
+                                                formPages.forEach(page => suggestedPages.push(page.name));
+                                            }
+                                        }
+                                        
+                                        // Comprehensive logging for debugging
+                                        console.log(`[Extension] Story ${storyNumber}: FINAL RESULT - Found ${suggestedPages.length} suggested pages:`, suggestedPages);
+                                        if (suggestedPages.length === 0) {
+                                            console.log(`[Extension] Story ${storyNumber}: NO MATCHES FOUND for action="${action}", object="${object}"`);
+                                        }
+                                        
+                                        pageMappings.push({
+                                            storyNumber: storyNumber,
+                                            role: role,
+                                            action: action,
+                                            object: object,
+                                            suggestedPages: suggestedPages
+                                        });
+                                    });
+                                }
+                                
+                                panel.webview.postMessage({
+                                    command: 'bestGuessPageMappingsReady',
+                                    mappings: pageMappings,
+                                    success: true
+                                });
+                                
+                                console.log(`[Extension] Generated best guess for ${pageMappings.length} stories with hierarchical parent search`);
+                                
+                                // Log summary of all mappings for debugging
+                                console.log(`[Extension] BEST GUESS SUMMARY:`);
+                                pageMappings.forEach((mapping, index) => {
+                                    console.log(`[Extension] ${index + 1}. Story ${mapping.storyNumber}: action="${mapping.action}", object="${mapping.object}" → ${mapping.suggestedPages.length} pages: [${mapping.suggestedPages.join(', ')}]`);
+                                });
+                                
+                            } catch (error) {
+                                console.error("[Extension] Error generating best guess page mappings:", error);
+                                panel.webview.postMessage({
+                                    command: 'bestGuessPageMappingsReady',
+                                    success: false,
+                                    error: error.message
+                                });
+                            }
+                            break;
+
+                        case 'showNotification':
+                            try {
+                                const notificationType = message.data.type || 'info';
+                                const notificationMessage = message.data.message || '';
+                                
+                                if (notificationType === 'info') {
+                                    vscode.window.showInformationMessage(notificationMessage);
+                                } else if (notificationType === 'warning') {
+                                    vscode.window.showWarningMessage(notificationMessage);
+                                } else if (notificationType === 'error') {
+                                    vscode.window.showErrorMessage(notificationMessage);
+                                }
+                                
+                            } catch (error) {
+                                console.error("[Extension] Error showing notification:", error);
                             }
                             break;
 
