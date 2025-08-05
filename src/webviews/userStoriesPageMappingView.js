@@ -59,6 +59,7 @@ function clearFilters() {
     document.getElementById('filterStoryNumber').value = '';
     document.getElementById('filterStoryText').value = '';
     document.getElementById('filterPageMapping').value = '';
+    document.getElementById('filterIgnorePages').value = '';
     applyFilters();
 }
 
@@ -67,6 +68,7 @@ function applyFilters() {
     const storyNumberFilter = document.getElementById('filterStoryNumber').value.toLowerCase();
     const storyTextFilter = document.getElementById('filterStoryText').value.toLowerCase();
     const pageMappingFilter = document.getElementById('filterPageMapping').value.toLowerCase();
+    const ignorePagesFilter = document.getElementById('filterIgnorePages').value.toLowerCase();
     
     let filtered = allItems.filter(item => {
         const matchesStoryNumber = !storyNumberFilter || (item.storyNumber || '').toLowerCase().includes(storyNumberFilter);
@@ -81,7 +83,16 @@ function applyFilters() {
         }
         const matchesPageMapping = !pageMappingFilter || pageMappingText.includes(pageMappingFilter);
         
-        return matchesStoryNumber && matchesStoryText && matchesPageMapping;
+        // Handle ignorePages as either array or string for backward compatibility
+        let ignorePagesText = '';
+        if (Array.isArray(item.ignorePages)) {
+            ignorePagesText = item.ignorePages.join(' ').toLowerCase();
+        } else {
+            ignorePagesText = (item.ignorePages || '').toLowerCase();
+        }
+        const matchesIgnorePages = !ignorePagesFilter || ignorePagesText.includes(ignorePagesFilter);
+        
+        return matchesStoryNumber && matchesStoryText && matchesPageMapping && matchesIgnorePages;
     });
     
     // Update data and re-render
@@ -415,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
     showSpinner();
     
     // Setup filter event listeners for auto-apply
-    const filterInputs = ['filterStoryNumber', 'filterStoryText', 'filterPageMapping'];
+    const filterInputs = ['filterStoryNumber', 'filterStoryText', 'filterPageMapping', 'filterIgnorePages'];
     filterInputs.forEach(id => {
         const element = document.getElementById(id);
         if (element) {

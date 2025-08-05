@@ -591,6 +591,10 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                     <label>Page Mapping:</label>
                                     <input type="text" id="filterPageMapping" placeholder="Filter by page mapping...">
                                 </div>
+                                <div class="filter-group">
+                                    <label>Ignore Pages:</label>
+                                    <input type="text" id="filterIgnorePages" placeholder="Filter by ignore pages...">
+                                </div>
                             </div>
                             <div class="filter-actions">
                                 <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
