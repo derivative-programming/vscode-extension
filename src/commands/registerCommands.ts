@@ -40,6 +40,7 @@ import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, close
 import { registerPageListCommands, getPageListPanel, closePageListPanel } from './pageListCommands';
 import { registerRoleRequirementsCommands, getRoleRequirementsPanel, closeRoleRequirementsPanel } from './roleRequirementsCommands';
 import { registerUserStoriesQACommands, getUserStoriesQAPanel, closeUserStoriesQAPanel } from './userStoriesQACommands';
+import { registerUserStoriesPageMappingCommands, getUserStoriesPageMappingPanel, closeUserStoriesPageMappingPanel } from './userStoriesPageMappingCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
@@ -112,6 +113,9 @@ export function registerCommands(
             // Store reference to user stories QA panel if open
             const userStoriesQAData = typeof getUserStoriesQAPanel === "function" ? getUserStoriesQAPanel() : null;
             
+            // Store reference to user stories page mapping panel if open
+            const userStoriesPageMappingData = typeof getUserStoriesPageMappingPanel === "function" ? getUserStoriesPageMappingPanel() : null;
+            
             // Store reference to model feature catalog panel if open
             const featureCatalogData = typeof getModelFeatureCatalogPanel === "function" ? getModelFeatureCatalogPanel() : null;
             
@@ -164,6 +168,11 @@ export function registerCommands(
             // Close user stories QA panel if open
             if (typeof closeUserStoriesQAPanel === "function") {
                 closeUserStoriesQAPanel();
+            }
+            
+            // Close user stories page mapping panel if open
+            if (typeof closeUserStoriesPageMappingPanel === "function") {
+                closeUserStoriesPageMappingPanel();
             }
             
             // Close model feature catalog panel if open
@@ -267,6 +276,12 @@ export function registerCommands(
             if (userStoriesQAData && userStoriesQAData.context && userStoriesQAData.modelService) {
                 vscode.commands.executeCommand('appdna.userStoriesQA');
             }
+            
+            // Reopen user stories page mapping panel if it was open
+            if (userStoriesPageMappingData && userStoriesPageMappingData.context && userStoriesPageMappingData.modelService) {
+                vscode.commands.executeCommand('appdna.userStoriesPageMapping');
+            }
+            
               // Reopen model feature catalog panel if it was open
             if (featureCatalogData && featureCatalogData.context && featureCatalogData.modelService) {
                 vscode.commands.executeCommand('appdna.modelFeatureCatalog');
@@ -548,6 +563,9 @@ export function registerCommands(
     
     // Register user stories QA commands
     registerUserStoriesQACommands(context, modelService);
+    
+    // Register user stories page mapping commands
+    registerUserStoriesPageMappingCommands(context, modelService);
     
     // Register model AI processing commands
     registerModelAIProcessingCommands(context, appDNAFilePath, modelService);
