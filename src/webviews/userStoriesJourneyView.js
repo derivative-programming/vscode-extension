@@ -100,70 +100,6 @@ function refresh() {
     });
 }
 
-// Toggle select all checkboxes (global function for onclick)
-function toggleSelectAll() {
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    const isChecked = selectAllCheckbox.checked;
-    
-    // Update selectedItems set
-    selectedItems.clear();
-    if (isChecked) {
-        userStoriesJourneyData.items.forEach(item => {
-            selectedItems.add(item.storyId + '_' + item.page); // Use unique combination
-        });
-    }
-    
-    // Update all row checkboxes
-    const checkboxes = document.querySelectorAll('.row-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = isChecked;
-    });
-}
-
-// Handle individual row checkbox change
-function handleRowCheckboxChange(itemKey, isChecked) {
-    if (isChecked) {
-        selectedItems.add(itemKey);
-    } else {
-        selectedItems.delete(itemKey);
-    }
-    
-    // Update select all checkbox state
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    const totalItems = userStoriesJourneyData.items.length;
-    const selectedCount = selectedItems.size;
-    
-    if (selectedCount === 0) {
-        selectAllCheckbox.checked = false;
-        selectAllCheckbox.indeterminate = false;
-    } else if (selectedCount === totalItems) {
-        selectAllCheckbox.checked = true;
-        selectAllCheckbox.indeterminate = false;
-    } else {
-        selectAllCheckbox.checked = false;
-        selectAllCheckbox.indeterminate = true;
-    }
-}
-
-// Handle row click to toggle checkbox
-function handleRowClick(event, itemKey) {
-    // Don't toggle if the click was on an interactive element
-    const target = event.target;
-    if (target.type === 'checkbox' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
-        return;
-    }
-    
-    // Toggle the checkbox state
-    const isCurrentlySelected = selectedItems.has(itemKey);
-    handleRowCheckboxChange(itemKey, !isCurrentlySelected);
-    
-    // Update the actual checkbox element
-    const checkbox = event.currentTarget.querySelector('.row-checkbox');
-    if (checkbox) {
-        checkbox.checked = !isCurrentlySelected;
-    }
-}
-
 // Export to CSV (global function for onclick)
 function exportToCSV() {
     vscode.postMessage({
@@ -191,7 +127,6 @@ function renderTable() {
     
     // Define table columns
     const columns = [
-        { key: 'select', label: '', sortable: false, className: 'checkbox-column' },
         { key: 'storyNumber', label: 'Story Number', sortable: true, className: 'story-number-column' },
         { key: 'storyText', label: 'Story Text', sortable: true, className: 'story-text-column' },
         { key: 'page', label: 'Page', sortable: true, className: 'page-column' }
@@ -203,14 +138,7 @@ function renderTable() {
         const th = document.createElement("th");
         th.className = column.className || '';
         
-        if (column.key === 'select') {
-            // Select all checkbox in header
-            const selectAllCheckbox = document.createElement("input");
-            selectAllCheckbox.type = "checkbox";
-            selectAllCheckbox.id = "selectAllCheckbox";
-            selectAllCheckbox.addEventListener("change", toggleSelectAll);
-            th.appendChild(selectAllCheckbox);
-        } else if (column.sortable) {
+        if (column.sortable) {
             th.style.cursor = "pointer";
             th.classList.add("sortable");
             th.addEventListener("click", () => {
@@ -249,19 +177,6 @@ function renderTable() {
             const itemKey = item.storyId + '_' + item.page; // Use unique combination
             row.setAttribute("data-item-key", itemKey);
             
-            // Checkbox column
-            const checkboxCell = document.createElement("td");
-            checkboxCell.className = "checkbox-column";
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.className = "row-checkbox";
-            checkbox.checked = selectedItems.has(itemKey);
-            checkbox.addEventListener("change", (e) => {
-                handleRowCheckboxChange(itemKey, e.target.checked);
-            });
-            checkboxCell.appendChild(checkbox);
-            row.appendChild(checkboxCell);
-            
             // Story Number
             const storyNumberCell = document.createElement("td");
             storyNumberCell.className = "story-number-column";
@@ -280,11 +195,6 @@ function renderTable() {
             pageCell.textContent = item.page || '';
             row.appendChild(pageCell);
             
-            // Add click event listener to toggle checkbox when row is clicked
-            row.style.cursor = "pointer";
-            row.addEventListener("click", (e) => {
-                handleRowClick(e, itemKey);
-            });
             
             tbody.appendChild(row);
         });
@@ -404,6 +314,24 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshButton.addEventListener('click', refresh);
         // Setup refresh button icon (following QA view pattern exactly)
         refreshButton.innerHTML = '<span class="codicon codicon-refresh" style="font-size:16px;"></span>';
+        refreshButton.title = "Refresh";
+        refreshButton.style.background = "none";
+        refreshButton.style.border = "none";
+        refreshButton.style.color = "var(--vscode-editor-foreground)";
+        refreshButton.style.padding = "4px 8px";
+        refreshButton.style.cursor = "pointer";
+        refreshButton.style.display = "flex";
+        refreshButton.style.alignItems = "center";
+        refreshButton.style.borderRadius = "4px";
+        refreshButton.style.transition = "background 0.15s";
+        
+        // Add hover effect
+        refreshButton.addEventListener("mouseenter", function() {
+            refreshButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        refreshButton.addEventListener("mouseleave", function() {
+            refreshButton.style.background = "none";
+        });
     }
     
     // Notify extension that webview is ready

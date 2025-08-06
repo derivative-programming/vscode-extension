@@ -1,7 +1,7 @@
 August 6, 2025 - User Stories User Journey View Implementation - COMPLETED
 
-2025-08-06 - Implemented User Stories User Journey View
-- Status: ✅ COMPLETED
+2025-08-06 - Implemented User Stories User Journey View  
+- Status: ✅ COMPLETED - ALL REQUIREMENTS IMPLEMENTED + CRITICAL FIXES
 - Request: "copy user story QA view to create user story user journey view. add 'User Journey' treeview item under 'Page Mapping'. replace the status column with a Page column that shows the page that fulfils the user story. remove the notes column. remove the Date Verified column. show a row for each user story and for each page that fulfils it."
 - Implementation Details:
   * Created userStoriesJourneyCommands.ts with command handlers and data loading from existing page mapping file
@@ -12,6 +12,13 @@ August 6, 2025 - User Stories User Journey View Implementation - COMPLETED
   * Integrated commands in registerCommands.ts with proper panel management
   * Shows a row for each user story and each page that fulfils it (multiple rows per story if multiple pages)
   * Removed QA Status, Notes, and Date Verified columns and replaced with single Page column
+  * ✅ REMOVED checkbox column and all selection functionality per final requirements
+  * ✅ FIXED codicons loading path from node_modules/@vscode/codicons/dist/codicon.css
+  * ✅ CRITICAL FIXES: Fixed URI handling to match working views (QA & Role Requirements)
+    - Changed script URI from vscode.Uri.file() to vscode.Uri.joinPath() for consistency
+    - Removed custom localResourceRoots to match working views (uses default)
+    - Removed duplicate CSS definitions for .refresh-button
+  * ✅ Extension compiles successfully - ready for testing
   * Uses existing user-story-page-mapping.json file as data source with correct structure: 
     { "pageMappings": { "storyNumber": { "pageMapping": ["page1", "page2"], "ignorePages": [] } } }
   * Architecture: Journey view reads page mapping data and creates expanded view showing story-page relationships

@@ -230,10 +230,6 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                     {
                         enableScripts: true,
                         retainContextWhenHidden: true,
-                        localResourceRoots: [
-                            vscode.Uri.file(path.join(context.extensionPath, 'media')),
-                            vscode.Uri.file(path.join(context.extensionPath, 'src', 'webviews'))
-                        ]
                     }
                 );
 
@@ -251,12 +247,12 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
 
                 // Get the webview script URI
                 const scriptUri = panel.webview.asWebviewUri(
-                    vscode.Uri.file(path.join(context.extensionPath, 'src', 'webviews', 'userStoriesJourneyView.js'))
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoriesJourneyView.js')
                 );
 
                 // Get the codicons CSS URI
                 const codiconsUri = panel.webview.asWebviewUri(
-                    vscode.Uri.file(path.join(context.extensionPath, 'media', 'codicon.css'))
+                    vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
                 );
 
                 // Set the webview HTML content
@@ -304,21 +300,6 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         }
                         button:hover:not(:disabled) {
                             background-color: var(--vscode-button-hoverBackground);
-                        }
-                        .refresh-button {
-                            background-color: var(--vscode-button-secondaryBackground);
-                            color: var(--vscode-button-secondaryForeground);
-                            border: 1px solid var(--vscode-button-border);
-                            padding: 4px 8px;
-                            cursor: pointer;
-                            border-radius: 2px;
-                            font-size: 13px;
-                            display: flex;
-                            align-items: center;
-                            gap: 4px;
-                        }
-                        .refresh-button:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
                         }
                         
                         .icon-button {
