@@ -271,7 +271,6 @@ on user story list show the page that fulfils it and view\edit icon buttons.
 show number of pages from login that it needs to reach it to perform the action.
 
 user story - page mapping... 
-- add a button to make a best guess on the page name, next to the refresh button. given the starndard format of a user story, you can deteermine the role and object in the story. if you are adding, the primary object is the parent and the object in the story is the target child. if you are viewing all, the parent object is the owner of the report and the story object is the target child object.
 - add a lookup icon button next to each page name textbox to open a modal displaying all page names with a textbox to filter on text.
 
 

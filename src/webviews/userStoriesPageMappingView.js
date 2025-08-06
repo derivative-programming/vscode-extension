@@ -213,25 +213,55 @@ function renderTable() {
         // Page Mapping
         const pageMappingCell = document.createElement('td');
         pageMappingCell.className = 'page-mapping-column';
+        
+        // Create container for input and lookup button
+        const pageMappingContainer = document.createElement('div');
+        pageMappingContainer.className = 'input-with-lookup';
+        
         const pageMappingInput = document.createElement('textarea');
         pageMappingInput.className = 'page-mapping-input';
         // Convert array to string for display (one page per line)
         pageMappingInput.value = Array.isArray(item.pageMapping) ? item.pageMapping.join('\n') : (item.pageMapping || '');
         pageMappingInput.placeholder = 'Enter page names (one per line)';
         pageMappingInput.onchange = () => handlePageMappingChange(item.storyId, pageMappingInput.value);
-        pageMappingCell.appendChild(pageMappingInput);
+        
+        // Create lookup button
+        const pageMappingLookupBtn = document.createElement('button');
+        pageMappingLookupBtn.className = 'lookup-icon-btn';
+        pageMappingLookupBtn.innerHTML = '<span class="codicon codicon-search"></span>';
+        pageMappingLookupBtn.title = 'Lookup pages';
+        pageMappingLookupBtn.onclick = () => openPageLookupModal(item.storyId, 'pageMapping', item);
+        
+        pageMappingContainer.appendChild(pageMappingInput);
+        pageMappingContainer.appendChild(pageMappingLookupBtn);
+        pageMappingCell.appendChild(pageMappingContainer);
         row.appendChild(pageMappingCell);
         
         // Ignore Pages
         const ignorePagesCell = document.createElement('td');
         ignorePagesCell.className = 'ignore-pages-column';
+        
+        // Create container for input and lookup button
+        const ignorePagesContainer = document.createElement('div');
+        ignorePagesContainer.className = 'input-with-lookup';
+        
         const ignorePagesInput = document.createElement('textarea');
         ignorePagesInput.className = 'ignore-pages-input';
         // Convert array to string for display (one page per line)
         ignorePagesInput.value = Array.isArray(item.ignorePages) ? item.ignorePages.join('\n') : (item.ignorePages || '');
         ignorePagesInput.placeholder = 'Enter ignored page names (one per line)';
         ignorePagesInput.onchange = () => handleIgnorePagesChange(item.storyId, ignorePagesInput.value);
-        ignorePagesCell.appendChild(ignorePagesInput);
+        
+        // Create lookup button
+        const ignorePagesLookupBtn = document.createElement('button');
+        ignorePagesLookupBtn.className = 'lookup-icon-btn';
+        ignorePagesLookupBtn.innerHTML = '<span class="codicon codicon-search"></span>';
+        ignorePagesLookupBtn.title = 'Lookup pages';
+        ignorePagesLookupBtn.onclick = () => openPageLookupModal(item.storyId, 'ignorePages', item);
+        
+        ignorePagesContainer.appendChild(ignorePagesInput);
+        ignorePagesContainer.appendChild(ignorePagesLookupBtn);
+        ignorePagesCell.appendChild(ignorePagesContainer);
         row.appendChild(ignorePagesCell);
         
         tbody.appendChild(row);
@@ -624,6 +654,273 @@ function refresh() {
     });
 }
 
+// Page Lookup Modal Variables
+let currentLookupStoryId = null;
+let currentLookupFieldType = null; // 'pageMapping' or 'ignorePages'
+let currentLookupStoryItem = null;
+let allDetailedPages = [];
+let filteredDetailedPages = [];
+let selectedPageNames = new Set();
+
+// Open page lookup modal
+function openPageLookupModal(storyId, fieldType, storyItem) {
+    console.log("[Webview] Opening page lookup modal for story:", storyId, "field:", fieldType);
+    
+    currentLookupStoryId = storyId;
+    currentLookupFieldType = fieldType;
+    currentLookupStoryItem = storyItem;
+    
+    // Get current values for pre-selection
+    const currentValues = fieldType === 'pageMapping' ? storyItem.pageMapping : storyItem.ignorePages;
+    selectedPageNames.clear();
+    if (Array.isArray(currentValues)) {
+        currentValues.forEach(pageName => {
+            if (pageName && pageName.trim()) {
+                selectedPageNames.add(pageName.trim());
+            }
+        });
+    }
+    
+    // Request detailed page list
+    vscode.postMessage({
+        command: 'getDetailedPageList'
+    });
+    
+    // Show modal
+    const modal = document.getElementById('pageLookupModal');
+    modal.style.display = 'block';
+    
+    // Focus filter input
+    setTimeout(() => {
+        const filterInput = document.getElementById('pageFilterInput');
+        if (filterInput) {
+            filterInput.focus();
+        }
+    }, 100);
+}
+
+// Close page lookup modal
+function closePageLookupModal() {
+    console.log("[Webview] Closing page lookup modal");
+    
+    const modal = document.getElementById('pageLookupModal');
+    modal.style.display = 'none';
+    
+    // Clear filter
+    const filterInput = document.getElementById('pageFilterInput');
+    if (filterInput) {
+        filterInput.value = '';
+    }
+    
+    // Reset variables
+    currentLookupStoryId = null;
+    currentLookupFieldType = null;
+    currentLookupStoryItem = null;
+    selectedPageNames.clear();
+}
+
+// Apply selected pages to the target field
+function applySelectedPages() {
+    console.log("[Webview] Applying selected pages:", [...selectedPageNames]);
+    
+    if (!currentLookupStoryId || !currentLookupFieldType || !currentLookupStoryItem) {
+        console.error("[Webview] Missing lookup context");
+        return;
+    }
+    
+    // Convert Set to Array and sort
+    const selectedPagesArray = Array.from(selectedPageNames).sort();
+    
+    // Update the story item
+    if (currentLookupFieldType === 'pageMapping') {
+        currentLookupStoryItem.pageMapping = selectedPagesArray;
+    } else if (currentLookupFieldType === 'ignorePages') {
+        currentLookupStoryItem.ignorePages = selectedPagesArray;
+    }
+    
+    // Save the change
+    vscode.postMessage({
+        command: 'savePageMappingChange',
+        data: {
+            storyId: currentLookupStoryId,
+            storyNumber: currentLookupStoryItem.storyNumber,
+            pageMapping: currentLookupStoryItem.pageMapping || [],
+            ignorePages: currentLookupStoryItem.ignorePages || [],
+            mappingFilePath: currentLookupStoryItem.mappingFilePath
+        }
+    });
+    
+    // Update the UI
+    renderTable();
+    
+    // Close modal
+    closePageLookupModal();
+}
+
+// Filter page list
+function filterPageList() {
+    const filterValue = document.getElementById('pageFilterInput').value.toLowerCase();
+    console.log("[Webview] Filtering page list with:", filterValue);
+    
+    if (!filterValue.trim()) {
+        filteredDetailedPages = [...allDetailedPages];
+    } else {
+        filteredDetailedPages = allDetailedPages.filter(page => {
+            return page.name.toLowerCase().includes(filterValue) ||
+                   page.displayText.toLowerCase().includes(filterValue) ||
+                   page.ownerObject.toLowerCase().includes(filterValue) ||
+                   page.targetChildObject.toLowerCase().includes(filterValue) ||
+                   page.roleRequired.toLowerCase().includes(filterValue) ||
+                   page.type.toLowerCase().includes(filterValue);
+        });
+    }
+    
+    renderPageList();
+}
+
+// Render page list in modal
+function renderPageList() {
+    console.log("[Webview] Rendering page list:", filteredDetailedPages.length, "pages");
+    
+    const pageListContent = document.getElementById('pageListContent');
+    if (!pageListContent) {
+        console.error("[Webview] Page list content element not found");
+        return;
+    }
+    
+    pageListContent.innerHTML = '';
+    
+    if (filteredDetailedPages.length === 0) {
+        pageListContent.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--vscode-descriptionForeground);">No pages found</div>';
+        updatePageSelectionInfo();
+        return;
+    }
+    
+    filteredDetailedPages.forEach(page => {
+        const pageItem = document.createElement('div');
+        pageItem.className = 'page-list-item';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'page-list-item-checkbox';
+        checkbox.checked = selectedPageNames.has(page.name);
+        checkbox.onchange = () => togglePageSelection(page.name, checkbox.checked);
+        
+        const label = document.createElement('span');
+        label.textContent = page.displayText;
+        label.onclick = () => {
+            checkbox.checked = !checkbox.checked;
+            togglePageSelection(page.name, checkbox.checked);
+        };
+        
+        pageItem.appendChild(checkbox);
+        pageItem.appendChild(label);
+        pageListContent.appendChild(pageItem);
+    });
+    
+    updatePageSelectionInfo();
+}
+
+// Toggle page selection
+function togglePageSelection(pageName, isSelected) {
+    console.log("[Webview] Toggling page selection:", pageName, isSelected);
+    
+    if (isSelected) {
+        selectedPageNames.add(pageName);
+    } else {
+        selectedPageNames.delete(pageName);
+    }
+    
+    updatePageSelectionInfo();
+    
+    // Update checkbox states if needed
+    const checkboxes = document.querySelectorAll('.page-list-item-checkbox');
+    checkboxes.forEach(checkbox => {
+        const pageItem = checkbox.closest('.page-list-item');
+        const label = pageItem.querySelector('span');
+        if (label) {
+            const displayText = label.textContent;
+            const page = filteredDetailedPages.find(p => p.displayText === displayText);
+            if (page) {
+                checkbox.checked = selectedPageNames.has(page.name);
+            }
+        }
+    });
+}
+
+// Update page selection info
+function updatePageSelectionInfo() {
+    const selectionInfo = document.getElementById('pageSelectionInfo');
+    if (selectionInfo) {
+        const count = selectedPageNames.size;
+        selectionInfo.textContent = `${count} page${count === 1 ? '' : 's'} selected`;
+    }
+}
+
+// Process detailed page list response
+function processDetailedPageList(pages) {
+    console.log("[Webview] Processing detailed page list:", pages.length, "pages");
+    
+    allDetailedPages = pages || [];
+    filteredDetailedPages = [...allDetailedPages];
+    
+    // Pre-filter based on story context if available
+    if (currentLookupStoryItem && currentLookupStoryItem.storyText) {
+        const role = extractRoleFromUserStory(currentLookupStoryItem.storyText);
+        const object = extractObjectFromUserStory(currentLookupStoryItem.storyText);
+        
+        if (role || object) {
+            console.log("[Webview] Pre-filtering pages by role:", role, "object:", object);
+            
+            filteredDetailedPages = allDetailedPages.filter(page => {
+                let matches = true;
+                
+                if (role && page.roleRequired && page.roleRequired !== 'N/A') {
+                    // Check if role matches (case insensitive)
+                    matches = matches && page.roleRequired.toLowerCase().includes(role.toLowerCase());
+                }
+                
+                if (object && matches) {
+                    // Check if object matches owner or target (case insensitive)
+                    const objectLower = object.toLowerCase();
+                    const ownerMatches = page.ownerObject.toLowerCase().includes(objectLower);
+                    const targetMatches = page.targetChildObject.toLowerCase().includes(objectLower);
+                    matches = matches && (ownerMatches || targetMatches);
+                }
+                
+                return matches;
+            });
+        }
+    }
+    
+    renderPageList();
+}
+
+// Global modal click handler to close on backdrop click
+window.onclick = function(event) {
+    const modal = document.getElementById('pageLookupModal');
+    if (event.target === modal) {
+        closePageLookupModal();
+    }
+};
+
+// Export to CSV (global function for onclick)
+function exportToCSV() {
+    vscode.postMessage({
+        command: 'exportToCSV',
+        data: {
+            items: userStoriesPageMappingData.items
+        }
+    });
+}
+
+// Refresh data (global function for onclick)
+function refresh() {
+    vscode.postMessage({
+        command: 'refresh'
+    });
+}
+
 // Handle messages from the extension
 window.addEventListener('message', event => {
     const message = event.data;
@@ -680,6 +977,16 @@ window.addEventListener('message', event => {
             } else {
                 console.error('Error generating best guess:', message.error);
                 alert('Error generating best guess: ' + (message.error || 'Unknown error'));
+            }
+            break;
+            
+        case 'detailedPageListReady':
+            console.log('Detailed page list received');
+            if (message.success !== false) {
+                processDetailedPageList(message.pages || []);
+            } else {
+                console.error('Error getting detailed page list:', message.error);
+                alert('Error getting page list: ' + (message.error || 'Unknown error'));
             }
             break;
             

@@ -824,6 +824,209 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                         .error-item:last-child {
                             border-bottom: none;
                         }
+                        
+                        /* Page Lookup Modal Styles */
+                        .page-lookup-modal {
+                            display: none;
+                            position: fixed;
+                            z-index: 1000;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(0, 0, 0, 0.5);
+                            backdrop-filter: blur(2px);
+                        }
+                        
+                        .page-lookup-modal-content {
+                            background-color: var(--vscode-sideBar-background);
+                            margin: 5% auto;
+                            padding: 0;
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 6px;
+                            width: 600px;
+                            max-width: 90%;
+                            max-height: 80%;
+                            display: flex;
+                            flex-direction: column;
+                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                        }
+                        
+                        .page-lookup-header {
+                            background-color: var(--vscode-titleBar-activeBackground);
+                            color: var(--vscode-titleBar-activeForeground);
+                            padding: 12px 16px;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            border-radius: 6px 6px 0 0;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        }
+                        
+                        .page-lookup-header h3 {
+                            margin: 0;
+                            font-size: 14px;
+                            font-weight: 600;
+                        }
+                        
+                        .page-lookup-close {
+                            background: none;
+                            border: none;
+                            color: var(--vscode-titleBar-activeForeground);
+                            cursor: pointer;
+                            padding: 4px;
+                            border-radius: 3px;
+                            font-size: 16px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        
+                        .page-lookup-close:hover {
+                            background-color: var(--vscode-titleBar-inactiveBackground);
+                        }
+                        
+                        .page-lookup-body {
+                            padding: 16px;
+                            flex: 1;
+                            overflow-y: auto;
+                            min-height: 300px;
+                        }
+                        
+                        .page-filter-container {
+                            margin-bottom: 12px;
+                        }
+                        
+                        .page-filter-input {
+                            width: 100%;
+                            padding: 8px 12px;
+                            border: 1px solid var(--vscode-input-border);
+                            background-color: var(--vscode-input-background);
+                            color: var(--vscode-input-foreground);
+                            border-radius: 4px;
+                            font-size: 13px;
+                            font-family: var(--vscode-font-family);
+                        }
+                        
+                        .page-filter-input:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
+                        
+                        .page-list-container {
+                            border: 1px solid var(--vscode-input-border);
+                            border-radius: 4px;
+                            max-height: 300px;
+                            overflow-y: auto;
+                            background-color: var(--vscode-input-background);
+                        }
+                        
+                        .page-list-item {
+                            padding: 8px 12px;
+                            cursor: pointer;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            font-size: 13px;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        
+                        .page-list-item:last-child {
+                            border-bottom: none;
+                        }
+                        
+                        .page-list-item:hover {
+                            background-color: var(--vscode-list-hoverBackground);
+                        }
+                        
+                        .page-list-item.selected {
+                            background-color: var(--vscode-list-activeSelectionBackground);
+                            color: var(--vscode-list-activeSelectionForeground);
+                        }
+                        
+                        .page-list-item-checkbox {
+                            margin-right: 4px;
+                        }
+                        
+                        .page-lookup-footer {
+                            padding: 12px 16px;
+                            border-top: 1px solid var(--vscode-panel-border);
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            background-color: var(--vscode-sideBar-background);
+                            border-radius: 0 0 6px 6px;
+                        }
+                        
+                        .page-lookup-info {
+                            font-size: 12px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .page-lookup-actions {
+                            display: flex;
+                            gap: 8px;
+                        }
+                        
+                        .page-lookup-btn {
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border: none;
+                            padding: 6px 12px;
+                            cursor: pointer;
+                            border-radius: 3px;
+                            font-size: 12px;
+                        }
+                        
+                        .page-lookup-btn:hover {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
+                        
+                        .page-lookup-btn.secondary {
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                        }
+                        
+                        .page-lookup-btn.secondary:hover {
+                            background-color: var(--vscode-button-secondaryHoverBackground);
+                        }
+                        
+                        .input-with-lookup {
+                            display: flex;
+                            gap: 4px;
+                            align-items: stretch;
+                        }
+                        
+                        .input-with-lookup textarea {
+                            flex: 1;
+                        }
+                        
+                        .lookup-icon-btn {
+                            background: none;
+                            border: 1px solid var(--vscode-input-border);
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 4px 6px;
+                            border-radius: 3px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 14px;
+                            min-width: 24px;
+                            height: auto;
+                            align-self: flex-start;
+                            margin-top: 1px;
+                        }
+                        
+                        .lookup-icon-btn:hover {
+                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            border-color: var(--vscode-focusBorder);
+                        }
+                        
+                        .lookup-icon-btn:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
                     </style>
                 </head>
                 <body>
@@ -908,6 +1111,41 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
 
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
                         <div class="spinner"></div>
+                    </div>
+
+                    <!-- Page Lookup Modal -->
+                    <div id="pageLookupModal" class="page-lookup-modal">
+                        <div class="page-lookup-modal-content">
+                            <div class="page-lookup-header">
+                                <h3>Select Pages</h3>
+                                <button class="page-lookup-close" onclick="closePageLookupModal()">
+                                    <span class="codicon codicon-close"></span>
+                                </button>
+                            </div>
+                            <div class="page-lookup-body">
+                                <div class="page-filter-container">
+                                    <input type="text" 
+                                           id="pageFilterInput" 
+                                           class="page-filter-input" 
+                                           placeholder="Filter pages by name, role, or object..." 
+                                           onkeyup="filterPageList()">
+                                </div>
+                                <div class="page-list-container">
+                                    <div id="pageListContent">
+                                        <!-- Page list will be populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="page-lookup-footer">
+                                <div class="page-lookup-info">
+                                    <span id="pageSelectionInfo">0 pages selected</span>
+                                </div>
+                                <div class="page-lookup-actions">
+                                    <button class="page-lookup-btn secondary" onclick="closePageLookupModal()">Cancel</button>
+                                    <button class="page-lookup-btn" onclick="applySelectedPages()">Apply Selected</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <script src="${scriptUri}"></script>
@@ -1049,20 +1287,11 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                 if (model && model.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
                                     const namespace = model.namespace[0] as any;
                                     
-                                    // Get page names from reports where isPage = "true"
-                                    if (namespace.report && Array.isArray(namespace.report)) {
-                                        namespace.report.forEach((report: any) => {
-                                            if (report.isPage === "true" && report.name) {
-                                                pageNames.push(report.name);
-                                            }
-                                        });
-                                    }
-                                    
-                                    // Also check in dataObject reports
-                                    if (namespace.dataObject && Array.isArray(namespace.dataObject)) {
-                                        namespace.dataObject.forEach((dataObj: any) => {
-                                            if (dataObj.report && Array.isArray(dataObj.report)) {
-                                                dataObj.report.forEach((report: any) => {
+                                    // Check in object reports
+                                    if (namespace.object && Array.isArray(namespace.object)) {
+                                        namespace.object.forEach((obj: any) => {
+                                            if (obj.report && Array.isArray(obj.report)) {
+                                                obj.report.forEach((report: any) => {
                                                     if (report.isPage === "true" && report.name) {
                                                         pageNames.push(report.name);
                                                     }
@@ -1071,20 +1300,11 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                         });
                                     }
                                     
-                                    // Also check in objectWorkflow where isPage = "true"
-                                    if (namespace.objectWorkflow && Array.isArray(namespace.objectWorkflow)) {
-                                        namespace.objectWorkflow.forEach((workflow: any) => {
-                                            if (workflow.isPage === "true" && workflow.name) {
-                                                pageNames.push(workflow.name);
-                                            }
-                                        });
-                                    }
-                                    
-                                    // Also check in dataObject objectWorkflows
-                                    if (namespace.dataObject && Array.isArray(namespace.dataObject)) {
-                                        namespace.dataObject.forEach((dataObj: any) => {
-                                            if (dataObj.objectWorkflow && Array.isArray(dataObj.objectWorkflow)) {
-                                                dataObj.objectWorkflow.forEach((workflow: any) => {
+                                    // Also check in object objectWorkflows
+                                    if (namespace.object && Array.isArray(namespace.object)) {
+                                        namespace.object.forEach((obj: any) => {
+                                            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                                obj.objectWorkflow.forEach((workflow: any) => {
                                                     if (workflow.isPage === "true" && workflow.name) {
                                                         pageNames.push(workflow.name);
                                                     }
@@ -1112,6 +1332,76 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                 console.error("[Extension] Error getting model page names:", error);
                                 panel.webview.postMessage({
                                     command: 'modelPageNamesReady',
+                                    success: false,
+                                    error: error.message
+                                });
+                            }
+                            break;
+
+                        case 'getDetailedPageList':
+                            try {
+                                console.log("[Extension] Getting detailed page list for lookup modal");
+                                const model = modelService.getCurrentModel();
+                                const detailedPages: any[] = [];
+                                
+                                if (model && model.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
+                                    const namespace = model.namespace[0] as any;
+                                    
+                                    // Get pages from objects (data objects)
+                                    if (namespace.object && Array.isArray(namespace.object)) {
+                                        namespace.object.forEach((obj: any) => {
+                                            // Get pages from object reports
+                                            if (obj.report && Array.isArray(obj.report)) {
+                                                obj.report.forEach((report: any) => {
+                                                    if (report.isPage === "true" && report.name) {
+                                                        detailedPages.push({
+                                                            name: report.name,
+                                                            type: 'Report',
+                                                            visualizationType: report.visualizationType || 'N/A',
+                                                            targetChildObject: report.targetChildObject || 'none',
+                                                            roleRequired: report.roleRequired || 'N/A',
+                                                            ownerObject: obj.name || 'N/A',
+                                                            displayText: `${report.name} (${report.visualizationType || 'Report'}, owner: ${obj.name || 'N/A'}, target: ${report.targetChildObject || 'none'})`
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                            
+                                            // Get pages from object objectWorkflows (forms)
+                                            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                                                obj.objectWorkflow.forEach((workflow: any) => {
+                                                    if (workflow.isPage === "true" && workflow.name) {
+                                                        detailedPages.push({
+                                                            name: workflow.name,
+                                                            type: 'Form',
+                                                            visualizationType: 'Form',
+                                                            targetChildObject: 'none',
+                                                            roleRequired: workflow.roleRequired || 'N/A',
+                                                            ownerObject: obj.name || 'N/A',
+                                                            displayText: `${workflow.name} (Form, owner: ${obj.name || 'N/A'})`
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                                
+                                // Sort by name for better user experience
+                                detailedPages.sort((a, b) => a.name.localeCompare(b.name));
+                                
+                                console.log(`[Extension] Found ${detailedPages.length} detailed pages for lookup`);
+                                
+                                panel.webview.postMessage({
+                                    command: 'detailedPageListReady',
+                                    pages: detailedPages,
+                                    success: true
+                                });
+                                
+                            } catch (error) {
+                                console.error("[Extension] Error getting detailed page list:", error);
+                                panel.webview.postMessage({
+                                    command: 'detailedPageListReady',
                                     success: false,
                                     error: error.message
                                 });
