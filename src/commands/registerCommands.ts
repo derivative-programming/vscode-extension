@@ -41,6 +41,7 @@ import { registerPageListCommands, getPageListPanel, closePageListPanel } from '
 import { registerRoleRequirementsCommands, getRoleRequirementsPanel, closeRoleRequirementsPanel } from './roleRequirementsCommands';
 import { registerUserStoriesQACommands, getUserStoriesQAPanel, closeUserStoriesQAPanel } from './userStoriesQACommands';
 import { registerUserStoriesPageMappingCommands, getUserStoriesPageMappingPanel, closeUserStoriesPageMappingPanel } from './userStoriesPageMappingCommands';
+import { registerUserStoriesJourneyCommands, getUserStoriesJourneyPanel, closeUserStoriesJourneyPanel } from './userStoriesJourneyCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
@@ -116,6 +117,9 @@ export function registerCommands(
             // Store reference to user stories page mapping panel if open
             const userStoriesPageMappingData = typeof getUserStoriesPageMappingPanel === "function" ? getUserStoriesPageMappingPanel() : null;
             
+            // Store reference to user stories journey panel if open
+            const userStoriesJourneyData = typeof getUserStoriesJourneyPanel === "function" ? getUserStoriesJourneyPanel() : null;
+            
             // Store reference to model feature catalog panel if open
             const featureCatalogData = typeof getModelFeatureCatalogPanel === "function" ? getModelFeatureCatalogPanel() : null;
             
@@ -173,6 +177,11 @@ export function registerCommands(
             // Close user stories page mapping panel if open
             if (typeof closeUserStoriesPageMappingPanel === "function") {
                 closeUserStoriesPageMappingPanel();
+            }
+            
+            // Close user stories journey panel if open
+            if (typeof closeUserStoriesJourneyPanel === "function") {
+                closeUserStoriesJourneyPanel();
             }
             
             // Close model feature catalog panel if open
@@ -280,6 +289,11 @@ export function registerCommands(
             // Reopen user stories page mapping panel if it was open
             if (userStoriesPageMappingData && userStoriesPageMappingData.context && userStoriesPageMappingData.modelService) {
                 vscode.commands.executeCommand('appdna.userStoriesPageMapping');
+            }
+            
+            // Reopen user stories journey panel if it was open
+            if (userStoriesJourneyData && userStoriesJourneyData.context && userStoriesJourneyData.modelService) {
+                vscode.commands.executeCommand('appdna.userStoriesJourney');
             }
             
               // Reopen model feature catalog panel if it was open
@@ -566,6 +580,9 @@ export function registerCommands(
     
     // Register user stories page mapping commands
     registerUserStoriesPageMappingCommands(context, modelService);
+    
+    // Register user stories journey commands
+    registerUserStoriesJourneyCommands(context, modelService);
     
     // Register model AI processing commands
     registerModelAIProcessingCommands(context, appDNAFilePath, modelService);

@@ -1,3 +1,32 @@
+August 6, 2025 - User Stories User Journey View Implementation - COMPLETED
+
+2025-08-06 - Implemented User Stories User Journey View
+- Status: ✅ COMPLETED
+- Request: "copy user story QA view to create user story user journey view. add 'User Journey' treeview item under 'Page Mapping'. replace the status column with a Page column that shows the page that fulfils the user story. remove the notes column. remove the Date Verified column. show a row for each user story and for each page that fulfils it."
+- Implementation Details:
+  * Created userStoriesJourneyCommands.ts with command handlers and data loading from existing page mapping file
+  * Created userStoriesJourneyView.js JavaScript webview with filtering, sorting, and CSV export
+  * Created userStoriesJourneyView.ts TypeScript wrapper
+  * Added "User Journey" tree item between Page Mapping and QA in jsonTreeDataProvider.ts
+  * Added commands to package.json: appdna.userStoriesPageMapping and appdna.userStoriesJourney  
+  * Integrated commands in registerCommands.ts with proper panel management
+  * Shows a row for each user story and each page that fulfils it (multiple rows per story if multiple pages)
+  * Removed QA Status, Notes, and Date Verified columns and replaced with single Page column
+  * Uses existing user-story-page-mapping.json file as data source with correct structure: 
+    { "pageMappings": { "storyNumber": { "pageMapping": ["page1", "page2"], "ignorePages": [] } } }
+  * Architecture: Journey view reads page mapping data and creates expanded view showing story-page relationships
+  * Added CSV export functionality matching QA view pattern
+  * Shows "Only stories that have completed 'Model AI Processing' are listed." text under title
+- FIXED: Corrected data structure reading to use pageMappings.pageMapping array format (not direct pages array)
+- Files Created:
+  * src/commands/userStoriesJourneyCommands.ts (command registration and data management)
+  * src/webviews/userStoriesJourneyView.js (JavaScript webview with table rendering and filtering)
+  * src/webviews/userStoriesJourneyView.ts (TypeScript wrapper)
+- Files Modified:
+  * src/providers/jsonTreeDataProvider.ts (added User Journey tree item)
+  * src/commands/registerCommands.ts (integrated journey commands and panel management)
+  * package.json (added appdna.userStoriesPageMapping and appdna.userStoriesJourney commands)
+
 August 5, 2025 - User Stories Page Mapping View Implementation - COMPLETED
 
 2025-08-05 - Enhanced page mapping best guess algorithm with camelCase object matching

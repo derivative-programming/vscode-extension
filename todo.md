@@ -270,18 +270,22 @@ user story - story list
 on user story list show the page that fulfils it and view\edit icon buttons.
 show number of pages from login that it needs to reach it to perform the action.
 
-user story - page mapping... 
-- add a lookup icon button next to each page name textbox to open a modal displaying all page names with a textbox to filter on text.
 
 
-button to run process to make best guess
-lookup icon next to each page name textbox. filter on role and object in story
-allow multiple pages per story
 
 user story - fulfillment report...
 give requirements and stories and story-page mapping, show which requirements are not fulfilled. 
 mapped page must have a path from the login page
 role must be allowed to view all pages in path
+
+user story - journey...
+- copy user story QA view to create user story user journey view.
+- add 'User Journey' treeview item under 'Page Mapping'. On click, open user story journey view.
+- replace the status column with a Page column that shows the page that fulfils the user story.
+- remove the notes column
+- remove the Date Verified column
+- show a row for each user story and for each page that fulfils it.
+- remvoe the far left checkbox column
 
 user story journey - user page flowchart...
 show a flowchart that shows what the user must do to get there
