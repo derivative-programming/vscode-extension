@@ -163,11 +163,17 @@ async function getWebviewContent(context, allObjects, modelService) {
         appName = rootModel?.appName || '';
     }
     
+    // Get the codicons URI for the webview
+    const codiconsUri = currentPanel.webview.asWebviewUri(
+        vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
+    );
+    
     console.log('[DEBUG] Final flow map:', flowMap);
     console.log('[DEBUG] App name for filename:', appName);
+    console.log('[DEBUG] Codicons URI:', codiconsUri.toString());
     
-    // Generate HTML using the modular generator, passing the app name
-    return generateHTMLContent(flowMap, appName);
+    // Generate HTML using the modular generator, passing the app name and codicons URI
+    return generateHTMLContent(flowMap, appName, codiconsUri.toString());
 }
 
 /**

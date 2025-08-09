@@ -127,7 +127,37 @@ August 5, 2025 - User Stories Page Mapping View Implementation - COMPLETED
 
 August 5, 2025 - User Stories Page Mapping View Implementation - COMPLETED
 
-## 2025-01-XX: Enhanced Hierarchical Search with Singular/Plural Object Name Matching
+# Command: Add search icon buttons with modal page selection to User Journey dropdowns
+Status: COMPLETED
+Date: 2025-01-01
+Architecture notes: Implemented modal page selection similar to existing user story page mapping functionality, added search icon buttons to the left of both Current Page and Target Page dropdowns in User Journey tab, modal includes search/filter functionality with alphabetical sorting and single-selection capability.
+
+Details:
+- Added search icon buttons to left of User Journey dropdowns
+- Created modal dialog similar to user stories page mapping view
+- Modal includes filter input and paginated page list
+- Single-page selection model vs multi-page selection in user stories
+- Pages displayed in alphabetical order with name-title format
+- Modal properly styled using VS Code design system
+- Fixed template literal issues by using string concatenation
+- Comprehensive JavaScript functions for modal interaction
+- Modal closes on backdrop click and ESC key handling
+- Proper state management for current vs target page selection
+
+# Command: Fix codicons not displaying in search icon buttons
+Status: COMPLETED
+Date: 2025-08-09
+Architecture notes: Fixed missing codicons CSS import in page flow diagram view. The page flow view was not importing codicons CSS like the user stories page mapping view, causing search icons to not display properly.
+
+Details:
+- Updated pageFlowDiagramView.js to generate codicons URI using webview.asWebviewUri()
+- Modified generateHTMLContent() function to accept and include codicons URI parameter
+- Added conditional codicons CSS link in HTML head section
+- Followed same pattern as user stories page mapping view
+- Icons should now display properly in search buttons
+- Maintained backward compatibility with optional codiconsUri parameter
+
+# Command: Fix codicons not displaying in search icon buttons
 
 **Status**: ✅ COMPLETED - Added comprehensive object name matching for hierarchical parent search
 

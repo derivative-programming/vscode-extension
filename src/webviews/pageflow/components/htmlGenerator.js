@@ -8,15 +8,17 @@
  * Generates the HTML content for the page flow diagram webview
  * @param {Object} flowMap Flow map data
  * @param {string} appName App name from the model
+ * @param {string} codiconsUri URI for codicons CSS
  * @returns {string} HTML content
  */
-function generateHTMLContent(flowMap, appName = '') {
+function generateHTMLContent(flowMap, appName = '', codiconsUri = '') {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Flow Diagram</title>
+    ${codiconsUri ? `<link href="${codiconsUri}" rel="stylesheet">` : ''}
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     <style>
@@ -585,6 +587,205 @@ function getEmbeddedCSS() {
             color: var(--vscode-descriptionForeground);
             font-style: italic;
             padding: 40px 20px;
+        }
+        
+        /* Journey Page Lookup Modal Styles */
+        .input-with-lookup {
+            display: flex;
+            gap: 4px;
+            align-items: stretch;
+        }
+        
+        .input-with-lookup select {
+            flex: 1;
+        }
+        
+        .lookup-icon-btn {
+            background: none;
+            border: 1px solid var(--vscode-input-border);
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            min-width: 24px;
+            height: auto;
+            align-self: flex-start;
+            margin-top: 1px;
+        }
+        
+        .lookup-icon-btn:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+            border-color: var(--vscode-focusBorder);
+        }
+        
+        .lookup-icon-btn:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+        
+        .page-lookup-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+        }
+        
+        .page-lookup-modal-content {
+            background-color: var(--vscode-sideBar-background);
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 6px;
+            width: 600px;
+            max-width: 90%;
+            max-height: 80%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .page-lookup-header {
+            background-color: var(--vscode-titleBar-activeBackground);
+            color: var(--vscode-titleBar-activeForeground);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-lookup-header h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .page-lookup-close {
+            background: none;
+            border: none;
+            color: var(--vscode-titleBar-activeForeground);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 3px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .page-lookup-close:hover {
+            background-color: var(--vscode-titleBar-inactiveBackground);
+        }
+        
+        .page-lookup-body {
+            padding: 16px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 300px;
+        }
+        
+        .page-filter-container {
+            margin-bottom: 12px;
+        }
+        
+        .page-filter-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: var(--vscode-font-family);
+        }
+        
+        .page-filter-input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+        
+        .page-list-container {
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: var(--vscode-input-background);
+        }
+        
+        .page-list-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .page-list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .page-list-item:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        
+        .page-list-item.selected {
+            background-color: var(--vscode-list-activeSelectionBackground);
+            color: var(--vscode-list-activeSelectionForeground);
+        }
+        
+        .page-lookup-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--vscode-panel-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--vscode-sideBar-background);
+            border-radius: 0 0 6px 6px;
+        }
+        
+        .page-lookup-info {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+        }
+        
+        .page-lookup-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .page-lookup-btn {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .page-lookup-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .page-lookup-btn.secondary {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+        
+        .page-lookup-btn.secondary:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
         }
         
         .diagram-controls {
@@ -2772,6 +2973,192 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             updateCalculateButtonState();
             showJourneyMessage('Select a current page and target page to calculate the user journey path.');
         }
+        
+        // Journey Page Lookup Modal Variables
+        let currentJourneyFieldType = null; // 'currentPage' or 'targetPage'
+        let allJourneyPages = [];
+        let filteredJourneyPages = [];
+        let selectedJourneyPageName = null;
+        
+        // Open journey page lookup modal
+        function openJourneyPageLookupModal(fieldType) {
+            console.log('[DEBUG] Opening journey page lookup modal for field:', fieldType);
+            
+            currentJourneyFieldType = fieldType;
+            selectedJourneyPageName = null;
+            
+            // Get all pages from flowData
+            allJourneyPages = [];
+            if (flowData.pages && Array.isArray(flowData.pages)) {
+                allJourneyPages = [...flowData.pages];
+            }
+            
+            // Show modal
+            const modal = document.getElementById('journeyPageLookupModal');
+            if (modal) {
+                modal.style.display = 'block';
+                
+                // Clear and focus filter input
+                const filterInput = document.getElementById('journeyPageFilterInput');
+                if (filterInput) {
+                    filterInput.value = '';
+                    setTimeout(() => filterInput.focus(), 100);
+                }
+                
+                // Update modal title
+                const modalTitle = modal.querySelector('.page-lookup-header h3');
+                if (modalTitle) {
+                    modalTitle.textContent = fieldType === 'currentPage' ? 'Select Current Page' : 'Select Target Page';
+                }
+                
+                // Render initial page list
+                renderJourneyPageList();
+            }
+        }
+        
+        // Close journey page lookup modal
+        function closeJourneyPageLookupModal() {
+            console.log('[DEBUG] Closing journey page lookup modal');
+            
+            const modal = document.getElementById('journeyPageLookupModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            
+            // Reset variables
+            currentJourneyFieldType = null;
+            selectedJourneyPageName = null;
+            filteredJourneyPages = [];
+        }
+        
+        // Apply selected page to the target dropdown
+        function applyJourneySelectedPage() {
+            console.log('[DEBUG] Applying selected journey page:', selectedJourneyPageName);
+            
+            if (!selectedJourneyPageName || !currentJourneyFieldType) {
+                console.error('[DEBUG] Missing selection context');
+                return;
+            }
+            
+            // Update the appropriate dropdown
+            if (currentJourneyFieldType === 'currentPage') {
+                const currentPageSelect = document.getElementById('currentPageSelect');
+                if (currentPageSelect) {
+                    currentPageSelect.value = selectedJourneyPageName;
+                    handleCurrentPageChange(currentPageSelect);
+                }
+            } else if (currentJourneyFieldType === 'targetPage') {
+                const targetPageSelect = document.getElementById('targetPageSelect');
+                if (targetPageSelect) {
+                    targetPageSelect.value = selectedJourneyPageName;
+                    handleTargetPageChange(targetPageSelect);
+                }
+            }
+            
+            // Close modal
+            closeJourneyPageLookupModal();
+        }
+        
+        // Filter journey page list
+        function filterJourneyPageList() {
+            const filterInput = document.getElementById('journeyPageFilterInput');
+            if (!filterInput) return;
+            
+            const filterText = filterInput.value.toLowerCase();
+            
+            if (!filterText) {
+                filteredJourneyPages = [...allJourneyPages];
+            } else {
+                filteredJourneyPages = allJourneyPages.filter(page => {
+                    const nameMatch = page.name && page.name.toLowerCase().includes(filterText);
+                    const titleMatch = page.titleText && page.titleText.toLowerCase().includes(filterText);
+                    return nameMatch || titleMatch;
+                });
+            }
+            
+            renderJourneyPageList();
+        }
+        
+        // Render journey page list in modal
+        function renderJourneyPageList() {
+            const pageListContent = document.getElementById('journeyPageListContent');
+            if (!pageListContent) return;
+            
+            // Clear existing content
+            pageListContent.innerHTML = '';
+            
+            // Use filtered pages or all pages if no filter
+            const pagesToShow = filteredJourneyPages.length > 0 || document.getElementById('journeyPageFilterInput')?.value 
+                ? filteredJourneyPages 
+                : allJourneyPages;
+            
+            if (pagesToShow.length === 0) {
+                pageListContent.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--vscode-descriptionForeground);">No pages found</div>';
+                return;
+            }
+            
+            // Sort pages alphabetically by name
+            const sortedPages = [...pagesToShow].sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Create page list items
+            sortedPages.forEach(page => {
+                const pageItem = document.createElement('div');
+                pageItem.className = 'page-list-item';
+                pageItem.onclick = () => selectJourneyPage(page.name, pageItem);
+                
+                // Create display text (same format as dropdown)
+                const displayText = page.titleText ? page.name + " - " + page.titleText : page.name;
+                pageItem.textContent = displayText;
+                
+                // Add data attribute for easy reference
+                pageItem.setAttribute('data-page-name', page.name);
+                
+                pageListContent.appendChild(pageItem);
+            });
+            
+            // Update selection info
+            updateJourneyPageSelectionInfo();
+        }
+        
+        // Select a journey page
+        function selectJourneyPage(pageName, itemElement) {
+            console.log('[DEBUG] Selecting journey page:', pageName);
+            
+            // Update selected page
+            selectedJourneyPageName = pageName;
+            
+            // Update UI - remove selection from all items
+            const allItems = document.querySelectorAll('#journeyPageListContent .page-list-item');
+            allItems.forEach(item => item.classList.remove('selected'));
+            
+            // Add selection to clicked item
+            if (itemElement) {
+                itemElement.classList.add('selected');
+            }
+            
+            // Update selection info
+            updateJourneyPageSelectionInfo();
+        }
+        
+        // Update journey page selection info
+        function updateJourneyPageSelectionInfo() {
+            const selectionInfo = document.getElementById('journeyPageSelectionInfo');
+            if (selectionInfo) {
+                if (selectedJourneyPageName) {
+                    selectionInfo.textContent = "Selected: " + selectedJourneyPageName;
+                } else {
+                    selectionInfo.textContent = 'Select a page';
+                }
+            }
+        }
+        
+        // Global modal click handler to close on backdrop click
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('journeyPageLookupModal');
+            if (modal && event.target === modal) {
+                closeJourneyPageLookupModal();
+            }
+        });
     `;
 }
 
@@ -3082,30 +3469,40 @@ function generateUserJourneyContent(flowMap) {
             <div class="journey-selectors">
                 <div class="journey-selector">
                     <label for="currentPageSelect">Current Page:</label>
-                    <select id="currentPageSelect" class="journey-select" onchange="handleCurrentPageChange(this)">
-                        <option value="">Select a starting page...</option>
-                        ${allPages
-                            .sort((a, b) => a.name.localeCompare(b.name))
-                            .map(page => {
-                                const displayText = page.titleText ? `${page.name} - ${page.titleText}` : page.name;
-                                return `<option value="${page.name}">${displayText}</option>`;
-                            })
-                            .join('')}
-                    </select>
+                    <div class="input-with-lookup">
+                        <select id="currentPageSelect" class="journey-select" onchange="handleCurrentPageChange(this)">
+                            <option value="">Select a starting page...</option>
+                            ${allPages
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                                .map(page => {
+                                    const displayText = page.titleText ? page.name + " - " + page.titleText : page.name;
+                                    return '<option value="' + page.name + '">' + displayText + '</option>';
+                                })
+                                .join('')}
+                        </select>
+                        <button class="lookup-icon-btn" onclick="openJourneyPageLookupModal('currentPage')" title="Search and select current page">
+                            <span class="codicon codicon-search"></span>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="journey-selector">
                     <label for="targetPageSelect">Target Page:</label>
-                    <select id="targetPageSelect" class="journey-select" onchange="handleTargetPageChange(this)">
-                        <option value="">Select a target page...</option>
-                        ${allPages
-                            .sort((a, b) => a.name.localeCompare(b.name))
-                            .map(page => {
-                                const displayText = page.titleText ? `${page.name} - ${page.titleText}` : page.name;
-                                return `<option value="${page.name}">${displayText}</option>`;
-                            })
-                            .join('')}
-                    </select>
+                    <div class="input-with-lookup">
+                        <select id="targetPageSelect" class="journey-select" onchange="handleTargetPageChange(this)">
+                            <option value="">Select a target page...</option>
+                            ${allPages
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                                .map(page => {
+                                    const displayText = page.titleText ? page.name + " - " + page.titleText : page.name;
+                                    return '<option value="' + page.name + '">' + displayText + '</option>';
+                                })
+                                .join('')}
+                        </select>
+                        <button class="lookup-icon-btn" onclick="openJourneyPageLookupModal('targetPage')" title="Search and select target page">
+                            <span class="codicon codicon-search"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -3134,6 +3531,41 @@ function generateUserJourneyContent(flowMap) {
             
             <div id="journeyMessage" class="journey-message">
                 Select a current page and target page to calculate the user journey path.
+            </div>
+        </div>
+        
+        <!-- Journey Page Lookup Modal -->
+        <div id="journeyPageLookupModal" class="page-lookup-modal">
+            <div class="page-lookup-modal-content">
+                <div class="page-lookup-header">
+                    <h3>Select Page</h3>
+                    <button class="page-lookup-close" onclick="closeJourneyPageLookupModal()">
+                        <span class="codicon codicon-close"></span>
+                    </button>
+                </div>
+                <div class="page-lookup-body">
+                    <div class="page-filter-container">
+                        <input type="text" 
+                               id="journeyPageFilterInput" 
+                               class="page-filter-input" 
+                               placeholder="Filter pages by name or title..." 
+                               onkeyup="filterJourneyPageList()">
+                    </div>
+                    <div class="page-list-container">
+                        <div id="journeyPageListContent">
+                            <!-- Page list will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <div class="page-lookup-footer">
+                    <div class="page-lookup-info">
+                        <span id="journeyPageSelectionInfo">Select a page</span>
+                    </div>
+                    <div class="page-lookup-actions">
+                        <button class="page-lookup-btn secondary" onclick="closeJourneyPageLookupModal()">Cancel</button>
+                        <button class="page-lookup-btn" onclick="applyJourneySelectedPage()">Select Page</button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
