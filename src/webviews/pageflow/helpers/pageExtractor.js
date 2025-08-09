@@ -32,7 +32,9 @@ function extractPagesFromModel(allObjects) {
                         objectName: obj.name,
                         parameters: workflow.objectWorkflowParam || [],
                         buttons: extractButtonsFromWorkflow(workflow),
-                        roleRequired: workflow.roleRequired
+                        roleRequired: workflow.roleRequired,
+                        isLoginPage: workflow.isLoginPage,
+                        isPage: workflow.isPage
                     };
                     console.log('[DEBUG] Adding form page:', page);
                     pages.push(page);
@@ -56,7 +58,8 @@ function extractPagesFromModel(allObjects) {
                         visualizationType: report.visualizationType || 'grid', // Default to grid if not specified
                         objectName: obj.name,
                         buttons: extractButtonsFromReport(report),
-                        roleRequired: report.roleRequired
+                        roleRequired: report.roleRequired,
+                        isPage: report.isPage
                     };
                     console.log('[DEBUG] Adding report page:', page);
                     pages.push(page);

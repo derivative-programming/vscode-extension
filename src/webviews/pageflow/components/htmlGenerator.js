@@ -416,6 +416,177 @@ function getEmbeddedCSS() {
             color: var(--vscode-textPreformat-foreground);
         }
         
+        /* User Journey Styles */
+        .user-journey-header {
+            margin-bottom: 20px;
+        }
+        
+        .user-journey-header .title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--vscode-foreground);
+            margin-bottom: 10px;
+        }
+        
+        .user-journey-controls {
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .journey-selectors {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .journey-selector {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .journey-selector label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--vscode-foreground);
+        }
+        
+        .journey-select {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: var(--vscode-input-background);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 4px;
+            color: var(--vscode-input-foreground);
+            font-size: 13px;
+        }
+        
+        .journey-select:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder);
+            box-shadow: 0 0 0 1px var(--vscode-focusBorder);
+        }
+        
+        .journey-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .journey-result-container {
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 20px;
+        }
+        
+        .journey-result {
+            margin-top: 10px;
+        }
+        
+        .journey-path-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--vscode-foreground);
+            margin-bottom: 15px;
+        }
+        
+        .journey-path {
+            background-color: var(--vscode-textCodeBlock-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: var(--vscode-editor-font-family);
+            font-size: 12px;
+        }
+        
+        .journey-flowchart-section {
+            margin: 20px 0;
+        }
+        
+        .journey-flowchart-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--vscode-foreground);
+            margin-bottom: 15px;
+        }
+        
+        .journey-flowchart {
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: auto;
+        }
+        
+        .journey-flowchart .mermaid {
+            width: 100%;
+            text-align: center;
+        }
+        
+        .journey-flowchart-error {
+            color: var(--vscode-errorForeground);
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .journey-steps-section {
+            margin: 20px 0;
+        }
+        
+        .journey-steps-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--vscode-foreground);
+            margin-bottom: 15px;
+        }
+        
+        .journey-steps {
+            margin-top: 0;
+        }
+        
+        .journey-step {
+            background-color: var(--vscode-list-hoverBackground);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .journey-step-number {
+            font-weight: bold;
+            color: var(--vscode-charts-blue);
+            margin-bottom: 5px;
+        }
+        
+        .journey-step-page {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .journey-step-action {
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+        }
+        
+        .journey-message {
+            text-align: center;
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+            padding: 40px 20px;
+        }
+        
         .diagram-controls {
             margin-bottom: 15px;
         }
@@ -1388,6 +1559,12 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 console.log('[DEBUG] Statistics tab activated, initializing role filter...');
                 initializeStatisticsRoleFilter();
             }
+            
+            // Initialize user journey when switching to user journey tab
+            if (tabName === 'userjourney') {
+                console.log('[DEBUG] User journey tab activated, initializing...');
+                initializeUserJourney();
+            }
         }
         
         function initializeMermaid() {
@@ -2244,6 +2421,357 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 statisticsDetails.innerHTML = detailsHtml;
             }
         }
+        
+        // User Journey Functions
+        let selectedCurrentPage = null;
+        let selectedTargetPage = null;
+        
+        function initializeUserJourney() {
+            console.log('[DEBUG] Initializing User Journey...');
+            updateCalculateButtonState();
+        }
+        
+        function handleCurrentPageChange(select) {
+            selectedCurrentPage = select.value;
+            console.log('[DEBUG] Current page selected:', selectedCurrentPage);
+            updateCalculateButtonState();
+        }
+        
+        function handleTargetPageChange(select) {
+            selectedTargetPage = select.value;
+            console.log('[DEBUG] Target page selected:', selectedTargetPage);
+            updateCalculateButtonState();
+        }
+        
+        function updateCalculateButtonState() {
+            const calculateBtn = document.getElementById('calculateJourneyBtn');
+            if (calculateBtn) {
+                calculateBtn.disabled = !selectedCurrentPage || !selectedTargetPage || selectedCurrentPage === selectedTargetPage;
+            }
+        }
+        
+        function calculateUserJourney() {
+            if (!selectedCurrentPage || !selectedTargetPage || selectedCurrentPage === selectedTargetPage) {
+                showJourneyMessage('Please select different current and target pages.');
+                return;
+            }
+            
+            console.log('[DEBUG] Calculating journey from', selectedCurrentPage, 'to', selectedTargetPage);
+            
+            // Find the shortest path using BFS algorithm
+            const path = findShortestPath(selectedCurrentPage, selectedTargetPage);
+            
+            if (path && path.length > 0) {
+                displayJourneyResult(path);
+            } else {
+                showJourneyMessage('No path found between the selected pages. The target page may not be reachable from the current page.');
+            }
+        }
+        
+        function findShortestPath(startPageName, targetPageName) {
+            console.log('[DEBUG] Finding path from', startPageName, 'to', targetPageName);
+            console.log('[DEBUG] Available pages:', flowData.pages ? flowData.pages.length : 0);
+            console.log('[DEBUG] Available connections:', flowData.connections ? flowData.connections.length : 0);
+            
+            // Build adjacency list from connections
+            const graph = {};
+            const pages = {};
+            
+            // Initialize graph with all pages
+            if (flowData.pages) {
+                flowData.pages.forEach(page => {
+                    graph[page.name] = [];
+                    pages[page.name] = page;
+                });
+            }
+            
+            // Add explicit connections to graph (using from/to properties)
+            if (flowData.connections) {
+                flowData.connections.forEach(connection => {
+                    if (connection.from && connection.to && graph[connection.from] && graph[connection.to]) {
+                        graph[connection.from].push(connection.to);
+                    }
+                });
+            }
+            
+            // Also add button destinations from each page (important for login pages)
+            if (flowData.pages) {
+                flowData.pages.forEach(page => {
+                    if (page.buttons && Array.isArray(page.buttons)) {
+                        page.buttons.forEach(button => {
+                            if (button.destinationPageName && graph[page.name] && graph[button.destinationPageName]) {
+                                // Avoid duplicate connections
+                                if (!graph[page.name].includes(button.destinationPageName)) {
+                                    graph[page.name].push(button.destinationPageName);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+            
+            console.log('[DEBUG] Graph built. TacLogin connections:', graph['TacLogin'] || 'none');
+            console.log('[DEBUG] Sample page structure:', flowData.pages ? flowData.pages[0] : 'no pages');
+            
+            // BFS to find shortest path
+            const queue = [{page: startPageName, path: [startPageName]}];
+            const visited = new Set();
+            visited.add(startPageName);
+            
+            while (queue.length > 0) {
+                const {page, path} = queue.shift();
+                
+                if (page === targetPageName) {
+                    return path.map(pageName => pages[pageName]).filter(page => page);
+                }
+                
+                if (graph[page]) {
+                    graph[page].forEach(neighborPage => {
+                        if (!visited.has(neighborPage)) {
+                            visited.add(neighborPage);
+                            queue.push({
+                                page: neighborPage,
+                                path: [...path, neighborPage]
+                            });
+                        }
+                    });
+                }
+            }
+            
+            return null; // No path found
+        }
+        
+        function displayJourneyResult(pathPages) {
+            const journeyResult = document.getElementById('journeyResult');
+            const journeyPath = document.getElementById('journeyPath');
+            const journeySteps = document.getElementById('journeySteps');
+            const journeyFlowchart = document.getElementById('journeyFlowchart');
+            const journeyMessage = document.getElementById('journeyMessage');
+            const downloadBtn = document.getElementById('downloadJourneyBtn');
+            
+            if (!journeyResult || !journeyPath || !journeySteps || !journeyFlowchart || !journeyMessage) {
+                console.error('[DEBUG] Journey result elements not found');
+                return;
+            }
+            
+            // Hide message and show result
+            journeyMessage.style.display = 'none';
+            journeyResult.style.display = 'block';
+            
+            // Show download button
+            if (downloadBtn) {
+                downloadBtn.style.display = 'inline-block';
+                downloadBtn.disabled = false;
+            }
+            
+            // Display path summary
+            const pathNames = pathPages.map(page => page.titleText || page.name);
+            journeyPath.innerHTML = pathNames.join(' → ');
+            
+            // Generate and display flowchart
+            generateJourneyFlowchart(pathPages);
+            
+            // Display detailed steps
+            let stepsHtml = '';
+            pathPages.forEach((page, index) => {
+                const stepNumber = index + 1;
+                const isLastStep = index === pathPages.length - 1;
+                
+                let actionText = '';
+                if (index === 0) {
+                    actionText = 'Login to the system';
+                } else if (isLastStep) {
+                    actionText = 'Reach target page';
+                } else {
+                    actionText = 'Navigate to this page';
+                }
+                
+                stepsHtml += 
+                    '<div class="journey-step">' +
+                        '<div class="journey-step-number">Step ' + stepNumber + '</div>' +
+                        '<div class="journey-step-page">' + (page.titleText || page.name) + '</div>' +
+                        '<div class="journey-step-action">' + actionText + '</div>' +
+                    '</div>';
+            });
+            
+            journeySteps.innerHTML = stepsHtml;
+        }
+        
+        function generateJourneyFlowchart(pathPages) {
+            const journeyFlowchart = document.getElementById('journeyFlowchart');
+            if (!journeyFlowchart) {
+                console.error('[DEBUG] Journey flowchart element not found');
+                return;
+            }
+            
+            // Generate Mermaid syntax for the journey path
+            let mermaidCode = 'flowchart LR\\n';
+            
+            // Add nodes for each page in the path
+            pathPages.forEach((page, index) => {
+                const nodeId = sanitizeNodeIdForMermaid(page.name);
+                const displayText = formatMermaidDisplayTextInternal(page.titleText, page.name);
+                const nodeShape = getNodeShapeForPageTypeForMermaid(page.type);
+                
+                mermaidCode += '    ' + nodeId + nodeShape.start + '"' + displayText + '"' + nodeShape.end + '\\n';
+            });
+            
+            mermaidCode += '\\n';
+            
+            // Add connections between consecutive pages in the path
+            for (let i = 0; i < pathPages.length - 1; i++) {
+                const fromId = sanitizeNodeIdForMermaid(pathPages[i].name);
+                const toId = sanitizeNodeIdForMermaid(pathPages[i + 1].name);
+                
+                // Find the actual connection to get button text
+                let buttonText = '';
+                
+                // First check explicit connections
+                if (flowData.connections) {
+                    const connection = flowData.connections.find(conn => 
+                        conn.from === pathPages[i].name && conn.to === pathPages[i + 1].name
+                    );
+                    if (connection && connection.buttonText) {
+                        buttonText = sanitizeDisplayTextForMermaid(connection.buttonText);
+                    }
+                }
+                
+                // If no explicit connection found, check page buttons
+                if (!buttonText && pathPages[i].buttons) {
+                    const button = pathPages[i].buttons.find(btn => 
+                        btn.destinationPageName === pathPages[i + 1].name
+                    );
+                    if (button && button.text) {
+                        buttonText = sanitizeDisplayTextForMermaid(button.text);
+                    }
+                }
+                
+                if (buttonText) {
+                    mermaidCode += '    ' + fromId + ' -->|"' + buttonText + '"| ' + toId + '\\n';
+                } else {
+                    mermaidCode += '    ' + fromId + ' --> ' + toId + '\\n';
+                }
+            }
+            
+            mermaidCode += '\\n';
+            
+            // Add class definitions for styling
+            mermaidCode += '    classDef currentPage fill:#4caf50,stroke:#2e7d32,stroke-width:3px\\n';
+            mermaidCode += '    classDef targetPage fill:#f44336,stroke:#c62828,stroke-width:3px\\n';
+            mermaidCode += '    classDef pathPage fill:#2196f3,stroke:#1565c0,stroke-width:2px\\n';
+            mermaidCode += '    classDef formPage fill:#e3f2fd,stroke:#1565c0,stroke-width:2px\\n';
+            mermaidCode += '    classDef reportPage fill:#fff3e0,stroke:#ef6c00,stroke-width:2px\\n';
+            
+            mermaidCode += '\\n';
+            
+            // Apply classes to nodes
+            pathPages.forEach((page, index) => {
+                const nodeId = sanitizeNodeIdForMermaid(page.name);
+                
+                if (index === 0) {
+                    // Current page - green
+                    mermaidCode += '    class ' + nodeId + ' currentPage\\n';
+                } else if (index === pathPages.length - 1) {
+                    // Target page - red
+                    mermaidCode += '    class ' + nodeId + ' targetPage\\n';
+                } else {
+                    // Path page - blue
+                    mermaidCode += '    class ' + nodeId + ' pathPage\\n';
+                }
+            });
+            
+            // Set the mermaid content and render
+            journeyFlowchart.innerHTML = '<div class="mermaid">' + mermaidCode + '</div>';
+            
+            // Render the mermaid diagram if mermaid is available
+            if (typeof mermaid !== 'undefined') {
+                try {
+                    mermaid.init(undefined, journeyFlowchart.querySelector('.mermaid'));
+                } catch (error) {
+                    console.error('[DEBUG] Error rendering journey flowchart:', error);
+                    journeyFlowchart.innerHTML = '<div class="journey-flowchart-error">Unable to render flowchart. Mermaid library not available.</div>';
+                }
+            } else {
+                journeyFlowchart.innerHTML = '<div class="journey-flowchart-error">Flowchart rendering requires Mermaid library.</div>';
+            }
+        }
+        
+        function showJourneyMessage(message) {
+            const journeyResult = document.getElementById('journeyResult');
+            const journeyMessage = document.getElementById('journeyMessage');
+            const downloadBtn = document.getElementById('downloadJourneyBtn');
+            
+            if (journeyResult && journeyMessage) {
+                journeyResult.style.display = 'none';
+                journeyMessage.style.display = 'block';
+                journeyMessage.textContent = message;
+            }
+            
+            // Hide download button
+            if (downloadBtn) {
+                downloadBtn.style.display = 'none';
+                downloadBtn.disabled = true;
+            }
+        }
+        
+        function downloadJourneyFlowchart() {
+            const journeyFlowchart = document.getElementById('journeyFlowchart');
+            if (!journeyFlowchart) {
+                console.error('[DEBUG] Journey flowchart element not found');
+                return;
+            }
+            
+            const svgElement = journeyFlowchart.querySelector('svg');
+            if (!svgElement) {
+                console.error('[DEBUG] No SVG element found in journey flowchart');
+                return;
+            }
+            
+            try {
+                // Clone the SVG to avoid modifying the original
+                const clonedSvg = svgElement.cloneNode(true);
+                
+                // Add XML namespace if not present
+                if (!clonedSvg.getAttribute('xmlns')) {
+                    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+                
+                // Get the SVG as string
+                const svgString = new XMLSerializer().serializeToString(clonedSvg);
+                
+                // Create blob and download
+                const blob = new Blob([svgString], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = 'user-journey-flowchart.svg';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // Clean up the URL
+                URL.revokeObjectURL(url);
+                
+                console.log('[DEBUG] Journey flowchart SVG downloaded successfully');
+            } catch (error) {
+                console.error('[DEBUG] Error downloading journey flowchart:', error);
+            }
+        }
+        
+        function clearJourneySelection() {
+            selectedCurrentPage = null;
+            selectedTargetPage = null;
+            
+            const currentPageSelect = document.getElementById('currentPageSelect');
+            const targetPageSelect = document.getElementById('targetPageSelect');
+            
+            if (currentPageSelect) currentPageSelect.value = '';
+            if (targetPageSelect) targetPageSelect.value = '';
+            
+            updateCalculateButtonState();
+            showJourneyMessage('Select a current page and target page to calculate the user journey path.');
+        }
     `;
 }
 
@@ -2260,6 +2788,7 @@ function generateBodyContent(flowMap) {
     <div class="tabs">
         <button class="tab active" onclick="switchTab('diagram')">Force Directed Graph</button>
         <button class="tab" onclick="switchTab('mermaid')">Mermaid</button>
+        <button class="tab" onclick="switchTab('userjourney')">User Journey</button>
         <button class="tab" onclick="switchTab('statistics')">Statistics</button>
     </div>
     
@@ -2295,6 +2824,10 @@ function generateBodyContent(flowMap) {
     
     <div id="mermaid" class="tab-content">
         ${generateMermaidContent(flowMap)}
+    </div>
+    
+    <div id="userjourney" class="tab-content">
+        ${generateUserJourneyContent(flowMap)}
     </div>
     
     <div id="statistics" class="tab-content">
@@ -2521,6 +3054,88 @@ ${mermaidSyntax}
         </div>
         
         <div id="mermaidSyntaxDisplay" class="mermaid-syntax" style="display: none;">${escapeHtml(mermaidSyntax)}</div>
+    `;
+}
+
+/**
+ * Generates the user journey content
+ * @param {Object} flowMap Flow map data  
+ * @returns {string} User Journey HTML content
+ */
+function generateUserJourneyContent(flowMap) {
+    console.log('[DEBUG] generateUserJourneyContent - flowMap.pages:', flowMap.pages ? flowMap.pages.length : 'null');
+    
+    // Get all pages in the model
+    const allPages = flowMap.pages ? flowMap.pages.filter(page => {
+        console.log('[DEBUG] Checking page for all pages:', page.name, 'isPage:', page.isPage);
+        return page.isPage === 'true';
+    }) : [];
+    
+    console.log('[DEBUG] All pages found:', allPages.length);
+    
+    return `
+        <div class="user-journey-header">
+            <div class="title">User Journey</div>
+        </div>
+        
+        <div class="user-journey-controls">
+            <div class="journey-selectors">
+                <div class="journey-selector">
+                    <label for="currentPageSelect">Current Page:</label>
+                    <select id="currentPageSelect" class="journey-select" onchange="handleCurrentPageChange(this)">
+                        <option value="">Select a starting page...</option>
+                        ${allPages
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map(page => {
+                                const displayText = page.titleText ? `${page.name} - ${page.titleText}` : page.name;
+                                return `<option value="${page.name}">${displayText}</option>`;
+                            })
+                            .join('')}
+                    </select>
+                </div>
+                
+                <div class="journey-selector">
+                    <label for="targetPageSelect">Target Page:</label>
+                    <select id="targetPageSelect" class="journey-select" onchange="handleTargetPageChange(this)">
+                        <option value="">Select a target page...</option>
+                        ${allPages
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map(page => {
+                                const displayText = page.titleText ? `${page.name} - ${page.titleText}` : page.name;
+                                return `<option value="${page.name}">${displayText}</option>`;
+                            })
+                            .join('')}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="journey-actions">
+                <button class="btn" id="calculateJourneyBtn" onclick="calculateUserJourney()" disabled>Calculate Journey</button>
+                <button class="btn" id="downloadJourneyBtn" onclick="downloadJourneyFlowchart()" disabled style="display: none;">Download Flowchart</button>
+                <button class="btn" onclick="clearJourneySelection()">Clear Selection</button>
+            </div>
+        </div>
+        
+        <div class="journey-result-container">
+            <div id="journeyResult" class="journey-result" style="display: none;">
+                <div class="journey-path-title">User Journey Path:</div>
+                <div id="journeyPath" class="journey-path"></div>
+                
+                <div class="journey-flowchart-section">
+                    <div class="journey-flowchart-title">Journey Flowchart:</div>
+                    <div id="journeyFlowchart" class="journey-flowchart"></div>
+                </div>
+                
+                <div class="journey-steps-section">
+                    <div class="journey-steps-title">Detailed Steps:</div>
+                    <div id="journeySteps" class="journey-steps"></div>
+                </div>
+            </div>
+            
+            <div id="journeyMessage" class="journey-message">
+                Select a current page and target page to calculate the user journey path.
+            </div>
+        </div>
     `;
 }
 
@@ -2762,6 +3377,7 @@ module.exports = {
     generateBodyContent,
     generateStatisticsContent,
     generateMermaidContent,
+    generateUserJourneyContent,
     getEmbeddedCSS,
     getEmbeddedJavaScript
 };
