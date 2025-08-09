@@ -157,7 +157,37 @@ Details:
 - Icons should now display properly in search buttons
 - Maintained backward compatibility with optional codiconsUri parameter
 
-# Command: Fix codicons not displaying in search icon buttons
+# Command: Fix download flowchart button not working in User Journey tab
+Status: COMPLETED
+Date: 2025-08-09
+Architecture notes: Enhanced downloadJourneyFlowchart function with better error handling and debugging to identify issues when download button is clicked but nothing happens.
+
+Details:
+- Added comprehensive console logging and error messages
+- Added user-friendly alert messages for common error scenarios
+- Enhanced error handling with try-catch and detailed logging
+- Added XML declaration and xlink namespace for better SVG compatibility
+- Added checks for journey flowchart element existence and SVG presence
+- Added check to ensure downloadLink is properly hidden during operation
+- Function now provides clear feedback when journey hasn't been calculated yet
+- Improved SVG serialization with proper encoding declaration
+
+# Command: Fix User Journey download using VS Code API instead of direct blob download
+Status: COMPLETED
+Date: 2025-08-09
+Architecture notes: The download was failing because VS Code webviews have security restrictions that prevent direct file downloads. Fixed by using the same pattern as Mermaid tab downloads.
+
+Details:
+- Replaced direct blob download with vscode.postMessage() approach
+- Used existing 'downloadFile' command handler in pageFlowDiagramView.js
+- Added intelligent filename generation with app name and page names
+- Added user feedback showing "Download Requested..." temporarily
+- Follows exact same pattern as working Mermaid download functionality
+- Uses VS Code's showSaveDialog for proper file saving
+- Enhanced filename includes current-to-target page journey context
+- Proper error handling and user notifications through VS Code API
+
+# Command: Fix User Journey download using VS Code API instead of direct blob download
 
 **Status**: ✅ COMPLETED - Added comprehensive object name matching for hierarchical parent search
 

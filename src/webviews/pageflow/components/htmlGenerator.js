@@ -2916,17 +2916,24 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
         }
         
         function downloadJourneyFlowchart() {
+            console.log('[DEBUG] Download Journey Flowchart function called');
             const journeyFlowchart = document.getElementById('journeyFlowchart');
             if (!journeyFlowchart) {
                 console.error('[DEBUG] Journey flowchart element not found');
+                alert('Error: Journey flowchart element not found. Please calculate a journey first.');
                 return;
             }
             
+            console.log('[DEBUG] Journey flowchart element found, looking for SVG...');
             const svgElement = journeyFlowchart.querySelector('svg');
             if (!svgElement) {
                 console.error('[DEBUG] No SVG element found in journey flowchart');
+                console.log('[DEBUG] Journey flowchart element content:', journeyFlowchart.innerHTML);
+                alert('Error: No SVG found in the journey flowchart. Please calculate a journey first.');
                 return;
             }
+            
+            console.log('[DEBUG] SVG element found, proceeding with download...');
             
             try {
                 // Clone the SVG to avoid modifying the original
@@ -2937,26 +2944,57 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                     clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
                 }
                 
+                // Add xlink namespace for better compatibility
+                clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+                
                 // Get the SVG as string
                 const svgString = new XMLSerializer().serializeToString(clonedSvg);
+                const fullSvgData = '<?xml version="1.0" encoding="UTF-8"?>\\n' + svgString;
                 
-                // Create blob and download
-                const blob = new Blob([svgString], { type: 'image/svg+xml' });
-                const url = URL.createObjectURL(blob);
+                console.log('[DEBUG] SVG data prepared, length:', fullSvgData.length);
                 
-                const downloadLink = document.createElement('a');
-                downloadLink.href = url;
-                downloadLink.download = 'user-journey-flowchart.svg';
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
+                // Generate filename for journey flowchart
+                let fileName = '';
+                if (appName) {
+                    fileName = appName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-user-journey-flowchart';
+                } else {
+                    fileName = 'user-journey-flowchart';
+                }
                 
-                // Clean up the URL
-                URL.revokeObjectURL(url);
+                // Add current and target page names to filename if available
+                if (selectedCurrentPage && selectedTargetPage) {
+                    const currentPageClean = selectedCurrentPage.toLowerCase().replace(/[^a-z0-9]/g, '-');
+                    const targetPageClean = selectedTargetPage.toLowerCase().replace(/[^a-z0-9]/g, '-');
+                    fileName = fileName + '-' + currentPageClean + '-to-' + targetPageClean;
+                }
+                fileName = fileName + '.svg';
                 
-                console.log('[DEBUG] Journey flowchart SVG downloaded successfully');
+                console.log('[DEBUG] Generated filename:', fileName);
+                
+                // Use VS Code API to handle the download instead of browser methods
+                vscode.postMessage({
+                    command: 'downloadFile',
+                    fileName: fileName,
+                    content: fullSvgData,
+                    mimeType: 'image/svg+xml'
+                });
+                
+                console.log('[DEBUG] Download request sent to VS Code');
+                
+                // Show user feedback
+                const downloadBtn = document.getElementById('downloadJourneyBtn');
+                if (downloadBtn) {
+                    const originalText = downloadBtn.textContent;
+                    downloadBtn.textContent = 'Download Requested...';
+                    setTimeout(() => {
+                        downloadBtn.textContent = originalText;
+                    }, 3000);
+                }
+                
+                console.log('[DEBUG] Journey flowchart SVG download requested successfully');
             } catch (error) {
                 console.error('[DEBUG] Error downloading journey flowchart:', error);
+                alert('Error downloading flowchart: ' + error.message);
             }
         }
         
