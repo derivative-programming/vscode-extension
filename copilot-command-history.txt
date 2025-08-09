@@ -1,3 +1,53 @@
+## USER STORIES JOURNEY PAGE PREVIEW START PAGE ENHANCEMENT (August 9, 2025) - COMPLETED ✅
+- Request: "similar to openUserJourneyForPage we also need to send the startPage"
+- Status: COMPLETED
+- Files Modified:
+  - src/commands/userStoriesJourneyCommands.ts (enhanced openPagePreviewForPage to find and send start page, FIXED parameter order)
+  - src/webviews/pagepreview/pagePreviewView.js (updated showPagePreviewWithSelection to accept startPage parameter, FIXED parameter naming)
+  - src/webviews/pagepreview/components/htmlGenerator.js (added selectPageAndShowWay message handler)
+- Key Features Implemented:
+  - ✅ Enhanced page preview button to send both start and target page information
+  - ✅ Added journey start page lookup logic using role-based configuration
+  - ✅ Modified page preview to conditionally populate "Show me the way" section when start page provided
+  - ✅ Added comprehensive logging and error handling throughout the flow
+  - ✅ Implemented selectPageAndShowWay message handler for dual-page selection
+  - ✅ FIXED: Parameter order - now previews START page and sets up journey to TARGET page
+- Architecture Notes:
+  - Maintains consistency with user journey button functionality
+  - Uses timeout for dropdown population to ensure proper sequencing
+  - Properly handles both single page preview and start-to-target journey setup
+  - IMPORTANT FIX: Function call now passes startPage as preview target, targetPage as journey destination
+
+## USER STORIES JOURNEY PAGE PREVIEW BUTTON (August 9, 2025) - COMPLETED ✅
+- Request: "to the right of it, I want an 'eye' icon button with similar functionality (sending the source and destination page names) but it should show the page preview view instead"
+- Status: COMPLETED
+- Files Modified:
+  - src/webviews/userStoriesJourneyView.js (added page preview button and handler function)
+  - src/commands/userStoriesJourneyCommands.ts (added command handler for page preview)
+- Key Features Implemented:
+  - ✅ Added eye icon button (codicon-eye) next to the existing journey map button
+  - ✅ Button appears in same conditions as journey button (valid distance and page exists)
+  - ✅ Uses same styling (.journey-icon-button class) for consistency
+  - ✅ Tooltip: "Show Page Preview" for clear user guidance
+  - ✅ Opens Page Preview view with specific page selected automatically
+  - ✅ Passes target page and page role information to extension
+- Technical Implementation:
+  1. **UI Button Addition:**
+     - Added previewButton element with codicon-eye icon
+     - Positioned after journeyButton in distance container
+     - Same click handler pattern as existing journey button
+     - onclick calls openPagePreviewForPage(item.page, item.pageRole)
+  2. **JavaScript Handler:**
+     - Added openPagePreviewForPage() function in userStoriesJourneyView.js
+     - Sends 'openPagePreviewForPage' message with targetPage and pageRole data
+     - Follows same pattern as openUserJourneyForPage function
+  3. **Extension Command Handler:**
+     - Added 'openPagePreviewForPage' case in userStoriesJourneyCommands.ts message handler
+     - Imports showPagePreviewWithSelection from pagepreview/pagePreviewView.js
+     - Calls showPagePreviewWithSelection(context, modelService, message.targetPage)
+     - Includes proper error handling and user feedback
+- Integration: Seamlessly integrates with existing Page Preview view infrastructure using showPagePreviewWithSelection function to automatically select the specified page in the preview interface.
+
 ## USER STORIES TABLE HEIGHT EXTENSION (August 9, 2025) - COMPLETED ✅
 - Request: "review the user stories view. the table is not very tall. It should extend, similar to the roel requirement sview"
 - Status: COMPLETED

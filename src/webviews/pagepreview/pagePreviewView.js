@@ -250,10 +250,11 @@ function closePagePreviewView() {
  * Shows the page preview view with a specific form selected
  * @param {vscode.ExtensionContext} context Extension context
  * @param {Object} modelService ModelService instance
- * @param {string} formName The name of the form to select in the preview
+ * @param {string} formName The name of the form to select for preview
+ * @param {string} targetPage Optional target page name for "Show me the way" section (when showing journey from formName to targetPage)
  */
-async function showPagePreviewWithSelection(context, modelService, formName) {
-    console.log('[DEBUG] PagePreview - showPagePreviewWithSelection called for form:', formName);
+async function showPagePreviewWithSelection(context, modelService, formName, targetPage = null) {
+    console.log('[DEBUG] PagePreview - showPagePreviewWithSelection called for form:', formName, 'with target page for journey:', targetPage);
     
     // First open the regular page preview
     await showPagePreview(context, modelService);
@@ -262,13 +263,25 @@ async function showPagePreviewWithSelection(context, modelService, formName) {
     if (currentPanel && formName) {
         console.log('[DEBUG] PagePreview - Sending select page message for:', formName);
         
-        // Send message to webview to select the specific page
-        currentPanel.webview.postMessage({
-            command: 'selectPageAndShowPreview',
-            data: {
-                pageName: formName
-            }
-        });
+        // If we have both start page (formName) and target page, use the show me the way section
+        if (targetPage) {
+            // Send message to webview to set both start and target pages in "Show me the way" section
+            currentPanel.webview.postMessage({
+                command: 'selectPageAndShowWay',
+                data: {
+                    startPageName: formName,
+                    targetPageName: targetPage
+                }
+            });
+        } else {
+            // Send message to webview to select the specific page in main section
+            currentPanel.webview.postMessage({
+                command: 'selectPageAndShowPreview',
+                data: {
+                    pageName: formName
+                }
+            });
+        }
     }
 }
 

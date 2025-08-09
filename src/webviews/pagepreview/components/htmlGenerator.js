@@ -4310,73 +4310,98 @@ function generateJavaScript(allObjects) {
                         }
                         break;
                         
-                    case 'selectPageAndShowPreview':
+                    case 'selectPageAndShowPreview': {
                         console.log('[DEBUG] PagePreview - Received select page and show preview request for:', message.data.pageName);
-                        
                         const selectPageName = message.data.pageName;
-                        
                         // First, make sure all roles are selected and no filter is applied
                         console.log('[DEBUG] PagePreview - Clearing filters and selecting all roles');
-                        
                         // Clear text filter
                         currentFilter = '';
                         const filterInput = document.getElementById('filterInput');
-                        if (filterInput) {
-                            filterInput.value = '';
-                        }
-                        
+                        if (filterInput) { filterInput.value = ''; }
                         // Select all roles
                         const roleCheckboxes = document.querySelectorAll('.role-checkbox');
                         if (roleCheckboxes.length > 0) {
-                            roleCheckboxes.forEach(checkbox => {
-                                checkbox.checked = true;
-                            });
-                            // Update selected roles
+                            roleCheckboxes.forEach(cb => { cb.checked = true; });
                             selectedRoles = Array.from(roleCheckboxes).map(cb => cb.value);
                             console.log('[DEBUG] PagePreview - Selected all roles:', selectedRoles);
                         }
-                        
-                        // Update filter button visibility
                         updateFilterButtonVisibility();
-                        
-                        // Update page dropdown with all pages
                         updatePageDropdown();
-                        
                         console.log('[DEBUG] PagePreview - Looking for page:', selectPageName);
                         console.log('[DEBUG] PagePreview - Available filtered pages:', window.filteredPages ? window.filteredPages.map(p => '"' + p.name + '"') : 'null');
-                        
-                        // Find and select the target page
                         const targetSelectPage = window.filteredPages.find(page => page.name === selectPageName);
-                        
                         if (targetSelectPage) {
                             console.log('[DEBUG] PagePreview - Found target page for selection:', targetSelectPage.name);
-                            
-                            // Update the dropdown selection
                             const pageDropdown = document.getElementById('pageDropdown');
                             for (let i = 0; i < pageDropdown.options.length; i++) {
-                                if (pageDropdown.options[i].value === targetSelectPage.name) {
-                                    pageDropdown.selectedIndex = i;
-                                    break;
-                                }
+                                if (pageDropdown.options[i].value === targetSelectPage.name) { pageDropdown.selectedIndex = i; break; }
                             }
-                            
-                            // Set the current selected page and show the preview
                             currentSelectedPage = targetSelectPage;
-                            
-                            // Determine page type and show preview
                             const pageType = determinePageType(targetSelectPage.name);
-                            if (pageType === 'form') {
-                                showFormPreview(targetSelectPage);
-                            } else if (pageType === 'report') {
-                                showReportPreview(targetSelectPage);
-                            }
-                            
+                            if (pageType === 'form') { showFormPreview(targetSelectPage); } else if (pageType === 'report') { showReportPreview(targetSelectPage); }
                             console.log('[DEBUG] PagePreview - Successfully selected and previewed page:', selectPageName);
                         } else {
                             console.warn('[WARN] PagePreview - Could not find target page for selection:', selectPageName);
                             console.log('[DEBUG] PagePreview - Available pages:', window.filteredPages.map(p => p.name));
                         }
                         break;
+                    }
+                        
+                    case 'selectPageAndShowWay': {
+                        console.log('[DEBUG] PagePreview - Received select page and show way request. Start page:', message.data.startPageName, 'Target page:', message.data.targetPageName);
+                        const wayStartPageName = message.data.startPageName;
+                        const wayTargetPageName = message.data.targetPageName;
+                        console.log('[DEBUG] PagePreview - Clearing filters and selecting all roles for show way');
+                        currentFilter = '';
+                        const filterInput2 = document.getElementById('filterInput');
+                        if (filterInput2) { filterInput2.value = ''; }
+                        const roleCheckboxes2 = document.querySelectorAll('.role-checkbox');
+                        if (roleCheckboxes2.length > 0) {
+                            roleCheckboxes2.forEach(cb => { cb.checked = true; });
+                            selectedRoles = Array.from(roleCheckboxes2).map(cb => cb.value);
+                            console.log('[DEBUG] PagePreview - Selected all roles for show way:', selectedRoles);
+                        }
+                        updateFilterButtonVisibility();
+                        updatePageDropdown();
+                        console.log('[DEBUG] PagePreview - Looking for target page:', wayTargetPageName);
+                        const targetPageForPreview = window.filteredPages.find(page => page.name === wayTargetPageName);
+                        if (targetPageForPreview) {
+                            console.log('[DEBUG] PagePreview - Found target page for preview:', targetPageForPreview.name);
+                            const pageDropdown = document.getElementById('pageDropdown');
+                            for (let i = 0; i < pageDropdown.options.length; i++) {
+                                if (pageDropdown.options[i].value === targetPageForPreview.name) { pageDropdown.selectedIndex = i; break; }
+                            }
+                            currentSelectedPage = targetPageForPreview;
+                            const pageType = determinePageType(targetPageForPreview.name);
+                            if (pageType === 'form') { showFormPreview(targetPageForPreview); } else if (pageType === 'report') { showReportPreview(targetPageForPreview); }
+                            console.log('[DEBUG] PagePreview - Setting up "Show me the way" section with start page:', wayStartPageName);
+                            const startPageDropdown = document.getElementById('startPageSelect');
+                            if (startPageDropdown) {
+                                for (let i = 0; i < startPageDropdown.options.length; i++) {
+                                    if (startPageDropdown.options[i].value === wayStartPageName) { startPageDropdown.selectedIndex = i; console.log('[DEBUG] PagePreview - Set start page dropdown to:', wayStartPageName); break; }
+                                }
+                                startPageDropdown.dispatchEvent(new Event('change'));
+                            } else {
+                                console.warn('[WARN] PagePreview - Start page dropdown not found in "Show me the way" section');
+                            }
+                            setTimeout(() => {
+                                const targetPageDropdown = document.getElementById('targetPageSelect');
+                                if (targetPageDropdown) {
+                                    for (let i = 0; i < targetPageDropdown.options.length; i++) {
+                                        if (targetPageDropdown.options[i].value === wayTargetPageName) { targetPageDropdown.selectedIndex = i; console.log('[DEBUG] PagePreview - Set target page dropdown to:', wayTargetPageName); break; }
+                                    }
+                                } else {
+                                    console.warn('[WARN] PagePreview - Target page dropdown not found in "Show me the way" section');
+                                }
+                            }, 100);
+                            console.log('[DEBUG] PagePreview - Successfully set up page preview and "Show me the way" for journey from', wayStartPageName, 'to', wayTargetPageName);
+                        } else {
+                            console.warn('[WARN] PagePreview - Could not find target page for preview:', wayTargetPageName);
+                            console.log('[DEBUG] PagePreview - Available pages:', window.filteredPages.map(p => p.name));
+                        }
+                        break;
+                    }
                         
                     case 'pathfindingData':
                         console.log('[DEBUG] PagePreview - Received pathfinding data');

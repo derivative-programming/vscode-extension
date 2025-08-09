@@ -1969,6 +1969,29 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                 }
                                 break;
 
+                            case 'openPagePreviewForPage':
+                                console.log("[Extension] Opening Page Preview for page:", message.targetPage, "with role:", message.pageRole);
+                                try {
+                                    // Load journey start data to find the start page for this role
+                                    let startPage = null;
+                                    if (message.pageRole) {
+                                        const journeyStartData = await loadJourneyStartData(modelService);
+                                        const journeyStartPages = journeyStartData.journeyStartPages || {};
+                                        startPage = journeyStartPages[message.pageRole];
+                                        console.log("[Extension] Found start page for role", message.pageRole, ":", startPage);
+                                    }
+                                    
+                                    // Import the page preview view function
+                                    const { showPagePreviewWithSelection } = require('../webviews/pagepreview/pagePreviewView');
+                                    
+                                    // Open Page Preview with start page for preview and target page for journey setup
+                                    await showPagePreviewWithSelection(context, modelService, startPage, message.targetPage);
+                                } catch (error) {
+                                    console.error('[Extension] Error opening Page Preview:', error);
+                                    vscode.window.showErrorMessage('Failed to open Page Preview: ' + error.message);
+                                }
+                                break;
+
                             default:
                                 console.log("[Extension] Unknown message command:", message.command);
                                 break;

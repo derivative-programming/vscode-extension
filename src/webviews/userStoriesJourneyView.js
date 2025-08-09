@@ -219,6 +219,18 @@ function openUserJourneyForPage(targetPage, pageRole) {
     });
 }
 
+// Open Page Preview view for specific page (global function for onclick)
+function openPagePreviewForPage(targetPage, pageRole) {
+    console.log('Opening Page Preview for page:', targetPage, 'with role:', pageRole);
+    
+    // Send command to extension to open Page Preview with specific page selected
+    vscode.postMessage({
+        command: 'openPagePreviewForPage',
+        targetPage: targetPage,
+        pageRole: pageRole
+    });
+}
+
 // Start distance calculation (global function for onclick)
 function calculateDistances() {
     openProgressModal();
@@ -586,6 +598,14 @@ function renderTable() {
                 journeyButton.innerHTML = '<span class="codicon codicon-map"></span>';
                 journeyButton.onclick = () => openUserJourneyForPage(item.page, item.pageRole);
                 distanceContainer.appendChild(journeyButton);
+                
+                // Add icon button for showing page preview
+                const previewButton = document.createElement("button");
+                previewButton.className = "journey-icon-button";
+                previewButton.title = "Show Page Preview";
+                previewButton.innerHTML = '<span class="codicon codicon-eye"></span>';
+                previewButton.onclick = () => openPagePreviewForPage(item.page, item.pageRole);
+                distanceContainer.appendChild(previewButton);
             }
             
             journeyPageDistanceCell.appendChild(distanceContainer);
