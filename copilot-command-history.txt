@@ -1,3 +1,56 @@
+## USER JOURNEY START PAGE ROLE-BASED ENHANCEMENT (August 9, 2025) - COMPLETED ✅
+- Request: "its not setting the user journey start page for the required role of the row page" / "its not setting the first dropdown on the page flow user story tab with this data"
+- Status: COMPLETED
+- Files Modified:
+  - src/commands/userStoriesJourneyCommands.ts (enhanced data structure with role info, updated message handler)
+  - src/webviews/userStoriesJourneyView.js (updated function to pass role parameter)
+- Key Features Enhanced:
+  - ✅ Added pageRole field to combinedData for each user story journey row
+  - ✅ Extract role information from pages (workflow.roleRequired, report.roleRequired) 
+  - ✅ Pass role information when opening User Journey view
+  - ✅ Look up appropriate start page based on role from journeyStartPages configuration
+  - ✅ Auto-populate both dropdowns: current page (start) and target page in User Journey tab
+  - ✅ Role-based journey start page mapping from app-dna-user-story-user-journey.json
+- Technical Implementation:
+  1. Enhanced loadUserStoriesJourneyData() to extract page role information from model
+  2. Added pageRole field to each combinedData item by matching page names with role data
+  3. Updated openUserJourneyForPage() to accept and pass pageRole parameter
+  4. Enhanced openUserJourneyForPage message handler to load journeyStartPages and find role-specific start page
+  5. Passed both targetPage and startPage to showPageFlowWithUserJourney()
+  6. Existing htmlGenerator.js message handler already supports setting both dropdowns
+- Data Flow:
+  - User clicks arrow button → page + role sent to extension → journeyStartPages loaded → role-specific start page found → Page Flow opens → User Journey tab → both dropdowns populated → journey calculated
+- User Experience:
+  - Click journey button → Page Flow opens with User Journey tab → Start page dropdown shows role-appropriate start page → Target page dropdown shows clicked page → Journey automatically calculated
+- Integration: Seamlessly connects User Stories Journey management with role-based journey start page configuration
+
+## USER JOURNEY ICON BUTTON IMPLEMENTATION (August 9, 2025) - COMPLETED ✅
+- Request: "in the journey page distance column on each row add a icon button (similar to the 'show page flow diagram' button on the Pages treeview item). On click, open the page flow view and show the user journey tab and prepopulate the dropdowns with the page on the row clicked and its roles start page and click the 'calculate journey' button immediately"
+- Status: COMPLETED
+- Files Modified:
+  - src/webviews/pageflow/pageFlowDiagramView.js (added showPageFlowWithUserJourney function)
+  - src/webviews/pageFlowDiagramView.js (exported new function)
+  - src/webviews/pageflow/components/htmlGenerator.js (added message handler for openUserJourneyWithValues)
+  - src/webviews/userStoriesJourneyView.js (updated table rendering and added openUserJourneyForPage function)
+  - src/commands/userStoriesJourneyCommands.ts (added CSS styling and message handler)
+- Key Features Implemented:
+  - ✅ Icon button (arrow-right codicon) added to Journey Page Distance column for each row with valid distance
+  - ✅ Button only appears when distance is not -1 (unreachable) and page exists
+  - ✅ On click opens Page Flow view and switches to User Journey tab
+  - ✅ Auto-populates target page dropdown with the clicked row's page
+  - ✅ Auto-triggers journey calculation if both dropdowns are populated
+  - ✅ Proper CSS styling with hover effects matching VS Code design language
+- Technical Implementation:
+  1. Extended pageFlowDiagramView.js with showPageFlowWithUserJourney() function
+  2. Added message passing between User Stories Journey view and Page Flow view
+  3. Enhanced htmlGenerator.js with openUserJourneyWithValues message handler
+  4. Modified table cell rendering to include distance value + icon button container
+  5. Added responsive CSS styling for distance container and journey icon button
+- User Experience:
+  - Click arrow button → Page Flow opens → User Journey tab activated → Target page pre-selected → Journey calculated automatically
+  - Seamless integration between User Stories Journey management and Page Flow visualization
+  - Consistent with existing VS Code extension icon button patterns
+
 ## STORY NUMBER NUMERIC SORTING - ADDITIONAL VIEWS (August 9, 2025) - COMPLETED ✅
 - Request: "fix this sort on the user story page mapping view and user story qa view too"
 - Status: COMPLETED

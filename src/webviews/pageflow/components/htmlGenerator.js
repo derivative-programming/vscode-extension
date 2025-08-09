@@ -1096,6 +1096,36 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 case 'updateFlowData':
                     // Handle refresh data updates if needed
                     break;
+                case 'openUserJourneyWithValues':
+                    console.log('[DEBUG] Received openUserJourneyWithValues:', message);
+                    // Switch to User Journey tab
+                    switchTab('userjourney');
+                    
+                    // Set the values after a short delay to ensure UI is ready
+                    setTimeout(() => {
+                        if (message.targetPage) {
+                            const targetSelect = document.getElementById('targetPageSelect');
+                            if (targetSelect) {
+                                targetSelect.value = message.targetPage;
+                                handleTargetPageChange(targetSelect);
+                            }
+                        }
+                        
+                        if (message.startPage) {
+                            const currentSelect = document.getElementById('currentPageSelect');
+                            if (currentSelect) {
+                                currentSelect.value = message.startPage;
+                                handleCurrentPageChange(currentSelect);
+                            }
+                        }
+                        
+                        // Auto-click calculate journey if both values are set
+                        const calculateBtn = document.getElementById('calculateJourneyBtn');
+                        if (calculateBtn && !calculateBtn.disabled) {
+                            calculateUserJourney();
+                        }
+                    }, 200);
+                    break;
             }
         });
 

@@ -11,6 +11,7 @@ const pageFlowView = require('./pageflow/pageFlowDiagramView');
 // Re-export the functions for backward compatibility
 module.exports = {
     showPageFlowDiagram: pageFlowView.showPageFlowDiagram,
+    showPageFlowWithUserJourney: pageFlowView.showPageFlowWithUserJourney,
     getPageFlowPanel: pageFlowView.getPageFlowPanel,
     closePageFlowView: pageFlowView.closePageFlowView
 };

@@ -218,8 +218,34 @@ async function handleFileDownload(fileName, content, mimeType) {
     }
 }
 
+/**
+ * Shows the page flow diagram with User Journey tab and predefined values
+ * @param {vscode.ExtensionContext} context Extension context
+ * @param {Object} modelService ModelService instance
+ * @param {string} targetPage Target page name for the journey
+ * @param {string} startPage Start page name for the journey (optional)
+ */
+async function showPageFlowWithUserJourney(context, modelService, targetPage, startPage = null) {
+    console.log('[DEBUG] showPageFlowWithUserJourney called with:', { targetPage, startPage });
+    
+    // First open the page flow diagram normally
+    await showPageFlowDiagram(context, modelService);
+    
+    // Send a message to switch to User Journey tab and set values
+    if (currentPanel) {
+        setTimeout(() => {
+            currentPanel.webview.postMessage({
+                command: 'openUserJourneyWithValues',
+                targetPage: targetPage,
+                startPage: startPage
+            });
+        }, 500); // Small delay to ensure webview is loaded
+    }
+}
+
 module.exports = {
     showPageFlowDiagram,
+    showPageFlowWithUserJourney,
     getPageFlowPanel,
     closePageFlowView
 };

@@ -115,6 +115,35 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
 
         // Build combined data array with page mapping
         const combinedData: any[] = [];
+        
+        // Get all pages from model to find role information
+        const allPages: any[] = [];
+        const allObjects = modelService.getAllObjects();
+        allObjects.forEach((obj: any) => {
+            // Extract workflows with isPage=true
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === 'true') {
+                        allPages.push({
+                            name: workflow.name,
+                            roleRequired: workflow.roleRequired
+                        });
+                    }
+                });
+            }
+            // Extract reports with isPage=true
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if (report.isPage === 'true') {
+                        allPages.push({
+                            name: report.name,
+                            roleRequired: report.roleRequired
+                        });
+                    }
+                });
+            }
+        });
+        
         userStories.forEach(story => {
             const storyId = story.name || '';
             const storyNumber = story.storyNumber || '';
@@ -130,11 +159,16 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
                     const pageDistanceData = journeyData.pageDistances?.find((pd: any) => pd.destinationPage === page);
                     const journeyPageDistance = pageDistanceData ? pageDistanceData.distance : -1;
                     
+                    // Find page role from all pages
+                    const pageInfo = allPages.find(p => p.name === page);
+                    const pageRole = pageInfo ? pageInfo.roleRequired : '';
+                    
                     combinedData.push({
                         storyId: storyId,
                         storyNumber: story.storyNumber || '',
                         storyText: story.storyText || '',
                         page: page,
+                        pageRole: pageRole,
                         journeyPageDistance: journeyPageDistance,
                         pageMappingFilePath: pageMappingFilePath,
                         selected: false // For checkbox functionality
@@ -147,6 +181,7 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
                     storyNumber: story.storyNumber || '',
                     storyText: story.storyText || '',
                     page: '',
+                    pageRole: '',
                     journeyPageDistance: -1,
                     pageMappingFilePath: pageMappingFilePath,
                     selected: false // For checkbox functionality
@@ -1041,6 +1076,40 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             text-align: center;
                         }
                         
+                        .distance-container {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 4px;
+                        }
+                        
+                        .distance-value {
+                            font-size: 12px;
+                        }
+                        
+                        .journey-icon-button {
+                            background: transparent;
+                            border: none;
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 2px;
+                            border-radius: 2px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 12px;
+                            width: 16px;
+                            height: 16px;
+                        }
+                        
+                        .journey-icon-button:hover {
+                            background-color: var(--vscode-toolbar-hoverBackground);
+                        }
+                        
+                        .journey-icon-button .codicon {
+                            font-size: 12px;
+                        }
+                        
                         .header-actions {
                             display: flex;
                             gap: 8px;
@@ -1874,6 +1943,29 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                         }
                                     });
                                     vscode.window.showErrorMessage('Failed to calculate page distances: ' + error.message);
+                                }
+                                break;
+
+                            case 'openUserJourneyForPage':
+                                console.log("[Extension] Opening User Journey for page:", message.targetPage, "with role:", message.pageRole);
+                                try {
+                                    // Load journey start data to find the start page for this role
+                                    let startPage = null;
+                                    if (message.pageRole) {
+                                        const journeyStartData = await loadJourneyStartData(modelService);
+                                        const journeyStartPages = journeyStartData.journeyStartPages || {};
+                                        startPage = journeyStartPages[message.pageRole];
+                                        console.log("[Extension] Found start page for role", message.pageRole, ":", startPage);
+                                    }
+                                    
+                                    // Import the page flow view function
+                                    const { showPageFlowWithUserJourney } = require('../webviews/pageFlowDiagramView');
+                                    
+                                    // Open Page Flow with User Journey tab, target page, and start page
+                                    await showPageFlowWithUserJourney(context, modelService, message.targetPage, startPage);
+                                } catch (error) {
+                                    console.error('[Extension] Error opening User Journey:', error);
+                                    vscode.window.showErrorMessage('Failed to open User Journey: ' + error.message);
                                 }
                                 break;
 

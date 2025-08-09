@@ -207,6 +207,18 @@ function completeProgress() {
     document.getElementById('progressCloseButton').disabled = false;
 }
 
+// Open User Journey view for specific page (global function for onclick)
+function openUserJourneyForPage(targetPage, pageRole) {
+    console.log('Opening User Journey for page:', targetPage, 'with role:', pageRole);
+    
+    // Send command to extension to open Page Flow with User Journey tab
+    vscode.postMessage({
+        command: 'openUserJourneyForPage',
+        targetPage: targetPage,
+        pageRole: pageRole
+    });
+}
+
 // Start distance calculation (global function for onclick)
 function calculateDistances() {
     openProgressModal();
@@ -555,12 +567,28 @@ function renderTable() {
             // Journey Page Distance
             const journeyPageDistanceCell = document.createElement("td");
             journeyPageDistanceCell.className = "journey-page-distance-column";
-            // Only display distance if it's not -1 (unreachable)
-            if (item.journeyPageDistance !== undefined && item.journeyPageDistance !== -1) {
-                journeyPageDistanceCell.textContent = item.journeyPageDistance.toString();
-            } else {
-                journeyPageDistanceCell.textContent = '';
+            
+            // Create a container for distance value and button
+            const distanceContainer = document.createElement("div");
+            distanceContainer.className = "distance-container";
+            
+            // Add distance value if available
+            if (item.journeyPageDistance !== undefined && item.journeyPageDistance !== -1 && item.page) {
+                const distanceSpan = document.createElement("span");
+                distanceSpan.className = "distance-value";
+                distanceSpan.textContent = item.journeyPageDistance.toString();
+                distanceContainer.appendChild(distanceSpan);
+                
+                // Add icon button for showing user journey
+                const journeyButton = document.createElement("button");
+                journeyButton.className = "journey-icon-button";
+                journeyButton.title = "Show User Journey to this page";
+                journeyButton.innerHTML = '<span class="codicon codicon-arrow-right"></span>';
+                journeyButton.onclick = () => openUserJourneyForPage(item.page, item.pageRole);
+                distanceContainer.appendChild(journeyButton);
             }
+            
+            journeyPageDistanceCell.appendChild(distanceContainer);
             row.appendChild(journeyPageDistanceCell);
             
             
