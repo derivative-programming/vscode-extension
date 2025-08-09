@@ -437,22 +437,48 @@ function renderJourneyStartTable() {
         const row = document.createElement('tr');
         const currentPage = journeyStartPages[role] || '';
         
-        row.innerHTML = `
-            <td>${role}</td>
-            <td>
-                <input type="text" 
-                       class="journey-start-page-input" 
-                       value="${currentPage}" 
-                       data-role="${role}" 
-                       placeholder="Select a start page...">
-                <button class="journey-start-lookup-btn" 
-                        onclick="openJourneyStartPageLookup('${role}')" 
-                        title="Search and select page">
-                    <span class="codicon codicon-search"></span>
-                </button>
-            </td>
-        `;
+        // Create role cell
+        const roleCell = document.createElement('td');
+        roleCell.textContent = role;
+        row.appendChild(roleCell);
         
+        // Create page input cell
+        const pageCell = document.createElement('td');
+        
+        // Create input
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'journey-start-page-input';
+        input.value = currentPage;
+        input.setAttribute('data-role', role);
+        input.placeholder = 'Select a start page...';
+        pageCell.appendChild(input);
+        
+        // Create search button with same styling as refresh button
+        const searchButton = document.createElement('button');
+        searchButton.title = 'Search and select page';
+        searchButton.innerHTML = '<span class="codicon codicon-search" style="font-size:16px;"></span>';
+        searchButton.onclick = () => openJourneyStartPageLookup(role);
+        // Apply same styling as refresh button
+        searchButton.style.background = "none";
+        searchButton.style.border = "none";
+        searchButton.style.color = "var(--vscode-editor-foreground)";
+        searchButton.style.padding = "4px 8px";
+        searchButton.style.cursor = "pointer";
+        searchButton.style.display = "flex";
+        searchButton.style.alignItems = "center";
+        searchButton.style.borderRadius = "4px";
+        searchButton.style.transition = "background 0.15s";
+        // Add hover effect
+        searchButton.addEventListener("mouseenter", function() {
+            searchButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        searchButton.addEventListener("mouseleave", function() {
+            searchButton.style.background = "none";
+        });
+        pageCell.appendChild(searchButton);
+        
+        row.appendChild(pageCell);
         tableBody.appendChild(row);
     });
 }
@@ -593,18 +619,50 @@ function renderTable() {
                 
                 // Add icon button for showing user journey
                 const journeyButton = document.createElement("button");
-                journeyButton.className = "journey-icon-button";
                 journeyButton.title = "Show User Journey Page Flow Diagram";
-                journeyButton.innerHTML = '<span class="codicon codicon-map"></span>';
+                journeyButton.innerHTML = '<span class="codicon codicon-map" style="font-size:16px;"></span>';
                 journeyButton.onclick = () => openUserJourneyForPage(item.page, item.pageRole);
+                // Apply same styling as refresh button
+                journeyButton.style.background = "none";
+                journeyButton.style.border = "none";
+                journeyButton.style.color = "var(--vscode-editor-foreground)";
+                journeyButton.style.padding = "4px 8px";
+                journeyButton.style.cursor = "pointer";
+                journeyButton.style.display = "flex";
+                journeyButton.style.alignItems = "center";
+                journeyButton.style.borderRadius = "4px";
+                journeyButton.style.transition = "background 0.15s";
+                // Add hover effect
+                journeyButton.addEventListener("mouseenter", function() {
+                    journeyButton.style.background = "var(--vscode-list-hoverBackground)";
+                });
+                journeyButton.addEventListener("mouseleave", function() {
+                    journeyButton.style.background = "none";
+                });
                 distanceContainer.appendChild(journeyButton);
                 
                 // Add icon button for showing page preview
                 const previewButton = document.createElement("button");
-                previewButton.className = "journey-icon-button";
                 previewButton.title = "Show User Journey Page Preview";
-                previewButton.innerHTML = '<span class="codicon codicon-eye"></span>';
+                previewButton.innerHTML = '<span class="codicon codicon-eye" style="font-size:16px;"></span>';
                 previewButton.onclick = () => openPagePreviewForPage(item.page, item.pageRole);
+                // Apply same styling as refresh button
+                previewButton.style.background = "none";
+                previewButton.style.border = "none";
+                previewButton.style.color = "var(--vscode-editor-foreground)";
+                previewButton.style.padding = "4px 8px";
+                previewButton.style.cursor = "pointer";
+                previewButton.style.display = "flex";
+                previewButton.style.alignItems = "center";
+                previewButton.style.borderRadius = "4px";
+                previewButton.style.transition = "background 0.15s";
+                // Add hover effect
+                previewButton.addEventListener("mouseenter", function() {
+                    previewButton.style.background = "var(--vscode-list-hoverBackground)";
+                });
+                previewButton.addEventListener("mouseleave", function() {
+                    previewButton.style.background = "none";
+                });
                 distanceContainer.appendChild(previewButton);
             }
             
@@ -788,14 +846,65 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
+        // Apply same styling as refresh button
+        exportButton.style.background = "none";
+        exportButton.style.border = "none";
+        exportButton.style.color = "var(--vscode-editor-foreground)";
+        exportButton.style.padding = "4px 8px";
+        exportButton.style.cursor = "pointer";
+        exportButton.style.display = "flex";
+        exportButton.style.alignItems = "center";
+        exportButton.style.borderRadius = "4px";
+        exportButton.style.transition = "background 0.15s";
+        // Add hover effect
+        exportButton.addEventListener("mouseenter", function() {
+            exportButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        exportButton.addEventListener("mouseleave", function() {
+            exportButton.style.background = "none";
+        });
     }
     
     if (defineJourneyStartButton) {
         defineJourneyStartButton.addEventListener('click', openJourneyStartModal);
+        // Apply same styling as refresh button
+        defineJourneyStartButton.style.background = "none";
+        defineJourneyStartButton.style.border = "none";
+        defineJourneyStartButton.style.color = "var(--vscode-editor-foreground)";
+        defineJourneyStartButton.style.padding = "4px 8px";
+        defineJourneyStartButton.style.cursor = "pointer";
+        defineJourneyStartButton.style.display = "flex";
+        defineJourneyStartButton.style.alignItems = "center";
+        defineJourneyStartButton.style.borderRadius = "4px";
+        defineJourneyStartButton.style.transition = "background 0.15s";
+        // Add hover effect
+        defineJourneyStartButton.addEventListener("mouseenter", function() {
+            defineJourneyStartButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        defineJourneyStartButton.addEventListener("mouseleave", function() {
+            defineJourneyStartButton.style.background = "none";
+        });
     }
     
     if (calculateDistanceButton) {
         calculateDistanceButton.addEventListener('click', calculateDistances);
+        // Apply same styling as refresh button
+        calculateDistanceButton.style.background = "none";
+        calculateDistanceButton.style.border = "none";
+        calculateDistanceButton.style.color = "var(--vscode-editor-foreground)";
+        calculateDistanceButton.style.padding = "4px 8px";
+        calculateDistanceButton.style.cursor = "pointer";
+        calculateDistanceButton.style.display = "flex";
+        calculateDistanceButton.style.alignItems = "center";
+        calculateDistanceButton.style.borderRadius = "4px";
+        calculateDistanceButton.style.transition = "background 0.15s";
+        // Add hover effect
+        calculateDistanceButton.addEventListener("mouseenter", function() {
+            calculateDistanceButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        calculateDistanceButton.addEventListener("mouseleave", function() {
+            calculateDistanceButton.style.background = "none";
+        });
     }
     
     if (refreshButton) {

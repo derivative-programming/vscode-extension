@@ -227,10 +227,26 @@ function renderTable() {
         
         // Create lookup button
         const pageMappingLookupBtn = document.createElement('button');
-        pageMappingLookupBtn.className = 'lookup-icon-btn';
-        pageMappingLookupBtn.innerHTML = '<span class="codicon codicon-search"></span>';
+        pageMappingLookupBtn.innerHTML = '<span class="codicon codicon-search" style="font-size:16px;"></span>';
         pageMappingLookupBtn.title = 'Lookup pages';
         pageMappingLookupBtn.onclick = () => openPageLookupModal(item.storyId, 'pageMapping', item);
+        // Apply same styling as refresh button
+        pageMappingLookupBtn.style.background = "none";
+        pageMappingLookupBtn.style.border = "none";
+        pageMappingLookupBtn.style.color = "var(--vscode-editor-foreground)";
+        pageMappingLookupBtn.style.padding = "4px 8px";
+        pageMappingLookupBtn.style.cursor = "pointer";
+        pageMappingLookupBtn.style.display = "flex";
+        pageMappingLookupBtn.style.alignItems = "center";
+        pageMappingLookupBtn.style.borderRadius = "4px";
+        pageMappingLookupBtn.style.transition = "background 0.15s";
+        // Add hover effect
+        pageMappingLookupBtn.addEventListener("mouseenter", function() {
+            pageMappingLookupBtn.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        pageMappingLookupBtn.addEventListener("mouseleave", function() {
+            pageMappingLookupBtn.style.background = "none";
+        });
         
         pageMappingContainer.appendChild(pageMappingInput);
         pageMappingContainer.appendChild(pageMappingLookupBtn);
@@ -254,10 +270,26 @@ function renderTable() {
         
         // Create lookup button
         const ignorePagesLookupBtn = document.createElement('button');
-        ignorePagesLookupBtn.className = 'lookup-icon-btn';
-        ignorePagesLookupBtn.innerHTML = '<span class="codicon codicon-search"></span>';
+        ignorePagesLookupBtn.innerHTML = '<span class="codicon codicon-search" style="font-size:16px;"></span>';
         ignorePagesLookupBtn.title = 'Lookup pages';
         ignorePagesLookupBtn.onclick = () => openPageLookupModal(item.storyId, 'ignorePages', item);
+        // Apply same styling as refresh button
+        ignorePagesLookupBtn.style.background = "none";
+        ignorePagesLookupBtn.style.border = "none";
+        ignorePagesLookupBtn.style.color = "var(--vscode-editor-foreground)";
+        ignorePagesLookupBtn.style.padding = "4px 8px";
+        ignorePagesLookupBtn.style.cursor = "pointer";
+        ignorePagesLookupBtn.style.display = "flex";
+        ignorePagesLookupBtn.style.alignItems = "center";
+        ignorePagesLookupBtn.style.borderRadius = "4px";
+        ignorePagesLookupBtn.style.transition = "background 0.15s";
+        // Add hover effect
+        ignorePagesLookupBtn.addEventListener("mouseenter", function() {
+            ignorePagesLookupBtn.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        ignorePagesLookupBtn.addEventListener("mouseleave", function() {
+            ignorePagesLookupBtn.style.background = "none";
+        });
         
         ignorePagesContainer.appendChild(ignorePagesInput);
         ignorePagesContainer.appendChild(ignorePagesLookupBtn);
@@ -1018,6 +1050,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
+        // Apply same styling as refresh button
+        exportButton.style.background = "none";
+        exportButton.style.border = "none";
+        exportButton.style.color = "var(--vscode-editor-foreground)";
+        exportButton.style.padding = "4px 8px";
+        exportButton.style.cursor = "pointer";
+        exportButton.style.display = "flex";
+        exportButton.style.alignItems = "center";
+        exportButton.style.borderRadius = "4px";
+        exportButton.style.transition = "background 0.15s";
+        // Add hover effect
+        exportButton.addEventListener("mouseenter", function() {
+            exportButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        exportButton.addEventListener("mouseleave", function() {
+            exportButton.style.background = "none";
+        });
     }
     
     if (refreshButton) {
@@ -1048,12 +1097,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const validateButton = document.getElementById('validateButton');
     if (validateButton) {
         validateButton.addEventListener('click', validateAllPageNames);
+        // Apply same styling as refresh button
+        validateButton.style.background = "none";
+        validateButton.style.border = "none";
+        validateButton.style.color = "var(--vscode-editor-foreground)";
+        validateButton.style.padding = "4px 8px";
+        validateButton.style.cursor = "pointer";
+        validateButton.style.display = "flex";
+        validateButton.style.alignItems = "center";
+        validateButton.style.borderRadius = "4px";
+        validateButton.style.transition = "background 0.15s";
+        // Add hover effect
+        validateButton.addEventListener("mouseenter", function() {
+            validateButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        validateButton.addEventListener("mouseleave", function() {
+            validateButton.style.background = "none";
+        });
     }
     
     // Setup best guess button
     const bestGuessButton = document.getElementById('bestGuessButton');
     if (bestGuessButton) {
         bestGuessButton.addEventListener('click', makeBestGuess);
+        // Apply same styling as refresh button
+        bestGuessButton.style.background = "none";
+        bestGuessButton.style.border = "none";
+        bestGuessButton.style.color = "var(--vscode-editor-foreground)";
+        bestGuessButton.style.padding = "4px 8px";
+        bestGuessButton.style.cursor = "pointer";
+        bestGuessButton.style.display = "flex";
+        bestGuessButton.style.alignItems = "center";
+        bestGuessButton.style.borderRadius = "4px";
+        bestGuessButton.style.transition = "background 0.15s";
+        // Add hover effect
+        bestGuessButton.addEventListener("mouseenter", function() {
+            bestGuessButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        bestGuessButton.addEventListener("mouseleave", function() {
+            bestGuessButton.style.background = "none";
+        });
     }
     
     // Notify extension that webview is ready

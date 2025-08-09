@@ -1,3 +1,58 @@
+## USER STORY PAGE MAPPING VIEW BUTTON HOVER STYLING FIX (August 9, 2025) - COMPLETED ✅
+- Request: "on the user story page mapping view, check the buttons to the left of the refresh button"
+- Status: COMPLETED
+- Files Modified:
+  - src/webviews/userStoriesPageMappingView.js (applied refresh button styling to all icon buttons)
+- Issue Identified:
+  - Header icon buttons (bestGuess, validate, export) using "icon-button" CSS class with incorrect hover
+  - Table search buttons (pageMappingLookup, ignorePagesLookup) using "lookup-icon-btn" class with no styling
+  - Only refresh button had correct inline styling with proper VS Code hover colors
+- Buttons Fixed:
+  - ✅ bestGuessButton (Generate Best Guess Page Mappings - lightbulb icon)
+  - ✅ validateButton (Validate All Page Names - check icon)  
+  - ✅ exportButton (Download CSV - cloud-download icon)
+  - ✅ pageMappingLookupBtn (Search pages for mapping - search icon, dynamically created)
+  - ✅ ignorePagesLookupBtn (Search pages to ignore - search icon, dynamically created)
+- Solution Applied:
+  - ✅ Applied exact same inline styling as refresh button to all header icon buttons in DOMContentLoaded
+  - ✅ Applied exact same inline styling to dynamically created table lookup buttons at creation time
+  - ✅ All buttons now have consistent styling: background:none, proper padding, border-radius, transition
+  - ✅ All buttons use same hover effect: var(--vscode-list-hoverBackground)
+- Architecture Notes:
+  - User Story Page Mapping view separate from User Stories Journey view
+  - Header buttons defined in userStoriesPageMappingCommands.ts, table buttons created dynamically
+  - Lookup buttons in table need styling applied at createElement time, not in DOMContentLoaded
+  - Consistent with refresh button styling pattern across all views
+
+## USER STORIES JOURNEY VIEW BUTTON HOVER STYLING FIX (August 9, 2025) - COMPLETED ✅
+- Request: "review the User Stories - User Journey view. some buttons on this page have a blue background on hover. the hover on the refresh button is what color all icon buttons should have"
+- Follow-up: "nope. only the refresh icon button is correct" + "check the buttons to the left of the refresh button too"
+- Status: COMPLETED
+- Files Modified:
+  - src/webviews/userStoriesJourneyView.js (applied refresh button styling to ALL icon buttons)
+- Issue Identified:
+  - Header icon buttons (defineJourneyStart, calculateDistance, export) using "icon-button" CSS class with incorrect hover
+  - Journey/preview icon buttons (map and eye) in table were using CSS class without proper hover styling
+  - Search button in journey start modal also lacked proper hover styling
+  - Only refresh button had correct inline styling with proper VS Code hover colors
+- Buttons Fixed:
+  - ✅ defineJourneyStartButton (Define Journey Start Pages - location icon)
+  - ✅ calculateDistanceButton (Calculate Page Distances - pulse icon)  
+  - ✅ exportButton (Download CSV - cloud-download icon)
+  - ✅ Journey button in table (Show User Journey - map icon)
+  - ✅ Preview button in table (Show Page Preview - eye icon)
+  - ✅ Search button in modal (Search pages - search icon)
+- Solution Applied:
+  - ✅ Removed dependency on "icon-button" CSS class for all buttons
+  - ✅ Applied exact same inline styling as refresh button to all icon buttons
+  - ✅ All buttons now have consistent styling: background:none, proper padding, border-radius, transition
+  - ✅ All buttons use same hover effect: var(--vscode-list-hoverBackground)
+- Architecture Notes:
+  - Inline styling approach ensures consistency when CSS classes are unreliable
+  - All icon buttons now use exact same styling pattern as the reference refresh button
+  - Hover effects use proper VS Code theme variables for consistent theming
+  - Header buttons defined in userStoriesJourneyCommands.ts, table buttons created dynamically
+
 ## USER STORIES JOURNEY PAGE PREVIEW START PAGE ENHANCEMENT (August 9, 2025) - COMPLETED ✅
 - Request: "similar to openUserJourneyForPage we also need to send the startPage"
 - Status: COMPLETED
