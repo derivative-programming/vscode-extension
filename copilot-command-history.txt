@@ -1,3 +1,38 @@
+## STORY NUMBER NUMERIC SORTING - ADDITIONAL VIEWS (August 9, 2025) - COMPLETED ✅
+- Request: "fix this sort on the user story page mapping view and user story qa view too"
+- Status: COMPLETED
+- Files Modified: 
+  - src/commands/userStoriesPageMappingCommands.ts
+  - src/commands/userStoriesQACommands.ts
+- Changes Made:
+  - Added numeric comparison logic for storyNumber column in both Page Mapping and QA view sorting functions
+  - Both views now handle storyNumber as numeric values (parseInt) instead of string comparison
+  - Empty storyNumber values default to 0 for sorting purposes in both views
+  - Maintains existing string sorting for other columns
+- Technical Details:
+  - Added conditional check for sortColumn === 'storyNumber' in both files
+  - Uses parseInt() to convert string values to numbers 
+  - Handles empty/invalid values by defaulting to 0
+  - Preserves ascending/descending sort order functionality
+- Result: All three User Story views (Journey, Page Mapping, QA) now have consistent numeric sorting for Story Number column
+- Coverage: Complete numeric sorting implementation across all User Story management views
+
+## STORY NUMBER NUMERIC SORTING (August 9, 2025) - COMPLETED ✅
+- Request: "allow numeric sort on the story number column"
+- Status: COMPLETED
+- Files Modified: src/commands/userStoriesJourneyCommands.ts
+- Changes Made:
+  - Added numeric comparison logic for storyNumber column in sorting function
+  - Now handles storyNumber as numeric values (parseInt) instead of string comparison  
+  - Empty storyNumber values default to 0 for sorting purposes
+  - Maintains existing numeric sorting for journeyPageDistance column
+- Technical Details:
+  - Added conditional check for sortColumn === 'storyNumber'
+  - Uses parseInt() to convert string values to numbers
+  - Handles empty/invalid values by defaulting to 0
+  - Preserves ascending/descending sort order functionality
+- Result: Story Number column now sorts numerically (1, 2, 10, 20) instead of alphabetically (1, 10, 2, 20)
+
 ## JOURNEY PAGE DISTANCE COLUMN ADDITION (December 19, 2024) - COMPLETED ✅
 - Request: "add a new column 'Journey Page Distance' on the far right to display this value. allow numeric sort on column on header click. do not display value if its -1"
 - Status: COMPLETED

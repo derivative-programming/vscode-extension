@@ -180,6 +180,15 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
                     return sortDescending ? -result : result;
                 }
                 
+                // Handle numeric comparison for storyNumber
+                if (sortColumn === 'storyNumber') {
+                    const aNum = typeof aVal === 'number' ? aVal : (aVal === '' ? 0 : parseInt(aVal) || 0);
+                    const bNum = typeof bVal === 'number' ? bVal : (bVal === '' ? 0 : parseInt(bVal) || 0);
+                    
+                    const result = aNum - bNum;
+                    return sortDescending ? -result : result;
+                }
+                
                 // Handle string comparison
                 if (typeof aVal === 'string' && typeof bVal === 'string') {
                     aVal = aVal.toLowerCase();
