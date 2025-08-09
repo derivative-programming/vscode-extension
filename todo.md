@@ -282,11 +282,7 @@ user story - user journey view...
 user story journey- page preview...
 - take a look the 'calculate page distances' button on the user stories user journey page.  we want to get similar logic to determine the path from the page selected to be previewed, to the 'show me the way' page selection. Once we have an array that holds the page path, we know which button the user should click to get to the desired page. show a bright red border on that button.
 - the journey calculation should occur when the 'select page' dropdown changes or the 'show me the way' dropdown changes.  The page preview will need to be rerendered as well to update its display
-
-page preview - show me the way section...
-- the filter button does nothing
-- the refresh button does nothing
-- the icon to show if the section is collapsible does nothing on click, and should point up if the section is collapsed
+ 
 
 
 

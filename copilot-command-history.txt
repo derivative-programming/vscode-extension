@@ -1,3 +1,34 @@
+## PAGE PREVIEW "SHOW ME THE WAY" SECTION IMPROVEMENTS (August 9, 2025) - COMPLETED ✅
+- Request: "page preview view - show me the way section: the filter button does nothing, the refresh button does nothing, the icon to show if the section is collapsible does nothing on click, and should point up if the section is collapsed"
+- Status: COMPLETED
+- Files Modified: src/webviews/pagepreview/components/htmlGenerator.js
+- Key Features Implemented:
+  - ✅ Filter button now works - opens shared filter modal with context awareness
+  - ✅ Refresh button now works - refreshes page data same as main section
+  - ✅ Collapsible icon now works - toggles section expand/collapse on click
+  - ✅ Icon direction fixed - points up when collapsed, down when expanded
+  - ✅ Independent filter state for "Show me the way" section
+  - ✅ Clear filter button functionality
+  - ✅ Filter button visibility management (filter ↔ clear states)
+- Technical Implementation:
+  1. **Filter Functionality:**
+     - Added showMeTheWayCurrentFilter variable for independent filter state
+     - Modified handleApplyFilter() to check modal context (main vs showmetheway)
+     - Shared filter modal now supports both sections via data-context attribute
+     - updateShowMeTheWayDropdown() applies text filtering on top of role filtering
+  2. **Refresh Functionality:**
+     - handleShowMeTheWayRefreshPages() sends same refresh command as main section
+     - Leverages existing refresh infrastructure in page preview view
+  3. **Toggle Icon Fix:**
+     - Fixed toggleShowMeTheWay() to update chevron icon class directly
+     - Changed initial icon from chevron-right to chevron-up (collapsed state)
+     - Proper chevron-up (collapsed) ↔ chevron-down (expanded) transitions
+  4. **Button State Management:**
+     - Added updateShowMeTheWayFilterButtonVisibility() function
+     - Filter/clear button visibility based on current filter state
+     - Integrated with main dropdown updates to maintain consistency
+- Architecture Notes: The "show me the way" section now has full feature parity with the main "select page" section for filter and refresh operations, while maintaining independent filter state.
+
 ## PAGE PREVIEW "SHOW ME THE WAY" SECTION (August 9, 2025) - COMPLETED ✅
 - Request: "Under the 'Select Page' section, add a 'Show me the way' section that is collapsible by default. it should show the same dropdown and buttons as the 'select page' section. nothing happens on selection"
 - Status: COMPLETED

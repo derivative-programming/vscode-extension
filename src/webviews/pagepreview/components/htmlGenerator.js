@@ -102,8 +102,8 @@ function generateHTMLContent(allObjects, codiconsUri) {
                 <div class="showmetheway-section">
                     <div class="showmetheway-header" onclick="toggleShowMeTheWay()">
                         <h3 class="showmetheway-title">Show me the way</h3>
-                        <button class="showmetheway-collapse-button" onclick="toggleShowMeTheWay()" title="Expand/Collapse Show me the way">
-                            <span class="codicon codicon-chevron-right"></span>
+                        <button class="showmetheway-collapse-button" onclick="toggleShowMeTheWay(event)" title="Expand Show me the way">
+                            <span class="codicon codicon-chevron-up"></span>
                         </button>
                     </div>
                     <div class="showmetheway-content" id="showMeTheWayContent" style="display: none;">
@@ -431,7 +431,7 @@ function generateCSS() {
         }
         
         .showmetheway-collapse-button.expanded {
-            transform: rotate(90deg);
+            /* No transform needed - handled by chevron icon class switching */
         }
         
         .showmetheway-collapse-button .codicon {
@@ -1914,6 +1914,9 @@ function generateJavaScript(allObjects) {
             // Update page count display
             updatePageCountDisplay(allPages.length, finalFilteredPages.length, filteredPages.length);
             
+            // Update Show Me The Way filter button visibility
+            updateShowMeTheWayFilterButtonVisibility();
+            
             // Update Show Me The Way dropdown if it's expanded
             const showMeTheWayContent = document.getElementById('showMeTheWayContent');
             if (showMeTheWayContent && showMeTheWayContent.style.display !== 'none') {
@@ -2014,6 +2017,8 @@ function generateJavaScript(allObjects) {
             const modal = document.getElementById('filterModal');
             if (modal) {
                 modal.style.display = 'none';
+                // Clear context attribute
+                modal.removeAttribute('data-context');
             }
         }
         
@@ -2022,19 +2027,29 @@ function generateJavaScript(allObjects) {
             console.log('[DEBUG] PagePreview - Applying filter...');
             
             const filterInput = document.getElementById('filterInput');
-            if (filterInput) {
+            const modal = document.getElementById('filterModal');
+            
+            if (filterInput && modal) {
                 const filterText = filterInput.value.trim();
-                currentFilter = filterText;
+                const context = modal.getAttribute('data-context');
                 
-                console.log('[DEBUG] PagePreview - Filter text:', filterText);
+                console.log('[DEBUG] PagePreview - Filter text:', filterText, 'Context:', context);
                 
-                // Update button visibility
-                updateFilterButtonVisibility();
+                if (context === 'showmetheway') {
+                    // Apply filter to Show Me The Way section
+                    applyShowMeTheWayFilter(filterText);
+                } else {
+                    // Apply filter to main Select Page section
+                    currentFilter = filterText;
+                    
+                    // Update button visibility
+                    updateFilterButtonVisibility();
+                    
+                    // Update dropdown with filtered results
+                    updatePageDropdown();
+                }
                 
-                // Update dropdown with filtered results
-                updatePageDropdown();
-                
-                // Close modal
+                // Close modal and clear context
                 handleCloseFilterModal();
             }
         }
@@ -2096,13 +2111,19 @@ function generateJavaScript(allObjects) {
         // Show Me The Way Section Functions
         
         // Toggle Show Me The Way section collapse/expand
-        function toggleShowMeTheWay() {
+        function toggleShowMeTheWay(event) {
             console.log('[DEBUG] PagePreview - Toggling Show me the way section...');
+            
+            // Prevent event bubbling if called from button click
+            if (event) {
+                event.stopPropagation();
+            }
             
             const content = document.getElementById('showMeTheWayContent');
             const button = document.querySelector('.showmetheway-collapse-button');
+            const chevronIcon = button ? button.querySelector('.codicon') : null;
             
-            if (!content || !button) {
+            if (!content || !button || !chevronIcon) {
                 return;
             }
             
@@ -2113,6 +2134,7 @@ function generateJavaScript(allObjects) {
                 content.style.display = 'block';
                 button.classList.add('expanded');
                 button.title = 'Collapse Show me the way';
+                chevronIcon.className = 'codicon codicon-chevron-down';
                 
                 // Update the dropdown with current pages when expanded
                 updateShowMeTheWayDropdown();
@@ -2121,10 +2143,11 @@ function generateJavaScript(allObjects) {
                 content.style.display = 'none';
                 button.classList.remove('expanded');
                 button.title = 'Expand Show me the way';
+                chevronIcon.className = 'codicon codicon-chevron-up';
             }
         }
         
-        // Update the Show Me The Way dropdown with current pages
+        // Update the Show Me The Way dropdown with current pages and apply filtering
         function updateShowMeTheWayDropdown() {
             console.log('[DEBUG] PagePreview - Updating Show me the way dropdown...');
             
@@ -2136,16 +2159,29 @@ function generateJavaScript(allObjects) {
                 return;
             }
             
-            // Use the same filtered pages as the main dropdown
-            const currentFilteredPages = window.filteredPages || [];
+            // Start with the same role-filtered pages as the main dropdown
+            const roleFilteredPages = window.filteredPages || [];
+            
+            // Apply text filter if one exists
+            let finalFilteredPages = roleFilteredPages;
+            if (showMeTheWayCurrentFilter) {
+                const filterTextLower = showMeTheWayCurrentFilter.toLowerCase();
+                finalFilteredPages = roleFilteredPages.filter(page => {
+                    const nameMatch = page.name && page.name.toLowerCase().includes(filterTextLower);
+                    const titleMatch = page.titleText && page.titleText.toLowerCase().includes(filterTextLower);
+                    return nameMatch || titleMatch;
+                });
+            }
             
             // Clear existing options (except the first one)
             dropdown.innerHTML = '<option value="">Select a page...</option>';
             
-            // Add filtered pages (same as main dropdown)
-            currentFilteredPages.forEach((page, index) => {
+            // Add filtered pages
+            finalFilteredPages.forEach((page, index) => {
                 const option = document.createElement('option');
-                option.value = index;
+                // Use the index from the role-filtered pages to maintain compatibility
+                const originalIndex = roleFilteredPages.indexOf(page);
+                option.value = originalIndex;
                 // Display format: [name] - [title] (or just name if no title)
                 const displayText = page.titleText && page.titleText !== page.name 
                     ? page.name + ' - ' + page.titleText
@@ -2158,7 +2194,15 @@ function generateJavaScript(allObjects) {
             
             // Update page count display
             if (pageCountDisplay) {
-                pageCountDisplay.textContent = currentFilteredPages.length + ' pages available';
+                let displayText = '';
+                if (showMeTheWayCurrentFilter) {
+                    // Filter is active - show filtered count out of role-filtered total
+                    displayText = finalFilteredPages.length + ' of ' + roleFilteredPages.length + ' pages shown';
+                } else {
+                    // No filter - show total count
+                    displayText = roleFilteredPages.length + ' pages available';
+                }
+                pageCountDisplay.textContent = displayText;
             }
         }
         
@@ -2204,19 +2248,79 @@ function generateJavaScript(allObjects) {
             calculateAndHighlightPath(currentPage.name, targetPage.name);
         }
         
-        // Handle Show Me The Way filter button (placeholder - no action)
+        // Show Me The Way Filter Management
+        let showMeTheWayCurrentFilter = '';
+        
+        // Handle Show Me The Way filter button - shows the filter modal
         function handleShowMeTheWayFilter() {
-            console.log('[DEBUG] PagePreview - Show me the way filter clicked (no action)');
+            console.log('[DEBUG] PagePreview - Show me the way filter button clicked');
+            
+            const modal = document.getElementById('filterModal');
+            const filterInput = document.getElementById('filterInput');
+            
+            if (modal && filterInput) {
+                // Set current filter value in the input
+                filterInput.value = showMeTheWayCurrentFilter;
+                modal.style.display = 'flex';
+                filterInput.focus();
+                
+                // Store context so we know this filter is for "show me the way"
+                modal.setAttribute('data-context', 'showmetheway');
+            }
         }
         
-        // Handle Show Me The Way clear filter button (placeholder - no action)
+        // Handle Show Me The Way clear filter button
         function handleShowMeTheWayClearFilter() {
-            console.log('[DEBUG] PagePreview - Show me the way clear filter clicked (no action)');
+            console.log('[DEBUG] PagePreview - Show me the way clear filter clicked');
+            
+            showMeTheWayCurrentFilter = '';
+            
+            // Update button visibility
+            updateShowMeTheWayFilterButtonVisibility();
+            
+            // Update dropdown to show all pages
+            updateShowMeTheWayDropdown();
         }
         
-        // Handle Show Me The Way refresh button (placeholder - no action)
+        // Handle Show Me The Way refresh button - same as main refresh
         function handleShowMeTheWayRefreshPages() {
-            console.log('[DEBUG] PagePreview - Show me the way refresh clicked (no action)');
+            console.log('[DEBUG] PagePreview - Show me the way refresh button clicked');
+            
+            // Request fresh data from the extension (same as main refresh)
+            vscode.postMessage({
+                command: 'refresh'
+            });
+        }
+        
+        // Update Show Me The Way filter button visibility based on current filter state
+        function updateShowMeTheWayFilterButtonVisibility() {
+            const filterButton = document.getElementById('showMeTheWayFilterButton');
+            const cancelFilterButton = document.getElementById('showMeTheWayCancelFilterButton');
+            
+            if (filterButton && cancelFilterButton) {
+                if (showMeTheWayCurrentFilter) {
+                    // Filter is active - hide filter button, show cancel button
+                    filterButton.style.display = 'none';
+                    cancelFilterButton.style.display = 'flex';
+                } else {
+                    // No filter - show filter button, hide cancel button
+                    filterButton.style.display = 'flex';
+                    cancelFilterButton.style.display = 'none';
+                }
+            }
+        }
+        
+        // Apply filter to Show Me The Way section
+        function applyShowMeTheWayFilter(filterText) {
+            console.log('[DEBUG] PagePreview - Applying Show me the way filter:', filterText);
+            
+            showMeTheWayCurrentFilter = filterText.trim();
+            
+            // Update button visibility
+            updateShowMeTheWayFilterButtonVisibility();
+            
+            // Update dropdown with filtered results
+            updateShowMeTheWayDropdown();
         }
         
         // Navigation Path Finding and Highlighting Functions
