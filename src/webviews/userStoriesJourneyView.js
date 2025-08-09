@@ -152,6 +152,71 @@ function closeJourneyStartPageLookupModal() {
     currentSelectedRole = null;
 }
 
+// Open progress modal (global function for onclick)
+function openProgressModal() {
+    const modal = document.getElementById('progressModal');
+    if (modal) {
+        modal.style.display = 'block';
+        resetProgressModal();
+    }
+}
+
+// Close progress modal (global function for onclick)
+function closeProgressModal() {
+    const modal = document.getElementById('progressModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Reset progress modal to initial state
+function resetProgressModal() {
+    updateProgress(0, 'Initializing...');
+    document.getElementById('stepLoadingDetail').textContent = 'Initializing';
+    document.getElementById('stepPageFlowDetail').textContent = 'Waiting';
+    document.getElementById('stepCalculatingDetail').textContent = 'Waiting';
+    document.getElementById('stepSavingDetail').textContent = 'Waiting';
+    document.getElementById('progressCloseButton').disabled = true;
+}
+
+// Update progress bar and percentage
+function updateProgress(percentage, detail) {
+    const progressBar = document.getElementById('progressBar');
+    const progressPercentage = document.getElementById('progressPercentage');
+    
+    if (progressBar) {
+        progressBar.style.width = percentage + '%';
+    }
+    
+    if (progressPercentage) {
+        progressPercentage.textContent = Math.round(percentage) + '%';
+    }
+}
+
+// Update specific step detail
+function updateStepDetail(stepName, detail) {
+    const stepElement = document.getElementById('step' + stepName + 'Detail');
+    if (stepElement) {
+        stepElement.textContent = detail;
+    }
+}
+
+// Complete progress and enable close button
+function completeProgress() {
+    updateProgress(100, 'Complete');
+    document.getElementById('progressCloseButton').disabled = false;
+}
+
+// Start distance calculation (global function for onclick)
+function calculateDistances() {
+    openProgressModal();
+    
+    // Send command to extension to start calculation
+    vscode.postMessage({
+        command: 'calculatePageDistances'
+    });
+}
+
 // Filter pages in the journey start page lookup (global function for onkeyup)
 function filterJourneyStartPageList() {
     const filterInput = document.getElementById('journeyStartPageFilterInput');
@@ -420,7 +485,8 @@ function renderTable() {
     const columns = [
         { key: 'storyNumber', label: 'Story Number', sortable: true, className: 'story-number-column' },
         { key: 'storyText', label: 'Story Text', sortable: true, className: 'story-text-column' },
-        { key: 'page', label: 'Page', sortable: true, className: 'page-column' }
+        { key: 'page', label: 'Page', sortable: true, className: 'page-column' },
+        { key: 'journeyPageDistance', label: 'Journey Page Distance', sortable: true, className: 'journey-page-distance-column' }
     ];
     
     // Create table header
@@ -485,6 +551,17 @@ function renderTable() {
             pageCell.className = "page-column";
             pageCell.textContent = item.page || '';
             row.appendChild(pageCell);
+            
+            // Journey Page Distance
+            const journeyPageDistanceCell = document.createElement("td");
+            journeyPageDistanceCell.className = "journey-page-distance-column";
+            // Only display distance if it's not -1 (unreachable)
+            if (item.journeyPageDistance !== undefined && item.journeyPageDistance !== -1) {
+                journeyPageDistanceCell.textContent = item.journeyPageDistance.toString();
+            } else {
+                journeyPageDistanceCell.textContent = '';
+            }
+            row.appendChild(journeyPageDistanceCell);
             
             
             tbody.appendChild(row);
@@ -598,6 +675,43 @@ window.addEventListener('message', event => {
             processJourneyStartPagesSaved(message.success, message.message);
             break;
             
+        case 'distanceCalculationProgress':
+            console.log('Distance calculation progress:', message.data);
+            const { step, percentage, detail, stepDetails } = message.data;
+            
+            updateProgress(percentage, detail);
+            
+            if (stepDetails) {
+                if (stepDetails.loading) {
+                    updateStepDetail('Loading', stepDetails.loading);
+                }
+                if (stepDetails.pageFlow) {
+                    updateStepDetail('PageFlow', stepDetails.pageFlow);
+                }
+                if (stepDetails.calculating) {
+                    updateStepDetail('Calculating', stepDetails.calculating);
+                }
+                if (stepDetails.saving) {
+                    updateStepDetail('Saving', stepDetails.saving);
+                }
+            }
+            break;
+            
+        case 'distanceCalculationComplete':
+            console.log('Distance calculation complete:', message.data);
+            completeProgress();
+            
+            if (message.data.success) {
+                setTimeout(() => {
+                    closeProgressModal();
+                    // Optionally refresh the view to show updated data
+                    refresh();
+                }, 2000);
+            } else {
+                alert('Error calculating distances: ' + (message.data.error || 'Unknown error'));
+            }
+            break;
+            
         default:
             console.log('Unknown message:', message);
             break;
@@ -622,6 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportButton = document.getElementById('exportButton');
     const refreshButton = document.getElementById('refreshButton');
     const defineJourneyStartButton = document.getElementById('defineJourneyStartButton');
+    const calculateDistanceButton = document.getElementById('calculateDistanceButton');
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
@@ -631,12 +746,8 @@ document.addEventListener('DOMContentLoaded', () => {
         defineJourneyStartButton.addEventListener('click', openJourneyStartModal);
     }
     
-    if (exportButton) {
-        exportButton.addEventListener('click', exportToCSV);
-    }
-    
-    if (defineJourneyStartButton) {
-        defineJourneyStartButton.addEventListener('click', openJourneyStartModal);
+    if (calculateDistanceButton) {
+        calculateDistanceButton.addEventListener('click', calculateDistances);
     }
     
     if (refreshButton) {
@@ -670,6 +781,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.onclick = function(event) {
         const journeyStartModal = document.getElementById('journeyStartModal');
         const pageLookupModal = document.getElementById('journeyStartPageLookupModal');
+        const progressModal = document.getElementById('progressModal');
         
         if (event.target === journeyStartModal) {
             closeJourneyStartModal();
@@ -677,6 +789,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (event.target === pageLookupModal) {
             closeJourneyStartPageLookupModal();
+        }
+        
+        if (event.target === progressModal) {
+            // Don't close progress modal by clicking outside - it should only close when done
+            // closeProgressModal();
         }
     };
 });

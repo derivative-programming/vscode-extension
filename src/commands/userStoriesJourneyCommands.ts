@@ -97,6 +97,22 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
 
         console.log(`[Extension] Found ${userStories.length} user stories`);
 
+        // Load existing journey data (for page distances)
+        let journeyData: any = { pageDistances: [] };
+        if (modelFilePath) {
+            const modelDir = path.dirname(modelFilePath);
+            const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
+            
+            try {
+                if (fs.existsSync(journeyFilePath)) {
+                    const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                    journeyData = JSON.parse(journeyContent);
+                }
+            } catch (error) {
+                console.warn("[Extension] Could not load journey data file:", error);
+            }
+        }
+
         // Build combined data array with page mapping
         const combinedData: any[] = [];
         userStories.forEach(story => {
@@ -110,11 +126,16 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
             if (pages.length > 0) {
                 // Create a row for each page that fulfils the story
                 pages.forEach((page: string) => {
+                    // Find page distance from journey data
+                    const pageDistanceData = journeyData.pageDistances?.find((pd: any) => pd.destinationPage === page);
+                    const journeyPageDistance = pageDistanceData ? pageDistanceData.distance : -1;
+                    
                     combinedData.push({
                         storyId: storyId,
                         storyNumber: story.storyNumber || '',
                         storyText: story.storyText || '',
                         page: page,
+                        journeyPageDistance: journeyPageDistance,
                         pageMappingFilePath: pageMappingFilePath,
                         selected: false // For checkbox functionality
                     });
@@ -126,6 +147,7 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
                     storyNumber: story.storyNumber || '',
                     storyText: story.storyText || '',
                     page: '',
+                    journeyPageDistance: -1,
                     pageMappingFilePath: pageMappingFilePath,
                     selected: false // For checkbox functionality
                 });
@@ -137,6 +159,26 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
             combinedData.sort((a, b) => {
                 let aVal = a[sortColumn] || '';
                 let bVal = b[sortColumn] || '';
+                
+                // Handle numeric comparison for journeyPageDistance
+                if (sortColumn === 'journeyPageDistance') {
+                    const aNum = typeof aVal === 'number' ? aVal : (aVal === '' ? -1 : parseInt(aVal) || -1);
+                    const bNum = typeof bVal === 'number' ? bVal : (bVal === '' ? -1 : parseInt(bVal) || -1);
+                    
+                    // Sort with -1 values at the end
+                    if (aNum === -1 && bNum === -1) {
+                        return 0;
+                    }
+                    if (aNum === -1) {
+                        return 1;
+                    }
+                    if (bNum === -1) {
+                        return -1;
+                    }
+                    
+                    const result = aNum - bNum;
+                    return sortDescending ? -result : result;
+                }
                 
                 // Handle string comparison
                 if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -357,6 +399,364 @@ async function saveJourneyStartData(journeyStartPages: any, modelService: ModelS
         console.error("[Extension] Error saving journey start data:", error);
         throw error;
     }
+}
+
+/**
+ * Extracts buttons with destination targets from a workflow
+ */
+function extractButtonsFromWorkflow(workflow: any): any[] {
+    const buttons: any[] = [];
+    
+    // Extract object workflow buttons with destination targets
+    if (workflow.objectWorkflowButton && Array.isArray(workflow.objectWorkflowButton)) {
+        workflow.objectWorkflowButton.forEach((button: any) => {
+            // Only include buttons that have destination targets and are visible and not ignored
+            if (button.destinationTargetName && 
+                (!button.hasOwnProperty('isVisible') || button.isVisible !== "false") && 
+                (!button.hasOwnProperty('isIgnored') || button.isIgnored !== "true")) {
+                buttons.push({
+                    buttonName: button.buttonText || 'Button',
+                    buttonText: button.buttonText,
+                    buttonType: button.buttonType || 'other',
+                    destinationTargetName: button.destinationTargetName,
+                    destinationContextObjectName: button.destinationContextObjectName
+                });
+            }
+        });
+    }
+    
+    return buttons;
+}
+
+/**
+ * Extracts buttons with destination targets from a report
+ */
+function extractButtonsFromReport(report: any): any[] {
+    const buttons: any[] = [];
+    
+    // Extract report buttons (excluding breadcrumb buttons)
+    if (report.reportButton && Array.isArray(report.reportButton)) {
+        report.reportButton.forEach((button: any) => {
+            // Only include buttons that have destination targets, are not breadcrumb buttons, and are visible and not ignored
+            if (button.destinationTargetName && 
+                button.buttonType !== "breadcrumb" &&
+                (!button.hasOwnProperty('isVisible') || button.isVisible !== "false") && 
+                (!button.hasOwnProperty('isIgnored') || button.isIgnored !== "true")) {
+                buttons.push({
+                    buttonName: button.buttonName || button.buttonText,
+                    buttonText: button.buttonText,
+                    buttonType: button.buttonType,
+                    destinationTargetName: button.destinationTargetName,
+                    destinationContextObjectName: button.destinationContextObjectName
+                });
+            }
+        });
+    }
+    
+    // Extract report column buttons with destinations
+    if (report.reportColumn && Array.isArray(report.reportColumn)) {
+        report.reportColumn.forEach((column: any) => {
+            // Only include column buttons that have destination targets and are visible and not ignored
+            if (column.isButton === "true" && 
+                column.destinationTargetName &&
+                (!column.hasOwnProperty('isVisible') || column.isVisible !== "false") && 
+                (!column.hasOwnProperty('isIgnored') || column.isIgnored !== "true")) {
+                buttons.push({
+                    buttonName: column.name,
+                    buttonText: column.buttonText,
+                    buttonType: 'column',
+                    destinationTargetName: column.destinationTargetName,
+                    destinationContextObjectName: column.destinationContextObjectName
+                });
+            }
+        });
+    }
+    
+    return buttons;
+}
+
+/**
+ * Calculate page distances from journey start pages
+ */
+async function calculatePageDistances(panel: vscode.WebviewPanel, modelService: ModelService): Promise<void> {
+    try {
+        console.log("[Extension] Starting page distance calculation");
+        
+        // Step 1: Load journey start pages (10%)
+        panel.webview.postMessage({
+            command: 'distanceCalculationProgress',
+            data: {
+                step: 'loading',
+                percentage: 10,
+                detail: 'Loading journey start pages...',
+                stepDetails: { loading: 'Loading journey start pages from file' }
+            }
+        });
+
+        const journeyStartData = await loadJourneyStartData(modelService);
+        const journeyStartPages = journeyStartData.journeyStartPages || {};
+        
+        console.log("[Extension] Loaded journey start pages:", journeyStartPages);
+
+        if (Object.keys(journeyStartPages).length === 0) {
+            throw new Error('No journey start pages defined. Please define journey start pages first.');
+        }
+
+        // Step 2: Load page flow data (30%)
+        panel.webview.postMessage({
+            command: 'distanceCalculationProgress',
+            data: {
+                step: 'pageFlow',
+                percentage: 30,
+                detail: 'Loading page flow data...',
+                stepDetails: { pageFlow: 'Loading pages and connections from model' }
+            }
+        });
+
+        // Get all objects using ModelService (same approach as Page Flow view)
+        const allObjects = modelService.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            throw new Error('No objects available in model');
+        }
+
+        // Extract pages from objectWorkflow and report arrays (same logic as Page Flow view)
+        const pages: any[] = [];
+        const connections: any[] = []; // Keep empty for now, will use button destinations
+
+        allObjects.forEach((obj: any) => {
+            // Extract forms (object workflows with isPage=true)
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === 'true') {
+                        const page = {
+                            name: workflow.name,
+                            titleText: workflow.titleText || workflow.name,
+                            type: 'form',
+                            objectName: obj.name,
+                            buttons: extractButtonsFromWorkflow(workflow),
+                            roleRequired: workflow.roleRequired,
+                            isPage: workflow.isPage
+                        };
+                        pages.push(page);
+                    }
+                });
+            }
+
+            // Extract reports with isPage=true
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if (report.isPage === 'true') {
+                        const page = {
+                            name: report.name,
+                            titleText: report.titleText || report.name,
+                            type: 'report',
+                            objectName: obj.name,
+                            buttons: extractButtonsFromReport(report),
+                            roleRequired: report.roleRequired,
+                            isPage: report.isPage
+                        };
+                        pages.push(page);
+                    }
+                });
+            }
+        });
+
+        const flowData = { pages, connections };
+        console.log("[Extension] Extracted pages:", pages.length);
+        console.log("[Extension] Extracted connections:", connections.length);
+        console.log("[Extension] Sample page:", pages.length > 0 ? pages[0] : 'none');
+
+        // Step 3: Calculate distances (70%)
+        panel.webview.postMessage({
+            command: 'distanceCalculationProgress',
+            data: {
+                step: 'calculating',
+                percentage: 50,
+                detail: 'Calculating page distances...',
+                stepDetails: { calculating: 'Building page connection graph' }
+            }
+        });
+
+        // Build the page graph (same logic as in page flow user journey)
+        const graph: { [key: string]: string[] } = {};
+        const pageMap: { [key: string]: any } = {};
+
+        // Initialize graph with all pages
+        pages.forEach(page => {
+            graph[page.name] = [];
+            pageMap[page.name] = page;
+        });
+
+        // Add explicit connections to graph
+        connections.forEach(connection => {
+            if (connection.from && connection.to && graph[connection.from] && graph[connection.to]) {
+                graph[connection.from].push(connection.to);
+            }
+        });
+
+        // Add button destinations from each page
+        pages.forEach(page => {
+            if (page.buttons && Array.isArray(page.buttons)) {
+                page.buttons.forEach((button: any) => {
+                    if (button.destinationTargetName && graph[page.name] && graph[button.destinationTargetName]) {
+                        // Avoid duplicate connections
+                        if (!graph[page.name].includes(button.destinationTargetName)) {
+                            graph[page.name].push(button.destinationTargetName);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Calculate distances for each page from its role's start page
+        const pageDistances: any[] = [];
+        const totalPages = pages.length;
+        let processedPages = 0;
+
+        for (const page of pages) {
+            // Find which role this page belongs to and get the start page for that role
+            const roleStartPages = Object.entries(journeyStartPages);
+            let shortestDistance = -1; // -1 means unreachable
+            let fromStartPage = '';
+
+            // Check distance from each role's start page and take the shortest
+            for (const [roleName, startPageName] of roleStartPages) {
+                if (typeof startPageName === 'string' && startPageName.trim() !== '') {
+                    const distance = findShortestPathDistance(startPageName, page.name, graph);
+                    if (distance >= 0 && (shortestDistance < 0 || distance < shortestDistance)) {
+                        shortestDistance = distance;
+                        fromStartPage = startPageName;
+                    }
+                }
+            }
+
+            pageDistances.push({
+                destinationPage: page.name,
+                distance: shortestDistance
+            });
+
+            processedPages++;
+            const progressPercentage = 50 + Math.round((processedPages / totalPages) * 20);
+            
+            panel.webview.postMessage({
+                command: 'distanceCalculationProgress',
+                data: {
+                    step: 'calculating',
+                    percentage: progressPercentage,
+                    detail: `Calculating distances... (${processedPages}/${totalPages})`,
+                    stepDetails: { 
+                        calculating: `Processed ${processedPages} of ${totalPages} pages` 
+                    }
+                }
+            });
+        }
+
+        // Step 4: Save results (90%)
+        panel.webview.postMessage({
+            command: 'distanceCalculationProgress',
+            data: {
+                step: 'saving',
+                percentage: 90,
+                detail: 'Saving distance calculations...',
+                stepDetails: { saving: 'Writing results to user journey file' }
+            }
+        });
+
+        // Save the page distances to the user journey file
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            throw new Error('No model file path available');
+        }
+
+        const modelDir = path.dirname(modelFilePath);
+        const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
+        
+        console.log("[Extension] Journey file path:", journeyFilePath);
+        console.log("[Extension] Calculated page distances:", pageDistances.length, "items");
+
+        // Load existing journey data
+        let journeyData: any = { journeyStartPages: {}, pageDistances: [] };
+        try {
+            if (fs.existsSync(journeyFilePath)) {
+                console.log("[Extension] Loading existing journey file");
+                const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                journeyData = JSON.parse(journeyContent);
+                console.log("[Extension] Existing journey data loaded:", Object.keys(journeyData));
+            } else {
+                console.log("[Extension] Journey file does not exist, creating new one");
+            }
+        } catch (error) {
+            console.warn("[Extension] Could not load existing journey file:", error);
+        }
+
+        // Update page distances
+        journeyData.pageDistances = pageDistances;
+        console.log("[Extension] Updated journey data with page distances:", journeyData.pageDistances.length, "items");
+
+        // Save to file
+        const content = JSON.stringify(journeyData, null, 2);
+        console.log("[Extension] Writing file content length:", content.length, "characters");
+        fs.writeFileSync(journeyFilePath, content, 'utf8');
+        console.log("[Extension] File written successfully to:", journeyFilePath);
+
+        // Complete (100%)
+        panel.webview.postMessage({
+            command: 'distanceCalculationComplete',
+            data: {
+                success: true,
+                pageDistances: pageDistances,
+                message: `Successfully calculated distances for ${pageDistances.length} pages`
+            }
+        });
+
+        console.log(`[Extension] Page distances calculated and saved: ${pageDistances.length} pages processed`);
+
+    } catch (error) {
+        console.error("[Extension] Error calculating page distances:", error);
+        panel.webview.postMessage({
+            command: 'distanceCalculationComplete',
+            data: {
+                success: false,
+                error: error.message
+            }
+        });
+        throw error;
+    }
+}
+
+/**
+ * Find shortest path distance between two pages using BFS
+ */
+function findShortestPathDistance(startPageName: string, targetPageName: string, graph: { [key: string]: string[] }): number {
+    if (startPageName === targetPageName) {
+        return 0;
+    }
+
+    const queue = [{ page: startPageName, distance: 0 }];
+    const visited = new Set<string>();
+    visited.add(startPageName);
+
+    while (queue.length > 0) {
+        const { page, distance } = queue.shift()!;
+
+        if (page === targetPageName) {
+            return distance;
+        }
+
+        if (graph[page]) {
+            graph[page].forEach(neighborPage => {
+                if (!visited.has(neighborPage)) {
+                    visited.add(neighborPage);
+                    queue.push({
+                        page: neighborPage,
+                        distance: distance + 1
+                    });
+                }
+            });
+        }
+    }
+
+    return -1; // No path found
 }
 
 /**
@@ -625,6 +1025,11 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         
                         .page-column {
                             width: 200px;
+                        }
+                        
+                        .journey-page-distance-column {
+                            width: 120px;
+                            text-align: center;
                         }
                         
                         .header-actions {
@@ -1024,6 +1429,126 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         .page-lookup-cancel-button:hover {
                             background-color: var(--vscode-button-secondaryHoverBackground);
                         }
+                        
+                        /* Progress Modal Styles */
+                        .progress-modal {
+                            display: none;
+                            position: fixed;
+                            z-index: 1001;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(0, 0, 0, 0.5);
+                        }
+                        
+                        .progress-modal-content {
+                            background-color: var(--vscode-panel-background);
+                            margin: 15% auto;
+                            padding: 20px;
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 6px;
+                            width: 400px;
+                            max-width: 90%;
+                            color: var(--vscode-editor-foreground);
+                            position: relative;
+                        }
+                        
+                        .progress-header {
+                            font-size: 16px;
+                            font-weight: 600;
+                            margin-bottom: 20px;
+                            color: var(--vscode-editor-foreground);
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                        }
+                        
+                        .progress-content {
+                            margin-bottom: 20px;
+                        }
+                        
+                        .progress-step {
+                            margin-bottom: 10px;
+                            padding: 8px 0;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                        }
+                        
+                        .progress-step:last-child {
+                            border-bottom: none;
+                        }
+                        
+                        .progress-step-title {
+                            font-weight: 500;
+                            margin-bottom: 4px;
+                        }
+                        
+                        .progress-step-detail {
+                            font-size: 12px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .progress-bar-container {
+                            width: 100%;
+                            height: 8px;
+                            background-color: var(--vscode-progressBar-background);
+                            border-radius: 4px;
+                            margin: 10px 0;
+                            overflow: hidden;
+                        }
+                        
+                        .progress-bar {
+                            height: 100%;
+                            background-color: var(--vscode-progressBar-background);
+                            border-radius: 4px;
+                            transition: width 0.3s ease;
+                            background: linear-gradient(90deg, var(--vscode-progressBar-background) 0%, var(--vscode-button-background) 100%);
+                        }
+                        
+                        .progress-percentage {
+                            text-align: center;
+                            font-size: 12px;
+                            color: var(--vscode-descriptionForeground);
+                            margin-top: 5px;
+                        }
+                        
+                        .progress-spinner {
+                            display: inline-block;
+                            width: 16px;
+                            height: 16px;
+                            border: 2px solid var(--vscode-progressBar-background);
+                            border-radius: 50%;
+                            border-top-color: var(--vscode-button-background);
+                            animation: spin 1s ease-in-out infinite;
+                        }
+                        
+                        @keyframes spin {
+                            to { transform: rotate(360deg); }
+                        }
+                        
+                        .progress-footer {
+                            display: flex;
+                            justify-content: flex-end;
+                            gap: 10px;
+                        }
+                        
+                        .progress-close-button {
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: none;
+                            padding: 8px 16px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                        }
+                        
+                        .progress-close-button:hover {
+                            background-color: var(--vscode-button-secondaryHoverBackground);
+                        }
+                        
+                        .progress-close-button:disabled {
+                            opacity: 0.4;
+                            cursor: not-allowed;
+                        }
                     </style>
                 </head>
                 <body>
@@ -1063,6 +1588,9 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                     <div class="header-actions">
                         <button id="defineJourneyStartButton" class="icon-button" title="Define Journey Start Pages">
                             <i class="codicon codicon-location"></i>
+                        </button>
+                        <button id="calculateDistanceButton" class="icon-button" title="Calculate Page Distances">
+                            <i class="codicon codicon-pulse"></i>
                         </button>
                         <button id="exportButton" class="icon-button" title="Download CSV">
                             <i class="codicon codicon-cloud-download"></i>
@@ -1153,6 +1681,44 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             <div class="page-lookup-footer">
                                 <button onclick="applySelectedJourneyStartPage()" class="page-lookup-select-button">Select</button>
                                 <button onclick="closeJourneyStartPageLookupModal()" class="page-lookup-cancel-button">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Modal -->
+                    <div id="progressModal" class="progress-modal">
+                        <div class="progress-modal-content">
+                            <div class="progress-header">
+                                <span class="progress-spinner"></span>
+                                <span>Calculating Page Distances</span>
+                            </div>
+                            <div class="progress-content">
+                                <div class="progress-bar-container">
+                                    <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+                                </div>
+                                <div id="progressPercentage" class="progress-percentage">0%</div>
+                                
+                                <div id="progressSteps">
+                                    <div class="progress-step">
+                                        <div class="progress-step-title">Loading journey start pages...</div>
+                                        <div class="progress-step-detail" id="stepLoadingDetail">Initializing</div>
+                                    </div>
+                                    <div class="progress-step">
+                                        <div class="progress-step-title">Loading page flow data...</div>
+                                        <div class="progress-step-detail" id="stepPageFlowDetail">Waiting</div>
+                                    </div>
+                                    <div class="progress-step">
+                                        <div class="progress-step-title">Calculating distances...</div>
+                                        <div class="progress-step-detail" id="stepCalculatingDetail">Waiting</div>
+                                    </div>
+                                    <div class="progress-step">
+                                        <div class="progress-step-title">Saving results...</div>
+                                        <div class="progress-step-detail" id="stepSavingDetail">Waiting</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="progress-footer">
+                                <button id="progressCloseButton" class="progress-close-button" onclick="closeProgressModal()" disabled>Close</button>
                             </div>
                         </div>
                     </div>
@@ -1282,6 +1848,23 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                         message: error.message
                                     });
                                     vscode.window.showErrorMessage('Failed to save journey start pages: ' + error.message);
+                                }
+                                break;
+
+                            case 'calculatePageDistances':
+                                console.log("[Extension] Calculating page distances");
+                                try {
+                                    await calculatePageDistances(panel, modelService);
+                                } catch (error) {
+                                    console.error('[Extension] Error calculating page distances:', error);
+                                    panel.webview.postMessage({
+                                        command: 'distanceCalculationComplete',
+                                        data: {
+                                            success: false,
+                                            error: error.message
+                                        }
+                                    });
+                                    vscode.window.showErrorMessage('Failed to calculate page distances: ' + error.message);
                                 }
                                 break;
 

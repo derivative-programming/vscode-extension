@@ -1,3 +1,78 @@
+## JOURNEY PAGE DISTANCE COLUMN ADDITION (December 19, 2024) - COMPLETED ✅
+- Request: "add a new column 'Journey Page Distance' on the far right to display this value. allow numeric sort on column on header click. do not display value if its -1"
+- Status: COMPLETED
+- Architecture Overview:
+  - Backend: Modified userStoriesJourneyCommands.ts to load pageDistances from app-dna-user-story-user-journey.json
+  - Frontend: Updated userStoriesJourneyView.js to display new column with conditional rendering 
+  - Data Flow: Journey data → combinedData with journeyPageDistance field → table rendering with distance values
+- Technical Implementation:
+  1. Backend Changes (userStoriesJourneyCommands.ts):
+     - Added journey data loading in loadUserStoriesJourneyData()
+     - Integrated pageDistances lookup by destinationPage matching
+     - Added journeyPageDistance field to combinedData objects  
+     - Enhanced sorting logic for numeric values with -1 handling
+     - Added TypeScript braces for linting compliance
+  2. Frontend Changes (userStoriesJourneyView.js):
+     - Added 'Journey Page Distance' column to columns array with sortable: true
+     - Added journey-page-distance-column CSS class
+     - Implemented conditional cell rendering (hide -1 values, show empty cell)
+     - Added table cell creation and data population
+  3. CSS Styling:
+     - Added .journey-page-distance-column with 120px width and center alignment
+     - Positioned as rightmost column in table layout
+- Key Features Implemented:
+  - ✅ New column displays calculated distance values 
+  - ✅ Numeric sorting capability (ascending/descending)
+  - ✅ Conditional display (-1 values show as empty cells)
+  - ✅ Proper CSS styling and responsive layout
+  - ✅ Integration with existing distance calculation backend
+- Data Structure:
+  - Source: pageDistances array from app-dna-user-story-user-journey.json
+  - Format: { destinationPage: string, distance: number }
+  - Display: Shows numeric distance or empty cell for -1 (unreachable)
+- Compilation: Successful via webpack (npm run compile)
+
+## PAGE DISTANCE CALCULATION DEBUGGING (August 9, 2025) - RESOLVED ✅
+- Request: "no data is saved to the json file" - debugging distance calculation feature
+- Status: ISSUE IDENTIFIED AND RESOLVED
+- Root Cause: Incorrect page extraction logic - was looking for model.namespace[0].page but should use ModelService.getAllObjects()
+- Solution: Updated page extraction logic to match Page Flow Diagram view approach
+- Files Modified: 
+  - src/commands/userStoriesJourneyCommands.ts (fixed page extraction, added helper functions, updated button references)
+- Changes Made:
+  - Replaced model.namespace[0].page logic with modelService.getAllObjects() approach
+  - Added extractButtonsFromWorkflow() and extractButtonsFromReport() helper functions from Page Flow view
+  - Updated page extraction to look for objectWorkflow and report arrays where isPage="true"
+  - Fixed button destination reference from destinationPageName to destinationTargetName
+  - Now uses same proven page extraction logic as Page Flow Diagram view
+- Architecture Notes: Uses ModelService.getAllObjects() → objectWorkflow/report arrays → isPage="true" filter
+- User Action: Should now work with any model containing forms/reports with isPage="true" property
+
+## PROGRESS MODAL FOR DISTANCE CALCULATION (August 9, 2025) - COMPLETED ✅
+- Request: "show a modal to show the progress of the calculation"
+- Status: COMPLETED
+- Files Modified:
+  - src/commands/userStoriesJourneyCommands.ts (added calculatePageDistances function and progress modal HTML/CSS)
+  - src/webviews/userStoriesJourneyView.js (added progress modal functions and message handlers)
+- Changes Made:
+  - Added "Calculate Page Distances" button with pulse icon next to "Define Journey Start Pages" button
+  - Implemented professional progress modal with:
+    * Progress bar and percentage indicator
+    * Step-by-step breakdown (Loading, Page Flow, Calculating, Saving)
+    * Real-time progress updates with detailed status messages
+    * Animated spinner and modern VS Code styling
+  - Added calculatePageDistances backend function that:
+    * Loads journey start pages and validates they exist
+    * Extracts pages and connections from the model
+    * Builds page connection graph using same BFS logic as page flow user journey
+    * Calculates shortest distance from each page to nearest role start page
+    * Saves results to pageDistances array in app-dna-user-story-user-journey.json
+  - Added progress message handlers for real-time UI updates
+  - Modal prevents accidental closure during calculation process
+  - Auto-refreshes view upon completion to show updated data
+- Architecture: Progress tracking with 4 main steps, each providing detailed feedback to user
+- Distance Algorithm: Uses BFS shortest path calculation copied from page flow user journey tab
+
 ## JSON FILENAME STANDARDIZATION (August 9, 2025) - COMPLETED ✅
 - Request: "change user-story-page-mapping.json to app-dna-user-story-page-mapping.json and user-story-user-journey.json to app-dna-user-story-user-journey.json"
 - Status: COMPLETED
