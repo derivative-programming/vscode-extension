@@ -270,30 +270,23 @@ user story - story list
 on user story list show the page that fulfils it and view\edit icon buttons.
 show number of pages from login that it needs to reach it to perform the action.
 
-
-
-
 user story - fulfillment report...
 give requirements and stories and story-page mapping, show which requirements are not fulfilled. 
 mapped page must have a path from the login page
 role must be allowed to view all pages in path
 
-user story - journey...
-- show a button to define the start of the journey for each role lookup item in the role object. the modal should show a table with two columns. first is the role name, second is the journey start page. similar to the page flow user journey lookup, show a similar lookup and search button. On save, save the selections to the app-dna-user-story-page-mapping.json file in a new property.
-- copy user story QA view to create user story user journey view.
-- add 'User Journey' treeview item under 'Page Mapping'. On click, open user story journey view.
-- replace the status column with a Page column that shows the page that fulfils the user story.
-- remove the notes column
-- remove the Date Verified column
-- show a row for each user story and for each page that fulfils it.
-- remove the far left checkbox column
-
-
-user story journey - user page flowchart...
-show a flowchart that shows what the user must do to get there
+user story - user journey view...
+- change the hover text on the 'show user journey to this page' button to 'show user journey flowchart'
+- next to the 'show user journey flowchart' button, add a button to 'show user journey steps' with a codicon-eye icon. On click, show the page preview view with the role's start page as the 'select page' selection and the page on the row as the 'show me the way' selection
 
 user story journey- page preview...
-show page preview view with highlighted buttons on how to get there.
+- take a look the 'calculate page distances' button on the user stories user journey page.  we want to get similar logic to determine the path from the page selected to be previewed, to the 'show me the way' page selection. Once we have an array that holds the page path, we know which button the user should click to get to the desired page. show a bright red border on that button.
+- the journey calculation should occur when the 'select page' dropdown changes or the 'show me the way' dropdown changes.  The page preview will need to be rerendered as well to update its display
+
+page preview - show me the way section...
+- the filter button does nothing
+- the refresh button does nothing
+- the icon to show if the section is collapsible does nothing on click, and should point up if the section is collapsed
 
 
 

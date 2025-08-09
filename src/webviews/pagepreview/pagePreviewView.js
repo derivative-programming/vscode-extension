@@ -78,6 +78,11 @@ async function showPagePreview(context, modelService) {
                     // Navigate to report details view
                     showReportDetailsForPreview(message.reportName, message.objectName, modelService);
                     break;
+                case 'requestPathfindingData':
+                    console.log('[DEBUG] PagePreview - Pathfinding data requested from', message.fromPage, 'to', message.toPage);
+                    // Get pathfinding data and send back to webview
+                    handlePathfindingRequest(message.fromPage, message.toPage, modelService);
+                    break;
                 default:
                     console.warn('[WARN] PagePreview - Unknown command received:', message.command);
                     break;
@@ -264,6 +269,170 @@ async function showPagePreviewWithSelection(context, modelService, formName) {
                 pageName: formName
             }
         });
+    }
+}
+
+/**
+ * Extracts buttons with destination targets from a workflow
+ */
+function extractButtonsFromWorkflow(workflow) {
+    const buttons = [];
+    
+    // Extract object workflow buttons with destination targets
+    if (workflow.objectWorkflowButton && Array.isArray(workflow.objectWorkflowButton)) {
+        workflow.objectWorkflowButton.forEach(button => {
+            // Only include buttons that have destination targets and are visible and not ignored
+            if (button.destinationTargetName && 
+                (!button.hasOwnProperty('isVisible') || button.isVisible !== "false") && 
+                (!button.hasOwnProperty('isIgnored') || button.isIgnored !== "true")) {
+                buttons.push({
+                    buttonName: button.buttonText || 'Button',
+                    buttonText: button.buttonText,
+                    buttonType: button.buttonType || 'other',
+                    destinationTargetName: button.destinationTargetName,
+                    destinationContextObjectName: button.destinationContextObjectName
+                });
+            }
+        });
+    }
+    
+    return buttons;
+}
+
+/**
+ * Extracts buttons with destination targets from a report
+ */
+function extractButtonsFromReport(report) {
+    const buttons = [];
+    
+    // Extract report buttons (excluding breadcrumb buttons)
+    if (report.reportButton && Array.isArray(report.reportButton)) {
+        report.reportButton.forEach(button => {
+            // Only include buttons that have destination targets, are not breadcrumb buttons, and are visible and not ignored
+            if (button.destinationTargetName && 
+                button.buttonType !== "breadcrumb" &&
+                (!button.hasOwnProperty('isVisible') || button.isVisible !== "false") && 
+                (!button.hasOwnProperty('isIgnored') || button.isIgnored !== "true")) {
+                buttons.push({
+                    buttonName: button.buttonName || button.buttonText,
+                    buttonText: button.buttonText,
+                    buttonType: button.buttonType,
+                    destinationTargetName: button.destinationTargetName,
+                    destinationContextObjectName: button.destinationContextObjectName
+                });
+            }
+        });
+    }
+    
+    // Extract report column buttons with destinations
+    if (report.reportColumn && Array.isArray(report.reportColumn)) {
+        report.reportColumn.forEach(column => {
+            // Only include column buttons that have destination targets and are visible and not ignored
+            if (column.isButton === "true" && 
+                column.destinationTargetName &&
+                (!column.hasOwnProperty('isVisible') || column.isVisible !== "false") && 
+                (!column.hasOwnProperty('isIgnored') || column.isIgnored !== "true")) {
+                buttons.push({
+                    buttonName: column.name,
+                    buttonText: column.buttonText,
+                    buttonType: 'column',
+                    destinationTargetName: column.destinationTargetName,
+                    destinationContextObjectName: column.destinationContextObjectName
+                });
+            }
+        });
+    }
+    
+    return buttons;
+}
+
+/**
+ * Handles pathfinding data request from webview
+ * @param {string} fromPage Starting page name
+ * @param {string} toPage Target page name  
+ * @param {Object} modelService ModelService instance
+ */
+function handlePathfindingRequest(fromPage, toPage, modelService) {
+    console.log('[DEBUG] PagePreview - Processing pathfinding request from', fromPage, 'to', toPage);
+    
+    if (!currentPanel) {
+        console.error('[ERROR] PagePreview - No current panel for pathfinding response');
+        return;
+    }
+    
+    try {
+        // Get all objects from model service
+        const allObjects = modelService.getAllObjects();
+        console.log('[DEBUG] PagePreview - Got', allObjects.length, 'objects from model service');
+        
+        // Extract pages and connections for pathfinding (similar to User Stories Journey logic)
+        const pages = [];
+        const connections = [];
+        
+        allObjects.forEach(obj => {
+            // Extract form pages from objectWorkflow
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach(workflow => {
+                    if (workflow.isPage === "true") {
+                        // Use same structure as Page Flow view with normalized buttons
+                        const page = {
+                            ...workflow,  // Spread all workflow properties
+                            objectName: obj.name,
+                            type: 'form',
+                            pageType: 'form',
+                            buttons: extractButtonsFromWorkflow(workflow)  // Normalized buttons array
+                        };
+                        pages.push(page);
+                        
+                        console.log('[DEBUG] PagePreview - Form page:', workflow.name, 'has', page.buttons.length, 'buttons');
+                    }
+                });
+            }
+            
+            // Extract report pages from report array
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach(report => {
+                    if (report.isPage === "true") {
+                        // Use same structure as Page Flow view with normalized buttons
+                        const page = {
+                            ...report,  // Spread all report properties
+                            objectName: obj.name,
+                            type: 'report',
+                            pageType: 'report',
+                            buttons: extractButtonsFromReport(report)  // Normalized buttons array
+                        };
+                        pages.push(page);
+                        
+                        console.log('[DEBUG] PagePreview - Report page:', report.name, 'has', page.buttons.length, 'buttons');
+                    }
+                });
+            }
+        });
+        
+        console.log('[DEBUG] PagePreview - Extracted', pages.length, 'pages for pathfinding');
+        console.log('[DEBUG] PagePreview - Page names:', pages.map(p => p.name));
+        
+        // Log button destinations for debugging
+        pages.forEach(page => {
+            const destinations = page.buttons.map(b => b.destinationTargetName).filter(d => d);
+            if (destinations.length > 0) {
+                console.log('[DEBUG] PagePreview - Page', page.name, 'button destinations:', destinations);
+            }
+        });
+        
+        // Send pathfinding data back to webview
+        currentPanel.webview.postMessage({
+            command: 'pathfindingData',
+            data: {
+                pages: pages,
+                connections: connections,
+                fromPage: fromPage,
+                toPage: toPage
+            }
+        });
+        
+    } catch (error) {
+        console.error('[ERROR] PagePreview - Error processing pathfinding request:', error);
     }
 }
 

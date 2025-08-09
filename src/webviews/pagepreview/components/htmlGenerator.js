@@ -98,6 +98,35 @@ function generateHTMLContent(allObjects, codiconsUri) {
                     </div>
                 </div>
                 
+                <!-- Show Me The Way Section -->
+                <div class="showmetheway-section">
+                    <div class="showmetheway-header" onclick="toggleShowMeTheWay()">
+                        <h3 class="showmetheway-title">Show me the way</h3>
+                        <button class="showmetheway-collapse-button" onclick="toggleShowMeTheWay()" title="Expand/Collapse Show me the way">
+                            <span class="codicon codicon-chevron-right"></span>
+                        </button>
+                    </div>
+                    <div class="showmetheway-content" id="showMeTheWayContent" style="display: none;">
+                        <div class="showmetheway-buttons">
+                            <button class="filter-button" id="showMeTheWayFilterButton" onclick="handleShowMeTheWayFilter()" title="Filter pages">
+                                <span class="codicon codicon-filter"></span>
+                            </button>
+                            <button class="cancel-filter-button" id="showMeTheWayCancelFilterButton" onclick="handleShowMeTheWayClearFilter()" title="Clear filter" style="display: none;">
+                                <span class="codicon codicon-close"></span>
+                            </button>
+                            <button class="refresh-button" id="showMeTheWayRefreshButton" onclick="handleShowMeTheWayRefreshPages()" title="Refresh pages from model">
+                                <span class="codicon codicon-refresh"></span>
+                            </button>
+                        </div>
+                        <select class="page-dropdown" id="showMeTheWayDropdown" onchange="handleShowMeTheWayPageSelection()">
+                            <option value="">Select a page...</option>
+                        </select>
+                        <div class="page-count-display" id="showMeTheWayPageCountDisplay">
+                            Loading pages...
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Filter Modal -->
                 <div class="filter-modal" id="filterModal" style="display: none;">
                     <div class="filter-modal-content">
@@ -340,6 +369,96 @@ function generateCSS() {
             color: var(--vscode-descriptionForeground);
             text-align: right;
             font-style: italic;
+        }
+        
+        /* Show Me The Way Section Styles */
+        .showmetheway-section {
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 20px;
+        }
+        
+        /* Navigation Path Highlighting Styles */
+        .navigation-highlighted {
+            border: 3px solid #ff0000 !important;
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.5) !important;
+            animation: pulse-red 1.5s infinite !important;
+        }
+        
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 16px rgba(255, 0, 0, 0.8);
+            }
+            100% {
+                box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+            }
+        }
+        
+        .showmetheway-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        .showmetheway-title {
+            margin: 0;
+            color: var(--vscode-foreground);
+            font-size: 16px;
+            font-weight: 600;
+            user-select: none;
+        }
+        
+        .showmetheway-collapse-button {
+            background: none;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+            transition: background 0.15s, transform 0.15s;
+        }
+        
+        .showmetheway-collapse-button:hover {
+            background: var(--vscode-toolbar-hoverBackground);
+        }
+        
+        .showmetheway-collapse-button.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .showmetheway-collapse-button .codicon {
+            font-size: 16px;
+        }
+        
+        .showmetheway-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        }
+        
+        .showmetheway-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        .showmetheway-content.expanded {
+            max-height: 500px;
+            opacity: 1;
+        }
+        
+        .showmetheway-buttons {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            margin-bottom: 15px;
+            justify-content: flex-end;
         }
         
         /* Filter Modal Styles */
@@ -1795,6 +1914,12 @@ function generateJavaScript(allObjects) {
             // Update page count display
             updatePageCountDisplay(allPages.length, finalFilteredPages.length, filteredPages.length);
             
+            // Update Show Me The Way dropdown if it's expanded
+            const showMeTheWayContent = document.getElementById('showMeTheWayContent');
+            if (showMeTheWayContent && showMeTheWayContent.style.display !== 'none') {
+                updateShowMeTheWayDropdown();
+            }
+            
             // Hide preview if current selection is no longer valid
             if (currentSelectedPage && !filteredPages.some(p => p.name === currentSelectedPage.name)) {
                 hidePreview();
@@ -1804,6 +1929,9 @@ function generateJavaScript(allObjects) {
         // Handle page selection from dropdown
         function handlePageSelection() {
             console.log('[DEBUG] PagePreview - Page selection changed');
+            
+            // Clear any existing navigation highlighting when page changes
+            clearNavigationHighlighting();
             
             const dropdown = document.getElementById('pageDropdown');
             const selectedIndex = dropdown.value;
@@ -1841,6 +1969,13 @@ function generateJavaScript(allObjects) {
             } else {
                 console.warn('[WARN] PagePreview - Unknown page type for:', selectedPage.name);
                 hidePreview();
+            }
+            
+            // Recalculate path if "Show me the way" has a target selected
+            const showMeTheWayDropdown = document.getElementById('showMeTheWayDropdown');
+            if (showMeTheWayDropdown && showMeTheWayDropdown.value) {
+                console.log('[DEBUG] PagePreview - Recalculating path due to page change');
+                handleShowMeTheWayPageSelection();
             }
         }
         
@@ -1956,6 +2091,302 @@ function generateJavaScript(allObjects) {
             }
             
             pageCountDisplay.textContent = displayText;
+        }
+        
+        // Show Me The Way Section Functions
+        
+        // Toggle Show Me The Way section collapse/expand
+        function toggleShowMeTheWay() {
+            console.log('[DEBUG] PagePreview - Toggling Show me the way section...');
+            
+            const content = document.getElementById('showMeTheWayContent');
+            const button = document.querySelector('.showmetheway-collapse-button');
+            
+            if (!content || !button) {
+                return;
+            }
+            
+            const isCollapsed = content.style.display === 'none';
+            
+            if (isCollapsed) {
+                // Expand
+                content.style.display = 'block';
+                button.classList.add('expanded');
+                button.title = 'Collapse Show me the way';
+                
+                // Update the dropdown with current pages when expanded
+                updateShowMeTheWayDropdown();
+            } else {
+                // Collapse
+                content.style.display = 'none';
+                button.classList.remove('expanded');
+                button.title = 'Expand Show me the way';
+            }
+        }
+        
+        // Update the Show Me The Way dropdown with current pages
+        function updateShowMeTheWayDropdown() {
+            console.log('[DEBUG] PagePreview - Updating Show me the way dropdown...');
+            
+            const dropdown = document.getElementById('showMeTheWayDropdown');
+            const pageCountDisplay = document.getElementById('showMeTheWayPageCountDisplay');
+            
+            if (!dropdown) {
+                console.error('[ERROR] PagePreview - Show me the way dropdown element not found');
+                return;
+            }
+            
+            // Use the same filtered pages as the main dropdown
+            const currentFilteredPages = window.filteredPages || [];
+            
+            // Clear existing options (except the first one)
+            dropdown.innerHTML = '<option value="">Select a page...</option>';
+            
+            // Add filtered pages (same as main dropdown)
+            currentFilteredPages.forEach((page, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                // Display format: [name] - [title] (or just name if no title)
+                const displayText = page.titleText && page.titleText !== page.name 
+                    ? page.name + ' - ' + page.titleText
+                    : page.name;
+                option.textContent = displayText;
+                option.setAttribute('data-name', page.name);
+                option.setAttribute('data-object', page.objectName);
+                dropdown.appendChild(option);
+            });
+            
+            // Update page count display
+            if (pageCountDisplay) {
+                pageCountDisplay.textContent = currentFilteredPages.length + ' pages available';
+            }
+        }
+        
+        // Handle Show Me The Way page selection - now triggers pathfinding
+        function handleShowMeTheWayPageSelection() {
+            console.log('[DEBUG] PagePreview - Show me the way page selection changed, calculating path...');
+            
+            const dropdown = document.getElementById('showMeTheWayDropdown');
+            const selectedIndex = dropdown.value;
+            
+            // Clear any existing highlighting
+            clearNavigationHighlighting();
+            
+            if (!selectedIndex || selectedIndex === '') {
+                console.log('[DEBUG] PagePreview - No Show me the way page selected');
+                return;
+            }
+            
+            const targetPage = window.filteredPages[parseInt(selectedIndex)];
+            if (!targetPage) {
+                console.log('[DEBUG] PagePreview - Show me the way target page not found');
+                return;
+            }
+            
+            console.log('[DEBUG] PagePreview - Show me the way target page selected:', targetPage.name);
+            
+            // Get the currently previewed page
+            const currentlySelectedIndex = document.getElementById('pageDropdown').value;
+            if (!currentlySelectedIndex || currentlySelectedIndex === '') {
+                console.log('[DEBUG] PagePreview - No page currently being previewed');
+                return;
+            }
+            
+            const currentPage = window.filteredPages[parseInt(currentlySelectedIndex)];
+            if (!currentPage) {
+                console.log('[DEBUG] PagePreview - Current preview page not found');
+                return;
+            }
+            
+            console.log('[DEBUG] PagePreview - Calculating path from', currentPage.name, 'to', targetPage.name);
+            
+            // Calculate the path using BFS algorithm
+            calculateAndHighlightPath(currentPage.name, targetPage.name);
+        }
+        
+        // Handle Show Me The Way filter button (placeholder - no action)
+        function handleShowMeTheWayFilter() {
+            console.log('[DEBUG] PagePreview - Show me the way filter clicked (no action)');
+        }
+        
+        // Handle Show Me The Way clear filter button (placeholder - no action)
+        function handleShowMeTheWayClearFilter() {
+            console.log('[DEBUG] PagePreview - Show me the way clear filter clicked (no action)');
+        }
+        
+        // Handle Show Me The Way refresh button (placeholder - no action)
+        function handleShowMeTheWayRefreshPages() {
+            console.log('[DEBUG] PagePreview - Show me the way refresh clicked (no action)');
+        }
+        
+        // Navigation Path Finding and Highlighting Functions
+        
+        // Calculate path between two pages and highlight the correct button
+        function calculateAndHighlightPath(fromPageName, toPageName) {
+            console.log('[DEBUG] PagePreview - Finding path from "' + fromPageName + '" to "' + toPageName + '"');
+            
+            // Request all pages and connections from the extension
+            vscode.postMessage({
+                command: 'requestPathfindingData',
+                fromPage: fromPageName,
+                toPage: toPageName
+            });
+        }
+        
+        // Process pathfinding data from extension and perform BFS
+        function processPathfindingData(data) {
+            const { pages, connections, fromPage, toPage } = data;
+            
+            console.log('[DEBUG] PagePreview - Processing pathfinding data:', {
+                pagesCount: pages?.length || 0,
+                connectionsCount: connections?.length || 0,
+                fromPage: '"' + fromPage + '"',
+                toPage: '"' + toPage + '"'
+            });
+            
+            if (!pages || pages.length === 0) {
+                console.log('[DEBUG] PagePreview - No pages data available for pathfinding');
+                return;
+            }
+            
+            // DEBUG: Log page names to verify data
+            console.log('[DEBUG] PagePreview - Available pathfinding pages:', pages.map(p => '"' + p.name + '"'));
+            console.log('[DEBUG] PagePreview - Current UI filtered pages:', window.filteredPages ? window.filteredPages.map(p => '"' + p.name + '"') : 'null');
+            
+            // Find the shortest path using BFS algorithm (adapted from User Journey functionality)
+            const path = findShortestPathBFS(fromPage, toPage, pages, connections);
+            
+            if (path && path.length > 1) {
+                // Path found - highlight the first button that leads to the next page in the path
+                const nextPageInPath = path[1]; // Second page in path (first hop from current page)
+                highlightNavigationButton(nextPageInPath);
+                console.log('[DEBUG] PagePreview - Path found:', path, 'highlighting button to:', nextPageInPath);
+            } else {
+                console.log('[DEBUG] PagePreview - No path found between "' + fromPage + '" and "' + toPage + '"');
+            }
+        }
+        
+        // BFS algorithm to find shortest path between pages (adapted from page flow user journey)
+        function findShortestPathBFS(startPageName, targetPageName, pages, connections) {
+            console.log('[DEBUG] PagePreview - BFS from', startPageName, 'to', targetPageName);
+            
+            // Build adjacency list from connections
+            const graph = {};
+            const pageMap = {};
+            
+            // Initialize graph with all pages
+            if (pages) {
+                pages.forEach(page => {
+                    graph[page.name] = [];
+                    pageMap[page.name] = page;
+                });
+            }
+            
+            console.log('[DEBUG] PagePreview - Initialized graph with pages:', Object.keys(graph));
+            
+            // Add explicit connections to graph
+            if (connections) {
+                connections.forEach(connection => {
+                    if (connection.from && connection.to && graph[connection.from] && graph[connection.to]) {
+                        graph[connection.from].push(connection.to);
+                    }
+                });
+                console.log('[DEBUG] PagePreview - Added', connections.length, 'explicit connections');
+            }
+            
+            // Add button destinations from each page (important for navigation)
+            if (pages) {
+                pages.forEach(page => {
+                    // Use the normalized buttons array
+                    if (page.buttons && Array.isArray(page.buttons)) {
+                        console.log('[DEBUG] PagePreview - Page', page.name, 'has', page.buttons.length, 'normalized buttons');
+                        
+                        page.buttons.forEach(button => {
+                            if (button.destinationTargetName) {
+                                console.log('[DEBUG] PagePreview - Button on page', page.name, 'leads to:', button.destinationTargetName);
+                                
+                                if (graph[page.name] && graph[button.destinationTargetName]) {
+                                    // Avoid duplicate connections
+                                    if (!graph[page.name].includes(button.destinationTargetName)) {
+                                        graph[page.name].push(button.destinationTargetName);
+                                        console.log('[DEBUG] PagePreview - Added connection from', page.name, 'to', button.destinationTargetName);
+                                    }
+                                } else {
+                                    if (!graph[page.name]) {
+                                        console.log('[DEBUG] PagePreview - Source page not found in graph:', page.name);
+                                    } else if (!graph[button.destinationTargetName]) {
+                                        console.log('[DEBUG] PagePreview - Destination page not found in graph:', button.destinationTargetName);
+                                    }
+                                }
+                            } else {
+                                console.log('[DEBUG] PagePreview - Button on page', page.name, 'has no destinationTargetName');
+                            }
+                        });
+                    } else {
+                        console.log('[DEBUG] PagePreview - Page', page.name, 'has no buttons array');
+                    }
+                });
+            }
+            
+            console.log('[DEBUG] PagePreview - Final graph:', JSON.stringify(graph, null, 2));
+            console.log('[DEBUG] PagePreview - Graph connections for', startPageName + ':', graph[startPageName] || 'none');
+            
+            // BFS to find shortest path
+            const queue = [{page: startPageName, path: [startPageName]}];
+            const visited = new Set();
+            visited.add(startPageName);
+            
+            while (queue.length > 0) {
+                const {page, path} = queue.shift();
+                
+                if (page === targetPageName) {
+                    console.log('[DEBUG] PagePreview - Path found:', path);
+                    return path;
+                }
+                
+                if (graph[page]) {
+                    graph[page].forEach(neighborPage => {
+                        if (!visited.has(neighborPage)) {
+                            visited.add(neighborPage);
+                            queue.push({
+                                page: neighborPage,
+                                path: [...path, neighborPage]
+                            });
+                        }
+                    });
+                }
+            }
+            
+            console.log('[DEBUG] PagePreview - No path found');
+            return null; // No path found
+        }
+        
+        // Highlight the navigation button that leads to the next page in the path
+        function highlightNavigationButton(targetPageName) {
+            console.log('[DEBUG] PagePreview - Highlighting button for navigation to:', targetPageName);
+            
+            // Clear any existing highlighting first
+            clearNavigationHighlighting();
+            
+            // Find all buttons in the current preview and highlight the one with matching destination
+            const allButtons = document.querySelectorAll('button[onclick*="' + targetPageName + '"]');
+            
+            if (allButtons.length > 0) {
+                allButtons.forEach(button => {
+                    button.classList.add('navigation-highlighted');
+                    console.log('[DEBUG] PagePreview - Button highlighted:', button.textContent?.trim());
+                });
+            } else {
+                console.log('[DEBUG] PagePreview - No button found with destination:', targetPageName);
+            }
+        }
+        
+        // Clear navigation highlighting from all buttons
+        function clearNavigationHighlighting() {
+            const highlightedButtons = document.querySelectorAll('.navigation-highlighted');
+            highlightedButtons.forEach(button => {
+                button.classList.remove('navigation-highlighted');
+            });
         }
         
         // Show preview for a form
@@ -3841,6 +4272,11 @@ function generateJavaScript(allObjects) {
                             console.warn('[WARN] PagePreview - Could not find target page for selection:', selectPageName);
                             console.log('[DEBUG] PagePreview - Available pages:', window.filteredPages.map(p => p.name));
                         }
+                        break;
+                        
+                    case 'pathfindingData':
+                        console.log('[DEBUG] PagePreview - Received pathfinding data');
+                        processPathfindingData(message.data);
                         break;
                 }
             });

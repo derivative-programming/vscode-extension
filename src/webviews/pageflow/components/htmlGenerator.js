@@ -2731,10 +2731,10 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 flowData.pages.forEach(page => {
                     if (page.buttons && Array.isArray(page.buttons)) {
                         page.buttons.forEach(button => {
-                            if (button.destinationPageName && graph[page.name] && graph[button.destinationPageName]) {
+                            if (button.destinationTargetName && graph[page.name] && graph[button.destinationTargetName]) {
                                 // Avoid duplicate connections
-                                if (!graph[page.name].includes(button.destinationPageName)) {
-                                    graph[page.name].push(button.destinationPageName);
+                                if (!graph[page.name].includes(button.destinationTargetName)) {
+                                    graph[page.name].push(button.destinationTargetName);
                                 }
                             }
                         });

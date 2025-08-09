@@ -583,7 +583,7 @@ function renderTable() {
                 const journeyButton = document.createElement("button");
                 journeyButton.className = "journey-icon-button";
                 journeyButton.title = "Show User Journey to this page";
-                journeyButton.innerHTML = '<span class="codicon codicon-arrow-right"></span>';
+                journeyButton.innerHTML = '<span class="codicon codicon-map"></span>';
                 journeyButton.onclick = () => openUserJourneyForPage(item.page, item.pageRole);
                 distanceContainer.appendChild(journeyButton);
             }

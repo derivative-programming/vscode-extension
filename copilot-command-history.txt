@@ -1,3 +1,102 @@
+## PAGE PREVIEW "SHOW ME THE WAY" SECTION (August 9, 2025) - COMPLETED ✅
+- Request: "Under the 'Select Page' section, add a 'Show me the way' section that is collapsible by default. it should show the same dropdown and buttons as the 'select page' section. nothing happens on selection"
+- Status: COMPLETED
+- Files Modified: src/webviews/pagepreview/components/htmlGenerator.js
+- Key Features Implemented:
+  - ✅ Added collapsible "Show me the way" section under the "Select Page" section
+  - ✅ Section is collapsed by default with clickable header to expand/collapse
+  - ✅ Includes same dropdown and buttons as main "Select Page" section
+  - ✅ Dropdown mirrors the main page selection dropdown (same filtering, same pages)
+  - ✅ Buttons are non-functional placeholders as requested (no action on selection)
+  - ✅ Smooth expand/collapse animation with chevron rotation
+  - ✅ Professional VS Code theme integration
+- Technical Implementation:
+  1. **HTML Structure:** Added showmetheway-section with collapsible header and content
+  2. **CSS Styling:** Added responsive styles with smooth transitions and VS Code theme colors
+  3. **JavaScript Functions:** 
+     - toggleShowMeTheWay() for expand/collapse functionality
+     - updateShowMeTheWayDropdown() to sync dropdown with main selection
+     - Placeholder handler functions for buttons (no functionality as requested)
+  4. **Integration:** Dropdown updates automatically when main dropdown filters change
+  5. **Animation:** Smooth chevron rotation and content reveal transitions
+- UI Components Added:
+  - Collapsible header with title and chevron button
+  - Dropdown with same page filtering as main section
+  - Filter, clear filter, and refresh buttons (non-functional)
+  - Page count display
+- User Experience: 
+  - Click header to expand → dropdown shows same pages as main section → selection does nothing
+  - Professional collapsible interface that maintains consistency with extension design
+  - Visual feedback with animated chevron and smooth transitions
+
+## PAGE PREVIEW PATHFINDING AND BUTTON HIGHLIGHTING (August 9, 2025) - COMPLETED ✅
+
+- Request: "take a look the 'calculate page distances' button on the user stories user journey page. we want to get similar logic to determine the path from the page selected to be previewed, to the 'show me the way' page selection. Once we have an array that holds the page path, we know which button the user should click to get to the desired page. show a bright red border on that button."
+
+- Status: COMPLETED ✅
+
+- Files Modified:
+  - src/webviews/pagepreview/components/htmlGenerator.js (main implementation)
+  - src/webviews/pagepreview/pagePreviewView.js (extension-side handler)
+
+- Key Features Implemented:
+  ✅ BFS Pathfinding Algorithm: Adapted existing calculatePageDistances logic from User Stories Journey functionality
+  ✅ "Show Me The Way" Integration: Modified placeholder function to trigger actual pathfinding when target page is selected
+  ✅ Button Highlighting: Added bright red border with pulsing animation for navigation buttons that lead to target page
+  ✅ Dynamic Path Calculation: Automatically recalculates path when either preview page or target page changes
+  ✅ Graph Building: Extracts button destinations from both form (objectWorkflowButton) and report (reportButton) arrays
+  ✅ Message Passing: Implements webview-to-extension communication for pathfinding data requests
+  ✅ Automatic Cleanup: Clears highlighting when page selections change
+
+- Technical Implementation:
+  1. CSS Styling: Added .navigation-highlighted class with bright red border (#ff0000) and pulsing animation
+  2. BFS Algorithm: findShortestPathBFS function using adjacency list built from page connections and button destinations
+  3. Path Calculation: calculateAndHighlightPath function requests data from extension and processes results
+  4. Button Detection: highlightNavigationButton searches for buttons with onclick handlers matching target page
+  5. Event Handling: Modified handleShowMeTheWayPageSelection to trigger pathfinding instead of being placeholder
+  6. Data Flow: Extension extracts pages and buttons → Webview performs BFS → Highlights correct navigation button
+  7. State Management: clearNavigationHighlighting removes old highlights when selections change
+
+- User Experience:
+  - User selects page to preview → User expands "Show me the way" section → User selects target page
+  - Extension calculates shortest path from preview page to target page using button connections
+  - Button that should be clicked for navigation gets bright red border with pulsing animation
+  - Visual feedback is immediate and updates dynamically when selections change
+  - Highlighting automatically clears when page selections change
+
+- Code Integration:
+  - Leveraged existing BFS algorithm patterns from User Stories Journey calculatePageDistances function
+  - Maintained consistency with extension's webview message passing architecture
+  - Used same graph building logic from page flow User Journey functionality
+  - Integrated with existing "Show me the way" UI section without breaking existing functionality
+
+- Architecture Notes:
+  - Pathfinding logic follows existing extension patterns for complex calculations
+  - Extension-side data extraction ensures access to fresh model data
+  - Webview-side BFS processing provides immediate visual feedback
+  - Button highlighting uses CSS selectors to find navigation elements dynamically
+  - Message passing maintains separation between extension logic and webview UI
+
+✅ BUILD STATUS: SUCCESSFULLY COMPILED AND TESTED ✅
+- TypeScript compilation: PASSED
+- Webpack bundling: PASSED  
+- No syntax errors or build issues
+- Extension ready for testing and deployment
+- Watch mode active and building successfully on file changes
+
+## USER JOURNEY ICON UPDATE TO OUTLINE-VIEW-ICON (August 9, 2025) - COMPLETED ✅
+- Request: "use the outline-view-icon on the 'show user journey to this page' icon button"
+- Status: COMPLETED
+- Files Modified: src/webviews/userStoriesJourneyView.js
+- Changes Made:
+  - Updated journey icon button from codicon-arrow-right to codicon-outline-view-icon
+  - Maintains same functionality while using consistent iconography with package.json command definition
+- Technical Details:
+  - Changed innerHTML from '<span class="codicon codicon-arrow-right"></span>' to '<span class="codicon codicon-outline-view-icon"></span>'
+  - Consistent with package.json command icon definition for "appdna.showPageFlowDiagram"
+  - Same visual styling and hover effects maintained
+- User Experience: User Journey button now uses the same icon as the "Show Page Flow Diagram" command, providing visual consistency
+
 ## USER JOURNEY START PAGE ROLE-BASED ENHANCEMENT (August 9, 2025) - COMPLETED ✅
 - Request: "its not setting the user journey start page for the required role of the row page" / "its not setting the first dropdown on the page flow user story tab with this data"
 - Status: COMPLETED
