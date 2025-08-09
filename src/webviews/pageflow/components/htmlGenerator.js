@@ -534,6 +534,7 @@ function getEmbeddedCSS() {
         .journey-flowchart .mermaid {
             width: 100%;
             text-align: center;
+            font-size: 14px;
         }
         
         .journey-flowchart-error {
@@ -2475,10 +2476,10 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
                 // If no title text or title is same as name, just show the name
                 return sanitizeDisplayTextForMermaid(name);
             } else {
-                // Show both title and name in format: "Title (Name)"
+                // Show title on first line and name on second line in format: "Title<br/>(Name)"
                 const sanitizedTitle = sanitizeDisplayTextForMermaid(titleText);
                 const sanitizedName = sanitizeDisplayTextForMermaid(name);
-                return sanitizedTitle + " (" + sanitizedName + ")";
+                return sanitizedTitle + "<br/>(" + sanitizedName + ")";
             }
         }
         
@@ -2856,10 +2857,10 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             
             mermaidCode += '\\n';
             
-            // Add class definitions for styling
-            mermaidCode += '    classDef currentPage fill:#4caf50,stroke:#2e7d32,stroke-width:3px\\n';
-            mermaidCode += '    classDef targetPage fill:#f44336,stroke:#c62828,stroke-width:3px\\n';
-            mermaidCode += '    classDef pathPage fill:#2196f3,stroke:#1565c0,stroke-width:2px\\n';
+            // Add class definitions for styling (using lighter colors to match Mermaid tab)
+            mermaidCode += '    classDef currentPage fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px\\n';
+            mermaidCode += '    classDef targetPage fill:#ffebee,stroke:#c62828,stroke-width:3px\\n';
+            mermaidCode += '    classDef pathPage fill:#e3f2fd,stroke:#1565c0,stroke-width:2px\\n';
             mermaidCode += '    classDef formPage fill:#e3f2fd,stroke:#1565c0,stroke-width:2px\\n';
             mermaidCode += '    classDef reportPage fill:#fff3e0,stroke:#ef6c00,stroke-width:2px\\n';
             
@@ -3768,10 +3769,10 @@ function formatMermaidDisplayText(titleText, name) {
         // If no title text or title is same as name, just show the name
         return sanitizeDisplayText(name);
     } else {
-        // Show both title and name in format: "Title (Name)"
+        // Show title on first line and name on second line in format: "Title<br/>(Name)"
         const sanitizedTitle = sanitizeDisplayText(titleText);
         const sanitizedName = sanitizeDisplayText(name);
-        return sanitizedTitle + " (" + sanitizedName + ")";
+        return sanitizedTitle + "<br/>(" + sanitizedName + ")";
     }
 }
 

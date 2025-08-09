@@ -1,3 +1,41 @@
+## MERMAID TAB TEXT FORMATTING CONSISTENCY (December 13, 2025) - COMPLETED ✅
+- Request: "on teh mermaid tab lets also put the "([name])" part on a sepaarate line in the node"
+- Status: COMPLETED
+- Files Modified: src/webviews/pageflow/components/htmlGenerator.js
+- Changes Made:
+  - Modified formatMermaidDisplayText() function to use line breaks
+  - Changed display format from "Title (Name)" to "Title<br/>(Name)" for multi-line nodes
+  - Uses HTML <br/> tags supported by Mermaid for line breaks within nodes
+  - Now consistent with User Journey tab formatting
+
+Architecture notes: Both Mermaid tab and User Journey tab now use identical text formatting with line breaks, providing visual consistency across all flowchart views in the Page Flow Diagram.
+
+## USER JOURNEY FONT SIZE AND TEXT FORMATTING (December 13, 2025) - COMPLETED ✅
+- Request: "lets increase the font size on the journey mermaid graph, and show the "([name])" part on a separate line if possible in the node"
+- Status: COMPLETED
+- Files Modified: src/webviews/pageflow/components/htmlGenerator.js
+- Changes Made:
+  - Added font-size: 14px to .journey-flowchart .mermaid CSS class for larger text
+  - Modified formatMermaidDisplayTextInternal() function to use line breaks
+  - Changed display format from "Title (Name)" to "Title<br/>(Name)" for multi-line nodes
+  - Uses HTML <br/> tags supported by Mermaid for line breaks within nodes
+
+Architecture notes: Enhanced readability of User Journey flowchart with larger font size and better text layout. Line breaks separate the title from the technical name, making nodes easier to read while maintaining all necessary information.
+
+## USER JOURNEY COLOR SCHEME ALIGNMENT (December 13, 2025) - COMPLETED ✅
+- Request: "the journey mermaid graph is using darker colors than the mermaid tab"
+- Status: COMPLETED
+- Files Modified: src/webviews/pageflow/components/htmlGenerator.js
+- Changes Made:
+  - Updated User Journey flowchart colors to match lighter Mermaid tab scheme
+  - Changed currentPage from bright green (#4caf50) to light green (#e8f5e8)
+  - Changed targetPage from bright red (#f44336) to light red (#ffebee) 
+  - Changed pathPage from bright blue (#2196f3) to light blue (#e3f2fd)
+  - Maintained stroke colors for proper contrast
+  - Added explanatory comment about matching Mermaid tab colors
+
+Architecture notes: Both tabs now use consistent light color scheme based on Material Design 50-level colors instead of 500-level colors. This provides better readability and visual consistency across the page flow diagram view.
+
 August 9, 2025 - Page Flow Diagram User Journey Tab Implementation - COMPLETED ✅
 2025-08-09 - Debugging Session: User Journey Tab Empty Dropdowns - COMPLETED ✅
 2025-08-09 - User Journey Flowchart ReferenceError Fix - COMPLETED ✅
