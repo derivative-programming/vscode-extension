@@ -1928,6 +1928,19 @@ function generateJavaScript(allObjects) {
                 hidePreview();
             }
         }
+
+        // Helper: select an option in a dropdown by matching its data-name attribute
+        function selectOptionByDataName(dropdownEl, pageName) {
+            if (!dropdownEl) { return false; }
+            for (let i = 0; i < dropdownEl.options.length; i++) {
+                const opt = dropdownEl.options[i];
+                if (opt.getAttribute && opt.getAttribute('data-name') === pageName) {
+                    dropdownEl.selectedIndex = i;
+                    return true;
+                }
+            }
+            return false;
+        }
         
         // Handle page selection from dropdown
         function handlePageSelection() {
@@ -4352,7 +4365,7 @@ function generateJavaScript(allObjects) {
                         console.log('[DEBUG] PagePreview - Received select page and show way request. Start page:', message.data.startPageName, 'Target page:', message.data.targetPageName);
                         const wayStartPageName = message.data.startPageName;
                         const wayTargetPageName = message.data.targetPageName;
-                        console.log('[DEBUG] PagePreview - Clearing filters and selecting all roles for show way');
+                        // Reset filters / roles
                         currentFilter = '';
                         const filterInput2 = document.getElementById('filterInput');
                         if (filterInput2) { filterInput2.value = ''; }
@@ -4360,46 +4373,49 @@ function generateJavaScript(allObjects) {
                         if (roleCheckboxes2.length > 0) {
                             roleCheckboxes2.forEach(cb => { cb.checked = true; });
                             selectedRoles = Array.from(roleCheckboxes2).map(cb => cb.value);
-                            console.log('[DEBUG] PagePreview - Selected all roles for show way:', selectedRoles);
                         }
                         updateFilterButtonVisibility();
-                        updatePageDropdown();
-                        console.log('[DEBUG] PagePreview - Looking for target page:', wayTargetPageName);
-                        const targetPageForPreview = window.filteredPages.find(page => page.name === wayTargetPageName);
-                        if (targetPageForPreview) {
-                            console.log('[DEBUG] PagePreview - Found target page for preview:', targetPageForPreview.name);
-                            const pageDropdown = document.getElementById('pageDropdown');
-                            for (let i = 0; i < pageDropdown.options.length; i++) {
-                                if (pageDropdown.options[i].value === targetPageForPreview.name) { pageDropdown.selectedIndex = i; break; }
-                            }
-                            currentSelectedPage = targetPageForPreview;
-                            const pageType = determinePageType(targetPageForPreview.name);
-                            if (pageType === 'form') { showFormPreview(targetPageForPreview); } else if (pageType === 'report') { showReportPreview(targetPageForPreview); }
-                            console.log('[DEBUG] PagePreview - Setting up "Show me the way" section with start page:', wayStartPageName);
-                            const startPageDropdown = document.getElementById('startPageSelect');
-                            if (startPageDropdown) {
-                                for (let i = 0; i < startPageDropdown.options.length; i++) {
-                                    if (startPageDropdown.options[i].value === wayStartPageName) { startPageDropdown.selectedIndex = i; console.log('[DEBUG] PagePreview - Set start page dropdown to:', wayStartPageName); break; }
-                                }
-                                startPageDropdown.dispatchEvent(new Event('change'));
-                            } else {
-                                console.warn('[WARN] PagePreview - Start page dropdown not found in "Show me the way" section');
-                            }
-                            setTimeout(() => {
-                                const targetPageDropdown = document.getElementById('targetPageSelect');
-                                if (targetPageDropdown) {
-                                    for (let i = 0; i < targetPageDropdown.options.length; i++) {
-                                        if (targetPageDropdown.options[i].value === wayTargetPageName) { targetPageDropdown.selectedIndex = i; console.log('[DEBUG] PagePreview - Set target page dropdown to:', wayTargetPageName); break; }
-                                    }
-                                } else {
-                                    console.warn('[WARN] PagePreview - Target page dropdown not found in "Show me the way" section');
-                                }
-                            }, 100);
-                            console.log('[DEBUG] PagePreview - Successfully set up page preview and "Show me the way" for journey from', wayStartPageName, 'to', wayTargetPageName);
-                        } else {
-                            console.warn('[WARN] PagePreview - Could not find target page for preview:', wayTargetPageName);
-                            console.log('[DEBUG] PagePreview - Available pages:', window.filteredPages.map(p => p.name));
+                        // Ensure Show Me The Way section is expanded
+                        const showMeContent = document.getElementById('showMeTheWayContent');
+                        if (showMeContent && showMeContent.style.display === 'none') {
+                            toggleShowMeTheWay();
                         }
+                        // Refresh both dropdowns' data
+                        updatePageDropdown();
+                        updateShowMeTheWayDropdown();
+                        // After a short delay (population async), set selections
+                        setTimeout(() => {
+                            const pageDropdown = document.getElementById('pageDropdown');
+                            const showMeDropdown = document.getElementById('showMeTheWayDropdown');
+                            if (!pageDropdown || !showMeDropdown) {
+                                console.warn('[WARN] PagePreview - One or both dropdowns missing when setting journey');
+                                return;
+                            }
+                            // Select START page in main preview dropdown using data-name
+                            const startSelected = selectOptionByDataName(pageDropdown, wayStartPageName);
+                            if (!startSelected) {
+                                console.warn('[WARN] PagePreview - Could not auto-select start page option (data-name):', wayStartPageName);
+                            }
+                            // Trigger preview of start page
+                            const selectedStart = window.filteredPages.find(p => p.name === wayStartPageName);
+                            if (selectedStart) {
+                                currentSelectedPage = selectedStart;
+                                const pageType = determinePageType(selectedStart.name);
+                                if (pageType === 'form') { showFormPreview(selectedStart); } else if (pageType === 'report') { showReportPreview(selectedStart); }
+                            } else {
+                                console.warn('[WARN] PagePreview - Start page not found in filtered pages:', wayStartPageName);
+                            }
+                            // Populate target (journey destination) in Show Me The Way dropdown using data-name
+                            const targetSelected = selectOptionByDataName(showMeDropdown, wayTargetPageName);
+                            if (!targetSelected) {
+                                console.warn('[WARN] PagePreview - Could not auto-select target page option (data-name):', wayTargetPageName);
+                            }
+                            // Trigger change to compute path only if target selected
+                            if (targetSelected) {
+                                showMeDropdown.dispatchEvent(new Event('change'));
+                            }
+                            console.log('[DEBUG] PagePreview - Completed auto-selection for journey start -> target:', wayStartPageName, '->', wayTargetPageName);
+                        }, 150);
                         break;
                     }
                         
