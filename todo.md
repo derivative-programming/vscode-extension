@@ -277,11 +277,7 @@ role must be allowed to view all pages in path
 
 user story - user journey view...
 - change the hover text on the 'show user journey to this page' button to 'show user journey flowchart'
-- next to the 'show user journey flowchart' button, add a button to 'show user journey steps' with a codicon-eye icon. On click, show the page preview view with the role's start page as the 'select page' selection and the page on the row as the 'show me the way' selection
-
-user story journey- page preview...
-- take a look the 'calculate page distances' button on the user stories user journey page.  we want to get similar logic to determine the path from the page selected to be previewed, to the 'show me the way' page selection. Once we have an array that holds the page path, we know which button the user should click to get to the desired page. show a bright red border on that button.
-- the journey calculation should occur when the 'select page' dropdown changes or the 'show me the way' dropdown changes.  The page preview will need to be rerendered as well to update its display
+- to the right of the 'show user journey flowchart' button, add a button to 'show user journey preview' with a codicon-eye icon. On click, show the page preview view with the role's start page as the 'select page' selection and the page on the row as the 'show me the way' selection
  
 
 

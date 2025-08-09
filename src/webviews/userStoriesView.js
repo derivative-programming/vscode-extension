@@ -806,8 +806,10 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
         }
         
         .table-container {
-            max-height: 500px;
-            overflow-y: auto;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 3px;
+            overflow: hidden;
+            background-color: var(--vscode-editor-background);
         }
 
         /* Modal styles */

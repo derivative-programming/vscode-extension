@@ -1,3 +1,13 @@
+## USER STORIES TABLE HEIGHT EXTENSION (August 9, 2025) - COMPLETED ✅
+- Request: "review the user stories view. the table is not very tall. It should extend, similar to the roel requirement sview"
+- Status: COMPLETED
+- Files Modified: src/webviews/userStoriesView.js
+- Key Changes:
+  - ✅ Removed max-height limitation (500px) from .table-container CSS
+  - ✅ Added border, border-radius, and background styling to match role requirements view
+  - ✅ Table now expands naturally to show all content without scrolling restriction
+  - ✅ Consistent styling with role requirements view table container
+
 ## PAGE PREVIEW "SHOW ME THE WAY" SECTION IMPROVEMENTS (August 9, 2025) - COMPLETED ✅
 - Request: "page preview view - show me the way section: the filter button does nothing, the refresh button does nothing, the icon to show if the section is collapsible does nothing on click, and should point up if the section is collapsed"
 - Status: COMPLETED
@@ -1153,4 +1163,4 @@ COMPLETED: Fixed report grid scrollbar positioning in page preview
 **Example Test Case**: "As a Admin, I want to view all Organizations in the application"
 - Detects: Application-level context from "in the application"
 - Targets: Top-level parent (Pac/Tac/root) instead of Organization's normal parent
-- Result: Finds grid reports in top-level parent showing Organizations
+- Result: Finds grid reports in top-level parent showing OrganizationsCommand: Expand all top level tree items in the AppDNA tree view
