@@ -201,6 +201,164 @@ async function saveJourneyDataToCSV(items: any[], modelService: ModelService): P
 }
 
 /**
+ * Load journey start data including roles and existing journey start pages
+ */
+async function loadJourneyStartData(modelService: ModelService): Promise<any> {
+    try {
+        const model = modelService.getCurrentModel();
+        if (!model) {
+            throw new Error('No model available');
+        }
+
+        // Extract roles from Role data objects
+        const roles: string[] = [];
+        if (model.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
+            const namespace = model.namespace[0];
+            if (namespace.object && Array.isArray(namespace.object)) {
+                namespace.object.forEach((obj: any) => {
+                    if (obj.name && obj.name.toLowerCase() === 'role') {
+                        if (obj.lookupItem && Array.isArray(obj.lookupItem)) {
+                            obj.lookupItem.forEach((lookupItem: any) => {
+                                if (lookupItem.name) {
+                                    roles.push(lookupItem.name);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
+        // Load existing journey start pages from mapping file
+        let existingJourneyStartPages: any = {};
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (modelFilePath) {
+            const modelDir = path.dirname(modelFilePath);
+            const mappingFilePath = path.join(modelDir, 'user-story-page-mapping.json');
+            try {
+                if (fs.existsSync(mappingFilePath)) {
+                    const mappingContent = fs.readFileSync(mappingFilePath, 'utf8');
+                    const mappingData = JSON.parse(mappingContent);
+                    existingJourneyStartPages = mappingData.journeyStartPages || {};
+                }
+            } catch (error) {
+                console.warn("[Extension] Could not load journey start pages from mapping file:", error);
+            }
+        }
+
+        return {
+            roles: roles.sort(),
+            journeyStartPages: existingJourneyStartPages
+        };
+    } catch (error) {
+        console.error("[Extension] Error loading journey start data:", error);
+        throw error;
+    }
+}
+
+/**
+ * Get page list for journey start selection
+ */
+async function getPageListForJourneyStart(modelService: ModelService): Promise<any[]> {
+    try {
+        const model = modelService.getCurrentModel();
+        if (!model) {
+            throw new Error('No model available');
+        }
+
+        const pages: any[] = [];
+        
+        if (model.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
+            const namespace = model.namespace[0];
+            
+            // Get pages from objects (data objects)
+            if (namespace.object && Array.isArray(namespace.object)) {
+                namespace.object.forEach((obj: any) => {
+                    // Get pages from object reports
+                    if (obj.report && Array.isArray(obj.report)) {
+                        obj.report.forEach((report: any) => {
+                            if (report.isPage === "true" && report.name) {
+                                pages.push({
+                                    name: report.name,
+                                    type: 'Report',
+                                    titleText: report.titleText || '',
+                                    visualizationType: report.visualizationType || 'N/A',
+                                    ownerObject: obj.name || 'N/A'
+                                });
+                            }
+                        });
+                    }
+                    
+                    // Get pages from object objectWorkflows (forms)
+                    if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                        obj.objectWorkflow.forEach((workflow: any) => {
+                            if (workflow.isPage === "true" && workflow.name) {
+                                pages.push({
+                                    name: workflow.name,
+                                    type: 'Form',
+                                    titleText: workflow.titleText || '',
+                                    visualizationType: 'Form',
+                                    ownerObject: obj.name || 'N/A'
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        // Sort pages alphabetically by name
+        return pages.sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+        console.error("[Extension] Error getting page list:", error);
+        throw error;
+    }
+}
+
+/**
+ * Save journey start data to the mapping file
+ */
+async function saveJourneyStartData(journeyStartPages: any, modelService: ModelService): Promise<void> {
+    try {
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            throw new Error('No model file path available');
+        }
+
+        const modelDir = path.dirname(modelFilePath);
+        const mappingFilePath = path.join(modelDir, 'user-story-page-mapping.json');
+
+        // Load existing mapping data or create new structure
+        let mappingData: any = { pageMappings: {}, journeyStartPages: {} };
+        try {
+            if (fs.existsSync(mappingFilePath)) {
+                const mappingContent = fs.readFileSync(mappingFilePath, 'utf8');
+                mappingData = JSON.parse(mappingContent);
+                
+                // Ensure journeyStartPages property exists
+                if (!mappingData.journeyStartPages) {
+                    mappingData.journeyStartPages = {};
+                }
+            }
+        } catch (error) {
+            console.warn("[Extension] Could not load existing mapping file, creating new one:", error);
+        }
+
+        // Update journey start pages
+        mappingData.journeyStartPages = journeyStartPages;
+
+        // Save back to file
+        const content = JSON.stringify(mappingData, null, 2);
+        fs.writeFileSync(mappingFilePath, content, 'utf8');
+        
+        console.log(`[Extension] Journey start pages saved to ${mappingFilePath}`);
+    } catch (error) {
+        console.error("[Extension] Error saving journey start data:", error);
+        throw error;
+    }
+}
+
+/**
  * Register user stories journey commands
  */
 export function registerUserStoriesJourneyCommands(context: vscode.ExtensionContext, modelService: ModelService): void {
@@ -533,6 +691,338 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             0% { transform: rotate(0deg); }
                             100% { transform: rotate(360deg); }
                         }
+                        
+                        /* Journey Start Modal Styles */
+                        .journey-start-modal {
+                            position: fixed;
+                            z-index: 1000;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(0, 0, 0, 0.5);
+                            display: none;
+                        }
+                        
+                        .journey-start-modal-content {
+                            background-color: var(--vscode-editor-background);
+                            margin: 5% auto;
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 6px;
+                            width: 80%;
+                            max-width: 800px;
+                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                        }
+                        
+                        .journey-start-header {
+                            padding: 16px 20px;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            background-color: var(--vscode-sideBar-background);
+                            border-radius: 6px 6px 0 0;
+                        }
+                        
+                        .journey-start-header h3 {
+                            margin: 0;
+                            color: var(--vscode-editor-foreground);
+                            font-size: 16px;
+                            font-weight: 600;
+                        }
+                        
+                        .journey-start-close {
+                            background: none;
+                            border: none;
+                            color: var(--vscode-editor-foreground);
+                            cursor: pointer;
+                            padding: 4px;
+                            border-radius: 3px;
+                            font-size: 16px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        
+                        .journey-start-close:hover {
+                            background-color: var(--vscode-toolbar-hoverBackground);
+                        }
+                        
+                        .journey-start-body {
+                            padding: 20px;
+                            max-height: 400px;
+                            overflow-y: auto;
+                        }
+                        
+                        .journey-start-table-container {
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 3px;
+                            overflow: hidden;
+                        }
+                        
+                        #journeyStartTable {
+                            width: 100%;
+                            border-collapse: collapse;
+                            background-color: var(--vscode-editor-background);
+                        }
+                        
+                        #journeyStartTable th {
+                            background-color: var(--vscode-sideBar-background);
+                            color: var(--vscode-editor-foreground);
+                            font-weight: 600;
+                            padding: 10px 12px;
+                            text-align: left;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                        }
+                        
+                        #journeyStartTable td {
+                            padding: 8px 12px;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            vertical-align: middle;
+                        }
+                        
+                        #journeyStartTable tr:hover {
+                            background-color: var(--vscode-list-hoverBackground);
+                        }
+                        
+                        .journey-start-page-input {
+                            width: calc(100% - 35px);
+                            margin-right: 5px;
+                            padding: 4px 8px;
+                            border: 1px solid var(--vscode-input-border);
+                            background-color: var(--vscode-input-background);
+                            color: var(--vscode-input-foreground);
+                            border-radius: 2px;
+                        }
+                        
+                        .journey-start-page-input:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
+                        
+                        .journey-start-lookup-btn {
+                            background: none;
+                            border: 1px solid var(--vscode-button-border);
+                            color: var(--vscode-editor-foreground);
+                            cursor: pointer;
+                            padding: 4px 6px;
+                            border-radius: 2px;
+                            font-size: 12px;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        
+                        .journey-start-lookup-btn:hover {
+                            background-color: var(--vscode-toolbar-hoverBackground);
+                        }
+                        
+                        .journey-start-footer {
+                            padding: 16px 20px;
+                            border-top: 1px solid var(--vscode-panel-border);
+                            display: flex;
+                            justify-content: flex-end;
+                            gap: 10px;
+                            background-color: var(--vscode-sideBar-background);
+                            border-radius: 0 0 6px 6px;
+                        }
+                        
+                        .journey-start-save-button {
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border: 1px solid var(--vscode-button-border);
+                            padding: 6px 14px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                            font-weight: 600;
+                        }
+                        
+                        .journey-start-save-button:hover {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
+                        
+                        .journey-start-cancel-button {
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: 1px solid var(--vscode-button-border);
+                            padding: 6px 14px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                        }
+                        
+                        .journey-start-cancel-button:hover {
+                            background-color: var(--vscode-button-secondaryHoverBackground);
+                        }
+                        
+                        /* Page Lookup Modal Styles */
+                        .page-lookup-modal {
+                            position: fixed;
+                            z-index: 1001;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(0, 0, 0, 0.5);
+                            display: none;
+                        }
+                        
+                        .page-lookup-modal-content {
+                            background-color: var(--vscode-editor-background);
+                            margin: 5% auto;
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 6px;
+                            width: 70%;
+                            max-width: 600px;
+                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                        }
+                        
+                        .page-lookup-header {
+                            padding: 16px 20px;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            background-color: var(--vscode-sideBar-background);
+                            border-radius: 6px 6px 0 0;
+                        }
+                        
+                        .page-lookup-header h3 {
+                            margin: 0;
+                            color: var(--vscode-editor-foreground);
+                            font-size: 16px;
+                            font-weight: 600;
+                        }
+                        
+                        .page-lookup-close {
+                            background: none;
+                            border: none;
+                            color: var(--vscode-editor-foreground);
+                            cursor: pointer;
+                            padding: 4px;
+                            border-radius: 3px;
+                            font-size: 16px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        
+                        .page-lookup-close:hover {
+                            background-color: var(--vscode-toolbar-hoverBackground);
+                        }
+                        
+                        .page-lookup-body {
+                            padding: 20px;
+                        }
+                        
+                        .page-filter-container {
+                            margin-bottom: 15px;
+                        }
+                        
+                        .page-filter-input {
+                            width: 100%;
+                            padding: 8px 12px;
+                            border: 1px solid var(--vscode-input-border);
+                            background-color: var(--vscode-input-background);
+                            color: var(--vscode-input-foreground);
+                            border-radius: 2px;
+                            font-size: 13px;
+                        }
+                        
+                        .page-filter-input:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
+                        
+                        .page-list-container {
+                            max-height: 300px;
+                            overflow-y: auto;
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 3px;
+                        }
+                        
+                        .page-list-item {
+                            padding: 8px 12px;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            cursor: pointer;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        }
+                        
+                        .page-list-item:last-child {
+                            border-bottom: none;
+                        }
+                        
+                        .page-list-item:hover {
+                            background-color: var(--vscode-list-hoverBackground);
+                        }
+                        
+                        .page-list-item:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                            background-color: var(--vscode-list-hoverBackground);
+                        }
+                        
+                        .page-list-item.selected {
+                            background-color: var(--vscode-list-activeSelectionBackground);
+                            color: var(--vscode-list-activeSelectionForeground);
+                        }
+                        
+                        .page-list-item-main {
+                            flex: 1;
+                        }
+                        
+                        .page-list-item-name {
+                            font-weight: 600;
+                            margin-bottom: 2px;
+                        }
+                        
+                        .page-list-item-details {
+                            font-size: 12px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .page-lookup-footer {
+                            padding: 16px 20px;
+                            border-top: 1px solid var(--vscode-panel-border);
+                            display: flex;
+                            justify-content: flex-end;
+                            gap: 10px;
+                            background-color: var(--vscode-sideBar-background);
+                            border-radius: 0 0 6px 6px;
+                        }
+                        
+                        .page-lookup-select-button {
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border: 1px solid var(--vscode-button-border);
+                            padding: 6px 14px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                            font-weight: 600;
+                        }
+                        
+                        .page-lookup-select-button:hover {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
+                        
+                        .page-lookup-select-button:disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                        }
+                        
+                        .page-lookup-cancel-button {
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: 1px solid var(--vscode-button-border);
+                            padding: 6px 14px;
+                            cursor: pointer;
+                            border-radius: 2px;
+                        }
+                        
+                        .page-lookup-cancel-button:hover {
+                            background-color: var(--vscode-button-secondaryHoverBackground);
+                        }
                     </style>
                 </head>
                 <body>
@@ -570,6 +1060,9 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                     </div>
 
                     <div class="header-actions">
+                        <button id="defineJourneyStartButton" class="icon-button" title="Define Journey Start Pages">
+                            <i class="codicon codicon-location"></i>
+                        </button>
                         <button id="exportButton" class="icon-button" title="Download CSV">
                             <i class="codicon codicon-cloud-download"></i>
                         </button>
@@ -599,6 +1092,68 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
 
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
                         <div class="spinner"></div>
+                    </div>
+
+                    <!-- Journey Start Pages Modal -->
+                    <div id="journeyStartModal" class="journey-start-modal">
+                        <div class="journey-start-modal-content">
+                            <div class="journey-start-header">
+                                <h3>Define Journey Start Pages for Roles</h3>
+                                <button class="journey-start-close" onclick="closeJourneyStartModal()">
+                                    <span class="codicon codicon-close"></span>
+                                </button>
+                            </div>
+                            <div class="journey-start-body">
+                                <div class="journey-start-table-container">
+                                    <table id="journeyStartTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 40%;">Role Name</th>
+                                                <th style="width: 60%;">Journey Start Page</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="journeyStartTableBody">
+                                            <!-- Table rows will be dynamically generated -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="journey-start-footer">
+                                <button onclick="saveJourneyStartPages()" class="journey-start-save-button">Save</button>
+                                <button onclick="closeJourneyStartModal()" class="journey-start-cancel-button">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Page Lookup Modal for Journey Start -->
+                    <div id="journeyStartPageLookupModal" class="page-lookup-modal">
+                        <div class="page-lookup-modal-content">
+                            <div class="page-lookup-header">
+                                <h3>Select Journey Start Page</h3>
+                                <button class="page-lookup-close" onclick="closeJourneyStartPageLookupModal()">
+                                    <span class="codicon codicon-close"></span>
+                                </button>
+                            </div>
+                            <div class="page-lookup-body">
+                                <div class="page-filter-container">
+                                    <input type="text" 
+                                           id="journeyStartPageFilterInput" 
+                                           class="page-filter-input" 
+                                           placeholder="Filter pages by name or title..." 
+                                           onkeyup="filterJourneyStartPageList()" 
+                                           onkeydown="handleJourneyStartPageFilterKeydown(event)">
+                                </div>
+                                <div class="page-list-container">
+                                    <div id="journeyStartPageListContent">
+                                        <!-- Page list will be populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="page-lookup-footer">
+                                <button onclick="applySelectedJourneyStartPage()" class="page-lookup-select-button">Select</button>
+                                <button onclick="closeJourneyStartPageLookupModal()" class="page-lookup-cancel-button">Cancel</button>
+                            </div>
+                        </div>
                     </div>
 
                     <script src="${scriptUri}"></script>
@@ -670,6 +1225,62 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                 } catch (error) {
                                     console.error('Error saving CSV to workspace:', error);
                                     vscode.window.showErrorMessage('Failed to save CSV to workspace: ' + error.message);
+                                }
+                                break;
+
+                            case 'getJourneyStartData':
+                                console.log("[Extension] Getting journey start data");
+                                try {
+                                    const journeyStartData = await loadJourneyStartData(modelService);
+                                    panel.webview.postMessage({
+                                        command: 'journeyStartDataReady',
+                                        data: journeyStartData
+                                    });
+                                } catch (error) {
+                                    console.error('[Extension] Error getting journey start data:', error);
+                                    panel.webview.postMessage({
+                                        command: 'journeyStartDataReady',
+                                        success: false,
+                                        error: error.message
+                                    });
+                                }
+                                break;
+
+                            case 'getPageListForJourneyStart':
+                                console.log("[Extension] Getting page list for journey start");
+                                try {
+                                    const pages = await getPageListForJourneyStart(modelService);
+                                    panel.webview.postMessage({
+                                        command: 'journeyStartPageListReady',
+                                        pages: pages
+                                    });
+                                } catch (error) {
+                                    console.error('[Extension] Error getting page list:', error);
+                                    panel.webview.postMessage({
+                                        command: 'journeyStartPageListReady',
+                                        success: false,
+                                        error: error.message
+                                    });
+                                }
+                                break;
+
+                            case 'saveJourneyStartPages':
+                                console.log("[Extension] Saving journey start pages");
+                                try {
+                                    await saveJourneyStartData(message.data.journeyStartPages, modelService);
+                                    panel.webview.postMessage({
+                                        command: 'journeyStartPagesSaved',
+                                        success: true
+                                    });
+                                    vscode.window.showInformationMessage('Journey start pages saved successfully');
+                                } catch (error) {
+                                    console.error('[Extension] Error saving journey start pages:', error);
+                                    panel.webview.postMessage({
+                                        command: 'journeyStartPagesSaved',
+                                        success: false,
+                                        message: error.message
+                                    });
+                                    vscode.window.showErrorMessage('Failed to save journey start pages: ' + error.message);
                                 }
                                 break;
 

@@ -110,6 +110,297 @@ function exportToCSV() {
     });
 }
 
+// Journey Start Pages Management
+let allRoles = [];
+let allPages = [];
+let journeyStartPages = {};
+let selectedPageForRole = null;
+let currentSelectedRole = null;
+
+// Open journey start pages modal (global function for onclick)
+function openJourneyStartModal() {
+    vscode.postMessage({
+        command: 'getJourneyStartData'
+    });
+}
+
+// Close journey start pages modal (global function for onclick)
+function closeJourneyStartModal() {
+    const modal = document.getElementById('journeyStartModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Open page lookup modal for journey start (global function for onclick)
+function openJourneyStartPageLookup(roleName) {
+    currentSelectedRole = roleName;
+    selectedPageForRole = null;
+    
+    vscode.postMessage({
+        command: 'getPageListForJourneyStart'
+    });
+}
+
+// Close page lookup modal for journey start (global function for onclick)
+function closeJourneyStartPageLookupModal() {
+    const modal = document.getElementById('journeyStartPageLookupModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    selectedPageForRole = null;
+    currentSelectedRole = null;
+}
+
+// Filter pages in the journey start page lookup (global function for onkeyup)
+function filterJourneyStartPageList() {
+    const filterInput = document.getElementById('journeyStartPageFilterInput');
+    const filter = filterInput ? filterInput.value.toLowerCase() : '';
+    const pageListContent = document.getElementById('journeyStartPageListContent');
+    
+    if (!pageListContent) {
+        return;
+    }
+    
+    const filteredPages = allPages.filter(page => {
+        const nameMatch = page.name.toLowerCase().includes(filter);
+        const titleMatch = (page.titleText || '').toLowerCase().includes(filter);
+        const typeMatch = (page.type || '').toLowerCase().includes(filter);
+        return nameMatch || titleMatch || typeMatch;
+    });
+    
+    renderJourneyStartPageList(filteredPages);
+}
+
+// Handle keydown events in the journey start page filter (global function for onkeydown)
+function handleJourneyStartPageFilterKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        
+        // If a page is already selected, apply it
+        if (selectedPageForRole) {
+            applySelectedJourneyStartPage();
+        } else {
+            // If no page is selected but there are filtered results, select the first one
+            const pageItems = document.querySelectorAll('#journeyStartPageListContent .page-list-item');
+            if (pageItems.length > 0) {
+                const firstPageName = pageItems[0].querySelector('.page-list-item-name');
+                if (firstPageName) {
+                    selectJourneyStartPage(firstPageName.textContent);
+                    applySelectedJourneyStartPage();
+                }
+            }
+        }
+    }
+}
+
+// Render the page list for journey start lookup
+function renderJourneyStartPageList(pages) {
+    const pageListContent = document.getElementById('journeyStartPageListContent');
+    if (!pageListContent) {
+        return;
+    }
+    
+    pageListContent.innerHTML = '';
+    
+    if (!pages || pages.length === 0) {
+        pageListContent.innerHTML = '<div class="page-list-item" style="text-align: center; font-style: italic; color: var(--vscode-descriptionForeground);">No pages found</div>';
+        return;
+    }
+    
+    pages.forEach(page => {
+        const item = document.createElement('div');
+        item.className = 'page-list-item';
+        item.tabIndex = 0; // Make it focusable
+        item.onclick = () => selectJourneyStartPage(page.name);
+        item.onkeydown = (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                selectJourneyStartPage(page.name);
+                applySelectedJourneyStartPage();
+            }
+        };
+        
+        item.innerHTML = `
+            <div class="page-list-item-main">
+                <div class="page-list-item-name">${page.name}</div>
+                <div class="page-list-item-details">${page.type} - ${page.titleText || 'No title'}</div>
+            </div>
+        `;
+        
+        pageListContent.appendChild(item);
+    });
+    
+    // Update select button state
+    updateJourneyStartSelectButtonState();
+}
+
+// Select a page for journey start (global function for onclick)
+function selectJourneyStartPage(pageName) {
+    selectedPageForRole = pageName;
+    
+    // Update visual selection
+    const pageItems = document.querySelectorAll('#journeyStartPageListContent .page-list-item');
+    pageItems.forEach(item => {
+        const nameElement = item.querySelector('.page-list-item-name');
+        if (nameElement && nameElement.textContent === pageName) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+    
+    updateJourneyStartSelectButtonState();
+}
+
+// Update the select button state
+function updateJourneyStartSelectButtonState() {
+    const selectButton = document.querySelector('.page-lookup-select-button');
+    if (selectButton) {
+        selectButton.disabled = !selectedPageForRole;
+    }
+}
+
+// Apply selected page to the role (global function for onclick)
+function applySelectedJourneyStartPage() {
+    if (!selectedPageForRole || !currentSelectedRole) {
+        return;
+    }
+    
+    // Update the journey start pages object
+    journeyStartPages[currentSelectedRole] = selectedPageForRole;
+    
+    // Update the input field in the table
+    const input = document.querySelector(`input[data-role="${currentSelectedRole}"]`);
+    if (input) {
+        input.value = selectedPageForRole;
+    }
+    
+    // Close the modal
+    closeJourneyStartPageLookupModal();
+}
+
+// Save journey start pages (global function for onclick)
+function saveJourneyStartPages() {
+    // Collect all the values from the input fields
+    const inputs = document.querySelectorAll('.journey-start-page-input');
+    const journeyStartData = {};
+    
+    inputs.forEach(input => {
+        const roleName = input.getAttribute('data-role');
+        const pageName = input.value.trim();
+        if (roleName && pageName) {
+            journeyStartData[roleName] = pageName;
+        }
+    });
+    
+    // Send to extension to save
+    vscode.postMessage({
+        command: 'saveJourneyStartPages',
+        data: {
+            journeyStartPages: journeyStartData
+        }
+    });
+}
+
+// Process journey start data response
+function processJourneyStartData(data) {
+    allRoles = data.roles || [];
+    journeyStartPages = data.journeyStartPages || {};
+    
+    renderJourneyStartTable();
+    
+    // Show the modal
+    const modal = document.getElementById('journeyStartModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+// Render the journey start table
+function renderJourneyStartTable() {
+    const tableBody = document.getElementById('journeyStartTableBody');
+    if (!tableBody) {
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    // Filter out 'Unknown' roles and empty role names
+    const validRoles = allRoles.filter(role => 
+        role && 
+        role.trim() !== '' && 
+        role.toLowerCase() !== 'unknown'
+    );
+    
+    if (validRoles.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="2" style="text-align: center; font-style: italic; color: var(--vscode-descriptionForeground); padding: 20px;">
+                No valid roles found in the model. Please ensure you have a Role data object with lookup items defined.
+            </td>
+        `;
+        tableBody.appendChild(row);
+        return;
+    }
+    
+    validRoles.forEach(role => {
+        const row = document.createElement('tr');
+        const currentPage = journeyStartPages[role] || '';
+        
+        row.innerHTML = `
+            <td>${role}</td>
+            <td>
+                <input type="text" 
+                       class="journey-start-page-input" 
+                       value="${currentPage}" 
+                       data-role="${role}" 
+                       placeholder="Select a start page...">
+                <button class="journey-start-lookup-btn" 
+                        onclick="openJourneyStartPageLookup('${role}')" 
+                        title="Search and select page">
+                    <span class="codicon codicon-search"></span>
+                </button>
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+// Process page list response for journey start
+function processJourneyStartPageList(pages) {
+    allPages = pages || [];
+    renderJourneyStartPageList(allPages);
+    
+    // Show the page lookup modal
+    const modal = document.getElementById('journeyStartPageLookupModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+    
+    // Clear filter input
+    const filterInput = document.getElementById('journeyStartPageFilterInput');
+    if (filterInput) {
+        filterInput.value = '';
+        // Set focus to the search input for better UX
+        setTimeout(() => {
+            filterInput.focus();
+        }, 100);
+    }
+}
+
+// Process journey start pages save response
+function processJourneyStartPagesSaved(success, message) {
+    if (success) {
+        closeJourneyStartModal();
+        // Show success message (optional)
+        console.log('Journey start pages saved successfully');
+    } else {
+        alert('Error saving journey start pages: ' + (message || 'Unknown error'));
+    }
+}
+
 // Render the table
 function renderTable() {
     const table = document.getElementById("journeyTable");
@@ -282,6 +573,31 @@ window.addEventListener('message', event => {
             }
             break;
             
+        case 'journeyStartDataReady':
+            console.log('Journey start data received');
+            if (message.success !== false) {
+                processJourneyStartData(message.data || {});
+            } else {
+                console.error('Error getting journey start data:', message.error);
+                alert('Error getting journey start data: ' + (message.error || 'Unknown error'));
+            }
+            break;
+            
+        case 'journeyStartPageListReady':
+            console.log('Journey start page list received');
+            if (message.success !== false) {
+                processJourneyStartPageList(message.pages || []);
+            } else {
+                console.error('Error getting page list:', message.error);
+                alert('Error getting page list: ' + (message.error || 'Unknown error'));
+            }
+            break;
+            
+        case 'journeyStartPagesSaved':
+            console.log('Journey start pages save response');
+            processJourneyStartPagesSaved(message.success, message.message);
+            break;
+            
         default:
             console.log('Unknown message:', message);
             break;
@@ -305,9 +621,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup button event listeners
     const exportButton = document.getElementById('exportButton');
     const refreshButton = document.getElementById('refreshButton');
+    const defineJourneyStartButton = document.getElementById('defineJourneyStartButton');
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
+    }
+    
+    if (defineJourneyStartButton) {
+        defineJourneyStartButton.addEventListener('click', openJourneyStartModal);
+    }
+    
+    if (exportButton) {
+        exportButton.addEventListener('click', exportToCSV);
+    }
+    
+    if (defineJourneyStartButton) {
+        defineJourneyStartButton.addEventListener('click', openJourneyStartModal);
     }
     
     if (refreshButton) {
@@ -336,6 +665,20 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Notify extension that webview is ready
     vscode.postMessage({ command: 'UserStoriesJourneyWebviewReady' });
+    
+    // Add modal close event handlers
+    window.onclick = function(event) {
+        const journeyStartModal = document.getElementById('journeyStartModal');
+        const pageLookupModal = document.getElementById('journeyStartPageLookupModal');
+        
+        if (event.target === journeyStartModal) {
+            closeJourneyStartModal();
+        }
+        
+        if (event.target === pageLookupModal) {
+            closeJourneyStartPageLookupModal();
+        }
+    };
 });
 
 // Export functions for module (following QA view pattern)
@@ -343,6 +686,11 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         showUserStoriesJourneyView,
         getUserStoriesJourneyPanel,
-        closeUserStoriesJourneyPanel
+        closeUserStoriesJourneyPanel,
+        openJourneyStartModal,
+        closeJourneyStartModal,
+        openJourneyStartPageLookup,
+        closeJourneyStartPageLookupModal,
+        saveJourneyStartPages
     };
 }

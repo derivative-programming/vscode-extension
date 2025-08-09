@@ -206,7 +206,24 @@ async function loadUserStoriesPageMappingData(panel: vscode.WebviewPanel, modelS
  */
 async function savePageMappingData(pageMappings: any, filePath: string): Promise<void> {
     try {
-        const data = { pageMappings: pageMappings };
+        // Load existing data to preserve other properties like journeyStartPages
+        let existingData: any = {};
+        try {
+            if (fs.existsSync(filePath)) {
+                const existingContent = fs.readFileSync(filePath, 'utf8');
+                existingData = JSON.parse(existingContent);
+            }
+        } catch (error) {
+            console.warn(`[Extension] Could not load existing data from ${filePath}, creating new file:`, error);
+            existingData = {};
+        }
+
+        // Update only the pageMappings property while preserving other properties
+        const data = {
+            ...existingData,
+            pageMappings: pageMappings
+        };
+        
         const content = JSON.stringify(data, null, 2);
         fs.writeFileSync(filePath, content, 'utf8');
         console.log(`[Extension] Page mapping data saved to ${filePath}`);

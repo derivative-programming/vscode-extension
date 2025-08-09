@@ -279,22 +279,15 @@ mapped page must have a path from the login page
 role must be allowed to view all pages in path
 
 user story - journey...
+- show a button to define the start of the journey for each role lookup item in the role object. the modal should show a table with two columns. first is the role name, second is the journey start page. similar to the page flow user journey lookup, show a similar lookup and search button. On save, save the selections to the user-story-page-mapping.json file in a new property.
 - copy user story QA view to create user story user journey view.
 - add 'User Journey' treeview item under 'Page Mapping'. On click, open user story journey view.
 - replace the status column with a Page column that shows the page that fulfils the user story.
 - remove the notes column
 - remove the Date Verified column
 - show a row for each user story and for each page that fulfils it.
-- remvoe the far left checkbox column
+- remove the far left checkbox column
 
-review page flow diagram view
-create a new Tab - 'User Journey' after the mermaid tab
-show a title 'User Journey' on the tab space
-use the same design as the other three tabs
-first we show a 'login page' dropdown. This will list all forms where isLoginPage = true and isPage=true.
-next we show a 'target page' dropdown. This will list all pages in the model.
-when the two dropdowns have a selection, try to determine the shortest path a user can take to get from the login page to the target page. It may be helpful to refer to the graph tab to determine the shortest path.
-review page flow diagram view mermaid tab on how to create a flowchart to show the journey between the two pages.
 
 user story journey - user page flowchart...
 show a flowchart that shows what the user must do to get there
