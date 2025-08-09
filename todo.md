@@ -279,7 +279,7 @@ mapped page must have a path from the login page
 role must be allowed to view all pages in path
 
 user story - journey...
-- show a button to define the start of the journey for each role lookup item in the role object. the modal should show a table with two columns. first is the role name, second is the journey start page. similar to the page flow user journey lookup, show a similar lookup and search button. On save, save the selections to the user-story-page-mapping.json file in a new property.
+- show a button to define the start of the journey for each role lookup item in the role object. the modal should show a table with two columns. first is the role name, second is the journey start page. similar to the page flow user journey lookup, show a similar lookup and search button. On save, save the selections to the app-dna-user-story-page-mapping.json file in a new property.
 - copy user story QA view to create user story user journey view.
 - add 'User Journey' treeview item under 'Page Mapping'. On click, open user story journey view.
 - replace the status column with a Page column that shows the page that fulfils the user story.

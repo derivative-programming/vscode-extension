@@ -83,7 +83,7 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
         const modelFilePath = modelService.getCurrentFilePath();
         if (modelFilePath) {
             const modelDir = path.dirname(modelFilePath);
-            pageMappingFilePath = path.join(modelDir, 'user-story-page-mapping.json');
+            pageMappingFilePath = path.join(modelDir, 'app-dna-user-story-page-mapping.json');
             try {
                 if (fs.existsSync(pageMappingFilePath)) {
                     const mappingContent = fs.readFileSync(pageMappingFilePath, 'utf8');
@@ -229,20 +229,21 @@ async function loadJourneyStartData(modelService: ModelService): Promise<any> {
             }
         }
 
-        // Load existing journey start pages from mapping file
+        // Load existing journey start pages from separate user journey file
         let existingJourneyStartPages: any = {};
         const modelFilePath = modelService.getCurrentFilePath();
         if (modelFilePath) {
             const modelDir = path.dirname(modelFilePath);
-            const mappingFilePath = path.join(modelDir, 'user-story-page-mapping.json');
+            const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
+            
             try {
-                if (fs.existsSync(mappingFilePath)) {
-                    const mappingContent = fs.readFileSync(mappingFilePath, 'utf8');
-                    const mappingData = JSON.parse(mappingContent);
-                    existingJourneyStartPages = mappingData.journeyStartPages || {};
+                if (fs.existsSync(journeyFilePath)) {
+                    const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                    const journeyData = JSON.parse(journeyContent);
+                    existingJourneyStartPages = journeyData.journeyStartPages || {};
                 }
             } catch (error) {
-                console.warn("[Extension] Could not load journey start pages from mapping file:", error);
+                console.warn("[Extension] Could not load journey start pages from user journey file:", error);
             }
         }
 
@@ -316,7 +317,7 @@ async function getPageListForJourneyStart(modelService: ModelService): Promise<a
 }
 
 /**
- * Save journey start data to the mapping file
+ * Save journey start data to the separate user journey file
  */
 async function saveJourneyStartData(journeyStartPages: any, modelService: ModelService): Promise<void> {
     try {
@@ -326,32 +327,32 @@ async function saveJourneyStartData(journeyStartPages: any, modelService: ModelS
         }
 
         const modelDir = path.dirname(modelFilePath);
-        const mappingFilePath = path.join(modelDir, 'user-story-page-mapping.json');
+        const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
 
-        // Load existing mapping data or create new structure
-        let mappingData: any = { pageMappings: {}, journeyStartPages: {} };
+        // Load existing journey data or create new structure
+        let journeyData: any = { journeyStartPages: {} };
         try {
-            if (fs.existsSync(mappingFilePath)) {
-                const mappingContent = fs.readFileSync(mappingFilePath, 'utf8');
-                mappingData = JSON.parse(mappingContent);
+            if (fs.existsSync(journeyFilePath)) {
+                const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                journeyData = JSON.parse(journeyContent);
                 
                 // Ensure journeyStartPages property exists
-                if (!mappingData.journeyStartPages) {
-                    mappingData.journeyStartPages = {};
+                if (!journeyData.journeyStartPages) {
+                    journeyData.journeyStartPages = {};
                 }
             }
         } catch (error) {
-            console.warn("[Extension] Could not load existing mapping file, creating new one:", error);
+            console.warn("[Extension] Could not load existing journey file, creating new one:", error);
         }
 
         // Update journey start pages
-        mappingData.journeyStartPages = journeyStartPages;
+        journeyData.journeyStartPages = journeyStartPages;
 
-        // Save back to file
-        const content = JSON.stringify(mappingData, null, 2);
-        fs.writeFileSync(mappingFilePath, content, 'utf8');
+        // Save to file
+        const content = JSON.stringify(journeyData, null, 2);
+        fs.writeFileSync(journeyFilePath, content, 'utf8');
         
-        console.log(`[Extension] Journey start pages saved to ${mappingFilePath}`);
+        console.log(`[Extension] Journey start pages saved to ${journeyFilePath}`);
     } catch (error) {
         console.error("[Extension] Error saving journey start data:", error);
         throw error;

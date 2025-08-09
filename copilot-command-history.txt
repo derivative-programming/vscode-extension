@@ -1,3 +1,29 @@
+## JSON FILENAME STANDARDIZATION (August 9, 2025) - COMPLETED ✅
+- Request: "change user-story-page-mapping.json to app-dna-user-story-page-mapping.json and user-story-user-journey.json to app-dna-user-story-user-journey.json"
+- Status: COMPLETED
+- Files Modified: 
+  - src/commands/userStoriesJourneyCommands.ts (3 references updated)
+  - src/commands/userStoriesPageMappingCommands.ts (1 reference updated)
+  - copilot-command-history.txt (8 references updated)
+  - todo.md (1 reference updated)
+- Changes Made:
+  - Updated all filename references to use "app-dna-" prefix for consistency
+  - New filenames: app-dna-user-story-page-mapping.json and app-dna-user-story-user-journey.json
+  - No compilation errors after filename changes
+- Architecture: Consistent naming convention with app-dna prefix for all JSON data files
+
+## JOURNEY START PAGES FILE STRUCTURE REFACTORING (January 3, 2025) - COMPLETED ✅
+- Request: "create a new app-dna-user-story-user-journey.json" and remove migration logic
+- Status: COMPLETED
+- Files Modified: src/commands/userStoriesJourneyCommands.ts
+- Changes Made:
+  - Removed migration functionality from loadJourneyStartData function
+  - Eliminated migrateLegacyJourneyStartPages function entirely
+  - Simplified data loading to use app-dna-user-story-user-journey.json directly
+  - Clean separation between page mapping (app-dna-user-story-page-mapping.json) and journey data (app-dna-user-story-user-journey.json)
+  - No compilation errors in the journey commands file
+- Architecture: Clean file separation pattern without legacy migration complexity
+
 ## MERMAID TAB TEXT FORMATTING CONSISTENCY (December 13, 2025) - COMPLETED ✅
 - Request: "on teh mermaid tab lets also put the "([name])" part on a sepaarate line in the node"
 - Status: COMPLETED
@@ -124,7 +150,7 @@ August 6, 2025 - User Stories User Journey View Implementation - COMPLETED
     - Removed custom localResourceRoots to match working views (uses default)
     - Removed duplicate CSS definitions for .refresh-button
   * ✅ Extension compiles successfully - ready for testing
-  * Uses existing user-story-page-mapping.json file as data source with correct structure: 
+  * Uses existing app-dna-user-story-page-mapping.json file as data source with correct structure: 
     { "pageMappings": { "storyNumber": { "pageMapping": ["page1", "page2"], "ignorePages": [] } } }
   * Architecture: Journey view reads page mapping data and creates expanded view showing story-page relationships
   * Added CSV export functionality matching QA view pattern
@@ -143,7 +169,7 @@ August 9, 2025 - User Stories Journey View Review - COMPLETED
     - Three-column layout: Story Number, Story Text, Page
     - Multiple rows per story if multiple pages fulfill it
     - Professional filtering, sorting, CSV export functionality
-    - Integrates with user-story-page-mapping.json file
+    - Integrates with app-dna-user-story-page-mapping.json file
     - Proper VS Code theming and design patterns
   * Page Flow Journey Tab Features:
     - BFS algorithm for shortest path calculation between pages
@@ -170,7 +196,7 @@ August 9, 2025 - User Stories Journey Start Pages Feature - COMPLETED
 
 2025-08-09 - Implemented Journey Start Pages Definition Feature for User Stories Journey View
 - Status: ✅ COMPLETED - ALL REQUIREMENTS IMPLEMENTED
-- Request: "on the user story user journey view, show a button to define the start of the journey for each role lookup item in the role object. the modal should show a table with two columns. first is the role name, second is the journey start page. similar to the page flow user journey lookup, show a similar lookup and search button. On save, save the selections to the user-story-page-mapping.json file in a new property."
+- Request: "on the user story user journey view, show a button to define the start of the journey for each role lookup item in the role object. the modal should show a table with two columns. first is the role name, second is the journey start page. similar to the page flow user journey lookup, show a similar lookup and search button. On save, save the selections to the app-dna-user-story-page-mapping.json file in a new property."
 - Implementation Details:
   * Added "Define Journey Start Pages" button to user stories journey view (left of CSV download button)
   * Created comprehensive modal dialog with:
@@ -182,9 +208,9 @@ August 9, 2025 - User Stories Journey Start Pages Feature - COMPLETED
   * Backend functionality:
     - `loadJourneyStartData()` - Extracts roles from Role data object lookup items
     - `getPageListForJourneyStart()` - Gets all pages (reports and forms) from model
-    - `saveJourneyStartData()` - Saves to user-story-page-mapping.json in new `journeyStartPages` property
+    - `saveJourneyStartData()` - Saves to app-dna-user-story-page-mapping.json in new `journeyStartPages` property
   * File structure enhancement:
-    - Added `journeyStartPages` property to user-story-page-mapping.json
+    - Added `journeyStartPages` property to app-dna-user-story-page-mapping.json
     - Data format: `{ "roleName": "startPageName" }`
   * UI Components Added:
     - Journey Start Modal with role/page table
@@ -467,9 +493,9 @@ COMPLETED: Created User Stories Page Mapping View
   * ADDED: Ignore Pages filter column
   * ADDED: Validate All Page Names button with validation logic
   * ADDED: Best Guess button for automatic page mapping suggestions
-  * Architecture: Page mapping data stored in separate user-story-page-mapping.json file
+  * Architecture: Page mapping data stored in separate app-dna-user-story-page-mapping.json file
   * Integrated commands in registerCommands.ts with proper panel management
-  * Uses user-story-page-mapping.json file with story number as key (no story text stored)
+  * Uses app-dna-user-story-page-mapping.json file with story number as key (no story text stored)
   * Added CSV export functionality matching QA view pattern
   * Shows "Only stories that have completed 'Model AI Processing' are listed." text under title
 - Features:

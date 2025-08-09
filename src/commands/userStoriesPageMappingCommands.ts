@@ -83,7 +83,7 @@ async function loadUserStoriesPageMappingData(panel: vscode.WebviewPanel, modelS
         const modelFilePath = modelService.getCurrentFilePath();
         if (modelFilePath) {
             const modelDir = path.dirname(modelFilePath);
-            mappingFilePath = path.join(modelDir, 'user-story-page-mapping.json');
+            mappingFilePath = path.join(modelDir, 'app-dna-user-story-page-mapping.json');
             try {
                 if (fs.existsSync(mappingFilePath)) {
                     const mappingContent = fs.readFileSync(mappingFilePath, 'utf8');
