@@ -594,7 +594,7 @@ function renderTable() {
                 // Add icon button for showing user journey
                 const journeyButton = document.createElement("button");
                 journeyButton.className = "journey-icon-button";
-                journeyButton.title = "Show User Journey to this page";
+                journeyButton.title = "Show User Journey Page Flow Diagram";
                 journeyButton.innerHTML = '<span class="codicon codicon-map"></span>';
                 journeyButton.onclick = () => openUserJourneyForPage(item.page, item.pageRole);
                 distanceContainer.appendChild(journeyButton);
@@ -602,7 +602,7 @@ function renderTable() {
                 // Add icon button for showing page preview
                 const previewButton = document.createElement("button");
                 previewButton.className = "journey-icon-button";
-                previewButton.title = "Show Page Preview";
+                previewButton.title = "Show User Journey Page Preview";
                 previewButton.innerHTML = '<span class="codicon codicon-eye"></span>';
                 previewButton.onclick = () => openPagePreviewForPage(item.page, item.pageRole);
                 distanceContainer.appendChild(previewButton);
