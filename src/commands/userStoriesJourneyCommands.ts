@@ -901,7 +901,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             opacity: 0.6;
                             cursor: not-allowed;
                         }
-                        button:hover:not(:disabled) {
+                        button:hover:not(:disabled):not(.filter-button-secondary):not(.page-lookup-close):not(.page-lookup-cancel-button):not(.page-lookup-select-button):not(.journey-start-close):not(.journey-start-cancel-button) {
                             background-color: var(--vscode-button-hoverBackground);
                         }
                         
@@ -1003,7 +1003,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             border-radius: 2px;
                         }
                         .filter-button-secondary:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
                         }
                         .table-container {
                             border: 1px solid var(--vscode-panel-border);
@@ -1229,7 +1229,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         }
                         
                         .journey-start-close:hover {
-                            background-color: var(--vscode-toolbar-hoverBackground);
+                            background-color: var(--vscode-toolbar-hoverBackground) !important;
                         }
                         
                         .journey-start-body {
@@ -1335,7 +1335,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         }
                         
                         .journey-start-cancel-button:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
                         }
                         
                         /* Page Lookup Modal Styles */
@@ -1391,7 +1391,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         }
                         
                         .page-lookup-close:hover {
-                            background-color: var(--vscode-toolbar-hoverBackground);
+                            background-color: var(--vscode-toolbar-hoverBackground) !important;
                         }
                         
                         .page-lookup-body {
@@ -1505,7 +1505,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         }
                         
                         .page-lookup-cancel-button:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
                         }
                         
                         /* Progress Modal Styles */
@@ -1620,7 +1620,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         }
                         
                         .progress-close-button:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground));
                         }
                         
                         .progress-close-button:disabled {

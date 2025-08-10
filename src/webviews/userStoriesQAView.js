@@ -620,6 +620,23 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
+        // Apply same styling as refresh button
+        exportButton.style.background = "none";
+        exportButton.style.border = "none";
+        exportButton.style.color = "var(--vscode-editor-foreground)";
+        exportButton.style.padding = "4px 8px";
+        exportButton.style.cursor = "pointer";
+        exportButton.style.display = "flex";
+        exportButton.style.alignItems = "center";
+        exportButton.style.borderRadius = "4px";
+        exportButton.style.transition = "background 0.15s";
+        // Add hover effect
+        exportButton.addEventListener("mouseenter", function() {
+            exportButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        exportButton.addEventListener("mouseleave", function() {
+            exportButton.style.background = "none";
+        });
     }
     
     if (refreshButton) {

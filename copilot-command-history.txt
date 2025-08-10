@@ -1,3 +1,26 @@
+## USER STORIES QA VIEW BUTTON HOVER STYLING FIX (August 10, 2025) - COMPLETED ✅
+- Request: "on the user stories qa view, check the button to the left of the refresh button"
+- Status: COMPLETED
+- Files Modified:
+  - src/webviews/userStoriesQAView.js (applied refresh button styling to export icon button)
+- Issue Identified:
+  - Export button using "icon-button" CSS class with incorrect hover styling (var(--vscode-toolbar-hoverBackground))
+  - Apply button using "apply-button" CSS class (regular text button, appears to have proper styling)
+  - Only refresh button had correct inline styling with proper VS Code hover colors
+- Buttons Fixed:
+  - ✅ exportButton (Download CSV - cloud-download icon)
+- Button Not Changed:
+  - ✅ applyButton (Apply to Selected - regular text button with proper CSS class styling)
+- Solution Applied:
+  - ✅ Applied exact same inline styling as refresh button to export icon button
+  - ✅ Export button now has consistent styling: background:none, proper padding, border-radius, transition
+  - ✅ Export button uses same hover effect: var(--vscode-list-hoverBackground)
+- Architecture Notes:
+  - User Stories QA view has both icon buttons and text buttons
+  - Apply button is a text button with proper CSS class, doesn't need icon button treatment
+  - Export button was the only icon button needing fix (besides refresh which was already correct)
+  - Consistent with refresh button styling pattern across all views
+
 ## USER STORY PAGE MAPPING VIEW BUTTON HOVER STYLING FIX (August 9, 2025) - COMPLETED ✅
 - Request: "on the user story page mapping view, check the buttons to the left of the refresh button"
 - Status: COMPLETED

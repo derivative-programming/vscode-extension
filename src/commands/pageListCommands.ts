@@ -144,7 +144,7 @@ export function registerPageListCommands(
                             opacity: 0.6;
                             cursor: not-allowed;
                         }
-                        button:hover:not(:disabled) {
+                        button:hover:not(:disabled):not(.filter-button-secondary) {
                             background-color: var(--vscode-button-hoverBackground);
                         }
                         .action-button {
@@ -364,7 +364,7 @@ export function registerPageListCommands(
                             border-radius: 2px;
                         }
                         .filter-button-secondary:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
                         }
                         .table-container {
                             border: 1px solid var(--vscode-panel-border);

@@ -445,6 +445,12 @@ function renderJourneyStartTable() {
         // Create page input cell
         const pageCell = document.createElement('td');
         
+        // Create a container for input and button
+        const inputContainer = document.createElement('div');
+        inputContainer.style.display = 'flex';
+        inputContainer.style.gap = '4px';
+        inputContainer.style.alignItems = 'center';
+        
         // Create input
         const input = document.createElement('input');
         input.type = 'text';
@@ -452,7 +458,8 @@ function renderJourneyStartTable() {
         input.value = currentPage;
         input.setAttribute('data-role', role);
         input.placeholder = 'Select a start page...';
-        pageCell.appendChild(input);
+        input.style.flex = '1'; // Take up remaining space
+        inputContainer.appendChild(input);
         
         // Create search button with same styling as refresh button
         const searchButton = document.createElement('button');
@@ -476,7 +483,9 @@ function renderJourneyStartTable() {
         searchButton.addEventListener("mouseleave", function() {
             searchButton.style.background = "none";
         });
-        pageCell.appendChild(searchButton);
+        inputContainer.appendChild(searchButton);
+        
+        pageCell.appendChild(inputContainer);
         
         row.appendChild(pageCell);
         tableBody.appendChild(row);

@@ -570,7 +570,7 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                             opacity: 0.6;
                             cursor: not-allowed;
                         }
-                        button:hover:not(:disabled) {
+                        button:hover:not(:disabled):not(.filter-button-secondary):not(.page-lookup-btn):not(.page-lookup-close) {
                             background-color: var(--vscode-button-hoverBackground);
                         }
                         .page-mapping-input, .ignore-pages-input {
@@ -602,7 +602,7 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                             gap: 4px;
                         }
                         .refresh-button:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground));
                         }
                         
                         .icon-button {
@@ -703,7 +703,7 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                             border-radius: 2px;
                         }
                         .filter-button-secondary:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
                         }
                         .table-container {
                             border: 1px solid var(--vscode-panel-border);
@@ -909,7 +909,7 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                         }
                         
                         .page-lookup-close:hover {
-                            background-color: var(--vscode-titleBar-inactiveBackground);
+                            background-color: var(--vscode-titleBar-inactiveBackground) !important;
                         }
                         
                         .page-lookup-body {
@@ -1014,7 +1014,7 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                         }
                         
                         .page-lookup-btn.secondary:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
                         }
                         
                         .input-with-lookup {
@@ -1045,7 +1045,7 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                         }
                         
                         .lookup-icon-btn:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground);
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground));
                             border-color: var(--vscode-focusBorder);
                         }
                         
@@ -1167,8 +1167,8 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                     <span id="pageSelectionInfo">0 pages selected</span>
                                 </div>
                                 <div class="page-lookup-actions">
-                                    <button class="page-lookup-btn secondary" onclick="closePageLookupModal()">Cancel</button>
                                     <button class="page-lookup-btn" onclick="applySelectedPages()">Apply Selected</button>
+                                    <button class="page-lookup-btn secondary" onclick="closePageLookupModal()">Cancel</button>
                                 </div>
                             </div>
                         </div>
