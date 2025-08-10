@@ -1,0 +1,9 @@
+2025-08-10: Added bulk data object creation feature to Add Object Wizard - COMPLETED
+- Added "Bulk add Data Objects" button to Step 1 of wizard
+- Implemented modal dialog with multi-line text input for bulk entry
+- Added format validation for "[ObjectName] is a child of [ParentObjectName]" and "[ObjectName] is a lookup" patterns
+- Implemented same validation rules as single object wizard (PascalCase, singular naming, no spaces, alpha only, max 100 chars)
+- Added real-time validation display with success/error indicators
+- Implemented bulk object creation with dependency handling
+- Added proper message passing between webview and extension
+- Architecture: Extended existing wizard pattern with modal overlay, leveraged existing ModelService for creation

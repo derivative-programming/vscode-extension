@@ -270,6 +270,285 @@ function showAddObjectWizard(modelService) {
                     }
                     return;
                     
+                case "validateBulkObjects":
+                    try {
+                        const { input } = message.data;
+                        const lines = input.split('\n').filter(line => line.trim());
+                        const results = [];
+                        const validObjects = [];
+                        const allObjects = modelService.getAllObjects();
+                        
+                        for (let i = 0; i < lines.length; i++) {
+                            const line = lines[i].trim();
+                            const lineNumber = i + 1;
+                            
+                            // Parse the line format
+                            let objectName = '';
+                            let parentObjectName = '';
+                            let isLookupObject = false;
+                            
+                            const childMatch = line.match(/^(.+?)\s+is\s+a\s+child\s+of\s+(.+)$/i);
+                            const lookupMatch = line.match(/^(.+?)\s+is\s+a\s+lookup$/i);
+                            
+                            if (childMatch) {
+                                objectName = childMatch[1].trim();
+                                parentObjectName = childMatch[2].trim();
+                                isLookupObject = false;
+                            } else if (lookupMatch) {
+                                objectName = lookupMatch[1].trim();
+                                parentObjectName = 'Pac';
+                                isLookupObject = true;
+                            } else {
+                                results.push({
+                                    line: `Line ${lineNumber}: "${line}"`,
+                                    isValid: false,
+                                    message: 'Invalid format. Use "[ObjectName] is a child of [ParentObjectName]" or "[ObjectName] is a lookup"'
+                                });
+                                continue;
+                            }
+                            
+                            // Validate object name
+                            if (!objectName) {
+                                results.push({
+                                    line: `Line ${lineNumber}`,
+                                    isValid: false,
+                                    message: "Object name cannot be empty"
+                                });
+                                continue;
+                            }
+                            
+                            if (objectName.length > 100) {
+                                results.push({
+                                    line: `Line ${lineNumber}`,
+                                    isValid: false,
+                                    message: "Object name cannot exceed 100 characters"
+                                });
+                                continue;
+                            }
+                            
+                            if (objectName.includes(" ")) {
+                                results.push({
+                                    line: `Line ${lineNumber}`,
+                                    isValid: false,
+                                    message: "Object name cannot contain spaces"
+                                });
+                                continue;
+                            }
+                            
+                            if (!/^[a-zA-Z]+$/.test(objectName)) {
+                                results.push({
+                                    line: `Line ${lineNumber}`,
+                                    isValid: false,
+                                    message: "Object name must contain only letters"
+                                });
+                                continue;
+                            }
+                            
+                            if (objectName[0] !== objectName[0].toUpperCase()) {
+                                results.push({
+                                    line: `Line ${lineNumber}`,
+                                    isValid: false,
+                                    message: "Object name must be in pascal case (example: ToDoItem)"
+                                });
+                                continue;
+                            }
+                            
+                            // Check for duplicate names within input
+                            const duplicateInInput = validObjects.some(obj => obj.objectName === objectName);
+                            if (duplicateInInput) {
+                                results.push({
+                                    line: `Line ${lineNumber}`,
+                                    isValid: false,
+                                    message: "Duplicate object name in input"
+                                });
+                                continue;
+                            }
+                            
+                            // Check if object already exists
+                            if (allObjects.some(obj => obj.name === objectName)) {
+                                results.push({
+                                    line: `Line ${lineNumber}`,
+                                    isValid: false,
+                                    message: "An object with this name already exists"
+                                });
+                                continue;
+                            }
+                            
+                            // Additional validation for lookup objects
+                            if (isLookupObject && objectName.toLowerCase().includes('lookup')) {
+                                results.push({
+                                    line: `Line ${lineNumber}`,
+                                    isValid: false,
+                                    message: "It is not necessary to have 'Lookup' in the name"
+                                });
+                                continue;
+                            }
+                            
+                            // Validate parent object for non-lookup objects
+                            if (!isLookupObject) {
+                                if (!parentObjectName) {
+                                    results.push({
+                                        line: `Line ${lineNumber}`,
+                                        isValid: false,
+                                        message: "Parent object name cannot be empty"
+                                    });
+                                    continue;
+                                }
+                                
+                                // Check if parent exists in model or in the current input being validated
+                                const parentExistsInModel = allObjects.some(obj => obj.name === parentObjectName);
+                                const parentExistsInInput = validObjects.some(obj => obj.objectName === parentObjectName);
+                                
+                                if (!parentExistsInModel && !parentExistsInInput) {
+                                    results.push({
+                                        line: `Line ${lineNumber}`,
+                                        isValid: false,
+                                        message: `Parent object "${parentObjectName}" does not exist`
+                                    });
+                                    continue;
+                                }
+                            }
+                            
+                            // If we get here, the object is valid
+                            results.push({
+                                line: `Line ${lineNumber}`,
+                                objectName: objectName,
+                                isValid: true,
+                                message: isLookupObject ? 
+                                    `Lookup object "${objectName}" is valid` : 
+                                    `Object "${objectName}" with parent "${parentObjectName}" is valid`
+                            });
+                            
+                            validObjects.push({
+                                objectName,
+                                parentObjectName,
+                                isLookupObject
+                            });
+                        }
+                        
+                        panel.webview.postMessage({
+                            command: "bulkValidationResults",
+                            results: results,
+                            validObjects: validObjects
+                        });
+                        
+                    } catch (error) {
+                        panel.webview.postMessage({
+                            command: "bulkError",
+                            message: error.message || "An error occurred during validation"
+                        });
+                    }
+                    return;
+                    
+                case "createBulkObjects":
+                    try {
+                        const { objects } = message.data;
+                        
+                        if (!modelService.isFileLoaded()) {
+                            throw new Error("No model file is loaded");
+                        }
+                        
+                        const model = modelService.getCurrentModel();
+                        if (!model) {
+                            throw new Error("Failed to get current model");
+                        }
+                        
+                        // Ensure root exists
+                        if (!model.namespace) {
+                            model.namespace = [];
+                        }
+                        
+                        // If no namespaces exist, create a default namespace
+                        if (model.namespace.length === 0) {
+                            model.namespace.push({
+                                name: "DefaultNamespace",
+                                dataObject: []
+                            });
+                        }
+                        
+                        const namespace = model.namespace[0];
+                        if (!namespace.dataObject) {
+                            namespace.dataObject = [];
+                        }
+                        
+                        let createdCount = 0;
+                        
+                        // Create objects in order (dependencies first)
+                        for (const objData of objects) {
+                            const { objectName, parentObjectName, isLookupObject } = objData;
+                            
+                            const newObject = {
+                                name: objectName,
+                                parentObjectName: parentObjectName || ""
+                            };
+                            
+                            // Initialize additional arrays
+                            newObject.propSubscription = [];
+                            newObject.modelPkg = [];
+                            newObject.lookupItem = [];
+                            newObject.isLookup = String(isLookupObject);
+                            
+                            if (isLookupObject) {
+                                newObject.lookupItem = [
+                                    {
+                                        "description": "",
+                                        "displayName": "",
+                                        "isActive": "true",
+                                        "name": "Unknown"
+                                    }
+                                ];
+                            }
+                            
+                            // Add properties based on the parent
+                            if (parentObjectName) {
+                                const parentObjectIDProp = {
+                                    name: parentObjectName + "ID",
+                                    sqlServerDBDataType: "int",
+                                    isFK: "true",
+                                    isNotPublishedToSubscriptions: "true",
+                                };
+                                newObject.propSubscription.push(parentObjectIDProp);
+                                
+                                // Add other default properties
+                                newObject.propSubscription.push({
+                                    name: "ID",
+                                    sqlServerDBDataType: "int",
+                                    isPK: "true"
+                                });
+                            }
+                            
+                            // Add the object to the namespace
+                            namespace.dataObject.push(newObject);
+                            createdCount++;
+                        }
+                        
+                        // Save the model
+                        await modelService.saveModel();
+                        
+                        // Refresh the tree view
+                        vscode.commands.executeCommand("appdna.refresh");
+                        
+                        // Send success message
+                        panel.webview.postMessage({ 
+                            command: "bulkObjectsCreated", 
+                            count: createdCount 
+                        });
+                        
+                        // Close the wizard after a delay
+                        setTimeout(() => {
+                            if (activeWizardPanel === panel) {
+                                panel.dispose();
+                            }
+                        }, 2000);
+                        
+                    } catch (error) {
+                        panel.webview.postMessage({
+                            command: "bulkError",
+                            message: error.message || "An error occurred while creating objects"
+                        });
+                    }
+                    return;
+                    
                 case "cancel":
                     panel.dispose();
                     return;
@@ -334,11 +613,16 @@ function generateWizardHTML(allObjects) {
                     margin-top: 20px;
                 }
                 button {
-                    padding: 6px 14px;
+                    padding: 8px 16px;
                     color: var(--vscode-button-foreground);
                     background-color: var(--vscode-button-background);
                     border: none;
                     cursor: pointer;
+                    border-radius: 3px;
+                    box-sizing: border-box;
+                    font-family: var(--vscode-font-family);
+                    font-size: var(--vscode-font-size);
+                    line-height: 1.2;
                 }
                 button:hover {
                     background-color: var(--vscode-button-hoverBackground);
@@ -397,6 +681,90 @@ function generateWizardHTML(allObjects) {
                     margin-top: 10px;
                     font-weight: bold;
                 }
+                .bulk-add-btn {
+                    margin-top: 10px;
+                    background-color: var(--vscode-button-secondaryBackground);
+                    color: var(--vscode-button-secondaryForeground);
+                }
+                .bulk-add-btn:hover {
+                    background-color: var(--vscode-button-secondaryHoverBackground);
+                }
+                .modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 1000;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.5);
+                }
+                .modal-content {
+                    background-color: var(--vscode-editor-background);
+                    margin: 10% auto;
+                    padding: 20px;
+                    border: 1px solid var(--vscode-panel-border);
+                    width: 80%;
+                    max-width: 600px;
+                    border-radius: 4px;
+                }
+                .modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                    padding-bottom: 10px;
+                }
+                .modal-close {
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    cursor: pointer;
+                    color: var(--vscode-foreground);
+                    padding: 0;
+                    width: 30px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .modal-close:hover {
+                    background-color: var(--vscode-toolbar-hoverBackground);
+                }
+                .bulk-input {
+                    width: 100%;
+                    height: 200px;
+                    padding: 10px;
+                    border: 1px solid var(--vscode-input-border);
+                    background-color: var(--vscode-input-background);
+                    color: var(--vscode-input-foreground);
+                    font-family: var(--vscode-font-family);
+                    resize: vertical;
+                    box-sizing: border-box;
+                }
+                .bulk-input:focus {
+                    outline: 1px solid var(--vscode-focusBorder);
+                    border-color: var(--vscode-focusBorder);
+                }
+                .bulk-validation {
+                    max-height: 150px;
+                    overflow-y: auto;
+                    margin: 10px 0;
+                    padding: 10px;
+                    background-color: var(--vscode-editor-background);
+                    border: 1px solid var(--vscode-panel-border);
+                }
+                .bulk-error {
+                    color: var(--vscode-errorForeground);
+                    margin: 2px 0;
+                    font-size: 12px;
+                }
+                .bulk-success {
+                    color: var(--vscode-charts-green);
+                    margin: 2px 0;
+                    font-size: 12px;
+                }
             </style>
         </head>
         <body>
@@ -422,6 +790,9 @@ function generateWizardHTML(allObjects) {
                 <div class="button-container">
                     <button type="button" id="cancelBtn">Cancel</button>
                     <button type="button" id="step1NextBtn" disabled>Next</button>
+                </div>
+                <div style="text-align: left; margin-top: 10px;">
+                    <button type="button" id="bulkAddBtn" class="bulk-add-btn">Bulk Add</button>
                 </div>
             </div>
             
@@ -462,6 +833,32 @@ function generateWizardHTML(allObjects) {
             <div id="successMessage" class="success-message" style="display: none;"></div>
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
+            <!-- Bulk Add Modal -->
+            <div id="bulkAddModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Bulk Add Data Objects</h3>
+                        <button class="modal-close" id="modalClose">&times;</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkInput">Enter data objects (one per line):</label>
+                        <textarea id="bulkInput" class="bulk-input" placeholder="Enter data objects using one of these formats:&#10;ObjectName is a child of ParentObjectName&#10;ObjectName is a lookup&#10;&#10;Example:&#10;Customer is a child of Pac&#10;OrderStatus is a lookup&#10;Order is a child of Customer"></textarea>
+                        <div class="input-note">
+                            Format: "[ObjectName] is a child of [ParentObjectName]" or "[ObjectName] is a lookup".<br>
+                            Use singular naming (e.g., "User" not "Users"). Objects must be PascalCase with no spaces.
+                        </div>
+                    </div>
+                    <div id="bulkValidation" class="bulk-validation" style="display: none;"></div>
+                    <div class="button-container">
+                        <button type="button" id="bulkValidate">Validate</button>
+                        <div style="display: flex; gap: 5px;">
+                            <button type="button" id="bulkCreate" disabled>Create Objects</button>
+                            <button type="button" id="bulkCancel" class="bulk-add-btn">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <script>
                 (function() {
                     const vscode = acquireVsCodeApi();
@@ -501,6 +898,16 @@ function generateWizardHTML(allObjects) {
                     const cancelBtn = document.getElementById('cancelBtn');
                     const successMessage = document.getElementById('successMessage');
                     const errorMessage = document.getElementById('errorMessage');
+                    
+                    // Bulk add modal elements
+                    const bulkAddBtn = document.getElementById('bulkAddBtn');
+                    const bulkAddModal = document.getElementById('bulkAddModal');
+                    const modalClose = document.getElementById('modalClose');
+                    const bulkInput = document.getElementById('bulkInput');
+                    const bulkValidation = document.getElementById('bulkValidation');
+                    const bulkCancel = document.getElementById('bulkCancel');
+                    const bulkValidate = document.getElementById('bulkValidate');
+                    const bulkCreate = document.getElementById('bulkCreate');
                     
                     // Step indicator elements
                     const stepIndicators = document.querySelectorAll('.progress-step');
@@ -680,6 +1087,65 @@ function generateWizardHTML(allObjects) {
                         vscode.postMessage({ command: 'cancel' });
                     });
                     
+                    // Bulk add modal handlers
+                    let bulkObjects = [];
+                    let bulkValidationResults = [];
+                    
+                    bulkAddBtn.addEventListener('click', () => {
+                        bulkAddModal.style.display = 'block';
+                        bulkInput.focus();
+                    });
+                    
+                    modalClose.addEventListener('click', () => {
+                        bulkAddModal.style.display = 'none';
+                        bulkInput.value = '';
+                        bulkValidation.style.display = 'none';
+                        bulkCreate.disabled = true;
+                        bulkObjects = [];
+                        bulkValidationResults = [];
+                    });
+                    
+                    bulkCancel.addEventListener('click', () => {
+                        bulkAddModal.style.display = 'none';
+                        bulkInput.value = '';
+                        bulkValidation.style.display = 'none';
+                        bulkCreate.disabled = true;
+                        bulkObjects = [];
+                        bulkValidationResults = [];
+                    });
+                    
+                    // Close modal when clicking outside
+                    bulkAddModal.addEventListener('click', (e) => {
+                        if (e.target === bulkAddModal) {
+                            bulkCancel.click();
+                        }
+                    });
+                    
+                    bulkValidate.addEventListener('click', () => {
+                        const input = bulkInput.value.trim();
+                        if (!input) {
+                            bulkValidation.innerHTML = '<div class="bulk-error">Please enter at least one data object.</div>';
+                            bulkValidation.style.display = 'block';
+                            bulkCreate.disabled = true;
+                            return;
+                        }
+                        
+                        vscode.postMessage({
+                            command: 'validateBulkObjects',
+                            data: { input }
+                        });
+                    });
+                    
+                    bulkCreate.addEventListener('click', () => {
+                        if (bulkObjects.length === 0) return;
+                        
+                        bulkCreate.disabled = true;
+                        vscode.postMessage({
+                            command: 'createBulkObjects',
+                            data: { objects: bulkObjects }
+                        });
+                    });
+                    
                     // Function to show the specified step
                     function showStep(step) {
                         // Hide all steps and update indicators
@@ -744,6 +1210,59 @@ function generateWizardHTML(allObjects) {
                                 errorMessage.style.display = 'block';
                                 // Re-enable the create button
                                 createBtn.disabled = false;
+                                break;
+                                
+                            case 'bulkValidationResults':
+                                bulkValidationResults = message.results;
+                                bulkObjects = message.validObjects;
+                                
+                                let validationHtml = '';
+                                let hasErrors = false;
+                                let validCount = 0;
+                                
+                                bulkValidationResults.forEach(result => {
+                                    if (result.isValid) {
+                                        validationHtml += \`<div class="bulk-success">✓ \${result.objectName}: \${result.message}</div>\`;
+                                        validCount++;
+                                    } else {
+                                        validationHtml += \`<div class="bulk-error">✗ \${result.line}: \${result.message}</div>\`;
+                                        hasErrors = true;
+                                    }
+                                });
+                                
+                                if (validCount > 0 && !hasErrors) {
+                                    validationHtml += \`<div class="bulk-success" style="margin-top: 10px; font-weight: bold;">\${validCount} object(s) ready to create</div>\`;
+                                    bulkCreate.disabled = false;
+                                } else {
+                                    bulkCreate.disabled = true;
+                                }
+                                
+                                bulkValidation.innerHTML = validationHtml;
+                                bulkValidation.style.display = 'block';
+                                break;
+                                
+                            case 'bulkObjectsCreated':
+                                bulkAddModal.style.display = 'none';
+                                successMessage.textContent = \`\${message.count} object(s) created successfully!\`;
+                                successMessage.style.display = 'block';
+                                
+                                // Reset bulk modal state
+                                bulkInput.value = '';
+                                bulkValidation.style.display = 'none';
+                                bulkCreate.disabled = true;
+                                bulkObjects = [];
+                                bulkValidationResults = [];
+                                
+                                // Disable all inputs and buttons
+                                document.querySelectorAll('input, select, button').forEach(el => {
+                                    el.disabled = true;
+                                });
+                                break;
+                                
+                            case 'bulkError':
+                                errorMessage.textContent = message.message;
+                                errorMessage.style.display = 'block';
+                                bulkCreate.disabled = false;
                                 break;
                         }
                     });
