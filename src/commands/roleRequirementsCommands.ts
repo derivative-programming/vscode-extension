@@ -673,33 +673,32 @@ export function registerRoleRequirementsCommands(
                         .modal {
                             display: none;
                             position: fixed;
-                            z-index: 2000;
+                            z-index: 1000;
                             left: 0;
                             top: 0;
                             width: 100%;
                             height: 100%;
                             background-color: rgba(0, 0, 0, 0.5);
-                            backdrop-filter: blur(2px);
                         }
 
                         .modal-content {
-                            background-color: var(--vscode-sideBar-background);
+                            background-color: var(--vscode-editor-background);
                             margin: 5% auto;
                             padding: 0;
                             border: 1px solid var(--vscode-panel-border);
                             border-radius: 6px;
                             width: 80%;
                             max-width: 800px;
-                            max-height: 80%;
+                            max-height: 400px;
                             display: flex;
                             flex-direction: column;
-                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
                         }
 
                         .modal-header {
-                            background-color: var(--vscode-titleBar-activeBackground);
-                            color: var(--vscode-titleBar-activeForeground);
-                            padding: 12px 16px;
+                            background-color: var(--vscode-sideBar-background);
+                            color: var(--vscode-editor-foreground);
+                            padding: 16px 20px;
                             border-bottom: 1px solid var(--vscode-panel-border);
                             border-radius: 6px 6px 0 0;
                             display: flex;
@@ -709,25 +708,30 @@ export function registerRoleRequirementsCommands(
 
                         .modal-header h3 {
                             margin: 0;
-                            font-size: 14px;
+                            font-size: 16px;
                             font-weight: 600;
                         }
 
                         .modal-close {
+                            background: none;
+                            border: none;
+                            color: var(--vscode-editor-foreground);
                             cursor: pointer;
-                            font-size: 18px;
-                            line-height: 1;
                             padding: 4px;
                             border-radius: 3px;
+                            font-size: 16px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         }
 
                         .modal-close:hover {
-                            background-color: var(--vscode-titleBar-inactiveBackground);
+                            background-color: var(--vscode-toolbar-hoverBackground) !important;
                         }
 
                         .modal-body {
-                            padding: 16px;
-                            flex: 1;
+                            padding: 20px;
+                            max-height: 400px;
                             overflow-y: auto;
                             display: flex;
                             flex-direction: column;
@@ -745,8 +749,8 @@ export function registerRoleRequirementsCommands(
 
                         .stories-textarea {
                             width: 100%;
-                            min-height: 300px;
-                            max-height: 400px;
+                            min-height: 200px;
+                            max-height: 280px;
                             padding: 12px;
                             border: 1px solid var(--vscode-input-border);
                             background-color: var(--vscode-input-background);
@@ -757,6 +761,7 @@ export function registerRoleRequirementsCommands(
                             line-height: 1.4;
                             resize: vertical;
                             overflow-y: auto;
+                            box-sizing: border-box;
                         }
 
                         .stories-textarea:focus {
@@ -766,18 +771,22 @@ export function registerRoleRequirementsCommands(
 
                         .modal-actions {
                             display: flex;
-                            gap: 8px;
+                            gap: 10px;
                             justify-content: flex-end;
-                            margin-top: 8px;
+                            padding: 16px 20px;
+                            border-top: 1px solid var(--vscode-panel-border);
+                            background-color: var(--vscode-sideBar-background);
+                            border-radius: 0 0 6px 6px;
                         }
 
                         .modal-button {
-                            padding: 6px 12px;
-                            border: none;
-                            border-radius: 3px;
+                            padding: 6px 14px;
+                            border: 1px solid var(--vscode-button-border);
+                            border-radius: 2px;
                             cursor: pointer;
                             font-size: 12px;
                             font-family: var(--vscode-font-family);
+                            font-weight: 600;
                         }
 
                         .modal-button.primary {
@@ -795,7 +804,7 @@ export function registerRoleRequirementsCommands(
                         }
 
                         .modal-button.secondary:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground));
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
                         }
                     </style>
                 </head>
@@ -899,12 +908,14 @@ export function registerRoleRequirementsCommands(
                     <div id="generateStoriesModal" class="modal">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3>Generated User Stories for Allowed/Required Access</h3>
-                                <span class="modal-close">&times;</span>
+                                <h3>Generated User Stories</h3>
+                                <button class="modal-close">
+                                    <span class="codicon codicon-close"></span>
+                                </button>
                             </div>
                             <div class="modal-body">
                                 <div class="modal-description">
-                                    <p>Here are user stories generated for all role requirements with 'Allowed' or 'Required' access:</p>
+                                    <p>User stories for Allowed/Required access requirements:</p>
                                 </div>
                                 <textarea id="generatedStoriesText" class="stories-textarea" readonly placeholder="Generated user stories will appear here..."></textarea>
                                 <div class="modal-actions">
