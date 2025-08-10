@@ -460,16 +460,18 @@ function showAddObjectWizard(modelService) {
                         
                         // If no namespaces exist, create a default namespace
                         if (model.namespace.length === 0) {
-                            model.namespace.push({
-                                name: "DefaultNamespace",
-                                dataObject: []
-                            });
+                            model.namespace.push({ name: "Default", object: [] });
                         }
                         
-                        const namespace = model.namespace[0];
-                        if (!namespace.dataObject) {
-                            namespace.dataObject = [];
-                        }
+                        // Ensure each namespace has an "object" array
+                        model.namespace.forEach((ns) => {
+                            if (!ns.object) {
+                                ns.object = [];
+                            }
+                        });
+                        
+                        // Determine which namespace to use (default to first namespace)
+                        let targetNsIndex = 0;
                         
                         let createdCount = 0;
                         
@@ -486,9 +488,13 @@ function showAddObjectWizard(modelService) {
                             newObject.propSubscription = [];
                             newObject.modelPkg = [];
                             newObject.lookupItem = [];
-                            newObject.isLookup = String(isLookupObject);
+                            newObject.isLookup = "false"; // Default to false unless specified
                             
                             if (isLookupObject) {
+                                newObject.isLookup = String(isLookupObject);
+                            }
+                            
+                            if(newObject.isLookup === "true") {
                                 newObject.lookupItem = [
                                     {
                                         "description": "",
@@ -506,24 +512,25 @@ function showAddObjectWizard(modelService) {
                                     sqlServerDBDataType: "int",
                                     isFK: "true",
                                     isNotPublishedToSubscriptions: "true",
+                                    isFKConstraintSuppressed: "false"
                                 };
-                                newObject.propSubscription.push(parentObjectIDProp);
+
+                                if(newObject.isLookup === "true") {
+                                    parentObjectIDProp.isFKLookup = "true";
+                                }
                                 
-                                // Add other default properties
-                                newObject.propSubscription.push({
-                                    name: "ID",
-                                    sqlServerDBDataType: "int",
-                                    isPK: "true"
-                                });
+                                newObject.prop = [parentObjectIDProp];
+                            } else {
+                                newObject.prop = [];
                             }
                             
                             // Add the object to the namespace
-                            namespace.dataObject.push(newObject);
+                            model.namespace[targetNsIndex].object.push(newObject);
                             createdCount++;
                         }
                         
-                        // Save the model
-                        await modelService.saveModel();
+                        // Mark that there are unsaved changes
+                        modelService.markUnsavedChanges();
                         
                         // Refresh the tree view
                         vscode.commands.executeCommand("appdna.refresh");

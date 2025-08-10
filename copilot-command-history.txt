@@ -8,3 +8,12 @@
 - Implemented bulk object creation with dependency handling
 - Added proper message passing between webview and extension
 - Architecture: Extended existing wizard pattern with modal overlay, leveraged existing ModelService for creation
+
+2025-08-10T00:00:00Z | fix-bulk-add-save-behavior | Fixed bulk add data object save behavior to match normal wizard pattern - COMPLETED
+- Fixed "modelService.saveModel is not a function" error by removing incorrect saveToFile() call
+- Changed bulk add to use markUnsavedChanges() instead of saving directly to file
+- Fixed namespace structure: changed "dataObject" to "object" array to match schema
+- Fixed property structure: changed "propSubscription" to "prop" array to match normal wizard
+- Added proper parent object ID property handling with FK constraint flags
+- Architecture: Bulk add now follows same in-memory modification pattern as single object wizard
+- Status: completed

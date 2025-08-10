@@ -193,13 +193,33 @@ function validateDataObjects(objectNames, modelService) {
             const searchPascal = toPascalCase(objectName);
             const searchSpaced = toSpacedFormat(objectName).toLowerCase();
             
-            const found = modelObjectNames.some(modelObj => 
-                modelObj.lower === searchName ||
-                modelObj.lower === searchPascal.toLowerCase() ||
-                modelObj.lower === searchSpaced ||
-                modelObj.spacedFormat === searchName ||
-                modelObj.spacedFormat === searchSpaced
-            );
+            const found = modelObjectNames.some(modelObj => {
+                // Direct matches
+                const directMatches = modelObj.lower === searchName ||
+                    modelObj.lower === searchPascal.toLowerCase() ||
+                    modelObj.lower === searchSpaced ||
+                    modelObj.spacedFormat === searchName ||
+                    modelObj.spacedFormat === searchSpaced;
+                
+                // Singular/plural variant matches
+                let variantMatches = false;
+                if (!directMatches) {
+                    // Check if we're searching for plural and model has singular
+                    if (searchName.endsWith('s') && searchName.length > 1) {
+                        const singular = searchName.slice(0, -1);
+                        variantMatches = modelObj.lower === singular;
+                    }
+                    // Check if we're searching for singular and model has plural  
+                    else {
+                        const plural = searchName + 's';
+                        variantMatches = modelObj.lower === plural;
+                    }
+                }
+                
+                const matches = directMatches || variantMatches;
+                
+                return matches;
+            });
             
             if (found) {
                 result.validObjects.push(objectName);
