@@ -1,3 +1,24 @@
+2025-08-10T14:45:00Z | add-csv-export-button-data-objects-list | Added CSV export functionality to Data Objects List view - COMPLETED
+- Added export button with cloud-download icon to header-actions section in dataObjectListCommands.ts HTML
+- Implemented exportToCSV() function in dataObjectListView.js following user story list pattern
+- Added CSV export message handling (exportToCSV, csvExportReady, saveCsvToWorkspace) in both JS and TS
+- Created saveDataObjectsToCSV() function generating CSV with columns: Name, Description, Declaration Text, Is Ignored
+- Added .icon-button CSS styling for transparent button with hover effects matching refresh button
+- Event listener setup for export button in setupEventListeners() function
+- Architecture: Follows same CSV export pattern as userStoriesJourneyView and userStoriesQAView
+- CSV includes all data object properties with proper quote escaping, saves to workspace with timestamp
+- Status: completed
+
+2025-08-10T12:10:00Z | add-data-objects-list-icon-button | Added "Show Data Objects List" icon button to DATA OBJECTS tree view item - COMPLETED
+- Added showDataObjectList context value to DATA OBJECTS tree item in jsonTreeDataProvider.ts
+- Created appdna.dataObjectList command configuration in package.json (both commands and menus sections)
+- Implemented dataObjectListCommands.ts with command registration and webview panel management
+- Created dataObjectListView.js webview with table display, filtering, and sorting capabilities
+- Added proper command registration in registerCommands.ts with panel lifecycle management
+- Webview features: sortable columns (Name, Description, Table Name), real-time filtering, edit buttons
+- Architecture: Follows same pattern as pageListCommands, uses ModelService.getAllObjects(), table icon $(table)
+- Status: completed
+
 2025-08-10T00:00:00Z | reorder-root-tree-items | Moved DATA OBJECTS above USER STORIES in jsonTreeDataProvider.ts root items array. Architecture: simple ordering change, no context value adjustments required. Status: completed.
 2025-08-10: Added bulk data object creation feature to Add Object Wizard - COMPLETED
 - Added "Bulk add Data Objects" button to Step 1 of wizard

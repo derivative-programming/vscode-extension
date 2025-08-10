@@ -38,6 +38,7 @@ import { registerModelFabricationCommands, closeAllModelFabricationPanels } from
 import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerPageListCommands, getPageListPanel, closePageListPanel } from './pageListCommands';
+import { registerDataObjectListCommands, getDataObjectListPanel, closeDataObjectListPanel } from './dataObjectListCommands';
 import { registerRoleRequirementsCommands, getRoleRequirementsPanel, closeRoleRequirementsPanel } from './roleRequirementsCommands';
 import { showRequirementsFulfillment, getRequirementsFulfillmentPanel, closeRequirementsFulfillmentPanel } from './requirementsFulfillmentCommands';
 import { registerUserStoriesQACommands, getUserStoriesQAPanel, closeUserStoriesQAPanel } from './userStoriesQACommands';
@@ -201,6 +202,11 @@ export function registerCommands(
             // Close page list panel if open
             if (typeof closePageListPanel === "function") {
                 closePageListPanel();
+            }
+            
+            // Close data objects list panel if open
+            if (typeof closeDataObjectListPanel === "function") {
+                closeDataObjectListPanel();
             }
             
             // Close fabrication blueprint catalog panel if open
@@ -561,6 +567,7 @@ export function registerCommands(
                 // Close catalog views
                 closeModelFeatureCatalogPanel();
                 closePageListPanel();
+                closeDataObjectListPanel();
                 closeFabricationBlueprintCatalogPanel();
                 
                 await authService.logout();
@@ -585,6 +592,9 @@ export function registerCommands(
     
     // Register page list commands
     registerPageListCommands(context, appDNAFilePath, modelService);
+    
+    // Register data objects list commands
+    registerDataObjectListCommands(context, appDNAFilePath, modelService);
     
     // Register role requirements commands
     registerRoleRequirementsCommands(context, appDNAFilePath, modelService);

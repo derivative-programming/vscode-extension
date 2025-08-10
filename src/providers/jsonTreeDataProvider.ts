@@ -134,7 +134,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 projectItem.tooltip = "Project settings and configuration";                  const dataObjectsItem = new JsonTreeItem(
                     'DATA OBJECTS',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'dataObjects showHierarchy showDataObjectFilter'
+                    'dataObjects showHierarchy showDataObjectFilter showDataObjectList'
                 );
                 
                 // Set a database icon for the DATA OBJECTS item

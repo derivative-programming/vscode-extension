@@ -156,6 +156,12 @@
           "icon": "$(table)"
         },
         {
+          "command": "appdna.dataObjectList",
+          "when": "viewItem =~ /dataObjects.*showDataObjectList/",
+          "group": "inline",
+          "icon": "$(table)"
+        },
+        {
           "command": "appdna.showReportFilter",
           "when": "viewItem =~ /reports.*showReportFilter/",
           "group": "inline",
@@ -307,6 +313,11 @@
       {
         "command": "appdna.pageList",
         "title": "Show Page List",
+        "icon": "$(table)"
+      },
+      {
+        "command": "appdna.dataObjectList",
+        "title": "Show Data Objects List",
         "icon": "$(table)"
       },
       {
