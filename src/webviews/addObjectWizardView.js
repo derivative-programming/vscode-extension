@@ -274,9 +274,12 @@ function showAddObjectWizard(modelService) {
                     try {
                         const { input } = message.data;
                         const lines = input.split('\n').filter(line => line.trim());
-                        const results = [];
-                        const validObjects = [];
                         const allObjects = modelService.getAllObjects();
+                        
+                        // First pass: Parse all lines and validate basic object properties
+                        const parsedObjects = [];
+                        const results = [];
+                        const validObjects = []; // Moved here to be available throughout validation
                         
                         for (let i = 0; i < lines.length; i++) {
                             const line = lines[i].trim();
@@ -307,54 +310,65 @@ function showAddObjectWizard(modelService) {
                                 continue;
                             }
                             
-                            // Validate object name
+                            // Basic object name validation
+                            let isValidBasic = true;
+                            let errorMessage = '';
+                            let alreadyExists = false;
+                            
                             if (!objectName) {
+                                isValidBasic = false;
+                                errorMessage = "Object name cannot be empty";
+                            } else if (objectName.length > 100) {
+                                isValidBasic = false;
+                                errorMessage = "Object name cannot exceed 100 characters";
+                            } else if (objectName.includes(" ")) {
+                                isValidBasic = false;
+                                errorMessage = "Object name cannot contain spaces";
+                            } else if (!/^[a-zA-Z]+$/.test(objectName)) {
+                                isValidBasic = false;
+                                errorMessage = "Object name must contain only letters";
+                            } else if (objectName[0] !== objectName[0].toUpperCase()) {
+                                isValidBasic = false;
+                                errorMessage = "Object name must be in pascal case (example: ToDoItem)";
+                            } else if (allObjects.some(obj => obj.name === objectName)) {
+                                alreadyExists = true; // Mark as existing but don't fail validation
+                            } else if (isLookupObject && objectName.toLowerCase().includes('lookup')) {
+                                isValidBasic = false;
+                                errorMessage = "It is not necessary to have 'Lookup' in the name";
+                            } else if (!isLookupObject && !parentObjectName) {
+                                isValidBasic = false;
+                                errorMessage = "Parent object name cannot be empty";
+                            }
+                            
+                            if (!isValidBasic) {
                                 results.push({
                                     line: `Line ${lineNumber}`,
                                     isValid: false,
-                                    message: "Object name cannot be empty"
+                                    message: errorMessage
                                 });
                                 continue;
                             }
                             
-                            if (objectName.length > 100) {
+                            // Handle existing objects
+                            if (alreadyExists) {
                                 results.push({
                                     line: `Line ${lineNumber}`,
-                                    isValid: false,
-                                    message: "Object name cannot exceed 100 characters"
+                                    objectName: objectName,
+                                    isValid: true,
+                                    alreadyExists: true,
+                                    message: `Object "${objectName}" already exists (will be skipped)`
                                 });
-                                continue;
-                            }
-                            
-                            if (objectName.includes(" ")) {
-                                results.push({
-                                    line: `Line ${lineNumber}`,
-                                    isValid: false,
-                                    message: "Object name cannot contain spaces"
-                                });
-                                continue;
-                            }
-                            
-                            if (!/^[a-zA-Z]+$/.test(objectName)) {
-                                results.push({
-                                    line: `Line ${lineNumber}`,
-                                    isValid: false,
-                                    message: "Object name must contain only letters"
-                                });
-                                continue;
-                            }
-                            
-                            if (objectName[0] !== objectName[0].toUpperCase()) {
-                                results.push({
-                                    line: `Line ${lineNumber}`,
-                                    isValid: false,
-                                    message: "Object name must be in pascal case (example: ToDoItem)"
+                                validObjects.push({
+                                    objectName,
+                                    parentObjectName,
+                                    isLookupObject,
+                                    alreadyExists: true
                                 });
                                 continue;
                             }
                             
                             // Check for duplicate names within input
-                            const duplicateInInput = validObjects.some(obj => obj.objectName === objectName);
+                            const duplicateInInput = parsedObjects.some(obj => obj.objectName === objectName);
                             if (duplicateInInput) {
                                 results.push({
                                     line: `Line ${lineNumber}`,
@@ -364,65 +378,84 @@ function showAddObjectWizard(modelService) {
                                 continue;
                             }
                             
-                            // Check if object already exists
-                            if (allObjects.some(obj => obj.name === objectName)) {
-                                results.push({
-                                    line: `Line ${lineNumber}`,
-                                    isValid: false,
-                                    message: "An object with this name already exists"
-                                });
-                                continue;
-                            }
-                            
-                            // Additional validation for lookup objects
-                            if (isLookupObject && objectName.toLowerCase().includes('lookup')) {
-                                results.push({
-                                    line: `Line ${lineNumber}`,
-                                    isValid: false,
-                                    message: "It is not necessary to have 'Lookup' in the name"
-                                });
-                                continue;
-                            }
-                            
-                            // Validate parent object for non-lookup objects
-                            if (!isLookupObject) {
-                                if (!parentObjectName) {
-                                    results.push({
-                                        line: `Line ${lineNumber}`,
-                                        isValid: false,
-                                        message: "Parent object name cannot be empty"
-                                    });
-                                    continue;
-                                }
-                                
-                                // Check if parent exists in model or in the current input being validated
-                                const parentExistsInModel = allObjects.some(obj => obj.name === parentObjectName);
-                                const parentExistsInInput = validObjects.some(obj => obj.objectName === parentObjectName);
-                                
-                                if (!parentExistsInModel && !parentExistsInInput) {
-                                    results.push({
-                                        line: `Line ${lineNumber}`,
-                                        isValid: false,
-                                        message: `Parent object "${parentObjectName}" does not exist`
-                                    });
-                                    continue;
-                                }
-                            }
-                            
-                            // If we get here, the object is valid
-                            results.push({
-                                line: `Line ${lineNumber}`,
-                                objectName: objectName,
-                                isValid: true,
-                                message: isLookupObject ? 
-                                    `Lookup object "${objectName}" is valid` : 
-                                    `Object "${objectName}" with parent "${parentObjectName}" is valid`
-                            });
-                            
-                            validObjects.push({
+                            // Store parsed object for dependency validation
+                            parsedObjects.push({
+                                lineNumber,
                                 objectName,
                                 parentObjectName,
-                                isLookupObject
+                                isLookupObject,
+                                isValid: false // Will be set to true after dependency validation
+                            });
+                        }
+                        
+                        // Multi-pass dependency validation
+                        const remainingObjects = [...parsedObjects];
+                        let maxPasses = remainingObjects.length + 1; // Prevent infinite loops
+                        let passCount = 0;
+                        
+                        while (remainingObjects.length > 0 && passCount < maxPasses) {
+                            passCount++;
+                            const objectsValidatedThisPass = [];
+                            
+                            for (let i = remainingObjects.length - 1; i >= 0; i--) {
+                                const obj = remainingObjects[i];
+                                
+                                // Skip dependency validation for lookup objects
+                                if (obj.isLookupObject) {
+                                    obj.isValid = true;
+                                    results.push({
+                                        line: `Line ${obj.lineNumber}`,
+                                        objectName: obj.objectName,
+                                        isValid: true,
+                                        message: `Lookup object "${obj.objectName}" is valid`
+                                    });
+                                    validObjects.push({
+                                        objectName: obj.objectName,
+                                        parentObjectName: obj.parentObjectName,
+                                        isLookupObject: obj.isLookupObject
+                                    });
+                                    objectsValidatedThisPass.push(i);
+                                    continue;
+                                }
+                                
+                                // Check if parent exists in model or in already validated objects
+                                const parentExistsInModel = allObjects.some(modelObj => modelObj.name === obj.parentObjectName);
+                                const parentExistsInValidated = validObjects.some(validObj => validObj.objectName === obj.parentObjectName);
+                                
+                                if (parentExistsInModel || parentExistsInValidated) {
+                                    obj.isValid = true;
+                                    results.push({
+                                        line: `Line ${obj.lineNumber}`,
+                                        objectName: obj.objectName,
+                                        isValid: true,
+                                        message: `Object "${obj.objectName}" with parent "${obj.parentObjectName}" is valid`
+                                    });
+                                    validObjects.push({
+                                        objectName: obj.objectName,
+                                        parentObjectName: obj.parentObjectName,
+                                        isLookupObject: obj.isLookupObject
+                                    });
+                                    objectsValidatedThisPass.push(i);
+                                }
+                            }
+                            
+                            // Remove validated objects from remaining list (iterate backwards to avoid index issues)
+                            for (const index of objectsValidatedThisPass) {
+                                remainingObjects.splice(index, 1);
+                            }
+                            
+                            // If no objects were validated this pass, break to avoid infinite loop
+                            if (objectsValidatedThisPass.length === 0) {
+                                break;
+                            }
+                        }
+                        
+                        // Any remaining objects have unresolved dependencies
+                        for (const obj of remainingObjects) {
+                            results.push({
+                                line: `Line ${obj.lineNumber}`,
+                                isValid: false,
+                                message: `Parent object "${obj.parentObjectName}" does not exist and is not defined in this input`
                             });
                         }
                         
@@ -474,10 +507,57 @@ function showAddObjectWizard(modelService) {
                         let targetNsIndex = 0;
                         
                         let createdCount = 0;
+                        let skippedCount = 0;
                         
-                        // Create objects in order (dependencies first)
-                        for (const objData of objects) {
-                            const { objectName, parentObjectName, isLookupObject } = objData;
+                        // Sort objects to create dependencies first (similar to validation logic)
+                        const sortedObjects = [];
+                        const remainingToCreate = [...objects];
+                        const allExistingObjects = modelService.getAllObjects();
+                        
+                        while (remainingToCreate.length > 0) {
+                            const objectsCreatedThisPass = [];
+                            
+                            for (let i = remainingToCreate.length - 1; i >= 0; i--) {
+                                const obj = remainingToCreate[i];
+                                
+                                // Lookup objects can be created anytime (they don't depend on parents for creation)
+                                if (obj.isLookupObject) {
+                                    sortedObjects.push(obj);
+                                    objectsCreatedThisPass.push(i);
+                                    continue;
+                                }
+                                
+                                // Check if parent exists in model or in already sorted objects
+                                const parentExistsInModel = allExistingObjects.some(modelObj => modelObj.name === obj.parentObjectName);
+                                const parentExistsInSorted = sortedObjects.some(sortedObj => sortedObj.objectName === obj.parentObjectName);
+                                
+                                if (parentExistsInModel || parentExistsInSorted) {
+                                    sortedObjects.push(obj);
+                                    objectsCreatedThisPass.push(i);
+                                }
+                            }
+                            
+                            // Remove objects that were sorted this pass (iterate backwards to avoid index issues)
+                            for (const index of objectsCreatedThisPass) {
+                                remainingToCreate.splice(index, 1);
+                            }
+                            
+                            // If no objects were sorted this pass, break to avoid infinite loop
+                            // (This shouldn't happen since validation should catch dependency issues)
+                            if (objectsCreatedThisPass.length === 0) {
+                                break;
+                            }
+                        }
+                        
+                        // Create objects in dependency order
+                        for (const objData of sortedObjects) {
+                            const { objectName, parentObjectName, isLookupObject, alreadyExists } = objData;
+                            
+                            // Skip objects that already exist
+                            if (alreadyExists) {
+                                skippedCount++;
+                                continue;
+                            }
                             
                             const newObject = {
                                 name: objectName,
@@ -538,7 +618,8 @@ function showAddObjectWizard(modelService) {
                         // Send success message
                         panel.webview.postMessage({ 
                             command: "bulkObjectsCreated", 
-                            count: createdCount 
+                            count: createdCount,
+                            skipped: skippedCount
                         });
                         
                         // Close the wizard after a delay
@@ -781,6 +862,11 @@ function generateWizardHTML(allObjects) {
                 }
                 .bulk-success {
                     color: var(--vscode-charts-green);
+                    margin: 2px 0;
+                    font-size: 12px;
+                }
+                .bulk-existing {
+                    color: var(--vscode-charts-orange);
                     margin: 2px 0;
                     font-size: 12px;
                 }
@@ -1236,19 +1322,30 @@ function generateWizardHTML(allObjects) {
                                 let validationHtml = '';
                                 let hasErrors = false;
                                 let validCount = 0;
+                                let existingCount = 0;
                                 
                                 bulkValidationResults.forEach(result => {
                                     if (result.isValid) {
-                                        validationHtml += \`<div class="bulk-success">✓ \${result.objectName}: \${result.message}</div>\`;
+                                        if (result.alreadyExists) {
+                                            validationHtml += '<div class="bulk-existing">⚠ ' + result.objectName + ': ' + result.message + '</div>';
+                                            existingCount++;
+                                        } else {
+                                            validationHtml += '<div class="bulk-success">✓ ' + result.objectName + ': ' + result.message + '</div>';
+                                        }
                                         validCount++;
                                     } else {
-                                        validationHtml += \`<div class="bulk-error">✗ \${result.line}: \${result.message}</div>\`;
+                                        validationHtml += '<div class="bulk-error">✗ ' + result.line + ': ' + result.message + '</div>';
                                         hasErrors = true;
                                     }
                                 });
                                 
                                 if (validCount > 0 && !hasErrors) {
-                                    validationHtml += \`<div class="bulk-success" style="margin-top: 10px; font-weight: bold;">\${validCount} object(s) ready to create</div>\`;
+                                    let newObjectCount = validCount - existingCount;
+                                    let summaryText = newObjectCount + ' object(s) ready to create';
+                                    if (existingCount > 0) {
+                                        summaryText += ', ' + existingCount + ' existing will be skipped';
+                                    }
+                                    validationHtml += '<div class="bulk-success" style="margin-top: 10px; font-weight: bold;">' + summaryText + '</div>';
                                     bulkCreate.disabled = false;
                                 } else {
                                     bulkCreate.disabled = true;
@@ -1260,7 +1357,13 @@ function generateWizardHTML(allObjects) {
                                 
                             case 'bulkObjectsCreated':
                                 bulkAddModal.style.display = 'none';
-                                successMessage.textContent = \`\${message.count} object(s) created successfully!\`;
+                                
+                                // Create success message with created and skipped counts
+                                let successText = message.count + ' object(s) created successfully!';
+                                if (message.skipped > 0) {
+                                    successText += ' (' + message.skipped + ' existing object(s) skipped)';
+                                }
+                                successMessage.textContent = successText;
                                 successMessage.style.display = 'block';
                                 
                                 // Reset bulk modal state
