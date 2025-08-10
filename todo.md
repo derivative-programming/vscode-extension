@@ -266,13 +266,8 @@ suggestions (stories to add to fulfil requirements)...
 show a list of missing stories. allow user to add them individually
 
 
-give requirements and stories and story-page mapping, show which requirements are not fulfilled. 
-mapped page must have a path from the login page
-role must be allowed to view all pages in path
  
- 
-user story - fulfillment report...
-- under the 'Page Mapping' treeview item, create a 'Requirements Fulfillment' treeview item. On click, show a new 'User Story Requirements Fulfillment' view. This should list all rows from the 'role requirements' view that are marked as 'required' and 'not allowed' (dont allow change of access on this view). It should have the same design as the 'role requirements' view as well. No checkbox column necessary. 
+  `
 
 
 *************************

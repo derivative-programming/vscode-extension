@@ -13,14 +13,6 @@ Create views showing the app from specific roles (e.g., Manager, User), displayi
 ### Action-Based Analysis
 Analyze distribution of actions (view all, view, add, update, delete) across objects in user stories, identifying heavily used objects or missing actions to guide prioritization.
 
-### User Story-to-Page Traceability
-Link user stories to pages, forms, or workflows, allowing clicks in a story mapping view to highlight components in graph or Mermaid visualizations.
-
-### User Story Flow Visualizer
-Generate Mermaid-based flowcharts for user stories tied to workflows or navigation paths (e.g., "As a User, I want to add an Order" maps to "Fill Order Form" → "Confirm Order"), integrating with page flow view.
-
-### User Story Validation
-Validate that app structure supports all user story actions (e.g., a page exists for "add" if mentioned), flagging gaps in a report or tree view overlay.
 
 ### Role-Based Access Validation
 Verify roles have appropriate access to pages and actions per user stories, ensuring security and compliance, displayed in a dedicated view or annotations.
@@ -62,14 +54,10 @@ Analyze JSON for inconsistencies (e.g., form fields referencing nonexistent data
 ### Data Object Lifecycle Visualizer
 Show creation, update, and deletion processes for data objects, linked to interacting pages or workflows, to clarify data flows.
 
-### Data Object Relationships Visualizer
-Visualize complex relationships between data objects (e.g., Order linked to Customer), especially for queries or reports, as a graph or diagram.
 
 ### Data Object Usage Statistics
 If access/modification data exists, show frequency of data object usage to identify heavily used objects, displayed as a heatmap or chart.
 
-### Data Object Versioning Visualizer
-If data objects have version history, visualize changes and their impacts on pages or workflows, supporting version control.
 
 ## 4. Advanced Page and Navigation Enhancements
 
@@ -179,9 +167,6 @@ Use AI to suggest optimizations (e.g., merging similar forms or workflows), disp
 
 ### Mobile-Friendly Interface
 Ensure visualizations are usable on mobile devices, broadening access.
-
-### Security Features
-Implement role-based access control for the visualization tool, restricting views or edits based on user roles.
 
 ### Advanced Search with Filters
 Enhance search with metadata or content queries (e.g., search user story text), complementing existing filters.
