@@ -258,7 +258,6 @@ user story - Roles
 - open role data object details page
 - if dne, ask the user if they would like to create one
 
-suggestions...
 
 role requirements validation...
 show what is covered by existing user stories too
@@ -266,20 +265,14 @@ show what is covered by existing user stories too
 suggestions (stories to add to fulfil requirements)...
 show a list of missing stories. allow user to add them individually
 
-user story - story list
-on user story list show the page that fulfils it and view\edit icon buttons.
-show number of pages from login that it needs to reach it to perform the action.
 
-user story - fulfillment report...
 give requirements and stories and story-page mapping, show which requirements are not fulfilled. 
 mapped page must have a path from the login page
 role must be allowed to view all pages in path
-
-user story - user journey view...
-- change the hover text on the 'show user journey to this page' button to 'show user journey flowchart'
-- to the right of the 'show user journey flowchart' button, add a button to 'show user journey preview' with a codicon-eye icon. On click, show the page preview view with the role's start page as the 'select page' selection and the page on the row as the 'show me the way' selection
  
-
+ 
+user story - fulfillment report...
+- under the 'Page Mapping' treeview item, create a 'Requirements Fulfillment' treeview item. On click, show a new 'User Story Requirements Fulfillment' view. This should list all rows from the 'role requirements' view that are marked as 'required' and 'not allowed' (dont allow change of access on this view). It should have the same design as the 'role requirements' view as well. No checkbox column necessary. 
 
 
 *************************

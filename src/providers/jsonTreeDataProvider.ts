@@ -356,13 +356,28 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     'userStoriesPageMapping'
                 );
                 
-                pageMappingItem.tooltip = "Map user stories to pages";
+                pageMappingItem.tooltip = "Page mapping and requirements management";
                 pageMappingItem.command = {
                     command: 'appdna.userStoriesPageMapping',
                     title: 'User Stories Page Mapping',
                     arguments: []
                 };
                 items.push(pageMappingItem);
+                
+                // Create Requirements Fulfillment item under USER STORIES
+                const requirementsFulfillmentItem = new JsonTreeItem(
+                    'Requirements Fulfillment',
+                    vscode.TreeItemCollapsibleState.None,
+                    'userStoriesRequirementsFulfillment'
+                );
+                
+                requirementsFulfillmentItem.tooltip = "View required and not allowed role requirements";
+                requirementsFulfillmentItem.command = {
+                    command: 'appdna.showRequirementsFulfillment',
+                    title: 'User Story Requirements Fulfillment',
+                    arguments: []
+                };
+                items.push(requirementsFulfillmentItem);
                 
                 // Create User Journey item under USER STORIES
                 const userJourneyItem = new JsonTreeItem(

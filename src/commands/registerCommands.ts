@@ -39,6 +39,7 @@ import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerPageListCommands, getPageListPanel, closePageListPanel } from './pageListCommands';
 import { registerRoleRequirementsCommands, getRoleRequirementsPanel, closeRoleRequirementsPanel } from './roleRequirementsCommands';
+import { showRequirementsFulfillment, getRequirementsFulfillmentPanel, closeRequirementsFulfillmentPanel } from './requirementsFulfillmentCommands';
 import { registerUserStoriesQACommands, getUserStoriesQAPanel, closeUserStoriesQAPanel } from './userStoriesQACommands';
 import { registerUserStoriesPageMappingCommands, getUserStoriesPageMappingPanel, closeUserStoriesPageMappingPanel } from './userStoriesPageMappingCommands';
 import { registerUserStoriesJourneyCommands, getUserStoriesJourneyPanel, closeUserStoriesJourneyPanel } from './userStoriesJourneyCommands';
@@ -111,6 +112,9 @@ export function registerCommands(
             // Store reference to user story role requirements panel if open
             const roleRequirementsData = typeof getUserStoryRoleRequirementsPanel === "function" ? getUserStoryRoleRequirementsPanel() : null;
             
+            // Store reference to requirements fulfillment panel if open
+            const requirementsFulfillmentData = typeof getRequirementsFulfillmentPanel === "function" ? getRequirementsFulfillmentPanel() : null;
+            
             // Store reference to user stories QA panel if open
             const userStoriesQAData = typeof getUserStoriesQAPanel === "function" ? getUserStoriesQAPanel() : null;
             
@@ -167,6 +171,11 @@ export function registerCommands(
             // Close user story role requirements panel if open
             if (typeof closeUserStoryRoleRequirementsPanel === "function") {
                 closeUserStoryRoleRequirementsPanel();
+            }
+            
+            // Close requirements fulfillment panel if open
+            if (typeof closeRequirementsFulfillmentPanel === "function") {
+                closeRequirementsFulfillmentPanel();
             }
             
             // Close user stories QA panel if open
@@ -279,6 +288,11 @@ export function registerCommands(
             // Reopen user story role requirements panel if it was open
             if (roleRequirementsData && roleRequirementsData.context && roleRequirementsData.modelService) {
                 showUserStoryRoleRequirementsView(roleRequirementsData.context, modelService);
+            }
+            
+            // Reopen requirements fulfillment panel if it was open
+            if (requirementsFulfillmentData && requirementsFulfillmentData.context && requirementsFulfillmentData.modelService) {
+                showRequirementsFulfillment(requirementsFulfillmentData.context, modelService);
             }
             
             // Reopen user stories QA panel if it was open
@@ -648,6 +662,19 @@ export function registerCommands(
             // Show the role requirements view - this will be handled by the roleRequirementsCommands.ts
             // The actual command is registered there as 'appdna.roleRequirements'
             vscode.commands.executeCommand('appdna.roleRequirements');
+        })
+    );
+
+    // Register show requirements fulfillment command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showRequirementsFulfillment', async () => {
+            if (!modelService.isFileLoaded()) {
+                vscode.window.showWarningMessage('No App DNA file is currently loaded.');
+                return;
+            }
+            
+            // Show the requirements fulfillment view
+            showRequirementsFulfillment(context, modelService);
         })
     );
     
