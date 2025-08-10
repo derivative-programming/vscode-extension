@@ -364,21 +364,6 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 };
                 items.push(pageMappingItem);
                 
-                // Create Requirements Fulfillment item under USER STORIES
-                const requirementsFulfillmentItem = new JsonTreeItem(
-                    'Requirements Fulfillment',
-                    vscode.TreeItemCollapsibleState.None,
-                    'userStoriesRequirementsFulfillment'
-                );
-                
-                requirementsFulfillmentItem.tooltip = "View required and not allowed role requirements";
-                requirementsFulfillmentItem.command = {
-                    command: 'appdna.showRequirementsFulfillment',
-                    title: 'User Story Requirements Fulfillment',
-                    arguments: []
-                };
-                items.push(requirementsFulfillmentItem);
-                
                 // Create User Journey item under USER STORIES
                 const userJourneyItem = new JsonTreeItem(
                     'User Journey',
@@ -393,6 +378,21 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     arguments: []
                 };
                 items.push(userJourneyItem);
+                
+                // Create Requirements Fulfillment item under USER STORIES
+                const requirementsFulfillmentItem = new JsonTreeItem(
+                    'Requirements Fulfillment',
+                    vscode.TreeItemCollapsibleState.None,
+                    'userStoriesRequirementsFulfillment'
+                );
+                
+                requirementsFulfillmentItem.tooltip = "View required and not allowed role requirements";
+                requirementsFulfillmentItem.command = {
+                    command: 'appdna.showRequirementsFulfillment',
+                    title: 'User Story Requirements Fulfillment',
+                    arguments: []
+                };
+                items.push(requirementsFulfillmentItem);
                 
                 // Create QA item under USER STORIES
                 const qaItem = new JsonTreeItem(

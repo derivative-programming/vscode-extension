@@ -248,11 +248,13 @@ async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, model
         try {
             if (modelFilePath) {
                 const modelDir = path.dirname(modelFilePath);
-                const journeyFilePath = path.join(modelDir, 'app-dna-user-story-journey.json');
+                const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
                 
                 if (fs.existsSync(journeyFilePath)) {
                     const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
                     const journeyDataFromFile = JSON.parse(journeyContent);
+                    console.log(`[Extension] Loaded journey data structure:`, Object.keys(journeyDataFromFile));
+                    console.log(`[Extension] PageDistances sample:`, journeyDataFromFile.pageDistances?.slice(0, 2));
                     
                     // Create user journey data similar to userStoriesJourneyCommands
                     userStories.forEach((story: any) => {
@@ -267,6 +269,7 @@ async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, model
                                     // Find page distance from journey data
                                     const pageDistanceData = journeyDataFromFile.pageDistances?.find((pd: any) => pd.destinationPage === page);
                                     const journeyPageDistance = pageDistanceData ? pageDistanceData.distance : -1;
+                                    console.log(`[Extension] Page: ${page}, Distance found: ${journeyPageDistance}`);
                                     
                                     userJourneyData.push({
                                         storyNumber: storyNumber,
@@ -714,6 +717,14 @@ function getWebviewContent(context: vscode.ExtensionContext, panel: vscode.Webvi
                             <option value="">All Access Levels</option>
                             <option value="Required">Required</option>
                             <option value="Not Allowed">Not Allowed</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Fulfillment Status:</label>
+                        <select id="filterFulfillmentStatus">
+                            <option value="">All Status</option>
+                            <option value="Pass">Pass</option>
+                            <option value="Fail">Fail</option>
                         </select>
                     </div>
                 </div>

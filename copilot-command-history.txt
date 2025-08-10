@@ -1,3 +1,49 @@
+[2024-08-10] COMPLETED: Remove icon from Requirements Fulfillment tree view item
+- Request: "no icon on fulfillment requirements treeview item"
+- Status: ✅ COMPLETED - Removed checklist icon from Requirements Fulfillment tree item
+- Files Modified:
+  - src/providers/jsonTreeDataProvider.ts (removed iconPath assignment)
+- Change: Removed line `requirementsFulfillmentItem.iconPath = new vscode.ThemeIcon('checklist');`
+- Result: Requirements Fulfillment tree item now displays without an icon, matching user preference
+
+[2024-08-10] COMPLETED: Add 'Fulfillment Status' column with Pass/Fail logic and filtering
+- Request: "add a 'Fullfillment Status' column on the right. show Pass or Fail. allow filter on this column. if row is 'required' and journey exists it passes. if a row is 'not allowed' and no story exists it passes. otherwise it fails"
+- Status: ✅ COMPLETED - New column shows Pass/Fail with comprehensive logic and filtering
+- Files Modified:
+  - src/webviews/requirementsFulfillmentView.js (added column, checkFulfillmentStatus function, filter logic)
+  - src/commands/requirementsFulfillmentCommands.ts (added filter dropdown in HTML)
+- Features Added:
+  - New "Fulfillment Status" column positioned at the far right
+  - checkFulfillmentStatus() function with business logic:
+    * Required + Story Exists + Journey Exists = ✓ Pass
+    * Required + No Story = ✗ Fail  
+    * Required + Story Exists + No Journey = ✗ Fail
+    * Not Allowed + No Story = ✓ Pass
+    * Not Allowed + Story Exists = ✗ Fail
+  - Pass/Fail filter dropdown with "All Status", "Pass", "Fail" options
+  - Tooltip shows reason for Pass/Fail status
+  - Updated table colspan from 7 to 8 columns
+- Architecture: Leverages existing story and journey validation functions for comprehensive fulfillment assessment
+
+[2024-08-10] COMPLETED: Move Requirements Fulfillment under USER STORIES above QA
+- Request: "move 'requirements fullfillment' treeview item above qa as a peer"
+- Status: ✅ COMPLETED - Requirements Fulfillment now positioned under USER STORIES before QA
+- Files Modified:
+  - src/providers/jsonTreeDataProvider.ts (moved item from top-level to USER STORIES section)
+- Changes Made:
+  - Removed Requirements Fulfillment from top-level items array
+  - Added Requirements Fulfillment under USER STORIES section
+  - Positioned it between User Journey and QA as requested
+  - Updated contextValue to 'userStoriesRequirementsFulfillment' to reflect new parent
+- New USER STORIES order: Role Requirements → Stories → Page Mapping → User Journey → Requirements Fulfillment → QA
+
+[2024-08-10] COMPLETED: Fix user journey file path bug
+- Issue: User journey distance data not being found due to incorrect file path
+- Problem: Was reading 'app-dna-user-story-journey.json' instead of 'app-dna-user-story-user-journey.json'
+- Solution: Corrected file path in requirementsFulfillmentCommands.ts
+- Status: ✅ COMPLETED - Now reading from correct file for journey distance data
+- Result: User Journey Exists column should now properly detect journey distances >= 0
+
 [2024-08-10] COMPLETED: Add 'User Journey Exists' column to Requirements Fulfillment view
 - Request: "in the requirement fullfilment view we next want to add a 'User Journey exists' column. It exists if the mapped page(s) found in 'mapping status' column has a journey page distance value >= 0"
 - Status: ✅ COMPLETED - New column shows user journey existence for mapped pages

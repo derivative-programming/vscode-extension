@@ -304,11 +304,12 @@ function checkUserJourneyExists(role, action, dataObject) {
     // Check if any of the mapped pages have user journey data (distance >= 0)
     let journeyCount = 0;
     mappedPages.forEach(page => {
-        // Check in userJourneyData if we have it, otherwise check userStories for journeyPageDistance
+        // Check in userJourneyData for this page with distance >= 0
         const hasJourneyData = userJourneyData.some(item => 
-            item.page === page && item.journeyPageDistance !== undefined && item.journeyPageDistance >= 0
-        ) || userStories.some(story => 
-            story.page === page && story.journeyPageDistance !== undefined && story.journeyPageDistance >= 0
+            item.page === page && 
+            item.journeyPageDistance !== undefined && 
+            item.journeyPageDistance !== null && 
+            item.journeyPageDistance >= 0
         );
         
         if (hasJourneyData) {
@@ -321,6 +322,37 @@ function checkUserJourneyExists(role, action, dataObject) {
         journeyCount: journeyCount,
         totalMappedPages: mappedPages.size
     };
+}
+
+// Function to determine fulfillment status (Pass/Fail)
+function checkFulfillmentStatus(role, action, dataObject, access) {
+    // Required access: passes if story exists AND journey exists
+    if (access === 'Required') {
+        const storyExists = checkUserStoryExists(role, action, dataObject);
+        if (!storyExists) {
+            return { status: 'Fail', reason: 'No user story exists' };
+        }
+        
+        const journeyInfo = checkUserJourneyExists(role, action, dataObject);
+        if (!journeyInfo.hasJourney) {
+            return { status: 'Fail', reason: 'No user journey exists' };
+        }
+        
+        return { status: 'Pass', reason: 'Story and journey exist' };
+    }
+    
+    // Not Allowed access: passes if no story exists
+    if (access === 'Not Allowed') {
+        const storyExists = checkUserStoryExists(role, action, dataObject);
+        if (!storyExists) {
+            return { status: 'Pass', reason: 'No user story exists (as expected)' };
+        } else {
+            return { status: 'Fail', reason: 'User story exists but not allowed' };
+        }
+    }
+    
+    // For other access types, default to Pass
+    return { status: 'Pass', reason: 'Access type allows' };
 }
 
 // Helper function to show spinner
@@ -365,6 +397,7 @@ function applyFilters() {
     const dataObjectFilter = document.getElementById('filterDataObject')?.value.toLowerCase() || '';
     const actionFilter = document.getElementById('filterAction')?.value || '';
     const accessFilter = document.getElementById('filterAccess')?.value || '';
+    const fulfillmentStatusFilter = document.getElementById('filterFulfillmentStatus')?.value || '';
     
     let filteredItems = allItems.filter(item => {
         const matchesRole = !roleFilter || item.role === roleFilter;
@@ -372,7 +405,14 @@ function applyFilters() {
         const matchesAction = !actionFilter || item.action === actionFilter;
         const matchesAccess = !accessFilter || item.access === accessFilter;
         
-        return matchesRole && matchesDataObject && matchesAction && matchesAccess;
+        // Check fulfillment status filter
+        let matchesFulfillmentStatus = true;
+        if (fulfillmentStatusFilter) {
+            const fulfillmentInfo = checkFulfillmentStatus(item.role, item.action, item.dataObject, item.access);
+            matchesFulfillmentStatus = fulfillmentInfo.status === fulfillmentStatusFilter;
+        }
+        
+        return matchesRole && matchesDataObject && matchesAction && matchesAccess && matchesFulfillmentStatus;
     });
     
     // Update requirementsFulfillmentData with filtered results
@@ -390,6 +430,7 @@ function clearFilters() {
     document.getElementById('filterDataObject').value = '';
     document.getElementById('filterAction').value = '';
     document.getElementById('filterAccess').value = '';
+    document.getElementById('filterFulfillmentStatus').value = '';
     
     // Reset to show all items
     requirementsFulfillmentData.items = allItems.slice();
@@ -460,7 +501,8 @@ function renderTable() {
         { key: "access", label: "Access", sortable: false },
         { key: "userStoryStatus", label: "User Story Status", sortable: false },
         { key: "mappingStatus", label: "Mapping Status", sortable: false },
-        { key: "userJourneyExists", label: "User Journey Exists", sortable: false }
+        { key: "userJourneyExists", label: "User Journey Exists", sortable: false },
+        { key: "fulfillmentStatus", label: "Fulfillment Status", sortable: false }
     ];
     
     // Create table header cells
@@ -683,6 +725,24 @@ function renderTable() {
                     }
                     
                     td.appendChild(statusDisplay);
+                } else if (col.key === "fulfillmentStatus") {
+                    // Check fulfillment status (Pass/Fail)
+                    const fulfillmentInfo = checkFulfillmentStatus(item.role, item.action, item.dataObject, item.access);
+                    const statusDisplay = document.createElement("span");
+                    statusDisplay.className = "fulfillment-status";
+                    
+                    if (fulfillmentInfo.status === 'Pass') {
+                        statusDisplay.textContent = "✓ Pass";
+                        statusDisplay.classList.add('status-good');
+                    } else {
+                        statusDisplay.textContent = "✗ Fail";
+                        statusDisplay.classList.add('status-bad');
+                    }
+                    
+                    // Add tooltip with reason
+                    statusDisplay.title = fulfillmentInfo.reason;
+                    
+                    td.appendChild(statusDisplay);
                 } else if (col.key === "dataObject") {
                     // For data object column, display the value with truncation
                     const value = item[col.key] || "";
@@ -713,7 +773,7 @@ function renderTable() {
         // No items
         const row = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 7; // Number of columns including User Story Status, Mapping Status, and User Journey Exists
+        td.colSpan = 8; // Number of columns including User Story Status, Mapping Status, User Journey Exists, and Fulfillment Status
         td.className = "no-data";
         td.textContent = "No requirements fulfillment data found. Requirements marked as 'Required' or 'Not Allowed' will appear here.";
         row.appendChild(td);
@@ -739,7 +799,7 @@ function renderRecordInfo() {
 // Setup filter event listeners
 function setupFilterEventListeners() {
     // Add event listeners for filter inputs
-    const filterInputs = ['filterRole', 'filterDataObject', 'filterAction', 'filterAccess'];
+    const filterInputs = ['filterRole', 'filterDataObject', 'filterAction', 'filterAccess', 'filterFulfillmentStatus'];
     
     filterInputs.forEach(id => {
         const element = document.getElementById(id);
