@@ -1,3 +1,58 @@
+[2024-08-10] COMPLETED: Add 'User Journey Exists' column to Requirements Fulfillment view
+- Request: "in the requirement fullfilment view we next want to add a 'User Journey exists' column. It exists if the mapped page(s) found in 'mapping status' column has a journey page distance value >= 0"
+- Status: ✅ COMPLETED - New column shows user journey existence for mapped pages
+- Files Modified:
+  - src/webviews/requirementsFulfillmentView.js (added column, checkUserJourneyExists function, and UI display)
+  - src/commands/requirementsFulfillmentCommands.ts (added user journey data loading and passing to webview)
+- Features Added:
+  - New "User Journey Exists" column in Requirements Fulfillment table
+  - checkUserJourneyExists() function that checks if mapped pages have journey distance >= 0
+  - Status indicators: ✓ All have journey, ⚠ Partial journey, ✗ No journey, "No Mapped Pages"
+  - Backend loads user journey data from app-dna-user-story-journey.json
+  - Cross-references page mappings with journey distances for accurate validation
+- Architecture: Leverages existing mapping status logic, extends with journey distance validation
+
+[2024-08-10] COMPLETED: Update hover text to show story text instead of story numbers
+- Request: "show the story text instead of the story number in the hover text"
+- Status: ✅ COMPLETED - Hover text now shows full story text in quotes
+- Files Modified:
+  - src/webviews/requirementsFulfillmentView.js (updated hover text generation in both mapping status scenarios)
+- Enhancement: Changed from "Story 123:" to ""[Full story text]":" format
+- Result: More contextual and informative hover text showing actual user story content instead of just numbers
+
+[2024-08-10] COMPLETED: Add mapping details icon to Requirements Fulfillment view
+- Request: "in the 'mapping status' column i also want an icon with hover text that shows what page(s) are mapped to each of the matching stories"
+- Status: ✅ COMPLETED - Info icons with hover text showing mapped pages
+- Files Modified:
+  - src/webviews/requirementsFulfillmentView.js (enhanced checkMappingStatus function and UI display)
+- Features Added:
+  - Enhanced checkMappingStatus() to return mappingDetails array with story numbers and mapped pages
+  - Added codicon info icons to mapping status column for rows with mapped stories
+  - Hover text shows formatted list of mapped pages organized by story number
+  - Consistent styling with existing info icons using VS Code design language
+- Architecture: Story-first parsing approach with detailed mapping information display
+
+[2024-01-XX] COMPLETED: Fix compilation errors in checkMappingStatus function
+- Issue: Incomplete function replacement left orphaned code fragments causing syntax errors
+- Solution: Removed leftover old implementation code and completed the function properly
+- Status: ✅ COMPLETED - Compilation successful, syntax errors fixed
+- Architecture: All three matching functions now use story-parsing approach (checkUserStoryExists, getMatchingUserStories, checkMappingStatus)
+- Result: Requirements Fulfillment view now uses consistent story-first parsing for accurate matching
+
+## MAPPING STATUS COLUMN ADDED TO USER STORIES PAGE MAPPING (August 10, 2025) - COMPLETED ✅
+- Request: "next, review the user story page mapping view. We want to add a column to show if the user story found has a page mapping. this is the desired case."
+- Status: COMPLETED
+- Files Modified:
+  - src/commands/userStoriesPageMappingCommands.ts (added CSS styling for mapping status column)
+  - src/webviews/userStoriesPageMappingView.js (added column, checkHasPageMapping function, and updateMappingStatus function)
+- Features Added:
+  - New "Mapping Status" column showing whether user stories have page mappings
+  - ✓ Has Mapping (green) = Desired state when page mapping exists
+  - ✗ No Mapping (red) = Issue when no page mapping exists
+  - Real-time status updates when page mappings are added/removed
+  - Intelligent checking for both array and string page mapping formats
+- Architecture: Follows extension pattern with webview handling status validation and display updates
+
 ## USER STORY STATUS COLUMN ADDED TO REQUIREMENTS FULFILLMENT (August 10, 2025) - COMPLETED ✅
 - Request: "using these rules, add a column on the right on the requirements fulfillment table that tells us if a user story exists on 'required' rows and if it doesnt exist on 'not allowed' rows. These cases are desired"
 - Status: COMPLETED

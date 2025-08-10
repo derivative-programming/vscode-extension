@@ -24,52 +24,303 @@ let filterOptions = {
 // Keep track of user stories for validation
 let userStories = [];
 
+// Keep track of page mappings for mapping status validation
+let pageMappings = {};
+
+// Keep track of user journey data for journey existence validation  
+let userJourneyData = [];
+
+// Function to parse a user story and extract its components
+function parseUserStory(storyText) {
+    if (!storyText) { return null; }
+    
+    const text = storyText.toLowerCase();
+    
+    // Extract role (look for patterns like "as a [role]", "as an [role]", "[role]")
+    let role = null;
+    const rolePatterns = [
+        /as an? ([^,]+)/,
+        /\[([^\]]+)\]/,
+        /^([^,]+),/
+    ];
+    
+    for (const pattern of rolePatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            role = match[1].trim();
+            break;
+        }
+    }
+    
+    // Extract action (look for common action verbs)
+    let action = null;
+    const actionPatterns = [
+        /\b(view all)\b/,
+        /\b(view)\b/,
+        /\b(add)\b/,
+        /\b(create)\b/,
+        /\b(update)\b/,
+        /\b(edit)\b/,
+        /\b(delete)\b/,
+        /\b(remove)\b/
+    ];
+    
+    for (const pattern of actionPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            action = match[1];
+            // Normalize some actions
+            if (action === 'create') { action = 'add'; }
+            if (action === 'edit') { action = 'update'; }
+            if (action === 'remove') { action = 'delete'; }
+            break;
+        }
+    }
+    
+    // Extract data objects (look for nouns after common patterns)
+    const dataObjects = [];
+    const objectPatterns = [
+        /(?:view all|view|add|create|update|edit|delete|remove)\s+(?:a\s+|an\s+|the\s+)?([a-z]+(?:\s+[a-z]+)*)/g,
+        /(?:of|for)\s+(?:a\s+|an\s+|the\s+)?([a-z]+(?:\s+[a-z]+)*)/g
+    ];
+    
+    for (const pattern of objectPatterns) {
+        let match;
+        while ((match = pattern.exec(text)) !== null) {
+            const obj = match[1].trim();
+            if (obj && !dataObjects.includes(obj)) {
+                dataObjects.push(obj);
+                // Also add singular/plural variants
+                if (obj.endsWith('s')) {
+                    const singular = obj.slice(0, -1);
+                    if (!dataObjects.includes(singular)) {
+                        dataObjects.push(singular);
+                    }
+                } else {
+                    const plural = obj + 's';
+                    if (!dataObjects.includes(plural)) {
+                        dataObjects.push(plural);
+                    }
+                }
+            }
+        }
+    }
+    
+    return {
+        role,
+        action,
+        dataObjects,
+        originalText: storyText
+    };
+}
+
 // Function to check if a user story exists for a given role/action/object combination
 function checkUserStoryExists(role, action, dataObject) {
     if (!userStories || userStories.length === 0) {
         return false;
     }
     
-    // Normalize action for comparison (user stories use different action formats)
-    const normalizeAction = (actionText) => {
-        const lower = actionText.toLowerCase();
-        if (lower === 'view all') { return 'view all'; }
-        if (lower === 'view') { return 'view'; }
-        if (lower === 'add') { return 'add'; }
-        if (lower === 'update') { return 'update'; }
-        if (lower === 'delete') { return 'delete'; }
-        return lower;
-    };
-    
-    const normalizedAction = normalizeAction(action);
+    const roleLower = role.toLowerCase();
+    const actionLower = action.toLowerCase();
+    const dataObjectLower = dataObject.toLowerCase();
     
     // Check if any user story matches this combination
     return userStories.some(story => {
-        if (!story.storyText) { return false; }
+        const parsed = parseUserStory(story.storyText);
+        if (!parsed) { return false; }
         
-        const storyText = story.storyText.toLowerCase();
-        const roleLower = role.toLowerCase();
-        const dataObjectLower = dataObject.toLowerCase();
+        // Check role match
+        const roleMatch = parsed.role && (
+            parsed.role === roleLower ||
+            parsed.role.includes(roleLower) ||
+            roleLower.includes(parsed.role)
+        );
         
-        // Check if story contains the role
-        const hasRole = storyText.includes(roleLower) || 
-                       storyText.includes(`[${roleLower}]`) ||
-                       storyText.includes(`a ${roleLower}`) ||
-                       storyText.includes(`as a ${roleLower}`);
+        // Check action match (including view/view all logic)
+        let actionMatch = false;
+        if (parsed.action) {
+            if (actionLower === 'view') {
+                // For 'view' requirements, match both 'view' and 'view all'
+                actionMatch = parsed.action === 'view' || parsed.action === 'view all';
+            } else {
+                actionMatch = parsed.action === actionLower;
+            }
+        }
         
-        // Check if story contains the action
-        const hasAction = storyText.includes(normalizedAction);
+        // Check data object match
+        const dataObjectMatch = parsed.dataObjects.some(obj => 
+            obj === dataObjectLower ||
+            obj === dataObjectLower + 's' ||
+            obj === dataObjectLower.replace(/s$/, '')
+        );
         
-        // Check if story contains the data object (handle plurals and variations)
-        const hasDataObject = storyText.includes(dataObjectLower) ||
-                             storyText.includes(`${dataObjectLower}s`) ||
-                             storyText.includes(`[${dataObjectLower}]`) ||
-                             storyText.includes(`a ${dataObjectLower}`) ||
-                             storyText.includes(`an ${dataObjectLower}`) ||
-                             storyText.includes(`all ${dataObjectLower}`);
-        
-        return hasRole && hasAction && hasDataObject;
+        return roleMatch && actionMatch && dataObjectMatch;
     });
+}
+
+// Function to get matching user stories for a given role/action/object combination
+function getMatchingUserStories(role, action, dataObject) {
+    if (!userStories || userStories.length === 0) {
+        return [];
+    }
+    
+    const roleLower = role.toLowerCase();
+    const actionLower = action.toLowerCase();
+    const dataObjectLower = dataObject.toLowerCase();
+    
+    // Filter user stories that match this combination
+    return userStories.filter(story => {
+        const parsed = parseUserStory(story.storyText);
+        if (!parsed) { return false; }
+        
+        // Check role match
+        const roleMatch = parsed.role && (
+            parsed.role === roleLower ||
+            parsed.role.includes(roleLower) ||
+            roleLower.includes(parsed.role)
+        );
+        
+        // Check action match (including view/view all logic)
+        let actionMatch = false;
+        if (parsed.action) {
+            if (actionLower === 'view') {
+                // For 'view' requirements, match both 'view' and 'view all'
+                actionMatch = parsed.action === 'view' || parsed.action === 'view all';
+            } else {
+                actionMatch = parsed.action === actionLower;
+            }
+        }
+        
+        // Check data object match
+        const dataObjectMatch = parsed.dataObjects.some(obj => 
+            obj === dataObjectLower ||
+            obj === dataObjectLower + 's' ||
+            obj === dataObjectLower.replace(/s$/, '')
+        );
+        
+        return roleMatch && actionMatch && dataObjectMatch;
+    });
+}
+
+// Function to check if matching user stories have page mappings
+function checkMappingStatus(role, action, dataObject) {
+    if (!userStories || userStories.length === 0 || !pageMappings) {
+        return { hasMapping: false, mappedCount: 0, totalCount: 0 };
+    }
+    
+    const roleLower = role.toLowerCase();
+    const actionLower = action.toLowerCase();
+    const dataObjectLower = dataObject.toLowerCase();
+    
+    // Find matching user stories using the same parsing logic
+    const matchingStories = userStories.filter(story => {
+        const parsed = parseUserStory(story.storyText);
+        if (!parsed) { return false; }
+        
+        // Check role match
+        const roleMatch = parsed.role && (
+            parsed.role === roleLower ||
+            parsed.role.includes(roleLower) ||
+            roleLower.includes(parsed.role)
+        );
+        
+        // Check action match (including view/view all logic)
+        let actionMatch = false;
+        if (parsed.action) {
+            if (actionLower === 'view') {
+                // For 'view' requirements, match both 'view' and 'view all'
+                actionMatch = parsed.action === 'view' || parsed.action === 'view all';
+            } else {
+                actionMatch = parsed.action === actionLower;
+            }
+        }
+        
+        // Check data object match
+        const dataObjectMatch = parsed.dataObjects.some(obj => 
+            obj === dataObjectLower ||
+            obj === dataObjectLower + 's' ||
+            obj === dataObjectLower.replace(/s$/, '')
+        );
+        
+        return roleMatch && actionMatch && dataObjectMatch;
+    });
+    
+    const totalCount = matchingStories.length;
+    if (totalCount === 0) {
+        return { hasMapping: false, mappedCount: 0, totalCount: 0 };
+    }
+    
+    // Check how many of the matching stories have page mappings and collect mapping details
+    let mappedCount = 0;
+    const mappingDetails = [];
+    
+    matchingStories.forEach(story => {
+        const storyNumber = story.storyNumber;
+        if (storyNumber && pageMappings[storyNumber]) {
+            const mapping = pageMappings[storyNumber];
+            if (mapping.pageMapping && 
+                ((Array.isArray(mapping.pageMapping) && mapping.pageMapping.length > 0) ||
+                 (typeof mapping.pageMapping === 'string' && mapping.pageMapping.trim().length > 0))) {
+                mappedCount++;
+                
+                // Collect page mapping details
+                const pages = Array.isArray(mapping.pageMapping) ? mapping.pageMapping : [mapping.pageMapping];
+                mappingDetails.push({
+                    storyNumber: storyNumber,
+                    storyText: story.storyText,
+                    pages: pages.filter(p => p && p.trim().length > 0)
+                });
+            }
+        }
+    });
+    
+    return { 
+        hasMapping: mappedCount > 0, 
+        mappedCount: mappedCount, 
+        totalCount: totalCount,
+        mappingDetails: mappingDetails 
+    };
+}
+
+// Function to check if user journey exists for requirement's mapped pages
+function checkUserJourneyExists(role, action, dataObject) {
+    // Get mapping info first to find mapped pages
+    const mappingInfo = checkMappingStatus(role, action, dataObject);
+    
+    if (!mappingInfo.hasMapping || !mappingInfo.mappingDetails || mappingInfo.mappingDetails.length === 0) {
+        return { hasJourney: false, journeyCount: 0, totalMappedPages: 0 };
+    }
+    
+    // Extract all unique mapped pages
+    const mappedPages = new Set();
+    mappingInfo.mappingDetails.forEach(detail => {
+        detail.pages.forEach(page => {
+            if (page && page.trim().length > 0) {
+                mappedPages.add(page.trim());
+            }
+        });
+    });
+    
+    // Check if any of the mapped pages have user journey data (distance >= 0)
+    let journeyCount = 0;
+    mappedPages.forEach(page => {
+        // Check in userJourneyData if we have it, otherwise check userStories for journeyPageDistance
+        const hasJourneyData = userJourneyData.some(item => 
+            item.page === page && item.journeyPageDistance !== undefined && item.journeyPageDistance >= 0
+        ) || userStories.some(story => 
+            story.page === page && story.journeyPageDistance !== undefined && story.journeyPageDistance >= 0
+        );
+        
+        if (hasJourneyData) {
+            journeyCount++;
+        }
+    });
+    
+    return {
+        hasJourney: journeyCount > 0,
+        journeyCount: journeyCount,
+        totalMappedPages: mappedPages.size
+    };
 }
 
 // Helper function to show spinner
@@ -207,7 +458,9 @@ function renderTable() {
         { key: "dataObject", label: "Data Object", sortable: true },
         { key: "action", label: "Action", sortable: true },
         { key: "access", label: "Access", sortable: false },
-        { key: "userStoryStatus", label: "User Story Status", sortable: false }
+        { key: "userStoryStatus", label: "User Story Status", sortable: false },
+        { key: "mappingStatus", label: "Mapping Status", sortable: false },
+        { key: "userJourneyExists", label: "User Journey Exists", sortable: false }
     ];
     
     // Create table header cells
@@ -277,6 +530,7 @@ function renderTable() {
                 } else if (col.key === "userStoryStatus") {
                     // Check if user story exists for this role/action/object combination
                     const userStoryExists = checkUserStoryExists(item.role, item.action, item.dataObject);
+                    const matchingStories = getMatchingUserStories(item.role, item.action, item.dataObject);
                     const statusDisplay = document.createElement("span");
                     statusDisplay.className = "user-story-status";
                     
@@ -286,6 +540,23 @@ function renderTable() {
                         isDesired = true;
                         statusDisplay.textContent = "✓ Story Exists";
                         statusDisplay.classList.add('status-good');
+                        
+                        // Add info icon with hover text showing matching stories
+                        const infoIcon = document.createElement("span");
+                        infoIcon.className = "codicon codicon-info";
+                        infoIcon.style.marginLeft = "5px";
+                        infoIcon.style.cursor = "help";
+                        infoIcon.style.fontSize = "12px";
+                        infoIcon.style.color = "var(--vscode-descriptionForeground)";
+                        
+                        // Create tooltip text
+                        const tooltipText = matchingStories.map(story => 
+                            `US${story.storyNumber || 'N/A'}: ${(story.storyText || '').substring(0, 100)}${story.storyText && story.storyText.length > 100 ? '...' : ''}`
+                        ).join('\n');
+                        infoIcon.title = `Found ${matchingStories.length} matching user stor${matchingStories.length === 1 ? 'y' : 'ies'}:\n\n${tooltipText}`;
+                        
+                        statusDisplay.appendChild(infoIcon);
+                        
                     } else if (item.access === 'Required' && !userStoryExists) {
                         isDesired = false;
                         statusDisplay.textContent = "✗ Story Missing";
@@ -297,6 +568,117 @@ function renderTable() {
                     } else if (item.access === 'Not Allowed' && userStoryExists) {
                         isDesired = false;
                         statusDisplay.textContent = "✗ Story Exists";
+                        statusDisplay.classList.add('status-bad');
+                        
+                        // Add info icon with hover text showing matching stories (for "Not Allowed" case)
+                        const infoIcon = document.createElement("span");
+                        infoIcon.className = "codicon codicon-info";
+                        infoIcon.style.marginLeft = "5px";
+                        infoIcon.style.cursor = "help";
+                        infoIcon.style.fontSize = "12px";
+                        infoIcon.style.color = "var(--vscode-descriptionForeground)";
+                        
+                        // Create tooltip text
+                        const tooltipText = matchingStories.map(story => 
+                            `US${story.storyNumber || 'N/A'}: ${(story.storyText || '').substring(0, 100)}${story.storyText && story.storyText.length > 100 ? '...' : ''}`
+                        ).join('\n');
+                        infoIcon.title = `Found ${matchingStories.length} unexpected user stor${matchingStories.length === 1 ? 'y' : 'ies'}:\n\n${tooltipText}`;
+                        
+                        statusDisplay.appendChild(infoIcon);
+                    }
+                    
+                    td.appendChild(statusDisplay);
+                } else if (col.key === "mappingStatus") {
+                    // Check mapping status for matching user stories
+                    const mappingInfo = checkMappingStatus(item.role, item.action, item.dataObject);
+                    const statusDisplay = document.createElement("span");
+                    statusDisplay.className = "mapping-status";
+                    
+                    if (mappingInfo.totalCount === 0) {
+                        // No user stories found
+                        statusDisplay.textContent = "No Stories";
+                        statusDisplay.classList.add('status-bad');
+                    } else if (mappingInfo.mappedCount === mappingInfo.totalCount) {
+                        // All user stories have mappings
+                        statusDisplay.textContent = `✓ ${mappingInfo.mappedCount}/${mappingInfo.totalCount} Mapped`;
+                        statusDisplay.classList.add('status-good');
+                        
+                        // Add info icon with hover text showing mapped pages
+                        if (mappingInfo.mappingDetails && mappingInfo.mappingDetails.length > 0) {
+                            const infoIcon = document.createElement("span");
+                            infoIcon.className = "codicon codicon-info";
+                            infoIcon.style.marginLeft = "5px";
+                            infoIcon.style.cursor = "help";
+                            infoIcon.style.fontSize = "12px";
+                            infoIcon.style.color = "var(--vscode-descriptionForeground)";
+                            
+                            // Create hover text showing all mapped pages
+                            let hoverText = "Mapped Pages:\n";
+                            mappingInfo.mappingDetails.forEach(detail => {
+                                hoverText += `\n"${detail.storyText}":\n`;
+                                detail.pages.forEach(page => {
+                                    hoverText += `  • ${page}\n`;
+                                });
+                            });
+                            
+                            infoIcon.title = hoverText.trim();
+                            statusDisplay.appendChild(infoIcon);
+                        }
+                    } else if (mappingInfo.mappedCount > 0) {
+                        // Some user stories have mappings
+                        statusDisplay.textContent = `⚠ ${mappingInfo.mappedCount}/${mappingInfo.totalCount} Mapped`;
+                        statusDisplay.classList.add('status-bad');
+                        
+                        // Add info icon with hover text showing mapped pages
+                        if (mappingInfo.mappingDetails && mappingInfo.mappingDetails.length > 0) {
+                            const infoIcon = document.createElement("span");
+                            infoIcon.className = "codicon codicon-info";
+                            infoIcon.style.marginLeft = "5px";
+                            infoIcon.style.cursor = "help";
+                            infoIcon.style.fontSize = "12px";
+                            infoIcon.style.color = "var(--vscode-descriptionForeground)";
+                            
+                            // Create hover text showing mapped pages
+                            let hoverText = "Mapped Pages:\n";
+                            mappingInfo.mappingDetails.forEach(detail => {
+                                hoverText += `\n"${detail.storyText}":\n`;
+                                detail.pages.forEach(page => {
+                                    hoverText += `  • ${page}\n`;
+                                });
+                            });
+                            
+                            infoIcon.title = hoverText.trim();
+                            statusDisplay.appendChild(infoIcon);
+                        }
+                    } else {
+                        // No user stories have mappings
+                        statusDisplay.textContent = `✗ 0/${mappingInfo.totalCount} Mapped`;
+                        statusDisplay.classList.add('status-bad');
+                    }
+                    
+                    td.appendChild(statusDisplay);
+                } else if (col.key === "userJourneyExists") {
+                    // Check if user journey exists for mapped pages
+                    const journeyInfo = checkUserJourneyExists(item.role, item.action, item.dataObject);
+                    const statusDisplay = document.createElement("span");
+                    statusDisplay.className = "journey-status";
+                    
+                    if (journeyInfo.totalMappedPages === 0) {
+                        // No mapped pages
+                        statusDisplay.textContent = "No Mapped Pages";
+                        statusDisplay.classList.add('status-neutral');
+                    } else if (journeyInfo.hasJourney) {
+                        // Has user journey data
+                        if (journeyInfo.journeyCount === journeyInfo.totalMappedPages) {
+                            statusDisplay.textContent = `✓ ${journeyInfo.journeyCount}/${journeyInfo.totalMappedPages} Journey`;
+                            statusDisplay.classList.add('status-good');
+                        } else {
+                            statusDisplay.textContent = `⚠ ${journeyInfo.journeyCount}/${journeyInfo.totalMappedPages} Journey`;
+                            statusDisplay.classList.add('status-bad');
+                        }
+                    } else {
+                        // No user journey data
+                        statusDisplay.textContent = `✗ No Journey`;
                         statusDisplay.classList.add('status-bad');
                     }
                     
@@ -331,7 +713,7 @@ function renderTable() {
         // No items
         const row = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 5; // Number of columns including User Story Status
+        td.colSpan = 7; // Number of columns including User Story Status, Mapping Status, and User Journey Exists
         td.className = "no-data";
         td.textContent = "No requirements fulfillment data found. Requirements marked as 'Required' or 'Not Allowed' will appear here.";
         row.appendChild(td);
@@ -418,7 +800,7 @@ window.addEventListener("message", function(event) {
     
     if (message.command === "setRequirementsFulfillmentData") {
         console.log("[Webview] Handling setRequirementsFulfillmentData with", message.data?.items?.length || 0, "items");
-        const data = message.data || { items: [], totalRecords: 0, sortColumn: 'role', sortDescending: false, userStories: [] };
+        const data = message.data || { items: [], totalRecords: 0, sortColumn: 'role', sortDescending: false, userStories: [], pageMappings: {} };
         
         // Store all items for filtering
         allItems = data.items || [];
@@ -426,6 +808,14 @@ window.addEventListener("message", function(event) {
         // Store user stories for validation
         userStories = data.userStories || [];
         console.log("[Webview] Stored", userStories.length, "user stories for validation");
+        
+        // Store page mappings for mapping status validation
+        pageMappings = data.pageMappings || {};
+        console.log("[Webview] Stored", Object.keys(pageMappings).length, "page mappings for validation");
+        
+        // Store user journey data for journey existence validation
+        userJourneyData = data.userJourneyData || [];
+        console.log("[Webview] Stored", userJourneyData.length, "user journey items for validation");
         
         // Update requirementsFulfillmentData
         requirementsFulfillmentData = {

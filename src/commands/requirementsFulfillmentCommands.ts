@@ -224,6 +224,67 @@ async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, model
 
         console.log(`[Extension] Found ${userStories.length} user stories for validation`);
 
+        // Load page mapping data for mapping status validation
+        let pageMappings: any = {};
+        try {
+            if (modelFilePath) {
+                const modelDir = path.dirname(modelFilePath);
+                const mappingFilePath = path.join(modelDir, 'app-dna-user-story-page-mapping.json');
+                
+                if (fs.existsSync(mappingFilePath)) {
+                    const mappingContent = fs.readFileSync(mappingFilePath, 'utf8');
+                    const mappingData = JSON.parse(mappingContent);
+                    pageMappings = mappingData.pageMappings || {};
+                }
+            }
+        } catch (error) {
+            console.warn("[Extension] Error loading page mapping data:", error);
+        }
+
+        console.log(`[Extension] Found ${Object.keys(pageMappings).length} page mappings for validation`);
+
+        // Load user journey data for journey existence validation
+        let userJourneyData: any[] = [];
+        try {
+            if (modelFilePath) {
+                const modelDir = path.dirname(modelFilePath);
+                const journeyFilePath = path.join(modelDir, 'app-dna-user-story-journey.json');
+                
+                if (fs.existsSync(journeyFilePath)) {
+                    const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                    const journeyDataFromFile = JSON.parse(journeyContent);
+                    
+                    // Create user journey data similar to userStoriesJourneyCommands
+                    userStories.forEach((story: any) => {
+                        const storyNumber = story.storyNumber;
+                        const existingMapping = pageMappings[storyNumber];
+                        
+                        if (existingMapping?.pageMapping) {
+                            const pages = Array.isArray(existingMapping.pageMapping) ? existingMapping.pageMapping : [existingMapping.pageMapping];
+                            
+                            pages.forEach((page: string) => {
+                                if (page && page.trim()) {
+                                    // Find page distance from journey data
+                                    const pageDistanceData = journeyDataFromFile.pageDistances?.find((pd: any) => pd.destinationPage === page);
+                                    const journeyPageDistance = pageDistanceData ? pageDistanceData.distance : -1;
+                                    
+                                    userJourneyData.push({
+                                        storyNumber: storyNumber,
+                                        page: page,
+                                        journeyPageDistance: journeyPageDistance
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.warn("[Extension] Error loading user journey data:", error);
+        }
+
+        console.log(`[Extension] Found ${userJourneyData.length} user journey items for validation`);
+
         // Send data to webview
         panel.webview.postMessage({
             command: "setRequirementsFulfillmentData",
@@ -232,7 +293,9 @@ async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, model
                 totalRecords: items.length,
                 sortColumn: sortColumn || 'role',
                 sortDescending: sortDescending || false,
-                userStories: userStories
+                userStories: userStories,
+                pageMappings: pageMappings,
+                userJourneyData: userJourneyData
             }
         });
 
@@ -240,7 +303,7 @@ async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, model
         console.error("[Extension] Error loading requirements fulfillment data:", error);
         panel.webview.postMessage({
             command: "setRequirementsFulfillmentData",
-            data: { items: [], totalRecords: 0, sortColumn: sortColumn || 'role', sortDescending: sortDescending || false, userStories: [] }
+            data: { items: [], totalRecords: 0, sortColumn: sortColumn || 'role', sortDescending: sortDescending || false, userStories: [], pageMappings: {}, userJourneyData: [] }
         });
     }
 }
@@ -566,6 +629,12 @@ function getWebviewContent(context: vscode.ExtensionContext, panel: vscode.Webvi
         
         .status-bad {
             color: var(--vscode-testing-iconFailed);
+        }
+        
+        .mapping-status {
+            display: inline;
+            font-size: 12px;
+            font-weight: 500;
         }
         
         .spinner-overlay {
