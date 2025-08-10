@@ -41,6 +41,185 @@ function extractRoleFromUserStory(text) {
 }
 
 /**
+ * Extracts data object names from a user story text.
+ * @param {string} text User story text
+ * @returns {string[]} Array of extracted object names
+ */
+function extractDataObjectsFromUserStory(text) {
+    if (!text || typeof text !== "string") { return []; }
+    
+    const lowerText = text.toLowerCase();
+    const dataObjects = [];
+    
+    // Extract data objects from 'view all [objects] in a [container]' pattern
+    // Handle both "in a [object]" and "in the application" (where "application" is not a data object)
+    const viewAllInPattern = /view all\s+(?:a\s+|an\s+|the\s+|all\s+)?([a-z]+(?:\s+[a-z]+)*)\s+in (?:a\s+|the\s+)([a-z]+(?:\s+[a-z]+)*)/g;
+    let match;
+    while ((match = viewAllInPattern.exec(lowerText)) !== null) {
+        const obj1 = match[1].trim();
+        const obj2 = match[2].trim();
+        
+        // Always add the first object (the items being viewed)
+        if (obj1 && !dataObjects.includes(obj1)) {
+            dataObjects.push(obj1);
+            // Also add singular/plural variants
+            if (obj1.endsWith('s')) {
+                const singular = obj1.slice(0, -1);
+                if (!dataObjects.includes(singular)) {
+                    dataObjects.push(singular);
+                }
+            } else {
+                const plural = obj1 + 's';
+                if (!dataObjects.includes(plural)) {
+                    dataObjects.push(plural);
+                }
+            }
+        }
+        
+        // Only add the second object if it's not "application"
+        if (obj2 && obj2 !== 'application' && !dataObjects.includes(obj2)) {
+            dataObjects.push(obj2);
+            // Also add singular/plural variants
+            if (obj2.endsWith('s')) {
+                const singular = obj2.slice(0, -1);
+                if (!dataObjects.includes(singular)) {
+                    dataObjects.push(singular);
+                }
+            } else {
+                const plural = obj2 + 's';
+                if (!dataObjects.includes(plural)) {
+                    dataObjects.push(plural);
+                }
+            }
+        }
+    }
+    
+    // Extract data objects (look for nouns after common patterns)
+    const objectPatterns = [
+        /(?:view all|view|add|create|update|edit|delete|remove)\s+(?:a\s+|an\s+|the\s+|all\s+)?([a-z]+(?:\s+[a-z]+)*)/g,
+        /(?:of|for)\s+(?:a\s+|an\s+|the\s+|all\s+)?([a-z]+(?:\s+[a-z]+)*)/g
+    ];
+    
+    for (const pattern of objectPatterns) {
+        while ((match = pattern.exec(lowerText)) !== null) {
+            const obj = match[1].trim();
+            if (obj && !dataObjects.includes(obj)) {
+                dataObjects.push(obj);
+                // Also add singular/plural variants
+                if (obj.endsWith('s')) {
+                    const singular = obj.slice(0, -1);
+                    if (!dataObjects.includes(singular)) {
+                        dataObjects.push(singular);
+                    }
+                } else {
+                    const plural = obj + 's';
+                    if (!dataObjects.includes(plural)) {
+                        dataObjects.push(plural);
+                    }
+                }
+            }
+        }
+    }
+    
+    return dataObjects;
+}
+
+/**
+ * Converts a spaced name to PascalCase.
+ * @param {string} name The spaced name to convert
+ * @returns {string} The PascalCase version
+ */
+function toPascalCase(name) {
+    if (!name || typeof name !== "string") { return ""; }
+    return name.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join('');
+}
+
+/**
+ * Converts a PascalCase name to spaced format.
+ * @param {string} name The PascalCase name to convert
+ * @returns {string} The spaced version
+ */
+function toSpacedFormat(name) {
+    if (!name || typeof name !== "string") { return ""; }
+    return name.replace(/([A-Z])/g, ' $1').trim();
+}
+
+/**
+ * Validates if data objects exist in the model's data objects.
+ * @param {string[]} objectNames Array of object names to validate
+ * @param {Object} modelService The model service instance
+ * @returns {Object} Object with validation results and missing objects
+ */
+function validateDataObjects(objectNames, modelService) {
+    const result = {
+        allValid: true,
+        missingObjects: [],
+        validObjects: []
+    };
+    
+    if (!objectNames || !Array.isArray(objectNames) || objectNames.length === 0) {
+        return result;
+    }
+    
+    if (!modelService || !modelService.isFileLoaded()) {
+        result.allValid = false;
+        result.missingObjects = [...objectNames];
+        return result;
+    }
+    
+    try {
+        const allObjects = modelService.getAllObjects();
+        if (!allObjects || !Array.isArray(allObjects)) {
+            result.allValid = false;
+            result.missingObjects = [...objectNames];
+            return result;
+        }
+        
+        // Get all object names in various formats for comparison
+        const modelObjectNames = allObjects.map(obj => {
+            const name = obj.name || "";
+            return {
+                original: name,
+                lower: name.toLowerCase(),
+                pascalCase: toPascalCase(name),
+                spacedFormat: toSpacedFormat(name).toLowerCase()
+            };
+        });
+        
+        for (const objectName of objectNames) {
+            const searchName = objectName.toLowerCase();
+            const searchPascal = toPascalCase(objectName);
+            const searchSpaced = toSpacedFormat(objectName).toLowerCase();
+            
+            const found = modelObjectNames.some(modelObj => 
+                modelObj.lower === searchName ||
+                modelObj.lower === searchPascal.toLowerCase() ||
+                modelObj.lower === searchSpaced ||
+                modelObj.spacedFormat === searchName ||
+                modelObj.spacedFormat === searchSpaced
+            );
+            
+            if (found) {
+                result.validObjects.push(objectName);
+            } else {
+                result.missingObjects.push(objectName);
+                result.allValid = false;
+            }
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('Error validating data objects:', error);
+        // In case of error, return true to avoid blocking user stories
+        result.allValid = true;
+        result.validObjects = [...objectNames];
+        return result;
+    }
+}
+
+/**
  * Validates if a role exists in the model's role data objects.
  * @param {string} roleName The role name to validate
  * @param {Object} modelService The model service instance
@@ -97,8 +276,10 @@ function isValidRole(roleName, modelService) {
 /**
  * Validates user story text against allowed formats.
  * Accepts:
- *   - A [Role Name] wants to [View all, view, add, update, delete] [a,an,all] [Object Name(s)]
- *   - As a [Role Name], I want to [View all, view, add, update, delete] [a,an,all] [Object Name(s)]
+ *   - A [Role Name] wants to [view, add, update, delete] [a,an,all] [Object Name(s)]
+ *   - A [Role Name] wants to view all [Object Name(s)] in a [Container Object Name]
+ *   - As a [Role Name], I want to [view, add, update, delete] [a,an,all] [Object Name(s)]
+ *   - As a [Role Name], I want to view all [Object Name(s)] in a [Container Object Name]
  * Brackets are optional, case is ignored, and 'a', 'an', or 'all' are allowed before the object.
  * @param {string} text
  * @returns {boolean}
@@ -107,11 +288,29 @@ function isValidUserStoryFormat(text) {
     if (!text || typeof text !== "string") { return false; }
     // Remove extra spaces
     const t = text.trim().replace(/\s+/g, " ");
-    // Regex for: A [Role] wants to [action] [a|an|all] [object]
-    const re1 = /^A\s+\[?\w+(?: \w+)*\]?\s+wants to\s+\[?(View all|view|add|update|delete)\]?\s+(a|an|all)\s+\[?\w+(?: \w+)*\]?$/i;
-    // Regex for: As a [Role], I want to [action] [a|an|all] [object]
-    const re2 = /^As a\s+\[?\w+(?: \w+)*\]?\s*,?\s*I want to\s+\[?(View all|view|add|update|delete)\]?\s+(a|an|all)\s+\[?\w+(?: \w+)*\]?$/i;
-    return re1.test(t) || re2.test(t);
+    
+    // Regex for: A [Role] wants to view all [objects] in a [container] OR in the [container]
+    const re1ViewAll = /^A\s+[\w\s]+\s+wants to\s+view all\s+[\w\s]+\s+in (?:a |the )[\w\s]+$/i;
+    // Regex for: As a [Role], I want to view all [objects] in a [container] OR in the [container]  
+    const re2ViewAll = /^As a\s+[\w\s]+\s*,\s*I want to\s+view all\s+[\w\s]+\s+in (?:a |the )[\w\s]+$/i;
+    
+    // Regex for: A [Role] wants to [action] [a|an] [object] (single object actions)
+    const re1Single = /^A\s+[\w\s]+\s+wants to\s+(?:view|add|create|update|edit|delete|remove)\s+(?:a |an )[\w\s]+$/i;
+    // Regex for: As a [Role], I want to [action] [a|an] [object] (single object actions)
+    const re2Single = /^As a\s+[\w\s]+\s*,\s*I want to\s+(?:view|add|create|update|edit|delete|remove)\s+(?:a |an )[\w\s]+$/i;
+    
+    const result = re1ViewAll.test(t) || re2ViewAll.test(t) || re1Single.test(t) || re2Single.test(t);
+    
+    // Debug logging to help identify failing patterns
+    if (!result) {
+        console.log(`[DEBUG] Story format validation failed for: "${t}"`);
+        console.log(`  re1ViewAll test: ${re1ViewAll.test(t)}`);
+        console.log(`  re2ViewAll test: ${re2ViewAll.test(t)}`);
+        console.log(`  re1Single test: ${re1Single.test(t)}`);
+        console.log(`  re2Single test: ${re2Single.test(t)}`);
+    }
+    
+    return result;
 }
 
 // Track active panels to avoid duplicates
@@ -247,11 +446,26 @@ function showUserStoriesView(context, modelService) {
 
                     // Validate the story text format
                     const storyText = message.data.storyText;
+                    
+                    // Check if multiple stories were pasted together
+                    const storyCount = (storyText.match(/As a\s+\w+\s*,\s*I want to/gi) || []).length + 
+                                      (storyText.match(/A\s+\w+\s+wants to/gi) || []).length;
+                    
+                    if (storyCount > 1) {
+                        panel.webview.postMessage({
+                            command: 'addUserStoryError',
+                            data: {
+                                error: `Multiple user stories detected (${storyCount} stories found). Please enter one user story at a time, or use CSV upload for bulk import.`
+                            }
+                        });
+                        return;
+                    }
+                    
                     if (!isValidUserStoryFormat(storyText)) {
                         panel.webview.postMessage({
                             command: 'addUserStoryError',
                             data: {
-                                error: 'Story text format is invalid. Expected format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]" or "As a [Role name], I want to [View all, view, add, update, delete] a [object name]" (brackets optional, a/an/all allowed)'
+                                error: `Story text format is invalid: "${storyText}". Expected format: "A [Role name] wants to [view, add, update, delete] a [object name]" or "A [Role name] wants to view all [objects] in a [container object name]" (brackets optional, alternate "As a..." format also accepted)`
                             }
                         });
                         return;
@@ -278,6 +492,22 @@ function showUserStoriesView(context, modelService) {
                             }
                         });
                         return;
+                    }
+
+                    // Extract and validate data objects from the user story
+                    const dataObjects = extractDataObjectsFromUserStory(storyText);
+                    if (dataObjects.length > 0) {
+                        const objectValidation = validateDataObjects(dataObjects, modelService);
+                        if (!objectValidation.allValid) {
+                            const missingObjectsText = objectValidation.missingObjects.join(', ');
+                            panel.webview.postMessage({
+                                command: 'addUserStoryError',
+                                data: {
+                                    error: `Data object(s) "${missingObjectsText}" do not exist in the model. Please ensure the data object(s) are defined in the model before creating user stories that reference them.`
+                                }
+                            });
+                            return;
+                        }
                     }
 
                     // Check for duplicate story text
@@ -480,6 +710,18 @@ function showUserStoriesView(context, modelService) {
                             results.skipped++;
                             results.errors.push(`Role "${roleName}" does not exist in model: "${storyText}"`);
                             continue;
+                        }
+                        
+                        // Extract and validate data objects from the user story
+                        const dataObjects = extractDataObjectsFromUserStory(storyText);
+                        if (dataObjects.length > 0) {
+                            const objectValidation = validateDataObjects(dataObjects, modelService);
+                            if (!objectValidation.allValid) {
+                                const missingObjectsText = objectValidation.missingObjects.join(', ');
+                                results.skipped++;
+                                results.errors.push(`Data object(s) "${missingObjectsText}" do not exist in model: "${storyText}"`);
+                                continue;
+                            }
                         }
                         
                         // Check for duplicates
@@ -934,10 +1176,14 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
             </div>
             <div class="modal-body">
                 <label for="storyText">Story Text:</label>
-                <textarea id="storyText" placeholder="Enter user story text..."></textarea>
-                <p>Format: "A [Role name] wants to [View all, view, add, update, delete] a [object name]"<br>
-Alternate format: "As a [Role name], I want to [View all, view, add, update, delete] a [object name]"<br>
-<strong>Note:</strong> The role must exist in the model's Role data object lookup items.</p>
+                <textarea id="storyText" placeholder="Enter ONE user story text..."></textarea>
+                <p><strong>Enter one user story at a time.</strong> For multiple stories, use CSV upload.<br>
+Format: "A [Role name] wants to [view, add, update, delete] a [object name]"<br>
+View All format: "A [Role name] wants to view all [objects] in a [container object name]"<br>
+Special case: "...in the application" is allowed (application is not validated as a data object)<br>
+Alternate format: "As a [Role name], I want to [view, add, update, delete] a [object name]"<br>
+Alternate View All: "As a [Role name], I want to view all [objects] in a [container object name]"<br>
+<strong>Note:</strong> The role and data object(s) must exist in the model.</p>
                 <div id="addStoryError" class="error-message" style="display: none;"></div>
             </div>            <div class="modal-footer">
                 <button id="btnConfirmAddStory">Add</button>

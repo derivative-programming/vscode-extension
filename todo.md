@@ -1,5 +1,10 @@
 Agent todo items...
 
+✅ COMPLETED: Added data object validation to user stories
+- User stories now validate that referenced data objects exist in the model
+- Supports case-insensitive matching and PascalCase to spaced format conversion
+- Applied to both manual story creation and CSV import
+
 when adding a data object, dont use a plural form of the name
 
 report details view...
