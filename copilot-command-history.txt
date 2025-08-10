@@ -1,3 +1,4 @@
+2025-08-10T00:00:00Z | reorder-root-tree-items | Moved DATA OBJECTS above USER STORIES in jsonTreeDataProvider.ts root items array. Architecture: simple ordering change, no context value adjustments required. Status: completed.
 2025-08-10: Added bulk data object creation feature to Add Object Wizard - COMPLETED
 - Added "Bulk add Data Objects" button to Step 1 of wizard
 - Implemented modal dialog with multi-line text input for bulk entry

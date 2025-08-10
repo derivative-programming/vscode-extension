@@ -177,7 +177,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 userStoriesItem.iconPath = new vscode.ThemeIcon('book');
                 userStoriesItem.tooltip = "User stories and requirements";
 
-                const items = [projectItem, userStoriesItem, dataObjectsItem];
+                // Order adjusted: move DATA OBJECTS above USER STORIES per user request
+                const items = [projectItem, dataObjectsItem, userStoriesItem];
                 
                 // Create PAGES as a top-level item (only if advanced properties are enabled)
                 if (showAdvancedProperties) {
@@ -194,7 +195,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, USER STORIES, DATA OBJECTS, [PAGES], MODEL SERVICES
+                // Return tree items in order: PROJECT, DATA OBJECTS, USER STORIES, [PAGES], MODEL SERVICES
                 // (PAGES only shown when advanced properties are enabled)
                 return Promise.resolve(items);
             } else {
