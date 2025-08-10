@@ -642,6 +642,128 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
+    // Setup generate stories button
+    const generateStoriesBtn = document.getElementById("generateStoriesButton");
+    if (generateStoriesBtn) {
+        // Attach generate stories button handler
+        generateStoriesBtn.onclick = function() {
+            console.log("[WebView] Generate Stories button clicked");
+            
+            // Get filtered requirements from the visible table
+            const tableRows = document.querySelectorAll('#roleRequirementsTable tbody tr:not(.hidden)');
+            const requirements = [];
+            
+            tableRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 5) {
+                    // Skip the first cell (checkbox column)
+                    // Column order: checkbox, role, dataObject, action, access
+                    const roleCell = cells[1];
+                    const dataObjectCell = cells[2];
+                    const actionCell = cells[3];
+                    const accessCell = cells[4];
+                    
+                    // Get access value from the dropdown
+                    const accessDropdown = accessCell.querySelector('select.access-dropdown');
+                    const accessValue = accessDropdown ? accessDropdown.value : '';
+                    
+                    requirements.push({
+                        role: roleCell.textContent.trim(),
+                        dataObject: dataObjectCell.textContent.trim(),
+                        action: actionCell.textContent.trim(),
+                        access: accessValue
+                    });
+                }
+            });
+            
+            console.log("[WebView] Sending requirements for story generation:", requirements);
+            
+            vscode.postMessage({
+                command: 'generateUserStories',
+                data: { requirements: requirements }
+            });
+            
+            // Show the modal
+            const modal = document.getElementById('generateStoriesModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                
+                // Show loading state
+                const textarea = modal.querySelector('#generatedStoriesText');
+                if (textarea) {
+                    textarea.value = 'Generating user stories...';
+                    textarea.disabled = true;
+                }
+            }
+        };
+    }
+
+    // Setup modal functionality
+    const modal = document.getElementById('generateStoriesModal');
+    if (modal) {
+        const closeBtn = modal.querySelector('.modal-close');
+        const cancelBtn = modal.querySelector('#cancelStoriesBtn');
+        
+        function closeModal() {
+            modal.style.display = 'none';
+            // Reset modal state
+            const textarea = modal.querySelector('#generatedStoriesText');
+            if (textarea) {
+                textarea.value = '';
+                textarea.disabled = false;
+            }
+        }
+        
+        if (closeBtn) {
+            closeBtn.onclick = closeModal;
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.onclick = closeModal;
+        }
+        
+        // Close on backdrop click
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        };
+    }
+
+    // Setup copy stories button
+    const copyStoriesBtn = document.getElementById('copyStoriesButton');
+    if (copyStoriesBtn) {
+        copyStoriesBtn.onclick = function() {
+            const textarea = document.getElementById('generatedStoriesText');
+            if (textarea && textarea.value) {
+                textarea.select();
+                document.execCommand('copy');
+                
+                // Show temporary feedback
+                const originalText = copyStoriesBtn.textContent;
+                copyStoriesBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyStoriesBtn.textContent = originalText;
+                }, 1500);
+            }
+        };
+    }
+
+    // Setup export stories button
+    const exportStoriesBtn = document.getElementById('exportStoriesButton');
+    if (exportStoriesBtn) {
+        exportStoriesBtn.onclick = function() {
+            const textarea = document.getElementById('generatedStoriesText');
+            if (textarea && textarea.value) {
+                const stories = textarea.value.split('\n').filter(s => s.trim());
+                vscode.postMessage({
+                    command: 'exportUserStories',
+                    data: { stories: stories }
+                });
+            }
+        };
+    }
+    
     // Setup bulk actions
     setupBulkActions();
     
@@ -687,6 +809,19 @@ window.addEventListener("message", function(event) {
         
         // Hide spinner when data is loaded
         hideSpinner();
+    } else if (message.command === "userStoriesGenerated") {
+        console.log("[WebView] User stories generated:", message);
+        const modal = document.getElementById('generateStoriesModal');
+        const textarea = modal?.querySelector('#generatedStoriesText');
+        
+        if (textarea) {
+            textarea.disabled = false;
+            if (message.success) {
+                textarea.value = message.stories.join('\n');
+            } else {
+                textarea.value = 'Error generating user stories: ' + (message.error || 'Unknown error');
+            }
+        }
     } else if (message.command === "accessChangeSaved") {
         if (message.success) {
             console.log("[Webview] Access change saved successfully");

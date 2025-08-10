@@ -1,8 +1,6 @@
 Agent todo items...
 
 
-✅ when adding a data object, dont use a plural form of the name - COMPLETED: Added guidance to use singular naming in the Add Object Wizard
-
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button

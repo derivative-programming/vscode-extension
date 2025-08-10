@@ -350,7 +350,7 @@ export function registerRoleRequirementsCommands(
                             opacity: 0.6;
                             cursor: not-allowed;
                         }
-                        button:hover:not(:disabled):not(.filter-button-secondary) {
+                        button:hover:not(:disabled):not(.filter-button-secondary):not(.icon-button) {
                             background-color: var(--vscode-button-hoverBackground);
                         }
                         .access-dropdown {
@@ -471,7 +471,7 @@ export function registerRoleRequirementsCommands(
                         }
                         
                         .icon-button {
-                            background: none;
+                            background: none !important;
                             border: none;
                             color: var(--vscode-foreground);
                             cursor: pointer;
@@ -485,7 +485,7 @@ export function registerRoleRequirementsCommands(
                         }
                         
                         .icon-button:hover {
-                            background: var(--vscode-toolbar-hoverBackground);
+                            background: var(--vscode-toolbar-hoverBackground) !important;
                             color: var(--vscode-foreground);
                         }
                         
@@ -668,6 +668,135 @@ export function registerRoleRequirementsCommands(
                             color: var(--vscode-descriptionForeground);
                             border: 1px solid var(--vscode-input-border);
                         }
+
+                        /* Modal Styles */
+                        .modal {
+                            display: none;
+                            position: fixed;
+                            z-index: 2000;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(0, 0, 0, 0.5);
+                            backdrop-filter: blur(2px);
+                        }
+
+                        .modal-content {
+                            background-color: var(--vscode-sideBar-background);
+                            margin: 5% auto;
+                            padding: 0;
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 6px;
+                            width: 80%;
+                            max-width: 800px;
+                            max-height: 80%;
+                            display: flex;
+                            flex-direction: column;
+                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                        }
+
+                        .modal-header {
+                            background-color: var(--vscode-titleBar-activeBackground);
+                            color: var(--vscode-titleBar-activeForeground);
+                            padding: 12px 16px;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            border-radius: 6px 6px 0 0;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        }
+
+                        .modal-header h3 {
+                            margin: 0;
+                            font-size: 14px;
+                            font-weight: 600;
+                        }
+
+                        .modal-close {
+                            cursor: pointer;
+                            font-size: 18px;
+                            line-height: 1;
+                            padding: 4px;
+                            border-radius: 3px;
+                        }
+
+                        .modal-close:hover {
+                            background-color: var(--vscode-titleBar-inactiveBackground);
+                        }
+
+                        .modal-body {
+                            padding: 16px;
+                            flex: 1;
+                            overflow-y: auto;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                        }
+
+                        .modal-description {
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 13px;
+                        }
+
+                        .modal-description p {
+                            margin: 0;
+                        }
+
+                        .stories-textarea {
+                            width: 100%;
+                            min-height: 300px;
+                            max-height: 400px;
+                            padding: 12px;
+                            border: 1px solid var(--vscode-input-border);
+                            background-color: var(--vscode-input-background);
+                            color: var(--vscode-input-foreground);
+                            border-radius: 4px;
+                            font-family: var(--vscode-font-family);
+                            font-size: 13px;
+                            line-height: 1.4;
+                            resize: vertical;
+                            overflow-y: auto;
+                        }
+
+                        .stories-textarea:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
+
+                        .modal-actions {
+                            display: flex;
+                            gap: 8px;
+                            justify-content: flex-end;
+                            margin-top: 8px;
+                        }
+
+                        .modal-button {
+                            padding: 6px 12px;
+                            border: none;
+                            border-radius: 3px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            font-family: var(--vscode-font-family);
+                        }
+
+                        .modal-button.primary {
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                        }
+
+                        .modal-button.primary:hover {
+                            background-color: var(--vscode-button-hoverBackground);
+                        }
+
+                        .modal-button.secondary {
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                        }
+
+                        .modal-button.secondary:hover {
+                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground));
+                        }
                     </style>
                 </head>
                 <body>
@@ -737,6 +866,9 @@ export function registerRoleRequirementsCommands(
                         <div class="header-actions">
                             <button id="validateButton" class="icon-button" title="Validate All Requirements">
                             </button>
+                            <button id="generateStoriesButton" class="icon-button" title="Generate User Stories for Allowed/Required Access">
+                                <i class="codicon codicon-lightbulb"></i>
+                            </button>
                             <button id="refreshButton" class="refresh-button" title="Refresh Table">
                             </button>
                         </div>
@@ -762,6 +894,27 @@ export function registerRoleRequirementsCommands(
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
                         <div class="spinner"></div>
                     </div>
+
+                    <!-- Generate User Stories Modal -->
+                    <div id="generateStoriesModal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Generated User Stories for Allowed/Required Access</h3>
+                                <span class="modal-close">&times;</span>
+                            </div>
+                            <div class="modal-body">
+                                <div class="modal-description">
+                                    <p>Here are user stories generated for all role requirements with 'Allowed' or 'Required' access:</p>
+                                </div>
+                                <textarea id="generatedStoriesText" class="stories-textarea" readonly placeholder="Generated user stories will appear here..."></textarea>
+                                <div class="modal-actions">
+                                    <button id="copyStoriesButton" class="modal-button primary">Copy to Clipboard</button>
+                                    <button id="exportStoriesButton" class="modal-button secondary">Export to File</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <script src="${scriptUri}"></script>
                 </body>
                 </html>
@@ -780,6 +933,109 @@ export function registerRoleRequirementsCommands(
                         case 'refresh':
                             console.log("[Extension] RoleRequirements refresh requested");
                             await loadRoleRequirementsData(panel, modelService);
+                            break;
+
+                        case 'generateUserStories':
+                            console.log("[Extension] RoleRequirements generate user stories requested");
+                            try {
+                                const stories = message.data.requirements || [];
+                                const generatedStories: string[] = [];
+                                
+                                // Get all objects to determine parent relationships
+                                const allObjects = modelService.getAllObjects();
+                                const objectLookup = new Map();
+                                allObjects.forEach((obj: any) => {
+                                    objectLookup.set(obj.name, obj);
+                                });
+                                
+                                stories.forEach((req: any) => {
+                                    if (req.access === 'Allowed' || req.access === 'Required') {
+                                        let storyText = '';
+                                        const role = req.role || 'User';
+                                        const action = req.action || 'view';
+                                        const dataObject = req.dataObject || 'item';
+                                        
+                                        // Generate story based on action type
+                                        if (action.toLowerCase() === 'view all') {
+                                            // Determine the parent object
+                                            const currentObj = objectLookup.get(dataObject);
+                                            let parentContext = 'a [parent object]';
+                                            
+                                            console.log(`[Extension] Looking up dataObject: ${dataObject}`);
+                                            console.log(`[Extension] Found currentObj:`, currentObj);
+                                            
+                                            if (currentObj && currentObj.parentObjectName) {
+                                                console.log(`[Extension] Looking for parent with name: ${currentObj.parentObjectName}`);
+                                                // Find parent object by name
+                                                const parentObj = allObjects.find((obj: any) => obj.name === currentObj.parentObjectName);
+                                                console.log(`[Extension] Found parentObj:`, parentObj);
+                                                if (parentObj) {
+                                                    parentContext = `a ${parentObj.name}`;
+                                                    console.log(`[Extension] Set parentContext to: ${parentContext}`);
+                                                }
+                                            } else {
+                                                console.log(`[Extension] No parent found - currentObj exists: ${!!currentObj}, has parentObjectName: ${currentObj?.parentObjectName}`);
+                                            }
+                                            
+                                            storyText = `As a ${role}, I want to view all ${dataObject}s in ${parentContext}`;
+                                        } else if (action.toLowerCase() === 'view') {
+                                            storyText = `As a ${role}, I want to view a ${dataObject}`;
+                                        } else if (action.toLowerCase() === 'add') {
+                                            storyText = `As a ${role}, I want to add a ${dataObject}`;
+                                        } else if (action.toLowerCase() === 'update') {
+                                            storyText = `As a ${role}, I want to update a ${dataObject}`;
+                                        } else if (action.toLowerCase() === 'delete') {
+                                            storyText = `As a ${role}, I want to delete a ${dataObject}`;
+                                        } else {
+                                            storyText = `As a ${role}, I want to ${action.toLowerCase()} a ${dataObject}`;
+                                        }
+                                        
+                                        generatedStories.push(storyText);
+                                    }
+                                });
+                                
+                                // Remove duplicates and sort
+                                const uniqueStories = [...new Set(generatedStories)].sort();
+                                
+                                panel.webview.postMessage({
+                                    command: 'userStoriesGenerated',
+                                    stories: uniqueStories,
+                                    success: true
+                                });
+                                
+                            } catch (error) {
+                                console.error("[Extension] Error generating user stories:", error);
+                                panel.webview.postMessage({
+                                    command: 'userStoriesGenerated',
+                                    success: false,
+                                    error: error.message
+                                });
+                            }
+                            break;
+
+                        case 'exportUserStories':
+                            try {
+                                console.log("[Extension] RoleRequirements export user stories requested");
+                                const stories = message.data.stories || [];
+                                const content = stories.join('\n');
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    throw new Error('No workspace folder is open');
+                                }
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const reportDir = path.join(workspaceRoot, 'user_story_reports');
+                                if (!fs.existsSync(reportDir)) {
+                                    fs.mkdirSync(reportDir, { recursive: true });
+                                }
+                                const fileName = `generated-user-stories-${new Date().toISOString().split('T')[0]}.txt`;
+                                const filePath = path.join(reportDir, fileName);
+                                fs.writeFileSync(filePath, content, 'utf8');
+                                vscode.window.showInformationMessage(`User stories exported to: ${filePath}`);
+                                vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+                            } catch (error) {
+                                console.error("[Extension] Error exporting user stories:", error);
+                                vscode.window.showErrorMessage('Failed to export user stories: ' + error.message);
+                            }
                             break;
 
                         case 'sortRoleRequirements':

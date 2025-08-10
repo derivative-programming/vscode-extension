@@ -18,6 +18,29 @@
 - Architecture: Bulk add now follows same in-memory modification pattern as single object wizard
 - Status: completed
 
+2025-08-10T00:00:00Z | review-user-story-role-requirements-view | Reviewed the 'User Stories - Role Requirements' view implementation - COMPLETED
+- Located view in src/webviews/userStoryRoleRequirementsView.js (JavaScript) with TypeScript wrapper
+- Found view registration as 'appdna.showUserStoryRoleRequirements' command in registerCommands.ts
+- Identified view as placeholder/coming soon implementation showing data objects list and planned features
+- Noted command exists but not exposed in package.json contributes.commands section (UI access issue)
+- Architecture: Standard webview pattern with message passing, panel management, and VS Code theme integration
+- Current functionality: Lists model data objects with property counts, shows "coming soon" message for main features
+- Planned features: role selection, object/property-level permissions grid, bulk assignment, user story generation, validation
+- Status: completed
+
+2025-08-10T00:00:00Z | review-user-stories-modal-format | Reviewed user stories list add modal to determine correct story format - COMPLETED
+- Located modal in userStoriesView.js with multi-line textarea supporting one story per line
+- Documented 4 supported format patterns with regex validation:
+  1. "A [Role] wants to [action] [a|an] [object]" (single object actions)
+  2. "A [Role] wants to view all [objects] in a [container]" (view all format)
+  3. "As a [Role], I want to [action] [a|an] [object]" (alternate single format)
+  4. "As a [Role], I want to view all [objects] in a [container]" (alternate view all)
+- Validation requirements: role must exist in model, data objects must exist (except "application"), no duplicates
+- Actions supported: view, add, create, update, edit, delete, remove (create/edit normalized to add/update)
+- Special case: "in the application" is allowed without validating "application" as data object
+- Architecture: Real-time validation with line-by-line error reporting, role/object existence validation
+- Status: completed
+
 2025-08-10T00:00:00Z | enhance-user-stories-modal-multiline | Enhanced user stories modal to support multiple stories (one per line) - COMPLETED
 - Updated modal UI: Changed placeholder and help text to indicate multi-line support
 - Modified backend processing: Split input by lines and process each story individually  
@@ -51,3 +74,15 @@
 - Error resolved: Modal now displays correctly without JavaScript syntax errors
 - Architecture: Proper JavaScript scoping practices in switch statements to prevent variable collisions
 - Status: completed
+
+2024-12-28 - ADD LIGHTBULB BUTTON AND MODAL TO ROLE REQUIREMENTS VIEW - COMPLETED
+- Request: Add lightbulb icon button to the left of refresh button in Role Requirements view header, show modal with multi-line textbox for user story text with 'allowed' and 'required' access
+- Architecture: Added lightbulb button with codicon-lightbulb icon in header-actions section, complete modal with textarea and action buttons (copy/export)
+- Implementation: Modified roleRequirementsCommands.ts with:
+  * HTML: Added generateStoriesButton with icon and modal structure
+  * CSS: Added modal styling with VS Code theme integration and responsive design  
+  * JavaScript: Added event handlers for button click, modal close, copy/export functionality
+  * Backend: Added message handlers for 'generateUserStories' and 'exportUserStories' commands
+- User Story Generation: Filters requirements with access 'Allowed'/'Required', generates stories using pattern "As a [role], I want to [action] a [dataObject]"
+- Export Functionality: Saves generated stories to user_story_reports directory with timestamp
+- Status: COMPLETED - Full implementation with UI, logic, and file export capabilities
