@@ -60,7 +60,7 @@ async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, model
             console.error("[Extension] No model available");
             panel.webview.postMessage({
                 command: "setRequirementsFulfillmentData",
-                data: { items: [], totalRecords: 0, sortColumn: sortColumn || 'role', sortDescending: sortDescending || false }
+                data: { items: [], totalRecords: 0, sortColumn: sortColumn || 'role', sortDescending: sortDescending || false, userStories: [] }
             });
             return;
         }
@@ -209,6 +209,21 @@ async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, model
 
         console.log(`[Extension] Sending ${items.length} filtered requirements fulfillment items to webview`);
 
+        // Get user stories from the model for validation
+        const userStories: any[] = [];
+        try {
+            if (model.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
+                const namespace = model.namespace[0];
+                if (namespace.userStory && Array.isArray(namespace.userStory)) {
+                    userStories.push(...namespace.userStory);
+                }
+            }
+        } catch (error) {
+            console.warn("[Extension] Error extracting user stories:", error);
+        }
+
+        console.log(`[Extension] Found ${userStories.length} user stories for validation`);
+
         // Send data to webview
         panel.webview.postMessage({
             command: "setRequirementsFulfillmentData",
@@ -216,7 +231,8 @@ async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, model
                 items: items,
                 totalRecords: items.length,
                 sortColumn: sortColumn || 'role',
-                sortDescending: sortDescending || false
+                sortDescending: sortDescending || false,
+                userStories: userStories
             }
         });
 
@@ -224,7 +240,7 @@ async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, model
         console.error("[Extension] Error loading requirements fulfillment data:", error);
         panel.webview.postMessage({
             command: "setRequirementsFulfillmentData",
-            data: { items: [], totalRecords: 0, sortColumn: sortColumn || 'role', sortDescending: sortDescending || false }
+            data: { items: [], totalRecords: 0, sortColumn: sortColumn || 'role', sortDescending: sortDescending || false, userStories: [] }
         });
     }
 }
@@ -536,6 +552,20 @@ function getWebviewContent(context: vscode.ExtensionContext, panel: vscode.Webvi
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        
+        .user-story-status {
+            display: inline;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-good {
+            color: var(--vscode-testing-iconPassed);
+        }
+        
+        .status-bad {
+            color: var(--vscode-testing-iconFailed);
         }
         
         .spinner-overlay {

@@ -21,6 +21,57 @@ let filterOptions = {
     dataObjects: []
 };
 
+// Keep track of user stories for validation
+let userStories = [];
+
+// Function to check if a user story exists for a given role/action/object combination
+function checkUserStoryExists(role, action, dataObject) {
+    if (!userStories || userStories.length === 0) {
+        return false;
+    }
+    
+    // Normalize action for comparison (user stories use different action formats)
+    const normalizeAction = (actionText) => {
+        const lower = actionText.toLowerCase();
+        if (lower === 'view all') { return 'view all'; }
+        if (lower === 'view') { return 'view'; }
+        if (lower === 'add') { return 'add'; }
+        if (lower === 'update') { return 'update'; }
+        if (lower === 'delete') { return 'delete'; }
+        return lower;
+    };
+    
+    const normalizedAction = normalizeAction(action);
+    
+    // Check if any user story matches this combination
+    return userStories.some(story => {
+        if (!story.storyText) { return false; }
+        
+        const storyText = story.storyText.toLowerCase();
+        const roleLower = role.toLowerCase();
+        const dataObjectLower = dataObject.toLowerCase();
+        
+        // Check if story contains the role
+        const hasRole = storyText.includes(roleLower) || 
+                       storyText.includes(`[${roleLower}]`) ||
+                       storyText.includes(`a ${roleLower}`) ||
+                       storyText.includes(`as a ${roleLower}`);
+        
+        // Check if story contains the action
+        const hasAction = storyText.includes(normalizedAction);
+        
+        // Check if story contains the data object (handle plurals and variations)
+        const hasDataObject = storyText.includes(dataObjectLower) ||
+                             storyText.includes(`${dataObjectLower}s`) ||
+                             storyText.includes(`[${dataObjectLower}]`) ||
+                             storyText.includes(`a ${dataObjectLower}`) ||
+                             storyText.includes(`an ${dataObjectLower}`) ||
+                             storyText.includes(`all ${dataObjectLower}`);
+        
+        return hasRole && hasAction && hasDataObject;
+    });
+}
+
 // Helper function to show spinner
 function showSpinner() {
     const spinnerOverlay = document.getElementById("spinner-overlay");
@@ -155,7 +206,8 @@ function renderTable() {
         { key: "role", label: "Role", sortable: true },
         { key: "dataObject", label: "Data Object", sortable: true },
         { key: "action", label: "Action", sortable: true },
-        { key: "access", label: "Access", sortable: false }
+        { key: "access", label: "Access", sortable: false },
+        { key: "userStoryStatus", label: "User Story Status", sortable: false }
     ];
     
     // Create table header cells
@@ -222,6 +274,33 @@ function renderTable() {
                     }
                     
                     td.appendChild(accessDisplay);
+                } else if (col.key === "userStoryStatus") {
+                    // Check if user story exists for this role/action/object combination
+                    const userStoryExists = checkUserStoryExists(item.role, item.action, item.dataObject);
+                    const statusDisplay = document.createElement("span");
+                    statusDisplay.className = "user-story-status";
+                    
+                    // Determine if this is the desired state
+                    let isDesired = false;
+                    if (item.access === 'Required' && userStoryExists) {
+                        isDesired = true;
+                        statusDisplay.textContent = "✓ Story Exists";
+                        statusDisplay.classList.add('status-good');
+                    } else if (item.access === 'Required' && !userStoryExists) {
+                        isDesired = false;
+                        statusDisplay.textContent = "✗ Story Missing";
+                        statusDisplay.classList.add('status-bad');
+                    } else if (item.access === 'Not Allowed' && !userStoryExists) {
+                        isDesired = true;
+                        statusDisplay.textContent = "✓ No Story";
+                        statusDisplay.classList.add('status-good');
+                    } else if (item.access === 'Not Allowed' && userStoryExists) {
+                        isDesired = false;
+                        statusDisplay.textContent = "✗ Story Exists";
+                        statusDisplay.classList.add('status-bad');
+                    }
+                    
+                    td.appendChild(statusDisplay);
                 } else if (col.key === "dataObject") {
                     // For data object column, display the value with truncation
                     const value = item[col.key] || "";
@@ -252,7 +331,7 @@ function renderTable() {
         // No items
         const row = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 4; // Number of columns (no checkbox column)
+        td.colSpan = 5; // Number of columns including User Story Status
         td.className = "no-data";
         td.textContent = "No requirements fulfillment data found. Requirements marked as 'Required' or 'Not Allowed' will appear here.";
         row.appendChild(td);
@@ -339,10 +418,14 @@ window.addEventListener("message", function(event) {
     
     if (message.command === "setRequirementsFulfillmentData") {
         console.log("[Webview] Handling setRequirementsFulfillmentData with", message.data?.items?.length || 0, "items");
-        const data = message.data || { items: [], totalRecords: 0, sortColumn: 'role', sortDescending: false };
+        const data = message.data || { items: [], totalRecords: 0, sortColumn: 'role', sortDescending: false, userStories: [] };
         
         // Store all items for filtering
         allItems = data.items || [];
+        
+        // Store user stories for validation
+        userStories = data.userStories || [];
+        console.log("[Webview] Stored", userStories.length, "user stories for validation");
         
         // Update requirementsFulfillmentData
         requirementsFulfillmentData = {
