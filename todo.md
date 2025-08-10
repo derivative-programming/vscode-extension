@@ -1,11 +1,7 @@
 Agent todo items...
 
-✅ COMPLETED: Added data object validation to user stories
-- User stories now validate that referenced data objects exist in the model
-- Supports case-insensitive matching and PascalCase to spaced format conversion
-- Applied to both manual story creation and CSV import
 
-when adding a data object, dont use a plural form of the name
+✅ when adding a data object, dont use a plural form of the name - COMPLETED: Added guidance to use singular naming in the Add Object Wizard
 
 report details view...
 - allow creation of column destination button
