@@ -450,7 +450,7 @@ function showUserStoriesView(context, modelService) {
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(async (message) => {
         switch (message.command) {
-            case 'addUserStory':
+            case 'addUserStory': {
                 try {
                     // Get the current model data
                     const currentModel = modelService.getCurrentModel();
@@ -464,114 +464,132 @@ function showUserStoriesView(context, modelService) {
                         namespace.userStory = [];
                     }
 
-                    // Validate the story text format
-                    const storyText = message.data.storyText;
+                    // Validate the story text format - now supporting multiple stories one per line
+                    const inputText = message.data.storyText;
+                    const storyLines = inputText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
                     
-                    // Check if multiple stories were pasted together
-                    const storyCount = (storyText.match(/As a\s+\w+\s*,\s*I want to/gi) || []).length + 
-                                      (storyText.match(/A\s+\w+\s+wants to/gi) || []).length;
-                    
-                    if (storyCount > 1) {
+                    if (storyLines.length === 0) {
                         panel.webview.postMessage({
                             command: 'addUserStoryError',
                             data: {
-                                error: `Multiple user stories detected (${storyCount} stories found). Please enter one user story at a time, or use CSV upload for bulk import.`
+                                error: 'No valid story lines found. Please enter at least one user story.'
                             }
                         });
                         return;
                     }
                     
-                    if (!isValidUserStoryFormat(storyText)) {
-                        panel.webview.postMessage({
-                            command: 'addUserStoryError',
-                            data: {
-                                error: `Story text format is invalid: "${storyText}". Expected format: "A [Role name] wants to [view, add, update, delete] a [object name]" or "A [Role name] wants to view all [objects] in a [container object name]" (brackets optional, alternate "As a..." format also accepted)`
+                    const results = {
+                        added: 0,
+                        skipped: 0,
+                        errors: [],
+                        addedStories: []
+                    };
+                    
+                    // Process each story line
+                    for (let i = 0; i < storyLines.length; i++) {
+                        const storyText = storyLines[i];
+                        const lineNumber = i + 1;
+                        
+                        try {
+                            // Validate format
+                            if (!isValidUserStoryFormat(storyText)) {
+                                results.skipped++;
+                                results.errors.push(`Line ${lineNumber}: Invalid format - "${storyText}"`);
+                                continue;
                             }
-                        });
-                        return;
-                    }
 
-                    // Extract and validate the role from the user story
-                    const roleName = extractRoleFromUserStory(storyText);
-                    if (!roleName) {
-                        panel.webview.postMessage({
-                            command: 'addUserStoryError',
-                            data: {
-                                error: 'Unable to extract role name from the user story. Please ensure the story follows the correct format.'
+                            // Extract and validate the role from the user story
+                            const roleName = extractRoleFromUserStory(storyText);
+                            if (!roleName) {
+                                results.skipped++;
+                                results.errors.push(`Line ${lineNumber}: Unable to extract role - "${storyText}"`);
+                                continue;
                             }
-                        });
-                        return;
-                    }
 
-                    // Validate that the role exists in the model
-                    if (!isValidRole(roleName, modelService)) {
-                        panel.webview.postMessage({
-                            command: 'addUserStoryError',
-                            data: {
-                                error: `Role "${roleName}" does not exist in the model. Please ensure the role is defined in a Role data object with lookup items before creating user stories that reference it.`
+                            // Validate that the role exists in the model
+                            if (!isValidRole(roleName, modelService)) {
+                                results.skipped++;
+                                results.errors.push(`Line ${lineNumber}: Role "${roleName}" does not exist in model - "${storyText}"`);
+                                continue;
                             }
-                        });
-                        return;
-                    }
 
-                    // Extract and validate data objects from the user story
-                    const dataObjects = extractDataObjectsFromUserStory(storyText);
-                    if (dataObjects.length > 0) {
-                        const objectValidation = validateDataObjects(dataObjects, modelService);
-                        if (!objectValidation.allValid) {
-                            const missingObjectsText = objectValidation.missingObjects.join(', ');
-                            panel.webview.postMessage({
-                                command: 'addUserStoryError',
-                                data: {
-                                    error: `Data object(s) "${missingObjectsText}" do not exist in the model. Please ensure the data object(s) are defined in the model before creating user stories that reference them.`
+                            // Extract and validate data objects from the user story
+                            const dataObjects = extractDataObjectsFromUserStory(storyText);
+                            if (dataObjects.length > 0) {
+                                const objectValidation = validateDataObjects(dataObjects, modelService);
+                                if (!objectValidation.allValid) {
+                                    const missingObjectsText = objectValidation.missingObjects.join(', ');
+                                    results.skipped++;
+                                    results.errors.push(`Line ${lineNumber}: Data object(s) "${missingObjectsText}" do not exist in model - "${storyText}"`);
+                                    continue;
                                 }
+                            }
+
+                            // Check for duplicate story text
+                            const existingStory = namespace.userStory.find(story => story.storyText === storyText);
+                            if (existingStory) {
+                                results.skipped++;
+                                results.errors.push(`Line ${lineNumber}: Duplicate story - "${storyText}"`);
+                                continue;
+                            }
+
+                            // Create a new user story
+                            const newStory = {
+                                name: generateGuid(),
+                                storyText: storyText
+                            };
+
+                            // Add the new story to the model
+                            namespace.userStory.push(newStory);
+                            results.added++;
+                            results.addedStories.push({
+                                story: newStory,
+                                index: namespace.userStory.length - 1
                             });
-                            return;
+                            
+                        } catch (error) {
+                            results.skipped++;
+                            results.errors.push(`Line ${lineNumber}: Error processing story - ${error.message}`);
+                        }
+                    }
+                    
+                    // Mark that there are unsaved changes if any stories were added
+                    if (results.added > 0) {
+                        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                            modelService.markUnsavedChanges();
+                            console.log(`[UserStoriesView] Marked unsaved changes after adding ${results.added} stories`);
+                        } else {
+                            console.warn(`[UserStoriesView] modelService.markUnsavedChanges is not available`);
                         }
                     }
 
-                    // Check for duplicate story text
-                    const existingStory = namespace.userStory.find(story => story.storyText === storyText);
-                    if (existingStory) {
+                    // Send results back to webview
+                    if (results.added === 0 && results.errors.length > 0) {
+                        // All stories failed, show error
                         panel.webview.postMessage({
                             command: 'addUserStoryError',
                             data: {
-                                error: 'A user story with this text already exists'
+                                error: results.errors.join('\n')
                             }
                         });
-                        return;
-                    }
-
-                    // Create a new user story
-                    const newStory = {
-                        name: generateGuid(),
-                        storyText: storyText
-                    };                    // Add the new story to the model
-                    namespace.userStory.push(newStory);
-                    
-                    // Mark that there are unsaved changes
-                    if (modelService && typeof modelService.markUnsavedChanges === 'function') {
-                        modelService.markUnsavedChanges();
-                        console.log(`[UserStoriesView] Marked unsaved changes after adding new story`);
                     } else {
-                        console.warn(`[UserStoriesView] modelService.markUnsavedChanges is not available`);
+                        // Some or all stories succeeded
+                        panel.webview.postMessage({
+                            command: 'userStoriesAdded',
+                            data: {
+                                results: results,
+                                stories: results.addedStories
+                            }
+                        });
                     }
 
-                    // Send updated items back to the webview
-                    panel.webview.postMessage({
-                        command: 'userStoryAdded',
-                        data: {
-                            story: newStory,
-                            index: namespace.userStory.length - 1
-                        }
-                    });
-
-                    console.log(`Added new user story: ${storyText} (in memory only, not saved to file)`);
+                    console.log(`Added ${results.added} user stories, skipped ${results.skipped} (in memory only, not saved to file)`);
                 } catch (error) {
-                    console.error('Error adding user story:', error);
-                    vscode.window.showErrorMessage(`Failed to add user story: ${error.message}`);
+                    console.error('Error adding user stories:', error);
+                    vscode.window.showErrorMessage(`Failed to add user stories: ${error.message}`);
                 }
                 break;
+            } // End addUserStory case block
 
             case 'toggleIgnored':
                 try {
@@ -658,7 +676,7 @@ function showUserStoriesView(context, modelService) {
                 }
                 break;
 
-            case 'uploadCsv':
+            case 'uploadCsv': {
                 try {
                     // Get the current model data
                     const currentModel = modelService.getCurrentModel();
@@ -790,6 +808,7 @@ function showUserStoriesView(context, modelService) {
                     vscode.window.showErrorMessage(`Failed to process CSV upload: ${error.message}`);
                 }
                 break;
+            } // End uploadCsv case block
 
             case 'saveCsvToWorkspace':
                 try {
@@ -1078,7 +1097,7 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
         .modal {
             display: none;
             position: fixed;
-            z-index: 1;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
@@ -1191,13 +1210,13 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
     <div id="addStoryModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add User Story</h2>
+                <h2>Add User Stories</h2>
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
                 <label for="storyText">Story Text:</label>
-                <textarea id="storyText" placeholder="Enter ONE user story text..."></textarea>
-                <p><strong>Enter one user story at a time.</strong> For multiple stories, use CSV upload.<br>
+                <textarea id="storyText" placeholder="Enter user story text (one story per line)..."></textarea>
+                <p><strong>Enter one or more user stories, one per line.</strong> For CSV import with additional fields, use CSV upload.<br>
 Format: "A [Role name] wants to [view, add, update, delete] a [object name]"<br>
 View All format: "A [Role name] wants to view all [objects] in a [container object name]"<br>
 Special case: "...in the application" is allowed (application is not validated as a data object)<br>
@@ -1206,7 +1225,7 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
 <strong>Note:</strong> The role and data object(s) must exist in the model.</p>
                 <div id="addStoryError" class="error-message" style="display: none;"></div>
             </div>            <div class="modal-footer">
-                <button id="btnConfirmAddStory">Add</button>
+                <button id="btnConfirmAddStory">Add Stories</button>
                 <button id="btnCancelAddStory" >Cancel</button>
             </div>
         </div>
@@ -1216,7 +1235,7 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
         (function() {
             const vscode = acquireVsCodeApi();
             
-            // Cache DOM elements
+            // Cache DOM elements with null checks
             const table = document.getElementById('userStoriesTable');
             const searchInput = document.getElementById('searchInput');
             const btnAddStory = document.getElementById('btnAddStory');
@@ -1231,6 +1250,12 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
             const messageContainer = document.getElementById('messageContainer');
             const closeModalBtn = document.querySelector('.close');
             
+            // Ensure required elements exist before proceeding
+            if (!btnAddStory || !addStoryModal || !storyTextInput) {
+                console.error('[ERROR] Required DOM elements not found!');
+                return;
+            }
+            
             // Initialize sort direction
             let sortDirection = {
                 storyNumber: 'asc',
@@ -1238,19 +1263,27 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                 isIgnored: 'asc'
             };
             
-            // Initially store the table data for filtering
-            const tableData = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-                const cells = row.querySelectorAll('td');
-                return {
-                    row: row,
-                    storyNumber: cells[0].textContent,
-                    storyText: cells[1].textContent,
-                    isIgnored: cells[2].querySelector('input').checked ? "true" : "false"
-                };
-            });
+            // Initially store the table data for filtering (with safety check)
+            let tableData = [];
+            if (table && table.querySelector('tbody')) {
+                tableData = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 3) {
+                        return {
+                            row: row,
+                            storyNumber: cells[0].textContent,
+                            storyText: cells[1].textContent,
+                            isIgnored: cells[2].querySelector('input') ? 
+                                cells[2].querySelector('input').checked ? "true" : "false" : "false"
+                        };
+                    }
+                    return null;
+                }).filter(item => item !== null);
+            }
             
             // Table sorting functionality
-            table.querySelectorAll('th').forEach(th => {
+            if (table) {
+                table.querySelectorAll('th').forEach(th => {
                 th.addEventListener('click', () => {
                     const sortBy = th.dataset.sort;
                     const direction = sortDirection[sortBy];
@@ -1301,13 +1334,15 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                     rows.forEach(row => tbody.appendChild(row));
                 });
             });
+            } // End table safety check
             
             // Handle search/filter functionality
-            searchInput.addEventListener('input', () => {
-                const searchTerm = searchInput.value.toLowerCase();
-                
-                // Filter the rows
-                const rows = table.querySelectorAll('tbody tr');
+            if (searchInput && table) {
+                searchInput.addEventListener('input', () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    
+                    // Filter the rows
+                    const rows = table.querySelectorAll('tbody tr');
                 rows.forEach(row => {
                     const storyNumber = row.querySelectorAll('td')[0].textContent.toLowerCase();
                     const storyText = row.querySelectorAll('td')[1].textContent.toLowerCase();
@@ -1319,28 +1354,46 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                     }
                 });
             });
+            } // End search input safety check
             
             // Handle Add User Story button
-            btnAddStory.addEventListener('click', () => {
-                // Reset form
-                storyTextInput.value = '';
-                addStoryError.style.display = 'none';
-                
-                // Show modal
-                addStoryModal.style.display = 'block';
-                
-                // Focus on the story text input for better user experience
-                storyTextInput.focus();
-            });
+            if (btnAddStory) {
+                btnAddStory.addEventListener('click', () => {
+                    // Reset form
+                    storyTextInput.value = '';
+                    addStoryError.style.display = 'none';
+                    
+                    // Show modal
+                    addStoryModal.style.display = 'block';
+                    
+                    // Focus on the story text input for better user experience
+                    setTimeout(() => {
+                        storyTextInput.focus();
+                    }, 100);
+                });
+            } else {
+                console.error('[ERROR] Add Story button not found!');
+            }
             
             // Handle modal close button
-            closeModalBtn.addEventListener('click', () => {
-                addStoryModal.style.display = 'none';
-            });
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', () => {
+                    addStoryModal.style.display = 'none';
+                });
+            }
             
             // Handle cancel button in modal
-            btnCancelAddStory.addEventListener('click', () => {
-                addStoryModal.style.display = 'none';
+            if (btnCancelAddStory) {
+                btnCancelAddStory.addEventListener('click', () => {
+                    addStoryModal.style.display = 'none';
+                });
+            }
+            
+            // Handle click outside modal to close
+            window.addEventListener('click', (event) => {
+                if (event.target === addStoryModal) {
+                    addStoryModal.style.display = 'none';
+                }
             });
             
             // Handle confirm button in modal
@@ -1353,7 +1406,7 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                     return;
                 }
                 
-                // Send message to extension to add the story
+                // Send message to extension to add the story (can be multiple stories, one per line)
                 vscode.postMessage({
                     command: 'addUserStory',
                     data: { storyText }
@@ -1437,6 +1490,62 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                         }, 5000);
                         break;
                         
+                    case 'userStoriesAdded': {
+                        // Close the modal
+                        addStoryModal.style.display = 'none';
+                        
+                        // Add all new stories to the table
+                        const tableBody = table.querySelector('tbody');
+                        const results = message.data.results;
+                        
+                        message.data.stories.forEach(storyData => {
+                            const newRow = document.createElement('tr');
+                            newRow.dataset.index = storyData.index;
+                            newRow.innerHTML = 
+                                '<td>' + (storyData.story.storyNumber || '') + '</td>' +
+                                '<td>' + (storyData.story.storyText || '') + '</td>' +
+                                '<td><input type="checkbox" class="isIgnoredCheckbox" data-index="' + storyData.index + '"' + 
+                                (storyData.story.isIgnored === "true" ? ' checked' : '') + '></td>';
+                            tableBody.appendChild(newRow);
+                        });
+                        
+                        // Show results message
+                        let resultMessage = '<div class="success-message">';
+                        if (results.added === 1) {
+                            resultMessage += 'User story added successfully';
+                        } else {
+                            resultMessage += results.added + ' user stories added successfully';
+                        }
+                        
+                        if (results.skipped > 0) {
+                            resultMessage += ', ' + results.skipped + ' skipped';
+                        }
+                        
+                        resultMessage += '. Remember to save the model to persist changes.</div>';
+                        
+                        if (results.errors.length > 0) {
+                            resultMessage += '<div class="error-message">Issues found:<br>';
+                            // Show up to 3 errors to avoid overwhelming the user
+                            for (let i = 0; i < Math.min(results.errors.length, 3); i++) {
+                                resultMessage += '- ' + results.errors[i] + '<br>';
+                            }
+                            
+                            if (results.errors.length > 3) {
+                                resultMessage += '...and ' + (results.errors.length - 3) + ' more issues';
+                            }
+                            
+                            resultMessage += '</div>';
+                        }
+                        
+                        messageContainer.innerHTML = resultMessage;
+                        
+                        // Clear message after some time
+                        setTimeout(() => {
+                            messageContainer.innerHTML = '';
+                        }, 8000);
+                        break;
+                    } // End userStoriesAdded case block
+                        
                     case 'csvData':
                         // Download CSV file
                         try {
@@ -1455,7 +1564,7 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                         }
                         break;
                         
-                    case 'csvUploadResults':
+                    case 'csvUploadResults': {
                         // Update the table with new data
                         const results = message.data.results;
                         const allStories = message.data.stories;
@@ -1508,6 +1617,7 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                             messageContainer.innerHTML = '';
                         }, 10000);
                         break;
+                    } // End csvUploadResults case block
                 }
             });
         })();
