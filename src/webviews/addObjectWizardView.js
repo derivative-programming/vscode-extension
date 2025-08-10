@@ -689,6 +689,18 @@ function generateWizardHTML(allObjects) {
                 .bulk-add-btn:hover {
                     background-color: var(--vscode-button-secondaryHoverBackground);
                 }
+                /* Modal button layout & secondary style */
+                .modal-buttons {
+                    justify-content: flex-end;
+                    gap: 10px;
+                }
+                .secondary-btn {
+                    background-color: var(--vscode-button-secondaryBackground);
+                    color: var(--vscode-button-secondaryForeground);
+                }
+                .secondary-btn:hover {
+                    background-color: var(--vscode-button-secondaryHoverBackground);
+                }
                 .modal {
                     display: none;
                     position: fixed;
@@ -849,12 +861,10 @@ function generateWizardHTML(allObjects) {
                         </div>
                     </div>
                     <div id="bulkValidation" class="bulk-validation" style="display: none;"></div>
-                    <div class="button-container">
+                    <div class="button-container modal-buttons">
                         <button type="button" id="bulkValidate">Validate</button>
-                        <div style="display: flex; gap: 5px;">
-                            <button type="button" id="bulkCreate" disabled>Create Objects</button>
-                            <button type="button" id="bulkCancel" class="bulk-add-btn">Cancel</button>
-                        </div>
+                        <button type="button" id="bulkCreate" disabled>Create Objects</button>
+                        <button type="button" id="bulkCancel" class="secondary-btn">Cancel</button>
                     </div>
                 </div>
             </div>
