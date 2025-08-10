@@ -119,10 +119,25 @@ All shortcuts use the simple `Alt+A [key]` format to avoid conflicts with standa
 
 ![User Stories Interface](https://raw.githubusercontent.com/derivative-programming/vscode-extension/main/media/userstories-screenshot.png)
 
-The extension provides a comprehensive interface with multiple views:
+User Stories has evolved into its own dedicated section with comprehensive management capabilities across multiple specialized views:
+
+#### User Stories Views
+
+- **Role Requirements**: Manage role requirements and permissions for data objects. Define what roles can access which data objects and configure security constraints for your application.
+
+- **Stories**: Create and manage user stories with proper formatting and validation. Add, edit, and organize user stories that define your application's functionality.
+
+- **Page Mapping**: Map user stories to specific pages and requirements. Visualize which pages fulfill each user story and ensure comprehensive coverage of your application's functionality.
+
+- **User Journey**: Track and visualize the user journey showing which pages fulfill each story. Follow the flow of user interactions across your application.
+
+- **Requirements Fulfillment**: Monitor required and restricted role requirements across user stories. Ensure that role-based access controls are properly implemented and validated.
+
+- **QA**: Track quality assurance status of user stories. Monitor testing progress, validation status, and completion metrics for your user stories.
 
 ### Tree View (Sidebar)
-- **PROJECT**: Configuration settings, lexicon management, user stories, MCP servers
+- **PROJECT**: Configuration settings, lexicon management, MCP servers
+- **USER STORIES**: Dedicated section with multiple specialized views (see User Stories Management above)
 - **DATA OBJECTS**: Business entities with hierarchical organization and filtering
 - **PAGES**: Forms and reports for user interface design (advanced feature)
 - **MODEL SERVICES**: AI-powered processing, validation, and code generation services
