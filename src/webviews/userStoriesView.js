@@ -48,80 +48,138 @@ function extractRoleFromUserStory(text) {
 function extractDataObjectsFromUserStory(text) {
     if (!text || typeof text !== "string") { return []; }
     
-    const lowerText = text.toLowerCase();
+    const lowerText = text.toLowerCase().trim();
     const dataObjects = [];
     
-    // Extract data objects from 'view all [objects] in a [container]' pattern
-    // Handle both "in a [object]" and "in the application" (where "application" is not a data object)
-    const viewAllInPattern = /view all\s+(?:a\s+|an\s+|the\s+|all\s+)?([a-z]+(?:\s+[a-z]+)*)\s+in (?:a\s+|the\s+)([a-z]+(?:\s+[a-z]+)*)/g;
-    let match;
-    while ((match = viewAllInPattern.exec(lowerText)) !== null) {
-        const obj1 = match[1].trim();
-        const obj2 = match[2].trim();
+    // Handle "view all [objects] in a/the [container]" pattern
+    const viewAllIndex = lowerText.indexOf('view all ');
+    if (viewAllIndex !== -1) {
+        const afterViewAll = lowerText.substring(viewAllIndex + 9); // 9 = length of 'view all '
+        const inIndex = afterViewAll.indexOf(' in ');
         
-        // Always add the first object (the items being viewed)
-        if (obj1 && !dataObjects.includes(obj1)) {
-            dataObjects.push(obj1);
-            // Also add singular/plural variants
-            if (obj1.endsWith('s')) {
-                const singular = obj1.slice(0, -1);
-                if (!dataObjects.includes(singular)) {
-                    dataObjects.push(singular);
-                }
-            } else {
-                const plural = obj1 + 's';
-                if (!dataObjects.includes(plural)) {
-                    dataObjects.push(plural);
+        if (inIndex !== -1) {
+            // Extract the objects part (between "view all" and "in")
+            let objectsPart = afterViewAll.substring(0, inIndex).trim();
+            
+            // Remove articles like "a", "an", "the", "all" at the beginning
+            const articles = ['all ', 'a ', 'an ', 'the '];
+            for (const article of articles) {
+                if (objectsPart.startsWith(article)) {
+                    objectsPart = objectsPart.substring(article.length);
+                    break;
                 }
             }
-        }
-        
-        // Only add the second object if it's not "application"
-        if (obj2 && obj2 !== 'application' && !dataObjects.includes(obj2)) {
-            dataObjects.push(obj2);
-            // Also add singular/plural variants
-            if (obj2.endsWith('s')) {
-                const singular = obj2.slice(0, -1);
-                if (!dataObjects.includes(singular)) {
-                    dataObjects.push(singular);
-                }
-            } else {
-                const plural = obj2 + 's';
-                if (!dataObjects.includes(plural)) {
-                    dataObjects.push(plural);
+            
+            // Extract the container part (after "in a/the")
+            let containerPart = afterViewAll.substring(inIndex + 4).trim(); // 4 = length of ' in '
+            
+            // Remove articles at the beginning of container
+            for (const article of articles) {
+                if (containerPart.startsWith(article)) {
+                    containerPart = containerPart.substring(article.length);
+                    break;
                 }
             }
+            
+            // Stop at common sentence endings
+            const endings = [' for ', ' to ', ' when ', ' where ', ' with ', ' by ', ' from '];
+            for (const ending of endings) {
+                const endIndex = containerPart.indexOf(ending);
+                if (endIndex !== -1) {
+                    containerPart = containerPart.substring(0, endIndex);
+                    break;
+                }
+            }
+            
+            // Add the objects being viewed
+            if (objectsPart) {
+                addSingularPluralVariants(objectsPart, dataObjects);
+            }
+            
+            // Add the container object (but not "application")
+            if (containerPart && containerPart !== 'application') {
+                addSingularPluralVariants(containerPart, dataObjects);
+            }
+            
+            // Return early - we handled the "view all" case, don't process other patterns
+            return dataObjects;
         }
     }
     
-    // Extract data objects (look for nouns after common patterns)
-    const objectPatterns = [
-        /(?:view all|view|add|create|update|edit|delete|remove)\s+(?:a\s+|an\s+|the\s+|all\s+)?([a-z]+(?:\s+[a-z]+)*)/g,
-        /(?:of|for)\s+(?:a\s+|an\s+|the\s+|all\s+)?([a-z]+(?:\s+[a-z]+)*)/g
-    ];
-    
-    for (const pattern of objectPatterns) {
-        while ((match = pattern.exec(lowerText)) !== null) {
-            const obj = match[1].trim();
-            if (obj && !dataObjects.includes(obj)) {
-                dataObjects.push(obj);
-                // Also add singular/plural variants
-                if (obj.endsWith('s')) {
-                    const singular = obj.slice(0, -1);
-                    if (!dataObjects.includes(singular)) {
-                        dataObjects.push(singular);
-                    }
-                } else {
-                    const plural = obj + 's';
-                    if (!dataObjects.includes(plural)) {
-                        dataObjects.push(plural);
-                    }
+    // Handle simple patterns like "view/add/edit/delete a [object]" only if NOT a "view all" case
+    const actionWords = ['view ', 'add ', 'create ', 'update ', 'edit ', 'delete ', 'remove '];
+    for (const action of actionWords) {
+        const actionIndex = lowerText.indexOf(action);
+        if (actionIndex !== -1) {
+            let afterAction = lowerText.substring(actionIndex + action.length).trim();
+            
+            // Remove articles
+            const articles = ['all ', 'a ', 'an ', 'the '];
+            for (const article of articles) {
+                if (afterAction.startsWith(article)) {
+                    afterAction = afterAction.substring(article.length);
+                    break;
                 }
+            }
+            
+            // Extract the object name (stop at common word boundaries)
+            const boundaries = [' in ', ' for ', ' to ', ' when ', ' where ', ' with ', ' by ', ' from ', ' of ', ' and ', ' or '];
+            let objectName = afterAction;
+            for (const boundary of boundaries) {
+                const boundaryIndex = objectName.indexOf(boundary);
+                if (boundaryIndex !== -1) {
+                    objectName = objectName.substring(0, boundaryIndex);
+                    break;
+                }
+            }
+            
+            // Clean up and add if valid
+            objectName = objectName.trim();
+            if (objectName) {
+                addSingularPluralVariants(objectName, dataObjects);
             }
         }
     }
     
     return dataObjects;
+}
+
+/**
+ * Helper function to add singular/plural variants of an object name
+ * @param {string} objectName The object name to add variants for
+ * @param {string[]} dataObjects The array to add variants to
+ */
+function addSingularPluralVariants(objectName, dataObjects) {
+    // Add the original object name
+    if (!dataObjects.includes(objectName)) {
+        dataObjects.push(objectName);
+    }
+    
+    // Add PascalCase version for multi-word names
+    const pascalCase = toPascalCase(objectName);
+    if (pascalCase && pascalCase !== objectName && !dataObjects.includes(pascalCase)) {
+        dataObjects.push(pascalCase);
+    }
+    
+    // Add singular/plural variants for both original and PascalCase
+    const variants = [objectName];
+    if (pascalCase && pascalCase !== objectName) {
+        variants.push(pascalCase);
+    }
+    
+    for (const variant of variants) {
+        if (variant.endsWith('s') && variant.length > 1) {
+            const singular = variant.slice(0, -1);
+            if (!dataObjects.includes(singular)) {
+                dataObjects.push(singular);
+            }
+        } else {
+            const plural = variant + 's';
+            if (!dataObjects.includes(plural)) {
+                dataObjects.push(plural);
+            }
+        }
+    }
 }
 
 /**
@@ -188,43 +246,59 @@ function validateDataObjects(objectNames, modelService) {
             };
         });
         
-        for (const objectName of objectNames) {
-            const searchName = objectName.toLowerCase();
-            const searchPascal = toPascalCase(objectName);
-            const searchSpaced = toSpacedFormat(objectName).toLowerCase();
+        // Group variants by base concept (e.g., "customer", "Customer", "customers" are all variations of the same concept)
+        const conceptGroups = groupVariantsByConcept(objectNames);
+        
+        for (const conceptGroup of conceptGroups) {
+            let conceptValid = false;
+            const groupValidObjects = [];
+            const groupMissingObjects = [];
             
-            const found = modelObjectNames.some(modelObj => {
-                // Direct matches
-                const directMatches = modelObj.lower === searchName ||
-                    modelObj.lower === searchPascal.toLowerCase() ||
-                    modelObj.lower === searchSpaced ||
-                    modelObj.spacedFormat === searchName ||
-                    modelObj.spacedFormat === searchSpaced;
+            for (const objectName of conceptGroup) {
+                const searchName = objectName.toLowerCase();
+                const searchPascal = toPascalCase(objectName);
+                const searchSpaced = toSpacedFormat(objectName).toLowerCase();
                 
-                // Singular/plural variant matches
-                let variantMatches = false;
-                if (!directMatches) {
-                    // Check if we're searching for plural and model has singular
-                    if (searchName.endsWith('s') && searchName.length > 1) {
-                        const singular = searchName.slice(0, -1);
-                        variantMatches = modelObj.lower === singular;
+                const found = modelObjectNames.some(modelObj => {
+                    // Direct matches
+                    const directMatches = modelObj.lower === searchName ||
+                        modelObj.lower === searchPascal.toLowerCase() ||
+                        modelObj.lower === searchSpaced ||
+                        modelObj.spacedFormat === searchName ||
+                        modelObj.spacedFormat === searchSpaced;
+                    
+                    // Singular/plural variant matches
+                    let variantMatches = false;
+                    if (!directMatches) {
+                        // Check if we're searching for plural and model has singular
+                        if (searchName.endsWith('s') && searchName.length > 1) {
+                            const singular = searchName.slice(0, -1);
+                            variantMatches = modelObj.lower === singular;
+                        }
+                        // Check if we're searching for singular and model has plural  
+                        else {
+                            const plural = searchName + 's';
+                            variantMatches = modelObj.lower === plural;
+                        }
                     }
-                    // Check if we're searching for singular and model has plural  
-                    else {
-                        const plural = searchName + 's';
-                        variantMatches = modelObj.lower === plural;
-                    }
+                    
+                    return directMatches || variantMatches;
+                });
+                
+                if (found) {
+                    groupValidObjects.push(objectName);
+                    conceptValid = true;
+                } else {
+                    groupMissingObjects.push(objectName);
                 }
-                
-                const matches = directMatches || variantMatches;
-                
-                return matches;
-            });
+            }
             
-            if (found) {
-                result.validObjects.push(objectName);
+            // If at least one variant in this concept group is valid, consider the concept valid
+            if (conceptValid) {
+                result.validObjects.push(...groupValidObjects);
             } else {
-                result.missingObjects.push(objectName);
+                // Only report missing if NO variants of this concept exist
+                result.missingObjects.push(...groupMissingObjects);
                 result.allValid = false;
             }
         }
@@ -237,6 +311,45 @@ function validateDataObjects(objectNames, modelService) {
         result.validObjects = [...objectNames];
         return result;
     }
+}
+
+/**
+ * Groups variant object names by their base concept
+ * @param {string[]} objectNames Array of object names
+ * @returns {string[][]} Array of arrays, each containing variants of the same concept
+ */
+function groupVariantsByConcept(objectNames) {
+    const groups = [];
+    const processed = new Set();
+    
+    for (const objectName of objectNames) {
+        if (processed.has(objectName)) {
+            continue;
+        }
+        
+        const group = [objectName];
+        processed.add(objectName);
+        
+        // Find all variants of this concept
+        const baseName = objectName.toLowerCase().replace(/s$/, '').replace(/\s+/g, '');
+        
+        for (const otherName of objectNames) {
+            if (processed.has(otherName)) {
+                continue;
+            }
+            
+            const otherBaseName = otherName.toLowerCase().replace(/s$/, '').replace(/\s+/g, '');
+            
+            if (baseName === otherBaseName) {
+                group.push(otherName);
+                processed.add(otherName);
+            }
+        }
+        
+        groups.push(group);
+    }
+    
+    return groups;
 }
 
 /**
@@ -515,8 +628,13 @@ function showUserStoriesView(context, modelService) {
 
                             // Extract and validate data objects from the user story
                             const dataObjects = extractDataObjectsFromUserStory(storyText);
+                            console.log('[DEBUG] Extracted data objects from story:', storyText);
+                            console.log('[DEBUG] Data objects found:', dataObjects);
                             if (dataObjects.length > 0) {
                                 const objectValidation = validateDataObjects(dataObjects, modelService);
+                                console.log('[DEBUG] Validation result:', objectValidation);
+                                console.log('[DEBUG] Missing objects:', objectValidation.missingObjects);
+                                console.log('[DEBUG] Valid objects:', objectValidation.validObjects);
                                 if (!objectValidation.allValid) {
                                     const missingObjectsText = objectValidation.missingObjects.join(', ');
                                     results.skipped++;
