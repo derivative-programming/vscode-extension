@@ -119,6 +119,31 @@
             "isSoftDeleteUsed": "false",
             "cacheAllRecs": "false",
             "cacheIndividualRecs": "false"
+          },
+          {
+            "name": "Role",
+            "parentObjectName": "Pac",
+            "propSubscription": [],
+            "modelPkg": [],
+            "lookupItem": [
+              {
+                "description": "",
+                "displayName": "",
+                "isActive": "true",
+                "name": "Unknown"
+              }
+            ],
+            "isLookup": "true",
+            "prop": [
+              {
+                "name": "PacID",
+                "sqlServerDBDataType": "int",
+                "isFK": "true",
+                "isNotPublishedToSubscriptions": "true",
+                "isFKConstraintSuppressed": "false",
+                "isFKLookup": "true"
+              }
+            ]
           }
         ]
       }

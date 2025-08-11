@@ -254,7 +254,6 @@ win app...
 user stories
 *************************
 
-when adding or importing a story, checkbox to optionally automatically add the object and role if they do not exist. checkbox on each
 
 user story - Roles
 - open role data object details page
