@@ -187,7 +187,7 @@ export class MCPServer {
                 },
                 serverInfo: {
                     name: 'AppDNA User Story MCP Server',
-                    version: '1.0.12',
+                    version: '1.0.13',
                     description: 'MCP server for interacting with AppDNA user stories and model data'
                 },
                 tools: tools
