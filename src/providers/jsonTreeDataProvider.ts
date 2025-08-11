@@ -477,8 +477,15 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         ]);
                     }
                     
+                    // Sort objects alphabetically by name
+                    const sortedObjects = filteredObjects.slice().sort((a, b) => {
+                        const nameA = (a.name || `Object ${allObjects.indexOf(a) + 1}`).toLowerCase();
+                        const nameB = (b.name || `Object ${allObjects.indexOf(b) + 1}`).toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+                    
                     return Promise.resolve(
-                        filteredObjects.map((obj: any, index: number) =>
+                        sortedObjects.map((obj: any, index: number) =>
                             new JsonTreeItem(
                                 obj.name || `Object ${allObjects.indexOf(obj) + 1}`,
                                 vscode.TreeItemCollapsibleState.None,
@@ -502,8 +509,16 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                             }
                         });
                     }
+                    
+                    // Sort objects alphabetically by name
+                    const sortedObjects = objects.slice().sort((a, b) => {
+                        const nameA = (a.name || `Object ${objects.indexOf(a) + 1}`).toLowerCase();
+                        const nameB = (b.name || `Object ${objects.indexOf(b) + 1}`).toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+                    
                     return Promise.resolve(
-                        objects.map((obj: any, index: number) =>
+                        sortedObjects.map((obj: any, index: number) =>
                             new JsonTreeItem(
                                 obj.name || `Object ${index + 1}`,
                                 vscode.TreeItemCollapsibleState.None,
@@ -554,8 +569,15 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         ]);
                     }
                     
+                    // Sort reports alphabetically by name
+                    const sortedReports = filteredReports.slice().sort((a, b) => {
+                        const nameA = (a.name || `Report ${allReports.indexOf(a) + 1}`).toLowerCase();
+                        const nameB = (b.name || `Report ${allReports.indexOf(b) + 1}`).toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+                    
                     return Promise.resolve(
-                        filteredReports.map((report: any, index: number) =>
+                        sortedReports.map((report: any, index: number) =>
                             new JsonTreeItem(
                                 report.name || `Report ${allReports.indexOf(report) + 1}`,
                                 vscode.TreeItemCollapsibleState.None,
@@ -730,8 +752,15 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         ]);
                     }
                     
+                    // Sort forms alphabetically by display name
+                    const sortedForms = filteredForms.slice().sort((a, b) => {
+                        const nameA = (a.name || a.titleText || 'Unnamed Form').toLowerCase();
+                        const nameB = (b.name || b.titleText || 'Unnamed Form').toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+                    
                     return Promise.resolve(
-                        filteredForms.map((workflow: any, index: number) => {
+                        sortedForms.map((workflow: any, index: number) => {
                             const displayName = workflow.name || workflow.titleText || `Form ${index + 1}`;
                             const formItem = new JsonTreeItem(
                                 displayName,

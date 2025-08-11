@@ -1,3 +1,21 @@
+2025-08-11T15:45:00Z | alphabetical-ordering-forms-reports-tree-view | Implemented alphabetical ordering for Forms and Reports in tree view - COMPLETED
+- Extended alphabetical sorting to Forms and Reports sections in jsonTreeDataProvider.ts
+- Reports: Sort by report.name with fallback to "Report N" pattern, case-insensitive localeCompare()
+- Forms: Sort by workflow.name or workflow.titleText with fallback to "Unnamed Form", case-insensitive localeCompare()
+- Used same slice().sort() pattern to avoid mutating original arrays
+- Maintains consistent alphabetical ordering across all tree view sections (Data Objects, Forms, Reports)
+- Architecture: All tree view items now display in consistent alphabetical order regardless of source JSON order
+- Status: completed
+
+2025-08-11T15:30:00Z | alphabetical-ordering-data-objects-tree-view | Implemented alphabetical ordering for Data Objects in tree view - COMPLETED
+- Modified jsonTreeDataProvider.ts to sort data objects alphabetically by name before displaying in tree view
+- Added alphabetical sorting to both main model service path and fallback file reading path
+- Used case-insensitive sorting with localeCompare() for proper alphabetical ordering
+- Sorting applied to filteredObjects using slice().sort() to avoid mutating original array
+- Follows extension coding guidelines requirement for "Alphabetical Ordering: Display properties in alphabetical order"
+- Architecture: Tree view data objects now consistently display in alpha order regardless of order in JSON file
+- Status: completed
+
 2025-08-10T14:45:00Z | add-csv-export-button-data-objects-list | Added CSV export functionality to Data Objects List view - COMPLETED
 - Added export button with cloud-download icon to header-actions section in dataObjectListCommands.ts HTML
 - Implemented exportToCSV() function in dataObjectListView.js following user story list pattern
