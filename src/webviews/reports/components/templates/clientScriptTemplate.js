@@ -13,6 +13,8 @@ const { getAddButtonModalHtml } = require("./addButtonModalTemplate");
 const { getAddParamModalHtml } = require("./addParamModalTemplate");
 const { getPageSearchModalHtml } = require("./pageSearchModalTemplate");
 const { getPageSearchModalFunctionality } = require("./pageSearchModalFunctionality");
+const { getDataObjectSearchModalHtml } = require("./dataObjectSearchModalTemplate");
+const { getDataObjectSearchModalFunctionality } = require("./dataObjectSearchModalFunctionality");
 
 /**
  * File: clientScriptTemplate.js
@@ -32,9 +34,10 @@ const { getPageSearchModalFunctionality } = require("./pageSearchModalFunctional
  * @param {string} reportName The name of the report
  * @param {Array} allForms Array of all available forms for page search modal
  * @param {Array} allReports Array of all available reports for page search modal
+ * @param {Array} allDataObjects Array of all available data objects for object search (optional)
  * @returns {string} JavaScript code
  */
-function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonSchema, paramSchema, reportName, allForms = [], allReports = []) {
+function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonSchema, paramSchema, reportName, allForms = [], allReports = [], allDataObjects = []) {
     return `
         (function() {
             // Core data and API (vscode API already acquired in main template)
@@ -55,6 +58,9 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Forms and Reports data for page search modal
             const allForms = ${JSON.stringify(allForms)};
             const allReports = ${JSON.stringify(allReports)};
+            
+            // Data objects for data object search modal
+            const allDataObjects = ${JSON.stringify(allDataObjects)};
 
             // Modal functionality for add modals
             ${getModalFunctionality()}
@@ -79,7 +85,14 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 return \`${getPageSearchModalHtml()}\`;
             }
             
+            // Data Object Search Modal Template Function
+            function getDataObjectSearchModalHtml() {
+                return \`${getDataObjectSearchModalHtml()}\`;
+            }
+            
             ${getPageSearchModalFunctionality()}
+            
+            ${getDataObjectSearchModalFunctionality()}
             
             // Page Preview Function
             function openPagePreview(reportName, isPage) {
