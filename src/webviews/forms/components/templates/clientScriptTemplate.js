@@ -105,6 +105,57 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 });
             };
 
+            // Copy Form Name functionality
+            window.copyFormName = function() {
+                const formName = form.name;
+                console.log('[DEBUG] FormDetails - Copying form name:', JSON.stringify(formName));
+                
+                if (!formName) {
+                    console.error('[ERROR] FormDetails - No form name to copy');
+                    return;
+                }
+                
+                // Copy to clipboard using the modern Clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(formName).then(() => {
+                        console.log('Form name copied to clipboard');
+                        // Provide visual feedback
+                        const copyButton = document.querySelector('.copy-form-name-button');
+                        if (copyButton) {
+                            const originalIcon = copyButton.innerHTML;
+                            copyButton.innerHTML = '<i class="codicon codicon-check"></i>';
+                            copyButton.title = 'Copied!';
+                            setTimeout(() => {
+                                copyButton.innerHTML = originalIcon;
+                                copyButton.title = 'Copy form name';
+                            }, 2000);
+                        }
+                    }).catch(err => {
+                        console.error('Failed to copy form name: ', err);
+                    });
+                } else {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = formName;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    // Provide visual feedback
+                    const copyButton = document.querySelector('.copy-form-name-button');
+                    if (copyButton) {
+                        const originalIcon = copyButton.innerHTML;
+                        copyButton.innerHTML = '<i class="codicon codicon-check"></i>';
+                        copyButton.title = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.innerHTML = originalIcon;
+                            copyButton.title = 'Copy form name';
+                        }, 2000);
+                    }
+                }
+            };
+
             // Modal functionality for add modals
             ${getModalFunctionality()}
 
