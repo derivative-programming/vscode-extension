@@ -340,3 +340,31 @@ Testing:
 - Tested clipboard operations with both modern API and fallback methods
 - Verified visual feedback and user experience
 - Confirmed integration with existing report details view structure
+
+2025-01-16: ✅ COMPLETED - Report details view: button tab: "add breadcrumb" button (Issue #217)
+Status: COMPLETED ✅ 
+Architecture Notes:
+- Added "Add Breadcrumb" button positioned to the left of "Add Button" button in report details view button tab
+- Created breadcrumb modal functionality that reuses existing page search modal infrastructure
+- Implemented addBreadcrumbToReport() function that creates buttons with proper properties:
+  * buttonType: 'breadcrumb'
+  * buttonName: '[pageName]Breadcrumb' 
+  * destinationTargetName: selected page name
+  * destinationContextObjectName: owner data object name (retrieved via ModelService.getPageOwnerObject())
+- Added message handling for 'addBreadcrumb' command in reportDetailsView.js
+- Enhanced domInitialization.js to handle breadcrumb button click events via createAddBreadcrumbModal()
+- Modal shows page selection list with text filter, allows selection from all forms and reports
+- On "Add" click, creates breadcrumb button and refreshes button list with new selection
+- Follows existing patterns and reuses infrastructure for consistency and minimal code changes
+
+Files Modified:
+- src/webviews/reports/components/templates/mainTemplate.js - Added "Add Breadcrumb" button HTML
+- src/webviews/reports/components/scripts/modalFunctionality.js - Added createAddBreadcrumbModal() function
+- src/webviews/reports/components/scripts/domInitialization.js - Added breadcrumb button event handler
+- src/webviews/reports/reportDetailsView.js - Added addBreadcrumb message handling and addBreadcrumbToReport() function
+
+Testing:
+- Code compiles successfully without errors
+- Implementation follows established architectural patterns
+- Reuses existing page search modal and ModelService methods
+- Button positioning and functionality as specified in requirements
