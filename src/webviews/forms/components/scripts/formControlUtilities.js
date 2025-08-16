@@ -44,6 +44,14 @@ function getFormControlUtilities() {
                         }
                         updateInputStyle(inputField, true);
                         
+                        // Handle browse button state for targetChildObject field
+                        if (propertyName === 'targetChildObject') {
+                            const browseButton = inputField.parentElement.querySelector('.lookup-button');
+                            if (browseButton) {
+                                browseButton.disabled = false;
+                            }
+                        }
+                        
                         // Disable the checkbox to prevent unchecking
                         this.disabled = true;
                     } else {
@@ -54,6 +62,14 @@ function getFormControlUtilities() {
                             inputField.readOnly = true;
                         }
                         updateInputStyle(inputField, false);
+                        
+                        // Handle browse button state for targetChildObject field
+                        if (propertyName === 'targetChildObject') {
+                            const browseButton = inputField.parentElement.querySelector('.lookup-button');
+                            if (browseButton) {
+                                browseButton.disabled = true;
+                            }
+                        }
                     }
                     
                     // Send message to update the model
