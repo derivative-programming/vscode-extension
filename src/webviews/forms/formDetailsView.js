@@ -139,6 +139,10 @@ function showFormDetails(item, modelService, context) {
         // Get all data objects for data object search modal
         const allDataObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
         
+        // Get the owner data object for this form
+        const ownerObject = modelService && modelService.isFileLoaded() && formReference ? 
+            modelService.getFormOwnerObject(formReference.name) : null;
+        
         // Set the HTML content with the full form data
         panel.webview.html = generateDetailsView(
             formData, 
@@ -149,7 +153,8 @@ function showFormDetails(item, modelService, context) {
             codiconsUri,
             allForms,
             allReports,
-            allDataObjects
+            allDataObjects,
+            ownerObject
         );
     } catch (error) {
         console.error("Error generating details view:", error);
@@ -468,6 +473,25 @@ function showFormDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "openOwnerObjectDetails":
+                    console.log('[DEBUG] FormDetails - Open owner object details requested for object name:', JSON.stringify(message.objectName));
+                    try {
+                        if (message.objectName) {
+                            // Execute the object details command to open the owner object
+                            vscode.commands.executeCommand('appdna.showObjectDetails', {
+                                label: message.objectName,
+                                objectType: 'object'
+                            });
+                        } else {
+                            console.error('[ERROR] FormDetails - No object name provided for opening owner object details');
+                            vscode.window.showErrorMessage('No object name provided for opening details');
+                        }
+                    } catch (error) {
+                        console.error('[ERROR] FormDetails - Failed to open owner object details:', error);
+                        vscode.window.showErrorMessage(`Failed to open owner object details: ${error.message}`);
+                    }
+                    return;
+                    
                 case "updateFormOwnerSubscription":
                     if (modelService && formReference) {
                         // Update the form's owner data object properties subscription
@@ -562,6 +586,10 @@ function refreshAll() {
             // Get all data objects for data object search modal
             const allDataObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
             
+            // Get the owner data object for this form
+            const ownerObject = modelService && modelService.isFileLoaded() && formData ? 
+                modelService.getFormOwnerObject(formData.name) : null;
+            
             // Update the HTML content
             panel.webview.html = generateDetailsView(
                 formData, 
@@ -572,7 +600,8 @@ function refreshAll() {
                 undefined, // codiconsUri not available in refresh context
                 allForms,
                 allReports,
-                allDataObjects
+                allDataObjects,
+                ownerObject
             );
         }
     }
@@ -653,6 +682,10 @@ function updateModelDirectly(data, formReference, modelService, panel = null) {
             // Get all data objects for data object search modal
             const allDataObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
             
+            // Get the owner data object for this form
+            const ownerObject = modelService && modelService.isFileLoaded() && formReference ? 
+                modelService.getFormOwnerObject(formReference.name) : null;
+            
             // Regenerate and update the webview HTML with updated model data
             panel.webview.html = generateDetailsView(
                 formReference, 
@@ -663,7 +696,8 @@ function updateModelDirectly(data, formReference, modelService, panel = null) {
                 undefined, // codiconsUri not available in this context
                 allForms,
                 allReports,
-                allDataObjects
+                allDataObjects,
+                ownerObject
             );
             
             // If preserveTab was specified, restore the active tab

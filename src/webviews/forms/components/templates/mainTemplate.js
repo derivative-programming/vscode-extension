@@ -16,6 +16,7 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
  * @param {string} outputVarModalHtml HTML for the output variable modal
  * @param {string} clientScript JavaScript code for the client
  * @param {string} codiconsUri URI for the codicon CSS file
+ * @param {Object} ownerObject The owner data object for this form (optional)
  * @returns {string} Complete HTML document
  */
 function getMainTemplate(
@@ -31,7 +32,8 @@ function getMainTemplate(
     buttonModalHtml,
     outputVarModalHtml,
     clientScript,
-    codiconsUri
+    codiconsUri,
+    ownerObject = null
 ) {
     return `<!DOCTYPE html>
 <html lang="en">
@@ -89,6 +91,56 @@ function getMainTemplate(
         .view-preview-button .icon-text {
             display: none !important;
         }
+        
+        /* Owner Data Object Section Styles */
+        .owner-data-object-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--vscode-descriptionForeground);
+        }
+        
+        .owner-data-object-label {
+            font-weight: 500;
+        }
+        
+        .owner-data-object-name {
+            color: var(--vscode-foreground);
+            font-family: var(--vscode-editor-font-family);
+        }
+        
+        .edit-owner-button {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+        }
+        
+        .edit-owner-button:hover {
+            background: var(--vscode-toolbar-hoverBackground) !important;
+            background-color: var(--vscode-toolbar-hoverBackground) !important;
+        }
+        
+        .edit-owner-button:active {
+            background: var(--vscode-toolbar-activeBackground);
+            transform: scale(0.95);
+        }
+        
+        .edit-owner-button .codicon {
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -99,6 +151,16 @@ function getMainTemplate(
             <span class="icon-text">👁</span>
         </button>
     </div>
+    
+    ${ownerObject ? `
+    <div class="owner-data-object-section">
+        <span class="owner-data-object-label">Owner Data Object:</span>
+        <span class="owner-data-object-name">${ownerObject.name || 'Unknown Object'}</span>
+        <button class="edit-owner-button" onclick="openOwnerObjectDetails('${ownerObject.name || ''}')" title="Edit owner data object">
+            <i class="codicon codicon-edit"></i>
+        </button>
+    </div>
+    ` : ''}
     
     <div class="tabs">
         <div class="tab active" data-tab="settings">Settings</div>
