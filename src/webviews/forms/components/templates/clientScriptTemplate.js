@@ -16,6 +16,8 @@ const { getAddOutputVariableModalHtml } = require("./addOutputVariableModalTempl
 const { getAddOutputVariableModalFunctionality } = require("./addOutputVariableModalFunctionality");
 const { getPageSearchModalHtml } = require("./pageSearchModalTemplate");
 const { getPageSearchModalFunctionality } = require("./pageSearchModalFunctionality");
+const { getDataObjectSearchModalHtml } = require("./dataObjectSearchModalTemplate");
+const { getDataObjectSearchModalFunctionality } = require("./dataObjectSearchModalFunctionality");
 
 /**
  * File: clientScriptTemplate.js
@@ -35,9 +37,10 @@ const { getPageSearchModalFunctionality } = require("./pageSearchModalFunctional
  * @param {string} formName The name of the form
  * @param {Array} allForms Array of all available forms for page search (optional)
  * @param {Array} allReports Array of all available reports for page search (optional)
+ * @param {Array} allDataObjects Array of all available data objects for object search (optional)
  * @returns {string} JavaScript code
  */
-function getClientScriptTemplate(params, buttons, outputVars, paramSchema, buttonSchema, outputVarSchema, formName, allForms = [], allReports = []) {
+function getClientScriptTemplate(params, buttons, outputVars, paramSchema, buttonSchema, outputVarSchema, formName, allForms = [], allReports = [], allDataObjects = []) {
     return `
         (function() {
             // Core data and API (vscode API already acquired in main template)
@@ -58,6 +61,9 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             // Page search data
             const allForms = ${JSON.stringify(allForms)};
             const allReports = ${JSON.stringify(allReports)};
+            
+            // Data object search data
+            const allDataObjects = ${JSON.stringify(allDataObjects)};
 
             // View Preview functionality
             window.openPagePreview = function(formName, isPage) {
@@ -105,6 +111,11 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
             function getPageSearchModalHtml() {
                 return \`${getPageSearchModalHtml().replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
             }
+            
+            // Data Object Search Modal Template Function
+            function getDataObjectSearchModalHtml() {
+                return \`${getDataObjectSearchModalHtml().replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+            }
 
             // Add Input Control Modal Functionality
             ${getAddInputControlModalFunctionality()}
@@ -117,6 +128,9 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
 
             // Page Search Modal Functionality
             ${getPageSearchModalFunctionality()}
+            
+            // Data Object Search Modal Functionality
+            ${getDataObjectSearchModalFunctionality()}
 
             // UI Event Handlers for tabs and view switching
             ${getUIEventHandlers()}

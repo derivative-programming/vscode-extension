@@ -29,9 +29,10 @@ const { getMainTemplate } = require("./templates/mainTemplate");
  * @param {string} codiconsUri URI for the codicon CSS file
  * @param {Array} allForms Array of all available forms for page search (optional)
  * @param {Array} allReports Array of all available reports for page search (optional)
+ * @param {Array} allDataObjects Array of all available data objects for object search (optional)
  * @returns {string} HTML content
  */
-function generateDetailsView(form, formSchemaProps, formParamsSchema, formButtonsSchema, formOutputVarsSchema, codiconsUri, allForms = [], allReports = []) {
+function generateDetailsView(form, formSchemaProps, formParamsSchema, formButtonsSchema, formOutputVarsSchema, codiconsUri, allForms = [], allReports = [], allDataObjects = []) {
     console.log("[DEBUG] generateDetailsView called with:", {
         form: form,
         formSchemaPropsKeys: formSchemaProps ? Object.keys(formSchemaProps) : [],
@@ -100,7 +101,8 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
             formOutputVarsSchema,
             formName,
             allForms,
-            allReports
+            allReports,
+            allDataObjects
         );
         
         // Generate the complete HTML document
