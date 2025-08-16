@@ -120,6 +120,13 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                         // Restore the active tab after view reload
                         restoreActiveTab(message.tabId, message.newColumnIndex);
                         break;
+                    case 'setOwnerSubscriptionState':
+                        // Update the subscription checkbox state
+                        const subscribeCheckbox = document.getElementById('subscribeOwnerProperties');
+                        if (subscribeCheckbox) {
+                            subscribeCheckbox.checked = message.data.isEnabled;
+                        }
+                        break;
                 }
             });
             

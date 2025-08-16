@@ -283,6 +283,38 @@ function getColumnManagementFunctions() {
         createAddColumnModal();
     });
 
+    // Subscribe to Owner Properties checkbox handler
+    const subscribeOwnerCheckbox = document.getElementById('subscribeOwnerProperties');
+    if (subscribeOwnerCheckbox) {
+        // Initialize checkbox state based on existing propSubscription
+        initializeOwnerSubscriptionCheckbox();
+        
+        subscribeOwnerCheckbox.addEventListener('change', function() {
+            handleOwnerSubscriptionToggle(this.checked);
+        });
+    }
+
+    // Function to initialize the subscription checkbox state
+    function initializeOwnerSubscriptionCheckbox() {
+        // Send message to get current subscription state
+        vscode.postMessage({
+            command: 'getOwnerSubscriptionState'
+        });
+    }
+
+    // Function to handle subscription checkbox toggle
+    function handleOwnerSubscriptionToggle(isChecked) {
+        console.log('[DEBUG] Owner subscription toggle:', isChecked);
+        
+        // Send message to update the propSubscription
+        vscode.postMessage({
+            command: 'updateOwnerSubscription',
+            data: {
+                isEnabled: isChecked
+            }
+        });
+    }
+
     // Function to add a new column (called from add column modal)
     function addNewColumn(columnName) {
         // Send message to add a new column with the specified name

@@ -1,3 +1,20 @@
+2025-08-16: ✅ COMPLETED - Implement "Subscribe to Owner Data Object Properties" checkbox in report columns tab
+- Added checkbox in columns tab list view after list buttons 
+- Checkbox controls propSubscription entries with destinationContextObjectName=ObjectName, destinationTargetName=ReportName
+- When checked: sets isIgnored="false" (or creates new entry if none exists)
+- When unchecked: sets isIgnored="true" (creates entry if needed)
+- Added CSS styling for .subscription-controls container with VS Code theming
+- Added JavaScript handlers for checkbox toggle and state initialization
+- Added backend functions: getOwnerSubscriptionState() and updateOwnerSubscription()
+- Added message handlers: getOwnerSubscriptionState, updateOwnerSubscription, setOwnerSubscriptionState
+- Uses ModelService.getReportOwnerObject() to find parent object for propSubscription management
+- Properly handles edge cases: missing propSubscription array, missing owner object, etc.
+Architecture Notes:
+- Checkbox state automatically initialized on tab load by querying current propSubscription
+- Uses owner object's propSubscription array (not report's) per specification
+- Maintains existing subscription entries and only modifies isIgnored flag
+- Full integration with existing undo/save workflow via modelService.markUnsavedChanges()
+
 2025-08-16: ✅ COMPLETED - Implement comprehensive ModelService getter methods
 - Added getReport(reportName) - finds specific report by name
 - Added getForm(formName) - finds specific form (objectWorkflow with isPage=true) by name  

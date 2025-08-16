@@ -2,7 +2,7 @@
 const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
 
 /**
- * Generates the main HTML template for the report details view
+ * Generate HTML template for the report details view
  * @param {Object} report The report data object
  * @param {number} columnCount Number of columns in the report
  * @param {number} buttonCount Number of buttons in the report
@@ -117,6 +117,12 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                     <button id="moveUpColumnsButton" class="move-button">Move Up</button>
                     <button id="moveDownColumnsButton" class="move-button">Move Down</button>
                     <button id="reverseColumnsButton" class="reverse-button">Reverse</button>
+                </div>
+                <div class="subscription-controls">
+                    <label>
+                        <input type="checkbox" id="subscribeOwnerProperties" class="subscription-checkbox">
+                        Subscribe to Owner Data Object Properties
+                    </label>
                 </div>
             </div>
             <div id="columnDetailsContainer" class="details-container" style="display: none;">

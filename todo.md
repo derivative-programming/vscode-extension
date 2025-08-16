@@ -20,7 +20,7 @@ prop subscriptions
             ],
 
 report...
-- columns - subscribe to owner obj properties
+- columns - ✅ subscribe to owner obj properties
 - columns - subscribe to target child obj properties
 
 
@@ -32,20 +32,7 @@ forms...
   
 objectworkflows where ispage = false...
 - new treeview item functions
-
-
-ModelService...
-- ✅ getReport(reportName)
-- ✅ getForm(formName)
-- ✅ getPage(pageName) (would be a report or form)
-- ✅ getObject(objectName)
-- ✅ getReportOwnerObject(reportName)
-- ✅ getFormOwnerObject(formName)
-- ✅ getPageOwnerObject(pageName) (would be a report or form)
-- ✅ getAllObjects()
-- ✅ getAllReports()
-- ✅ getAllForms()
-- ✅ getAllPages()
+ 
 
 apis
  

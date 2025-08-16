@@ -324,6 +324,29 @@ function getDetailViewStyles() {
             opacity: 0.6;
         }
         
+        /* Subscription controls styling */
+        .subscription-controls {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+        }
+        
+        .subscription-controls label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--vscode-foreground);
+        }
+        
+        .subscription-checkbox {
+            margin: 0;
+            transform: scale(1.1);
+        }
+
         /* Validation styles for forms */
         .validation-error {
             color: var(--vscode-errorForeground, #f44336);

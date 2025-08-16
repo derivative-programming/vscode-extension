@@ -293,6 +293,24 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "getOwnerSubscriptionState":
+                    if (modelService && reportReference) {
+                        // Get current owner subscription state
+                        getOwnerSubscriptionState(reportReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot get owner subscription state: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "updateOwnerSubscription":
+                    if (modelService && reportReference) {
+                        // Update owner subscription in propSubscription array
+                        updateOwnerSubscription(message.data, reportReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot update owner subscription: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
                 case "openPagePreview":
                     console.log('[DEBUG] ReportDetails - Open page preview requested for report name:', JSON.stringify(message.formName));
                     console.log('[DEBUG] ReportDetails - Message object:', JSON.stringify(message));
@@ -1321,6 +1339,161 @@ function addParamToReportWithName(reportReference, modelService, paramName, pane
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding param with name:", error);
+    }
+}
+
+/**
+ * Gets the current owner subscription state from propSubscription array
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to send response
+ */
+function getOwnerSubscriptionState(reportReference, modelService, panel) {
+    try {
+        console.log("[DEBUG] Getting owner subscription state");
+        
+        // Get the owner object for this report
+        const reportName = reportReference.name;
+        const ownerObject = modelService.getReportOwnerObject(reportName);
+        
+        if (!ownerObject) {
+            console.warn("[DEBUG] Could not find owner object for report:", reportName);
+            // Send default state (unchecked)
+            if (panel && panel.webview) {
+                panel.webview.postMessage({
+                    command: 'setOwnerSubscriptionState',
+                    data: { isEnabled: false }
+                });
+            }
+            return;
+        }
+        
+        const objectName = ownerObject.name;
+        
+        // Check if ownerObject has propSubscription array
+        if (!ownerObject.propSubscription || !Array.isArray(ownerObject.propSubscription)) {
+            console.log("[DEBUG] Owner object has no propSubscription array");
+            // Send default state (unchecked)
+            if (panel && panel.webview) {
+                panel.webview.postMessage({
+                    command: 'setOwnerSubscriptionState',
+                    data: { isEnabled: false }
+                });
+            }
+            return;
+        }
+        
+        // Look for subscription that matches our criteria
+        const subscription = ownerObject.propSubscription.find(sub => 
+            sub.destinationContextObjectName === objectName &&
+            sub.destinationTargetName === reportName
+        );
+        
+        // If subscription exists:
+        //   - If isIgnored property doesn't exist, treat as enabled (isIgnored=false)
+        //   - If isIgnored="true", treat as disabled
+        //   - If isIgnored="false" or any other value, treat as enabled
+        // If no subscription exists, treat as disabled
+        const isEnabled = subscription ? subscription.isIgnored !== "true" : false;
+        
+        console.log("[DEBUG] Owner subscription found:", !!subscription);
+        console.log("[DEBUG] Owner subscription isIgnored:", subscription ? subscription.isIgnored : "N/A");
+        console.log("[DEBUG] Owner subscription state:", isEnabled);
+        
+        // Send the current state to the webview
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'setOwnerSubscriptionState',
+                data: { isEnabled: isEnabled }
+            });
+        }
+        
+    } catch (error) {
+        console.error("Error getting owner subscription state:", error);
+        // Send default state on error
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'setOwnerSubscriptionState',
+                data: { isEnabled: false }
+            });
+        }
+    }
+}
+
+/**
+ * Updates the owner subscription in the propSubscription array
+ * @param {Object} data The subscription data
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
+ */
+function updateOwnerSubscription(data, reportReference, modelService, panel) {
+    try {
+        console.log("[DEBUG] Updating owner subscription:", data);
+        
+        // Get the owner object for this report
+        const reportName = reportReference.name;
+        const ownerObject = modelService.getReportOwnerObject(reportName);
+        
+        if (!ownerObject) {
+            console.error("[ERROR] Could not find owner object for report:", reportName);
+            return;
+        }
+        
+        const objectName = ownerObject.name;
+        
+        // Initialize propSubscription array if it doesn't exist
+        if (!ownerObject.propSubscription) {
+            ownerObject.propSubscription = [];
+        }
+        
+        // Look for existing subscription
+        let subscription = ownerObject.propSubscription.find(sub => 
+            sub.destinationContextObjectName === objectName &&
+            sub.destinationTargetName === reportName
+        );
+        
+        if (data.isEnabled) {
+            // Enable subscription
+            if (subscription) {
+                // Update existing subscription
+                subscription.isIgnored = "false";
+            } else {
+                // Create new subscription
+                subscription = {
+                    destinationContextObjectName: objectName,
+                    destinationTargetName: reportName,
+                    isIgnored: "false"
+                };
+                ownerObject.propSubscription.push(subscription);
+            }
+            console.log("[DEBUG] Owner subscription enabled");
+        } else {
+            // Disable subscription
+            if (subscription) {
+                subscription.isIgnored = "true";
+                console.log("[DEBUG] Owner subscription disabled (set isIgnored=true)");
+            } else {
+                // Create new subscription that's ignored
+                subscription = {
+                    destinationContextObjectName: objectName,
+                    destinationTargetName: reportName,
+                    isIgnored: "true"
+                };
+                ownerObject.propSubscription.push(subscription);
+                console.log("[DEBUG] Owner subscription created as disabled");
+            }
+        }
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        console.log("[DEBUG] Owner subscription updated successfully");
+        
+    } catch (error) {
+        console.error("Error updating owner subscription:", error);
     }
 }
 
