@@ -149,6 +149,18 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Result: Destination Target Name control now matches width of other form controls in Reports webview
 - Status: Fixed and compiled successfully
 
+Command: Fix 'appdna.showObjectDetails' command not found error
+
+2025-01-16: ✅ COMPLETED - Fixed missing command registration error
+- Command: "review the form details view owner data object display edit button. getting error command 'appdna.showObjectDetails' not found"
+- Status: ✅ COMPLETED
+- Problem: Form details view was calling 'appdna.showObjectDetails' command but only 'appdna.showDetails' command was registered
+- Root Cause: Incorrect command name used in formDetailsView.js line 481
+- Solution: Updated formDetailsView.js to use correct command name 'appdna.showDetails' instead of 'appdna.showObjectDetails'
+- Architecture: Command registration in registerCommands.ts uses 'appdna.showDetails' and calls objectDetailsView.showObjectDetails function
+- Result: Owner data object edit button will now work correctly without command not found error
+- Status: Fixed - command name corrected
+
 2025-08-16: ✅ FIXED - Reports Webview Browse Button Inactive Issue
 - Problem: Browse button for 'Destination Target Name' was inactive/disabled in Reports webview
 - Root Cause: Reports webview missing browse button enable/disable management functionality

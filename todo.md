@@ -4,41 +4,42 @@ As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest
 
 
+show copy icon button
+- copilot:under form details view title add a copy icon button
+- copilot:under report details view title add a copy icon button
+
 show owner data object name...
-- under form details view title with an eye icon to open the view
-- under report details view title with an eye icon to open the view
+- copilot:under form details view title with a edit icon button to open the view
+- copilot:under report details view title with a edit icon button to open the view
 
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button
 - add button - multiselect
-- add button - breadcrumb
+- copilot:add button - breadcrumb
+ 
 
-Destination Target Name lookup icon
-- report column
-
-add text filter on modal ...Destination Target Name lookup icon
-- form button
-- report button
-- report column
 
 Source Object Name lookup button...
-- form input control 'source object name'
-- form setting 'target child object'
-- report column 'source object name'
-- report setting 'target child object'
+- copilot:report column 'source object name'
+- copilot:report setting 'target child object'
+
+form details view: settings tab:...
+-copilot:hide 'Is Exposed In Business Object:' setting
+
+copilot:Form details view: input controls tab: missing the fkObjectName setting
 
 form details button tab button type setting dropdown?  
 
 objectworkflows where ispage = false...
 - new treeview item functions
- 
+
 
 apis
  
 
 preview form...
-- show actual lookup items in dropdowns
+- copilot:show actual lookup items in dropdowns
 - header display
 
 preview report grid view...
@@ -55,7 +56,7 @@ add report...
 - API Get
 
 
- 
+
 report details view...
 - import breadcrumb buttons from another report 
 
@@ -72,9 +73,7 @@ hierarchyView.js - 1,176 lines
 
 stop validating a\bulk change request on approval?
 
- 
-
-many labels: "Sql Server DB Data Type" > "DB Data Type"
+  
 
 help icon buttons on primary treeview items...
 - object
@@ -84,7 +83,7 @@ help icon buttons on primary treeview items...
 
 form detail view...
 - input variables tab
- 
+
 report details view...
 - setting - Is Basic Header Automatically Added: - not a dropdown
 - columns - list view - Is Filter Available: has extra item

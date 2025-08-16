@@ -478,7 +478,7 @@ function showFormDetails(item, modelService, context) {
                     try {
                         if (message.objectName) {
                             // Execute the object details command to open the owner object
-                            vscode.commands.executeCommand('appdna.showObjectDetails', {
+                            vscode.commands.executeCommand('appdna.showDetails', {
                                 label: message.objectName,
                                 objectType: 'object'
                             });
