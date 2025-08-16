@@ -124,6 +124,12 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                         Subscribe to Owner Data Object Properties
                     </label>
                 </div>
+                <div class="subscription-controls">
+                    <label>
+                        <input type="checkbox" id="subscribeTargetChildProperties" class="subscription-checkbox">
+                        Subscribe to Target Child Data Object Properties
+                    </label>
+                </div>
             </div>
             <div id="columnDetailsContainer" class="details-container" style="display: none;">
                 <form id="columnDetailsForm">

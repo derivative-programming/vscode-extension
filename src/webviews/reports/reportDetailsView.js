@@ -311,6 +311,24 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "getTargetChildSubscriptionState":
+                    if (modelService && reportReference) {
+                        // Get current target child subscription state
+                        getTargetChildSubscriptionState(reportReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot get target child subscription state: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "updateTargetChildSubscription":
+                    if (modelService && reportReference) {
+                        // Update target child subscription in propSubscription array
+                        updateTargetChildSubscription(message.data, reportReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot update target child subscription: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
                 case "openPagePreview":
                     console.log('[DEBUG] ReportDetails - Open page preview requested for report name:', JSON.stringify(message.formName));
                     console.log('[DEBUG] ReportDetails - Message object:', JSON.stringify(message));
@@ -1494,6 +1512,161 @@ function updateOwnerSubscription(data, reportReference, modelService, panel) {
         
     } catch (error) {
         console.error("Error updating owner subscription:", error);
+    }
+}
+
+/**
+ * Gets the current target child subscription state from propSubscription array
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to send response
+ */
+function getTargetChildSubscriptionState(reportReference, modelService, panel) {
+    try {
+        console.log("[DEBUG] Getting target child subscription state");
+        
+        // Get the target child object for this report
+        const reportName = reportReference.name;
+        const targetChildObject = modelService.getReportTargetChildObject(reportName);
+        
+        if (!targetChildObject) {
+            console.warn("[DEBUG] Could not find target child object for report:", reportName);
+            // Send default state (unchecked and disabled)
+            if (panel && panel.webview) {
+                panel.webview.postMessage({
+                    command: 'setTargetChildSubscriptionState',
+                    data: { isEnabled: false, isDisabled: true }
+                });
+            }
+            return;
+        }
+        
+        const targetChildObjectName = targetChildObject.name;
+        
+        // Check if targetChildObject has propSubscription array
+        if (!targetChildObject.propSubscription || !Array.isArray(targetChildObject.propSubscription)) {
+            console.log("[DEBUG] Target child object has no propSubscription array");
+            // Send default state (unchecked but enabled since target child exists)
+            if (panel && panel.webview) {
+                panel.webview.postMessage({
+                    command: 'setTargetChildSubscriptionState',
+                    data: { isEnabled: false, isDisabled: false }
+                });
+            }
+            return;
+        }
+        
+        // Look for subscription that matches our criteria
+        const subscription = targetChildObject.propSubscription.find(sub => 
+            sub.destinationContextObjectName === targetChildObjectName &&
+            sub.destinationTargetName === reportName
+        );
+        
+        // If subscription exists:
+        //   - If isIgnored property doesn't exist, treat as enabled (isIgnored=false)
+        //   - If isIgnored="true", treat as disabled
+        //   - If isIgnored="false" or any other value, treat as enabled
+        // If no subscription exists, treat as disabled
+        const isEnabled = subscription ? subscription.isIgnored !== "true" : false;
+        
+        console.log("[DEBUG] Target child subscription found:", !!subscription);
+        console.log("[DEBUG] Target child subscription isIgnored:", subscription ? subscription.isIgnored : "N/A");
+        console.log("[DEBUG] Target child subscription state:", isEnabled);
+        
+        // Send the current state to the webview (enabled since target child exists)
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'setTargetChildSubscriptionState',
+                data: { isEnabled: isEnabled, isDisabled: false }
+            });
+        }
+        
+    } catch (error) {
+        console.error("Error getting target child subscription state:", error);
+        // Send default state on error
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'setTargetChildSubscriptionState',
+                data: { isEnabled: false, isDisabled: true }
+            });
+        }
+    }
+}
+
+/**
+ * Updates the target child subscription in the propSubscription array
+ * @param {Object} data The subscription data
+ * @param {Object} reportReference Direct reference to the report object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
+ */
+function updateTargetChildSubscription(data, reportReference, modelService, panel) {
+    try {
+        console.log("[DEBUG] Updating target child subscription:", data);
+        
+        // Get the target child object for this report
+        const reportName = reportReference.name;
+        const targetChildObject = modelService.getReportTargetChildObject(reportName);
+        
+        if (!targetChildObject) {
+            console.error("[ERROR] Could not find target child object for report:", reportName);
+            return;
+        }
+        
+        const targetChildObjectName = targetChildObject.name;
+        
+        // Initialize propSubscription array if it doesn't exist
+        if (!targetChildObject.propSubscription) {
+            targetChildObject.propSubscription = [];
+        }
+        
+        // Look for existing subscription
+        let subscription = targetChildObject.propSubscription.find(sub => 
+            sub.destinationContextObjectName === targetChildObjectName &&
+            sub.destinationTargetName === reportName
+        );
+        
+        if (data.isEnabled) {
+            // Enable subscription
+            if (subscription) {
+                // Update existing subscription
+                subscription.isIgnored = "false";
+            } else {
+                // Create new subscription
+                subscription = {
+                    destinationContextObjectName: targetChildObjectName,
+                    destinationTargetName: reportName,
+                    isIgnored: "false"
+                };
+                targetChildObject.propSubscription.push(subscription);
+            }
+            console.log("[DEBUG] Target child subscription enabled");
+        } else {
+            // Disable subscription
+            if (subscription) {
+                subscription.isIgnored = "true";
+                console.log("[DEBUG] Target child subscription disabled (set isIgnored=true)");
+            } else {
+                // Create new subscription that's ignored
+                subscription = {
+                    destinationContextObjectName: targetChildObjectName,
+                    destinationTargetName: reportName,
+                    isIgnored: "true"
+                };
+                targetChildObject.propSubscription.push(subscription);
+                console.log("[DEBUG] Target child subscription created as disabled");
+            }
+        }
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        console.log("[DEBUG] Target child subscription updated successfully");
+        
+    } catch (error) {
+        console.error("Error updating target child subscription:", error);
     }
 }
 

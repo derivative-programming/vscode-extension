@@ -327,6 +327,39 @@ export class ModelService {
     }
 
     /**
+     * Get the target child object of a specific report
+     * @param reportName Name of the report
+     * @returns The target child object specified in the report's targetChildObject property, null if not found or not set
+     */
+    public getReportTargetChildObject(reportName: string): ObjectSchema | null {
+        const allObjects = this.getAllObjects();
+        
+        // First find the report
+        let targetReport: ReportSchema | null = null;
+        for (const object of allObjects) {
+            if (object.report && Array.isArray(object.report)) {
+                const foundReport = object.report.find(report => 
+                    report.name && report.name.trim().toLowerCase() === reportName.trim().toLowerCase()
+                );
+                if (foundReport) {
+                    targetReport = foundReport;
+                    break;
+                }
+            }
+        }
+        
+        if (!targetReport || !targetReport.targetChildObject) {
+            return null;
+        }
+        
+        // Find the target child object by name
+        const targetChildObjectName = targetReport.targetChildObject.trim();
+        return allObjects.find(object => 
+            object.name && object.name.trim().toLowerCase() === targetChildObjectName.toLowerCase()
+        ) || null;
+    }
+
+    /**
      * Get the owner object of a specific form (objectWorkflow with isPage=true)
      * @param formName Name of the form
      * @returns The object that owns this form, null if not found

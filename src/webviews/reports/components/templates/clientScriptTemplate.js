@@ -127,6 +127,14 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                             subscribeCheckbox.checked = message.data.isEnabled;
                         }
                         break;
+                    case 'setTargetChildSubscriptionState':
+                        // Update the target child subscription checkbox state
+                        const subscribeTargetChildCheckbox = document.getElementById('subscribeTargetChildProperties');
+                        if (subscribeTargetChildCheckbox) {
+                            subscribeTargetChildCheckbox.checked = message.data.isEnabled;
+                            subscribeTargetChildCheckbox.disabled = message.data.isDisabled || false;
+                        }
+                        break;
                 }
             });
             

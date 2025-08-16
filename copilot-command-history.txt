@@ -1,3 +1,23 @@
+2025-08-16: ✅ COMPLETED - Implement "Subscribe to Target Child Data Object Properties" checkbox in report columns tab
+- Added second subscription checkbox below owner subscription checkbox in columns tab
+- Checkbox controls target child object's propSubscription entries with destinationContextObjectName=TargetChildObjectName, destinationTargetName=ReportName
+- When checked: sets isIgnored="false" (or creates new entry if none exists)
+- When unchecked: sets isIgnored="true" (creates entry if needed)
+- Checkbox is automatically disabled when no targetChildObject is set on the report
+- Added ModelService.getReportTargetChildObject() method to find target child object by report's targetChildObject property
+- Added JavaScript handlers: initializeTargetChildSubscriptionCheckbox(), handleTargetChildSubscriptionToggle()
+- Added backend functions: getTargetChildSubscriptionState() and updateTargetChildSubscription()
+- Added message handlers: getTargetChildSubscriptionState, updateTargetChildSubscription, setTargetChildSubscriptionState
+- Uses same CSS styling as owner subscription (existing .subscription-controls styling)
+- Checkbox state automatically initialized on tab load by querying current target child propSubscription
+- Properly handles edge cases: missing target child object, missing propSubscription array, etc.
+- Full integration with existing undo/save workflow via modelService.markUnsavedChanges()
+Architecture Notes:
+- Uses target child object's propSubscription array (not report's or owner's) per specification
+- Maintains existing subscription entries and only modifies isIgnored flag
+- Checkbox disabled state communicated via setTargetChildSubscriptionState message with isDisabled flag
+- Business logic: isIgnored property missing = false (subscribed), isIgnored=true = unsubscribed
+
 2025-08-16: ✅ COMPLETED - Implement "Subscribe to Owner Data Object Properties" checkbox in report columns tab
 - Added checkbox in columns tab list view after list buttons 
 - Checkbox controls propSubscription entries with destinationContextObjectName=ObjectName, destinationTargetName=ReportName

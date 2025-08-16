@@ -4,6 +4,11 @@ As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest
 
 
+show owner data object name...
+- under form details view title with an eye icon to open the view
+- under report details view title with an eye icon to open the view
+
+
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button
@@ -21,11 +26,10 @@ prop subscriptions
 
 report...
 - columns - ✅ subscribe to owner obj properties
-- columns - subscribe to target child obj properties
+- columns - ✅ subscribe to target child obj properties
 
 
-forms...
-- columns - subscribe to owner obj properties
+forms... 
 - columns - subscribe to target child obj properties
 
 

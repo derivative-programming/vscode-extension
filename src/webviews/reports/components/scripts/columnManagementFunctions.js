@@ -294,11 +294,30 @@ function getColumnManagementFunctions() {
         });
     }
 
+    // Subscribe to Target Child Properties checkbox handler
+    const subscribeTargetChildCheckbox = document.getElementById('subscribeTargetChildProperties');
+    if (subscribeTargetChildCheckbox) {
+        // Initialize checkbox state based on existing propSubscription
+        initializeTargetChildSubscriptionCheckbox();
+        
+        subscribeTargetChildCheckbox.addEventListener('change', function() {
+            handleTargetChildSubscriptionToggle(this.checked);
+        });
+    }
+
     // Function to initialize the subscription checkbox state
     function initializeOwnerSubscriptionCheckbox() {
         // Send message to get current subscription state
         vscode.postMessage({
             command: 'getOwnerSubscriptionState'
+        });
+    }
+
+    // Function to initialize the target child subscription checkbox state
+    function initializeTargetChildSubscriptionCheckbox() {
+        // Send message to get current target child subscription state
+        vscode.postMessage({
+            command: 'getTargetChildSubscriptionState'
         });
     }
 
@@ -309,6 +328,19 @@ function getColumnManagementFunctions() {
         // Send message to update the propSubscription
         vscode.postMessage({
             command: 'updateOwnerSubscription',
+            data: {
+                isEnabled: isChecked
+            }
+        });
+    }
+
+    // Function to handle target child subscription checkbox toggle
+    function handleTargetChildSubscriptionToggle(isChecked) {
+        console.log('[DEBUG] Target child subscription toggle:', isChecked);
+        
+        // Send message to update the target child propSubscription
+        vscode.postMessage({
+            command: 'updateTargetChildSubscription',
             data: {
                 isEnabled: isChecked
             }
