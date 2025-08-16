@@ -191,3 +191,15 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Integration: Browse button state properly synchronized with property existence checkboxes in both list and table views
 - Result: Report columns tab now has same "Browse for Page" functionality as buttons tab for destinationTargetName field
 - Status: Fixed and compiled successfully
+
+2025-08-16: ✅ FIXED - Browse Button Modal Changes Not Setting 'Unsaved Changes' Flag
+- Problem: Changes made using browse button and modal did not trigger the 'unsaved changes' flag
+- Root Cause: Column management functions only listened for 'input' events, but modal dispatches 'change' events
+- Solution: Added 'change' event listeners to column input fields in columnManagementFunctions.js:
+  * Added field.addEventListener('change', updateInputHandler) for column list view inputs
+  * Change events now trigger the same update logic as input events
+  * Both 'input' and 'change' events now properly update the model and mark unsaved changes
+- Analysis: Button management functions already had both 'input' and 'change' listeners, so they worked correctly
+- Backend: updateButtonDirectly() and updateColumnDirectly() both call modelService.markUnsavedChanges()
+- Result: Browse button modal changes now properly trigger the 'unsaved changes' flag for both buttons and columns
+- Status: Fixed and compiled successfully

@@ -177,6 +177,29 @@ function getColumnManagementFunctions() {
                         }
                     }
                 });
+                
+                // Also listen for change events (e.g., from modal interactions)
+                field.addEventListener('change', function() {
+                    if (checkbox.checked) {
+                        const selectedIndex = columnsList.value;
+                        if (selectedIndex !== '' && selectedIndex >= 0) {
+                            const currentColumnIndex = parseInt(selectedIndex);
+                            
+                            // Update the local currentColumns array first
+                            currentColumns[currentColumnIndex][columnKey] = this.value;
+                            
+                            vscode.postMessage({
+                                command: 'updateColumn',
+                                data: {
+                                    index: currentColumnIndex,
+                                    property: columnKey,
+                                    exists: true,
+                                    value: this.value
+                                }
+                            });
+                        }
+                    }
+                });
             }
         });
     }
