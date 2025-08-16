@@ -89,6 +89,22 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 });
             };
 
+            // Owner Object Details functionality
+            window.openOwnerObjectDetails = function(objectName) {
+                console.log('[DEBUG] FormDetails - Opening owner object details for object name:', JSON.stringify(objectName));
+                
+                if (!objectName) {
+                    console.error('[ERROR] FormDetails - No object name provided');
+                    return;
+                }
+                
+                // Send message to extension to open object details
+                vscode.postMessage({
+                    command: 'openOwnerObjectDetails',
+                    objectName: objectName
+                });
+            };
+
             // Modal functionality for add modals
             ${getModalFunctionality()}
 

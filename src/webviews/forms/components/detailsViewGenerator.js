@@ -30,9 +30,10 @@ const { getMainTemplate } = require("./templates/mainTemplate");
  * @param {Array} allForms Array of all available forms for page search (optional)
  * @param {Array} allReports Array of all available reports for page search (optional)
  * @param {Array} allDataObjects Array of all available data objects for object search (optional)
+ * @param {Object} ownerObject The owner data object for this form (optional)
  * @returns {string} HTML content
  */
-function generateDetailsView(form, formSchemaProps, formParamsSchema, formButtonsSchema, formOutputVarsSchema, codiconsUri, allForms = [], allReports = [], allDataObjects = []) {
+function generateDetailsView(form, formSchemaProps, formParamsSchema, formButtonsSchema, formOutputVarsSchema, codiconsUri, allForms = [], allReports = [], allDataObjects = [], ownerObject = null) {
     console.log("[DEBUG] generateDetailsView called with:", {
         form: form,
         formSchemaPropsKeys: formSchemaProps ? Object.keys(formSchemaProps) : [],
@@ -120,7 +121,8 @@ function generateDetailsView(form, formSchemaProps, formParamsSchema, formButton
             buttonModalHtml,
             outputVarModalHtml,
             clientScript,
-            codiconsUri
+            codiconsUri,
+            ownerObject
         );
         
         console.log("[DEBUG] generateDetailsView completed successfully");
