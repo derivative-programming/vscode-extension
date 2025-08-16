@@ -66,13 +66,23 @@ function getButtonsListTemplate(buttonsSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${buttonKey}" value="" ${tooltip} readonly>`;
         }
         
+        // Add browse button for destinationTargetName field
+        let browseButton = "";
+        let controlContainer = "";
+        if (buttonKey === "destinationTargetName") {
+            browseButton = `<button type="button" class="lookup-button" data-prop="${buttonKey}" data-field-id="${fieldId}" disabled title="Browse for Page">
+                <span class="codicon codicon-search"></span>
+            </button>`;
+            controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;
+        } else {
+            controlContainer = inputField;
+        }
+        
         // Note: We'll dynamically set the disabled attribute for checked checkboxes in the JavaScript
         return `<div class="form-row">
             <label for="${fieldId}" ${tooltip}>${formatLabel(buttonKey)}:</label>
-            <div class="control-with-checkbox">
-                ${inputField}
-                <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" class="property-toggle">
-            </div>
+            ${controlContainer}
+            <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" class="property-toggle">
         </div>`;
     }).join("");
 }

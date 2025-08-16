@@ -283,6 +283,14 @@ function getDetailViewStyles() {
             font-weight: bold;
         }
         
+        .form-row input[type="text"],
+        .form-row select,
+        .form-row textarea,
+        .form-row .control-with-button {
+            flex: 1;
+            min-width: 0; /* Allow flex items to shrink below their content size */
+        }
+        
         button {
             padding: 8px 16px;
             background-color: var(--vscode-button-background);
@@ -330,6 +338,50 @@ function getDetailViewStyles() {
             flex: 0 0 auto;
             transform: scale(0.8);
             cursor: pointer;
+        }
+        
+        /* Control with button container for input fields with browse buttons */
+        .control-with-button {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .control-with-button input[type="text"] {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .control-with-button .lookup-button {
+            flex: 0 0 auto;
+            padding: 3px 6px;
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: 1px solid var(--vscode-button-border, var(--vscode-button-secondaryBackground));
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            min-width: 24px;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-with-button .lookup-button:hover:not(:disabled) {
+            /* Remove dark blue background on hover - keep original background */
+            border-color: var(--vscode-focusBorder);
+        }
+
+        .control-with-button .lookup-button:disabled {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-input-disabledForeground, #999);
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .control-with-button .lookup-button .codicon {
+            font-size: 12px;
         }
         
         .action-button {

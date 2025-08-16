@@ -1,3 +1,38 @@
+2025-01-16: ✅ FIXED - Lookup Button Hover Styling
+- Problem: Lookup button showed dark blue background on hover (using vscode-button-hoverBackground)
+- Solution: Removed background color change on hover, replaced with subtle border color change
+- Updated: .control-with-button .lookup-button:hover to use border-color: var(--vscode-focusBorder)
+- Result: More subtle hover effect without dark blue background
+- Status: Fixed and compiled successfully
+
+2025-01-16: ✅ FIXED - Destination Target Name Control Width Consistency
+- Problem: destinationTargetName field with browse button was narrower than other setting controls
+- Root Cause: .control-with-button container didn't have flex: 1 in form-row context
+- Solution: Added .form-row .control-with-button to CSS flex styling rules
+- Result: destinationTargetName control now matches width of other form controls
+- Status: Fixed and compiled successfully
+
+2025-01-16: ✅ FIXED - Button Settings Control Width Issue
+- Problem: All button setting controls were wrapped in .control-with-button container, affecting width
+- Root Cause: List template was applying .control-with-button to all fields, not just destinationTargetName
+- Solution: Modified buttonsListTemplate.js to conditionally apply .control-with-button only when browse button exists
+- Added: Proper flex styling for form-row input fields (flex: 1, min-width: 0)
+- Result: Setting controls return to normal width, browse buttons only appear for destinationTargetName
+- Status: Fixed and compiled successfully
+
+2025-01-16: ✅ COMPLETED - "Browse for Page" Modal Implementation for destinationTargetName Field
+- Created pageSearchModalTemplate.js with filter dropdown (Forms/Reports) and page list selection
+- Created pageSearchModalFunctionality.js with complete modal behavior (pre-selection, filtering, validation)
+- Updated buttonsListTemplate.js and buttonsTableTemplate.js to include "Browse for Page" buttons for destinationTargetName
+- Updated clientScriptTemplate.js with pageSearchModal creation and event handling
+- Updated detailsViewGenerator.js to pass allForms and allReports data to Forms webview
+- Updated formDetailsView.js to include pageSearchModal in HTML generation
+- Updated domInitialization.js to add page browse button click handlers
+- Updated buttonManagementFunctions.js to manage browse button enabled/disabled state
+- Updated detailsViewStyles.js with proper VSCode theming for control-with-button and lookup-button styles
+- Status: 100% complete - all components compile successfully in webpack
+- Architecture: Follows same pattern as FK object browser modal for consistency
+
 2025-08-16: ✅ COMPLETED - Implement "Subscribe to Target Child Data Object Properties" checkbox in form input controls tab
 - Added second subscription checkbox below owner subscription checkbox in input controls tab of form details view
 - Checkbox controls target child object's propSubscription entries with destinationContextObjectName=TargetChildObjectName, destinationTargetName=FormName

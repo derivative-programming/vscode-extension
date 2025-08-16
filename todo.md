@@ -15,24 +15,14 @@ report details view...
 - add button - multiselect
 - add button - breadcrumb
 
-prop subscriptions
-"propSubscription": [
-              {
-                "destinationContextObjectName": "AIAssistantThread",
-                "destinationTargetName": "AIAssistantThreadConfigDetails",
-                "isIgnored": "true"
-              }
-            ],
+Destination Target Name lookup icon
+- form button
+- report button
+- report column
 
-report...
-- columns - ✅ subscribe to owner obj properties
-- columns - ✅ subscribe to target child obj properties
-
-
-forms...
-- columns - ✅ subscribe to owner obj properties
-- columns - ✅ subscribe to target child obj properties
-
+Source Object Name lookup button...
+- form input control 'source object name'
+- form setting 'target child object'
 
   
 objectworkflows where ispage = false...

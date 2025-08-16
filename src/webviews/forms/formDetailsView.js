@@ -132,6 +132,10 @@ function showFormDetails(item, modelService, context) {
     );
     
     try {
+        // Get all forms and reports for page search modal
+        const allForms = modelService && modelService.isFileLoaded() ? modelService.getAllPageObjectWorkflows() : [];
+        const allReports = modelService && modelService.isFileLoaded() ? modelService.getAllReports() : [];
+        
         // Set the HTML content with the full form data
         panel.webview.html = generateDetailsView(
             formData, 
@@ -139,7 +143,9 @@ function showFormDetails(item, modelService, context) {
             formParamsSchema, 
             formButtonsSchema, 
             formOutputVarsSchema,
-            codiconsUri
+            codiconsUri,
+            allForms,
+            allReports
         );
     } catch (error) {
         console.error("Error generating details view:", error);
@@ -545,13 +551,20 @@ function refreshAll() {
             const formButtonsSchema = getFormButtonsSchema(schema);
             const formOutputVarsSchema = getFormOutputVarsSchema(schema);
             
+            // Get all forms and reports for page search modal
+            const allForms = modelService && modelService.isFileLoaded() ? modelService.getAllPageObjectWorkflows() : [];
+            const allReports = modelService && modelService.isFileLoaded() ? modelService.getAllReports() : [];
+            
             // Update the HTML content
             panel.webview.html = generateDetailsView(
                 formData, 
                 formSchemaProps, 
                 formParamsSchema, 
                 formButtonsSchema, 
-                formOutputVarsSchema
+                formOutputVarsSchema,
+                undefined, // codiconsUri not available in refresh context
+                allForms,
+                allReports
             );
         }
     }
@@ -625,13 +638,20 @@ function updateModelDirectly(data, formReference, modelService, panel = null) {
             const formButtonsSchema = getFormButtonsSchema(schema);
             const formOutputVarsSchema = getFormOutputVarsSchema(schema);
             
+            // Get all forms and reports for page search modal
+            const allForms = modelService && modelService.isFileLoaded() ? modelService.getAllPageObjectWorkflows() : [];
+            const allReports = modelService && modelService.isFileLoaded() ? modelService.getAllReports() : [];
+            
             // Regenerate and update the webview HTML with updated model data
             panel.webview.html = generateDetailsView(
                 formReference, 
                 formSchemaProps, 
                 formParamsSchema, 
                 formButtonsSchema, 
-                formOutputVarsSchema
+                formOutputVarsSchema,
+                undefined, // codiconsUri not available in this context
+                allForms,
+                allReports
             );
             
             // If preserveTab was specified, restore the active tab
