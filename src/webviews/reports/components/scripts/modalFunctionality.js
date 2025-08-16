@@ -134,6 +134,158 @@ function getModalFunctionality() {
         }, 10);
     }
 
+    // Function to create and show the Add Breadcrumb modal
+    function createAddBreadcrumbModal() {
+        // Create modal dialog for selecting page for breadcrumb
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        
+        // Import the modal HTML template (reuse page search modal)
+        const modalContent = getPageSearchModalHtml();
+        
+        // Set the modal content
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+        
+        // Update modal title for breadcrumb context
+        const modalTitle = modal.querySelector("h2");
+        if (modalTitle) {
+            modalTitle.textContent = "Select Page for Breadcrumb";
+        }
+        
+        // Get modal elements
+        const pageTypeFilter = modal.querySelector("#pageTypeFilter");
+        const pageNameFilter = modal.querySelector("#pageNameFilter");
+        const pageList = modal.querySelector("#pageList");
+        const acceptButton = modal.querySelector("#acceptPageSelection");
+        const cancelButton = modal.querySelector("#cancelPageSelection");
+        
+        // Initially disable the accept button
+        acceptButton.disabled = true;
+        
+        // Get all available pages (forms and reports)
+        let allPages = [];
+        
+        // Collect forms (objectWorkflow items)
+        if (typeof allForms !== 'undefined' && Array.isArray(allForms)) {
+            allForms.forEach(form => {
+                if (form.name) {
+                    allPages.push({
+                        name: form.name,
+                        type: 'form',
+                        displayName: form.name + ' (Form)'
+                    });
+                }
+            });
+        }
+        
+        // Collect reports
+        if (typeof allReports !== 'undefined' && Array.isArray(allReports)) {
+            allReports.forEach(report => {
+                if (report.name) {
+                    allPages.push({
+                        name: report.name,
+                        type: 'report',
+                        displayName: report.name + ' (Report)'
+                    });
+                }
+            });
+        }
+        
+        // Sort pages alphabetically by display name
+        allPages.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        
+        // Function to populate the page list based on filters
+        function populatePageList(typeFilter, textFilter) {
+            pageList.innerHTML = '';
+            
+            const filteredPages = allPages.filter(page => {
+                const matchesType = !typeFilter || page.type === typeFilter;
+                const matchesText = !textFilter || page.name.toLowerCase().includes(textFilter.toLowerCase());
+                return matchesType && matchesText;
+            });
+            
+            filteredPages.forEach(page => {
+                const option = document.createElement('option');
+                option.value = page.name;
+                option.textContent = page.displayName;
+                pageList.appendChild(option);
+            });
+            
+            // Update accept button state
+            acceptButton.disabled = pageList.options.length === 0 || pageList.selectedIndex === -1;
+        }
+        
+        // Initial population
+        populatePageList('', '');
+        
+        // Function to update page list
+        function updatePageList() {
+            const typeFilter = pageTypeFilter.value;
+            const textFilter = pageNameFilter.value.trim();
+            populatePageList(typeFilter, textFilter);
+        }
+        
+        // Add event listeners for filters
+        pageTypeFilter.addEventListener("change", updatePageList);
+        pageNameFilter.addEventListener("input", updatePageList);
+        
+        // Add event listener to enable/disable accept button based on selection
+        pageList.addEventListener("change", function() {
+            acceptButton.disabled = pageList.selectedIndex === -1;
+        });
+        
+        pageList.addEventListener("click", function() {
+            acceptButton.disabled = pageList.selectedIndex === -1;
+        });
+        
+        // Show the modal
+        setTimeout(() => {
+            modal.style.display = "flex";
+        }, 10);
+        
+        // Handle Accept button
+        acceptButton.addEventListener("click", function() {
+            if (pageList.selectedIndex !== -1) {
+                const selectedPageName = pageList.options[pageList.selectedIndex].value;
+                
+                // Send message to backend to add breadcrumb button
+                vscode.postMessage({
+                    command: 'addBreadcrumb',
+                    data: {
+                        pageName: selectedPageName
+                    }
+                });
+                
+                document.body.removeChild(modal);
+            }
+        });
+        
+        // Handle Cancel button  
+        cancelButton.addEventListener("click", function() {
+            document.body.removeChild(modal);
+        });
+        
+        // Close modal when clicking the x button
+        modal.querySelector(".close-button").addEventListener("click", function() {
+            document.body.removeChild(modal);
+        });
+        
+        // Close modal when clicking outside the modal content
+        modal.addEventListener("click", function(event) {
+            if (event.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+        
+        // Allow double-click on option to accept immediately (only if accept button is enabled)
+        pageList.addEventListener("dblclick", function() {
+            if (!acceptButton.disabled) {
+                acceptButton.click();
+            }
+        });
+    }
+
     // Function to create and show the Add Column modal
     function createAddColumnModal() {
         // Create modal dialog for adding columns

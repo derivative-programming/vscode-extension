@@ -166,6 +166,7 @@ function getDOMInitialization() {
         // Add button event handlers
         const addColumnBtn = document.getElementById('add-column-btn');
         const addButtonBtn = document.getElementById('add-button-btn');
+        const addBreadcrumbBtn = document.getElementById('add-breadcrumb-btn');
         const addParamBtn = document.getElementById('add-param-btn');
         
         if (addColumnBtn) {
@@ -177,6 +178,12 @@ function getDOMInitialization() {
         if (addButtonBtn) {
             addButtonBtn.addEventListener('click', function() {
                 createAddButtonModal();
+            });
+        }
+        
+        if (addBreadcrumbBtn) {
+            addBreadcrumbBtn.addEventListener('click', function() {
+                createAddBreadcrumbModal();
             });
         }
         

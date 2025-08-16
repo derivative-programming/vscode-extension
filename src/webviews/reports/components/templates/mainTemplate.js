@@ -235,6 +235,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
       <!-- Buttons Tab -->
     <div id="buttons" class="tab-content">
         <div class="view-icons" data-tab="buttons">
+            <button id="add-breadcrumb-btn" class="add-prop-button">Add Breadcrumb</button>
             <button id="add-button-btn" class="add-prop-button">Add Button</button>
         </div>
 

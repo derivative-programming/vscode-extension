@@ -202,6 +202,15 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addBreadcrumb":
+                    if (modelService && reportReference) {
+                        // Add a new breadcrumb button to the report
+                        addBreadcrumbToReport(reportReference, modelService, message.data.pageName, panel);
+                    } else {
+                        console.warn("Cannot add breadcrumb: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
                 case "addParam":
                     if (modelService && reportReference) {
                         // Add a new param to the report
@@ -1322,6 +1331,65 @@ function addButtonToReportWithName(reportReference, modelService, buttonName, pa
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding button with name:", error);
+    }
+}
+
+/**
+ * Adds a new breadcrumb button to the report
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {string} pageName Name of the selected page for the breadcrumb
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addBreadcrumbToReport(reportReference, modelService, pageName, panel) {
+    console.log("addBreadcrumbToReport called with pageName:", pageName);
+    
+    if (!reportReference || !modelService || !pageName) {
+        console.error("Missing required data to add breadcrumb");
+        return;
+    }
+    
+    try {
+        // Initialize the buttons array if it doesn't exist
+        if (!reportReference.reportButton) {
+            reportReference.reportButton = [];
+        }
+        
+        // Get the owner data object of the selected page
+        const ownerObject = modelService.getPageOwnerObject(pageName);
+        const destinationContextObjectName = ownerObject ? ownerObject.name : '';
+        
+        // Create a new breadcrumb button with the specified properties
+        const newButton = {
+            buttonName: `${pageName}Breadcrumb`,
+            buttonText: `${pageName}Breadcrumb`,
+            buttonType: 'breadcrumb',
+            destinationTargetName: pageName,
+            destinationContextObjectName: destinationContextObjectName
+        };
+        
+        // Add the new button to the array
+        reportReference.reportButton.push(newButton);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the buttons list and select the new button
+        if (panel && panel.webview) {
+            const newButtonIndex = reportReference.reportButton.length - 1; // New button is the last one
+            panel.webview.postMessage({
+                command: 'refreshButtonsList',
+                data: reportReference.reportButton,
+                newSelection: newButtonIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding breadcrumb:", error);
     }
 }
 
