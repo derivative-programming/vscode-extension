@@ -60,6 +60,14 @@ function getUIEventHandlers() {
                 
                 // Set initial styling based on checkbox state
                 updateInputStyle(inputField, checkbox.checked);
+                
+                // Set initial browse button state for targetChildObject field
+                if (propertyName === 'targetChildObject') {
+                    const browseButton = inputField.parentElement.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = !checkbox.checked;
+                    }
+                }
             }
         });
     });
