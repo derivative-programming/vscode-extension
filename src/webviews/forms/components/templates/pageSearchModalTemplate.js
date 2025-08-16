@@ -25,6 +25,10 @@ function getPageSearchModalHtml() {
         </select>
     </div>
     <div class="form-row">
+        <label for="pageNameFilter">Filter by Name:</label>
+        <input type="text" id="pageNameFilter" placeholder="Enter text to filter pages..." style="width: 100%; margin-bottom: 10px;" />
+    </div>
+    <div class="form-row">
         <label for="pageList">Available Pages:</label>
         <select id="pageList" size="10" style="width: 100%; height: 200px;">
             <!-- Options will be populated by JavaScript -->
