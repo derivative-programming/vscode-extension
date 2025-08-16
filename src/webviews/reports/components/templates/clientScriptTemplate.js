@@ -110,9 +110,60 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 }
             }
             
+            // Copy Report Name Function
+            function copyReportName(reportName) {
+                console.log('[DEBUG] ReportDetails - Copy report name requested for:', JSON.stringify(reportName));
+                
+                if (!reportName) {
+                    console.warn('[WARN] ReportDetails - Cannot copy: report name not available');
+                    return;
+                }
+                
+                try {
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(reportName).then(() => {
+                            console.log('Report name copied to clipboard:', reportName);
+                            // Provide visual feedback
+                            const copyButton = document.querySelector('.copy-report-name-button .codicon');
+                            if (copyButton) {
+                                const originalClass = copyButton.className;
+                                copyButton.className = 'codicon codicon-check';
+                                setTimeout(() => {
+                                    copyButton.className = originalClass;
+                                }, 2000);
+                            }
+                        }).catch(err => {
+                            console.error('Failed to copy report name: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = reportName;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const copyButton = document.querySelector('.copy-report-name-button .codicon');
+                        if (copyButton) {
+                            const originalClass = copyButton.className;
+                            copyButton.className = 'codicon codicon-check';
+                            setTimeout(() => {
+                                copyButton.className = originalClass;
+                            }, 2000);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error copying report name: ', err);
+                }
+            }
+            
             // Make functions globally available
             window.openPagePreview = openPagePreview;
             window.openOwnerObjectDetails = openOwnerObjectDetails;
+            window.copyReportName = copyReportName;
 
             // UI Event Handlers for tabs and view switching
             ${getUIEventHandlers()}
