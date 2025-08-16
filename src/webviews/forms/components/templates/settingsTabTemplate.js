@@ -56,7 +56,8 @@ function getFormPropertiesToIgnore() {
         "isdynaflow",
         "isdynaflowtask",
         "iscustompageviewused",
-        "isimpersonationpage"
+        "isimpersonationpage",
+        "isexposedinbusinessobject"
     ];
 }
 

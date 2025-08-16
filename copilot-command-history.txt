@@ -1,3 +1,10 @@
+2025-01-25: ✅ COMPLETED - Hide 'Is Exposed In Business Object' setting in form details view settings tab
+- Added "isexposedinbusinessobject" to getFormPropertiesToIgnore() function in settingsTabTemplate.js
+- Property isExposedInBusinessObject (schema description: "Defines access to business logic functionality") no longer appears in form settings tab
+- Minimal change: Added 1 line to existing property filtering list following established pattern
+- Build and lint verification: All tests pass, no new warnings introduced
+- Architecture: Consistent with existing property hiding patterns used in reports and objects settings tabs
+
 2025-01-16: ✅ COMPLETED - Form details view: input controls tab: missing the fkObjectName setting (Issue #227)
 - Command: "Form details view: input controls tab: missing the fkObjectName setting"
 - Status: ✅ COMPLETED

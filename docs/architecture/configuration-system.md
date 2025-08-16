@@ -2,6 +2,33 @@
 
 *This file contains architecture notes related to configuration system.*
 
+## Form Details View Settings Tab - Hide 'Is Exposed In Business Object' Setting (Added 2025-01-25)
+
+Implemented user requirement to hide the 'Is Exposed In Business Object' setting from the form details view settings tab.
+
+### Requirements:
+- Hide 'Is Exposed In Business Object' setting (isExposedInBusinessObject) from form settings tab
+
+### Solution:
+Modified `src/webviews/forms/components/templates/settingsTabTemplate.js` to add property filtering following existing patterns in the codebase.
+
+### Technical Details:
+- **File Modified**: `src/webviews/forms/components/templates/settingsTabTemplate.js`
+- **Change Type**: Minimal - Added 1 line to existing property ignore list
+- **Property Hiding**: Extended existing `getFormPropertiesToIgnore()` function to exclude `isExposedInBusinessObject`
+- **Schema Property**: `isExposedInBusinessObject` with description "Defines access to business logic functionality"
+
+### Implementation:
+1. **Property Filtering**: Added "isexposedinbusinessobject" to the properties ignore list to hide it completely
+2. **Consistent Pattern**: Followed same approach used for other hidden properties in forms settings
+3. **Consistent UX**: Matches existing patterns for property hiding used in reports and objects settings tabs
+
+### Testing Verified:
+- Property is hidden: isExposedInBusinessObject no longer appears in form settings tab ✅
+- Build and lint successful with no new issues ✅
+- Other properties maintain their original behavior ✅
+- Follows lowercase naming convention used by filter logic ✅
+
 ## Data Object Settings Tab - Property Hiding and Read-Only Updates (Added 2025-01-17)
 
 Implemented user requirements to hide specific settings and make 'is lookup' field read-only in the data object details view settings tab.
