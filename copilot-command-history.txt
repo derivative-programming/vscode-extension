@@ -1,3 +1,28 @@
+2025-01-16: ✅ COMPLETED - Page preview view: Form preview: Lookup dropdown item list update (Issue #226)
+- Command: "Page preview view: Form preview: Lookup dropdown item list update"
+- Status: ✅ COMPLETED
+- Architecture: Implemented dynamic lookup dropdown population for form preview when IsFKList=true
+- Components Modified:
+  * Updated htmlGenerator.js in pagepreview components:
+    - Added getLookupItems() helper function to retrieve lookup items from fkObjectName data object
+    - Enhanced generateFormInput() function to use actual lookup items instead of static samples
+    - Updated generateFilterInput() function for consistency in report filters
+    - Filters only active lookup items (isActive="true" or undefined)
+    - Uses displayName for option text, name for option value
+    - Maintains backward compatibility with fallback to sample options
+- Implementation Details:
+  * Searches through allObjects to find lookup data object by fkObjectName
+  * Only includes active lookup items in dropdown (isActive property filtering)
+  * Uses displayName as option display text, falls back to name if not available
+  * Uses name property as option value for form submissions
+  * Graceful fallback to "Sample Option 1/2" if lookup data not found
+  * Applied same enhancement to both form inputs and report filter inputs
+- Testing: Created comprehensive test case with StatusLookup object containing multiple lookup items
+- Verification: Screenshot demonstrates dropdown showing actual lookup items ("Active Status", "Inactive Status", "Pending Status") instead of static samples
+- Pattern: Follows existing extension patterns for data retrieval and HTML generation
+- Result: Form preview dropdowns now display real lookup data when fkObjectName is specified
+- Status: Compiled successfully, production-ready code
+
 2025-01-16: ✅ COMPLETED - Form details view: input controls tab: missing the fkObjectName setting (Issue #227)
 - Command: "Form details view: input controls tab: missing the fkObjectName setting"
 - Status: ✅ COMPLETED
