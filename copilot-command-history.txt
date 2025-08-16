@@ -1,3 +1,21 @@
+2025-01-16: ✅ COMPLETED - Form details view: input controls tab: missing the fkObjectName setting (Issue #227)
+- Command: "Form details view: input controls tab: missing the fkObjectName setting"
+- Status: ✅ COMPLETED
+- Architecture: Implemented complete fkObjectName field visibility and browse functionality for Forms webview input controls tab
+- Components Modified:
+  * Updated paramsListTemplate.js to remove "fkobjectname" from getParamPropertiesToHide() function
+  * Added browse button for fkObjectName field with same pattern as sourceObjectName
+  * Updated paramsTableTemplate.js to remove "fkobjectname" from hidden properties and add browse button
+  * Updated domInitialization.js to handle fkObjectName browse button clicks via createDataObjectSearchModal
+  * Updated formControlUtilities.js to manage browse button state (enable/disable) when fkObjectName property checkbox is toggled
+  * Updated uiEventHandlers.js to set initial browse button state for fkObjectName field during page initialization
+- Pattern: Followed exact same implementation pattern as existing sourceObjectName field implementation
+- Data Integration: Reuses existing allDataObjects data and createDataObjectSearchModal functionality
+- Button Management: Browse button state properly synchronized with property existence checkbox
+- Modal Functionality: Uses existing dataObjectSearchModalTemplate.js and dataObjectSearchModalFunctionality.js with text filter
+- Result: Users can now see and configure fkObjectName field in Forms webview input controls tab, with browse data objects functionality
+- Status: Compiled successfully, ready for testing
+
 2025-01-16: ✅ FIXED - Lookup Button Hover Styling
 - Problem: Lookup button showed dark blue background on hover (using vscode-button-hoverBackground)
 - Solution: Removed background color change on hover, replaced with subtle border color change

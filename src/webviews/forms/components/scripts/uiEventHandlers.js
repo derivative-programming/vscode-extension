@@ -68,6 +68,14 @@ function getUIEventHandlers() {
                         browseButton.disabled = !checkbox.checked;
                     }
                 }
+                
+                // Set initial browse button state for fkObjectName field
+                if (propertyName === 'fkObjectName') {
+                    const browseButton = inputField.parentElement.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = !checkbox.checked;
+                    }
+                }
             }
         });
     });
