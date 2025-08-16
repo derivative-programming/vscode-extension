@@ -45,7 +45,7 @@ function getMainTemplate(
     <style>
         ${getDetailViewStyles()}
         
-        /* View Preview Button Styles */
+        /* Header Button Styles */
         .header-container {
             display: flex;
             align-items: center;
@@ -57,6 +57,7 @@ function getMainTemplate(
             margin: 0;
         }
         
+        .copy-form-name-button,
         .view-preview-button {
             background: transparent !important;
             background-color: transparent !important;
@@ -73,16 +74,19 @@ function getMainTemplate(
             height: 28px;
         }
         
+        .copy-form-name-button:hover,
         .view-preview-button:hover {
             background: var(--vscode-toolbar-hoverBackground) !important;
             background-color: var(--vscode-toolbar-hoverBackground) !important;
         }
         
+        .copy-form-name-button:active,
         .view-preview-button:active {
             background: var(--vscode-toolbar-activeBackground);
             transform: scale(0.95);
         }
         
+        .copy-form-name-button .codicon,
         .view-preview-button .codicon {
             font-size: 16px;
         }
@@ -146,6 +150,9 @@ function getMainTemplate(
 <body>
     <div class="header-container">
         <h1 class="header-title">Details for ${form.name || 'Unknown Form'} Form</h1>
+        <button class="copy-form-name-button" onclick="copyFormName()" title="Copy form name">
+            <i class="codicon codicon-copy"></i>
+        </button>
         <button class="view-preview-button" onclick="openPagePreview('${form.name || ''}', '${form.isPage === 'true' ? 'true' : 'false'}')" title="View page preview">
             <i class="codicon codicon-eye"></i>
             <span class="icon-text">👁</span>
