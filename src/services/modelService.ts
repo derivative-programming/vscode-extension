@@ -243,6 +243,157 @@ export class ModelService {
     }
 
     /**
+     * Get a specific report by name
+     * @param reportName Name of the report to find
+     * @returns The report object if found, null otherwise
+     */
+    public getReport(reportName: string): ReportSchema | null {
+        const allReports = this.getAllReports();
+        return allReports.find(report => 
+            report.name && report.name.trim().toLowerCase() === reportName.trim().toLowerCase()
+        ) || null;
+    }
+
+    /**
+     * Get a specific form (objectWorkflow with isPage=true) by name
+     * @param formName Name of the form to find
+     * @returns The form object if found, null otherwise
+     */
+    public getForm(formName: string): ObjectWorkflowSchema | null {
+        const allForms = this.getAllForms();
+        return allForms.find(form => 
+            form.name && form.name.trim().toLowerCase() === formName.trim().toLowerCase()
+        ) || null;
+    }
+
+    /**
+     * Get a specific page (report or form) by name
+     * @param pageName Name of the page to find
+     * @returns The page object if found, null otherwise
+     */
+    public getPage(pageName: string): ReportSchema | ObjectWorkflowSchema | null {
+        // First try to find as a report with isPage=true
+        const allReports = this.getAllReports();
+        const reportPage = allReports.find(report => 
+            report.name && report.name.trim().toLowerCase() === pageName.trim().toLowerCase() &&
+            report.isPage === "true"
+        );
+        
+        if (reportPage) {
+            return reportPage;
+        }
+
+        // Then try to find as a form (objectWorkflow with isPage=true)
+        const allForms = this.getAllForms();
+        const formPage = allForms.find(form => 
+            form.name && form.name.trim().toLowerCase() === pageName.trim().toLowerCase()
+        );
+        
+        return formPage || null;
+    }
+
+    /**
+     * Get a specific object by name
+     * @param objectName Name of the object to find
+     * @returns The object if found, null otherwise
+     */
+    public getObject(objectName: string): ObjectSchema | null {
+        const allObjects = this.getAllObjects();
+        return allObjects.find(object => 
+            object.name && object.name.trim().toLowerCase() === objectName.trim().toLowerCase()
+        ) || null;
+    }
+
+    /**
+     * Get the owner object of a specific report
+     * @param reportName Name of the report
+     * @returns The object that owns this report, null if not found
+     */
+    public getReportOwnerObject(reportName: string): ObjectSchema | null {
+        const allObjects = this.getAllObjects();
+        
+        for (const object of allObjects) {
+            if (object.report && Array.isArray(object.report)) {
+                const hasReport = object.report.some(report => 
+                    report.name && report.name.trim().toLowerCase() === reportName.trim().toLowerCase()
+                );
+                if (hasReport) {
+                    return object;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Get the owner object of a specific form (objectWorkflow with isPage=true)
+     * @param formName Name of the form
+     * @returns The object that owns this form, null if not found
+     */
+    public getFormOwnerObject(formName: string): ObjectSchema | null {
+        const allObjects = this.getAllObjects();
+        
+        for (const object of allObjects) {
+            if (object.objectWorkflow && Array.isArray(object.objectWorkflow)) {
+                const hasForm = object.objectWorkflow.some(workflow => 
+                    workflow.name && workflow.name.trim().toLowerCase() === formName.trim().toLowerCase() &&
+                    workflow.isPage === "true"
+                );
+                if (hasForm) {
+                    return object;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Get the owner object of a specific page (report or form)
+     * @param pageName Name of the page
+     * @returns The object that owns this page, null if not found
+     */
+    public getPageOwnerObject(pageName: string): ObjectSchema | null {
+        // First try to find as a report owner
+        const reportOwner = this.getReportOwnerObject(pageName);
+        if (reportOwner) {
+            // Verify the report is actually a page
+            const report = this.getReport(pageName);
+            if (report && report.isPage === "true") {
+                return reportOwner;
+            }
+        }
+
+        // Then try to find as a form owner
+        const formOwner = this.getFormOwnerObject(pageName);
+        if (formOwner) {
+            return formOwner;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Get all pages (reports with isPage=true and forms)
+     * @returns Array of all page objects (both reports and forms)
+     */
+    public getAllPages(): Array<ReportSchema | ObjectWorkflowSchema> {
+        const pages: Array<ReportSchema | ObjectWorkflowSchema> = [];
+        
+        // Add reports with isPage=true
+        const allReports = this.getAllReports();
+        const reportPages = allReports.filter(report => report.isPage === "true");
+        pages.push(...reportPages);
+        
+        // Add forms (objectWorkflow with isPage=true)
+        const allForms = this.getAllForms();
+        pages.push(...allForms);
+        
+        return pages;
+    }
+
+    /**
      * Clear the cached model data
      */
     public clearCache(): void {

@@ -156,8 +156,6 @@ Allow users to rearrange visualizations or create custom dashboards with widgets
 ### Interactive Component Exploration
 Make all visualizations clickable to access details or related components, improving navigation across views.
 
-### Real-Time JSON Updates
-Reflect JSON changes immediately in all views (if dynamic), ensuring up-to-date visualizations.
 
 ### Collaboration Tools
 Enable multiple users to work simultaneously, with shared annotations or views, supporting team collaboration.
