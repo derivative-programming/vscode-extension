@@ -2860,6 +2860,34 @@ function generateJavaScript(allObjects) {
             return dataType.includes('bit') || dataType.includes('boolean');
         }
         
+        // Helper function to get lookup items for a given FK object name
+        function getLookupItemsForFKObject(fkObjectName) {
+            if (!fkObjectName || !allObjects) {
+                console.log('[DEBUG] PagePreview - getLookupItemsForFKObject: Invalid input - fkObjectName:', fkObjectName, 'allObjects available:', !!allObjects);
+                return [];
+            }
+            
+            // Find the data object with the matching name
+            const fkObject = allObjects.find(obj => obj.name === fkObjectName);
+            if (!fkObject) {
+                console.log('[DEBUG] PagePreview - getLookupItemsForFKObject: FK object not found:', fkObjectName);
+                return [];
+            }
+            
+            if (!fkObject.lookupItem || !Array.isArray(fkObject.lookupItem)) {
+                console.log('[DEBUG] PagePreview - getLookupItemsForFKObject: FK object has no lookup items:', fkObjectName);
+                return [];
+            }
+            
+            // Return only active lookup items if isActive property exists, otherwise return all
+            const activeItems = fkObject.lookupItem.filter(item => 
+                !item.hasOwnProperty('isActive') || item.isActive === "true"
+            );
+            
+            console.log('[DEBUG] PagePreview - getLookupItemsForFKObject: Found', activeItems.length, 'active items for', fkObjectName);
+            return activeItems;
+        }
+
         // Generate form input based on parameter properties
         function generateFormInput(param) {
             let html = '';
@@ -2869,11 +2897,32 @@ function generateJavaScript(allObjects) {
             const dataType = (param.sqlServerDBDataType || '').toLowerCase();
             
             if (param.isFKLookup === "true" || param.isFKList === "true") {
-                // Foreign key lookup - dropdown
+                // Foreign key lookup - dropdown with actual lookup items
+                const fkObjectName = param.fKObjectName || param.fkObjectName;
+                console.log('[DEBUG] PagePreview - generateFormInput: Creating FK dropdown for', param.name, 'with FK object:', fkObjectName);
+                
                 html += '<select class="form-field-input"' + (isRequired ? ' required' : '') + '>';
                 html += '<option value="">Select ' + (param.labelText || param.name || 'option') + '...</option>';
-                html += '<option value="sample1">Sample Option 1</option>';
-                html += '<option value="sample2">Sample Option 2</option>';
+                
+                // Get lookup items from the FK object
+                const lookupItems = getLookupItemsForFKObject(fkObjectName);
+                
+                if (lookupItems.length > 0) {
+                    // Add actual lookup items
+                    lookupItems.forEach(item => {
+                        const value = item.name || '';
+                        const displayText = item.displayName || item.name || 'Unnamed Item';
+                        const titleText = item.description ? item.description : displayText;
+                        html += '<option value="' + value + '" title="' + titleText + '">' + displayText + '</option>';
+                    });
+                    console.log('[DEBUG] PagePreview - generateFormInput: Added', lookupItems.length, 'lookup items for', param.name);
+                } else {
+                    // Fallback: show informative message if no lookup items found
+                    const fkObjectName = param.fKObjectName || param.fkObjectName || 'unknown';
+                    html += '<option value="" disabled>No items found in ' + fkObjectName + '</option>';
+                    console.log('[DEBUG] PagePreview - generateFormInput: No lookup items found for FK object:', fkObjectName);
+                }
+                
                 html += '</select>';
             } else if (dataType.includes('text') || dataType.includes('ntext') || 
                       param.inputControl === 'textarea' || 
@@ -3158,12 +3207,32 @@ function generateJavaScript(allObjects) {
             });
             
             if (param.isFKLookup === "true" || param.isFKList === "true") {
-                // Foreign key lookup - dropdown
-                console.log('[DEBUG] PagePreview - Generating FK dropdown for:', param.name);
+                // Foreign key lookup - dropdown with actual lookup items
+                const fkObjectName = param.fKObjectName || param.fkObjectName;
+                console.log('[DEBUG] PagePreview - generateFilterInput: Creating FK dropdown filter for', param.name, 'with FK object:', fkObjectName);
+                
                 let html = '<select class="filter-input">';
                 html += '<option value="">All</option>';
-                html += '<option value="sample1">Sample Option 1</option>';
-                html += '<option value="sample2">Sample Option 2</option>';
+                
+                // Get lookup items from the FK object
+                const lookupItems = getLookupItemsForFKObject(fkObjectName);
+                
+                if (lookupItems.length > 0) {
+                    // Add actual lookup items
+                    lookupItems.forEach(item => {
+                        const value = item.name || '';
+                        const displayText = item.displayName || item.name || 'Unnamed Item';
+                        const titleText = item.description ? item.description : displayText;
+                        html += '<option value="' + value + '" title="' + titleText + '">' + displayText + '</option>';
+                    });
+                    console.log('[DEBUG] PagePreview - generateFilterInput: Added', lookupItems.length, 'lookup items for filter', param.name);
+                } else {
+                    // Fallback: show informative message if no lookup items found
+                    const fkObjectName = param.fKObjectName || param.fkObjectName || 'unknown';
+                    html += '<option value="" disabled>No items in ' + fkObjectName + '</option>';
+                    console.log('[DEBUG] PagePreview - generateFilterInput: No lookup items found for FK object:', fkObjectName);
+                }
+                
                 html += '</select>';
                 return html;
             } else if (dataType.includes('bit') || dataType.includes('boolean')) {
