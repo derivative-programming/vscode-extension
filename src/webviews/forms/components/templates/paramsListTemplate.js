@@ -15,7 +15,6 @@ function getParamPropertiesToHide() {
     return [
         "name",
         "defaultvalue",
-        "fkobjectname",
         "isfk",
         "isfklookup",
         "fklistorderby",
@@ -84,10 +83,15 @@ function getParamsListTemplate(paramSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${propKey}" value="" ${tooltip} readonly>`;
         }
         
-        // Add browse button for sourceObjectName field
+        // Add browse button for sourceObjectName and fkObjectName fields
         let browseButton = "";
         let controlContainer = "";
         if (propKey === "sourceObjectName") {
+            browseButton = `<button type="button" class="lookup-button" data-prop="${propKey}" data-field-id="${fieldId}" disabled title="Browse Data Objects">
+                <span class="codicon codicon-search"></span>
+            </button>`;
+            controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;
+        } else if (propKey === "fkObjectName") {
             browseButton = `<button type="button" class="lookup-button" data-prop="${propKey}" data-field-id="${fieldId}" disabled title="Browse Data Objects">
                 <span class="codicon codicon-search"></span>
             </button>`;

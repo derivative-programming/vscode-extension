@@ -9,7 +9,6 @@ function getParamPropertiesToHide() {
     return [
         "name",
         "defaultvalue",
-        "fkobjectname",
         "isfk",
         "isfklookup",
         "fklistorderby",
@@ -94,9 +93,13 @@ function getParamsTableTemplate(params, paramsSchema) {
                 inputField = `<input type="text" name="${paramKey}" value="${propertyExists ? param[paramKey] : ''}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
             
-            // Add browse button for sourceObjectName field
+            // Add browse button for sourceObjectName and fkObjectName fields
             let browseButton = "";
             if (paramKey === "sourceObjectName") {
+                browseButton = `<button type="button" class="lookup-button" data-prop="${paramKey}" data-index="${index}" ${!propertyExists ? "disabled" : ""} title="Browse Data Objects">
+                    <span class="codicon codicon-search"></span>
+                </button>`;
+            } else if (paramKey === "fkObjectName") {
                 browseButton = `<button type="button" class="lookup-button" data-prop="${paramKey}" data-index="${index}" ${!propertyExists ? "disabled" : ""} title="Browse Data Objects">
                     <span class="codicon codicon-search"></span>
                 </button>`;

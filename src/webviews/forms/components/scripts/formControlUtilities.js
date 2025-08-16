@@ -52,6 +52,14 @@ function getFormControlUtilities() {
                             }
                         }
                         
+                        // Handle browse button state for fkObjectName field
+                        if (propertyName === 'fkObjectName') {
+                            const browseButton = inputField.parentElement.querySelector('.lookup-button');
+                            if (browseButton) {
+                                browseButton.disabled = false;
+                            }
+                        }
+                        
                         // Disable the checkbox to prevent unchecking
                         this.disabled = true;
                     } else {
@@ -65,6 +73,14 @@ function getFormControlUtilities() {
                         
                         // Handle browse button state for targetChildObject field
                         if (propertyName === 'targetChildObject') {
+                            const browseButton = inputField.parentElement.querySelector('.lookup-button');
+                            if (browseButton) {
+                                browseButton.disabled = true;
+                            }
+                        }
+                        
+                        // Handle browse button state for fkObjectName field
+                        if (propertyName === 'fkObjectName') {
                             const browseButton = inputField.parentElement.querySelector('.lookup-button');
                             if (browseButton) {
                                 browseButton.disabled = true;
