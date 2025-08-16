@@ -294,3 +294,24 @@ Command: Fix 'appdna.showObjectDetails' command not found error
 - Testing: Created and ran unit tests verifying template generation with/without owner object
 - Build Status: Compiled successfully without errors, all functionality working as expected
 - Pattern: Follows existing UI patterns for icon buttons and message handling architecture
+
+2025-01-16: ✅ COMPLETED - Report details view: Copy Report Name button (Issue #231)
+Status: COMPLETED ✅
+Architecture Notes: 
+- Added copy icon button positioned between title and view preview button in report details header
+- Implemented clipboard functionality using navigator.clipboard.writeText() with fallback to document.execCommand()
+- Provides visual feedback by changing icon to checkmark for 2 seconds after successful copy
+- Follows existing VS Code extension patterns for button styling and user interaction
+- Uses codicon-copy icon consistent with VS Code design system
+- Button appears to the left of the existing view preview button as requested
+- Functionality tested and verified working correctly with both short and long report names
+
+Files Modified:
+- src/webviews/reports/components/templates/mainTemplate.js - Added button HTML and CSS styles
+- src/webviews/reports/components/templates/clientScriptTemplate.js - Added copyReportName JavaScript function
+
+Testing:
+- Created comprehensive test cases to verify copy functionality
+- Tested clipboard operations with both modern API and fallback methods
+- Verified visual feedback and user experience
+- Confirmed integration with existing report details view structure
