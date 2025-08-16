@@ -457,6 +457,28 @@ function showFormDetails(item, modelService, context) {
                         vscode.window.showErrorMessage(`Failed to open page preview: ${error.message}`);
                     }
                     return;
+                    
+                case "updateFormOwnerSubscription":
+                    if (modelService && formReference) {
+                        // Update the form's owner data object properties subscription
+                        updateFormOwnerSubscription(message.data, formReference, modelService);
+                    } else {
+                        console.warn("Cannot update form owner subscription: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "getFormOwnerSubscriptionState":
+                    if (modelService && formReference) {
+                        // Get the current subscription state and send it back to the webview
+                        const subscriptionState = getFormOwnerSubscriptionState(formReference, modelService);
+                        panel.webview.postMessage({
+                            command: 'setFormOwnerSubscriptionState',
+                            data: { isSubscribed: subscriptionState }
+                        });
+                    } else {
+                        console.warn("Cannot get form owner subscription state: ModelService not available or form reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -1679,6 +1701,139 @@ function updateParamFull(data, formReference, modelService) {
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error updating full parameter:", error);
+    }
+}
+
+/**
+ * Get the current form's owner subscription state
+ * @param {Object} formReference - Reference to the form object
+ * @param {Object} modelService - The model service instance
+ * @returns {boolean} True if subscribed to owner properties
+ */
+function getFormOwnerSubscriptionState(formReference, modelService) {
+    console.log('[Form Subscription] getFormOwnerSubscriptionState called');
+    
+    if (!formReference || !modelService) {
+        console.error('[Form Subscription] Missing required data for subscription state check');
+        return false;
+    }
+    
+    try {
+        // Use the ModelService to get the form owner object
+        const ownerObject = modelService.getFormOwnerObject(formReference.name);
+        console.log('[Form Subscription] Found owner object:', ownerObject?.name);
+        
+        if (!ownerObject || !Array.isArray(ownerObject.propSubscription)) {
+            console.log('[Form Subscription] No owner object or propSubscription array found');
+            return false;
+        }
+        
+        // Use the actual owner object name and form name for the subscription lookup
+        const objectName = ownerObject.name;
+        const formName = formReference.name;
+        
+        // Look for subscription that doesn't have isIgnored="true" (or missing isIgnored property = false)
+        const activeSubscription = ownerObject.propSubscription.find(sub => 
+            sub.destinationContextObjectName === objectName && 
+            sub.destinationTargetName === formName &&
+            sub.isIgnored !== "true"
+        );
+        
+        const isSubscribed = !!activeSubscription;
+        console.log('[Form Subscription] Found subscription state:', isSubscribed, activeSubscription);
+        return isSubscribed;
+    } catch (error) {
+        console.error('[Form Subscription] Error getting subscription state:', error);
+        return false;
+    }
+}
+
+/**
+ * Update the form's owner data object properties subscription
+ * @param {Object} data - The subscription data
+ * @param {Object} formReference - Reference to the form object
+ * @param {Object} modelService - The model service instance
+ */
+function updateFormOwnerSubscription(data, formReference, modelService) {
+    console.log('[Form Subscription] updateFormOwnerSubscription called with data:', data);
+    
+    if (!formReference || !modelService || data.isSubscribed === undefined) {
+        console.error('[Form Subscription] Missing required data for subscription update');
+        return;
+    }
+    
+    try {
+        // Use the ModelService to get the form owner object
+        const ownerObject = modelService.getFormOwnerObject(formReference.name);
+        console.log('[Form Subscription] Found owner object:', ownerObject?.name);
+        
+        if (!ownerObject) {
+            console.warn('[Form Subscription] No owner object found for form:', formReference.name);
+            vscode.window.showWarningMessage('No owner object found for this form. Cannot manage subscription.');
+            return;
+        }
+        
+        // Initialize propSubscription array on the OWNER OBJECT if it doesn't exist
+        if (!ownerObject.propSubscription) {
+            ownerObject.propSubscription = [];
+        }
+        
+        // Use the actual owner object name and form name for the subscription
+        const objectName = ownerObject.name;
+        const formName = formReference.name;
+        
+        // Find existing subscription for this form in the owner object's propSubscription
+        let existingSubscription = ownerObject.propSubscription.find(sub => 
+            sub.destinationContextObjectName === objectName && 
+            sub.destinationTargetName === formName
+        );
+        
+        if (data.isSubscribed) {
+            // Enable subscription
+            if (existingSubscription) {
+                // Remove isIgnored or set it to false
+                existingSubscription.isIgnored = "false";
+                console.log('[Form Subscription] Enabled existing subscription');
+            } else {
+                // Create new subscription
+                const newSubscription = {
+                    destinationContextObjectName: objectName,
+                    destinationTargetName: formName,
+                    isIgnored: "false"
+                };
+                ownerObject.propSubscription.push(newSubscription);
+                console.log('[Form Subscription] Created new subscription');
+            }
+        } else {
+            // Disable subscription
+            if (existingSubscription) {
+                // Set isIgnored to true instead of removing
+                existingSubscription.isIgnored = "true";
+                console.log('[Form Subscription] Disabled subscription by setting isIgnored=true');
+            } else {
+                // Create new subscription that's ignored
+                const newSubscription = {
+                    destinationContextObjectName: objectName,
+                    destinationTargetName: formName,
+                    isIgnored: "true"
+                };
+                ownerObject.propSubscription.push(newSubscription);
+                console.log('[Form Subscription] Created new subscription as disabled');
+            }
+        }
+        
+        // Mark as having unsaved changes
+        if (typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+        
+        console.log('[Form Subscription] Subscription updated successfully');
+    } catch (error) {
+        console.error('[Form Subscription] Error updating subscription:', error);
+        vscode.window.showErrorMessage(`Failed to update subscription: ${error.message}`);
     }
 }
 

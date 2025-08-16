@@ -8,6 +8,18 @@
 - Added backend functions: getOwnerSubscriptionState() and updateOwnerSubscription()
 - Added message handlers: getOwnerSubscriptionState, updateOwnerSubscription, setOwnerSubscriptionState
 - Uses ModelService.getReportOwnerObject() to find parent object for propSubscription management
+
+2025-08-16: ✅ COMPLETED - Extend "Subscribe to Owner Data Object Properties" checkbox to form input controls tab
+- Added identical subscription checkbox to form details view input controls tab
+- Modified mainTemplate.js (forms) to include subscription controls div after list buttons
+- Added subscription functionality to parameterManagementFunctions.js with same API as reports
+- Added initializeOwnerSubscriptionCheckbox(), handleOwnerSubscriptionToggle(), getOwnerSubscriptionState(), updateOwnerSubscription() 
+- Added message handler "updateFormOwnerSubscription" to formDetailsView.js backend
+- Added updateFormOwnerSubscription() function using ModelService.getFormOwnerObject()
+- Added subscription control CSS styling to forms/styles/detailsViewStyles.js
+- Form subscription uses destinationContextObjectName='OwnerDataObject', destinationTargetName='Properties'
+- Business logic: isIgnored property missing = false (subscribed), isIgnored=true = unsubscribed
+- Architecture: Same pattern as reports - checkbox position, styling, backend integration, propSubscription array management
 - Properly handles edge cases: missing propSubscription array, missing owner object, etc.
 Architecture Notes:
 - Checkbox state automatically initialized on tab load by querying current propSubscription

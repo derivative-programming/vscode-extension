@@ -501,6 +501,69 @@ function getParameterManagementFunctions() {
     // Initialize parameter tab functionality
     function initializeParameterTabFunctionality() {
         setupParameterReordering();
+        initializeOwnerSubscriptionCheckbox();
+    }
+    
+    // --- OWNER SUBSCRIPTION FUNCTIONALITY ---
+    
+    /**
+     * Initialize the owner subscription checkbox
+     */
+    function initializeOwnerSubscriptionCheckbox() {
+        const checkbox = document.getElementById('subscribeToOwnerProperties');
+        if (checkbox) {
+            // Request the current subscription state from the backend
+            console.log('[Form Subscription] Requesting subscription state from backend');
+            vscode.postMessage({
+                command: 'getFormOwnerSubscriptionState'
+            });
+            
+            // Add event listener for checkbox changes
+            checkbox.addEventListener('change', handleOwnerSubscriptionToggle);
+        }
+    }
+    
+    /**
+     * Handle owner subscription checkbox toggle
+     */
+    function handleOwnerSubscriptionToggle() {
+        const checkbox = document.getElementById('subscribeToOwnerProperties');
+        if (!checkbox) return;
+        
+        const isSubscribed = checkbox.checked;
+        console.log('[Form Subscription] Toggling subscription to:', isSubscribed);
+        
+        updateOwnerSubscription(isSubscribed);
+    }
+    
+    /**
+     * Get the current owner subscription state for the form
+     * @returns {boolean} True if subscribed to owner properties
+     */
+    function getOwnerSubscriptionState() {
+        // Since we can't directly access the owner object from the frontend,
+        // we need to send a message to the backend to check the subscription state
+        console.log('[Form Subscription] Requesting subscription state from backend');
+        
+        // For now, return false as default - the backend will update this via message
+        // when the checkbox is initialized
+        return false;
+    }
+    
+    /**
+     * Update the owner subscription for the form
+     * @param {boolean} isSubscribed Whether to subscribe to owner properties
+     */
+    function updateOwnerSubscription(isSubscribed) {
+        console.log('[Form Subscription] Updating subscription:', isSubscribed);
+        
+        // Send message to backend to update the subscription
+        vscode.postMessage({
+            command: 'updateFormOwnerSubscription',
+            data: {
+                isSubscribed: isSubscribed
+            }
+        });
     }
     
     // Initialize all parameter functionality

@@ -134,6 +134,14 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     case 'refreshOutputVarsList':
                         refreshOutputVarsList(message.data, message.newSelection);
                         break;
+                    case 'setFormOwnerSubscriptionState':
+                        // Update the subscription checkbox state
+                        const checkbox = document.getElementById('subscribeToOwnerProperties');
+                        if (checkbox && message.data) {
+                            checkbox.checked = message.data.isSubscribed;
+                            console.log('[Form Subscription] Checkbox state set to:', message.data.isSubscribed);
+                        }
+                        break;
                 }
             });
             

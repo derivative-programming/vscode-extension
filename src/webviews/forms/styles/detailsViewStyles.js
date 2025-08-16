@@ -458,6 +458,26 @@ function getDetailViewStyles() {
             opacity: 0.6;
             cursor: not-allowed;
         }
+        
+        /* Subscription Controls Styling */
+        .subscription-controls {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid var(--vscode-panel-border);
+        }
+        
+        .subscription-controls label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+        }
+        
+        .subscription-checkbox {
+            cursor: pointer;
+        }
     `;
 }
 
