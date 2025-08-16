@@ -28,6 +28,7 @@ function createPageSearchModal(currentValue, targetInputElement) {
     
     // Get modal elements
     const pageTypeFilter = modal.querySelector("#pageTypeFilter");
+    const pageNameFilter = modal.querySelector("#pageNameFilter");
     const pageList = modal.querySelector("#pageList");
     const acceptButton = modal.querySelector("#acceptPageSelection");
     
@@ -68,14 +69,24 @@ function createPageSearchModal(currentValue, targetInputElement) {
     // Sort pages alphabetically by name
     allPages.sort((a, b) => a.name.localeCompare(b.name));
     
-    // Function to populate the page list based on filter
-    function populatePageList(filterType = '') {
+    // Function to populate the page list based on filters
+    function populatePageList(filterType = '', filterText = '') {
         // Clear existing options
         pageList.innerHTML = '';
         hasPreselectedOption = false;
         
         // Filter pages based on type
-        const filteredPages = filterType ? allPages.filter(page => page.type === filterType) : allPages;
+        let filteredPages = filterType ? allPages.filter(page => page.type === filterType) : allPages;
+        
+        // Apply text filter if provided
+        if (filterText) {
+            const filterTextLower = filterText.toLowerCase();
+            filteredPages = filteredPages.filter(page => {
+                const nameMatch = page.name.toLowerCase().includes(filterTextLower);
+                const displayNameMatch = page.displayName.toLowerCase().includes(filterTextLower);
+                return nameMatch || displayNameMatch;
+            });
+        }
         
         filteredPages.forEach(page => {
             const option = document.createElement("option");
@@ -103,9 +114,21 @@ function createPageSearchModal(currentValue, targetInputElement) {
     // Initial population of page list
     populatePageList();
     
+    // Function to update page list with current filter values
+    function updatePageList() {
+        const typeFilter = pageTypeFilter.value;
+        const textFilter = pageNameFilter.value.trim();
+        populatePageList(typeFilter, textFilter);
+    }
+    
     // Add event listener for type filter
     pageTypeFilter.addEventListener("change", function() {
-        populatePageList(this.value);
+        updatePageList();
+    });
+    
+    // Add event listener for text filter
+    pageNameFilter.addEventListener("input", function() {
+        updatePageList();
     });
     
     // Add event listener to enable/disable accept button based on selection
