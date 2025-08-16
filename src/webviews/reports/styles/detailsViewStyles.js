@@ -389,6 +389,46 @@ function getDetailViewStyles() {
             font-size: 12px;
             font-style: italic;
         }
+
+        /* Control with button styling for lookup functionality */
+        .control-with-button {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 100px; /* Ensure minimum width for controls */
+        }
+
+        /* Lookup button styling */
+        .lookup-button {
+            margin-left: 3px;
+            margin-right: 2px;
+            padding: 2px 6px;
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: 1px solid var(--vscode-button-border);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            height: auto;
+            min-height: 20px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .lookup-button:hover:not(:disabled) {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+
+        .lookup-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: var(--vscode-input-disabledBackground, #e9e9e9);
+            color: var(--vscode-input-disabledForeground, #999);
+        }
+
+        .lookup-button .codicon {
+            font-size: 12px;
+        }
     `;
 }
 

@@ -334,6 +334,22 @@ function showReportDetails(item, modelService, context) {
                         vscode.window.showErrorMessage(`Failed to open page preview: ${error.message}`);
                     }
                     return;
+                    
+                case "showPageListView":
+                    console.log('[DEBUG] ReportDetails - Show page list view requested');
+                    try {
+                        // Use VS Code command to open page list view
+                        vscode.commands.executeCommand('appdna.pageList', message.data).then(() => {
+                            console.log('[DEBUG] ReportDetails - Page list view opened successfully');
+                        }).catch((error) => {
+                            console.error('[ERROR] ReportDetails - Failed to open page list view via command:', error);
+                            vscode.window.showErrorMessage(`Failed to open page list view: ${error.message}`);
+                        });
+                    } catch (error) {
+                        console.error('[ERROR] ReportDetails - Failed to execute page list view command:', error);
+                        vscode.window.showErrorMessage(`Failed to open page list view: ${error.message}`);
+                    }
+                    return;
             }
         }
     );

@@ -155,6 +155,33 @@ function getColumnManagementFunctions() {
                         }
                     }
                 });
+                
+                // Add event handler for lookup button if present
+                if (columnKey === 'destinationTargetName') {
+                    const lookupButton = document.querySelector(\`button.lookup-button[data-prop="\${columnKey}"]\`);
+                    if (lookupButton) {
+                        // Enable/disable lookup button based on checkbox state
+                        lookupButton.disabled = !checkbox.checked;
+                        
+                        // Update lookup button state when checkbox changes
+                        checkbox.addEventListener('change', function() {
+                            lookupButton.disabled = !this.checked;
+                        });
+                        
+                        // Handle lookup button click
+                        lookupButton.addEventListener('click', function() {
+                            if (!this.disabled) {
+                                vscode.postMessage({
+                                    command: 'showPageListView',
+                                    data: {
+                                        targetFieldId: fieldId,
+                                        columnIndex: columnsList.value
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
             }
         });
     }

@@ -66,10 +66,21 @@ function getColumnsListTemplate(reportColumnsSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${columnKey}" value="" ${tooltip} readonly>`;
         }
         
+        // Add lookup button for destinationTargetName field
+        let lookupButton = "";
+        if (columnKey === "destinationTargetName") {
+            lookupButton = `<button type="button" class="lookup-button" data-prop="${columnKey}" data-field-id="${fieldId}" disabled title="Browse for destination page">
+                <span class="codicon codicon-search"></span>
+            </button>`;
+        }
+        
         // Note: We'll dynamically set the disabled attribute for checked checkboxes in the JavaScript
         return `<div class="form-row">
             <label for="${fieldId}" ${tooltip}>${formatLabel(columnKey)}:</label>
-            ${inputField}
+            <div class="control-with-button">
+                ${inputField}
+                ${lookupButton}
+            </div>
             <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" style="margin-left: 5px; transform: scale(0.8);">
         </div>`;    }).join("");
 }

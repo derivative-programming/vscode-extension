@@ -408,6 +408,18 @@ export function registerPageListCommands(
                             </div>
                             <div class="filter-row">
                                 <div class="filter-group">
+                                    <label>Page Search:</label>
+                                    <input type="text" id="filterPageSearch" placeholder="Search pages by name or title...">
+                                </div>
+                                <div class="filter-group">
+                                    <!-- Empty group for spacing -->
+                                </div>
+                                <div class="filter-group">
+                                    <!-- Empty group for spacing -->
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group">
                                     <label>Report Type:</label>
                                     <select id="filterReportType">
                                         <option value="">All Report Types</option>

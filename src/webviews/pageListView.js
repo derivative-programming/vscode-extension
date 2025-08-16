@@ -65,6 +65,7 @@ function applyFilters() {
     const reportTypeFilter = document.getElementById('filterReportType')?.value || '';
     const ownerObjectFilter = document.getElementById('filterOwnerObject')?.value || '';
     const roleRequiredFilter = document.getElementById('filterRoleRequired')?.value || '';
+    const pageSearchFilter = document.getElementById('filterPageSearch')?.value.toLowerCase() || '';
     
     let filteredItems = allItems.filter(item => {
         const matchesName = !nameFilter || (item.name || '').toLowerCase().includes(nameFilter);
@@ -74,7 +75,12 @@ function applyFilters() {
         const matchesOwnerObject = !ownerObjectFilter || item.ownerObject === ownerObjectFilter;
         const matchesRoleRequired = !roleRequiredFilter || item.roleRequired === roleRequiredFilter;
         
-        return matchesName && matchesTitle && matchesType && matchesReportType && matchesOwnerObject && matchesRoleRequired;
+        // Page search filter searches both name and title text
+        const matchesPageSearch = !pageSearchFilter || 
+            (item.name || '').toLowerCase().includes(pageSearchFilter) ||
+            (item.titleText || '').toLowerCase().includes(pageSearchFilter);
+        
+        return matchesName && matchesTitle && matchesType && matchesReportType && matchesOwnerObject && matchesRoleRequired && matchesPageSearch;
     });
     
     // Update pageData with filtered results
@@ -94,6 +100,7 @@ function clearFilters() {
     document.getElementById('filterReportType').value = '';
     document.getElementById('filterOwnerObject').value = '';
     document.getElementById('filterRoleRequired').value = '';
+    document.getElementById('filterPageSearch').value = '';
     
     // Reset to show all items
     pageData.items = allItems.slice();
@@ -313,7 +320,7 @@ function renderRecordInfo() {
 // Setup filter event listeners
 function setupFilterEventListeners() {
     // Add event listeners for filter inputs
-    const filterInputs = ['filterName', 'filterTitle', 'filterType', 'filterReportType', 'filterOwnerObject', 'filterRoleRequired'];
+    const filterInputs = ['filterName', 'filterTitle', 'filterType', 'filterReportType', 'filterOwnerObject', 'filterRoleRequired', 'filterPageSearch'];
     
     filterInputs.forEach(id => {
         const element = document.getElementById(id);
