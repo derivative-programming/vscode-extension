@@ -479,6 +479,24 @@ function showFormDetails(item, modelService, context) {
                         console.warn("Cannot get form owner subscription state: ModelService not available or form reference not found");
                     }
                     return;
+                    
+                case "getFormTargetChildSubscriptionState":
+                    if (modelService && formReference) {
+                        // Get the current target child subscription state and send it back to the webview
+                        getFormTargetChildSubscriptionState(formReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot get form target child subscription state: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "updateFormTargetChildSubscription":
+                    if (modelService && formReference) {
+                        // Update target child subscription
+                        updateFormTargetChildSubscription(message.data, formReference, modelService);
+                    } else {
+                        console.warn("Cannot update form target child subscription: ModelService not available or form reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -1834,6 +1852,167 @@ function updateFormOwnerSubscription(data, formReference, modelService) {
     } catch (error) {
         console.error('[Form Subscription] Error updating subscription:', error);
         vscode.window.showErrorMessage(`Failed to update subscription: ${error.message}`);
+    }
+}
+
+/**
+ * Get the current form's target child subscription state
+ * @param {Object} formReference - Reference to the form object
+ * @param {Object} modelService - The model service instance
+ * @param {Object} panel - The webview panel to send response
+ */
+function getFormTargetChildSubscriptionState(formReference, modelService, panel) {
+    try {
+        console.log('[Form Target Child Subscription] Getting target child subscription state');
+        
+        // Get the target child object for this form
+        const formName = formReference.name;
+        const targetChildObject = modelService.getFormTargetChildObject(formName);
+        
+        if (!targetChildObject) {
+            console.warn('[Form Target Child Subscription] Could not find target child object for form:', formName);
+            // Send default state (unchecked and disabled)
+            if (panel && panel.webview) {
+                panel.webview.postMessage({
+                    command: 'setFormTargetChildSubscriptionState',
+                    data: { isSubscribed: false, isDisabled: true }
+                });
+            }
+            return;
+        }
+        
+        const targetChildObjectName = targetChildObject.name;
+        
+        // Check if targetChildObject has propSubscription array
+        if (!targetChildObject.propSubscription || !Array.isArray(targetChildObject.propSubscription)) {
+            console.log('[Form Target Child Subscription] Target child object has no propSubscription array');
+            // Send default state (unchecked but enabled since target child exists)
+            if (panel && panel.webview) {
+                panel.webview.postMessage({
+                    command: 'setFormTargetChildSubscriptionState',
+                    data: { isSubscribed: false, isDisabled: false }
+                });
+            }
+            return;
+        }
+        
+        // Look for subscription that matches our criteria
+        const subscription = targetChildObject.propSubscription.find(sub => 
+            sub.destinationContextObjectName === targetChildObjectName &&
+            sub.destinationTargetName === formName
+        );
+        
+        // If subscription exists and isIgnored is not "true", treat as enabled
+        const isSubscribed = subscription ? subscription.isIgnored !== "true" : false;
+        
+        console.log('[Form Target Child Subscription] Found subscription state:', isSubscribed);
+        
+        // Send the current state to the webview (enabled since target child exists)
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'setFormTargetChildSubscriptionState',
+                data: { isSubscribed: isSubscribed, isDisabled: false }
+            });
+        }
+        
+    } catch (error) {
+        console.error('[Form Target Child Subscription] Error getting subscription state:', error);
+        // Send default state on error
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'setFormTargetChildSubscriptionState',
+                data: { isSubscribed: false, isDisabled: true }
+            });
+        }
+    }
+}
+
+/**
+ * Update the form's target child data object properties subscription
+ * @param {Object} data - The subscription data
+ * @param {Object} formReference - Reference to the form object
+ * @param {Object} modelService - The model service instance
+ */
+function updateFormTargetChildSubscription(data, formReference, modelService) {
+    console.log('[Form Target Child Subscription] updateFormTargetChildSubscription called with data:', data);
+    
+    if (!formReference || !modelService || data.isSubscribed === undefined) {
+        console.error('[Form Target Child Subscription] Missing required data for subscription update');
+        return;
+    }
+    
+    try {
+        // Get the target child object for this form
+        const formName = formReference.name;
+        const targetChildObject = modelService.getFormTargetChildObject(formName);
+        
+        if (!targetChildObject) {
+            console.warn('[Form Target Child Subscription] No target child object found for form:', formName);
+            vscode.window.showWarningMessage('No target child object found for this form. Cannot manage subscription.');
+            return;
+        }
+        
+        // Initialize propSubscription array on the TARGET CHILD OBJECT if it doesn't exist
+        if (!targetChildObject.propSubscription) {
+            targetChildObject.propSubscription = [];
+        }
+        
+        // Use the actual target child object name and form name for the subscription
+        const targetChildObjectName = targetChildObject.name;
+        const formNameForSubscription = formReference.name;
+        
+        // Find existing subscription for this form in the target child object's propSubscription
+        let existingSubscription = targetChildObject.propSubscription.find(sub => 
+            sub.destinationContextObjectName === targetChildObjectName && 
+            sub.destinationTargetName === formNameForSubscription
+        );
+        
+        if (data.isSubscribed) {
+            // Enable subscription
+            if (existingSubscription) {
+                // Remove isIgnored or set it to false
+                existingSubscription.isIgnored = "false";
+                console.log('[Form Target Child Subscription] Enabled existing subscription');
+            } else {
+                // Create new subscription
+                const newSubscription = {
+                    destinationContextObjectName: targetChildObjectName,
+                    destinationTargetName: formNameForSubscription,
+                    isIgnored: "false"
+                };
+                targetChildObject.propSubscription.push(newSubscription);
+                console.log('[Form Target Child Subscription] Created new subscription');
+            }
+        } else {
+            // Disable subscription
+            if (existingSubscription) {
+                // Set isIgnored to true instead of removing
+                existingSubscription.isIgnored = "true";
+                console.log('[Form Target Child Subscription] Disabled subscription by setting isIgnored=true');
+            } else {
+                // Create new subscription that's ignored
+                const newSubscription = {
+                    destinationContextObjectName: targetChildObjectName,
+                    destinationTargetName: formNameForSubscription,
+                    isIgnored: "true"
+                };
+                targetChildObject.propSubscription.push(newSubscription);
+                console.log('[Form Target Child Subscription] Created new subscription as disabled');
+            }
+        }
+        
+        // Mark as having unsaved changes
+        if (typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+        
+        console.log('[Form Target Child Subscription] Subscription updated successfully');
+    } catch (error) {
+        console.error('[Form Target Child Subscription] Error updating subscription:', error);
+        vscode.window.showErrorMessage(`Failed to update target child subscription: ${error.message}`);
     }
 }
 

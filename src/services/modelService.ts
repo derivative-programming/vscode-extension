@@ -383,6 +383,40 @@ export class ModelService {
     }
 
     /**
+     * Get the target child object of a specific form (objectWorkflow)
+     * @param formName Name of the form
+     * @returns The target child object specified in the form's targetChildObject property, null if not found or not set
+     */
+    public getFormTargetChildObject(formName: string): ObjectSchema | null {
+        const allObjects = this.getAllObjects();
+        
+        // First find the form
+        let targetForm: ObjectWorkflowSchema | null = null;
+        for (const object of allObjects) {
+            if (object.objectWorkflow && Array.isArray(object.objectWorkflow)) {
+                const foundForm = object.objectWorkflow.find(workflow => 
+                    workflow.name && workflow.name.trim().toLowerCase() === formName.trim().toLowerCase() &&
+                    workflow.isPage === "true"
+                );
+                if (foundForm) {
+                    targetForm = foundForm;
+                    break;
+                }
+            }
+        }
+        
+        if (!targetForm || !targetForm.targetChildObject) {
+            return null;
+        }
+        
+        // Find the target child object by name
+        const targetChildObjectName = targetForm.targetChildObject.trim();
+        return allObjects.find(object => 
+            object.name && object.name.trim().toLowerCase() === targetChildObjectName.toLowerCase()
+        ) || null;
+    }
+
+    /**
      * Get the owner object of a specific page (report or form)
      * @param pageName Name of the page
      * @returns The object that owns this page, null if not found

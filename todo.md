@@ -29,8 +29,9 @@ report...
 - columns - ✅ subscribe to target child obj properties
 
 
-forms... 
-- columns - subscribe to target child obj properties
+forms...
+- columns - ✅ subscribe to owner obj properties
+- columns - ✅ subscribe to target child obj properties
 
 
   

@@ -136,6 +136,12 @@ function getMainTemplate(
                         Subscribe to Owner Data Object Properties
                     </label>
                 </div>
+                <div class="subscription-controls">
+                    <label class="subscription-checkbox-label">
+                        <input type="checkbox" id="subscribeToTargetChildProperties" class="subscription-checkbox" />
+                        Subscribe to Target Child Data Object Properties
+                    </label>
+                </div>
             </div>
             <div id="paramDetailsContainer" class="details-container" style="display: none;">
                 <form id="paramDetailsForm">

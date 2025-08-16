@@ -142,6 +142,15 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                             console.log('[Form Subscription] Checkbox state set to:', message.data.isSubscribed);
                         }
                         break;
+                    case 'setFormTargetChildSubscriptionState':
+                        // Update the target child subscription checkbox state
+                        const targetChildCheckbox = document.getElementById('subscribeToTargetChildProperties');
+                        if (targetChildCheckbox && message.data) {
+                            targetChildCheckbox.checked = message.data.isSubscribed;
+                            targetChildCheckbox.disabled = message.data.isDisabled || false;
+                            console.log('[Form Target Child Subscription] Checkbox state set to:', message.data.isSubscribed, 'disabled:', message.data.isDisabled);
+                        }
+                        break;
                 }
             });
             

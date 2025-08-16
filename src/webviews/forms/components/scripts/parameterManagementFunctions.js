@@ -502,6 +502,7 @@ function getParameterManagementFunctions() {
     function initializeParameterTabFunctionality() {
         setupParameterReordering();
         initializeOwnerSubscriptionCheckbox();
+        initializeTargetChildSubscriptionCheckbox();
     }
     
     // --- OWNER SUBSCRIPTION FUNCTIONALITY ---
@@ -522,6 +523,23 @@ function getParameterManagementFunctions() {
             checkbox.addEventListener('change', handleOwnerSubscriptionToggle);
         }
     }
+
+    /**
+     * Initialize target child subscription checkbox
+     */
+    function initializeTargetChildSubscriptionCheckbox() {
+        const checkbox = document.getElementById('subscribeToTargetChildProperties');
+        if (checkbox) {
+            // Request the current target child subscription state from the backend
+            console.log('[Form Target Child Subscription] Requesting subscription state from backend');
+            vscode.postMessage({
+                command: 'getFormTargetChildSubscriptionState'
+            });
+            
+            // Add event listener for checkbox changes
+            checkbox.addEventListener('change', handleTargetChildSubscriptionToggle);
+        }
+    }
     
     /**
      * Handle owner subscription checkbox toggle
@@ -534,6 +552,19 @@ function getParameterManagementFunctions() {
         console.log('[Form Subscription] Toggling subscription to:', isSubscribed);
         
         updateOwnerSubscription(isSubscribed);
+    }
+
+    /**
+     * Handle target child subscription checkbox toggle
+     */
+    function handleTargetChildSubscriptionToggle() {
+        const checkbox = document.getElementById('subscribeToTargetChildProperties');
+        if (!checkbox) return;
+        
+        const isSubscribed = checkbox.checked;
+        console.log('[Form Target Child Subscription] Toggling subscription to:', isSubscribed);
+        
+        updateTargetChildSubscription(isSubscribed);
     }
     
     /**
@@ -560,6 +591,22 @@ function getParameterManagementFunctions() {
         // Send message to backend to update the subscription
         vscode.postMessage({
             command: 'updateFormOwnerSubscription',
+            data: {
+                isSubscribed: isSubscribed
+            }
+        });
+    }
+
+    /**
+     * Update the target child subscription for the form
+     * @param {boolean} isSubscribed Whether to subscribe to target child properties
+     */
+    function updateTargetChildSubscription(isSubscribed) {
+        console.log('[Form Target Child Subscription] Updating subscription:', isSubscribed);
+        
+        // Send message to backend to update the target child subscription
+        vscode.postMessage({
+            command: 'updateFormTargetChildSubscription',
             data: {
                 isSubscribed: isSubscribed
             }

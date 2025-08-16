@@ -1,3 +1,24 @@
+2025-08-16: ✅ COMPLETED - Implement "Subscribe to Target Child Data Object Properties" checkbox in form input controls tab
+- Added second subscription checkbox below owner subscription checkbox in input controls tab of form details view
+- Checkbox controls target child object's propSubscription entries with destinationContextObjectName=TargetChildObjectName, destinationTargetName=FormName
+- When checked: sets isIgnored="false" (or creates new entry if none exists)
+- When unchecked: sets isIgnored="true" (creates entry if needed)
+- Checkbox is automatically disabled when no targetChildObject is set on the form
+- Added ModelService.getFormTargetChildObject() method to find target child object by form's targetChildObject property
+- Added JavaScript handlers: initializeTargetChildSubscriptionCheckbox(), handleTargetChildSubscriptionToggle(), updateTargetChildSubscription()
+- Added backend functions: getFormTargetChildSubscriptionState() and updateFormTargetChildSubscription()
+- Added message handlers: getFormTargetChildSubscriptionState, updateFormTargetChildSubscription, setFormTargetChildSubscriptionState
+- Uses same CSS styling as existing subscription controls (existing .subscription-controls styling)
+- Checkbox state automatically initialized on tab load by querying current target child propSubscription
+- Properly handles edge cases: missing target child object, missing propSubscription array, etc.
+- Full integration with existing undo/save workflow via modelService.markUnsavedChanges()
+Architecture Notes:
+- Uses target child object's propSubscription array (not form's or owner's) per specification
+- Maintains existing subscription entries and only modifies isIgnored flag
+- Checkbox disabled state communicated via setFormTargetChildSubscriptionState message with isDisabled flag
+- Business logic: isIgnored property missing = false (subscribed), isIgnored=true = unsubscribed
+- Same pattern as reports but adapted for forms (objectWorkflow with isPage=true)
+
 2025-08-16: ✅ COMPLETED - Implement "Subscribe to Target Child Data Object Properties" checkbox in report columns tab
 - Added second subscription checkbox below owner subscription checkbox in columns tab
 - Checkbox controls target child object's propSubscription entries with destinationContextObjectName=TargetChildObjectName, destinationTargetName=ReportName
