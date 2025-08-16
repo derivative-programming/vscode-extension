@@ -59,8 +59,8 @@ function getColumnManagementFunctions() {
                     
                     checkbox.checked = propertyExists;
                     
-                    // Handle browse button state for destinationTargetName field in list view
-                    if (columnKey === 'destinationTargetName') {
+                    // Handle browse button state for destinationTargetName and sourceObjectName fields in list view
+                    if (columnKey === 'destinationTargetName' || columnKey === 'sourceObjectName') {
                         const controlContainer = field.parentElement;
                         if (controlContainer && controlContainer.classList.contains('control-with-button')) {
                             const browseButton = controlContainer.querySelector('.lookup-button');
@@ -269,8 +269,8 @@ function getColumnManagementFunctions() {
                 }
                 updateInputStyle(inputElement, false);
                 
-                // Handle browse button state for destinationTargetName field
-                if (propName === 'destinationTargetName') {
+                // Handle browse button state for destinationTargetName and sourceObjectName fields
+                if (propName === 'destinationTargetName' || propName === 'sourceObjectName') {
                     const browseButton = tableCell.querySelector('.lookup-button');
                     if (browseButton) {
                         browseButton.disabled = true;
@@ -672,3 +672,4 @@ function getColumnManagementFunctions() {
 module.exports = {
     getColumnManagementFunctions
 };
+

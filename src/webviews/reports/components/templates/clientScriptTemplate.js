@@ -81,6 +81,8 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             
             ${getPageSearchModalFunctionality()}
             
+            ${getDataObjectSearchModalFunctionality()}
+            
             // Page Preview Function
             function openPagePreview(reportName, isPage) {
                 console.log('[DEBUG] ReportDetails - Open page preview requested for report name:', JSON.stringify(reportName));

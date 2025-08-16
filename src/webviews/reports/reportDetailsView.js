@@ -135,6 +135,12 @@ function showReportDetails(item, modelService, context) {
         allReports = modelService.getAllReports();
     }
     
+    // Get all data objects for data object search modal
+    let allDataObjects = [];
+    if (modelService && typeof modelService.getAllObjects === "function") {
+        allDataObjects = modelService.getAllObjects();
+    }
+    
     // Get the owner object information for this report
     let ownerObject = null;
     if (modelService && typeof modelService.getReportOwnerObject === "function") {
@@ -151,6 +157,7 @@ function showReportDetails(item, modelService, context) {
         codiconsUri,
         allForms,
         allReports,
+        allDataObjects,
         ownerObject
     );
     
