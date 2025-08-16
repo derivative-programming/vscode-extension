@@ -96,8 +96,23 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 }
             }
             
-            // Make function globally available
+            // Owner Object Details Function
+            function openOwnerObjectDetails(objectName) {
+                console.log('[DEBUG] ReportDetails - Open owner object details requested for object name:', JSON.stringify(objectName));
+                
+                if (vscode && objectName) {
+                    vscode.postMessage({
+                        command: 'openOwnerObjectDetails',
+                        objectName: objectName
+                    });
+                } else {
+                    console.warn('[WARN] ReportDetails - Cannot open owner object details: vscode API or object name not available');
+                }
+            }
+            
+            // Make functions globally available
             window.openPagePreview = openPagePreview;
+            window.openOwnerObjectDetails = openOwnerObjectDetails;
 
             // UI Event Handlers for tabs and view switching
             ${getUIEventHandlers()}

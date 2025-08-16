@@ -135,6 +135,12 @@ function showReportDetails(item, modelService, context) {
         allReports = modelService.getAllReports();
     }
     
+    // Get the owner object information for this report
+    let ownerObject = null;
+    if (modelService && typeof modelService.getReportOwnerObject === "function") {
+        ownerObject = modelService.getReportOwnerObject(reportData.name || item.label);
+    }
+    
     // Set the HTML content with the full report data
     panel.webview.html = generateDetailsView(
         reportData, 
@@ -144,7 +150,8 @@ function showReportDetails(item, modelService, context) {
         reportParamsSchema,
         codiconsUri,
         allForms,
-        allReports
+        allReports,
+        ownerObject
     );
     
     // Handle messages from the webview
@@ -339,6 +346,28 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "openOwnerObjectDetails":
+                    if (modelService && message.objectName) {
+                        try {
+                            // Create a mock tree item for the owner object
+                            const ownerItem = {
+                                label: message.objectName,
+                                contextValue: 'object',
+                                tooltip: `${message.objectName} Data Object`
+                            };
+                            
+                            // Import and call the object details view
+                            const { showObjectDetails } = require("../objects/objectDetailsView");
+                            showObjectDetails(ownerItem, modelService);
+                        } catch (error) {
+                            console.error('[ERROR] ReportDetails - Failed to open owner object details:', error);
+                            vscode.window.showErrorMessage(`Failed to open object details: ${error.message}`);
+                        }
+                    } else {
+                        console.warn("Cannot open owner object details: ModelService not available or object name not provided");
+                    }
+                    return;
+                    
                 case "openPagePreview":
                     console.log('[DEBUG] ReportDetails - Open page preview requested for report name:', JSON.stringify(message.formName));
                     console.log('[DEBUG] ReportDetails - Message object:', JSON.stringify(message));
@@ -440,6 +469,12 @@ function refreshAll() {
             const allForms = ModelService.getAllForms();
             const allReports = ModelService.getAllReports();
             
+            // Get the owner object information for this report
+            let ownerObject = null;
+            if (modelService && typeof modelService.getReportOwnerObject === "function") {
+                ownerObject = modelService.getReportOwnerObject(reportData.name || item.label);
+            }
+            
             // Update the HTML content
             panel.webview.html = generateDetailsView(
                 reportData, 
@@ -449,7 +484,8 @@ function refreshAll() {
                 reportParamsSchema,
                 codiconsUri,
                 allForms,
-                allReports
+                allReports,
+                ownerObject
             );
         }
     }
@@ -541,6 +577,12 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
             const allForms = ModelService.getAllForms();
             const allReports = ModelService.getAllReports();
             
+            // Get the owner object information for this report
+            let ownerObject = null;
+            if (modelService && typeof modelService.getReportOwnerObject === "function") {
+                ownerObject = modelService.getReportOwnerObject(reportReference.name);
+            }
+            
               // Regenerate and update the webview HTML with updated model data
             panel.webview.html = generateDetailsView(
                 reportReference, 
@@ -550,7 +592,8 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
                 reportParamsSchema,
                 codiconsUri,
                 allForms,
-                allReports
+                allReports,
+                ownerObject
             );
             
             // If preserveTab was specified, restore the active tab

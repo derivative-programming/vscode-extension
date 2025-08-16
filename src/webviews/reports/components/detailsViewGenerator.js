@@ -23,9 +23,10 @@ const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
  * @param {string} codiconsUri URI for the codicon CSS file
  * @param {Array} allForms Array of all available forms for page search modal
  * @param {Array} allReports Array of all available reports for page search modal
+ * @param {Object} ownerObject The owner data object for this report (optional)
  * @returns {string} HTML content
  */
-function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema, codiconsUri, allForms = [], allReports = []) {
+function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema, codiconsUri, allForms = [], allReports = [], ownerObject = null) {
     const columns = report.reportColumn || [];
     const buttons = report.reportButton || [];
     const params = report.reportParam || [];
@@ -76,7 +77,8 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
         paramListViewFields,
         columnModalHtml, buttonModalHtml, paramModalHtml,
         clientScript,
-        codiconsUri
+        codiconsUri,
+        ownerObject
     );
 }
 

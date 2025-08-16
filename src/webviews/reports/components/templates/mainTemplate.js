@@ -23,7 +23,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
                         buttonListViewFields,
                         paramListViewFields,
                         columnModalHtml, buttonModalHtml, paramModalHtml,
-                        clientScript, codiconsUri) {
+                        clientScript, codiconsUri, ownerObject = null) {
       return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,6 +80,57 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
         .view-preview-button .icon-text {
             display: none !important;
         }
+        
+        /* Owner Data Object Styles */
+        .owner-info-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--vscode-widget-border);
+            color: var(--vscode-descriptionForeground);
+            font-size: 13px;
+        }
+        
+        .owner-info-label {
+            font-weight: 500;
+        }
+        
+        .owner-info-name {
+            color: var(--vscode-foreground);
+            font-family: var(--vscode-editor-font-family);
+        }
+        
+        .edit-owner-button {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 3px;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+        }
+        
+        .edit-owner-button:hover {
+            background: var(--vscode-toolbar-hoverBackground) !important;
+            background-color: var(--vscode-toolbar-hoverBackground) !important;
+        }
+        
+        .edit-owner-button:active {
+            background: var(--vscode-toolbar-activeBackground);
+            transform: scale(0.95);
+        }
+        
+        .edit-owner-button .codicon {
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -90,6 +141,15 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             <span class="icon-text">👁</span>
         </button>
     </div>
+    ${ownerObject ? `
+    <div class="owner-info-container">
+        <span class="owner-info-label">Owner Data Object:</span>
+        <span class="owner-info-name">${ownerObject.name || 'Unknown'}</span>
+        <button class="edit-owner-button" onclick="openOwnerObjectDetails('${ownerObject.name || ''}')" title="Edit owner data object">
+            <i class="codicon codicon-edit"></i>
+        </button>
+    </div>
+    ` : ''}
       <div class="tabs">
         <div class="tab active" data-tab="settings">Settings</div>
         <div class="tab" data-tab="columns">Columns (${columnCount})</div>
