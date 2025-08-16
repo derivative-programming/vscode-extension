@@ -127,12 +127,16 @@ function showReportDetails(item, modelService, context) {
         vscode.Uri.file(path.join(extensionContext.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css'))
     );
     
-    // Get forms and reports data for page search modal
+    // Get forms, reports, and data objects for search modals
     let allForms = [];
     let allReports = [];
+    let allDataObjects = [];
     if (modelService && typeof modelService.getAllForms === "function" && typeof modelService.getAllReports === "function") {
         allForms = modelService.getAllForms();
         allReports = modelService.getAllReports();
+    }
+    if (modelService && typeof modelService.getAllObjects === "function") {
+        allDataObjects = modelService.getAllObjects();
     }
     
     // Get the owner object information for this report
@@ -151,6 +155,7 @@ function showReportDetails(item, modelService, context) {
         codiconsUri,
         allForms,
         allReports,
+        allDataObjects,
         ownerObject
     );
     
@@ -474,9 +479,10 @@ function refreshAll() {
                 );
             }
             
-            // Get forms and reports data for browse functionality
+            // Get forms, reports, and data objects for search modals
             const allForms = ModelService.getAllForms();
             const allReports = ModelService.getAllReports();
+            const allDataObjects = ModelService.getAllObjects();
             
             // Get the owner object information for this report
             let ownerObject = null;
@@ -494,6 +500,7 @@ function refreshAll() {
                 codiconsUri,
                 allForms,
                 allReports,
+                allDataObjects,
                 ownerObject
             );
         }
@@ -582,9 +589,10 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
                 );
             }
             
-            // Get forms and reports data for browse functionality
+            // Get forms, reports, and data objects for search modals
             const allForms = ModelService.getAllForms();
             const allReports = ModelService.getAllReports();
+            const allDataObjects = ModelService.getAllObjects();
             
             // Get the owner object information for this report
             let ownerObject = null;
@@ -602,6 +610,7 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
                 codiconsUri,
                 allForms,
                 allReports,
+                allDataObjects,
                 ownerObject
             );
             

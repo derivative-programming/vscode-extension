@@ -41,6 +41,14 @@ function getFormControlUtilities() {
             
             // Set initial styling based on checkbox state
             updateInputStyle(inputField, checkbox.checked);
+            
+            // Set initial browse button state for targetChildObject field
+            if (propertyName === 'targetChildObject') {
+                const browseButton = inputField.parentElement.querySelector('.lookup-button');
+                if (browseButton) {
+                    browseButton.disabled = !checkbox.checked;
+                }
+            }
         }
         
         checkbox.addEventListener('change', function() {
@@ -63,6 +71,14 @@ function getFormControlUtilities() {
                 }
                 updateInputStyle(inputField, true);
                 
+                // Handle browse button state for targetChildObject field
+                if (propertyName === 'targetChildObject') {
+                    const browseButton = inputField.parentElement.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = false;
+                    }
+                }
+                
                 // Disable the checkbox to prevent unchecking
                 this.disabled = true;
                 this.setAttribute('data-originally-checked', 'true');
@@ -82,6 +98,14 @@ function getFormControlUtilities() {
                     inputField.readOnly = true;
                 }
                 updateInputStyle(inputField, false);
+                
+                // Handle browse button state for targetChildObject field
+                if (propertyName === 'targetChildObject') {
+                    const browseButton = inputField.parentElement.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = true;
+                    }
+                }
             }
             
             // Send message to update the model

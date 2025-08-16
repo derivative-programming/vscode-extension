@@ -114,13 +114,25 @@ function getSettingsTabTemplate(report, reportSchemaProps) {
                 inputField = `<input type="text" id="setting-${prop}" name="${prop}" value="${propertyExists ? report[prop] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
             
+            // Add browse button for targetChildObject field
+            let browseButton = "";
+            let controlContainer = "";
+            if (prop === "targetChildObject") {
+                browseButton = `<button type="button" class="lookup-button" data-prop="${prop}" data-field-id="setting-${prop}" disabled title="Browse Data Objects">
+                    <span class="codicon codicon-search"></span>
+                </button>`;
+                controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;
+            } else {
+                controlContainer = inputField;
+            }
+            
             // If the property exists, add a data attribute to indicate it was originally checked
             // This will help prevent unchecking properties that already exist
             const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
             
             return `<div class="form-row">
                 <label for="setting-${prop}" ${tooltip}>${formatLabel(prop)}:</label>
-                ${inputField}
+                ${controlContainer}
                 <input type="checkbox" class="setting-checkbox" data-prop="${prop}" data-is-enum="${hasEnum}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
             </div>`;
         }).join("");
