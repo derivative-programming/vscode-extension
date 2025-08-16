@@ -8,7 +8,6 @@ show owner data object name...
 - under form details view title with an eye icon to open the view
 - under report details view title with an eye icon to open the view
 
-
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button
@@ -16,10 +15,12 @@ report details view...
 - add button - breadcrumb
 
 Destination Target Name lookup icon
+- report column
+
+add text filter on modal ...Destination Target Name lookup icon
 - form button
 - report button
 - report column
-- add text filter on all modals
 
 Source Object Name lookup button...
 - form input control 'source object name'

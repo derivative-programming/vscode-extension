@@ -59,6 +59,17 @@ function getColumnManagementFunctions() {
                     
                     checkbox.checked = propertyExists;
                     
+                    // Handle browse button state for destinationTargetName field in list view
+                    if (columnKey === 'destinationTargetName') {
+                        const controlContainer = field.parentElement;
+                        if (controlContainer && controlContainer.classList.contains('control-with-button')) {
+                            const browseButton = controlContainer.querySelector('.lookup-button');
+                            if (browseButton) {
+                                browseButton.disabled = !propertyExists;
+                            }
+                        }
+                    }
+                    
                     // If the property exists, disable the checkbox to prevent unchecking
                     if (propertyExists) {
                         checkbox.disabled = true;
@@ -93,6 +104,17 @@ function getColumnManagementFunctions() {
                         field.disabled = !this.checked;
                     }
                     updateInputStyle(field, this.checked);
+                    
+                    // Handle browse button state for destinationTargetName field in list view
+                    if (columnKey === 'destinationTargetName') {
+                        const controlContainer = field.parentElement;
+                        if (controlContainer && controlContainer.classList.contains('control-with-button')) {
+                            const browseButton = controlContainer.querySelector('.lookup-button');
+                            if (browseButton) {
+                                browseButton.disabled = !this.checked;
+                            }
+                        }
+                    }
                     
                     // Disable the checkbox if it's checked to prevent unchecking
                     if (this.checked) {
@@ -196,6 +218,14 @@ function getColumnManagementFunctions() {
                 }
                 updateInputStyle(inputElement, true);
                 
+                // Handle browse button state for destinationTargetName field
+                if (propName === 'destinationTargetName') {
+                    const browseButton = tableCell.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = false;
+                    }
+                }
+                
                 // Disable the checkbox to prevent unchecking
                 this.disabled = true;
                 this.setAttribute('data-originally-checked', 'true');
@@ -215,6 +245,14 @@ function getColumnManagementFunctions() {
                     inputElement.disabled = true;
                 }
                 updateInputStyle(inputElement, false);
+                
+                // Handle browse button state for destinationTargetName field
+                if (propName === 'destinationTargetName') {
+                    const browseButton = tableCell.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = true;
+                    }
+                }
             }
             
             // Send message to update the model

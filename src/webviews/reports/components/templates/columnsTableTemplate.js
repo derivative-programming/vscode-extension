@@ -106,13 +106,25 @@ function getColumnsTableTemplate(columns, reportColumnsSchema) {
                 inputField = `<input type="text" name="${columnKey}" value="${propertyExists ? column[columnKey] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
             
+            // Add browse button for destinationTargetName field
+            let browseButton = "";
+            let controlContainer = "";
+            if (columnKey === "destinationTargetName") {
+                browseButton = `<button type="button" class="lookup-button" data-prop="${columnKey}" data-index="${index}" ${!propertyExists ? "disabled" : ""} title="Browse for Page">
+                    <span class="codicon codicon-search"></span>
+                </button>`;
+                controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;
+            } else {
+                controlContainer = inputField;
+            }
+            
             // If the property exists, add a data attribute to indicate it was originally checked
             // and disable the checkbox to prevent unchecking
             const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
             
             return `<td>
                 <div class="control-with-checkbox">
-                    ${inputField}
+                    ${controlContainer}
                     <input type="checkbox" class="column-checkbox" data-prop="${columnKey}" data-index="${index}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} title="Toggle property existence">
                 </div>
             </td>`;
