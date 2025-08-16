@@ -11,6 +11,8 @@ const { getModalFunctionality } = require("../scripts/modalFunctionality");
 const { getAddColumnModalHtml } = require("./addColumnModalTemplate");
 const { getAddButtonModalHtml } = require("./addButtonModalTemplate");
 const { getAddParamModalHtml } = require("./addParamModalTemplate");
+const { getPageSearchModalHtml } = require("./pageSearchModalTemplate");
+const { getPageSearchModalFunctionality } = require("./pageSearchModalFunctionality");
 
 /**
  * File: clientScriptTemplate.js
@@ -28,9 +30,11 @@ const { getAddParamModalHtml } = require("./addParamModalTemplate");
  * @param {Object} buttonSchema Schema for buttons
  * @param {Object} paramSchema Schema for parameters
  * @param {string} reportName The name of the report
+ * @param {Array} allForms Array of all available forms for page search modal
+ * @param {Array} allReports Array of all available reports for page search modal
  * @returns {string} JavaScript code
  */
-function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonSchema, paramSchema, reportName) {
+function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonSchema, paramSchema, reportName, allForms = [], allReports = []) {
     return `
         (function() {
             // Core data and API (vscode API already acquired in main template)
@@ -47,6 +51,10 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             const buttonSchema = ${JSON.stringify(buttonSchema)};
             const paramSchema = ${JSON.stringify(paramSchema)};
             const reportName = "${reportName || ''}";
+            
+            // Forms and Reports data for page search modal
+            const allForms = ${JSON.stringify(allForms)};
+            const allReports = ${JSON.stringify(allReports)};
 
             // Modal functionality for add modals
             ${getModalFunctionality()}
@@ -65,6 +73,13 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             function getAddParamModalHtml() {
                 return \`${getAddParamModalHtml()}\`;
             }
+            
+            // Page Search Modal Template Function
+            function getPageSearchModalHtml() {
+                return \`${getPageSearchModalHtml()}\`;
+            }
+            
+            ${getPageSearchModalFunctionality()}
             
             // Page Preview Function
             function openPagePreview(reportName, isPage) {

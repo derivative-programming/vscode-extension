@@ -97,6 +97,14 @@ function getButtonsTableTemplate(buttons, reportButtonsSchema) {
                 inputField = `<input type="text" name="${buttonKey}" value="${propertyExists ? button[buttonKey] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
             
+            // Add browse button for destinationTargetName field
+            let browseButton = "";
+            if (buttonKey === "destinationTargetName") {
+                browseButton = `<button type="button" class="lookup-button" data-prop="${buttonKey}" data-index="${index}" ${!propertyExists ? "disabled" : ""} title="Browse for Page">
+                    <span class="codicon codicon-search"></span>
+                </button>`;
+            }
+            
             // If the property exists, add a data attribute to indicate it was originally checked
             // and disable the checkbox to prevent unchecking
             const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
@@ -104,6 +112,7 @@ function getButtonsTableTemplate(buttons, reportButtonsSchema) {
             return `<td>
                 <div class="control-with-checkbox">
                     ${inputField}
+                    ${browseButton}
                     <input type="checkbox" class="button-checkbox" data-prop="${buttonKey}" data-index="${index}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} title="Toggle property existence">
                 </div>
             </td>`;

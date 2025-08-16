@@ -19,12 +19,16 @@ Destination Target Name lookup icon
 - form button
 - report button
 - report column
+- add text filter on all modals
 
 Source Object Name lookup button...
 - form input control 'source object name'
 - form setting 'target child object'
+- report column 'source object name'
+- report setting 'target child object'
 
-  
+form details button tab button type setting dropdown?  
+
 objectworkflows where ispage = false...
 - new treeview item functions
  

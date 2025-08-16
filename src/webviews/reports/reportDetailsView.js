@@ -127,6 +127,14 @@ function showReportDetails(item, modelService, context) {
         vscode.Uri.file(path.join(extensionContext.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css'))
     );
     
+    // Get forms and reports data for page search modal
+    let allForms = [];
+    let allReports = [];
+    if (modelService && typeof modelService.getAllForms === "function" && typeof modelService.getAllReports === "function") {
+        allForms = modelService.getAllForms();
+        allReports = modelService.getAllReports();
+    }
+    
     // Set the HTML content with the full report data
     panel.webview.html = generateDetailsView(
         reportData, 
@@ -134,7 +142,9 @@ function showReportDetails(item, modelService, context) {
         reportColumnsSchema, 
         reportButtonsSchema, 
         reportParamsSchema,
-        codiconsUri
+        codiconsUri,
+        allForms,
+        allReports
     );
     
     // Handle messages from the webview
@@ -426,6 +436,10 @@ function refreshAll() {
                 );
             }
             
+            // Get forms and reports data for browse functionality
+            const allForms = ModelService.getAllForms();
+            const allReports = ModelService.getAllReports();
+            
             // Update the HTML content
             panel.webview.html = generateDetailsView(
                 reportData, 
@@ -433,7 +447,9 @@ function refreshAll() {
                 reportColumnsSchema, 
                 reportButtonsSchema, 
                 reportParamsSchema,
-                codiconsUri
+                codiconsUri,
+                allForms,
+                allReports
             );
         }
     }
@@ -520,6 +536,11 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
                     vscode.Uri.file(path.join(extensionContext.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css'))
                 );
             }
+            
+            // Get forms and reports data for browse functionality
+            const allForms = ModelService.getAllForms();
+            const allReports = ModelService.getAllReports();
+            
               // Regenerate and update the webview HTML with updated model data
             panel.webview.html = generateDetailsView(
                 reportReference, 
@@ -527,7 +548,9 @@ function updateModelDirectly(data, reportReference, modelService, panel = null) 
                 reportColumnsSchema, 
                 reportButtonsSchema, 
                 reportParamsSchema,
-                codiconsUri
+                codiconsUri,
+                allForms,
+                allReports
             );
             
             // If preserveTab was specified, restore the active tab

@@ -21,9 +21,11 @@ const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
  * @param {Object} reportButtonsSchema Schema properties for report buttons
  * @param {Object} reportParamsSchema Schema properties for report params
  * @param {string} codiconsUri URI for the codicon CSS file
+ * @param {Array} allForms Array of all available forms for page search modal
+ * @param {Array} allReports Array of all available reports for page search modal
  * @returns {string} HTML content
  */
-function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema, codiconsUri) {
+function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema, codiconsUri, allForms = [], allReports = []) {
     const columns = report.reportColumn || [];
     const buttons = report.reportButton || [];
     const params = report.reportParam || [];
@@ -59,7 +61,9 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
     const clientScript = getClientScriptTemplate(
         columns, buttons, params, 
         reportColumnsSchema, reportButtonsSchema, reportParamsSchema, 
-        report.name
+        report.name,
+        allForms,
+        allReports
     );
     
     // Combine all parts into the main template

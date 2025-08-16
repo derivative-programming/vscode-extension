@@ -47,6 +47,9 @@ function getDOMInitialization() {
         
         // Setup list button event handlers
         setupListButtonHandlers();
+        
+        // Set up page browse button event handlers for destinationTargetName fields
+        setupPageBrowseButtonHandlers();
     });
 
     // Modal functionality for columns
@@ -527,6 +530,36 @@ function getDOMInitialization() {
                 }
             }
         }, 100);
+    }
+    
+    // Setup page browse button handlers for destinationTargetName fields
+    function setupPageBrowseButtonHandlers() {
+        // Use event delegation to handle lookup buttons for destinationTargetName fields
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('.lookup-button')) {
+                const button = event.target.closest('.lookup-button');
+                if (button.disabled) return;
+                
+                const propKey = button.getAttribute('data-prop');
+                if (propKey === 'destinationTargetName') {
+                    // Find the corresponding input field
+                    let inputField = button.parentElement.querySelector('input[type="text"]');
+                    
+                    // If not found (list view), try using data-field-id
+                    if (!inputField) {
+                        const fieldId = button.getAttribute('data-field-id');
+                        if (fieldId) {
+                            inputField = document.getElementById(fieldId);
+                        }
+                    }
+                    
+                    if (inputField) {
+                        const currentValue = inputField.value;
+                        createPageSearchModal(currentValue, inputField);
+                    }
+                }
+            }
+        });
     }
     `;
 }

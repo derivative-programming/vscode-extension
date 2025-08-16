@@ -121,3 +121,56 @@ Architecture Notes:
 - Maintains singleton pattern and existing caching behavior
 
 Command: Expand all top level tree items in the AppDNA tree view
+
+2025-01-16: ✅ COMPLETED - Reports Webview Browse Functionality Implementation
+- Command: "I need a similar button on the report details view button tab on the 'Destination Target Name:' setting"
+- Status: ✅ COMPLETED 
+- Architecture: Extended Forms browse functionality to Reports webview following established patterns
+- Components Modified:
+  * Created pageSearchModalTemplate.js for Reports webview
+  * Created pageSearchModalFunctionality.js for Reports webview  
+  * Updated buttonsListTemplate.js and buttonsTableTemplate.js with browse buttons
+  * Modified clientScriptTemplate.js to include modal integration
+  * Updated detailsViewGenerator.js function signature to accept allForms/allReports
+  * Modified reportDetailsView.js - all 3 generateDetailsView calls updated with ModelService data
+- Pattern: Successful replication of Forms webview architecture for consistent user experience
+- Result: Reports webview now has same "Browse for Page" functionality as Forms webview
+
+2025-08-16: ✅ FIXED - Reports Webview 'Destination Target Name' Control Width Issue
+- Problem: 'Destination Target Name' setting control was narrower than other setting controls in Reports webview
+- Root Cause: Reports webview missing .control-with-button styling and .form-row flex layout rules
+- Solution: Added missing CSS styling to detailsViewStyles.js for Reports webview:
+  * Added .form-row input/select/textarea/.control-with-button flex: 1 styling
+  * Added complete .control-with-button container styling (display: flex, gap: 4px)
+  * Added .control-with-button input styling (flex: 1, min-width: 100px)
+  * Added .lookup-button styling with proper VS Code theming
+  * Added hover and disabled states for lookup buttons
+- Pattern: Copied and adapted same styling patterns from Forms webview for consistency
+- Result: Destination Target Name control now matches width of other form controls in Reports webview
+- Status: Fixed and compiled successfully
+
+2025-08-16: ✅ FIXED - Reports Webview Browse Button Inactive Issue
+- Problem: Browse button for 'Destination Target Name' was inactive/disabled in Reports webview
+- Root Cause: Reports webview missing browse button enable/disable management functionality
+- Solution: Added browse button state management to buttonManagementFunctions.js:
+  * Added browse button enable/disable logic in property existence handler (list view)
+  * Added browse button state management in checkbox change handler (list view) 
+  * Added browse button state management in table checkbox handlers (both checked/unchecked)
+  * Browse button now enables when property checkbox is checked, disables when unchecked
+- Pattern: Copied same browse button management logic from Forms webview for consistency
+- Integration: Browse button state properly synchronized with property existence checkboxes
+- Result: Browse button now activates correctly when destinationTargetName property exists
+- Status: Fixed and compiled successfully
+
+2025-08-16: ✅ FIXED - Reports Webview Browse Button Click Not Working
+- Problem: Nothing happened when clicking the browse button in Reports webview
+- Root Cause: Reports webview missing browse button click event handlers
+- Solution: Added browse button click event handling to domInitialization.js:
+  * Added setupPageBrowseButtonHandlers() function with event delegation for .lookup-button clicks
+  * Added call to setupPageBrowseButtonHandlers() in DOM initialization
+  * Event handler finds input field using data-field-id attribute and calls createPageSearchModal()
+  * Handles both list view and table view browse button clicks
+- Pattern: Copied exact same click handling logic from Forms webview for consistency
+- Integration: Click events now properly trigger the page search modal functionality
+- Result: Browse button clicks now open the "Browse for Page" modal as expected
+- Status: Fixed and compiled successfully
