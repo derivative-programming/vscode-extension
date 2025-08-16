@@ -266,3 +266,19 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Modal Functionality: Uses existing dataObjectSearchModalTemplate.js and dataObjectSearchModalFunctionality.js with text filter
 - Result: Users can now browse and select data objects for targetChildObject field in Forms webview settings tab
 - Status: Compiled successfully, ready for testing
+
+2025-08-16: ✅ COMPLETED - Form details view Title text update (Issue #229)
+- Added owner data object display section below form title in form details view
+- Format: "Owner Data Object: [Data object name] [edit icon button]"
+- Implementation details:
+  * Modified formDetailsView.js to retrieve owner object using modelService.getFormOwnerObject()
+  * Updated generateDetailsView() function to accept ownerObject parameter
+  * Enhanced mainTemplate.js to display owner object section with proper styling
+  * Added openOwnerObjectDetails() JavaScript function in clientScriptTemplate.js
+  * Added message handler in formDetailsView.js to open object details via VS Code command
+  * Used VS Code design language with proper CSS variables for consistent styling
+  * Gracefully handles cases where no owner object exists (section hidden)
+  * Edit button opens owner data object details view using existing object details functionality
+- Testing: Created and ran unit tests verifying template generation with/without owner object
+- Build Status: Compiled successfully without errors, all functionality working as expected
+- Pattern: Follows existing UI patterns for icon buttons and message handling architecture
