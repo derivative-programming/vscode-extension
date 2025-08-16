@@ -80,6 +80,37 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
         .view-preview-button .icon-text {
             display: none !important;
         }
+
+        /* Copy Report Name Button Styles */
+        .copy-report-name-button {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+        }
+        
+        .copy-report-name-button:hover {
+            background: var(--vscode-toolbar-hoverBackground) !important;
+            background-color: var(--vscode-toolbar-hoverBackground) !important;
+        }
+        
+        .copy-report-name-button:active {
+            background: var(--vscode-toolbar-activeBackground);
+            transform: scale(0.95);
+        }
+        
+        .copy-report-name-button .codicon {
+            font-size: 16px;
+        }
         
         /* Owner Data Object Styles */
         .owner-info-container {
@@ -136,6 +167,9 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
 <body>
     <div class="header-container">
         <h1 class="header-title">Details for ${report.name || 'Unknown Report'} Report</h1>
+        <button class="copy-report-name-button" onclick="copyReportName('${report.name || ''}')" title="Copy report name">
+            <i class="codicon codicon-copy"></i>
+        </button>
         <button class="view-preview-button" onclick="openPagePreview('${report.name || ''}', '${report.isPage === 'true' ? 'true' : 'false'}')" title="View page preview">
             <i class="codicon codicon-eye"></i>
             <span class="icon-text">👁</span>
