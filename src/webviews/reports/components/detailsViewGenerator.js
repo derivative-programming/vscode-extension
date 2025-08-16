@@ -24,9 +24,10 @@ const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
  * @param {Array} allForms Array of all available forms for page search modal
  * @param {Array} allReports Array of all available reports for page search modal
  * @param {Object} ownerObject The owner data object for this report (optional)
+ * @param {Array} allDataObjects Array of all available data objects for data object search modal
  * @returns {string} HTML content
  */
-function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema, codiconsUri, allForms = [], allReports = [], ownerObject = null) {
+function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, reportButtonsSchema, reportParamsSchema, codiconsUri, allForms = [], allReports = [], ownerObject = null, allDataObjects = []) {
     const columns = report.reportColumn || [];
     const buttons = report.reportButton || [];
     const params = report.reportParam || [];
@@ -64,7 +65,8 @@ function generateDetailsView(report, reportSchemaProps, reportColumnsSchema, rep
         reportColumnsSchema, reportButtonsSchema, reportParamsSchema, 
         report.name,
         allForms,
-        allReports
+        allReports,
+        allDataObjects
     );
     
     // Combine all parts into the main template

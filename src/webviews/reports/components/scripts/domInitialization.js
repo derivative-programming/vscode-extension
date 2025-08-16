@@ -534,7 +534,7 @@ function getDOMInitialization() {
     
     // Setup page browse button handlers for destinationTargetName fields
     function setupPageBrowseButtonHandlers() {
-        // Use event delegation to handle lookup buttons for destinationTargetName fields
+        // Use event delegation to handle lookup buttons for destinationTargetName and sourceObjectName fields
         document.addEventListener('click', (event) => {
             if (event.target.closest('.lookup-button')) {
                 const button = event.target.closest('.lookup-button');
@@ -556,6 +556,22 @@ function getDOMInitialization() {
                     if (inputField) {
                         const currentValue = inputField.value;
                         createPageSearchModal(currentValue, inputField);
+                    }
+                } else if (propKey === 'sourceObjectName') {
+                    // Find the corresponding input field
+                    let inputField = button.parentElement.querySelector('input[type="text"]');
+                    
+                    // If not found (list view), try using data-field-id
+                    if (!inputField) {
+                        const fieldId = button.getAttribute('data-field-id');
+                        if (fieldId) {
+                            inputField = document.getElementById(fieldId);
+                        }
+                    }
+                    
+                    if (inputField) {
+                        const currentValue = inputField.value;
+                        createDataObjectSearchModal(currentValue, inputField);
                     }
                 }
             }

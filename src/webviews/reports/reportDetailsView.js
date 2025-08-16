@@ -151,7 +151,8 @@ function showReportDetails(item, modelService, context) {
         codiconsUri,
         allForms,
         allReports,
-        ownerObject
+        ownerObject,
+        allDataObjects
     );
     
     // Handle messages from the webview
@@ -485,7 +486,8 @@ function refreshAll() {
                 codiconsUri,
                 allForms,
                 allReports,
-                ownerObject
+                ownerObject,
+                allDataObjects
             );
         }
     }
@@ -1737,6 +1739,13 @@ function updateTargetChildSubscription(data, reportReference, modelService, pane
 }
 
 // Export the functions
+module.exports = {
+    showReportDetails,
+    refreshAll,
+    getOpenPanelItems,
+    closeAllPanels
+};
+unctions
 module.exports = {
     showReportDetails,
     refreshAll,

@@ -50,8 +50,8 @@ function getButtonManagementFunctions() {
                 }
                 updateInputStyle(inputElement, true);
                 
-                // Handle browse button state for destinationTargetName field
-                if (propName === 'destinationTargetName') {
+                // Handle browse button state for destinationTargetName and sourceObjectName fields
+                if (propName === 'destinationTargetName' || propName === 'sourceObjectName') {
                     const browseButton = tableCell.querySelector('.lookup-button');
                     if (browseButton) {
                         browseButton.disabled = false;
@@ -78,8 +78,8 @@ function getButtonManagementFunctions() {
                 }
                 updateInputStyle(inputElement, false);
                 
-                // Handle browse button state for destinationTargetName field
-                if (propName === 'destinationTargetName') {
+                // Handle browse button state for destinationTargetName and sourceObjectName fields
+                if (propName === 'destinationTargetName' || propName === 'sourceObjectName') {
                     const browseButton = tableCell.querySelector('.lookup-button');
                     if (browseButton) {
                         browseButton.disabled = true;
@@ -192,8 +192,8 @@ function getButtonManagementFunctions() {
                     
                     checkbox.checked = propertyExists;
                     
-                    // Handle browse button state for destinationTargetName field in list view
-                    if (buttonKey === 'destinationTargetName') {
+                    // Handle browse button state for destinationTargetName and sourceObjectName fields in list view
+                    if (buttonKey === 'destinationTargetName' || buttonKey === 'sourceObjectName') {
                         const controlContainer = field.parentElement;
                         if (controlContainer && controlContainer.classList.contains('control-with-button')) {
                             const browseButton = controlContainer.querySelector('.lookup-button');
@@ -242,8 +242,8 @@ function getButtonManagementFunctions() {
                     }
                     updateInputStyle(field, this.checked);
                     
-                    // Handle browse button state for destinationTargetName field in list view
-                    if (buttonKey === 'destinationTargetName') {
+                    // Handle browse button state for destinationTargetName and sourceObjectName fields in list view
+                    if (buttonKey === 'destinationTargetName' || buttonKey === 'sourceObjectName') {
                         const controlContainer = field.parentElement;
                         if (controlContainer && controlContainer.classList.contains('control-with-button')) {
                             const browseButton = controlContainer.querySelector('.lookup-button');
