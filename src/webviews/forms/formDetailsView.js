@@ -136,6 +136,9 @@ function showFormDetails(item, modelService, context) {
         const allForms = modelService && modelService.isFileLoaded() ? modelService.getAllPageObjectWorkflows() : [];
         const allReports = modelService && modelService.isFileLoaded() ? modelService.getAllReports() : [];
         
+        // Get all data objects for data object search modal
+        const allDataObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
+        
         // Set the HTML content with the full form data
         panel.webview.html = generateDetailsView(
             formData, 
@@ -145,7 +148,8 @@ function showFormDetails(item, modelService, context) {
             formOutputVarsSchema,
             codiconsUri,
             allForms,
-            allReports
+            allReports,
+            allDataObjects
         );
     } catch (error) {
         console.error("Error generating details view:", error);
@@ -555,6 +559,9 @@ function refreshAll() {
             const allForms = modelService && modelService.isFileLoaded() ? modelService.getAllPageObjectWorkflows() : [];
             const allReports = modelService && modelService.isFileLoaded() ? modelService.getAllReports() : [];
             
+            // Get all data objects for data object search modal
+            const allDataObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
+            
             // Update the HTML content
             panel.webview.html = generateDetailsView(
                 formData, 
@@ -564,7 +571,8 @@ function refreshAll() {
                 formOutputVarsSchema,
                 undefined, // codiconsUri not available in refresh context
                 allForms,
-                allReports
+                allReports,
+                allDataObjects
             );
         }
     }
@@ -642,6 +650,9 @@ function updateModelDirectly(data, formReference, modelService, panel = null) {
             const allForms = modelService && modelService.isFileLoaded() ? modelService.getAllPageObjectWorkflows() : [];
             const allReports = modelService && modelService.isFileLoaded() ? modelService.getAllReports() : [];
             
+            // Get all data objects for data object search modal
+            const allDataObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
+            
             // Regenerate and update the webview HTML with updated model data
             panel.webview.html = generateDetailsView(
                 formReference, 
@@ -651,7 +662,8 @@ function updateModelDirectly(data, formReference, modelService, panel = null) {
                 formOutputVarsSchema,
                 undefined, // codiconsUri not available in this context
                 allForms,
-                allReports
+                allReports,
+                allDataObjects
             );
             
             // If preserveTab was specified, restore the active tab

@@ -77,6 +77,14 @@ function getParameterManagementFunctions() {
                     }
                     
                     updateInputStyle(field, checkbox.checked);
+                    
+                    // Set initial browse button state for sourceObjectName field
+                    if (paramKey === 'sourceObjectName') {
+                        const browseButton = document.querySelector('[data-field-id="' + fieldId + '"].lookup-button');
+                        if (browseButton) {
+                            browseButton.disabled = !checkbox.checked;
+                        }
+                    }
                 }
             });
         });
@@ -105,6 +113,15 @@ function getParameterManagementFunctions() {
                         field.disabled = !this.checked;
                     }
                     updateInputStyle(field, this.checked);
+                    
+                    // Handle browse button state for sourceObjectName field
+                    if (paramKey === 'sourceObjectName') {
+                        // For list view, find browse button by data-field-id
+                        const browseButton = document.querySelector('[data-field-id="' + fieldId + '"].lookup-button');
+                        if (browseButton) {
+                            browseButton.disabled = !this.checked;
+                        }
+                    }
                     
                     // Disable the checkbox if it's checked to prevent unchecking
                     if (this.checked) {
@@ -201,6 +218,14 @@ function getParameterManagementFunctions() {
         
         updateInputStyle(inputElement, checkbox.checked);
         
+        // Set initial browse button state for sourceObjectName field
+        if (propName === 'sourceObjectName') {
+            const browseButton = tableCell.querySelector('.lookup-button');
+            if (browseButton) {
+                browseButton.disabled = !checkbox.checked;
+            }
+        }
+        
         checkbox.addEventListener('change', function() {
             // Don't allow unchecking of properties that already exist in the model
             if (this.hasAttribute('data-originally-checked')) {
@@ -216,6 +241,14 @@ function getParameterManagementFunctions() {
                     inputElement.disabled = false;
                 }
                 updateInputStyle(inputElement, true);
+                
+                // Handle browse button state for sourceObjectName field
+                if (propName === 'sourceObjectName') {
+                    const browseButton = tableCell.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = false;
+                    }
+                }
                 
                 // Disable the checkbox to prevent unchecking
                 this.disabled = true;
@@ -236,6 +269,14 @@ function getParameterManagementFunctions() {
                     inputElement.disabled = true;
                 }
                 updateInputStyle(inputElement, false);
+                
+                // Handle browse button state for sourceObjectName field
+                if (propName === 'sourceObjectName') {
+                    const browseButton = tableCell.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = true;
+                    }
+                }
             }
             
             // Send message to update the model

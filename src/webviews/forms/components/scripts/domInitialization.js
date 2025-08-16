@@ -50,7 +50,7 @@ function initializeDOMEvents() {
     // Set up settings input handlers for form changes
     setupSettingsInputHandlers();
     
-    // Set up page browse button event handlers for destinationTargetName fields
+    // Set up browse button event handlers for destinationTargetName and sourceObjectName fields
     setupPageBrowseButtonHandlers();
 }
 
@@ -219,7 +219,7 @@ function initializeViewSwitching() {
     });
 }
 
-// Setup page browse button handlers for destinationTargetName fields
+// Setup browse button handlers for destinationTargetName and sourceObjectName fields
 function setupPageBrowseButtonHandlers() {
     // Use event delegation to handle lookup buttons for destinationTargetName fields
     document.addEventListener('click', (event) => {
@@ -243,6 +243,22 @@ function setupPageBrowseButtonHandlers() {
                 if (inputField) {
                     const currentValue = inputField.value;
                     createPageSearchModal(currentValue, inputField);
+                }
+            } else if (propKey === 'sourceObjectName') {
+                // Handle data object browse functionality
+                let inputField = button.parentElement.querySelector('input[type="text"]');
+                
+                // If not found (list view), try using data-field-id
+                if (!inputField) {
+                    const fieldId = button.getAttribute('data-field-id');
+                    if (fieldId) {
+                        inputField = document.getElementById(fieldId);
+                    }
+                }
+                
+                if (inputField) {
+                    const currentValue = inputField.value;
+                    createDataObjectSearchModal(currentValue, inputField);
                 }
             }
         }
