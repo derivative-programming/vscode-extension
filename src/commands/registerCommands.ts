@@ -38,6 +38,7 @@ import { registerModelFabricationCommands, closeAllModelFabricationPanels } from
 import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerPageListCommands, getPageListPanel, closePageListPanel } from './pageListCommands';
+import { registerPageInitListCommands, getPageInitListPanel, closePageInitListPanel } from './pageInitListCommands';
 import { registerDataObjectListCommands, getDataObjectListPanel, closeDataObjectListPanel } from './dataObjectListCommands';
 import { registerRoleRequirementsCommands, getRoleRequirementsPanel, closeRoleRequirementsPanel } from './roleRequirementsCommands';
 import { showRequirementsFulfillment, getRequirementsFulfillmentPanel, closeRequirementsFulfillmentPanel } from './requirementsFulfillmentCommands';
@@ -202,6 +203,11 @@ export function registerCommands(
             // Close page list panel if open
             if (typeof closePageListPanel === "function") {
                 closePageListPanel();
+            }
+            
+            // Close page init list panel if open
+            if (typeof closePageInitListPanel === "function") {
+                closePageInitListPanel();
             }
             
             // Close data objects list panel if open
@@ -567,6 +573,7 @@ export function registerCommands(
                 // Close catalog views
                 closeModelFeatureCatalogPanel();
                 closePageListPanel();
+                closePageInitListPanel();
                 closeDataObjectListPanel();
                 closeFabricationBlueprintCatalogPanel();
                 
@@ -592,6 +599,9 @@ export function registerCommands(
     
     // Register page list commands
     registerPageListCommands(context, appDNAFilePath, modelService);
+    
+    // Register page init list commands
+    registerPageInitListCommands(context, appDNAFilePath, modelService);
     
     // Register data objects list commands
     registerDataObjectListCommands(context, appDNAFilePath, modelService);

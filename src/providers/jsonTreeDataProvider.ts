@@ -504,7 +504,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const pageInitItem = new JsonTreeItem(
                     'PAGE_INIT',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'pageInit showPageInitFilter'
+                    'pageInit showPageInitFilter showPageInitList'
                 );
                 pageInitItem.tooltip = "Page initialization flows";
                 items.push(pageInitItem);

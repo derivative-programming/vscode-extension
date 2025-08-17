@@ -547,3 +547,32 @@ Files Modified:
 
 The changes ensure that throughout the codebase, missing report.isPage properties are consistently treated as if the value is 'true', providing a better default behavior for reports that don't explicitly set this property.
 Command: Expand all top level tree items in the AppDNA tree view
+
+2025-01-25: ✅ COMPLETED - Add "Show List" icon button to PAGE_INIT treeview item
+- Command: "on PAGE_INIT treeview item add a 'Show List' icon button. This should open a pageinit flow list view. It will have a design similar to the page list view used by the 'show page list' icon button on the PAGES treeview item. This will allows the user to see a full list of page init flows."
+- Status: ✅ COMPLETED
+- Architecture Notes:
+  * Updated PAGE_INIT contextValue in jsonTreeDataProvider.ts to include 'showPageInitList'
+  * Added menu item in package.json with icon "$(table)" for viewItem matching "pageInit.*showPageInitList"
+  * Added command "appdna.pageInitList" in package.json commands section
+  * Created pageInitListCommands.ts following same pattern as pageListCommands.ts:
+    - Manages active panels to avoid duplicates
+    - Creates webview panel with proper HTML template and styling
+    - Handles webview message communication (PageInitListWebviewReady, refresh, sortPageInits, viewDetails)
+    - loadPageInitData() function extracts workflows ending with 'initreport' or 'initobjwf' from all objects
+  * Created pageInitListView.js webview following same pattern as pageListView.js:
+    - Handles filtering by name, title, and owner object
+    - Sortable table columns (name, titleText, workflowType, ownerObject)
+    - Distinguishes between "Init Report" and "Init Object Workflow" types
+    - Collapsible filter section with real-time filtering
+    - Action button for viewing workflow details (shows info message for now)
+  * Registered new command in registerCommands.ts:
+    - Added import for registerPageInitListCommands
+    - Added registration call during extension activation
+    - Added panel cleanup calls in both logout and file operations
+- Pattern: Follows exact same architecture as existing page list functionality but adapted for page init flows
+- Integration: Icon button appears inline on PAGE_INIT tree item when model is loaded
+- Data Source: Extracts page init workflows from objectWorkflow arrays across all data objects
+- Filtering: Supports name, title text, and owner object filtering with dropdown for owner objects
+- Result: Users can now see comprehensive list of all page initialization flows in a dedicated view
+- Status: Built and compiled successfully

@@ -208,6 +208,12 @@
           "when": "viewItem =~ /pageInit.*showPageInitFilter/ && appDnaPageInitFilterActive",
           "group": "inline",
           "icon": "$(clear-all)"
+        },
+        {
+          "command": "appdna.pageInitList",
+          "when": "viewItem =~ /pageInit.*showPageInitList/",
+          "group": "inline",
+          "icon": "$(table)"
         }
       ]
     },
@@ -401,6 +407,11 @@
         "command": "appdna.clearPageInitFilter",
         "title": "Clear Page Init Filter",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "appdna.pageInitList",
+        "title": "Show Page Init List",
+        "icon": "$(table)"
       },
       {
         "command": "appdna.showAppDNASettings",
