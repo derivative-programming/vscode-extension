@@ -376,6 +376,15 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
+    // Setup export button
+    const exportBtn = document.getElementById("exportButton");
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            console.log('[PageList] Export button clicked');
+            exportToCSV();
+        });
+    }
+    
     // Setup filter event listeners
     setupFilterEventListeners();
     
@@ -418,5 +427,17 @@ window.addEventListener("message", function(event) {
         
         // Hide spinner when data is loaded
         hideSpinner();
+    }
+});
+rkspace',
+                data: {
+                    content: message.csvContent,
+                    filename: message.filename
+                }
+            });
+        } else {
+            console.error('Error exporting CSV:', message.error);
+            alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
+        }
     }
 });

@@ -378,6 +378,9 @@ export function registerWorkflowListCommands(
                     </div>
                     
                     <div class="header-actions">
+                        <button id="exportButton" class="icon-button" title="Download CSV">
+                            <i class="codicon codicon-cloud-download"></i>
+                        </button>
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                         </button>
                     </div>
@@ -523,5 +526,28 @@ function loadWorkflowData(panel: vscode.WebviewPanel, modelService: ModelService
                 totalRecords: 0 
             } 
         });
+    }
+}
+
+/**
+ * Save workflows data to CSV file
+ */
+async function saveWorkflowsToCSV(items: any[], modelService: ModelService): Promise<string> {
+    try {
+        // Create CSV content
+        const csvHeader = 'Name,Owner Object,Workflow Type\n';
+        const csvRows = items.map(item => {
+            const name = (item.name || '').replace(/"/g, '""');
+            const ownerObject = (item.ownerObject || '').replace(/"/g, '""');
+            const workflowType = (item.workflowType || '').replace(/"/g, '""');
+            return `"${name}","${ownerObject}","${workflowType}"`;
+        }).join('\n');
+        
+        const csvContent = csvHeader + csvRows;
+        
+        return csvContent;
+    } catch (error) {
+        console.error("[Extension] Error creating workflows CSV:", error);
+        throw error;
     }
 }

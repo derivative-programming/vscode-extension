@@ -287,6 +287,15 @@ document.addEventListener("DOMContentLoaded", function() {
         refreshButton.addEventListener("click", requestRefresh);
     }
     
+    // Setup export button
+    const exportBtn = document.getElementById("exportButton");
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            console.log('[WorkflowList] Export button clicked');
+            exportToCSV();
+        });
+    }
+    
     // Setup filter event listeners
     setupFilterEventListeners();
     
@@ -319,5 +328,16 @@ window.addEventListener('message', event => {
         
         // Hide spinner when data is loaded
         hideSpinner();
+    }
+});orkspace',
+                data: {
+                    content: message.csvContent,
+                    filename: message.filename
+                }
+            });
+        } else {
+            console.error('Error exporting CSV:', message.error);
+            alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
+        }
     }
 });

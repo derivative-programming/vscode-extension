@@ -378,6 +378,9 @@ export function registerPageInitListCommands(
                     </div>
                     
                     <div class="header-actions">
+                        <button id="exportButton" class="icon-button" title="Download CSV">
+                            <i class="codicon codicon-cloud-download"></i>
+                        </button>
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                         </button>
                     </div>
@@ -527,5 +530,28 @@ function loadPageInitData(panel: vscode.WebviewPanel, modelService: ModelService
                 totalRecords: 0 
             } 
         });
+    }
+}
+
+/**
+ * Save page init flows data to CSV file
+ */
+async function savePageInitsToCSV(items: any[], modelService: ModelService): Promise<string> {
+    try {
+        // Create CSV content
+        const csvHeader = 'Name,Workflow Type,Owner Object\n';
+        const csvRows = items.map(item => {
+            const name = (item.name || '').replace(/"/g, '""');
+            const workflowType = (item.workflowType || '').replace(/"/g, '""');
+            const ownerObject = (item.ownerObject || '').replace(/"/g, '""');
+            return `"${name}","${workflowType}","${ownerObject}"`;
+        }).join('\n');
+        
+        const csvContent = csvHeader + csvRows;
+        
+        return csvContent;
+    } catch (error) {
+        console.error("[Extension] Error creating page init CSV:", error);
+        throw error;
     }
 }

@@ -436,6 +436,9 @@ export function registerPageListCommands(
                     </div>
                     
                     <div class="header-actions">
+                        <button id="exportButton" class="icon-button" title="Download CSV">
+                            <i class="codicon codicon-cloud-download"></i>
+                        </button>
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                         </button>
                     </div>
@@ -674,5 +677,31 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
                 totalRecords: 0 
             } 
         });
+    }
+}
+
+/**
+ * Save pages data to CSV file
+ */
+async function savePagesToCSV(items: any[], modelService: ModelService): Promise<string> {
+    try {
+        // Create CSV content
+        const csvHeader = 'Name,Title Text,Type,Report Type,Owner Object,Role Required\n';
+        const csvRows = items.map(item => {
+            const name = (item.name || '').replace(/"/g, '""');
+            const titleText = (item.titleText || '').replace(/"/g, '""');
+            const type = (item.type || '').replace(/"/g, '""');
+            const reportType = (item.reportType || '').replace(/"/g, '""');
+            const ownerObject = (item.ownerObject || '').replace(/"/g, '""');
+            const roleRequired = (item.roleRequired || '').replace(/"/g, '""');
+            return `"${name}","${titleText}","${type}","${reportType}","${ownerObject}","${roleRequired}"`;
+        }).join('\n');
+        
+        const csvContent = csvHeader + csvRows;
+        
+        return csvContent;
+    } catch (error) {
+        console.error("[Extension] Error creating pages CSV:", error);
+        throw error;
     }
 }

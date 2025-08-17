@@ -328,5 +328,20 @@ window.addEventListener("message", function(event) {
         
         // Hide spinner when data is loaded
         hideSpinner();
+    } else if (message.command === 'csvExportReady') {
+        console.log('[PageInitList] CSV export ready');
+        if (message.success !== false) {
+            // Send CSV content to extension to save to workspace
+            vscode.postMessage({
+                command: 'saveCsvToWorkspace',
+                data: {
+                    content: message.csvContent,
+                    filename: message.filename
+                }
+            });
+        } else {
+            console.error('Error exporting CSV:', message.error);
+            alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
+        }
     }
 });
