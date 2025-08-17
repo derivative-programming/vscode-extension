@@ -1,3 +1,12 @@
+2025-01-21: ✅ COMPLETED - Fix GENERAL flows expansion and filtering issues after filter feature addition
+- Command: "something is wrong with the GENERAL flows expansion. we just added a filtering feature. compare it to PAGE_INIT expansion and filtering"
+- Status: ✅ COMPLETED
+- Architecture Notes:
+  * Fixed GENERAL context value matching to use `.includes('general')` instead of exact match
+  * Updated filter-aware empty state condition pattern to match PAGE_INIT implementation
+  * GENERAL now uses same pattern as PAGE_INIT and WORKFLOWS for consistent behavior
+  * Context value pattern: 'general showGeneralFilter' requires flexible matching
+
 2025-01-21: ✅ COMPLETED - Fix WORKFLOWS expansion and filtering issues after filter feature addition
 - Command: "something is wrong with the WORKFLOWS expansion. we just added a filtering feature. compare it to PAGE_INIT expansion and filtering"
 - Status: ✅ COMPLETED  

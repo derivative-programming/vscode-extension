@@ -608,7 +608,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         }
 
         // Handle GENERAL as a parent item - show general objectWorkflow items
-        if (element?.contextValue === 'general' && fileExists) {
+        if (element?.contextValue?.includes('general') && fileExists) {
             try {
                 const items: JsonTreeItem[] = [];
                 
@@ -677,17 +677,17 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
                     
                     // If filtering is active and no results found, show message
-                    if (items.length === 0 && (this.filterText || this.generalFilterText)) {
+                    if ((this.filterText || this.generalFilterText) && items.length === 0) {
                         return Promise.resolve([
                             new JsonTreeItem(
-                                'No general workflows match the current filter',
+                                'No general workflows match filter',
                                 vscode.TreeItemCollapsibleState.None,
                                 'generalEmpty'
                             )
                         ]);
                     }
                     
-                    // If no items found, show message
+                    // If no items found and no filter active, show original message
                     if (items.length === 0) {
                         return Promise.resolve([
                             new JsonTreeItem(
