@@ -678,3 +678,27 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Pattern: Uses context value 'workflowTasks showWorkflowTasksFilter' for proper icon button display
 - Filter Logic: Supports both global tree filter and workflow tasks-specific filter with case-insensitive matching
 
+
+2025-01-25: 🚀 IN PROGRESS - Add GENERAL filter functionality (Issue #258)
+- Command: "on FLOWS: GENERAL treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item. we also have a filter on FLOWS: PAGE_INIT"
+- Status: 🚀 IN PROGRESS - Core implementation completed, testing in progress
+- Architecture Notes:
+  * Added generalFilterText property to JsonTreeDataProvider for filtering general items
+  * Implemented setGeneralFilter() and clearGeneralFilter() methods with context state management
+  * Added applyGeneralFilter() logic to GENERAL section in getChildren() method
+  * Enhanced GENERAL tree item context value to include 'showGeneralFilter' capability
+  * Created showGeneralFilterInputCommand() and clearGeneralFilterCommand() functions in filterTreeViewCommands.ts
+  * Added appDnaGeneralFilterActive context tracking for filter state management
+  * Updated package.json with new commands (appdna.showGeneralFilter, appdna.clearGeneralFilter) and menu items
+  * Registered commands in extension with proper async handling in registerCommands.ts
+  * Applied filter logic to general workflow display names (titleText || name) for case-insensitive matching
+  * Follows same implementation pattern as existing FORMS, PAGE_INIT, WORKFLOWS, WORKFLOW_TASKS, DATA OBJECTS, and REPORTS filters
+- Files Modified:
+  * src/providers/jsonTreeDataProvider.ts - Added filter properties, methods, and application logic
+  * src/commands/filterTreeViewCommands.ts - Added general-specific filter commands
+  * src/commands/registerCommands.ts - Added command imports and registration
+  * package.json - Added command definitions and context menu items
+- Build Status: Compiled successfully with webpack, no new linting issues introduced
+- Next Steps: Manual testing of filter functionality and verification of filter/clear filter icon buttons
+- Testing Plan: Verify filter input dialog works, filter functionality filters general workflows correctly, clear button removes filter
+

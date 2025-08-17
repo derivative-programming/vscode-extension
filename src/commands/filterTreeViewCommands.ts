@@ -241,3 +241,37 @@ export async function showWorkflowTasksFilterInputCommand(treeDataProvider: Json
 export function clearWorkflowTasksFilterCommand(treeDataProvider: JsonTreeDataProvider): void {
     treeDataProvider.clearWorkflowTasksFilter();
 }
+
+/**
+ * Shows a filter input box to filter only the general items by name
+ * @param treeDataProvider The tree data provider to apply the general filter to
+ */
+export async function showGeneralFilterInputCommand(treeDataProvider: JsonTreeDataProvider): Promise<void> {
+    // Show input box to enter filter text
+    const filterText = await vscode.window.showInputBox({
+        placeHolder: 'Filter general workflows by name (case insensitive)',
+        prompt: 'Enter text to filter general workflow items',
+        value: '',
+    });
+
+    // If user cancels or provides empty text, don't apply filter
+    if (filterText === undefined) {
+        return;
+    }
+
+    if (filterText === '') {
+        // If empty text is provided, clear the filter
+        clearGeneralFilterCommand(treeDataProvider);
+    } else {
+        // Apply the general filter
+        treeDataProvider.setGeneralFilter(filterText);
+    }
+}
+
+/**
+ * Clears the current general filter from the tree view
+ * @param treeDataProvider The tree data provider to clear the general filter from
+ */
+export function clearGeneralFilterCommand(treeDataProvider: JsonTreeDataProvider): void {
+    treeDataProvider.clearGeneralFilter();
+}
