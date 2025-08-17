@@ -773,7 +773,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         }
 
         // Handle WORKFLOWS as a parent item - show objectWorkflow items where isDynaFlow is true
-        if (element?.contextValue === 'workflows' && fileExists) {
+        if (element?.contextValue?.includes('workflows') && fileExists) {
             try {
                 const items: JsonTreeItem[] = [];
                 
@@ -788,8 +788,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                                 if (workflow.name && workflow.isDynaFlow === "true") {
                                     const displayName = workflow.titleText || workflow.name;
                                     
-                                    // Apply workflows filter
-                                    if (this.applyWorkflowsFilter(displayName)) {
+                                    // Apply filters (global and workflows specific)
+                                    if (this.applyFilter(displayName) && this.applyWorkflowsFilter(displayName)) {
                                         const workflowItem = new JsonTreeItem(
                                             displayName,
                                             vscode.TreeItemCollapsibleState.None,
@@ -810,7 +810,18 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     // Sort items alphabetically by label
                     items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
                     
-                    // If no items found, show message
+                    // If filtering is active and no results found, show message
+                    if ((this.filterText || this.workflowsFilterText) && items.length === 0) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No workflows match filter',
+                                vscode.TreeItemCollapsibleState.None,
+                                'workflowsEmpty'
+                            )
+                        ]);
+                    }
+                    
+                    // If no items found and no filter active, show original message
                     if (items.length === 0) {
                         return Promise.resolve([
                             new JsonTreeItem(

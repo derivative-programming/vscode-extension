@@ -1,3 +1,13 @@
+2025-01-21: ✅ COMPLETED - Fix WORKFLOWS expansion and filtering issues after filter feature addition
+- Command: "something is wrong with the WORKFLOWS expansion. we just added a filtering feature. compare it to PAGE_INIT expansion and filtering"
+- Status: ✅ COMPLETED  
+- Architecture Notes:
+  * Fixed WORKFLOWS context value matching to use `.includes('workflows')` instead of exact match
+  * Added global filter application alongside workflows-specific filter  
+  * Implemented filter-aware empty state messaging (same pattern as PAGE_INIT)
+  * WORKFLOWS now matches PAGE_INIT implementation pattern for consistent behavior
+  * Context value pattern: 'workflows showWorkflowsFilter' requires flexible matching
+
 2025-08-17: ✅ COMPLETED - Add "Add Destination Button Column" feature to Reports Columns Tab
 - Command: "review the report detail view column tab add column button and modal. We want to add a button 'Add Destination Button Column' to the immediate left of the 'add column' button. On click it will show a modal with a Destination page textbox and browse page lookup button. under that it will ask for button text. under that it will ask for column name. column name field will automatically change when the two above fields change in the format "[button text (no spaces, pascal case)]Link[owner data object name of destination page]". The modal will have an 'Add' and cancel button. On click of Add, it will create a report column similar to this..."
 - Status: ✅ COMPLETED
