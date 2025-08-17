@@ -14,6 +14,7 @@ import { RootModel } from "../data/models/rootModel";
 import { ObjectSchema } from "../data/interfaces";
 import { ReportSchema } from "../data/interfaces/report.interface";
 import { ObjectWorkflowSchema } from "../data/interfaces/objectWorkflow.interface";
+import { ApiSiteSchema } from "../data/interfaces/apiSite.interface";
 
 /**
  * Service responsible for loading, validating, and saving App DNA model data
@@ -192,6 +193,28 @@ export class ModelService {
         }
         
         return allObjects;
+    }
+
+    /**
+     * Get all API sites from all namespaces in the model
+     * @returns Array containing references to the actual API site instances from all namespaces or empty array if no model is loaded
+     */
+    public getAllApiSites(): ApiSiteSchema[] {
+        const rootModel = this.getCurrentModel();
+        if (!rootModel || !rootModel.namespace) {
+            return [];
+        }
+
+        // Flatten the arrays of API sites from all namespaces
+        const allApiSites: ApiSiteSchema[] = [];
+        
+        for (const namespace of rootModel.namespace) {
+            if (namespace.apiSite && Array.isArray(namespace.apiSite)) {
+                allApiSites.push(...namespace.apiSite);
+            }
+        }
+        
+        return allApiSites;
     }
 
     /**
