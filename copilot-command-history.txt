@@ -546,4 +546,26 @@ Files Modified:
 - src/commands/userStoriesPageMappingCommands.ts
 
 The changes ensure that throughout the codebase, missing report.isPage properties are consistently treated as if the value is 'true', providing a better default behavior for reports that don't explicitly set this property.
-Command: Expand all top level tree items in the AppDNA tree view
+
+2025-01-25: 🚀 IN PROGRESS - Add WORKFLOWS filter functionality (Issue #256)
+- Command: "on FLOWS: WORKFLOWS treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item"
+- Status: 🚀 IN PROGRESS - Core implementation completed, testing in progress
+- Architecture Notes:
+  * Added workflowsFilterText property to JsonTreeDataProvider for filtering workflows items
+  * Implemented setWorkflowsFilter() and clearWorkflowsFilter() methods with context state management
+  * Added applyWorkflowsFilter() logic to WORKFLOWS section in getChildren() method
+  * Enhanced WORKFLOWS tree item context value to include 'showWorkflowsFilter' capability
+  * Created showWorkflowsFilterInputCommand() and clearWorkflowsFilterCommand() functions in filterTreeViewCommands.ts
+  * Added appDnaWorkflowsFilterActive context tracking for filter state management
+  * Updated package.json with new commands (appdna.showWorkflowsFilter, appdna.clearWorkflowsFilter) and menu items
+  * Registered commands in extension with proper async handling in registerCommands.ts
+  * Applied filter logic to workflow display names (titleText || name) for case-insensitive matching
+  * Follows same implementation pattern as existing FORMS, PAGE_INIT, DATA OBJECTS, and REPORTS filters
+- Files Modified:
+  * src/providers/jsonTreeDataProvider.ts - Added filter properties, methods, and application logic
+  * src/commands/filterTreeViewCommands.ts - Added workflows-specific filter commands
+  * src/commands/registerCommands.ts - Added command imports and registration
+  * package.json - Added command definitions and context menu items
+- Build Status: Compiled successfully with webpack, no new linting issues introduced
+- Next Steps: Manual testing of filter functionality and verification of filter/clear filter icon buttons
+- Testing Plan: Verify filter input dialog works, filter functionality filters workflows correctly, clear button removes filter
