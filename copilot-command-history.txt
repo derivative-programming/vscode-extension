@@ -632,6 +632,28 @@ Command: Expand all top level tree items in the AppDNA tree view
 - Testing Plan: Verify filter input dialog works, filter functionality filters workflows correctly, clear button removes filter
 
 
+2025-01-25: ✅ COMPLETED - Add "Show List" icon button to WORKFLOWS treeview item
+- Command: "on WORKFLOWS treeview item add a 'Show List' icon button. This should open a workflow list view. It will have a design similar to the page list view used by the 'show page list' icon button on the PAGES treeview item. This will allows the user to see a full list of workflow flows."
+- Status: ✅ COMPLETED
+- Architecture Notes:
+  * Updated WORKFLOWS contextValue in jsonTreeDataProvider.ts to include 'showWorkflowsList'
+  * Added menu item in package.json with icon "$(table)" for viewItem matching "workflows.*showWorkflowsList"
+  * Added command "appdna.workflowList" in package.json commands section
+  * Created workflowListCommands.ts following same pattern as pageInitListCommands.ts:
+    - Manages active panels to avoid duplicates
+    - Creates webview panel with proper HTML template and styling
+    - Handles messages for refresh, sort, and viewDetails operations
+  * Created workflowListView.js following same pattern as pageInitListView.js:
+    - Implements table rendering with sortable columns (Name, Title, Owner Object, Type, Actions)
+    - Provides filtering capabilities by name, title, and owner object
+    - Shows appropriate empty state messages for no workflows found
+    - Includes spinner overlay for loading states
+  * Data Source: Extracts DynaFlow workflows where isDynaFlow is "true" from objectWorkflow arrays
+  * Filtering: Supports name, title text, and owner object filtering with dropdown for owner objects
+  * Result: Users can now see comprehensive list of all DynaFlow workflows in dedicated view
+  * Registered commands in registerCommands.ts with proper cleanup functions
+- Status: Built and compiled successfully
+
 2025-01-25: ✅ COMPLETED - Add WORKFLOW_TASKS filter functionality (Issue #257)
 - Command: "on FLOWS: WORKFLOW_TASKS treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item"
 - Status: ✅ COMPLETED

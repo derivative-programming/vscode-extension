@@ -39,6 +39,7 @@ import { registerReportCommands } from './reportCommands';
 import { registerModelFeatureCatalogCommands, getModelFeatureCatalogPanel, closeModelFeatureCatalogPanel } from './modelFeatureCatalogCommands';
 import { registerPageListCommands, getPageListPanel, closePageListPanel } from './pageListCommands';
 import { registerPageInitListCommands, getPageInitListPanel, closePageInitListPanel } from './pageInitListCommands';
+import { registerWorkflowListCommands, getWorkflowListPanel, closeWorkflowListPanel } from './workflowListCommands';
 import { registerDataObjectListCommands, getDataObjectListPanel, closeDataObjectListPanel } from './dataObjectListCommands';
 import { registerRoleRequirementsCommands, getRoleRequirementsPanel, closeRoleRequirementsPanel } from './roleRequirementsCommands';
 import { showRequirementsFulfillment, getRequirementsFulfillmentPanel, closeRequirementsFulfillmentPanel } from './requirementsFulfillmentCommands';
@@ -208,6 +209,11 @@ export function registerCommands(
             // Close page init list panel if open
             if (typeof closePageInitListPanel === "function") {
                 closePageInitListPanel();
+            }
+            
+            // Close workflow list panel if open
+            if (typeof closeWorkflowListPanel === "function") {
+                closeWorkflowListPanel();
             }
             
             // Close data objects list panel if open
@@ -574,6 +580,7 @@ export function registerCommands(
                 closeModelFeatureCatalogPanel();
                 closePageListPanel();
                 closePageInitListPanel();
+                closeWorkflowListPanel();
                 closeDataObjectListPanel();
                 closeFabricationBlueprintCatalogPanel();
                 
@@ -602,6 +609,9 @@ export function registerCommands(
     
     // Register page init list commands
     registerPageInitListCommands(context, appDNAFilePath, modelService);
+    
+    // Register workflow list commands
+    registerWorkflowListCommands(context, appDNAFilePath, modelService);
     
     // Register data objects list commands
     registerDataObjectListCommands(context, appDNAFilePath, modelService);

@@ -528,7 +528,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const workflowsItem = new JsonTreeItem(
                     'WORKFLOWS',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'workflows showWorkflowsFilter'
+                    'workflows showWorkflowsFilter showWorkflowsList'
                 );
                 workflowsItem.tooltip = "Object workflows where isPage=false";
                 items.push(workflowsItem);
