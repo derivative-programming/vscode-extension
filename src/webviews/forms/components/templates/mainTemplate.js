@@ -96,6 +96,26 @@ function getMainTemplate(
             display: none !important;
         }
         
+        /* Page Initialization Flow Section Styles */
+        .page-init-flow-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--vscode-descriptionForeground);
+        }
+        
+        .page-init-flow-label {
+            font-weight: 500;
+        }
+        
+        .page-init-flow-name {
+            color: var(--vscode-foreground);
+            font-family: var(--vscode-editor-font-family);
+        }
+        
         /* Owner Data Object Section Styles */
         .owner-data-object-section {
             display: flex;
@@ -158,6 +178,13 @@ function getMainTemplate(
             <span class="icon-text">👁</span>
         </button>
     </div>
+    
+    ${form.initObjectWorkflowName ? `
+    <div class="page-init-flow-section">
+        <span class="page-init-flow-label">Page Initialization Flow:</span>
+        <span class="page-init-flow-name">${form.initObjectWorkflowName}</span>
+    </div>
+    ` : ''}
     
     ${ownerObject ? `
     <div class="owner-data-object-section">
