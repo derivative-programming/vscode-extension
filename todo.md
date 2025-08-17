@@ -2,9 +2,7 @@ Agent todo items...
 
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
-   
-allow csv export on all list pages
-
+    
 add target child object column on page list
 
 on form details view, 'Page Initialization Flow:  [edit icon to view the pageinit details view]
