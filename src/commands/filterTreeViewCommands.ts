@@ -139,3 +139,37 @@ export async function showFormFilterInputCommand(treeDataProvider: JsonTreeDataP
 export function clearFormFilterCommand(treeDataProvider: JsonTreeDataProvider): void {
     treeDataProvider.clearFormFilter();
 }
+
+/**
+ * Shows a filter input box to filter only the page init items by name
+ * @param treeDataProvider The tree data provider to apply the page init filter to
+ */
+export async function showPageInitFilterInputCommand(treeDataProvider: JsonTreeDataProvider): Promise<void> {
+    // Show input box to enter filter text
+    const filterText = await vscode.window.showInputBox({
+        placeHolder: 'Filter page init items by name (case insensitive)',
+        prompt: 'Enter text to filter page init items',
+        value: '',
+    });
+
+    // If user cancels or provides empty text, don't apply filter
+    if (filterText === undefined) {
+        return;
+    }
+
+    if (filterText === '') {
+        // If empty text is provided, clear the filter
+        clearPageInitFilterCommand(treeDataProvider);
+    } else {
+        // Apply the page init filter
+        treeDataProvider.setPageInitFilter(filterText);
+    }
+}
+
+/**
+ * Clears the current page init filter from the tree view
+ * @param treeDataProvider The tree data provider to clear the page init filter from
+ */
+export function clearPageInitFilterCommand(treeDataProvider: JsonTreeDataProvider): void {
+    treeDataProvider.clearPageInitFilter();
+}

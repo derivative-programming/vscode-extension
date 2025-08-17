@@ -40,6 +40,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     private formFilterText: string = "";
     // Current filter text for data object items only
     private dataObjectFilterText: string = "";
+    // Current filter text for page init items only
+    private pageInitFilterText: string = "";
       constructor(
         private readonly appDNAFilePath: string | null,
         private readonly modelService: ModelService
@@ -51,6 +53,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaDataObjectFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaFormFilterActive', false);
+        vscode.commands.executeCommand('setContext', 'appDnaPageInitFilterActive', false);
         
         // Register to server status changes to update the tree view
         this.mcpServer.onStatusChange(isRunning => {
@@ -480,7 +483,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const pageInitItem = new JsonTreeItem(
                     'PAGE_INIT',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'pageInit'
+                    'pageInit showPageInitFilter'
                 );
                 pageInitItem.tooltip = "Page initialization flows";
                 items.push(pageInitItem);
@@ -677,17 +680,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                                     // Check if name ends with 'initreport' or 'initobjwf'
                                     if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
                                         const displayName = workflow.titleText || workflow.name;
-                                        const workflowItem = new JsonTreeItem(
-                                            displayName,
-                                            vscode.TreeItemCollapsibleState.None,
-                                            'pageInitWorkflowItem'
-                                        );
-                                        
-                                        // Set tooltip with workflow details
-                                        const objectName = obj.name || 'Unknown Object';
-                                        workflowItem.tooltip = `${workflow.name} (from ${objectName})`;
-                                        
-                                        items.push(workflowItem);
+                                        // Apply filters (global and page init specific)
+                                        if (this.applyFilter(displayName) && this.applyPageInitFilter(displayName)) {
+                                            const workflowItem = new JsonTreeItem(
+                                                displayName,
+                                                vscode.TreeItemCollapsibleState.None,
+                                                'pageInitWorkflowItem'
+                                            );
+                                            
+                                            // Set tooltip with workflow details
+                                            const objectName = obj.name || 'Unknown Object';
+                                            workflowItem.tooltip = `${workflow.name} (from ${objectName})`;
+                                            
+                                            items.push(workflowItem);
+                                        }
                                     }
                                 }
                             });
@@ -697,7 +703,18 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     // Sort items alphabetically by label
                     items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
                     
-                    // If no items found, show message
+                    // If filtering is active and no results found, show message
+                    if ((this.filterText || this.pageInitFilterText) && items.length === 0) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No page init workflows match filter',
+                                vscode.TreeItemCollapsibleState.None,
+                                'pageInitEmpty'
+                            )
+                        ]);
+                    }
+                    
+                    // If no items found and no filter active, show original message
                     if (items.length === 0) {
                         return Promise.resolve([
                             new JsonTreeItem(
@@ -1509,6 +1526,45 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         
         // Case-insensitive match of form filter text within the label
         return label.toLowerCase().includes(this.formFilterText);
+    }
+
+    /**
+     * Sets a filter for only the page init items
+     * @param filterText The text to filter page init nodes by
+     */
+    setPageInitFilter(filterText: string): void {
+        // Convert to lowercase for case-insensitive comparison
+        this.pageInitFilterText = filterText.toLowerCase();
+        // Update context to indicate page init filter is active
+        vscode.commands.executeCommand('setContext', 'appDnaPageInitFilterActive', !!this.pageInitFilterText);
+        // Refresh the tree to apply the filter
+        this.refresh();
+    }
+
+    /**
+     * Clears the current page init filter
+     */
+    clearPageInitFilter(): void {
+        this.pageInitFilterText = "";
+        // Update context to indicate page init filter is not active
+        vscode.commands.executeCommand('setContext', 'appDnaPageInitFilterActive', false);
+        // Refresh the tree to show all page init items
+        this.refresh();
+    }
+
+    /**
+     * Checks if a page init item's label matches the current page init filter
+     * @param label The label to check against the page init filter
+     * @returns True if the label matches the page init filter or no page init filter is set
+     */
+    private applyPageInitFilter(label: string): boolean {
+        // If no page init filter is set, all page init items match
+        if (!this.pageInitFilterText) {
+            return true;
+        }
+        
+        // Case-insensitive match of page init filter text within the label
+        return label.toLowerCase().includes(this.pageInitFilterText);
     }
 
     /**
