@@ -160,32 +160,27 @@ export function registerGeneralListCommands(
                         }
                         .hidden { display: none; }
                         .filter-section {
-                            margin-bottom: 20px;
-                            background: var(--vscode-sideBarSectionHeader-background);
-                            border-radius: 4px;
                             border: 1px solid var(--vscode-panel-border);
+                            border-radius: 3px;
+                            margin-bottom: 15px;
+                            background-color: var(--vscode-sideBar-background);
                         }
                         .filter-header {
                             padding: 8px 12px;
                             cursor: pointer;
-                            border-bottom: 1px solid var(--vscode-panel-border);
+                            user-select: none;
                             display: flex;
                             align-items: center;
-                            background: var(--vscode-sideBar-background);
-                            border-radius: 4px 4px 0 0;
+                            gap: 6px;
+                            background-color: var(--vscode-list-hoverBackground);
+                            border-radius: 3px 3px 0 0;
                         }
                         .filter-header:hover {
-                            background: var(--vscode-list-hoverBackground);
-                        }
-                        .filter-header .codicon {
-                            margin-right: 8px;
-                            transition: transform 0.2s;
-                        }
-                        .filter-header.collapsed .codicon {
-                            transform: rotate(-90deg);
+                            background-color: var(--vscode-list-activeSelectionBackground);
                         }
                         .filter-content {
-                            padding: 12px;
+                            padding: 15px;
+                            border-top: 1px solid var(--vscode-panel-border);
                         }
                         .filter-content.collapsed {
                             display: none;
@@ -194,35 +189,38 @@ export function registerGeneralListCommands(
                             display: flex;
                             gap: 15px;
                             margin-bottom: 10px;
-                            align-items: center;
                             flex-wrap: wrap;
                         }
                         .filter-group {
                             display: flex;
-                            align-items: center;
-                            gap: 8px;
+                            flex-direction: column;
+                            min-width: 150px;
+                            flex: 1;
                         }
                         .filter-group label {
-                            font-weight: bold;
-                            min-width: 80px;
+                            font-weight: 600;
+                            margin-bottom: 4px;
+                            font-size: 12px;
+                            color: var(--vscode-foreground);
                         }
                         .filter-group input, .filter-group select {
                             padding: 4px 8px;
-                            background: var(--vscode-input-background);
-                            color: var(--vscode-input-foreground);
                             border: 1px solid var(--vscode-input-border);
+                            background-color: var(--vscode-input-background);
+                            color: var(--vscode-input-foreground);
                             border-radius: 2px;
-                            font-family: var(--vscode-font-family);
-                            min-width: 150px;
+                            font-size: 13px;
                         }
                         .filter-group input:focus, .filter-group select:focus {
                             outline: 1px solid var(--vscode-focusBorder);
-                            border-color: var(--vscode-focusBorder);
+                            outline-offset: -1px;
                         }
                         .filter-actions {
                             display: flex;
-                            gap: 8px;
-                            margin-top: 10px;
+                            gap: 10px;
+                            margin-top: 15px;
+                            padding-top: 10px;
+                            border-top: 1px solid var(--vscode-panel-border);
                         }
                         .filter-button {
                             background-color: var(--vscode-button-background);
@@ -275,34 +273,60 @@ export function registerGeneralListCommands(
                             justify-content: flex-end;
                         }
                         .icon-button {
-                            background-color: var(--vscode-button-secondaryBackground);
-                            color: var(--vscode-button-secondaryForeground);
+                            background: transparent;
+                            color: var(--vscode-foreground);
                             border: none;
                             padding: 6px 8px;
                             cursor: pointer;
-                            border-radius: 2px;
+                            border-radius: 4px;
                             display: flex;
                             align-items: center;
                             gap: 4px;
+                            transition: background 0.15s;
                         }
                         .icon-button:hover {
-                            background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground));
+                            background: var(--vscode-toolbar-hoverBackground);
+                        }
+                        .edit-button {
+                            background: transparent !important;
+                            background-color: transparent !important;
+                            border: none;
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 6px;
+                            border-radius: 4px;
+                            transition: background 0.15s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            min-width: 28px;
+                            height: 28px;
+                            margin: 0 2px;
+                        }
+                        .edit-button:hover {
+                            background: var(--vscode-toolbar-hoverBackground) !important;
+                            background-color: var(--vscode-toolbar-hoverBackground) !important;
+                        }
+                        .edit-button:active {
+                            background: var(--vscode-toolbar-activeBackground);
+                            transform: scale(0.95);
+                        }
+                        .edit-button .codicon {
+                            font-size: 16px;
+                        }
+                        .actions-container {
+                            display: flex;
+                            gap: 4px;
+                            align-items: center;
+                            justify-content: center;
                         }
                         .refresh-button {
-                            background-color: var(--vscode-button-background);
-                            color: var(--vscode-button-foreground);
-                            border: none;
-                            padding: 6px 12px;
-                            cursor: pointer;
-                            border-radius: 2px;
+                            /* Base styles will be set by JavaScript */
                         }
-                        .refresh-button:hover {
-                            background-color: var(--vscode-button-hoverBackground);
-                        }
-                        .refresh-button::before {
-                            content: "$(refresh)";
-                            font-family: codicon;
-                            margin-right: 4px;
+                        .header-actions {
+                            display: flex;
+                            justify-content: flex-end;
+                            margin-bottom: 10px;
                         }
                         .full-page-container {
                             height: 100vh;
@@ -310,6 +334,36 @@ export function registerGeneralListCommands(
                             flex-direction: column;
                             overflow: hidden;
                             background-color: var(--vscode-editor-background);
+                        }
+                        .spinner {
+                            border: 4px solid rgba(255, 255, 255, 0.1);
+                            border-radius: 50%;
+                            border-top: 4px solid var(--vscode-progressBar-background);
+                            border-left-color: var(--vscode-progressBar-background);
+                            animation: spin 1s linear infinite;
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            z-index: 1000;
+                            width: 40px;
+                            height: 40px;
+                        }
+                        .spinner-overlay {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background-color: rgba(0, 0, 0, 0.2);
+                            z-index: 999;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        @keyframes spin {
+                            0% { transform: translate(-50%, -50%) rotate(0deg); }
+                            100% { transform: translate(-50%, -50%) rotate(360deg); }
                         }
                     </style>
                 </head>
@@ -330,11 +384,11 @@ export function registerGeneralListCommands(
                             <div class="filter-row">
                                 <div class="filter-group">
                                     <label>Name:</label>
-                                    <input type="text" id="nameFilter" placeholder="Filter by name..." />
+                                    <input type="text" id="nameFilter" placeholder="Filter by name...">
                                 </div>
                                 <div class="filter-group">
                                     <label>Object:</label>
-                                    <input type="text" id="objectFilter" placeholder="Filter by object..." />
+                                    <input type="text" id="objectFilter" placeholder="Filter by object...">
                                 </div>
                             </div>
                             <div class="filter-actions">
@@ -364,6 +418,10 @@ export function registerGeneralListCommands(
                         </div>
                     </div>
                     
+                    <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                    
                     <script src="${scriptUri}"></script>
                 </body>
                 </html>
@@ -373,87 +431,14 @@ export function registerGeneralListCommands(
             panel.webview.onDidReceiveMessage(async (message) => {
                 switch (message.command) {
                     case 'GeneralListWebviewReady':
-                        try {
-                            // Get current model data
-                            const modelData = await modelService.getModel();
-                            if (modelData && modelData.objects) {
-                                const allObjects = Object.values(modelData.objects) as any[];
-                                
-                                // Extract general flows from all objects
-                                let generalFlows: any[] = [];
-                                for (const obj of allObjects) {
-                                    if (obj.objectWorkflows) {
-                                        for (const workflow of obj.objectWorkflows) {
-                                            // Only include general workflows (not page workflows)
-                                            if (workflow.isPage !== true && !workflow.isPage) {
-                                                const displayName = workflow.titleText || workflow.name;
-                                                generalFlows.push({
-                                                    name: workflow.name,
-                                                    displayName: displayName,
-                                                    objectName: obj.name || 'Unknown',
-                                                    description: workflow.description || '',
-                                                    isActive: workflow.isActive !== false
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                // Sort by display name
-                                generalFlows.sort((a, b) => a.displayName.localeCompare(b.displayName));
-                                
-                                // Send data to webview
-                                panel.webview.postMessage({
-                                    command: 'loadGeneralFlows',
-                                    data: generalFlows
-                                });
-                            }
-                        } catch (error) {
-                            console.error('Error loading general flows:', error);
-                            vscode.window.showErrorMessage('Error loading general flows: ' + error);
-                        }
+                        console.log("[Extension] GeneralList webview ready");
+                        // Load initial general flow data
+                        loadGeneralFlowData(panel, modelService);
                         break;
                         
                     case 'refresh':
-                        try {
-                            // Refresh the data by re-sending the general flows
-                            const modelData = await modelService.getModel();
-                            if (modelData && modelData.objects) {
-                                const allObjects = Object.values(modelData.objects) as any[];
-                                
-                                // Extract general flows from all objects
-                                let generalFlows: any[] = [];
-                                for (const obj of allObjects) {
-                                    if (obj.objectWorkflows) {
-                                        for (const workflow of obj.objectWorkflows) {
-                                            // Only include general workflows (not page workflows)
-                                            if (workflow.isPage !== true && !workflow.isPage) {
-                                                const displayName = workflow.titleText || workflow.name;
-                                                generalFlows.push({
-                                                    name: workflow.name,
-                                                    displayName: displayName,
-                                                    objectName: obj.name || 'Unknown',
-                                                    description: workflow.description || '',
-                                                    isActive: workflow.isActive !== false
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                // Sort by display name
-                                generalFlows.sort((a, b) => a.displayName.localeCompare(b.displayName));
-                                
-                                // Send refreshed data to webview
-                                panel.webview.postMessage({
-                                    command: 'loadGeneralFlows',
-                                    data: generalFlows
-                                });
-                            }
-                        } catch (error) {
-                            console.error('Error refreshing general flows:', error);
-                            vscode.window.showErrorMessage('Error refreshing general flows: ' + error);
-                        }
+                        console.log("[Extension] GeneralList refresh requested");
+                        loadGeneralFlowData(panel, modelService);
                         break;
                         
                     case 'sortGenerals':
@@ -471,4 +456,110 @@ export function registerGeneralListCommands(
             });
         })
     );
+}
+
+function loadGeneralFlowData(panel: vscode.WebviewPanel, modelService: ModelService, sortColumn?: string, sortDescending?: boolean) {
+    try {
+        if (!modelService || !modelService.isFileLoaded()) {
+            panel.webview.postMessage({ 
+                command: 'loadGeneralFlows', 
+                data: [] 
+            });
+            return;
+        }
+
+        const allObjects = modelService.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            panel.webview.postMessage({ 
+                command: 'loadGeneralFlows', 
+                data: [] 
+            });
+            return;
+        }
+
+        // Extract general flows from all objects
+        let generalFlows: any[] = [];
+        for (const obj of allObjects) {
+            if (obj.objectWorkflow) {
+                for (const workflow of obj.objectWorkflow) {
+                    if (workflow.name) {
+                        const workflowName = workflow.name.toLowerCase();
+                        
+                        // Check all criteria (same as tree view):
+                        // 1. isDynaFlow property does not exist or is false
+                        const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false";
+                        
+                        // 2. isDynaFlowTask property does not exist or is false
+                        const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
+                        
+                        // 3. isPage property is false
+                        const isPageOk = workflow.isPage === "false";
+                        
+                        // 4. name does not end with initobjwf
+                        const notInitObjWf = !workflowName.endsWith('initobjwf');
+                        
+                        // 5. name does not end with initreport
+                        const notInitReport = !workflowName.endsWith('initreport');
+                        
+                        // All criteria must be true
+                        if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {
+                            const displayName = workflow.titleText || workflow.name;
+                            generalFlows.push({
+                                name: workflow.name,
+                                displayName: displayName,
+                                objectName: obj.name || 'Unknown',
+                                description: workflow.codeDescription || '',
+                                isActive: true // All workflows are considered active for display
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        // Apply sorting - default to sorting by displayName if no specific sort is requested
+        if (generalFlows.length > 0) {
+            if (sortColumn) {
+                generalFlows.sort((a, b) => {
+                    let aValue = a[sortColumn] || '';
+                    let bValue = b[sortColumn] || '';
+                    
+                    if (typeof aValue === 'string') {
+                        aValue = aValue.toLowerCase();
+                    }
+                    if (typeof bValue === 'string') {
+                        bValue = bValue.toLowerCase();
+                    }
+                    
+                    let result;
+                    if (aValue < bValue) {
+                        result = -1;
+                    } else if (aValue > bValue) {
+                        result = 1;
+                    } else {
+                        result = 0;
+                    }
+                    
+                    return sortDescending ? -result : result;
+                });
+            } else {
+                // Default sort by display name
+                generalFlows.sort((a, b) => a.displayName.localeCompare(b.displayName));
+            }
+        }
+
+        console.log(`Found ${generalFlows.length} general flows`);
+        panel.webview.postMessage({
+            command: 'loadGeneralFlows',
+            data: generalFlows
+        });
+
+    } catch (error) {
+        console.error('Error loading general flows:', error);
+        panel.webview.postMessage({ 
+            command: 'loadGeneralFlows', 
+            data: [] 
+        });
+        vscode.window.showErrorMessage('Error loading general flows: ' + error);
+    }
 }

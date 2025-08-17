@@ -2,10 +2,10 @@ Agent todo items...
 
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
-  
-workflow list view - remove title column
+   
+allow csv export on all list pages
 
-pageinit list view - remove title column
+add target child object column on page list
 
 on form details view, 'Page Initialization Flow:  [edit icon to view the pageinit details view]
 
@@ -259,6 +259,8 @@ show a list of missing stories. allow user to add them individually
 *************************
 low priority
 *************************
+
+
 
 model services api todo...
 - add search query on all request list endpoints

@@ -18,8 +18,6 @@ const vscode = acquireVsCodeApi();
 const columns = [
     { key: "displayName", label: "Name", sortable: true },
     { key: "objectName", label: "Object", sortable: true },
-    { key: "description", label: "Description", sortable: true },
-    { key: "isActive", label: "Active", sortable: true },
     { key: "actions", label: "Actions", sortable: false }
 ];
 
@@ -96,10 +94,10 @@ function renderTable() {
                     const actionsContainer = document.createElement("div");
                     actionsContainer.className = "actions-container";
                     
-                    // Create details button (for general flow details)
+                    // Create edit button (for general flow details)
                     const detailsButton = document.createElement("button");
-                    detailsButton.className = "action-button";
-                    detailsButton.textContent = "Details";
+                    detailsButton.className = "edit-button";
+                    detailsButton.innerHTML = '<i class="codicon codicon-edit"></i>';
                     detailsButton.title = "View general flow details";
                     detailsButton.onclick = (e) => {
                         e.stopPropagation();
@@ -108,9 +106,6 @@ function renderTable() {
                     
                     actionsContainer.appendChild(detailsButton);
                     td.appendChild(actionsContainer);
-                } else if (col.key === "isActive") {
-                    // Display boolean as Yes/No
-                    td.textContent = item[col.key] ? "Yes" : "No";
                 } else {
                     // Display the value directly
                     const value = item[col.key];
@@ -230,10 +225,10 @@ function toggleFilterSection() {
     
     if (filterContent.classList.contains("collapsed")) {
         filterContent.classList.remove("collapsed");
-        filterChevron.classList.remove("collapsed");
+        filterChevron.className = "codicon codicon-chevron-down";
     } else {
         filterContent.classList.add("collapsed");
-        filterChevron.classList.add("collapsed");
+        filterChevron.className = "codicon codicon-chevron-right";
     }
 }
 
@@ -297,6 +292,7 @@ function exportToCSV() {
 // Function to refresh data
 function refreshData() {
     console.log("Refreshing general flows data...");
+    showSpinner();
     vscode.postMessage({ command: "refresh" });
 }
 
@@ -323,6 +319,25 @@ document.addEventListener("DOMContentLoaded", function() {
     // Add event listener for refresh button
     const refreshButton = document.getElementById("refreshButton");
     if (refreshButton) {
+        refreshButton.innerHTML = '<span class="codicon codicon-refresh" style="font-size:16px;"></span>';
+        refreshButton.title = "Refresh";
+        refreshButton.style.background = "none";
+        refreshButton.style.border = "none";
+        refreshButton.style.color = "var(--vscode-editor-foreground)";
+        refreshButton.style.padding = "4px 8px";
+        refreshButton.style.cursor = "pointer";
+        refreshButton.style.display = "flex";
+        refreshButton.style.alignItems = "center";
+        refreshButton.style.borderRadius = "4px";
+        refreshButton.style.transition = "background 0.15s";
+        
+        refreshButton.addEventListener("mouseenter", function() {
+            refreshButton.style.background = "var(--vscode-toolbar-hoverBackground, #2a2d2e)";
+        });
+        refreshButton.addEventListener("mouseleave", function() {
+            refreshButton.style.background = "none";
+        });
+        
         refreshButton.addEventListener("click", refreshData);
     }
     
