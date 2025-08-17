@@ -3,18 +3,30 @@ Agent todo items...
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
  
-on FLOWS: PAGE_INIT treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
+copilot:on FLOWS: PAGE_INIT treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
 
-on FLOWS: WORKFLOWS treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
+copilot:on FLOWS: WORKFLOWS treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
 
-on FLOWS: WORKFLOW_TASKS treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
+copilot:on FLOWS: WORKFLOW_TASKS treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
+
+copilot:on FLOWS: GENERAL treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
+
+copilot:on form details view, if initObjectWorkflowName property exists and is set, we want to show the page init flow being used above the 'owner data object' display. show the value in format 'Page Initialization Flow: [value] [edit icon to view the pageinit details view]
+
+copilot:on report details view, if initObjectWorkflowName property exists and is set, we want to show the page init flow being used above the 'owner data object' display. show the value in format 'Page Initialization Flow: [value] [edit icon to view the pageinit details view]
+
+copilot:on PAGE_INIT treeview item add a 'Show List' icon button. This should open a pageinit flow list view. It will have a design similar to the page list view used by the 'show page list' icon button on the PAGES treeview item. This will allows the user to see a full list of page init flows.
 
 
-on FLOWS: GENERAL treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
+copilot:on GENERAL treeview item add a 'Show List' icon button. This should open a general flow list view. It will have a design similar to the page list view used by the 'show page list' icon button on the PAGES treeview item. This will allows the user to see a full list of general flows.
 
+copilot:on WORKFLOWS treeview item add a 'Show List' icon button. This should open a workflow list view. It will have a design similar to the page list view used by the 'show page list' icon button on the PAGES treeview item. This will allows the user to see a full list of workflow flows.
+
+we need a general flow details view. This will be similar to the form details view, but only settings tab, input controls (Parameters), and output variables tabs will exist. Don not try to use the form details view files. create new ones for general flow details view and rename files and variables accordingly
+
+we need a workflow details view. This will be similar to the form details view, but only settings tab will exist. Don not try to use the form details view files. create new ones for workflow details view and rename files and variables accordingly.
 
 report details view...
-- allow creation of column destination button
 - allow creation of column async flow button
 - add button - multiselect
  
@@ -22,8 +34,6 @@ add report col by selection of one or more properties in data object lineage
 
 form details button tab button type setting dropdown?  
 
-objectworkflows where ispage = false...
-- new treeview item functions
 
 
 apis
@@ -71,8 +81,6 @@ help icon buttons on primary treeview items...
 - report
 - page
 
-form detail view...
-- input variables tab
 
 report details view...
 - setting - Is Basic Header Automatically Added: - not a dropdown
@@ -242,7 +250,7 @@ user stories
 
 
 user story - Roles
-- open role data object details page
+- copilot:open role data object details page
 - if dne, ask the user if they would like to create one
 
 

@@ -40,6 +40,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     private formFilterText: string = "";
     // Current filter text for data object items only
     private dataObjectFilterText: string = "";
+    // Current filter text for page init items only
+    private pageInitFilterText: string = "";
       constructor(
         private readonly appDNAFilePath: string | null,
         private readonly modelService: ModelService
@@ -51,6 +53,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaDataObjectFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaFormFilterActive', false);
+        vscode.commands.executeCommand('setContext', 'appDnaPageInitFilterActive', false);
         
         // Register to server status changes to update the tree view
         this.mcpServer.onStatusChange(isRunning => {
@@ -202,12 +205,23 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     flowsItem.tooltip = "Business logic";
                     console.log('[DEBUG] Created FLOWS item with contextValue:', flowsItem.contextValue);
                     items.push(flowsItem);
+                    
+                    // Create APIS as a top-level item (only if advanced properties are enabled)
+                    const apisItem = new JsonTreeItem(
+                        'APIS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'apis'
+                    );
+                    apisItem.iconPath = new vscode.ThemeIcon('globe');
+                    apisItem.tooltip = "API sites from all namespaces";
+                    console.log('[DEBUG] Created APIS item with contextValue:', apisItem.contextValue);
+                    items.push(apisItem);
                 }
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, USER STORIES, [PAGES], [FLOWS], MODEL SERVICES
-                // (PAGES and FLOWS only shown when advanced properties are enabled)
+                // Return tree items in order: PROJECT, DATA OBJECTS, USER STORIES, [PAGES], [FLOWS], [APIS], MODEL SERVICES
+                // (PAGES, FLOWS, and APIS only shown when advanced properties are enabled)
                 return Promise.resolve(items);
             } else {
                 // File doesn't exist, show empty tree
@@ -490,7 +504,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const pageInitItem = new JsonTreeItem(
                     'PAGE_INIT',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'pageInit'
+                    'pageInit showPageInitFilter'
                 );
                 pageInitItem.tooltip = "Page initialization flows";
                 items.push(pageInitItem);
@@ -525,6 +539,61 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 return Promise.resolve(items);
             } catch (error) {
                 console.error('Error reading flows:', error);
+                return Promise.resolve([]);
+            }
+        }
+
+        // Handle APIS as a parent item - show individual API site items from all namespaces
+        if (element?.contextValue?.startsWith('apis') && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                
+                // Get all API sites from all namespaces
+                const allApiSites = this.modelService.getAllApiSites();
+                
+                // Create a tree item for each API site
+                for (const apiSite of allApiSites) {
+                    if (apiSite.name) {
+                        const apiSiteItem = new JsonTreeItem(
+                            apiSite.name,
+                            vscode.TreeItemCollapsibleState.None,
+                            'apiSiteItem'
+                        );
+                        
+                        // Set tooltip with API site details
+                        let tooltip = `API Site: ${apiSite.name}`;
+                        if (apiSite.title) {
+                            tooltip += `\nTitle: ${apiSite.title}`;
+                        }
+                        if (apiSite.description) {
+                            tooltip += `\nDescription: ${apiSite.description}`;
+                        }
+                        if (apiSite.versionNumber) {
+                            tooltip += `\nVersion: ${apiSite.versionNumber}`;
+                        }
+                        apiSiteItem.tooltip = tooltip;
+                        
+                        items.push(apiSiteItem);
+                    }
+                }
+                
+                // Sort items alphabetically by label
+                items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
+                
+                // If no items found, show message
+                if (items.length === 0) {
+                    return Promise.resolve([
+                        new JsonTreeItem(
+                            'No API sites found',
+                            vscode.TreeItemCollapsibleState.None,
+                            'noApiSites'
+                        )
+                    ]);
+                }
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading API sites:', error);
                 return Promise.resolve([]);
             }
         }
@@ -615,45 +684,71 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         }
 
         // Handle PAGE_INIT as a parent item - show objectWorkflow items ending with 'initreport' or 'initobjwf'
-        if (element?.contextValue === 'pageInit' && fileExists) {
+        if (element?.contextValue?.includes('pageInit') && fileExists) {
+            console.log('PAGE_INIT: Handler triggered, contextValue:', element?.contextValue);
             try {
                 const items: JsonTreeItem[] = [];
                 
                 if (modelLoaded) {
+                    console.log('PAGE_INIT: Model is loaded, getting all objects...');
                     // Use ModelService to get all objects
                     const allObjects = this.modelService.getAllObjects();
+                    console.log('PAGE_INIT: Found', allObjects.length, 'objects');
                     
                     // Collect all objectWorkflow items from all objects
                     allObjects.forEach((obj: any) => {
                         if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                            console.log('PAGE_INIT: Object', obj.name, 'has', obj.objectWorkflow.length, 'workflows');
                             obj.objectWorkflow.forEach((workflow: any) => {
                                 if (workflow.name) {
                                     const workflowName = workflow.name.toLowerCase();
+                                    console.log('PAGE_INIT: Checking workflow:', workflow.name, 'ends with initreport?', workflowName.endsWith('initreport'), 'ends with initobjwf?', workflowName.endsWith('initobjwf'));
                                     // Check if name ends with 'initreport' or 'initobjwf'
                                     if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
+                                        console.log('PAGE_INIT: Found matching workflow:', workflow.name);
                                         const displayName = workflow.titleText || workflow.name;
-                                        const workflowItem = new JsonTreeItem(
-                                            displayName,
-                                            vscode.TreeItemCollapsibleState.None,
-                                            'pageInitWorkflowItem'
-                                        );
-                                        
-                                        // Set tooltip with workflow details
-                                        const objectName = obj.name || 'Unknown Object';
-                                        workflowItem.tooltip = `${workflow.name} (from ${objectName})`;
-                                        
-                                        items.push(workflowItem);
+                                        // Apply filters (global and page init specific)
+                                        if (this.applyFilter(displayName) && this.applyPageInitFilter(displayName)) {
+                                            console.log('PAGE_INIT: Workflow passed filters, adding:', displayName);
+                                            const workflowItem = new JsonTreeItem(
+                                                displayName,
+                                                vscode.TreeItemCollapsibleState.None,
+                                                'pageInitWorkflowItem'
+                                            );
+                                            
+                                            // Set tooltip with workflow details
+                                            const objectName = obj.name || 'Unknown Object';
+                                            workflowItem.tooltip = `${workflow.name} (from ${objectName})`;
+                                            
+                                            items.push(workflowItem);
+                                        } else {
+                                            console.log('PAGE_INIT: Workflow filtered out:', displayName, 'global filter result:', this.applyFilter(displayName), 'pageInit filter result:', this.applyPageInitFilter(displayName));
+                                        }
                                     }
                                 }
                             });
                         }
                     });
                     
+                    console.log('PAGE_INIT: Total items found:', items.length);
                     // Sort items alphabetically by label
                     items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
                     
-                    // If no items found, show message
+                    // If filtering is active and no results found, show message
+                    if ((this.filterText || this.pageInitFilterText) && items.length === 0) {
+                        console.log('PAGE_INIT: No items found with active filter');
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No page init workflows match filter',
+                                vscode.TreeItemCollapsibleState.None,
+                                'pageInitEmpty'
+                            )
+                        ]);
+                    }
+                    
+                    // If no items found and no filter active, show original message
                     if (items.length === 0) {
+                        console.log('PAGE_INIT: No items found, no filter active');
                         return Promise.resolve([
                             new JsonTreeItem(
                                 'No page initialization workflows found',
@@ -662,11 +757,14 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                             )
                         ]);
                     }
+                } else {
+                    console.log('PAGE_INIT: Model not loaded');
                 }
                 
+                console.log('PAGE_INIT: Returning', items.length, 'items');
                 return Promise.resolve(items);
             } catch (error) {
-                console.error('Error reading page init workflows:', error);
+                console.error('PAGE_INIT: Error reading page init workflows:', error);
                 return Promise.resolve([]);
             }
         }
@@ -1464,6 +1562,45 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         
         // Case-insensitive match of form filter text within the label
         return label.toLowerCase().includes(this.formFilterText);
+    }
+
+    /**
+     * Sets a filter for only the page init items
+     * @param filterText The text to filter page init nodes by
+     */
+    setPageInitFilter(filterText: string): void {
+        // Convert to lowercase for case-insensitive comparison
+        this.pageInitFilterText = filterText.toLowerCase();
+        // Update context to indicate page init filter is active
+        vscode.commands.executeCommand('setContext', 'appDnaPageInitFilterActive', !!this.pageInitFilterText);
+        // Refresh the tree to apply the filter
+        this.refresh();
+    }
+
+    /**
+     * Clears the current page init filter
+     */
+    clearPageInitFilter(): void {
+        this.pageInitFilterText = "";
+        // Update context to indicate page init filter is not active
+        vscode.commands.executeCommand('setContext', 'appDnaPageInitFilterActive', false);
+        // Refresh the tree to show all page init items
+        this.refresh();
+    }
+
+    /**
+     * Checks if a page init item's label matches the current page init filter
+     * @param label The label to check against the page init filter
+     * @returns True if the label matches the page init filter or no page init filter is set
+     */
+    private applyPageInitFilter(label: string): boolean {
+        // If no page init filter is set, all page init items match
+        if (!this.pageInitFilterText) {
+            return true;
+        }
+        
+        // Case-insensitive match of page init filter text within the label
+        return label.toLowerCase().includes(this.pageInitFilterText);
     }
 
     /**

@@ -196,6 +196,18 @@
           "when": "viewItem =~ /forms.*showFormFilter/ && appDnaFormFilterActive",
           "group": "inline",
           "icon": "$(clear-all)"
+        },
+        {
+          "command": "appdna.showPageInitFilter",
+          "when": "viewItem =~ /pageInit.*showPageInitFilter/",
+          "group": "inline",
+          "icon": "$(filter)"
+        },
+        {
+          "command": "appdna.clearPageInitFilter",
+          "when": "viewItem =~ /pageInit.*showPageInitFilter/ && appDnaPageInitFilterActive",
+          "group": "inline",
+          "icon": "$(clear-all)"
         }
       ]
     },
@@ -378,6 +390,16 @@
       {
         "command": "appdna.clearFormFilter",
         "title": "Clear Form Filter",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "appdna.showPageInitFilter",
+        "title": "Filter Page Init",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "appdna.clearPageInitFilter",
+        "title": "Clear Page Init Filter",
         "icon": "$(clear-all)"
       },
       {
