@@ -46,6 +46,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     private workflowsFilterText: string = "";
     // Current filter text for workflow tasks items only
     private workflowTasksFilterText: string = "";
+    // Current filter text for general items only
+    private generalFilterText: string = "";
       constructor(
         private readonly appDNAFilePath: string | null,
         private readonly modelService: ModelService
@@ -60,6 +62,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         vscode.commands.executeCommand('setContext', 'appDnaPageInitFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaWorkflowsFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaWorkflowTasksFilterActive', false);
+        vscode.commands.executeCommand('setContext', 'appDnaGeneralFilterActive', false);
         
         // Register to server status changes to update the tree view
         this.mcpServer.onStatusChange(isRunning => {
@@ -519,7 +522,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const generalItem = new JsonTreeItem(
                     'GENERAL',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'general'
+                    'general showGeneralFilter'
                 );
                 generalItem.tooltip = "General workflow flows";
                 items.push(generalItem);
@@ -642,25 +645,28 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                                         const displayName = workflow.titleText || workflow.name;
                                         const objectName = obj.name || 'Unknown Object';
                                         
-                                        // Check for duplicates and log them
-                                        if (seenNames.has(displayName)) {
-                                            console.error(`[GENERAL] Duplicate workflow found: "${displayName}" from object "${objectName}". Previous workflow with same display name already exists.`);
-                                        } else {
-                                            seenNames.add(displayName);
+                                        // Apply filters (global and general specific)
+                                        if (this.applyFilter(displayName) && this.applyGeneralFilter(displayName)) {
+                                            // Check for duplicates and log them
+                                            if (seenNames.has(displayName)) {
+                                                console.error(`[GENERAL] Duplicate workflow found: "${displayName}" from object "${objectName}". Previous workflow with same display name already exists.`);
+                                            } else {
+                                                seenNames.add(displayName);
+                                            }
+                                            
+                                            console.log(`[GENERAL] Creating workflow item: "${displayName}" from object "${objectName}" (workflow name: "${workflow.name}")`);
+                                            
+                                            const workflowItem = new JsonTreeItem(
+                                                displayName,
+                                                vscode.TreeItemCollapsibleState.None,
+                                                'generalWorkflowItem'
+                                            );
+                                            
+                                            // Set tooltip with workflow details
+                                            workflowItem.tooltip = `${workflow.name} (from ${objectName}) - General Workflow`;
+                                            
+                                            items.push(workflowItem);
                                         }
-                                        
-                                        console.log(`[GENERAL] Creating workflow item: "${displayName}" from object "${objectName}" (workflow name: "${workflow.name}")`);
-                                        
-                                        const workflowItem = new JsonTreeItem(
-                                            displayName,
-                                            vscode.TreeItemCollapsibleState.None,
-                                            'generalWorkflowItem'
-                                        );
-                                        
-                                        // Set tooltip with workflow details
-                                        workflowItem.tooltip = `${workflow.name} (from ${objectName}) - General Workflow`;
-                                        
-                                        items.push(workflowItem);
                                     }
                                 }
                             });
@@ -669,6 +675,17 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     
                     // Sort items alphabetically by label
                     items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
+                    
+                    // If filtering is active and no results found, show message
+                    if (items.length === 0 && (this.filterText || this.generalFilterText)) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No general workflows match the current filter',
+                                vscode.TreeItemCollapsibleState.None,
+                                'generalEmpty'
+                            )
+                        ]);
+                    }
                     
                     // If no items found, show message
                     if (items.length === 0) {
@@ -1715,6 +1732,45 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         
         // Case-insensitive match of workflow tasks filter text within the label
         return label.toLowerCase().includes(this.workflowTasksFilterText);
+    }
+
+    /**
+     * Sets the general filter to show only general items containing the specified text
+     * @param filterText The text to filter general nodes by
+     */
+    setGeneralFilter(filterText: string): void {
+        // Convert to lowercase for case-insensitive comparison
+        this.generalFilterText = filterText.toLowerCase();
+        // Update context to indicate general filter is active
+        vscode.commands.executeCommand('setContext', 'appDnaGeneralFilterActive', !!this.generalFilterText);
+        // Refresh the tree to apply the filter
+        this.refresh();
+    }
+
+    /**
+     * Clears the current general filter
+     */
+    clearGeneralFilter(): void {
+        this.generalFilterText = "";
+        // Update context to indicate general filter is not active
+        vscode.commands.executeCommand('setContext', 'appDnaGeneralFilterActive', false);
+        // Refresh the tree to show all general items
+        this.refresh();
+    }
+
+    /**
+     * Checks if a general item's label matches the current general filter
+     * @param label The label to check against the general filter
+     * @returns True if the label matches the general filter or no general filter is set
+     */
+    private applyGeneralFilter(label: string): boolean {
+        // If no general filter is set, all general items match
+        if (!this.generalFilterText) {
+            return true;
+        }
+        
+        // Case-insensitive match of general filter text within the label
+        return label.toLowerCase().includes(this.generalFilterText);
     }
 
     /**
