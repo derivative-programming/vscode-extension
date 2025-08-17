@@ -17,6 +17,18 @@
   * Both buttons now have consistent VS Code toolbar-style appearance
   * No background until hover, and hover uses subtle toolbar background
 
+2025-08-17: ✅ COMPLETED - Fixed general flow list CSV download functionality to match page list implementation
+- Command: "the general list csv download doesnt seem to be working like the page list download"
+- Status: ✅ COMPLETED
+- Architecture Notes:
+  * ISSUE ANALYSIS: General flow list was attempting client-side CSV download using Blob/URL.createObjectURL which doesn't work properly in VS Code webview context, while page list uses proper extension-based file handling with workspace integration.
+  * SOLUTION IMPLEMENTED: Completely redesigned CSV export to match page list pattern - webview sends 'exportToCSV' message to extension, extension generates CSV content using saveGeneralFlowsToCSV function, extension responds with 'csvExportReady' message, webview sends 'saveCsvToWorkspace' message, extension saves file to workspace and opens it in VS Code.
+  * TECHNICAL DETAILS: Created saveGeneralFlowsToCSV function with proper CSV escaping (quotes, commas, newlines), generates timestamped filenames (general-flows-YYYYMMDD_HHMMSS.csv), uses workspace root for file saving, automatically opens saved file in VS Code editor, includes proper error handling with user notifications.
+  * ARCHITECTURAL IMPROVEMENTS: Follows extension-webview message passing pattern, integrates with VS Code workspace system, provides better user experience with file management, maintains data security by handling file operations in extension context, enables file version control integration.
+  * CODE CHANGES: Updated generalListView.js exportToCSV() to send message instead of client-side download, added csvExportReady and saveCsvToWorkspace message handlers in webview, added exportToCSV and saveCsvToWorkspace cases in generalListCommands.ts message switch, created saveGeneralFlowsToCSV function with proper CSV formatting.
+  * VERIFICATION: Code compiles successfully, follows exact same pattern as working page list implementation, includes all error handling and user feedback mechanisms, ready for testing CSV export workflow.
+  * LESSONS LEARNED: VS Code webview context has limitations on direct file downloads, extension-based file handling provides better integration with workspace, message passing patterns ensure proper separation of concerns, copying proven patterns from working components reduces implementation risk.
+
 2025-08-17: ✅ COMPLETED - Added loading spinner to general flow list refresh button
 - Command: "seem slike it should show a processing shade like the workflwo list view refresh button"
 - Status: ✅ COMPLETED

@@ -243,6 +243,7 @@ function updateRecordInfo() {
 
 // Function to export data as CSV
 function exportToCSV() {
+    console.log('[GeneralList] Export to CSV requested');
     if (!generalData.items || generalData.items.length === 0) {
         vscode.postMessage({
             command: "showMessage",
@@ -251,42 +252,12 @@ function exportToCSV() {
         return;
     }
     
-    // Create CSV header
-    const csvHeaders = columns.filter(col => col.key !== 'actions').map(col => col.label);
-    let csvContent = csvHeaders.join(',') + '\n';
-    
-    // Add data rows
-    generalData.items.forEach(item => {
-        const row = columns.filter(col => col.key !== 'actions').map(col => {
-            let value = item[col.key];
-            
-            if (col.key === "isActive") {
-                value = value ? "Yes" : "No";
-            }
-            
-            // Escape quotes and wrap in quotes if contains comma
-            if (value === null || value === undefined) {
-                value = "";
-            }
-            value = String(value);
-            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-                value = '"' + value.replace(/"/g, '""') + '"';
-            }
-            return value;
-        });
-        csvContent += row.join(',') + '\n';
+    vscode.postMessage({
+        command: 'exportToCSV',
+        data: {
+            items: generalData.items
+        }
     });
-    
-    // Create and download the file
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'general-flows.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
 }
 
 // Function to refresh data
@@ -360,6 +331,23 @@ window.addEventListener("message", event => {
             filterOptions.objects = uniqueObjects;
             
             renderTable();
+            break;
+            
+        case 'csvExportReady':
+            console.log('[GeneralList] CSV export ready');
+            if (message.success !== false) {
+                // Send CSV content to extension to save to workspace
+                vscode.postMessage({
+                    command: 'saveCsvToWorkspace',
+                    data: {
+                        content: message.csvContent,
+                        filename: message.filename
+                    }
+                });
+            } else {
+                console.error('Error exporting CSV:', message.error);
+                alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
+            }
             break;
     }
 });

@@ -452,6 +452,57 @@ export function registerGeneralListCommands(
                             // TODO: Implement general flow details view when available
                         }
                         break;
+                        
+                    case 'exportToCSV':
+                        console.log("[Extension] GeneralList CSV export requested");
+                        try {
+                            const csvContent = await saveGeneralFlowsToCSV(message.data.items, modelService);
+                            const now = new Date();
+                            const pad = (n: number) => n.toString().padStart(2, '0');
+                            const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                            const filename = `general-flows-${timestamp}.csv`;
+                            
+                            panel.webview.postMessage({
+                                command: 'csvExportReady',
+                                csvContent: csvContent,
+                                filename: filename,
+                                success: true
+                            });
+                        } catch (error) {
+                            console.error('[Extension] Error exporting CSV:', error);
+                            panel.webview.postMessage({
+                                command: 'csvExportReady',
+                                success: false,
+                                error: error.message
+                            });
+                        }
+                        break;
+                        
+                    case 'saveCsvToWorkspace':
+                        try {
+                            const fs = require('fs');
+                            const path = require('path');
+                            const workspaceFolders = vscode.workspace.workspaceFolders;
+                            
+                            if (!workspaceFolders || workspaceFolders.length === 0) {
+                                vscode.window.showErrorMessage('No workspace folder is open');
+                                return;
+                            }
+                            
+                            const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                            const filePath = path.join(workspaceRoot, message.data.filename);
+                            
+                            fs.writeFileSync(filePath, message.data.content, 'utf8');
+                            vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                            
+                            // Open the file in VS Code
+                            const fileUri = vscode.Uri.file(filePath);
+                            vscode.window.showTextDocument(fileUri);
+                        } catch (error) {
+                            console.error('[Extension] Error saving CSV to workspace:', error);
+                            vscode.window.showErrorMessage(`Failed to save CSV: ${error.message}`);
+                        }
+                        break;
                 }
             });
         })
@@ -562,4 +613,34 @@ function loadGeneralFlowData(panel: vscode.WebviewPanel, modelService: ModelServ
         });
         vscode.window.showErrorMessage('Error loading general flows: ' + error);
     }
+}
+
+async function saveGeneralFlowsToCSV(items: any[], modelService: ModelService): Promise<string> {
+    // Define CSV headers
+    const headers = ['Name', 'Display Name', 'Object Name'];
+    
+    // Create CSV content
+    let csvContent = headers.join(',') + '\n';
+    
+    // Add data rows
+    items.forEach(item => {
+        const row = [
+            item.name || '',
+            item.displayName || '',
+            item.objectName || ''
+        ];
+        
+        // Escape and quote values that contain commas, quotes, or newlines
+        const escapedRow = row.map(value => {
+            let escapedValue = String(value || '');
+            if (escapedValue.includes(',') || escapedValue.includes('"') || escapedValue.includes('\n')) {
+                escapedValue = '"' + escapedValue.replace(/"/g, '""') + '"';
+            }
+            return escapedValue;
+        });
+        
+        csvContent += escapedRow.join(',') + '\n';
+    });
+    
+    return csvContent;
 }
