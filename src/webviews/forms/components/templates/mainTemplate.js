@@ -35,6 +35,10 @@ function getMainTemplate(
     codiconsUri,
     ownerObject = null
 ) {
+    console.log('[DEBUG] Form object in mainTemplate:', form);
+    console.log('[DEBUG] Form initObjectWorkflowName:', form.initObjectWorkflowName);
+    console.log('[DEBUG] Form keys:', Object.keys(form));
+    
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -179,10 +183,10 @@ function getMainTemplate(
         </button>
     </div>
     
-    ${form.initObjectWorkflowName ? `
+    ${(form.initObjectWorkflowName || form.initobjectworkflowname) ? `
     <div class="page-init-flow-section">
         <span class="page-init-flow-label">Page Initialization Flow:</span>
-        <span class="page-init-flow-name">${form.initObjectWorkflowName}</span>
+        <span class="page-init-flow-name">${form.initObjectWorkflowName || form.initobjectworkflowname}</span>
     </div>
     ` : ''}
     
