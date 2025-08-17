@@ -163,8 +163,12 @@ function handleSort(column) {
         let bVal = b[column];
         
         // Handle null/undefined values
-        if (aVal == null) aVal = "";
-        if (bVal == null) bVal = "";
+        if (aVal === null || aVal === undefined) {
+            aVal = "";
+        }
+        if (bVal === null || bVal === undefined) {
+            bVal = "";
+        }
         
         // Convert to strings for comparison
         aVal = String(aVal).toLowerCase();
@@ -266,7 +270,9 @@ function exportToCSV() {
             }
             
             // Escape quotes and wrap in quotes if contains comma
-            if (value == null) value = "";
+            if (value === null || value === undefined) {
+                value = "";
+            }
             value = String(value);
             if (value.includes(',') || value.includes('"') || value.includes('\n')) {
                 value = '"' + value.replace(/"/g, '""') + '"';
