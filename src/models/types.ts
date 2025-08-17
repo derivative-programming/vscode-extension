@@ -98,6 +98,15 @@ export class JsonTreeItem extends vscode.TreeItem {
             };
         }
         
+        // If the item represents a page init workflow, attach a command to show workflow details.
+        if (contextValue === 'pageInitWorkflowItem') {
+            this.command = {
+                title: 'Show Workflow Details',
+                command: 'appdna.showWorkflowDetails',
+                arguments: [this]
+            };
+        }
+        
         // Set the id property directly instead of using a getter
         // to avoid conflict with the parent class property
         this.id = `${this.contextValue || 'item'}-${this.label}`;

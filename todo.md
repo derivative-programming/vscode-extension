@@ -3,16 +3,15 @@ Agent todo items...
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
  
+on FLOWS: PAGE_INIT treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
 
-Flows treeview item
+on FLOWS: WORKFLOWS treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
 
-PageInit sub item
+on FLOWS: WORKFLOW_TASKS treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
 
-General sub item
 
-DynaFlow sub item
+on FLOWS: GENERAL treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
 
-DynaFlowTask sub item
 
 report details view...
 - allow creation of column destination button

@@ -468,7 +468,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 // Create PAGE_INIT as a child of FLOWS
                 const pageInitItem = new JsonTreeItem(
                     'PAGE_INIT',
-                    vscode.TreeItemCollapsibleState.None,
+                    vscode.TreeItemCollapsibleState.Collapsed,
                     'pageInit'
                 );
                 pageInitItem.tooltip = "Page initialization flows";
@@ -477,7 +477,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 // Create GENERAL as a child of FLOWS
                 const generalItem = new JsonTreeItem(
                     'GENERAL',
-                    vscode.TreeItemCollapsibleState.None,
+                    vscode.TreeItemCollapsibleState.Collapsed,
                     'general'
                 );
                 generalItem.tooltip = "General workflow flows";
@@ -486,7 +486,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 // Create WORKFLOWS as a child of FLOWS
                 const workflowsItem = new JsonTreeItem(
                     'WORKFLOWS',
-                    vscode.TreeItemCollapsibleState.None,
+                    vscode.TreeItemCollapsibleState.Collapsed,
                     'workflows'
                 );
                 workflowsItem.tooltip = "Object workflows where isPage=false";
@@ -495,7 +495,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 // Create WORKFLOW_TASKS as a child of FLOWS
                 const workflowTasksItem = new JsonTreeItem(
                     'WORKFLOW_TASKS',
-                    vscode.TreeItemCollapsibleState.None,
+                    vscode.TreeItemCollapsibleState.Collapsed,
                     'workflowTasks'
                 );
                 workflowTasksItem.tooltip = "Individual workflow tasks and steps";
@@ -504,6 +504,254 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 return Promise.resolve(items);
             } catch (error) {
                 console.error('Error reading flows:', error);
+                return Promise.resolve([]);
+            }
+        }
+
+        // Handle GENERAL as a parent item - show general objectWorkflow items
+        if (element?.contextValue === 'general' && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                
+                if (modelLoaded) {
+                    // Use ModelService to get all objects
+                    const allObjects = this.modelService.getAllObjects();
+                    
+                    // Collect all objectWorkflow items from all objects that meet the criteria
+                    const seenNames = new Set<string>();
+                    allObjects.forEach((obj: any) => {
+                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                            obj.objectWorkflow.forEach((workflow: any) => {
+                                if (workflow.name) {
+                                    const workflowName = workflow.name.toLowerCase();
+                                    
+                                    // Check all criteria:
+                                    // 1. isDynaFlow property does not exist or is false
+                                    const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false";
+                                    
+                                    // 2. isDynaFlowTask property does not exist or is false
+                                    const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
+                                    
+                                    // 3. isPage property is false
+                                    const isPageOk = workflow.isPage === "false";
+                                    
+                                    // 4. name does not end with initobjwf
+                                    const notInitObjWf = !workflowName.endsWith('initobjwf');
+                                    
+                                    // 5. name does not end with initreport
+                                    const notInitReport = !workflowName.endsWith('initreport');
+                                    
+                                    // All criteria must be true
+                                    if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {
+                                        const displayName = workflow.titleText || workflow.name;
+                                        const objectName = obj.name || 'Unknown Object';
+                                        
+                                        // Check for duplicates and log them
+                                        if (seenNames.has(displayName)) {
+                                            console.error(`[GENERAL] Duplicate workflow found: "${displayName}" from object "${objectName}". Previous workflow with same display name already exists.`);
+                                        } else {
+                                            seenNames.add(displayName);
+                                        }
+                                        
+                                        console.log(`[GENERAL] Creating workflow item: "${displayName}" from object "${objectName}" (workflow name: "${workflow.name}")`);
+                                        
+                                        const workflowItem = new JsonTreeItem(
+                                            displayName,
+                                            vscode.TreeItemCollapsibleState.None,
+                                            'generalWorkflowItem'
+                                        );
+                                        
+                                        // Set tooltip with workflow details
+                                        workflowItem.tooltip = `${workflow.name} (from ${objectName}) - General Workflow`;
+                                        
+                                        items.push(workflowItem);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Sort items alphabetically by label
+                    items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
+                    
+                    // If no items found, show message
+                    if (items.length === 0) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No general workflows found',
+                                vscode.TreeItemCollapsibleState.None,
+                                'generalEmpty'
+                            )
+                        ]);
+                    }
+                }
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading general workflows:', error);
+                return Promise.resolve([]);
+            }
+        }
+
+        // Handle PAGE_INIT as a parent item - show objectWorkflow items ending with 'initreport' or 'initobjwf'
+        if (element?.contextValue === 'pageInit' && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                
+                if (modelLoaded) {
+                    // Use ModelService to get all objects
+                    const allObjects = this.modelService.getAllObjects();
+                    
+                    // Collect all objectWorkflow items from all objects
+                    allObjects.forEach((obj: any) => {
+                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                            obj.objectWorkflow.forEach((workflow: any) => {
+                                if (workflow.name) {
+                                    const workflowName = workflow.name.toLowerCase();
+                                    // Check if name ends with 'initreport' or 'initobjwf'
+                                    if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
+                                        const displayName = workflow.titleText || workflow.name;
+                                        const workflowItem = new JsonTreeItem(
+                                            displayName,
+                                            vscode.TreeItemCollapsibleState.None,
+                                            'pageInitWorkflowItem'
+                                        );
+                                        
+                                        // Set tooltip with workflow details
+                                        const objectName = obj.name || 'Unknown Object';
+                                        workflowItem.tooltip = `${workflow.name} (from ${objectName})`;
+                                        
+                                        items.push(workflowItem);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Sort items alphabetically by label
+                    items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
+                    
+                    // If no items found, show message
+                    if (items.length === 0) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No page initialization workflows found',
+                                vscode.TreeItemCollapsibleState.None,
+                                'pageInitEmpty'
+                            )
+                        ]);
+                    }
+                }
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading page init workflows:', error);
+                return Promise.resolve([]);
+            }
+        }
+
+        // Handle WORKFLOWS as a parent item - show objectWorkflow items where isDynaFlow is true
+        if (element?.contextValue === 'workflows' && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                
+                if (modelLoaded) {
+                    // Use ModelService to get all objects
+                    const allObjects = this.modelService.getAllObjects();
+                    
+                    // Collect all objectWorkflow items from all objects where isDynaFlow is true
+                    allObjects.forEach((obj: any) => {
+                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                            obj.objectWorkflow.forEach((workflow: any) => {
+                                if (workflow.name && workflow.isDynaFlow === "true") {
+                                    const displayName = workflow.titleText || workflow.name;
+                                    const workflowItem = new JsonTreeItem(
+                                        displayName,
+                                        vscode.TreeItemCollapsibleState.None,
+                                        'dynaFlowWorkflowItem'
+                                    );
+                                    
+                                    // Set tooltip with workflow details
+                                    const objectName = obj.name || 'Unknown Object';
+                                    workflowItem.tooltip = `${workflow.name} (from ${objectName}) - DynaFlow`;
+                                    
+                                    items.push(workflowItem);
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Sort items alphabetically by label
+                    items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
+                    
+                    // If no items found, show message
+                    if (items.length === 0) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No DynaFlow workflows found',
+                                vscode.TreeItemCollapsibleState.None,
+                                'workflowsEmpty'
+                            )
+                        ]);
+                    }
+                }
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading DynaFlow workflows:', error);
+                return Promise.resolve([]);
+            }
+        }
+
+        // Handle WORKFLOW_TASKS as a parent item - show objectWorkflow items where isDynaFlowTask is true
+        if (element?.contextValue === 'workflowTasks' && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                
+                if (modelLoaded) {
+                    // Use ModelService to get all objects
+                    const allObjects = this.modelService.getAllObjects();
+                    
+                    // Collect all objectWorkflow items from all objects where isDynaFlowTask is true
+                    allObjects.forEach((obj: any) => {
+                        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                            obj.objectWorkflow.forEach((workflow: any) => {
+                                if (workflow.name && workflow.isDynaFlowTask === "true") {
+                                    const displayName = workflow.titleText || workflow.name;
+                                    const workflowItem = new JsonTreeItem(
+                                        displayName,
+                                        vscode.TreeItemCollapsibleState.None,
+                                        'dynaFlowTaskWorkflowItem'
+                                    );
+                                    
+                                    // Set tooltip with workflow details
+                                    const objectName = obj.name || 'Unknown Object';
+                                    workflowItem.tooltip = `${workflow.name} (from ${objectName}) - DynaFlow Task`;
+                                    
+                                    items.push(workflowItem);
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Sort items alphabetically by label
+                    items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
+                    
+                    // If no items found, show message
+                    if (items.length === 0) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No DynaFlow task workflows found',
+                                vscode.TreeItemCollapsibleState.None,
+                                'workflowTasksEmpty'
+                            )
+                        ]);
+                    }
+                }
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading DynaFlow task workflows:', error);
                 return Promise.resolve([]);
             }
         }
