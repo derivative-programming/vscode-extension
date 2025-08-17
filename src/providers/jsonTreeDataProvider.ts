@@ -522,7 +522,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const generalItem = new JsonTreeItem(
                     'GENERAL',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'general showGeneralFilter'
+                    'general showGeneralFilter showGeneralList'
                 );
                 generalItem.tooltip = "General workflow flows";
                 items.push(generalItem);
