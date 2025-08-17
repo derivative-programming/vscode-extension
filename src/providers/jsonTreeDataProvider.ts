@@ -663,25 +663,32 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         }
 
         // Handle PAGE_INIT as a parent item - show objectWorkflow items ending with 'initreport' or 'initobjwf'
-        if (element?.contextValue === 'pageInit' && fileExists) {
+        if (element?.contextValue?.includes('pageInit') && fileExists) {
+            console.log('PAGE_INIT: Handler triggered, contextValue:', element?.contextValue);
             try {
                 const items: JsonTreeItem[] = [];
                 
                 if (modelLoaded) {
+                    console.log('PAGE_INIT: Model is loaded, getting all objects...');
                     // Use ModelService to get all objects
                     const allObjects = this.modelService.getAllObjects();
+                    console.log('PAGE_INIT: Found', allObjects.length, 'objects');
                     
                     // Collect all objectWorkflow items from all objects
                     allObjects.forEach((obj: any) => {
                         if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                            console.log('PAGE_INIT: Object', obj.name, 'has', obj.objectWorkflow.length, 'workflows');
                             obj.objectWorkflow.forEach((workflow: any) => {
                                 if (workflow.name) {
                                     const workflowName = workflow.name.toLowerCase();
+                                    console.log('PAGE_INIT: Checking workflow:', workflow.name, 'ends with initreport?', workflowName.endsWith('initreport'), 'ends with initobjwf?', workflowName.endsWith('initobjwf'));
                                     // Check if name ends with 'initreport' or 'initobjwf'
                                     if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
+                                        console.log('PAGE_INIT: Found matching workflow:', workflow.name);
                                         const displayName = workflow.titleText || workflow.name;
                                         // Apply filters (global and page init specific)
                                         if (this.applyFilter(displayName) && this.applyPageInitFilter(displayName)) {
+                                            console.log('PAGE_INIT: Workflow passed filters, adding:', displayName);
                                             const workflowItem = new JsonTreeItem(
                                                 displayName,
                                                 vscode.TreeItemCollapsibleState.None,
@@ -693,6 +700,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                                             workflowItem.tooltip = `${workflow.name} (from ${objectName})`;
                                             
                                             items.push(workflowItem);
+                                        } else {
+                                            console.log('PAGE_INIT: Workflow filtered out:', displayName, 'global filter result:', this.applyFilter(displayName), 'pageInit filter result:', this.applyPageInitFilter(displayName));
                                         }
                                     }
                                 }
@@ -700,11 +709,13 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         }
                     });
                     
+                    console.log('PAGE_INIT: Total items found:', items.length);
                     // Sort items alphabetically by label
                     items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
                     
                     // If filtering is active and no results found, show message
                     if ((this.filterText || this.pageInitFilterText) && items.length === 0) {
+                        console.log('PAGE_INIT: No items found with active filter');
                         return Promise.resolve([
                             new JsonTreeItem(
                                 'No page init workflows match filter',
@@ -716,6 +727,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     
                     // If no items found and no filter active, show original message
                     if (items.length === 0) {
+                        console.log('PAGE_INIT: No items found, no filter active');
                         return Promise.resolve([
                             new JsonTreeItem(
                                 'No page initialization workflows found',
@@ -724,11 +736,14 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                             )
                         ]);
                     }
+                } else {
+                    console.log('PAGE_INIT: Model not loaded');
                 }
                 
+                console.log('PAGE_INIT: Returning', items.length, 'items');
                 return Promise.resolve(items);
             } catch (error) {
-                console.error('Error reading page init workflows:', error);
+                console.error('PAGE_INIT: Error reading page init workflows:', error);
                 return Promise.resolve([]);
             }
         }
