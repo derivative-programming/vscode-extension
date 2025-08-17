@@ -205,12 +205,23 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     flowsItem.tooltip = "Business logic";
                     console.log('[DEBUG] Created FLOWS item with contextValue:', flowsItem.contextValue);
                     items.push(flowsItem);
+                    
+                    // Create APIS as a top-level item (only if advanced properties are enabled)
+                    const apisItem = new JsonTreeItem(
+                        'APIS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'apis'
+                    );
+                    apisItem.iconPath = new vscode.ThemeIcon('globe');
+                    apisItem.tooltip = "API sites from all namespaces";
+                    console.log('[DEBUG] Created APIS item with contextValue:', apisItem.contextValue);
+                    items.push(apisItem);
                 }
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, USER STORIES, [PAGES], [FLOWS], MODEL SERVICES
-                // (PAGES and FLOWS only shown when advanced properties are enabled)
+                // Return tree items in order: PROJECT, DATA OBJECTS, USER STORIES, [PAGES], [FLOWS], [APIS], MODEL SERVICES
+                // (PAGES, FLOWS, and APIS only shown when advanced properties are enabled)
                 return Promise.resolve(items);
             } else {
                 // File doesn't exist, show empty tree
@@ -507,6 +518,61 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 return Promise.resolve(items);
             } catch (error) {
                 console.error('Error reading flows:', error);
+                return Promise.resolve([]);
+            }
+        }
+
+        // Handle APIS as a parent item - show individual API site items from all namespaces
+        if (element?.contextValue?.startsWith('apis') && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                
+                // Get all API sites from all namespaces
+                const allApiSites = this.modelService.getAllApiSites();
+                
+                // Create a tree item for each API site
+                for (const apiSite of allApiSites) {
+                    if (apiSite.name) {
+                        const apiSiteItem = new JsonTreeItem(
+                            apiSite.name,
+                            vscode.TreeItemCollapsibleState.None,
+                            'apiSiteItem'
+                        );
+                        
+                        // Set tooltip with API site details
+                        let tooltip = `API Site: ${apiSite.name}`;
+                        if (apiSite.title) {
+                            tooltip += `\nTitle: ${apiSite.title}`;
+                        }
+                        if (apiSite.description) {
+                            tooltip += `\nDescription: ${apiSite.description}`;
+                        }
+                        if (apiSite.versionNumber) {
+                            tooltip += `\nVersion: ${apiSite.versionNumber}`;
+                        }
+                        apiSiteItem.tooltip = tooltip;
+                        
+                        items.push(apiSiteItem);
+                    }
+                }
+                
+                // Sort items alphabetically by label
+                items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
+                
+                // If no items found, show message
+                if (items.length === 0) {
+                    return Promise.resolve([
+                        new JsonTreeItem(
+                            'No API sites found',
+                            vscode.TreeItemCollapsibleState.None,
+                            'noApiSites'
+                        )
+                    ]);
+                }
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading API sites:', error);
                 return Promise.resolve([]);
             }
         }
