@@ -331,6 +331,27 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
             try {
                 const items = [];
                 
+                // Create Roles item under USER STORIES - opens the Role data object details
+                const rolesItem = new JsonTreeItem(
+                    'Roles',
+                    vscode.TreeItemCollapsibleState.None,
+                    'dataObjectItem'
+                );
+                
+                rolesItem.tooltip = "Role data object details";
+                // Create a temporary item with 'Role' as label to pass to the command
+                const roleDataObjectItem = new JsonTreeItem(
+                    'Role',
+                    vscode.TreeItemCollapsibleState.None,
+                    'dataObjectItem'
+                );
+                rolesItem.command = {
+                    command: 'appdna.showDetails',
+                    title: 'Show Details',
+                    arguments: [roleDataObjectItem]
+                };
+                items.push(rolesItem);
+                
                 // Create Role Requirements item under USER STORIES
                 const roleRequirementsItem = new JsonTreeItem(
                     'Role Requirements',
