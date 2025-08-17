@@ -18,11 +18,11 @@ function getOutputVarsListTemplate(outputVarsSchema) {
         "dataType",
         "defaultValue",
         "fKObjectName",
-        "headerLabelText",
+        "labelText",
         "isAutoRedirectURL",
         "isFK",
         "isFKLookup",
-        "isHeaderLabelVisible",
+        "isLabelVisible",
         "isHeaderText",
         "isIgnored",
         "isLink",
@@ -40,8 +40,9 @@ function getOutputVarsListTemplate(outputVarsSchema) {
     const variantMap = {
         'datatype': ['sqlserverdbdatatype'],
         'datasize': ['sqlserverdbdatatypesize'],
-        'headerlabeltext': ['headertext'],
-        'isheaderlabelvisible': ['isheaderlabelsvisible']
+        // Backward-compatibility: if older names exist in schema, resolve to them
+        'labeltext': ['headertext', 'headerlabeltext'],
+        'islabelvisible': ['isheaderlabelsvisible', 'isheaderlabelvisible']
     };
 
     // Resolve actual schema keys present in this order
