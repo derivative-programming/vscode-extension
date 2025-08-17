@@ -69,8 +69,8 @@ function getUIEventHandlers() {
                     }
                 }
                 
-                // Set initial browse button state for fkObjectName field
-                if (propertyName === 'fkObjectName') {
+                // Set initial browse button state for fKObjectName field
+                if (propertyName === 'fKObjectName') {
                     const browseButton = inputField.parentElement.querySelector('.lookup-button');
                     if (browseButton) {
                         browseButton.disabled = !checkbox.checked;

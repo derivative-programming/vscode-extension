@@ -1388,13 +1388,11 @@ function addBreadcrumbToReport(reportReference, modelService, pageName, panel) {
         // Create a new breadcrumb button with the specified properties
         const newButton = {
             buttonName: `${pageName}Breadcrumb`,
-            buttonText: `${pageName}Breadcrumb`,
             buttonType: 'breadcrumb',
             destinationTargetName: pageName,
             destinationContextObjectName: destinationContextObjectName,
             isVisible: "true",
-            isEnabled: "true",
-            isButtonCallToAction: "false"
+            isEnabled: "true"
         };
         
         // Add the new button to the array

@@ -1,3 +1,44 @@
+2025-08-17: ✅ COMPLETED - Fix FK Object Name browse button not enabled when checkbox is manually checked
+- Command: "if a check a checkbox i then cannot click browse button"
+- Status: ✅ COMPLETED 
+- Architecture Notes:
+  * Root Cause: Checkbox change event handler in parameterManagementFunctions.js was missing fKObjectName browse button logic
+  * Problem: When user manually checks fKObjectName checkbox, no event handler was enabling the browse button
+  * Solution: Added fKObjectName browse button state management to checkbox change event handler (lines 140-147)
+  * Pattern: Each field with browse button needs logic in both:
+    - Initial parameter selection handler (for when property already exists)
+    - Checkbox change event handler (for when user manually checks/unchecks)
+- Code Added: Browse button enable/disable logic in checkbox.addEventListener('change') for fKObjectName field
+- Build Status: Compiled successfully with webpack
+- Testing: Checkbox check → browse button enabled, checkbox uncheck → browse button disabled
+
+2025-08-17: ✅ COMPLETED - Fix FK Object Name browse button disabled state
+- Command: "the browse button is now visible, but its disabled"
+- Status: ✅ COMPLETED 
+- Architecture Notes:
+  * Root Cause: parameterManagementFunctions.js had logic to set browse button state for sourceObjectName but missing for fKObjectName
+  * Solution: Added browse button state initialization for fKObjectName field in parameter selection handler
+  * Code Added: Browse button state logic in parameterManagementFunctions.js lines 75-81
+  * Pattern: When parameter is selected, checkbox state determines browse button enabled/disabled state
+  * Logic Flow: param selected → property exists check → checkbox checked → browse button enabled
+- Build Status: Compiled successfully with webpack
+- Next Steps: Refresh Form Details webview to test browse button functionality
+
+2025-08-17: ✅ COMPLETED - Fix FK Object Name browse button not visible due to case sensitivity issue
+- Command: "Form details view: Input controls tab: 'fk object name' setting: 'browse data objects' button its not visible"
+- Status: ✅ COMPLETED
+- Architecture Notes:
+  * Root Cause: Code was checking for "fkObjectName" (lowercase k) but schema uses "fKObjectName" (capital K)
+  * Fixed case sensitivity issue in 5 files:
+    - paramsListTemplate.js: Updated propKey comparison to "fKObjectName"
+    - paramsTableTemplate.js: Updated paramKey comparison to "fKObjectName" 
+    - domInitialization.js: Updated propKey comparison to "fKObjectName"
+    - formControlUtilities.js: Updated propertyName comparison to "fKObjectName" (both enable/disable cases)
+    - uiEventHandlers.js: Updated propertyName comparison to "fKObjectName"
+  * Browse button should now appear for FK Object Name field when property checkbox is checked
+- Pattern: Case-sensitive property name matching - schema property names must match exactly in JavaScript comparisons
+- Build Status: Compiled successfully with webpack
+
 2025-01-25: ✅ COMPLETED - Fix destinationContextObjectName not being set for button creation
 - Command: "destinationContextObjectName is not being set"
 - Status: ✅ COMPLETED
