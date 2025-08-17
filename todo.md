@@ -7,8 +7,6 @@ workflow list view - remove title column
 
 pageinit list view - remove title column
 
-copilot:on FLOWS: GENERAL treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item
-
 on form details view, 'Page Initialization Flow:  [edit icon to view the pageinit details view]
 
 on report details view, 'Page Initialization Flow: [edit icon to view the pageinit details view]

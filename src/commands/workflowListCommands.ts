@@ -367,14 +367,8 @@ export function registerWorkflowListCommands(
                                     <input type="text" id="filterName" placeholder="Filter by name...">
                                 </div>
                                 <div class="filter-group">
-                                    <label>Title:</label>
-                                    <input type="text" id="filterTitle" placeholder="Filter by title...">
-                                </div>
-                                <div class="filter-group">
                                     <label>Owner Object:</label>
-                                    <select id="filterOwnerObject">
-                                        <option value="">All Objects</option>
-                                    </select>
+                                    <input type="text" id="filterOwnerObject" placeholder="Filter by owner object...">
                                 </div>
                             </div>
                             <div class="filter-actions">
@@ -472,7 +466,6 @@ function loadWorkflowData(panel: vscode.WebviewPanel, modelService: ModelService
                     if (workflow.name && workflow.isDynaFlow === "true") {
                         workflowItems.push({
                             name: workflow.name || 'Unnamed Workflow',
-                            titleText: workflow.titleText || workflow.name || 'Unnamed Workflow',
                             ownerObject: obj.name || 'Unknown',
                             workflowType: 'DynaFlow'
                         });

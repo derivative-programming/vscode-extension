@@ -15,11 +15,6 @@ let pageInitData = {
 // Keep track of all items for filtering
 let allItems = [];
 
-// Keep track of unique values for filter dropdowns
-let filterOptions = {
-    ownerObjects: []
-};
-
 // Helper function to show spinner
 function showSpinner() {
     const spinnerOverlay = document.getElementById("spinner-overlay");
@@ -59,15 +54,13 @@ function toggleFilterSection() {
 // Apply filters to the data (global function for onclick)
 function applyFilters() {
     const nameFilter = document.getElementById('filterName')?.value.toLowerCase() || '';
-    const titleFilter = document.getElementById('filterTitle')?.value.toLowerCase() || '';
-    const ownerObjectFilter = document.getElementById('filterOwnerObject')?.value || '';
+    const ownerObjectFilter = document.getElementById('filterOwnerObject')?.value.toLowerCase() || '';
     
     let filteredItems = allItems.filter(item => {
         const matchesName = !nameFilter || (item.name || '').toLowerCase().includes(nameFilter);
-        const matchesTitle = !titleFilter || (item.titleText || '').toLowerCase().includes(titleFilter);
-        const matchesOwnerObject = !ownerObjectFilter || item.ownerObject === ownerObjectFilter;
+        const matchesOwnerObject = !ownerObjectFilter || (item.ownerObject || '').toLowerCase().includes(ownerObjectFilter);
         
-        return matchesName && matchesTitle && matchesOwnerObject;
+        return matchesName && matchesOwnerObject;
     });
     
     // Update pageInitData with filtered results
@@ -82,7 +75,6 @@ function applyFilters() {
 // Clear all filters (global function for onclick)
 function clearFilters() {
     document.getElementById('filterName').value = '';
-    document.getElementById('filterTitle').value = '';
     document.getElementById('filterOwnerObject').value = '';
     
     // Reset to show all items
@@ -92,36 +84,6 @@ function clearFilters() {
     // Re-render the table
     renderTable();
     renderRecordInfo();
-}
-
-// Extract unique values for filter dropdowns
-function extractFilterOptions() {
-    const ownerObjects = new Set();
-    
-    allItems.forEach(item => {
-        if (item.ownerObject) {
-            ownerObjects.add(item.ownerObject);
-        }
-    });
-    
-    filterOptions.ownerObjects = Array.from(ownerObjects).sort();
-}
-
-// Populate filter dropdown options
-function populateFilterDropdowns() {
-    // Populate owner object dropdown
-    const ownerObjectSelect = document.getElementById('filterOwnerObject');
-    if (ownerObjectSelect) {
-        // Clear existing options except "All Objects"
-        ownerObjectSelect.innerHTML = '<option value="">All Objects</option>';
-        
-        filterOptions.ownerObjects.forEach(obj => {
-            const option = document.createElement('option');
-            option.value = obj;
-            option.textContent = obj;
-            ownerObjectSelect.appendChild(option);
-        });
-    }
 }
 
 // Render the table
@@ -144,7 +106,6 @@ function renderTable() {
     // Define table columns
     const columns = [
         { key: "name", label: "Name", sortable: true },
-        { key: "titleText", label: "Title Text", sortable: true },
         { key: "workflowType", label: "Workflow Type", sortable: true },
         { key: "ownerObject", label: "Owner Object", sortable: true },
         { key: "actions", label: "Actions", sortable: false }
@@ -240,7 +201,7 @@ function renderTable() {
         // No items
         const row = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 5; // Number of columns
+        td.colSpan = 4; // Number of columns
         td.style.textAlign = "center";
         td.style.padding = "20px";
         td.style.color = "var(--vscode-descriptionForeground)";
@@ -268,7 +229,7 @@ function renderRecordInfo() {
 // Setup filter event listeners
 function setupFilterEventListeners() {
     // Add event listeners for filter inputs
-    const filterInputs = ['filterName', 'filterTitle', 'filterOwnerObject'];
+    const filterInputs = ['filterName', 'filterOwnerObject'];
     
     filterInputs.forEach(id => {
         const element = document.getElementById(id);
@@ -360,12 +321,6 @@ window.addEventListener("message", function(event) {
             sortColumn: data.sortColumn || 'name',
             sortDescending: data.sortDescending || false
         };
-        
-        // Extract unique values for filter dropdowns
-        extractFilterOptions();
-        
-        // Populate filter dropdowns
-        populateFilterDropdowns();
         
         // Render the table and record info
         renderTable();

@@ -7,7 +7,6 @@
 
 // Global variables
 let workflowData = { items: [], totalRecords: 0 };
-let filterOptions = { ownerObjects: [] };
 let currentSortColumn = 'name';
 let currentSortDescending = false;
 
@@ -17,7 +16,6 @@ const vscode = acquireVsCodeApi();
 // Define table columns
 const columns = [
     { key: "name", label: "Name", sortable: true },
-    { key: "titleText", label: "Title", sortable: true },
     { key: "ownerObject", label: "Owner Object", sortable: true },
     { key: "workflowType", label: "Type", sortable: true },
     { key: "actions", label: "Actions", sortable: false }
@@ -132,7 +130,7 @@ function renderTable() {
         // No items
         const row = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 5; // Number of columns
+        td.colSpan = 4; // Number of columns
         td.style.textAlign = "center";
         td.style.padding = "20px";
         td.style.color = "var(--vscode-descriptionForeground)";
@@ -169,16 +167,14 @@ function handleSort(columnKey) {
 // Apply filters
 function applyFilters() {
     const nameFilter = document.getElementById("filterName").value.toLowerCase();
-    const titleFilter = document.getElementById("filterTitle").value.toLowerCase();
-    const ownerObjectFilter = document.getElementById("filterOwnerObject").value;
+    const ownerObjectFilter = document.getElementById("filterOwnerObject").value.toLowerCase();
     
     // Filter the original data
     const filteredItems = workflowData.items.filter(item => {
         const nameMatch = !nameFilter || (item.name && item.name.toLowerCase().includes(nameFilter));
-        const titleMatch = !titleFilter || (item.titleText && item.titleText.toLowerCase().includes(titleFilter));
-        const ownerMatch = !ownerObjectFilter || item.ownerObject === ownerObjectFilter;
+        const ownerMatch = !ownerObjectFilter || (item.ownerObject && item.ownerObject.toLowerCase().includes(ownerObjectFilter));
         
-        return nameMatch && titleMatch && ownerMatch;
+        return nameMatch && ownerMatch;
     });
     
     // Update the displayed data
@@ -194,7 +190,6 @@ function applyFilters() {
 // Clear all filters
 function clearFilters() {
     document.getElementById("filterName").value = "";
-    document.getElementById("filterTitle").value = "";
     document.getElementById("filterOwnerObject").value = "";
     
     // Re-render with all data
@@ -232,7 +227,7 @@ function renderRecordInfo() {
 // Setup filter event listeners
 function setupFilterEventListeners() {
     // Add event listeners for filter inputs
-    const filterInputs = ['filterName', 'filterTitle', 'filterOwnerObject'];
+    const filterInputs = ['filterName', 'filterOwnerObject'];
     
     filterInputs.forEach(id => {
         const element = document.getElementById(id);
@@ -241,23 +236,6 @@ function setupFilterEventListeners() {
             element.addEventListener('change', applyFilters);
         }
     });
-}
-
-// Populate filter dropdown options
-function populateFilterDropdowns() {
-    // Populate owner object dropdown
-    const ownerObjectSelect = document.getElementById('filterOwnerObject');
-    if (ownerObjectSelect) {
-        // Clear existing options except "All Objects"
-        ownerObjectSelect.innerHTML = '<option value="">All Objects</option>';
-        
-        filterOptions.ownerObjects.forEach(obj => {
-            const option = document.createElement('option');
-            option.value = obj;
-            option.textContent = obj;
-            ownerObjectSelect.appendChild(option);
-        });
-    }
 }
 
 // Debounce function to limit filter calls
@@ -286,7 +264,26 @@ document.addEventListener("DOMContentLoaded", function() {
     // Setup refresh button
     const refreshButton = document.getElementById("refreshButton");
     if (refreshButton) {
-        refreshButton.innerHTML = '<i class="codicon codicon-refresh"></i> Refresh';
+        refreshButton.innerHTML = '<span class="codicon codicon-refresh" style="font-size:16px;"></span>';
+        refreshButton.title = "Refresh";
+        refreshButton.style.background = "none";
+        refreshButton.style.border = "none";
+        refreshButton.style.color = "var(--vscode-editor-foreground)";
+        refreshButton.style.padding = "4px 8px";
+        refreshButton.style.cursor = "pointer";
+        refreshButton.style.display = "flex";
+        refreshButton.style.alignItems = "center";
+        refreshButton.style.borderRadius = "4px";
+        refreshButton.style.transition = "background 0.15s";
+
+        // Add hover effect
+        refreshButton.addEventListener("mouseenter", function() {
+            refreshButton.style.background = "var(--vscode-toolbar-hoverBackground, #2a2d2e)";
+        });
+        refreshButton.addEventListener("mouseleave", function() {
+            refreshButton.style.background = "none";
+        });
+        
         refreshButton.addEventListener("click", requestRefresh);
     }
     
@@ -316,12 +313,7 @@ window.addEventListener('message', event => {
             currentSortDescending = message.data.sortDescending;
         }
         
-        // Extract unique owner objects for filter dropdown
-        const uniqueOwnerObjects = [...new Set(workflowData.items.map(item => item.ownerObject))].sort();
-        filterOptions.ownerObjects = uniqueOwnerObjects;
-        
-        // Populate dropdowns and render table
-        populateFilterDropdowns();
+        // Render table and record info
         renderTable();
         renderRecordInfo();
         

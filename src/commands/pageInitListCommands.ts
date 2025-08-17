@@ -367,14 +367,8 @@ export function registerPageInitListCommands(
                                     <input type="text" id="filterName" placeholder="Filter by name...">
                                 </div>
                                 <div class="filter-group">
-                                    <label>Title:</label>
-                                    <input type="text" id="filterTitle" placeholder="Filter by title...">
-                                </div>
-                                <div class="filter-group">
                                     <label>Owner Object:</label>
-                                    <select id="filterOwnerObject">
-                                        <option value="">All Objects</option>
-                                    </select>
+                                    <input type="text" id="filterOwnerObject" placeholder="Filter by owner object...">
                                 </div>
                             </div>
                             <div class="filter-actions">
@@ -475,7 +469,6 @@ function loadPageInitData(panel: vscode.WebviewPanel, modelService: ModelService
                         if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
                             pageInitItems.push({
                                 name: workflow.name || 'Unnamed Workflow',
-                                titleText: workflow.titleText || workflow.name || 'Unnamed Workflow',
                                 ownerObject: obj.name || 'Unknown',
                                 workflowType: workflowName.endsWith('initreport') ? 'Init Report' : 'Init Object Workflow'
                             });
