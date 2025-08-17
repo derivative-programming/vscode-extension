@@ -235,6 +235,33 @@ export function registerPageInitListCommands(
                         .refresh-button:hover {
                             background-color: var(--vscode-button-hoverBackground);
                         }
+                        .icon-button {
+                            background: transparent !important;
+                            background-color: transparent !important;
+                            border: none;
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 6px;
+                            border-radius: 4px;
+                            transition: background 0.15s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            min-width: 28px;
+                            height: 28px;
+                            margin: 0 2px;
+                        }
+                        .icon-button:hover {
+                            background: var(--vscode-toolbar-hoverBackground) !important;
+                            background-color: var(--vscode-toolbar-hoverBackground) !important;
+                        }
+                        .icon-button:active {
+                            background: var(--vscode-toolbar-activeBackground);
+                            transform: scale(0.95);
+                        }
+                        .icon-button .codicon {
+                            font-size: 16px;
+                        }
                         .header-actions {
                             display: flex;
                             justify-content: flex-end;
@@ -378,6 +405,9 @@ export function registerPageInitListCommands(
                     </div>
                     
                     <div class="header-actions">
+                        <button id="exportButton" class="icon-button" title="Download CSV">
+                            <i class="codicon codicon-cloud-download"></i>
+                        </button>
                         <button id="refreshButton" class="refresh-button" title="Refresh Table">
                         </button>
                     </div>
@@ -404,7 +434,7 @@ export function registerPageInitListCommands(
 
             // Handle messages from the webview
             panel.webview.onDidReceiveMessage(
-                message => {
+                async message => {
                     switch (message.command) {
                         case 'PageInitListWebviewReady':
                             console.log("[Extension] PageInitList webview ready");
@@ -426,6 +456,57 @@ export function registerPageInitListCommands(
                             console.log("[Extension] PageInitList view details requested for:", message.workflowName);
                             // Note: Page init workflows don't have a details view yet in the existing system
                             vscode.window.showInformationMessage(`Page init workflow details view for "${message.workflowName}" not yet implemented.`);
+                            break;
+
+                        case 'exportToCSV':
+                            console.log("[Extension] PageInitList CSV export requested");
+                            try {
+                                const csvContent = await savePageInitsToCSV(message.data.items, modelService);
+                                const now = new Date();
+                                const pad = (n: number) => n.toString().padStart(2, '0');
+                                const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                                const filename = `page-init-flows-${timestamp}.csv`;
+                                
+                                panel.webview.postMessage({
+                                    command: 'csvExportReady',
+                                    csvContent: csvContent,
+                                    filename: filename,
+                                    success: true
+                                });
+                            } catch (error) {
+                                console.error('[Extension] Error exporting CSV:', error);
+                                panel.webview.postMessage({
+                                    command: 'csvExportReady',
+                                    success: false,
+                                    error: error.message
+                                });
+                            }
+                            break;
+
+                        case 'saveCsvToWorkspace':
+                            try {
+                                const fs = require('fs');
+                                const path = require('path');
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    vscode.window.showErrorMessage('No workspace folder is open');
+                                    return;
+                                }
+                                
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const filePath = path.join(workspaceRoot, message.data.filename);
+                                
+                                fs.writeFileSync(filePath, message.data.content, 'utf8');
+                                vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                                
+                                // Open the file in VS Code
+                                const fileUri = vscode.Uri.file(filePath);
+                                vscode.window.showTextDocument(fileUri);
+                            } catch (error) {
+                                console.error('[Extension] Error saving CSV to workspace:', error);
+                                vscode.window.showErrorMessage(`Failed to save CSV: ${error.message}`);
+                            }
                             break;
                     }
                 },
@@ -528,4 +609,40 @@ function loadPageInitData(panel: vscode.WebviewPanel, modelService: ModelService
             } 
         });
     }
+}
+
+/**
+ * Saves page init flows data to CSV format
+ * @param items The page init items to export
+ * @param modelService The model service
+ * @returns CSV content as string
+ */
+async function savePageInitsToCSV(items: any[], modelService: ModelService): Promise<string> {
+    // Define CSV headers
+    const headers = ['Name', 'Owner Object', 'Workflow Type'];
+    
+    // Create CSV content
+    let csvContent = headers.join(',') + '\n';
+    
+    // Add data rows
+    items.forEach(item => {
+        const row = [
+            item.name || '',
+            item.ownerObject || '',
+            item.workflowType || ''
+        ];
+        
+        // Escape and quote values that contain commas, quotes, or newlines
+        const escapedRow = row.map(value => {
+            let escapedValue = String(value || '');
+            if (escapedValue.includes(',') || escapedValue.includes('"') || escapedValue.includes('\n')) {
+                escapedValue = '"' + escapedValue.replace(/"/g, '""') + '"';
+            }
+            return escapedValue;
+        });
+        
+        csvContent += escapedRow.join(',') + '\n';
+    });
+    
+    return csvContent;
 }

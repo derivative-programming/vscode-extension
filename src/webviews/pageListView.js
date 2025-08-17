@@ -343,6 +343,17 @@ function requestRefresh() {
     vscode.postMessage({ command: 'refresh' });
 }
 
+// Export to CSV (global function for onclick)
+function exportToCSV() {
+    console.log('[PageList] Export to CSV requested');
+    vscode.postMessage({
+        command: 'exportToCSV',
+        data: {
+            items: pageData.items
+        }
+    });
+}
+
 // Set up the UI when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log("[Webview] DOM Content loaded for Page List");
@@ -374,6 +385,15 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshBtn.onclick = function() {
             requestRefresh();
         };
+    }
+    
+    // Setup export button
+    const exportBtn = document.getElementById("exportButton");
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            console.log('[PageList] Export button clicked');
+            exportToCSV();
+        });
     }
     
     // Setup filter event listeners
@@ -418,5 +438,20 @@ window.addEventListener("message", function(event) {
         
         // Hide spinner when data is loaded
         hideSpinner();
+    } else if (message.command === 'csvExportReady') {
+        console.log('[PageList] CSV export ready');
+        if (message.success !== false) {
+            // Send CSV content to extension to save to workspace
+            vscode.postMessage({
+                command: 'saveCsvToWorkspace',
+                data: {
+                    content: message.csvContent,
+                    filename: message.filename
+                }
+            });
+        } else {
+            console.error('Error exporting CSV:', message.error);
+            alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
+        }
     }
 });
