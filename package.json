@@ -226,6 +226,18 @@
           "when": "viewItem =~ /workflows.*showWorkflowsFilter/ && appDnaWorkflowsFilterActive",
           "group": "inline",
           "icon": "$(clear-all)"
+        },
+        {
+          "command": "appdna.showWorkflowTasksFilter",
+          "when": "viewItem =~ /workflowTasks.*showWorkflowTasksFilter/",
+          "group": "inline",
+          "icon": "$(filter)"
+        },
+        {
+          "command": "appdna.clearWorkflowTasksFilter",
+          "when": "viewItem =~ /workflowTasks.*showWorkflowTasksFilter/ && appDnaWorkflowTasksFilterActive",
+          "group": "inline",
+          "icon": "$(clear-all)"
         }
       ]
     },
@@ -433,6 +445,16 @@
       {
         "command": "appdna.clearWorkflowsFilter",
         "title": "Clear Workflows Filter",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "appdna.showWorkflowTasksFilter",
+        "title": "Filter Workflow Tasks",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "appdna.clearWorkflowTasksFilter",
+        "title": "Clear Workflow Tasks Filter",
         "icon": "$(clear-all)"
       },
       {
