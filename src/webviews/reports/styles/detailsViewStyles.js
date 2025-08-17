@@ -58,9 +58,10 @@ function getDetailViewStyles() {
         
         .view-icons {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             margin-bottom: 10px;
             width: 100%;
+            gap: 8px;
         }
         
         .view-icons-left {
@@ -113,7 +114,6 @@ function getDetailViewStyles() {
         }
         
         .add-prop-button {
-            margin-left: auto;
             padding: 6px 12px;
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
