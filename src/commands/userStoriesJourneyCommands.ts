@@ -134,7 +134,7 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
             // Extract reports with isPage=true
             if (obj.report && Array.isArray(obj.report)) {
                 obj.report.forEach((report: any) => {
-                    if (report.isPage === 'true') {
+                    if (report.isPage === 'true' || report.isPage === undefined) {
                         allPages.push({
                             name: report.name,
                             roleRequired: report.roleRequired
@@ -364,7 +364,7 @@ async function getPageListForJourneyStart(modelService: ModelService): Promise<a
                     // Get pages from object reports
                     if (obj.report && Array.isArray(obj.report)) {
                         obj.report.forEach((report: any) => {
-                            if (report.isPage === "true" && report.name) {
+                            if ((report.isPage === "true" || report.isPage === undefined) && report.name) {
                                 pages.push({
                                     name: report.name,
                                     type: 'Report',
@@ -589,7 +589,7 @@ async function calculatePageDistances(panel: vscode.WebviewPanel, modelService: 
             // Extract reports with isPage=true
             if (obj.report && Array.isArray(obj.report)) {
                 obj.report.forEach((report: any) => {
-                    if (report.isPage === 'true') {
+                    if (report.isPage === 'true' || report.isPage === undefined) {
                         const page = {
                             name: report.name,
                             titleText: report.titleText || report.name,

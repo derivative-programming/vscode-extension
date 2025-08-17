@@ -33,7 +33,7 @@ function generateHTMLContent(allObjects, codiconsUri) {
         // Check report items with isPage=true
         if (obj.report && Array.isArray(obj.report)) {
             obj.report.forEach(report => {
-                if (report.isPage === "true") {
+                if (report.isPage === "true" || report.isPage === undefined) {
                     if (report.roleRequired) {
                         uniqueRoles.add(report.roleRequired);
                     } else {
@@ -1697,7 +1697,7 @@ function generateJavaScript(allObjects) {
         // Extract report pages from report
         if (obj.report && Array.isArray(obj.report)) {
             obj.report.forEach(report => {
-                if (report.isPage === "true") {
+                if (report.isPage === "true" || report.isPage === undefined) {
                     allPages.push({
                         ...report,
                         objectName: obj.name,
@@ -1732,7 +1732,7 @@ function generateJavaScript(allObjects) {
                 // Check if it's a report
                 if (obj.report && Array.isArray(obj.report)) {
                     const foundReport = obj.report.find(report => 
-                        report.name === pageName && report.isPage === "true"
+                        report.name === pageName && (report.isPage === "true" || report.isPage === undefined)
                     );
                     if (foundReport) {
                         console.log('[DEBUG] PagePreview - Found as report in object:', obj.name);
@@ -1765,7 +1765,7 @@ function generateJavaScript(allObjects) {
                 // Check if it's a report
                 if (obj.report && Array.isArray(obj.report)) {
                     const foundReport = obj.report.find(report => 
-                        report.name === pageName && report.isPage === "true"
+                        report.name === pageName && (report.isPage === "true" || report.isPage === undefined)
                     );
                     if (foundReport) {
                         console.log('[DEBUG] PagePreview - Found report object:', foundReport.name);
@@ -4299,7 +4299,7 @@ function generateJavaScript(allObjects) {
                             // Extract report pages from report array
                             if (obj.report && Array.isArray(obj.report)) {
                                 obj.report.forEach(report => {
-                                    if (report.isPage === "true") {
+                                    if (report.isPage === "true" || report.isPage === undefined) {
                                         updatedPages.push({
                                             ...report,
                                             objectName: obj.name,
@@ -4343,7 +4343,7 @@ function generateJavaScript(allObjects) {
                             // Extract report pages from report array
                             if (obj.report && Array.isArray(obj.report)) {
                                 obj.report.forEach(report => {
-                                    if (report.isPage === "true") {
+                                    if (report.isPage === "true" || report.isPage === undefined) {
                                         refreshedPages.push({
                                             ...report,
                                             objectName: obj.name,

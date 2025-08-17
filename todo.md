@@ -3,14 +3,8 @@ Agent todo items...
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest
 
-
-show copy icon button
-- copilot:under form details view title add a copy icon button
-- copilot:under report details view title add a copy icon button
-
-show owner data object name...
-- copilot:under form details view title with a edit icon button to open the view
-- copilot:under report details view title with a edit icon button to open the view
+view icon on report details not selecting page
+ 
 
 report details view...
 - allow creation of column destination button
@@ -21,13 +15,9 @@ report details view...
 
 
 Source Object Name lookup button...
-- copilot:report column 'source object name'
-- copilot:report setting 'target child object'
+- report column 'source object name' 
+- form details: input controls: fkObjectName
 
-form details view: settings tab:...
--copilot:hide 'Is Exposed In Business Object:' setting
-
-copilot:Form details view: input controls tab: missing the fkObjectName setting
 
 form details button tab button type setting dropdown?  
 
@@ -39,7 +29,6 @@ apis
  
 
 preview form...
-- copilot:show actual lookup items in dropdowns
 - header display
 
 preview report grid view...

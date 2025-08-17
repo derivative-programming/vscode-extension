@@ -47,7 +47,7 @@ function extractPagesFromModel(allObjects) {
             console.log(`[DEBUG] Object ${obj.name} has ${obj.report.length} report items`);
             obj.report.forEach((report, rIndex) => {
                 console.log(`[DEBUG] Report ${rIndex}: ${report.name}, isPage: ${report.isPage}`);
-                if (report.isPage === "true") {
+                if (report.isPage === "true" || report.isPage === undefined) {
                     const page = {
                         name: report.name,
                         titleText: report.titleText || report.name,

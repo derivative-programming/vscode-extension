@@ -1318,7 +1318,7 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                         namespace.object.forEach((obj: any) => {
                                             if (obj.report && Array.isArray(obj.report)) {
                                                 obj.report.forEach((report: any) => {
-                                                    if (report.isPage === "true" && report.name) {
+                                                    if ((report.isPage === "true" || report.isPage === undefined) && report.name) {
                                                         pageNames.push(report.name);
                                                     }
                                                 });
@@ -1379,7 +1379,7 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                             // Get pages from object reports
                                             if (obj.report && Array.isArray(obj.report)) {
                                                 obj.report.forEach((report: any) => {
-                                                    if (report.isPage === "true" && report.name) {
+                                                    if ((report.isPage === "true" || report.isPage === undefined) && report.name) {
                                                         detailedPages.push({
                                                             name: report.name,
                                                             type: 'Report',
@@ -1456,7 +1456,7 @@ export function registerUserStoriesPageMappingCommands(context: vscode.Extension
                                             // Get pages from object reports
                                             if (obj.report && Array.isArray(obj.report)) {
                                                 obj.report.forEach((report: any) => {
-                                                    if (report.isPage === "true" && report.name) {
+                                                    if ((report.isPage === "true" || report.isPage === undefined) && report.name) {
                                                         allPages.push({
                                                             name: report.name,
                                                             type: 'report',

@@ -596,7 +596,7 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
             // Process reports
             if (obj.report && Array.isArray(obj.report)) {
                 obj.report.forEach((report: any) => {
-                    if (report.isPage === 'true') {
+                    if (report.isPage === 'true'|| report.isPage === undefined) {
                         let reportType = '';
                         if (report.visualizationType) {
                             const vizType = report.visualizationType.toLowerCase();

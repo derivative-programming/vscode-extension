@@ -276,7 +276,7 @@ export class ModelService {
         const allReports = this.getAllReports();
         const reportPage = allReports.find(report => 
             report.name && report.name.trim().toLowerCase() === pageName.trim().toLowerCase() &&
-            report.isPage === "true"
+            (report.isPage === "true" || report.isPage === undefined)
         );
         
         if (reportPage) {
@@ -427,7 +427,7 @@ export class ModelService {
         if (reportOwner) {
             // Verify the report is actually a page
             const report = this.getReport(pageName);
-            if (report && report.isPage === "true") {
+            if (report && (report.isPage === "true" || report.isPage === undefined)) {
                 return reportOwner;
             }
         }
@@ -450,7 +450,7 @@ export class ModelService {
         
         // Add reports with isPage=true
         const allReports = this.getAllReports();
-        const reportPages = allReports.filter(report => report.isPage === "true");
+        const reportPages = allReports.filter(report => (report.isPage === "true" || report.isPage === undefined));
         pages.push(...reportPages);
         
         // Add forms (objectWorkflow with isPage=true)

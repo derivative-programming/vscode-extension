@@ -405,7 +405,7 @@ function handlePathfindingRequest(fromPage, toPage, modelService) {
             // Extract report pages from report array
             if (obj.report && Array.isArray(obj.report)) {
                 obj.report.forEach(report => {
-                    if (report.isPage === "true") {
+                    if (report.isPage === "true" || report.isPage === undefined) {
                         // Use same structure as Page Flow view with normalized buttons
                         const page = {
                             ...report,  // Spread all report properties

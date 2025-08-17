@@ -1627,7 +1627,11 @@ function addButtonToFormWithText(formReference, modelService, data, panel) {
         // Create a new button with user-specified properties
         const newButton = {
             buttonText: data.buttonText,
-            buttonType: data.buttonType || 'other'
+            buttonType: data.buttonType || 'other',
+            destinationContextObjectName: "",
+            destinationTargetName: "",
+            isVisible: "true",
+            isButtonCallToAction: "false"
         };
         
         // Add the new button to the array

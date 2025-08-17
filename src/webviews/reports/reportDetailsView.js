@@ -1262,7 +1262,12 @@ function addButtonToReport(reportReference, modelService, panel) {
         const newButton = {
             buttonName: `NewButton${reportReference.reportButton.length + 1}`,
             buttonText: `New Button ${reportReference.reportButton.length + 1}`,
-            buttonType: 'other'
+            buttonType: 'other',
+            destinationContextObjectName: "",
+            destinationTargetName: "",
+            isVisible: "true",
+            isEnabled: "true",
+            isButtonCallToAction: "false"
         };
         
         // Add the new button to the array
@@ -1315,7 +1320,12 @@ function addButtonToReportWithName(reportReference, modelService, buttonName, pa
         const newButton = {
             buttonName: buttonName,
             buttonText: buttonName,
-            buttonType: 'other'
+            buttonType: 'other',
+            destinationContextObjectName: "",
+            destinationTargetName: "",
+            isVisible: "true",
+            isEnabled: "true",
+            isButtonCallToAction: "false"
         };
         
         // Add the new button to the array
@@ -1365,8 +1375,15 @@ function addBreadcrumbToReport(reportReference, modelService, pageName, panel) {
         }
         
         // Get the owner data object of the selected page
+        console.log("DEBUG: About to call getPageOwnerObject with pageName:", pageName);
         const ownerObject = modelService.getPageOwnerObject(pageName);
+        console.log("DEBUG: getPageOwnerObject returned:", ownerObject);
         const destinationContextObjectName = ownerObject ? ownerObject.name : '';
+        console.log("DEBUG: destinationContextObjectName set to:", destinationContextObjectName);
+        
+        if (!ownerObject) {
+            console.warn("WARNING: Could not find owner object for page:", pageName, "- breadcrumb will have empty destinationContextObjectName");
+        }
         
         // Create a new breadcrumb button with the specified properties
         const newButton = {
@@ -1374,7 +1391,10 @@ function addBreadcrumbToReport(reportReference, modelService, pageName, panel) {
             buttonText: `${pageName}Breadcrumb`,
             buttonType: 'breadcrumb',
             destinationTargetName: pageName,
-            destinationContextObjectName: destinationContextObjectName
+            destinationContextObjectName: destinationContextObjectName,
+            isVisible: "true",
+            isEnabled: "true",
+            isButtonCallToAction: "false"
         };
         
         // Add the new button to the array
