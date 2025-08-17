@@ -256,6 +256,12 @@
           "when": "viewItem =~ /general.*showGeneralFilter/ && appDnaGeneralFilterActive",
           "group": "inline",
           "icon": "$(clear-all)"
+        },
+        {
+          "command": "appdna.generalList",
+          "when": "viewItem =~ /general.*showGeneralList/",
+          "group": "inline",
+          "icon": "$(table)"
         }
       ]
     },
@@ -458,6 +464,11 @@
       {
         "command": "appdna.workflowList",
         "title": "Show Workflow List",
+        "icon": "$(table)"
+      },
+      {
+        "command": "appdna.generalList",
+        "title": "Show General List",
         "icon": "$(table)"
       },
       {

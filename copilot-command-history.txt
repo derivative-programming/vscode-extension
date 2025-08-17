@@ -587,6 +587,36 @@ The changes ensure that throughout the codebase, missing report.isPage propertie
 
 Command: Expand all top level tree items in the AppDNA tree view
 
+2025-01-25: ✅ COMPLETED - Add "Show List" icon button to GENERAL treeview item (Issue #262)
+- Command: "on GENERAL treeview item add a 'Show List' icon button. This should open a general flow list view. It will have a design similar to the page list view used by the 'show page list' icon button on the PAGES treeview item. This will allows the user to see a full list of general flows."
+- Status: ✅ COMPLETED
+- Architecture Notes:
+  * Updated GENERAL contextValue in jsonTreeDataProvider.ts to include 'showGeneralList'
+  * Added menu item in package.json with icon "$(table)" for viewItem matching "general.*showGeneralList"
+  * Added command "appdna.generalList" in package.json commands section
+  * Created generalListCommands.ts following same pattern as workflowListCommands.ts:
+    - Manages active panels to avoid duplicates
+    - Creates webview panel with proper HTML template and styling
+    - Handles messages for refresh, sort, and viewDetails operations
+    - Extracts general flows from objectWorkflows where isPage !== true
+  * Created generalListView.js webview with same features as other list views:
+    - Sortable table with Name, Object, Description, Active columns
+    - Filtering by name and object
+    - Export to CSV functionality
+    - Refresh button and proper VS Code theming
+  * Registered commands in registerCommands.ts with proper cleanup functions
+- Files Modified:
+  * src/providers/jsonTreeDataProvider.ts - Added 'showGeneralList' to GENERAL contextValue
+  * package.json - Added command definition and menu item for general list
+  * src/commands/generalListCommands.ts - New file with command handler
+  * src/webviews/generalListView.js - New webview for displaying general flows
+  * src/commands/registerCommands.ts - Added registration and cleanup calls
+- Build Status: Compiled successfully with webpack, no linting issues
+- Result: GENERAL treeview item now has Show List icon button that opens dedicated general flows view
+- Pattern: Uses context value 'general showGeneralFilter showGeneralList' for proper icon button display
+- Data Source: Displays general workflow flows from objectWorkflows where isPage !== true
+
+
 2025-01-25: ✅ COMPLETED - Add "Show List" icon button to PAGE_INIT treeview item
 - Command: "on PAGE_INIT treeview item add a 'Show List' icon button. This should open a pageinit flow list view. It will have a design similar to the page list view used by the 'show page list' icon button on the PAGES treeview item. This will allows the user to see a full list of page init flows."
 - Status: ✅ COMPLETED
