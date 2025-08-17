@@ -261,6 +261,25 @@ Architecture Notes:
 Architecture Notes:
 - Checkbox state automatically initialized on tab load by querying current propSubscription
 - Uses owner object's propSubscription array (not report's) per specification
+
+2025-08-17: ✅ COMPLETED - Form details view: Display page init flow (Issue #259)
+- Added page initialization flow display section above owner data object section in form details view
+- Format: "Page Initialization Flow: [value]" when initObjectWorkflowName property exists and is set
+- Implementation details:
+  * Modified mainTemplate.js to add conditional page-init-flow-section before owner-data-object-section
+  * Added CSS styling matching the existing design with page-init-flow-label and page-init-flow-name classes
+  * Used conditional rendering: ${form.initObjectWorkflowName ? `...` : ''} to only show when property exists
+  * Positioned correctly between header and owner object display as specified
+  * Follows VS Code design language with proper CSS variables for consistent styling
+  * Gracefully handles cases where initObjectWorkflowName doesn't exist (section hidden)
+- Architecture Notes:
+  * Template receives form object directly with initObjectWorkflowName property from ObjectWorkflowModel
+  * CSS classes follow existing naming convention: page-init-flow-section, page-init-flow-label, page-init-flow-name
+  * Consistent spacing and layout with existing owner-data-object-section styling
+  * No functional changes needed - purely display enhancement
+- Testing: Created comprehensive tests covering property exists/doesn't exist/empty value scenarios
+- Result: Page initialization flow now displays when property is set, positioned above owner data object
+- Status: Built and compiled successfully, tested with browser preview screenshots
 - Maintains existing subscription entries and only modifies isIgnored flag
 - Full integration with existing undo/save workflow via modelService.markUnsavedChanges()
 
