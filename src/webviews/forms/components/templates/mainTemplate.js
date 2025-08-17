@@ -35,6 +35,10 @@ function getMainTemplate(
     codiconsUri,
     ownerObject = null
 ) {
+    console.log('[DEBUG] Form object in mainTemplate:', form);
+    console.log('[DEBUG] Form initObjectWorkflowName:', form.initObjectWorkflowName);
+    console.log('[DEBUG] Form keys:', Object.keys(form));
+    
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -94,6 +98,26 @@ function getMainTemplate(
         /* Hide the emoji fallback icon - we only want the codicon */
         .view-preview-button .icon-text {
             display: none !important;
+        }
+        
+        /* Page Initialization Flow Section Styles */
+        .page-init-flow-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--vscode-descriptionForeground);
+        }
+        
+        .page-init-flow-label {
+            font-weight: 500;
+        }
+        
+        .page-init-flow-name {
+            color: var(--vscode-foreground);
+            font-family: var(--vscode-editor-font-family);
         }
         
         /* Owner Data Object Section Styles */
@@ -158,6 +182,13 @@ function getMainTemplate(
             <span class="icon-text">👁</span>
         </button>
     </div>
+    
+    ${(form.initObjectWorkflowName || form.initobjectworkflowname) ? `
+    <div class="page-init-flow-section">
+        <span class="page-init-flow-label">Page Initialization Flow:</span>
+        <span class="page-init-flow-name">${form.initObjectWorkflowName || form.initobjectworkflowname}</span>
+    </div>
+    ` : ''}
     
     ${ownerObject ? `
     <div class="owner-data-object-section">
