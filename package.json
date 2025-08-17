@@ -216,6 +216,12 @@
           "icon": "$(table)"
         },
         {
+          "command": "appdna.workflowList",
+          "when": "viewItem =~ /workflows.*showWorkflowsList/",
+          "group": "inline",
+          "icon": "$(table)"
+        },
+        {
           "command": "appdna.showWorkflowsFilter",
           "when": "viewItem =~ /workflows.*showWorkflowsFilter/",
           "group": "inline",
@@ -423,6 +429,11 @@
       {
         "command": "appdna.pageInitList",
         "title": "Show Page Init List",
+        "icon": "$(table)"
+      },
+      {
+        "command": "appdna.workflowList",
+        "title": "Show Workflow List",
         "icon": "$(table)"
       },
       {
