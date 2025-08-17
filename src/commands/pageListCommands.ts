@@ -262,6 +262,33 @@ export function registerPageListCommands(
                         .refresh-button:hover {
                             background-color: var(--vscode-button-hoverBackground);
                         }
+                        .icon-button {
+                            background: transparent !important;
+                            background-color: transparent !important;
+                            border: none;
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 6px;
+                            border-radius: 4px;
+                            transition: background 0.15s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            min-width: 28px;
+                            height: 28px;
+                            margin: 0 2px;
+                        }
+                        .icon-button:hover {
+                            background: var(--vscode-toolbar-hoverBackground) !important;
+                            background-color: var(--vscode-toolbar-hoverBackground) !important;
+                        }
+                        .icon-button:active {
+                            background: var(--vscode-toolbar-activeBackground);
+                            transform: scale(0.95);
+                        }
+                        .icon-button .codicon {
+                            font-size: 16px;
+                        }
                         .header-actions {
                             display: flex;
                             justify-content: flex-end;
