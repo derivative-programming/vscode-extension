@@ -257,6 +257,17 @@ function requestRefresh() {
     vscode.postMessage({ command: 'refresh' });
 }
 
+// Export to CSV (global function for onclick)
+function exportToCSV() {
+    console.log('[WorkflowList] Export to CSV requested');
+    vscode.postMessage({
+        command: 'exportToCSV',
+        data: {
+            items: workflowData.items
+        }
+    });
+}
+
 // Initialize when DOM is loaded
 document.addEventListener("DOMContentLoaded", function() {
     console.log("[Webview] WorkflowList DOM loaded");
@@ -328,8 +339,12 @@ window.addEventListener('message', event => {
         
         // Hide spinner when data is loaded
         hideSpinner();
-    }
-});orkspace',
+    } else if (message.command === 'csvExportReady') {
+        console.log('[WorkflowList] CSV export ready');
+        if (message.success !== false) {
+            // Send CSV content to extension to save to workspace
+            vscode.postMessage({
+                command: 'saveCsvToWorkspace',
                 data: {
                     content: message.csvContent,
                     filename: message.filename

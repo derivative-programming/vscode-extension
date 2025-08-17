@@ -343,6 +343,17 @@ function requestRefresh() {
     vscode.postMessage({ command: 'refresh' });
 }
 
+// Export to CSV (global function for onclick)
+function exportToCSV() {
+    console.log('[PageList] Export to CSV requested');
+    vscode.postMessage({
+        command: 'exportToCSV',
+        data: {
+            items: pageData.items
+        }
+    });
+}
+
 // Set up the UI when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log("[Webview] DOM Content loaded for Page List");
@@ -427,9 +438,12 @@ window.addEventListener("message", function(event) {
         
         // Hide spinner when data is loaded
         hideSpinner();
-    }
-});
-rkspace',
+    } else if (message.command === 'csvExportReady') {
+        console.log('[PageList] CSV export ready');
+        if (message.success !== false) {
+            // Send CSV content to extension to save to workspace
+            vscode.postMessage({
+                command: 'saveCsvToWorkspace',
                 data: {
                     content: message.csvContent,
                     filename: message.filename

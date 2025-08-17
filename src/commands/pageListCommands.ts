@@ -465,7 +465,7 @@ export function registerPageListCommands(
 
             // Handle messages from the webview
             panel.webview.onDidReceiveMessage(
-                message => {
+                async message => {
                     switch (message.command) {
                         case 'PageListWebviewReady':
                             console.log("[Extension] PageList webview ready");
@@ -511,6 +511,57 @@ export function registerPageListCommands(
                                 console.error('[ERROR] PageList - Failed to open page preview via command:', error);
                                 vscode.window.showErrorMessage(`Failed to open page preview: ${error.message}`);
                             });
+                            break;
+
+                        case 'exportToCSV':
+                            try {
+                                console.log('[Extension] PageList CSV export requested');
+                                const csvContent = await savePagesToCSV(message.data.items, modelService);
+                                const now = new Date();
+                                const pad = (n: number) => n.toString().padStart(2, '0');
+                                const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                                const filename = `pages-${timestamp}.csv`;
+                                
+                                panel.webview.postMessage({
+                                    command: 'csvExportReady',
+                                    csvContent: csvContent,
+                                    filename: filename,
+                                    success: true
+                                });
+                            } catch (error) {
+                                console.error('[Extension] Error exporting pages CSV:', error);
+                                panel.webview.postMessage({
+                                    command: 'csvExportReady',
+                                    success: false,
+                                    error: error.message
+                                });
+                            }
+                            break;
+
+                        case 'saveCsvToWorkspace':
+                            try {
+                                const fs = require('fs');
+                                const path = require('path');
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    vscode.window.showErrorMessage('No workspace folder is open');
+                                    return;
+                                }
+                                
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const filePath = path.join(workspaceRoot, message.data.filename);
+                                
+                                fs.writeFileSync(filePath, message.data.content, 'utf8');
+                                vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                                
+                                // Open the file in VS Code
+                                const fileUri = vscode.Uri.file(filePath);
+                                vscode.window.showTextDocument(fileUri);
+                            } catch (error) {
+                                console.error('[Extension] Error saving CSV to workspace:', error);
+                                vscode.window.showErrorMessage(`Failed to save CSV file: ${error.message}`);
+                            }
                             break;
 
                         case 'viewDetails':

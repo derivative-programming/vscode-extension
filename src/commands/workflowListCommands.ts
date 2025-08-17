@@ -407,7 +407,7 @@ export function registerWorkflowListCommands(
 
             // Handle messages from the webview
             panel.webview.onDidReceiveMessage(
-                message => {
+                async message => {
                     switch (message.command) {
                         case 'WorkflowListWebviewReady':
                             console.log("[Extension] WorkflowList webview ready");
@@ -423,6 +423,57 @@ export function registerWorkflowListCommands(
                         case 'sortWorkflows':
                             console.log("[Extension] WorkflowList sort requested:", message.column, message.descending);
                             loadWorkflowData(panel, modelService, message.column, message.descending);
+                            break;
+
+                        case 'exportToCSV':
+                            try {
+                                console.log('[Extension] WorkflowList CSV export requested');
+                                const csvContent = await saveWorkflowsToCSV(message.data.items, modelService);
+                                const now = new Date();
+                                const pad = (n: number) => n.toString().padStart(2, '0');
+                                const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                                const filename = `workflows-${timestamp}.csv`;
+                                
+                                panel.webview.postMessage({
+                                    command: 'csvExportReady',
+                                    csvContent: csvContent,
+                                    filename: filename,
+                                    success: true
+                                });
+                            } catch (error) {
+                                console.error('[Extension] Error exporting workflows CSV:', error);
+                                panel.webview.postMessage({
+                                    command: 'csvExportReady',
+                                    success: false,
+                                    error: error.message
+                                });
+                            }
+                            break;
+
+                        case 'saveCsvToWorkspace':
+                            try {
+                                const fs = require('fs');
+                                const path = require('path');
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    vscode.window.showErrorMessage('No workspace folder is open');
+                                    return;
+                                }
+                                
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const filePath = path.join(workspaceRoot, message.data.filename);
+                                
+                                fs.writeFileSync(filePath, message.data.content, 'utf8');
+                                vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                                
+                                // Open the file in VS Code
+                                const fileUri = vscode.Uri.file(filePath);
+                                vscode.window.showTextDocument(fileUri);
+                            } catch (error) {
+                                console.error('[Extension] Error saving CSV to workspace:', error);
+                                vscode.window.showErrorMessage(`Failed to save CSV file: ${error.message}`);
+                            }
                             break;
 
                         case 'viewDetails':
