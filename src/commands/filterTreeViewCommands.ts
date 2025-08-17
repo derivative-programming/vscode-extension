@@ -173,3 +173,37 @@ export async function showPageInitFilterInputCommand(treeDataProvider: JsonTreeD
 export function clearPageInitFilterCommand(treeDataProvider: JsonTreeDataProvider): void {
     treeDataProvider.clearPageInitFilter();
 }
+
+/**
+ * Shows a filter input box to filter only the workflows items by name
+ * @param treeDataProvider The tree data provider to apply the workflows filter to
+ */
+export async function showWorkflowsFilterInputCommand(treeDataProvider: JsonTreeDataProvider): Promise<void> {
+    // Show input box to enter filter text
+    const filterText = await vscode.window.showInputBox({
+        placeHolder: 'Filter workflows by name (case insensitive)',
+        prompt: 'Enter text to filter workflows items',
+        value: '',
+    });
+
+    // If user cancels or provides empty text, don't apply filter
+    if (filterText === undefined) {
+        return;
+    }
+
+    if (filterText === '') {
+        // If empty text is provided, clear the filter
+        clearWorkflowsFilterCommand(treeDataProvider);
+    } else {
+        // Apply the workflows filter
+        treeDataProvider.setWorkflowsFilter(filterText);
+    }
+}
+
+/**
+ * Clears the current workflows filter from the tree view
+ * @param treeDataProvider The tree data provider to clear the workflows filter from
+ */
+export function clearWorkflowsFilterCommand(treeDataProvider: JsonTreeDataProvider): void {
+    treeDataProvider.clearWorkflowsFilter();
+}
