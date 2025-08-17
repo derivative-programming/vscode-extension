@@ -201,7 +201,7 @@ win app...
                     "isButton": "false",
                     "name": "TestCol"
                   },
-                  {//TODO dest btn
+                  {
                     "buttonText": "TestDestBtn",
                     "destinationContextObjectName": "CustomerEmailRequest",
                     "destinationTargetName": "CustomerEmailRequestConfigDetails",

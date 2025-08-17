@@ -1296,7 +1296,7 @@ function addDestinationButtonColumnToReport(reportReference, modelService, data,
             destinationTargetName: data.destinationPageName,
             isButton: "true",
             isVisible: "true",
-            sourceObjectName: sourceObjectName,
+            sourceObjectName: destinationContextObjectName,
             sourcePropertyName: "Code",
             sqlServerDBDataType: "uniqueidentifier"
         };
