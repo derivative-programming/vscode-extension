@@ -57,6 +57,8 @@ import { showFilterInputCommand, clearFilterCommand, showReportFilterInputComman
 import { showAppDNASettingsView, reloadAppDNASettingsPanel } from '../webviews/appDnaSettingsView';
 // Import showRegisterView
 import { showRegisterView } from '../webviews/registerView';
+// Page Init Details wrapper
+const pageInitDetailsView = require('../webviews/pageInitDetailsView.js');
 
 /**
  * Registers all commands for the AppDNA extension
@@ -357,6 +359,21 @@ export function registerCommands(
             // Reopen page preview panel if it was open
             if (pagePreviewData && pagePreviewData.context) {
                 showPagePreview(pagePreviewData.context, modelService);
+            }
+        })
+    );
+
+    // Register handler for PAGE_INIT workflow item command from tree
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showWorkflowDetails', (node: JsonTreeItem) => {
+            try {
+                if (pageInitDetailsView && typeof pageInitDetailsView.showPageInitDetails === 'function') {
+                    pageInitDetailsView.showPageInitDetails(node, modelService, context);
+                } else {
+                    vscode.window.showErrorMessage('Page Init Details view is not available.');
+                }
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`Failed to open Page Init Details: ${err?.message || err}`);
             }
         })
     );

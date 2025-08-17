@@ -9,12 +9,15 @@ on form details view, 'Page Initialization Flow:  [edit icon to view the pageini
 
 on report details view, 'Page Initialization Flow: [edit icon to view the pageinit details view]
  
+review the form details view. Review the PAGE_INIT treeview items.
+we need a page init flow flow details view. This will be similar to the form details view, but only settings tab, and output variables tabs will exist. Don not try to use the form details view files. Copy them to create new ones for page init flow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.
 
-copilot:on GENERAL treeview item add a 'Show List' icon button. This should open a general flow list view. It will have a design similar to the page list view used by the 'show page list' icon button on the PAGES treeview item. This will allows the user to see a full list of general flows.
+review the form details view. Review the GENERAL flow treeview items.
+we need a general flow details view. This will be similar to the form details view, but only settings tab, input controls (Parameters), and output variables tabs will exist. Don not try to use the form details view files. Copy them to create new ones for general flow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.
 
-we need a general flow details view. This will be similar to the form details view, but only settings tab, input controls (Parameters), and output variables tabs will exist. Don not try to use the form details view files. create new ones for general flow details view and rename files and variables accordingly
+review the form details view. Review the WORKFLOW treeview items.
+we need a workflow details view. This will be similar to the form details view, but only settings tab will exist. Don not try to use the form details view files. Copy them to create new ones for workflow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.
 
-we need a workflow details view. This will be similar to the form details view, but only settings tab will exist. Don not try to use the form details view files. create new ones for workflow details view and rename files and variables accordingly.
 
 report details view...
 - allow creation of column async flow button

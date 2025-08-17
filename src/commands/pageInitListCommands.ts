@@ -454,8 +454,18 @@ export function registerPageInitListCommands(
 
                         case 'viewDetails':
                             console.log("[Extension] PageInitList view details requested for:", message.workflowName);
-                            // Note: Page init workflows don't have a details view yet in the existing system
-                            vscode.window.showInformationMessage(`Page init workflow details view for "${message.workflowName}" not yet implemented.`);
+                            try {
+                                const pageInitDetailsView = require('../webviews/pageInitDetailsView.js');
+                                const mockTreeItem = { label: message.workflowName } as any;
+                                if (pageInitDetailsView && typeof pageInitDetailsView.showPageInitDetails === 'function') {
+                                    pageInitDetailsView.showPageInitDetails(mockTreeItem, modelService, context);
+                                } else {
+                                    vscode.window.showErrorMessage('Page Init Details view is not available.');
+                                }
+                            } catch (err: any) {
+                                console.error('[Extension] Error opening Page Init Details:', err);
+                                vscode.window.showErrorMessage(`Failed to open Page Init Details: ${err?.message || err}`);
+                            }
                             break;
 
                         case 'exportToCSV':
