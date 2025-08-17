@@ -15,7 +15,8 @@ report details view...
 
 Source Object Name lookup button...
 - copilot:report column 'source object name' 
-- copilot:form details: input controls: fkObjectName
+- copilot:form details: input controls: fkO
+bjectName
 
 
 form details button tab button type setting dropdown?  
@@ -186,7 +187,7 @@ win app...
                     "buttonText": "Test Btn",
                     "buttonType": "other"
                   },
-                  {//TODO breadcrumb
+                  {
                     "buttonName": "CustomerUserCustomerEmailRequestListTestBreadcrumb",
                     "buttonType": "breadcrumb",
                     "destinationContextObjectName": "Customer",

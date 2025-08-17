@@ -78,11 +78,28 @@ function getParameterManagementFunctions() {
                     
                     updateInputStyle(field, checkbox.checked);
                     
-                    // Set initial browse button state for sourceObjectName field
+                    // Set initial browse button state for sourceObjectName field (AFTER checkbox setup)
                     if (paramKey === 'sourceObjectName') {
                         const browseButton = document.querySelector('[data-field-id="' + fieldId + '"].lookup-button');
                         if (browseButton) {
                             browseButton.disabled = !checkbox.checked;
+                        }
+                    }
+                    
+                    // Set initial browse button state for fKObjectName field (AFTER checkbox setup)
+                    if (paramKey === 'fKObjectName') {
+                        const browseButton = document.querySelector('[data-field-id="' + fieldId + '"].lookup-button');
+                        console.log('[DEBUG] fKObjectName browse button setup:', {
+                            paramKey: paramKey,
+                            fieldId: fieldId,
+                            browseButton: browseButton,
+                            checkboxChecked: checkbox.checked,
+                            checkboxDisabled: checkbox.disabled,
+                            propertyExists: propertyExists
+                        });
+                        if (browseButton) {
+                            browseButton.disabled = !checkbox.checked;
+                            console.log('[DEBUG] Set fKObjectName browse button disabled to:', browseButton.disabled);
                         }
                     }
                 }
@@ -116,6 +133,15 @@ function getParameterManagementFunctions() {
                     
                     // Handle browse button state for sourceObjectName field
                     if (paramKey === 'sourceObjectName') {
+                        // For list view, find browse button by data-field-id
+                        const browseButton = document.querySelector('[data-field-id="' + fieldId + '"].lookup-button');
+                        if (browseButton) {
+                            browseButton.disabled = !this.checked;
+                        }
+                    }
+                    
+                    // Handle browse button state for fKObjectName field
+                    if (paramKey === 'fKObjectName') {
                         // For list view, find browse button by data-field-id
                         const browseButton = document.querySelector('[data-field-id="' + fieldId + '"].lookup-button');
                         if (browseButton) {

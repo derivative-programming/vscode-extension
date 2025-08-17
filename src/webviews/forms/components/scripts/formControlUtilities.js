@@ -52,8 +52,8 @@ function getFormControlUtilities() {
                             }
                         }
                         
-                        // Handle browse button state for fkObjectName field
-                        if (propertyName === 'fkObjectName') {
+                        // Handle browse button state for fKObjectName field
+                        if (propertyName === 'fKObjectName') {
                             const browseButton = inputField.parentElement.querySelector('.lookup-button');
                             if (browseButton) {
                                 browseButton.disabled = false;
@@ -79,8 +79,8 @@ function getFormControlUtilities() {
                             }
                         }
                         
-                        // Handle browse button state for fkObjectName field
-                        if (propertyName === 'fkObjectName') {
+                        // Handle browse button state for fKObjectName field
+                        if (propertyName === 'fKObjectName') {
                             const browseButton = inputField.parentElement.querySelector('.lookup-button');
                             if (browseButton) {
                                 browseButton.disabled = true;

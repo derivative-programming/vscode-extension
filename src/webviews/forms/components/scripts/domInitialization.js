@@ -276,8 +276,8 @@ function setupPageBrowseButtonHandlers() {
                     const currentValue = inputField.value;
                     createDataObjectSearchModal(currentValue, inputField);
                 }
-            } else if (propKey === 'fkObjectName') {
-                // Handle data object browse functionality for fkObjectName field
+            } else if (propKey === 'fKObjectName') {
+                // Handle data object browse functionality for fKObjectName field
                 let inputField = button.parentElement.querySelector('input[type="text"]');
                 
                 // If not found (list view), try using data-field-id
