@@ -9,17 +9,36 @@ function getDetailViewStyles() {
     .tab.active { background: var(--vscode-editor-background); font-weight: 600; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .form-row { display: grid; grid-template-columns: 220px 1fr auto; align-items: center; gap: 8px; margin-bottom: 8px; }
+    /* Match Forms details layout for control widths */
+    .form-row { display: flex; align-items: center; margin-bottom: 10px; }
+    .form-row label { flex: 0 0 150px; font-weight: bold; }
+    .form-row input[type="text"],
+    .form-row select,
+    .form-row textarea,
+    .form-row .control-with-button { flex: 1; min-width: 0; }
     label { font-weight: 500; }
-    input[type="text"], select { padding: 4px 8px; border: 1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); border-radius: 2px; }
-    .control-with-checkbox { display: flex; align-items: center; gap: 8px; }
+    input[type="text"], select, textarea { padding: 4px 8px; border: 1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); border-radius: 2px; }
+    input[readonly], select[disabled], textarea[readonly] { background-color: var(--vscode-input-disabledBackground, #e9e9e9) !important; color: var(--vscode-input-disabledForeground, #999) !important; opacity: 0.8; cursor: not-allowed; }
+    .control-with-checkbox { display: flex; align-items: center; gap: 8px; width: 100%; }
+    .control-with-checkbox input[type="text"],
+    .control-with-checkbox select { flex: 1; min-width: 100px; }
+    .control-with-checkbox input[type="checkbox"] { margin-left: 5px; flex: 0 0 auto; transform: scale(0.8); cursor: pointer; }
+
+    .control-with-button { display: flex; align-items: center; gap: 4px; }
+    .control-with-button input[type="text"] { flex: 1; min-width: 100px; }
     .view-icons { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
     .add-prop-button, .copy-props-button, .move-button, .reverse-button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 4px 8px; cursor: pointer; border-radius: 3px; }
     .add-prop-button:hover, .copy-props-button:hover, .move-button:hover, .reverse-button:hover { background: var(--vscode-button-hoverBackground); }
-    .list-container { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-    .list-buttons { display: flex; flex-direction: column; gap: 6px; }
-    select[size="10"] { width: 100%; }
-    .details-container { border-top: 1px solid var(--vscode-panel-border); padding-top: 10px; }
+
+    /* Match forms output vars layout: list (left), buttons under, details (right) */
+    .view-content { display: none; }
+    .view-content.active { display: block; }
+    .list-container { width: 30%; float: left; padding-right: 15px; }
+    .list-container select { width: 100%; height: 200px; margin-bottom: 10px; }
+    .list-buttons { margin-top: 10px; display: flex; gap: 8px; }
+    .list-buttons button { padding: 6px 12px; background-color: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; border-radius: 3px; cursor: pointer; font-size: 12px; }
+    .details-container { width: 65%; float: left; }
+    .view-content:after { content: ""; display: table; clear: both; }
     .header-container { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
     .copy-name-button, .view-preview-button, .edit-owner-button { background: transparent; border: none; color: var(--vscode-foreground); cursor: pointer; padding: 6px; border-radius: 4px; }
     .copy-name-button:hover, .view-preview-button:hover, .edit-owner-button:hover { background: var(--vscode-toolbar-hoverBackground); }

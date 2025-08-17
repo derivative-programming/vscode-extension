@@ -105,6 +105,12 @@ export function registerCommands(
             if (formDetailsView && typeof formDetailsView.getOpenPanelItems === "function") {
                 openFormPanelsToReopen = formDetailsView.getOpenPanelItems();
             }
+
+            // Store references to any open page-init details panels before refreshing
+            let openPageInitPanelsToReopen: any[] = [];
+            if (pageInitDetailsView && typeof pageInitDetailsView.getOpenPanelItems === "function") {
+                openPageInitPanelsToReopen = pageInitDetailsView.getOpenPanelItems();
+            }
             
             // Store reference to project settings panel if open
             const projectSettingsData = typeof getProjectSettingsPanel === "function" ? getProjectSettingsPanel() : null;
@@ -157,6 +163,11 @@ export function registerCommands(
             // Close all open form details panels
             if (formDetailsView && typeof formDetailsView.closeAllPanels === "function") {
                 formDetailsView.closeAllPanels();
+            }
+
+            // Close all open page-init details panels
+            if (pageInitDetailsView && typeof pageInitDetailsView.closeAllPanels === "function") {
+                pageInitDetailsView.closeAllPanels();
             }
             
             // Close project settings panel if open
@@ -295,6 +306,13 @@ export function registerCommands(
             if (openFormPanelsToReopen.length > 0 && formDetailsView) {
                 for (const item of openFormPanelsToReopen) {
                     formDetailsView.showFormDetails(item, modelService);
+                }
+            }
+
+            // Reopen any page-init details panels that were previously open with fresh data
+            if (openPageInitPanelsToReopen.length > 0 && pageInitDetailsView) {
+                for (const item of openPageInitPanelsToReopen) {
+                    pageInitDetailsView.showPageInitDetails(item, modelService, context);
                 }
             }
             

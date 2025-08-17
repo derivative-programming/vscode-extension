@@ -8,15 +8,58 @@ function getOutputVarPropertiesToHide() {
 }
 
 function getOutputVarsListTemplate(outputVarsSchema) {
-    const propertiesToHide = getOutputVarPropertiesToHide();
-    const outputVarColumns = Object.keys(outputVarsSchema)
-        .filter(key => key !== "name" && !propertiesToHide.includes(key.toLowerCase()))
-        .sort();
-    if (Object.prototype.hasOwnProperty.call(outputVarsSchema, "name") && !propertiesToHide.includes("name")) {
-        outputVarColumns.unshift("name");
+    // Only display these properties for an output var, in this exact order
+    const allowedOrder = [
+        "buttonNavURL",
+        "buttonObjectWFName",
+        "buttonText",
+        "conditionalVisiblePropertyName",
+        "dataSize",
+        "dataType",
+        "defaultValue",
+        "fKObjectName",
+        "headerLabelText",
+        "isAutoRedirectURL",
+        "isFK",
+        "isFKLookup",
+        "isHeaderLabelVisible",
+        "isHeaderText",
+        "isIgnored",
+        "isLink",
+        "isVisible",
+        "sourceObjectName",
+        "sourcePropertyName"
+    ];
+
+    // Build case-insensitive key map from schema
+    const schemaKeyByLower = Object.keys(outputVarsSchema || {}).reduce((acc, key) => {
+        acc[key.toLowerCase()] = key; return acc;
+    }, {});
+
+    // Support common variant mappings (schema uses sqlServerDBDataType/Size)
+    const variantMap = {
+        'datatype': ['sqlserverdbdatatype'],
+        'datasize': ['sqlserverdbdatatypesize'],
+        'headerlabeltext': ['headertext'],
+        'isheaderlabelvisible': ['isheaderlabelsvisible']
+    };
+
+    // Resolve actual schema keys present in this order
+    const resolvedKeys = [];
+    for (const name of allowedOrder) {
+        const lower = name.toLowerCase();
+        if (schemaKeyByLower[lower]) {
+            resolvedKeys.push(schemaKeyByLower[lower]);
+            continue;
+        }
+        const variants = variantMap[lower];
+        if (variants) {
+            const found = variants.find(v => schemaKeyByLower[v]);
+            if (found) { resolvedKeys.push(schemaKeyByLower[found]); }
+        }
     }
 
-    return outputVarColumns.filter(key => key !== "name").map(outputVarKey => {
+    return resolvedKeys.map(outputVarKey => {
         const outputVarSchema = outputVarsSchema[outputVarKey] || {};
         const hasEnum = outputVarSchema.enum && Array.isArray(outputVarSchema.enum);
         const isBooleanEnum = hasEnum && outputVarSchema.enum.length === 2 && 
@@ -39,7 +82,7 @@ function getOutputVarsListTemplate(outputVarsSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${outputVarKey}" value="" ${tooltip} readonly>`;
         }
 
-        return `<div class="form-row">
+    return `<div class="form-row">
             <label for="${fieldId}" ${tooltip}>${formatLabel(outputVarKey)}:</label>
             <div class="control-with-checkbox">
                 ${inputField}

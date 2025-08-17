@@ -2,27 +2,99 @@
 const { formatLabel } = require("../../helpers/formDataHelper");
 
 function getPageInitPropertiesToIgnore() {
+    // Mirror the forms view filtering to present settings consistently
     return [
         "name",
+        "isignoredindocumentation",
         "objectworkflowparam",
         "objectworkflowbutton",
         "objectworkflowoutputvar",
-        // Exclude form/report-only fields if present
+        // Additional form/report/workflow properties commonly hidden
+        "initobjectworkflowname",
+        "iscachingallowed",
+        "cacheexpirationinminutes",
+        "badgecountpropertyname",
+        "isheaderlabelsvisible",
+        "isreportdetaillabelcolumnvisible",
+        "isazureblobstorageused",
+        "azuretablenameoverride",
+        "isazuretableprimarykeycolumndatetime",
+        "workflowtype",
+        "workflowsubtype",
+        "isasync",
+        "asynctimeoutminutes",
+        "isemailnotificationrequired",
+        "emailnotificationtemplatename",
+        "isauditlogrequired",
+        "auditlogmessage",
+        "iscustomhandlerrequired",
+        "customhandlerclassname",
+        "customhandlermethodname",
+        "isvalidationrequired",
+        "validationrulename",
+        "isauthorizationbypassallowed",
+        "authorizationbypassreason",
+        "isdevelopmentonly",
+        "developmentdescription",
+        "islegacysupported",
+        "legacycompatibilityversion",
+        "ismobileoptimized",
+        "mobileviewname",
+        "istabletoptimized",
+        "tabletviewname",
+        "formfooterimageurl",
+        "footerimageurl",
+        "headerimageurl",
+        "iscreditcardentryused",
+        "isdynaflow",
+        "isdynaflowtask",
+        "iscustompageviewused",
+        "isimpersonationpage",
+        "isexposedinbusinessobject",
+        // Page/report-only flavors if present
         "ispage",
         "visualizationtype"
     ];
 }
 
 function getSettingsTabTemplate(flow, flowSchemaProps) {
-    const propertiesToIgnore = getPageInitPropertiesToIgnore();
-    return Object.entries(flowSchemaProps)
-        .filter(([prop, schema]) => {
-            if (prop === 'objectWorkflowOutputVar') { return false; } // handled in tab
-            if (propertiesToIgnore.includes(prop.toLowerCase())) { return false; }
-            return true;
-        })
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([prop, schema]) => {
+    // Only show the following settings, in this exact order (case-insensitive match to schema keys)
+    const allowedOrder = [
+        'isAuthorizationRequired',
+        'isCustomLogicOverwritten',
+        'isDynaFlowTask',
+        'isExposedInBusinessObject',
+        'isRequestRunViaDynaFlowAllowed',
+        'pageIntroText',
+        'pageTitleText',
+        'roleRequired', // include common variants below
+    ];
+
+    // Build a case-insensitive lookup of schema keys
+    const schemaKeyByLower = Object.keys(flowSchemaProps || {}).reduce((acc, key) => {
+        acc[key.toLowerCase()] = key; return acc;
+    }, {});
+
+    // Include common variants for role required to maximize match chance
+    const variantMap = {
+        'rolerequired': ['rolerequired', 'isrolerequired']
+    };
+
+    // Resolve the actual keys present in schema based on allowed order
+    const resolvedKeys = [];
+    for (const name of allowedOrder) {
+        const lc = name.toLowerCase();
+        if (schemaKeyByLower[lc]) { resolvedKeys.push(schemaKeyByLower[lc]); continue; }
+        // Try variants if any
+        const variants = variantMap[lc];
+        if (variants) {
+            const found = variants.find(v => schemaKeyByLower[v]);
+            if (found) { resolvedKeys.push(schemaKeyByLower[found]); }
+        }
+    }
+
+    return resolvedKeys.map(prop => {
+            const schema = flowSchemaProps[prop] || {};
             const hasEnum = schema.enum && Array.isArray(schema.enum);
             const isBooleanEnum = hasEnum && schema.enum.length === 2 && schema.enum.every(val => val === true || val === false || val === "true" || val === "false");
             const tooltip = schema.description ? `title="${schema.description}"` : "";
@@ -48,13 +120,17 @@ function getSettingsTabTemplate(flow, flowSchemaProps) {
                     }).join("")}
                 </select>`;
             } else {
+                // Generate text input for non-enum values
                 inputField = `<input type="text" id="setting-${prop}" name="${prop}" value="${propertyExists ? flow[prop] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
+
+            // No browse buttons for this limited settings list
+            const controlContainer = inputField;
 
             const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
             return `<div class="form-row">
                 <label for="setting-${prop}" ${tooltip}>${formatLabel(prop)}:</label>
-                ${inputField}
+                ${controlContainer}
                 <input type="checkbox" class="setting-checkbox" data-prop="${prop}" data-is-enum="${hasEnum}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
             </div>`;
         }).join("");

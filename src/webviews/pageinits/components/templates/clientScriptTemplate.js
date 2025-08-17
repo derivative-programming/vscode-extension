@@ -27,11 +27,23 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
             const outputVarsList = document.getElementById('outputVarsList');
             const outputVarDetailsContainer = document.getElementById('outputVarDetailsContainer');
             if (outputVarsList && outputVarDetailsContainer) {
+                // Keep move buttons in sync with selection, like forms
+                function updateMoveButtonStates(listElement) {
+                    const moveUpBtn = document.getElementById('moveUpOutputVarButton');
+                    const moveDownBtn = document.getElementById('moveDownOutputVarButton');
+                    if (!listElement || !moveUpBtn || !moveDownBtn) return;
+                    const idx = listElement.selectedIndex;
+                    const length = listElement.options.length;
+                    moveUpBtn.disabled = !(idx > 0);
+                    moveDownBtn.disabled = !(idx >= 0 && idx < length - 1);
+                }
+
                 outputVarsList.addEventListener('change', (event) => {
                     const selectedIndex = event.target.value;
                     const outputVar = currentOutputVars[selectedIndex];
                     if (!outputVar) {
                         outputVarDetailsContainer.style.display = 'none';
+                        updateMoveButtonStates(outputVarsList);
                         return;
                     }
                     outputVarDetailsContainer.style.display = 'block';
@@ -67,6 +79,9 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                             }
                         }
                     });
+
+                    // After populating details, sync button states
+                    updateMoveButtonStates(outputVarsList);
                 });
 
                 // Initialize toggle behavior for each field
@@ -116,6 +131,9 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                 if (outputVarsList && outputVarDetailsContainer && (!outputVarsList.value || outputVarsList.value === "")) {
                     outputVarDetailsContainer.style.display = 'none';
                 }
+
+                // Initialize move button states on load
+                updateMoveButtonStates(outputVarsList);
             }
 
             // Buttons
@@ -154,6 +172,9 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                     const field = document.getElementById('setting-' + prop);
                     if (!field) return;
                     if (isEnum) { field.disabled = !this.checked; } else { field.readOnly = !this.checked; }
+                    // Enable/disable related browse button if present (e.g., targetChildObject)
+                    const browseBtn = document.querySelector('.lookup-button[data-prop="' + prop + '"]');
+                    if (browseBtn) { browseBtn.disabled = !this.checked; }
                     if (this.checked) {
                         this.disabled = true;
                         this.setAttribute('data-originally-checked', 'true');
@@ -210,6 +231,14 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                             if (currentSelection >= 0 && currentSelection < message.data.length) {
                                 outputVarsList.selectedIndex = currentSelection;
                                 outputVarsList.dispatchEvent(new Event('change'));
+                            }
+                            // Ensure move buttons reflect the refreshed list
+                            const moveUpBtn = document.getElementById('moveUpOutputVarButton');
+                            const moveDownBtn = document.getElementById('moveDownOutputVarButton');
+                            if (moveUpBtn && moveDownBtn) {
+                                const idx = outputVarsList.selectedIndex;
+                                moveUpBtn.disabled = !(idx > 0);
+                                moveDownBtn.disabled = !(idx >= 0 && idx < outputVarsList.options.length - 1);
                             }
                         }
                         break;
