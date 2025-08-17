@@ -191,12 +191,23 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     pagesItem.tooltip = "User interface pages containing forms and reports";
                     console.log('[DEBUG] Created PAGES item with contextValue:', pagesItem.contextValue);
                     items.push(pagesItem);
+                    
+                    // Create FLOWS as a top-level item (only if advanced properties are enabled)
+                    const flowsItem = new JsonTreeItem(
+                        'FLOWS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'flows'
+                    );
+                    flowsItem.iconPath = new vscode.ThemeIcon('type-hierarchy-sub');
+                    flowsItem.tooltip = "Business logic";
+                    console.log('[DEBUG] Created FLOWS item with contextValue:', flowsItem.contextValue);
+                    items.push(flowsItem);
                 }
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, USER STORIES, [PAGES], MODEL SERVICES
-                // (PAGES only shown when advanced properties are enabled)
+                // Return tree items in order: PROJECT, DATA OBJECTS, USER STORIES, [PAGES], [FLOWS], MODEL SERVICES
+                // (PAGES and FLOWS only shown when advanced properties are enabled)
                 return Promise.resolve(items);
             } else {
                 // File doesn't exist, show empty tree
@@ -445,6 +456,54 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 return Promise.resolve(items);
             } catch (error) {
                 console.error('Error reading pages:', error);
+                return Promise.resolve([]);
+            }
+        }
+
+        // Handle FLOWS as a parent item - show PAGE_INIT, GENERAL, WORKFLOWS, and WORKFLOW_TASKS as children
+        if (element?.contextValue?.startsWith('flows') && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                
+                // Create PAGE_INIT as a child of FLOWS
+                const pageInitItem = new JsonTreeItem(
+                    'PAGE_INIT',
+                    vscode.TreeItemCollapsibleState.None,
+                    'pageInit'
+                );
+                pageInitItem.tooltip = "Page initialization flows";
+                items.push(pageInitItem);
+                
+                // Create GENERAL as a child of FLOWS
+                const generalItem = new JsonTreeItem(
+                    'GENERAL',
+                    vscode.TreeItemCollapsibleState.None,
+                    'general'
+                );
+                generalItem.tooltip = "General workflow flows";
+                items.push(generalItem);
+                
+                // Create WORKFLOWS as a child of FLOWS
+                const workflowsItem = new JsonTreeItem(
+                    'WORKFLOWS',
+                    vscode.TreeItemCollapsibleState.None,
+                    'workflows'
+                );
+                workflowsItem.tooltip = "Object workflows where isPage=false";
+                items.push(workflowsItem);
+                
+                // Create WORKFLOW_TASKS as a child of FLOWS
+                const workflowTasksItem = new JsonTreeItem(
+                    'WORKFLOW_TASKS',
+                    vscode.TreeItemCollapsibleState.None,
+                    'workflowTasks'
+                );
+                workflowTasksItem.tooltip = "Individual workflow tasks and steps";
+                items.push(workflowTasksItem);
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading flows:', error);
                 return Promise.resolve([]);
             }
         }

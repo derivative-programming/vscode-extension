@@ -546,3 +546,4 @@ Files Modified:
 - src/commands/userStoriesPageMappingCommands.ts
 
 The changes ensure that throughout the codebase, missing report.isPage properties are consistently treated as if the value is 'true', providing a better default behavior for reports that don't explicitly set this property.
+Command: Expand all top level tree items in the AppDNA tree view
