@@ -51,7 +51,7 @@ import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCo
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
 import { showPageFlowDiagram, getPageFlowPanel, closePageFlowView } from '../webviews/pageFlowDiagramView';
 import { showPagePreview, getPagePreviewPanel, closePagePreviewView } from '../webviews/pagePreviewView';
-import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand, showFormFilterInputCommand, clearFormFilterCommand, showPageInitFilterInputCommand, clearPageInitFilterCommand, showWorkflowsFilterInputCommand, clearWorkflowsFilterCommand } from './filterTreeViewCommands';
+import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand, showFormFilterInputCommand, clearFormFilterCommand, showPageInitFilterInputCommand, clearPageInitFilterCommand, showWorkflowsFilterInputCommand, clearWorkflowsFilterCommand, showWorkflowTasksFilterInputCommand, clearWorkflowTasksFilterCommand } from './filterTreeViewCommands';
 // Import showAppDNASettingsView and related functions
 import { showAppDNASettingsView, reloadAppDNASettingsPanel } from '../webviews/appDnaSettingsView';
 // Import showRegisterView
@@ -935,6 +935,19 @@ export function registerCommands(
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.clearWorkflowsFilter', () => {
             clearWorkflowsFilterCommand(jsonTreeDataProvider);
+        })
+    );
+
+    // Register workflow tasks filter commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showWorkflowTasksFilter', async () => {
+            await showWorkflowTasksFilterInputCommand(jsonTreeDataProvider);
+        })
+    );
+    
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.clearWorkflowTasksFilter', () => {
+            clearWorkflowTasksFilterCommand(jsonTreeDataProvider);
         })
     );
 }

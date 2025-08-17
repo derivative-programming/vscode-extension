@@ -653,3 +653,28 @@ Command: Expand all top level tree items in the AppDNA tree view
   * Result: Users can now see comprehensive list of all DynaFlow workflows in dedicated view
   * Registered commands in registerCommands.ts with proper cleanup functions
 - Status: Built and compiled successfully
+
+2025-01-25: ✅ COMPLETED - Add WORKFLOW_TASKS filter functionality (Issue #257)
+- Command: "on FLOWS: WORKFLOW_TASKS treeview item add filter and cancel filter icon buttons, similar to the ones on the FORMS treeview item"
+- Status: ✅ COMPLETED
+- Architecture Notes:
+  * Added workflowTasksFilterText property to JsonTreeDataProvider for filtering workflow tasks items
+  * Implemented setWorkflowTasksFilter() and clearWorkflowTasksFilter() methods with context state management
+  * Added applyWorkflowTasksFilter() logic to WORKFLOW_TASKS section in getChildren() method
+  * Enhanced WORKFLOW_TASKS tree item context value to include 'showWorkflowTasksFilter' capability
+  * Created showWorkflowTasksFilterInputCommand() and clearWorkflowTasksFilterCommand() functions in filterTreeViewCommands.ts
+  * Added appDnaWorkflowTasksFilterActive context tracking for filter state management
+  * Updated package.json with new commands (appdna.showWorkflowTasksFilter, appdna.clearWorkflowTasksFilter) and menu items
+  * Registered commands in extension with proper async handling in registerCommands.ts
+  * Applied filter logic to workflow task display names (titleText || name) for case-insensitive matching
+  * Follows same implementation pattern as existing FORMS, PAGE_INIT, DATA OBJECTS, REPORTS, and WORKFLOWS filters
+- Files Modified:
+  * src/providers/jsonTreeDataProvider.ts - Added filter properties, methods, and application logic
+  * src/commands/filterTreeViewCommands.ts - Added workflow tasks-specific filter commands
+  * src/commands/registerCommands.ts - Added command imports and registration
+  * package.json - Added command definitions and context menu items
+- Build Status: Compiled successfully with webpack, no new linting issues introduced
+- Result: WORKFLOW_TASKS treeview item now has filter and clear filter icon buttons that work identically to existing filters
+- Pattern: Uses context value 'workflowTasks showWorkflowTasksFilter' for proper icon button display
+- Filter Logic: Supports both global tree filter and workflow tasks-specific filter with case-insensitive matching
+

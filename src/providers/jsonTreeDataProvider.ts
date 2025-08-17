@@ -44,6 +44,8 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     private pageInitFilterText: string = "";
     // Current filter text for workflows items only
     private workflowsFilterText: string = "";
+    // Current filter text for workflow tasks items only
+    private workflowTasksFilterText: string = "";
       constructor(
         private readonly appDNAFilePath: string | null,
         private readonly modelService: ModelService
@@ -57,6 +59,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         vscode.commands.executeCommand('setContext', 'appDnaFormFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaPageInitFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaWorkflowsFilterActive', false);
+        vscode.commands.executeCommand('setContext', 'appDnaWorkflowTasksFilterActive', false);
         
         // Register to server status changes to update the tree view
         this.mcpServer.onStatusChange(isRunning => {
@@ -534,7 +537,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 const workflowTasksItem = new JsonTreeItem(
                     'WORKFLOW_TASKS',
                     vscode.TreeItemCollapsibleState.Collapsed,
-                    'workflowTasks'
+                    'workflowTasks showWorkflowTasksFilter'
                 );
                 workflowTasksItem.tooltip = "Individual workflow tasks and steps";
                 items.push(workflowTasksItem);
@@ -841,7 +844,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         }
 
         // Handle WORKFLOW_TASKS as a parent item - show objectWorkflow items where isDynaFlowTask is true
-        if (element?.contextValue === 'workflowTasks' && fileExists) {
+        if (element?.contextValue?.includes('workflowTasks') && fileExists) {
             try {
                 const items: JsonTreeItem[] = [];
                 
@@ -855,17 +858,21 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                             obj.objectWorkflow.forEach((workflow: any) => {
                                 if (workflow.name && workflow.isDynaFlowTask === "true") {
                                     const displayName = workflow.titleText || workflow.name;
-                                    const workflowItem = new JsonTreeItem(
-                                        displayName,
-                                        vscode.TreeItemCollapsibleState.None,
-                                        'dynaFlowTaskWorkflowItem'
-                                    );
                                     
-                                    // Set tooltip with workflow details
-                                    const objectName = obj.name || 'Unknown Object';
-                                    workflowItem.tooltip = `${workflow.name} (from ${objectName}) - DynaFlow Task`;
-                                    
-                                    items.push(workflowItem);
+                                    // Apply filters (global and workflow tasks specific)
+                                    if (this.applyFilter(displayName) && this.applyWorkflowTasksFilter(displayName)) {
+                                        const workflowItem = new JsonTreeItem(
+                                            displayName,
+                                            vscode.TreeItemCollapsibleState.None,
+                                            'dynaFlowTaskWorkflowItem'
+                                        );
+                                        
+                                        // Set tooltip with workflow details
+                                        const objectName = obj.name || 'Unknown Object';
+                                        workflowItem.tooltip = `${workflow.name} (from ${objectName}) - DynaFlow Task`;
+                                        
+                                        items.push(workflowItem);
+                                    }
                                 }
                             });
                         }
@@ -873,6 +880,17 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     
                     // Sort items alphabetically by label
                     items.sort((a, b) => a.label!.toString().localeCompare(b.label!.toString()));
+                    
+                    // If filtering is active and no results found, show message
+                    if ((this.filterText || this.workflowTasksFilterText) && items.length === 0) {
+                        return Promise.resolve([
+                            new JsonTreeItem(
+                                'No workflow tasks match filter',
+                                vscode.TreeItemCollapsibleState.None,
+                                'workflowTasksEmpty'
+                            )
+                        ]);
+                    }
                     
                     // If no items found, show message
                     if (items.length === 0) {
@@ -1658,6 +1676,45 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         
         // Case-insensitive match of workflows filter text within the label
         return label.toLowerCase().includes(this.workflowsFilterText);
+    }
+
+    /**
+     * Sets a filter for only the workflow tasks items
+     * @param filterText The text to filter workflow tasks nodes by
+     */
+    setWorkflowTasksFilter(filterText: string): void {
+        // Convert to lowercase for case-insensitive comparison
+        this.workflowTasksFilterText = filterText.toLowerCase();
+        // Update context to indicate workflow tasks filter is active
+        vscode.commands.executeCommand('setContext', 'appDnaWorkflowTasksFilterActive', !!this.workflowTasksFilterText);
+        // Refresh the tree to apply the filter
+        this.refresh();
+    }
+
+    /**
+     * Clears the current workflow tasks filter
+     */
+    clearWorkflowTasksFilter(): void {
+        this.workflowTasksFilterText = "";
+        // Update context to indicate workflow tasks filter is not active
+        vscode.commands.executeCommand('setContext', 'appDnaWorkflowTasksFilterActive', false);
+        // Refresh the tree to show all workflow tasks items
+        this.refresh();
+    }
+
+    /**
+     * Checks if a workflow tasks item's label matches the current workflow tasks filter
+     * @param label The label to check against the workflow tasks filter
+     * @returns True if the label matches the workflow tasks filter or no workflow tasks filter is set
+     */
+    private applyWorkflowTasksFilter(label: string): boolean {
+        // If no workflow tasks filter is set, all workflow tasks items match
+        if (!this.workflowTasksFilterText) {
+            return true;
+        }
+        
+        // Case-insensitive match of workflow tasks filter text within the label
+        return label.toLowerCase().includes(this.workflowTasksFilterText);
     }
 
     /**
