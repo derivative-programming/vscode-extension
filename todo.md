@@ -10,13 +10,12 @@ report details view...
 - allow creation of column destination button
 - allow creation of column async flow button
 - add button - multiselect
-- copilot:add button - breadcrumb
  
 
 
 Source Object Name lookup button...
-- report column 'source object name' 
-- form details: input controls: fkObjectName
+- copilot:report column 'source object name' 
+- copilot:form details: input controls: fkObjectName
 
 
 form details button tab button type setting dropdown?  
