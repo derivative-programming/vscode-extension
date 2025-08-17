@@ -112,6 +112,27 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             font-size: 16px;
         }
         
+        /* Page Initialization Flow Styles */
+        .page-init-flow-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--vscode-widget-border);
+            color: var(--vscode-descriptionForeground);
+            font-size: 13px;
+        }
+        
+        .page-init-flow-label {
+            font-weight: 500;
+        }
+        
+        .page-init-flow-name {
+            color: var(--vscode-foreground);
+            font-family: var(--vscode-editor-font-family);
+        }
+
         /* Owner Data Object Styles */
         .owner-info-container {
             display: flex;
@@ -175,6 +196,12 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             <span class="icon-text">👁</span>
         </button>
     </div>
+    ${report.initObjectWorkflowName ? `
+    <div class="page-init-flow-container">
+        <span class="page-init-flow-label">Page Initialization Flow:</span>
+        <span class="page-init-flow-name">${report.initObjectWorkflowName}</span>
+    </div>
+    ` : ''}
     ${ownerObject ? `
     <div class="owner-info-container">
         <span class="owner-info-label">Owner Data Object:</span>
