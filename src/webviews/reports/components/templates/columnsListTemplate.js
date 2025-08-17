@@ -66,11 +66,16 @@ function getColumnsListTemplate(reportColumnsSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${columnKey}" value="" ${tooltip} readonly>`;
         }
         
-        // Add browse button for destinationTargetName field
+        // Add browse button for destinationTargetName and sourceObjectName fields
         let browseButton = "";
         let controlContainer = "";
         if (columnKey === "destinationTargetName") {
             browseButton = `<button type="button" class="lookup-button" data-prop="${columnKey}" data-field-id="${fieldId}" disabled title="Browse for Page">
+                <span class="codicon codicon-search"></span>
+            </button>`;
+            controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;
+        } else if (columnKey === "sourceObjectName") {
+            browseButton = `<button type="button" class="lookup-button" data-prop="${columnKey}" data-field-id="${fieldId}" disabled title="Browse Data Objects">
                 <span class="codicon codicon-search"></span>
             </button>`;
             controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;

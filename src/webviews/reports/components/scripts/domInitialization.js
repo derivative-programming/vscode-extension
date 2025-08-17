@@ -580,6 +580,22 @@ function getDOMInitialization() {
                         const currentValue = inputField.value;
                         createDataObjectSearchModal(currentValue, inputField);
                     }
+                } else if (propKey === 'sourceObjectName') {
+                    // Handle data object browse functionality for columns tab
+                    let inputField = button.parentElement.querySelector('input[type="text"]');
+                    
+                    // If not found (list view), try using data-field-id
+                    if (!inputField) {
+                        const fieldId = button.getAttribute('data-field-id');
+                        if (fieldId) {
+                            inputField = document.getElementById(fieldId);
+                        }
+                    }
+                    
+                    if (inputField) {
+                        const currentValue = inputField.value;
+                        createDataObjectSearchModal(currentValue, inputField);
+                    }
                 }
             }
         });
