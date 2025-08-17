@@ -214,6 +214,18 @@
           "when": "viewItem =~ /pageInit.*showPageInitList/",
           "group": "inline",
           "icon": "$(table)"
+        },
+        {
+          "command": "appdna.showWorkflowsFilter",
+          "when": "viewItem =~ /workflows.*showWorkflowsFilter/",
+          "group": "inline",
+          "icon": "$(filter)"
+        },
+        {
+          "command": "appdna.clearWorkflowsFilter",
+          "when": "viewItem =~ /workflows.*showWorkflowsFilter/ && appDnaWorkflowsFilterActive",
+          "group": "inline",
+          "icon": "$(clear-all)"
         }
       ]
     },
@@ -412,6 +424,16 @@
         "command": "appdna.pageInitList",
         "title": "Show Page Init List",
         "icon": "$(table)"
+      },
+      {
+        "command": "appdna.showWorkflowsFilter",
+        "title": "Filter Workflows",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "appdna.clearWorkflowsFilter",
+        "title": "Clear Workflows Filter",
+        "icon": "$(clear-all)"
       },
       {
         "command": "appdna.showAppDNASettings",
