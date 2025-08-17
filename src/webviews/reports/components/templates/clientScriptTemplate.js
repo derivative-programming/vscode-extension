@@ -15,6 +15,8 @@ const { getPageSearchModalHtml } = require("./pageSearchModalTemplate");
 const { getPageSearchModalFunctionality } = require("./pageSearchModalFunctionality");
 const { getDataObjectSearchModalHtml } = require("./dataObjectSearchModalTemplate");
 const { getDataObjectSearchModalFunctionality } = require("./dataObjectSearchModalFunctionality");
+const { getAddDestinationButtonColumnModalHtml } = require("./addDestinationButtonColumnModalTemplate");
+const { getAddDestinationButtonColumnModalFunctionality } = require("./addDestinationButtonColumnModalFunctionality");
 
 /**
  * File: clientScriptTemplate.js
@@ -56,11 +58,11 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             const reportName = "${reportName || ''}";
             
             // Forms and Reports data for page search modal
-            const allForms = ${JSON.stringify(allForms)};
-            const allReports = ${JSON.stringify(allReports)};
+            window.allForms = ${JSON.stringify(allForms)};
+            window.allReports = ${JSON.stringify(allReports)};
             
             // Data objects for data object search modal
-            const allDataObjects = ${JSON.stringify(allDataObjects)};
+            window.allDataObjects = ${JSON.stringify(allDataObjects)};
 
             // Modal functionality for add modals
             ${getModalFunctionality()}
@@ -90,9 +92,16 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 return \`${getDataObjectSearchModalHtml()}\`;
             }
             
+            // Add Destination Button Column Modal Template Function
+            function getAddDestinationButtonColumnModalHtml() {
+                return \`${getAddDestinationButtonColumnModalHtml()}\`;
+            }
+            
             ${getPageSearchModalFunctionality()}
             
             ${getDataObjectSearchModalFunctionality()}
+            
+            ${getAddDestinationButtonColumnModalFunctionality()}
             
             // Page Preview Function
             function openPagePreview(reportName, isPage) {

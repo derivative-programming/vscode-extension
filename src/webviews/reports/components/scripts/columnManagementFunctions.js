@@ -344,6 +344,12 @@ function getColumnManagementFunctions() {
         createAddColumnModal();
     });
 
+    // Add destination button column click handler
+    document.getElementById('add-destination-button-column-btn').addEventListener('click', function() {
+        console.log('[DEBUG] Add destination button column button clicked');
+        createAddDestinationButtonColumnModal();
+    });
+
     // Subscribe to Owner Properties checkbox handler
     const subscribeOwnerCheckbox = document.getElementById('subscribeOwnerProperties');
     if (subscribeOwnerCheckbox) {

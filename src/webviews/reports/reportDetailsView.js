@@ -189,6 +189,15 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addDestinationButtonColumn":
+                    if (modelService && reportReference) {
+                        // Add a new destination button column to the report
+                        addDestinationButtonColumnToReport(reportReference, modelService, message.data, panel);
+                    } else {
+                        console.warn("Cannot add destination button column: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
                 case "addButton":
                     if (modelService && reportReference) {
                         // Add a new button to the report
@@ -1235,6 +1244,85 @@ function addColumnToReportWithName(reportReference, modelService, columnName, pa
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding column with name:", error);
+    }
+}
+
+function addDestinationButtonColumnToReport(reportReference, modelService, data, panel) {
+    console.log("addDestinationButtonColumnToReport called with data:", data);
+    
+    if (!reportReference || !modelService || !data || !data.name || !data.destinationPageName || !data.buttonText) {
+        console.error("Missing required data to add destination button column");
+        return;
+    }
+    
+    try {
+        // Initialize the columns array if it doesn't exist
+        if (!reportReference.reportColumn) {
+            reportReference.reportColumn = [];
+        }
+        
+        // Determine sourceObjectName based on report's target child object or fallback to report owner
+        const reportName = reportReference.name;
+        const targetChildObject = modelService.getReportTargetChildObject(reportName);
+        let sourceObjectName;
+        
+        if (targetChildObject && targetChildObject.name) {
+            sourceObjectName = targetChildObject.name;
+            console.log("Using target child object as sourceObjectName:", sourceObjectName);
+        } else {
+            // Fallback to report owner object name
+            const reportOwnerObjectName = modelService.getReportOwnerObjectName(reportName);
+            sourceObjectName = reportOwnerObjectName || "UnknownObject";
+            console.log("Using report owner object as sourceObjectName:", sourceObjectName);
+        }
+        
+        // Find the destination page to get its owner object name
+        let destinationContextObjectName = data.destinationPageName; // Default fallback
+        try {
+            const destinationPageOwnerObjectName = modelService.getPageOwnerObjectName(data.destinationPageName);
+            if (destinationPageOwnerObjectName) {
+                destinationContextObjectName = destinationPageOwnerObjectName;
+                console.log("Found destination page owner object:", destinationContextObjectName);
+            }
+        } catch (error) {
+            console.warn("Could not determine destination page owner object, using page name as fallback:", error);
+        }
+        
+        // Create a new destination button column with the required structure
+        const newColumn = {
+            name: data.name,
+            buttonText: data.buttonText,
+            destinationContextObjectName: destinationContextObjectName,
+            destinationTargetName: data.destinationPageName,
+            isButton: "true",
+            isVisible: "true",
+            sourceObjectName: sourceObjectName,
+            sourcePropertyName: "Code",
+            sqlServerDBDataType: "uniqueidentifier"
+        };
+        
+        // Add the new column to the array
+        reportReference.reportColumn.push(newColumn);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the columns list and select the new column
+        if (panel && panel.webview) {
+            const newColumnIndex = reportReference.reportColumn.length - 1; // New column is the last one
+            panel.webview.postMessage({
+                command: 'refreshColumnsList',
+                data: reportReference.reportColumn,
+                newSelection: newColumnIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding destination button column:", error);
     }
 }
 

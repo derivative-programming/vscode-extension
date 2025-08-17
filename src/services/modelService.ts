@@ -442,6 +442,26 @@ export class ModelService {
     }
 
     /**
+     * Get the name of the owner object of a specific page (report or form)
+     * @param pageName Name of the page
+     * @returns The name of the object that owns this page, null if not found
+     */
+    public getPageOwnerObjectName(pageName: string): string | null {
+        const ownerObject = this.getPageOwnerObject(pageName);
+        return ownerObject ? ownerObject.name : null;
+    }
+
+    /**
+     * Get the name of the owner object of a specific report
+     * @param reportName Name of the report
+     * @returns The name of the object that owns this report, null if not found
+     */
+    public getReportOwnerObjectName(reportName: string): string | null {
+        const ownerObject = this.getReportOwnerObject(reportName);
+        return ownerObject ? ownerObject.name : null;
+    }
+
+    /**
      * Get all pages (reports with isPage=true and forms)
      * @returns Array of all page objects (both reports and forms)
      */

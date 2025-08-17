@@ -1,23 +1,25 @@
 Agent todo items...
 
 As a Admin, I want to view a Template File Update Request
-TemplateFileUpdateRequest
-
-view icon on report details not selecting page
+TemplateFileUpdateRequest 
  
+
+Flows treeview item
+
+PageInit sub item
+
+General sub item
+
+DynaFlow sub item
+
+DynaFlowTask sub item
 
 report details view...
 - allow creation of column destination button
 - allow creation of column async flow button
 - add button - multiselect
  
-
-
-Source Object Name lookup button...
-- copilot:report column 'source object name' 
-- copilot:form details: input controls: fkO
-bjectName
-
+add report col by selection of one or more properties in data object lineage
 
 form details button tab button type setting dropdown?  
 

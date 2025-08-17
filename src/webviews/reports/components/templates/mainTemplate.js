@@ -198,6 +198,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
       <!-- Columns Tab -->
     <div id="columns" class="tab-content">
         <div class="view-icons" data-tab="columns">
+            <button id="add-destination-button-column-btn" class="add-prop-button">Add Destination Button Column</button>
             <button id="add-column-btn" class="add-prop-button">Add Column</button>
         </div>
 
