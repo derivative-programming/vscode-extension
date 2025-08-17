@@ -144,7 +144,7 @@ export function registerGeneralListCommands(
                             opacity: 0.6;
                             cursor: not-allowed;
                         }
-                        button:hover:not(:disabled):not(.filter-button-secondary) {
+                        button:hover:not(:disabled):not(.filter-button-secondary):not(.icon-button) {
                             background-color: var(--vscode-button-hoverBackground);
                         }
                         .action-button {
