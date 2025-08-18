@@ -4,18 +4,18 @@ As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
     
 page list...
-- add target child object column on page list
-- cahnge owner object filter to a textbox
+- copilot:add target child object column on page list
+- copilot:change owner object filter to a textbox
 
 on pageinit...
 - add output variable button not working
-- header add copy button
-- move up button should be inactive if top item selected or none selected
-- move down button should be inactive if bottom item selected or none selected
+- copilot:header add copy button
+- copilot:move up button should be inactive if top item selected or none selected
+- copilot:move down button should be inactive if bottom item selected or none selected
 
-on form details view, 'Page Initialization Flow:  [edit icon to view the pageinit details view]
+copilot:on form details view, 'Page Initialization Flow:  [edit icon to view the pageinit details view]
 
-on report details view, 'Page Initialization Flow: [edit icon to view the pageinit details view]
+copilot:on report details view, 'Page Initialization Flow: [edit icon to view the pageinit details view]
  
 review the form details view. Review the PAGE_INIT treeview items.
 we need a page init flow flow details view. This will be similar to the form details view, but only settings tab, and output variables tabs will exist. Don not try to use the form details view files. Copy them to create new ones for page init flow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.

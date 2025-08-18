@@ -2,3 +2,50 @@
 2025-08-17T00:02:00Z | cmd: npm run -s compile | status: success | notes: PageInit output vars template updated to show labelText and isLabelVisible; build ok.
 2025-08-17T00:00:00Z | cmd: npm run -s compile | status: success | notes: Updated objectWorkflowOutputVar interface/model to match schema; removed non-schema fields; webpack build completed successfully.
 2025-08-17 21:00 - Implemented Page Init Details view (settings + output vars), wired appdna.showWorkflowDetails and Page Init List → details. Fixed client script newline bug by joining names with "\n". Status: completed. Notes: New files under src/webviews/pageinits/*; no changes to MCP provider errors.
+
+## 2025-08-18 - Add Output Variable Modal Feature for Page Init Details View
+
+**Command**: Review and implement the same "Add Output Variable" button and modal functionality from Forms Details View to Page Init Details View.
+
+**Status**: ✅ COMPLETED
+
+**Bug Fix 1**: Fixed "getAddOutputVariableModalHtml is not defined" error by including modal template function inline.
+**Bug Fix 2**: Fixed modal styling issues by adding comprehensive CSS styles to match forms design.
+
+**Files Modified**:
+1. `src/webviews/pageinits/pageInitDetailsView.js` - Added message handlers and backend functions
+2. `src/webviews/pageinits/components/templates/addOutputVariableModalFunctionality.js` - NEW FILE - Modal functionality
+3. `src/webviews/pageinits/components/templates/modalTemplates.js` - Enhanced modal templates
+4. `src/webviews/pageinits/components/templates/clientScriptTemplate.js` - Added button click handler and modal template function inline
+5. `src/webviews/pageinits/styles/detailsViewStyles.js` - Added comprehensive modal styling
+
+**Implementation Details**:
+- Added `addOutputVar` and `addOutputVarWithName` message handlers to page init details view
+- Created `addOutputVarToPageInit()` and `addOutputVarToPageInitWithName()` backend functions
+- Added modal functionality with single/bulk add capabilities
+- Added button click handler for `add-output-var-btn`
+- Enhanced modal template to include functionality script
+- Fixed scope issue by including `getAddOutputVariableModalHtml()` function inline in client script template
+- Added comprehensive modal CSS styling including tabs, form elements, buttons, and validation messages
+- Followed the same architecture pattern as forms for consistency
+
+**Bug Fix Details**:
+1. **JavaScript Error**: The error "getAddOutputVariableModalHtml is not defined" occurred because the modal template function wasn't available in the client-side JavaScript scope. Fixed by importing and including the function inline.
+
+2. **Modal Styling Issues**: The modal was displaying but with incorrect styling (unstyled tabs, buttons, form elements). Fixed by adding comprehensive CSS styles including:
+   - Tab styling with hover states and active states
+   - Modal form row styling with proper layout
+   - Input field styling matching VS Code theme
+   - Button styling with hover states
+   - Validation error styling
+   - Field note styling
+
+**Architecture Notes**:
+- Page Init details view now has complete parity with Forms details view for output variable management
+- Modal follows the same validation and user interaction patterns
+- Backend functions handle the specific data structure of page init flows (`objectWorkflowOutputVar` array)
+- Refresh logic sends `refreshOutputVarsList` message to update UI after adding variables
+- Modal template function is included inline in client script to ensure proper scope availability
+- CSS styling now matches forms implementation for consistent user experience
+
+---
