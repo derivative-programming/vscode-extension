@@ -181,6 +181,59 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                 createAddOutputVariableModal();
             });
 
+            // Copy Page Init Flow Name Function
+            function copyPageInitFlowName(flowName) {
+                console.log('[DEBUG] PageInitDetails - Copy flow name requested for:', JSON.stringify(flowName));
+                
+                if (!flowName) {
+                    console.warn('[WARN] PageInitDetails - Cannot copy: flow name not available');
+                    return;
+                }
+                
+                try {
+                    // Copy to clipboard using the modern Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(flowName).then(() => {
+                            console.log('Page Init Flow name copied to clipboard:', flowName);
+                            // Provide visual feedback
+                            const copyButton = document.querySelector('.copy-page-init-name-button .codicon');
+                            if (copyButton) {
+                                const originalClass = copyButton.className;
+                                copyButton.className = 'codicon codicon-check';
+                                setTimeout(() => {
+                                    copyButton.className = originalClass;
+                                }, 2000);
+                            }
+                        }).catch(err => {
+                            console.error('Failed to copy Page Init Flow name: ', err);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = flowName;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        // Provide visual feedback
+                        const copyButton = document.querySelector('.copy-page-init-name-button .codicon');
+                        if (copyButton) {
+                            const originalClass = copyButton.className;
+                            copyButton.className = 'codicon codicon-check';
+                            setTimeout(() => {
+                                copyButton.className = originalClass;
+                            }, 2000);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error copying Page Init Flow name: ', err);
+                }
+            }
+
+            // Make copyPageInitFlowName function globally available
+            window.copyPageInitFlowName = copyPageInitFlowName;
+
             // Settings tab behavior
             document.querySelectorAll('.setting-checkbox').forEach(chk => {
                 chk.addEventListener('change', function() {
