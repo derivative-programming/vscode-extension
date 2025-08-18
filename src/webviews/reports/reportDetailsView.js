@@ -403,7 +403,7 @@ function showReportDetails(item, modelService, context) {
                             
                             // Import and call the page init details view
                             const { showPageInitDetails } = require("../pageinits/pageInitDetailsView");
-                            showPageInitDetails(flowItem, modelService);
+                            showPageInitDetails(flowItem, modelService, extensionContext);
                         } catch (error) {
                             console.error('[ERROR] ReportDetails - Failed to open page init flow details:', error);
                             vscode.window.showErrorMessage(`Failed to open page init flow details: ${error.message}`);

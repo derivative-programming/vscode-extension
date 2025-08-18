@@ -1,3 +1,4 @@
+2025-08-18T18:00:00Z | cmd: fix page init flow edit button error | status: success | notes: Fixed extension context missing error when clicking page init flow edit button from report details view - added missing extensionContext parameter to showPageInitDetails call.
 2025-08-18T00:00:00Z | cmd: npm run -s compile | status: success | notes: PageInit settings tab now hides 'Is Dyna Flow Task'.
 2025-08-17T00:02:00Z | cmd: npm run -s compile | status: success | notes: PageInit output vars template updated to show labelText and isLabelVisible; build ok.
 2025-08-17T00:00:00Z | cmd: npm run -s compile | status: success | notes: Updated objectWorkflowOutputVar interface/model to match schema; removed non-schema fields; webpack build completed successfully.
