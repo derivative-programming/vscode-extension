@@ -250,13 +250,7 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                                 outputVarsList.dispatchEvent(new Event('change'));
                             }
                             // Ensure move buttons reflect the refreshed list
-                            const moveUpBtn = document.getElementById('moveUpOutputVarButton');
-                            const moveDownBtn = document.getElementById('moveDownOutputVarButton');
-                            if (moveUpBtn && moveDownBtn) {
-                                const idx = outputVarsList.selectedIndex;
-                                moveUpBtn.disabled = !(idx > 0);
-                                moveDownBtn.disabled = !(idx >= 0 && idx < outputVarsList.options.length - 1);
-                            }
+                            updateMoveButtonStates(outputVarsList);
                         }
                         break;
                 }
