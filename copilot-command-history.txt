@@ -1,3 +1,4 @@
+2025-08-18T00:00:00Z | cmd: npm run -s compile | status: success | notes: PageInit settings tab now hides 'Is Dyna Flow Task'.
 2025-08-17T00:02:00Z | cmd: npm run -s compile | status: success | notes: PageInit output vars template updated to show labelText and isLabelVisible; build ok.
 2025-08-17T00:00:00Z | cmd: npm run -s compile | status: success | notes: Updated objectWorkflowOutputVar interface/model to match schema; removed non-schema fields; webpack build completed successfully.
 2025-08-17 21:00 - Implemented Page Init Details view (settings + output vars), wired appdna.showWorkflowDetails and Page Init List → details. Fixed client script newline bug by joining names with "\n". Status: completed. Notes: New files under src/webviews/pageinits/*; no changes to MCP provider errors.

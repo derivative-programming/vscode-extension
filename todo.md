@@ -3,7 +3,15 @@ Agent todo items...
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
     
-add target child object column on page list
+page list...
+- add target child object column on page list
+- cahnge owner object filter to a textbox
+
+on pageinit...
+- add output variable button not working
+- header add copy button
+- move up button should be inactive if top item selected or none selected
+- move down button should be inactive if bottom item selected or none selected
 
 on form details view, 'Page Initialization Flow:  [edit icon to view the pageinit details view]
 
