@@ -391,6 +391,33 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "openPageInitDetails":
+                    console.log('[DEBUG] ReportDetails - Open page init details requested for page init name:', JSON.stringify(message.pageInitName));
+                    try {
+                        if (message.pageInitName) {
+                            // Import and call the page init details view
+                            const pageInitDetailsView = require('../pageInitDetailsView');
+                            if (pageInitDetailsView && typeof pageInitDetailsView.showPageInitDetails === 'function') {
+                                // Create a mock tree item object similar to how it's done in registerCommands.ts
+                                const mockTreeItem = {
+                                    label: message.pageInitName,
+                                    objectType: 'pageInit'
+                                };
+                                pageInitDetailsView.showPageInitDetails(mockTreeItem, modelService, currentContext);
+                            } else {
+                                console.error('[ERROR] ReportDetails - Page init details view not available');
+                                vscode.window.showErrorMessage('Page init details view not available');
+                            }
+                        } else {
+                            console.error('[ERROR] ReportDetails - No page init name provided');
+                            vscode.window.showErrorMessage('No page init name provided for opening details');
+                        }
+                    } catch (error) {
+                        console.error('[ERROR] ReportDetails - Failed to open page init details:', error);
+                        vscode.window.showErrorMessage(`Failed to open page init details: ${error.message}`);
+                    }
+                    return;
+                    
                 case "openPagePreview":
                     console.log('[DEBUG] ReportDetails - Open page preview requested for report name:', JSON.stringify(message.formName));
                     console.log('[DEBUG] ReportDetails - Message object:', JSON.stringify(message));

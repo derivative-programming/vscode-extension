@@ -132,6 +132,36 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
             color: var(--vscode-foreground);
             font-family: var(--vscode-editor-font-family);
         }
+        
+        .edit-page-init-button {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+        }
+        
+        .edit-page-init-button:hover {
+            background: var(--vscode-toolbar-hoverBackground) !important;
+            background-color: var(--vscode-toolbar-hoverBackground) !important;
+        }
+        
+        .edit-page-init-button:active {
+            background: var(--vscode-toolbar-activeBackground);
+            transform: scale(0.95);
+        }
+        
+        .edit-page-init-button .codicon {
+            font-size: 14px;
+        }
 
         /* Owner Data Object Styles */
         .owner-info-container {
@@ -200,6 +230,9 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
     <div class="page-init-flow-container">
         <span class="page-init-flow-label">Page Initialization Flow:</span>
         <span class="page-init-flow-name">${report.initObjectWorkflowName}</span>
+        <button class="edit-page-init-button" onclick="openPageInitDetails('${report.initObjectWorkflowName}')" title="Edit page initialization flow">
+            <i class="codicon codicon-edit"></i>
+        </button>
     </div>
     ` : ''}
     ${ownerObject ? `
