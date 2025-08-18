@@ -187,6 +187,9 @@ function getMainTemplate(
     <div class="page-init-flow-section">
         <span class="page-init-flow-label">Page Initialization Flow:</span>
         <span class="page-init-flow-name">${form.initObjectWorkflowName || form.initobjectworkflowname}</span>
+        <button class="edit-owner-button" onclick="openPageInitDetails('${form.initObjectWorkflowName || form.initobjectworkflowname}')" title="Edit page initialization flow">
+            <i class="codicon codicon-edit"></i>
+        </button>
     </div>
     ` : ''}
     
