@@ -26,6 +26,9 @@ function getMainTemplate(
 <body>
     <div class="header-container">
         <h1 class="header-title">Details for ${flowName} Page Init Flow</h1>
+        <button class="copy-page-init-name-button" onclick="copyPageInitFlowName('${flowName || ''}')" title="Copy Page Init Flow Name">
+            <i class="codicon codicon-copy"></i>
+        </button>
     </div>
 
     ${ownerObject ? `

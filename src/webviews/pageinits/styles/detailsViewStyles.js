@@ -43,6 +43,37 @@ function getDetailViewStyles() {
     .header-container { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
     .copy-name-button, .view-preview-button, .edit-owner-button { background: transparent; border: none; color: var(--vscode-foreground); cursor: pointer; padding: 6px; border-radius: 4px; }
     .copy-name-button:hover, .view-preview-button:hover, .edit-owner-button:hover { background: var(--vscode-toolbar-hoverBackground); }
+    
+    /* Copy Page Init Flow Name Button Styles */
+    .copy-page-init-name-button {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none;
+        color: var(--vscode-foreground);
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 4px;
+        transition: background 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+    }
+    
+    .copy-page-init-name-button:hover {
+        background: var(--vscode-toolbar-hoverBackground) !important;
+        background-color: var(--vscode-toolbar-hoverBackground) !important;
+    }
+    
+    .copy-page-init-name-button:active {
+        background: var(--vscode-toolbar-activeBackground);
+        transform: scale(0.95);
+    }
+    
+    .copy-page-init-name-button .codicon {
+        font-size: 16px;
+    }
 
     /* Modal styles */
     .modal { display: none; position: fixed; z-index: 1000; padding-top: 60px; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
