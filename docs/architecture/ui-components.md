@@ -840,6 +840,27 @@ Added Move Up and Move Down buttons for reordering items in the report details v
 - Consistent behavior across all three list view tabs
 - Immediate visual updates in the UI when items are moved
 
+## Page Init Flow Move Button States Fix (Added 2025-01-17)
+
+Fixed an issue where move up/down button states were not being consistently updated in the Page Init Flow detail view.
+
+### Problem:
+- The refreshOutputVarsList message handler used manual button state logic instead of the centralized updateMoveButtonStates() function
+- This caused inconsistent behavior where move buttons might not properly reflect their enabled/disabled state after moves
+- Requirements: move up button should be inactive if top item selected or none selected; move down button should be inactive if bottom item selected or none selected
+
+### Solution:
+- Replaced manual button state logic in refreshOutputVarsList handler with a call to the existing updateMoveButtonStates() function
+- This ensures consistent behavior across all scenarios (selection changes, refreshes, moves)
+- The centralized function properly handles the logic: moveUp disabled when idx <= 0, moveDown disabled when idx < 0 or idx >= length-1
+
+### Files Modified:
+- `src/webviews/pageinits/components/templates/clientScriptTemplate.js`: Replaced 6 lines of manual button state logic with 1 call to updateMoveButtonStates()
+
+### Key Learning:
+- Always use centralized functions for UI state management instead of duplicating logic in multiple places
+- The existing updateMoveButtonStates() function already had the correct implementation
+
 ## Select FK Object Modal Accept Button State Management (Updated 2025-01-17)
 
 Enhanced the Select FK Object modal functionality to properly disable the 'Accept' button when no object is selected:
