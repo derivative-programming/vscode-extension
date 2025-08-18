@@ -105,6 +105,22 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 });
             };
 
+            // Page Init Details functionality
+            window.openPageInitDetails = function(pageInitName) {
+                console.log('[DEBUG] FormDetails - Opening page init details for page init name:', JSON.stringify(pageInitName));
+                
+                if (!pageInitName) {
+                    console.error('[ERROR] FormDetails - No page init name provided');
+                    return;
+                }
+                
+                // Send message to extension to open page init details
+                vscode.postMessage({
+                    command: 'openPageInitDetails',
+                    pageInitName: pageInitName
+                });
+            };
+
             // Copy Form Name functionality
             window.copyFormName = function() {
                 const formName = form.name;
