@@ -29,6 +29,7 @@ function getDetailViewStyles() {
     .view-icons { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
     .add-prop-button, .copy-props-button, .move-button, .reverse-button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 4px 8px; cursor: pointer; border-radius: 3px; }
     .add-prop-button:hover, .copy-props-button:hover, .move-button:hover, .reverse-button:hover { background: var(--vscode-button-hoverBackground); }
+    .add-prop-button:disabled, .copy-props-button:disabled, .move-button:disabled, .reverse-button:disabled { background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); opacity: 0.6; cursor: not-allowed; }
 
     /* Match forms output vars layout: list (left), buttons under, details (right) */
     .view-content { display: none; }

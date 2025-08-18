@@ -4,17 +4,13 @@ As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
     
 page list...
-- copilot:add target child object column on page list
 - copilot:change owner object filter to a textbox
 
 on pageinit...
 - copilot:header add copy button
 - copilot:move up button should be inactive if top item selected or none selected
-- copilot:move down button should be inactive if bottom item selected or none selected
+- copilot:move down button should be inactive if bottom item selected or none selected 
 
-copilot:on form details view, 'Page Initialization Flow:  [edit icon to view the pageinit details view]
-
-copilot:on report details view, 'Page Initialization Flow: [edit icon to view the pageinit details view]
 
 page preview - form...
 - if the form has a page initialization flow assigned, review the page init flow output vars. If isHeaderText=true then we need to display it as a name value pair in the format '[labelText]: [output var name] value' above the input controls

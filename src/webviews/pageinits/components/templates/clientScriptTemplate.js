@@ -39,14 +39,23 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
             const outputVarDetailsContainer = document.getElementById('outputVarDetailsContainer');
             if (outputVarsList && outputVarDetailsContainer) {
                 // Keep move buttons in sync with selection, like forms
-                function updateMoveButtonStates(listElement) {
-                    const moveUpBtn = document.getElementById('moveUpOutputVarButton');
-                    const moveDownBtn = document.getElementById('moveDownOutputVarButton');
-                    if (!listElement || !moveUpBtn || !moveDownBtn) return;
-                    const idx = listElement.selectedIndex;
-                    const length = listElement.options.length;
-                    moveUpBtn.disabled = !(idx > 0);
-                    moveDownBtn.disabled = !(idx >= 0 && idx < length - 1);
+                function updateMoveButtonStates(listElement, moveUpButton, moveDownButton) {
+                    if (!listElement || !moveUpButton || !moveDownButton) return;
+                    
+                    const selectedIndex = listElement.selectedIndex;
+                    const hasSelection = selectedIndex >= 0;
+                    const isFirstItem = selectedIndex === 0;
+                    const isLastItem = selectedIndex === listElement.options.length - 1;
+                    
+                    // Disable both buttons if no selection
+                    if (!hasSelection) {
+                        moveUpButton.disabled = true;
+                        moveDownButton.disabled = true;
+                    } else {
+                        // Enable/disable based on position
+                        moveUpButton.disabled = isFirstItem;
+                        moveDownButton.disabled = isLastItem;
+                    }
                 }
 
                 outputVarsList.addEventListener('change', (event) => {
@@ -54,7 +63,11 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                     const outputVar = currentOutputVars[selectedIndex];
                     if (!outputVar) {
                         outputVarDetailsContainer.style.display = 'none';
-                        updateMoveButtonStates(outputVarsList);
+                        const moveUpButton = document.getElementById('moveUpOutputVarButton');
+                        const moveDownButton = document.getElementById('moveDownOutputVarButton');
+                        if (moveUpButton && moveDownButton) {
+                            updateMoveButtonStates(outputVarsList, moveUpButton, moveDownButton);
+                        }
                         return;
                     }
                     outputVarDetailsContainer.style.display = 'block';
@@ -92,7 +105,11 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                     });
 
                     // After populating details, sync button states
-                    updateMoveButtonStates(outputVarsList);
+                    const moveUpButton = document.getElementById('moveUpOutputVarButton');
+                    const moveDownButton = document.getElementById('moveDownOutputVarButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(outputVarsList, moveUpButton, moveDownButton);
+                    }
                 });
 
                 // Initialize toggle behavior for each field
@@ -144,7 +161,11 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                 }
 
                 // Initialize move button states on load
-                updateMoveButtonStates(outputVarsList);
+                const moveUpButton = document.getElementById('moveUpOutputVarButton');
+                const moveDownButton = document.getElementById('moveDownOutputVarButton');
+                if (moveUpButton && moveDownButton) {
+                    updateMoveButtonStates(outputVarsList, moveUpButton, moveDownButton);
+                }
             }
 
             // Buttons
@@ -303,7 +324,11 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                                 outputVarsList.dispatchEvent(new Event('change'));
                             }
                             // Ensure move buttons reflect the refreshed list
-                            updateMoveButtonStates(outputVarsList);
+                            const moveUpButton = document.getElementById('moveUpOutputVarButton');
+                            const moveDownButton = document.getElementById('moveDownOutputVarButton');
+                            if (moveUpButton && moveDownButton) {
+                                updateMoveButtonStates(outputVarsList, moveUpButton, moveDownButton);
+                            }
                         }
                         break;
                 }
