@@ -450,6 +450,12 @@ export function registerPageListCommands(
                                     </select>
                                 </div>
                                 <div class="filter-group">
+                                    <label>Target Child Object:</label>
+                                    <input type="text" id="filterTargetChildObject" placeholder="Filter by target child object...">
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group">
                                     <label>Role Required:</label>
                                     <select id="filterRoleRequired">
                                         <option value="">All Roles</option>
@@ -667,6 +673,7 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
                             type: 'Form',
                             reportType: '',
                             ownerObject: obj.name || 'Unknown',
+                            targetChildObject: form.targetChildObject || '',
                             roleRequired: form.roleRequired || 'Public',
                             isPage: form.isPage
                         });
@@ -698,6 +705,7 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
                             type: 'Report',
                             reportType: reportType,
                             ownerObject: obj.name || 'Unknown',
+                            targetChildObject: report.targetChildObject || '',
                             roleRequired: report.roleRequired || 'Public',
                             isPage: report.isPage
                         });
@@ -766,7 +774,7 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
  */
 async function savePagesToCSV(items: any[], modelService: ModelService): Promise<string> {
     // Define CSV headers
-    const headers = ['Name', 'Type', 'Owner Object', 'Report Type', 'Role Required'];
+    const headers = ['Name', 'Type', 'Owner Object', 'Target Child Object', 'Report Type', 'Role Required'];
     
     // Create CSV content
     let csvContent = headers.join(',') + '\n';
@@ -775,8 +783,9 @@ async function savePagesToCSV(items: any[], modelService: ModelService): Promise
     items.forEach(item => {
         const row = [
             item.name || '',
-            item.pageType || '',
+            item.type || '',
             item.ownerObject || '',
+            item.targetChildObject || '',
             item.reportType || '',
             item.roleRequired || ''
         ];

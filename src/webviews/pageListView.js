@@ -64,6 +64,7 @@ function applyFilters() {
     const typeFilter = document.getElementById('filterType')?.value || '';
     const reportTypeFilter = document.getElementById('filterReportType')?.value || '';
     const ownerObjectFilter = document.getElementById('filterOwnerObject')?.value || '';
+    const targetChildObjectFilter = document.getElementById('filterTargetChildObject')?.value.toLowerCase() || '';
     const roleRequiredFilter = document.getElementById('filterRoleRequired')?.value || '';
     
     let filteredItems = allItems.filter(item => {
@@ -72,9 +73,10 @@ function applyFilters() {
         const matchesType = !typeFilter || item.type === typeFilter;
         const matchesReportType = !reportTypeFilter || item.reportType === reportTypeFilter;
         const matchesOwnerObject = !ownerObjectFilter || item.ownerObject === ownerObjectFilter;
+        const matchesTargetChildObject = !targetChildObjectFilter || (item.targetChildObject || '').toLowerCase().includes(targetChildObjectFilter);
         const matchesRoleRequired = !roleRequiredFilter || item.roleRequired === roleRequiredFilter;
         
-        return matchesName && matchesTitle && matchesType && matchesReportType && matchesOwnerObject && matchesRoleRequired;
+        return matchesName && matchesTitle && matchesType && matchesReportType && matchesOwnerObject && matchesTargetChildObject && matchesRoleRequired;
     });
     
     // Update pageData with filtered results
@@ -93,6 +95,7 @@ function clearFilters() {
     document.getElementById('filterType').value = '';
     document.getElementById('filterReportType').value = '';
     document.getElementById('filterOwnerObject').value = '';
+    document.getElementById('filterTargetChildObject').value = '';
     document.getElementById('filterRoleRequired').value = '';
     
     // Reset to show all items
@@ -177,6 +180,7 @@ function renderTable() {
         { key: "type", label: "Type", sortable: true },
         { key: "reportType", label: "Report Type", sortable: true },
         { key: "ownerObject", label: "Owner Object", sortable: true },
+        { key: "targetChildObject", label: "Target Child Object", sortable: true },
         { key: "roleRequired", label: "Role Required", sortable: true },
         { key: "actions", label: "Actions", sortable: false }
     ];
@@ -285,7 +289,7 @@ function renderTable() {
         // No items
         const row = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 7; // Number of columns
+        td.colSpan = 8; // Number of columns
         td.style.textAlign = "center";
         td.style.padding = "20px";
         td.style.color = "var(--vscode-descriptionForeground)";
@@ -313,7 +317,7 @@ function renderRecordInfo() {
 // Setup filter event listeners
 function setupFilterEventListeners() {
     // Add event listeners for filter inputs
-    const filterInputs = ['filterName', 'filterTitle', 'filterType', 'filterReportType', 'filterOwnerObject', 'filterRoleRequired'];
+    const filterInputs = ['filterName', 'filterTitle', 'filterType', 'filterReportType', 'filterOwnerObject', 'filterTargetChildObject', 'filterRoleRequired'];
     
     filterInputs.forEach(id => {
         const element = document.getElementById(id);
