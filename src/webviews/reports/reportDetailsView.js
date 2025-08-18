@@ -391,6 +391,28 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "openPageInitFlowDetails":
+                    if (modelService && message.flowName) {
+                        try {
+                            // Create a mock tree item for the page init flow
+                            const flowItem = {
+                                label: message.flowName,
+                                contextValue: 'pageInit',
+                                tooltip: `${message.flowName} Page Init Flow`
+                            };
+                            
+                            // Import and call the page init details view
+                            const { showPageInitDetails } = require("../pageinits/pageInitDetailsView");
+                            showPageInitDetails(flowItem, modelService);
+                        } catch (error) {
+                            console.error('[ERROR] ReportDetails - Failed to open page init flow details:', error);
+                            vscode.window.showErrorMessage(`Failed to open page init flow details: ${error.message}`);
+                        }
+                    } else {
+                        console.warn("Cannot open page init flow details: ModelService not available or flow name not provided");
+                    }
+                    return;
+                    
                 case "openPagePreview":
                     console.log('[DEBUG] ReportDetails - Open page preview requested for report name:', JSON.stringify(message.formName));
                     console.log('[DEBUG] ReportDetails - Message object:', JSON.stringify(message));
