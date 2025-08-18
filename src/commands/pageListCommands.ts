@@ -445,9 +445,7 @@ export function registerPageListCommands(
                                 </div>
                                 <div class="filter-group">
                                     <label>Owner Object:</label>
-                                    <select id="filterOwnerObject">
-                                        <option value="">All Objects</option>
-                                    </select>
+                                    <input type="text" id="filterOwnerObject" placeholder="Filter by owner object...">
                                 </div>
                                 <div class="filter-group">
                                     <label>Target Child Object:</label>

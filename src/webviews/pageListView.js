@@ -17,7 +17,6 @@ let allItems = [];
 
 // Keep track of unique values for filter dropdowns
 let filterOptions = {
-    ownerObjects: [],
     rolesRequired: []
 };
 
@@ -63,7 +62,7 @@ function applyFilters() {
     const titleFilter = document.getElementById('filterTitle')?.value.toLowerCase() || '';
     const typeFilter = document.getElementById('filterType')?.value || '';
     const reportTypeFilter = document.getElementById('filterReportType')?.value || '';
-    const ownerObjectFilter = document.getElementById('filterOwnerObject')?.value || '';
+    const ownerObjectFilter = document.getElementById('filterOwnerObject')?.value.toLowerCase() || '';
     const targetChildObjectFilter = document.getElementById('filterTargetChildObject')?.value.toLowerCase() || '';
     const roleRequiredFilter = document.getElementById('filterRoleRequired')?.value || '';
     
@@ -72,7 +71,7 @@ function applyFilters() {
         const matchesTitle = !titleFilter || (item.titleText || '').toLowerCase().includes(titleFilter);
         const matchesType = !typeFilter || item.type === typeFilter;
         const matchesReportType = !reportTypeFilter || item.reportType === reportTypeFilter;
-        const matchesOwnerObject = !ownerObjectFilter || item.ownerObject === ownerObjectFilter;
+        const matchesOwnerObject = !ownerObjectFilter || (item.ownerObject || '').toLowerCase().includes(ownerObjectFilter);
         const matchesTargetChildObject = !targetChildObjectFilter || (item.targetChildObject || '').toLowerCase().includes(targetChildObjectFilter);
         const matchesRoleRequired = !roleRequiredFilter || item.roleRequired === roleRequiredFilter;
         
@@ -109,37 +108,21 @@ function clearFilters() {
 
 // Extract unique values for filter dropdowns
 function extractFilterOptions() {
-    const ownerObjects = new Set();
+    // Owner Object is now a text input, no longer needs extraction
     const rolesRequired = new Set();
     
     allItems.forEach(item => {
-        if (item.ownerObject) {
-            ownerObjects.add(item.ownerObject);
-        }
         if (item.roleRequired) {
             rolesRequired.add(item.roleRequired);
         }
     });
     
-    filterOptions.ownerObjects = Array.from(ownerObjects).sort();
     filterOptions.rolesRequired = Array.from(rolesRequired).sort();
 }
 
 // Populate filter dropdown options
 function populateFilterDropdowns() {
-    // Populate owner object dropdown
-    const ownerObjectSelect = document.getElementById('filterOwnerObject');
-    if (ownerObjectSelect) {
-        // Clear existing options except "All Objects"
-        ownerObjectSelect.innerHTML = '<option value="">All Objects</option>';
-        
-        filterOptions.ownerObjects.forEach(obj => {
-            const option = document.createElement('option');
-            option.value = obj;
-            option.textContent = obj;
-            ownerObjectSelect.appendChild(option);
-        });
-    }
+    // Owner Object is now a text input, no longer needs population
     
     // Populate role required dropdown
     const roleRequiredSelect = document.getElementById('filterRoleRequired');
