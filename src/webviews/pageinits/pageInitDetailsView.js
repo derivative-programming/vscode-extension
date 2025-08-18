@@ -132,6 +132,22 @@ function showPageInitDetails(item, modelService, context) {
                         reverseOutputVarArray(flowReference, modelService, panel);
                     }
                     return;
+                case "addOutputVar":
+                    if (modelService && flowReference) {
+                        // Add a new output variable to the page init
+                        addOutputVarToPageInit(flowReference, modelService);
+                    } else {
+                        console.warn("Cannot add output variable: ModelService not available or flow reference not found");
+                    }
+                    return;
+                case "addOutputVarWithName":
+                    if (modelService && flowReference) {
+                        // Add a new output variable to the page init with specified name
+                        addOutputVarToPageInitWithName(flowReference, modelService, message.data.name, panel);
+                    } else {
+                        console.warn("Cannot add output variable with name: ModelService not available or flow reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -209,6 +225,101 @@ function reverseOutputVarArray(flowRef, modelService, panel) {
         panel.webview.postMessage({ command: 'refreshOutputVarsList', data: list, newSelection: 0 });
     } catch (e) {
         console.error('reverseOutputVarArray error:', e);
+    }
+}
+
+/**
+ * Adds a new output variable to the page init
+ * @param {Object} flowReference Reference to the current page init flow
+ * @param {Object} modelService Reference to the model service
+ */
+function addOutputVarToPageInit(flowReference, modelService) {
+    console.log("addOutputVarToPageInit called");
+    
+    if (!flowReference || !modelService) {
+        console.error("Missing required data for adding output variable");
+        return;
+    }
+    
+    try {
+        // Use the flow reference directly since it's already the flow object
+        const flow = flowReference;
+        
+        // Initialize the output variables array if it doesn't exist
+        if (!flow.objectWorkflowOutputVar) {
+            flow.objectWorkflowOutputVar = [];
+        }
+        
+        // Create a new output variable with a default name
+        const newOutputVar = {
+            name: `OutputVar${flow.objectWorkflowOutputVar.length + 1}`
+        };
+        
+        // Add the new output variable to the flow
+        flow.objectWorkflowOutputVar.push(newOutputVar);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding output variable to page init:", error);
+    }
+}
+
+/**
+ * Adds a new output variable to the page init with user-specified name
+ * @param {Object} flowReference Reference to the page init flow object
+ * @param {Object} modelService ModelService instance
+ * @param {string} outputVarName Name for the new output variable
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addOutputVarToPageInitWithName(flowReference, modelService, outputVarName, panel) {
+    console.log("addOutputVarToPageInitWithName called with name:", outputVarName);
+    
+    if (!flowReference || !modelService || !outputVarName) {
+        console.error("Missing required data to add output variable with name");
+        return;
+    }
+    
+    try {
+        // Use the flow reference directly since it's already the flow object
+        const flow = flowReference;
+        
+        // Initialize the output variables array if it doesn't exist
+        if (!flow.objectWorkflowOutputVar) {
+            flow.objectWorkflowOutputVar = [];
+        }
+        
+        // Create a new output variable with the specified name
+        const newOutputVar = {
+            name: outputVarName
+        };
+        
+        // Add the new output variable to the array
+        flow.objectWorkflowOutputVar.push(newOutputVar);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the output vars list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshOutputVarsList',
+                data: flow.objectWorkflowOutputVar,
+                newSelection: flow.objectWorkflowOutputVar.length - 1 // Select the newly added item
+            });
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding output variable with name:", error);
     }
 }
 

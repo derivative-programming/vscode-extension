@@ -1,5 +1,7 @@
 "use strict";
 
+const { getAddOutputVariableModalFunctionality } = require("./addOutputVariableModalFunctionality");
+
 function getAddOutputVariableModalHtml() {
     return `
 <div class="modal-content">
@@ -35,7 +37,12 @@ function getOutputVarModalHtml() {
     return `
 <div id="addModal" class="modal" style="display:none;">
     ${getAddOutputVariableModalHtml()}
-</div>`;
+</div>
+
+<script>
+    // Include the modal functionality
+    ${getAddOutputVariableModalFunctionality()}
+</script>`;
 }
 
 module.exports = { getOutputVarModalHtml, getAddOutputVariableModalHtml };

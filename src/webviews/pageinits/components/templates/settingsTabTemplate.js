@@ -62,7 +62,6 @@ function getSettingsTabTemplate(flow, flowSchemaProps) {
     const allowedOrder = [
         'isAuthorizationRequired',
         'isCustomLogicOverwritten',
-        'isDynaFlowTask',
         'isExposedInBusinessObject',
         'isRequestRunViaDynaFlowAllowed',
         'pageIntroText',

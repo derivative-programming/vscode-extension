@@ -132,6 +132,20 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 }
             }
             
+            // Page Init Flow Details Function
+            function openPageInitFlowDetails(flowName) {
+                console.log('[DEBUG] ReportDetails - Open page init flow details requested for flow name:', JSON.stringify(flowName));
+                
+                if (vscode && flowName) {
+                    vscode.postMessage({
+                        command: 'openPageInitFlowDetails',
+                        flowName: flowName
+                    });
+                } else {
+                    console.warn('[WARN] ReportDetails - Cannot open page init flow details: vscode API or flow name not available');
+                }
+            }
+            
             // Copy Report Name Function
             function copyReportName(reportName) {
                 console.log('[DEBUG] ReportDetails - Copy report name requested for:', JSON.stringify(reportName));
@@ -185,6 +199,7 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Make functions globally available
             window.openPagePreview = openPagePreview;
             window.openOwnerObjectDetails = openOwnerObjectDetails;
+            window.openPageInitFlowDetails = openPageInitFlowDetails;
             window.copyReportName = copyReportName;
 
             // UI Event Handlers for tabs and view switching
