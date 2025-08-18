@@ -3,6 +3,7 @@ const vscode = require("vscode");
 const path = require("path");
 const { loadSchema, getFormSchemaProperties, getFormParamsSchema, getFormButtonsSchema, getFormOutputVarsSchema } = require("./helpers/schemaLoader");
 const { generateDetailsView } = require("./components/detailsViewGenerator");
+const { showPageInitDetails } = require("../pageInitDetailsView");
 
 // Track current panels to avoid duplicates
 const activePanels = new Map();
@@ -489,6 +490,24 @@ function showFormDetails(item, modelService, context) {
                     } catch (error) {
                         console.error('[ERROR] FormDetails - Failed to open owner object details:', error);
                         vscode.window.showErrorMessage(`Failed to open owner object details: ${error.message}`);
+                    }
+                    return;
+                    
+                case "openPageInitDetails":
+                    console.log('[DEBUG] FormDetails - Open page init details requested for flow name:', JSON.stringify(message.flowName));
+                    try {
+                        if (message.flowName) {
+                            // Open the page init details view
+                            showPageInitDetails({
+                                label: message.flowName
+                            }, modelService, extensionContext);
+                        } else {
+                            console.error('[ERROR] FormDetails - No flow name provided for opening page init details');
+                            vscode.window.showErrorMessage('No flow name provided for opening page init details');
+                        }
+                    } catch (error) {
+                        console.error('[ERROR] FormDetails - Failed to open page init details:', error);
+                        vscode.window.showErrorMessage(`Failed to open page init details: ${error.message}`);
                     }
                     return;
                     
