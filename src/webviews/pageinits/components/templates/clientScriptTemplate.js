@@ -1,5 +1,8 @@
 "use strict";
 
+const { getAddOutputVariableModalHtml } = require("./modalTemplates");
+const { getAddOutputVariableModalFunctionality } = require("./addOutputVariableModalFunctionality");
+
 function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataObjects = []) {
     return `
         (function() {
@@ -22,6 +25,14 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
             document.addEventListener('click', (e) => {
                 if (e.target && e.target.classList && e.target.classList.contains('close-button')) { closeModal(); }
             });
+
+            // Add Output Variable Modal Template Function
+            function getAddOutputVariableModalHtml() {
+                return \`${getAddOutputVariableModalHtml()}\`;
+            }
+
+            // Add Output Variable Modal Functionality
+            ${getAddOutputVariableModalFunctionality()}
 
             // Initialize list selection behavior similar to forms
             const outputVarsList = document.getElementById('outputVarsList');
@@ -162,6 +173,12 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
             });
             document.getElementById('reverseOutputVarButton')?.addEventListener('click', () => {
                 vscode.postMessage({ command: 'reverseOutputVar' });
+            });
+
+            // Add output variable button functionality
+            document.getElementById('add-output-var-btn')?.addEventListener('click', function() {
+                // Show the add output variable modal
+                createAddOutputVariableModal();
             });
 
             // Settings tab behavior
