@@ -107,6 +107,15 @@ export class JsonTreeItem extends vscode.TreeItem {
             };
         }
         
+        // If the item represents a general workflow, attach a command to show general flow details.
+        if (contextValue === 'generalWorkflowItem') {
+            this.command = {
+                title: 'Show General Flow Details',
+                command: 'appdna.showGeneralFlowDetails',
+                arguments: [this]
+            };
+        }
+        
         // Set the id property directly instead of using a getter
         // to avoid conflict with the parent class property
         this.id = `${this.contextValue || 'item'}-${this.label}`;

@@ -447,9 +447,18 @@ export function registerGeneralListCommands(
                         
                     case 'viewDetails':
                         // Handle viewing general flow details
-                        if (message.generalName && message.objectName) {
-                            vscode.window.showInformationMessage(`View details for general flow: ${message.generalName} in object: ${message.objectName}`);
-                            // TODO: Implement general flow details view when available
+                        if (message.generalName) {
+                            try {
+                                const generalFlowDetailsView = require('../webviews/generalFlowDetailsView.js');
+                                if (generalFlowDetailsView && typeof generalFlowDetailsView.showGeneralFlowDetails === 'function') {
+                                    generalFlowDetailsView.showGeneralFlowDetails({ label: message.generalName }, modelService, context);
+                                } else {
+                                    vscode.window.showErrorMessage('General Flow Details view is not available.');
+                                }
+                            } catch (error: any) {
+                                console.error('[Extension] Error opening general flow details:', error);
+                                vscode.window.showErrorMessage('Failed to open General Flow Details: ' + (error?.message || error));
+                            }
                         }
                         break;
                         

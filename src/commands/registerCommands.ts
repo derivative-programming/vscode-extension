@@ -59,6 +59,7 @@ import { showAppDNASettingsView, reloadAppDNASettingsPanel } from '../webviews/a
 import { showRegisterView } from '../webviews/registerView';
 // Page Init Details wrapper
 const pageInitDetailsView = require('../webviews/pageInitDetailsView.js');
+const generalFlowDetailsView = require('../webviews/generalFlowDetailsView.js');
 
 /**
  * Registers all commands for the AppDNA extension
@@ -392,6 +393,21 @@ export function registerCommands(
                 }
             } catch (err: any) {
                 vscode.window.showErrorMessage(`Failed to open Page Init Details: ${err?.message || err}`);
+            }
+        })
+    );
+
+    // Register handler for GENERAL workflow item command from tree
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showGeneralFlowDetails', (node: JsonTreeItem) => {
+            try {
+                if (generalFlowDetailsView && typeof generalFlowDetailsView.showGeneralFlowDetails === 'function') {
+                    generalFlowDetailsView.showGeneralFlowDetails(node, modelService, context);
+                } else {
+                    vscode.window.showErrorMessage('General Flow Details view is not available.');
+                }
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`Failed to open General Flow Details: ${err?.message || err}`);
             }
         })
     );
