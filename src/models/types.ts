@@ -98,6 +98,15 @@ export class JsonTreeItem extends vscode.TreeItem {
             };
         }
         
+        // If the item represents an API site, attach a command to show API details.
+        if (contextValue === 'apiSiteItem') {
+            this.command = {
+                title: 'Show API Details',
+                command: 'appdna.showApiDetails',
+                arguments: [this]
+            };
+        }
+        
         // If the item represents a page init workflow, attach a command to show workflow details.
         if (contextValue === 'pageInitWorkflowItem') {
             this.command = {

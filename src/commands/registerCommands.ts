@@ -944,6 +944,15 @@ export function registerCommands(
         })
     );
 
+    // Register show API details command
+    // Import and delegate to apiCommands module
+    const { showApiDetailsCommand } = require('./apiCommands');
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showApiDetails', (node: JsonTreeItem) => {
+            showApiDetailsCommand(node, modelService, context);
+        })
+    );
+
     // Register form filter commands
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showFormFilter', async () => {
