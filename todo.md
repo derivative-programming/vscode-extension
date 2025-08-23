@@ -2,10 +2,7 @@ Agent todo items...
 
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
-    
-page list...
-- change owner object filter to a textbox
-
+     
 
 review the form details view. Review the PAGE_INIT treeview items.
 we need a page init flow flow details view. This will be similar to the form details view, but only settings tab, and output variables tabs will exist. Don not try to use the form details view files. Copy them to create new ones for page init flow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.

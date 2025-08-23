@@ -1803,16 +1803,24 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             try {
                 console.log('[DEBUG] Initializing Mermaid...');
                 
-                // Configure Mermaid with simple, reliable settings
+                // Get current layout selection
+                const layoutSelect = document.getElementById('mermaidLayoutSelect');
+                const selectedLayout = layoutSelect ? layoutSelect.value : 'dagre';
+                
+                // Configure Mermaid with enhanced settings
                 mermaid.initialize({
                     startOnLoad: false,
                     theme: 'default',
                     securityLevel: 'loose',
+                    maxEdges: 50000,
+                    maxTextSize: 500000,
+                    layout: selectedLayout,
                     flowchart: {
                         useMaxWidth: true,
                         htmlLabels: false,
                         curve: 'linear',
-                        padding: 15
+                        padding: 15,
+                        defaultRenderer: selectedLayout === 'elk' ? 'elk' : 'dagre-wrapper'
                     }
                 });
                 
@@ -2015,6 +2023,15 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
             console.log('[DEBUG] Mermaid diagram type changed to:', mermaidDiagramType);
             
             // Regenerate and render Mermaid diagram with new type
+            updateMermaidDiagram();
+        }
+        
+        // Handle Mermaid layout engine changes
+        function handleMermaidLayoutChange(selectElement) {
+            console.log('[DEBUG] Mermaid layout changed to:', selectElement.value);
+            
+            // Re-initialize Mermaid with new layout and regenerate diagram
+            initializeMermaid();
             updateMermaidDiagram();
         }
         
@@ -3480,6 +3497,15 @@ function generateMermaidContent(flowMap) {
                 </select>
             </div>
             
+            <div class="mermaid-type-controls">
+                <div class="mermaid-type-title">Layout Engine:</div>
+                <select id="mermaidLayoutSelect" class="mermaid-type-select" onchange="handleMermaidLayoutChange(this)">
+                    <option value="dagre">Dagre (Default)</option>
+                    <option value="elk">ELK (Advanced)</option>
+                    <option value="dagre-d3">Dagre-D3</option>
+                </select>
+            </div>
+            
             <div class="mermaid-filter-controls">
                 <div class="control-row">
                     <div class="role-filter">
@@ -3799,10 +3825,10 @@ function formatMermaidDisplayText(titleText, name) {
         // If no title text or title is same as name, just show the name
         return sanitizeDisplayText(name);
     } else {
-        // Show title on first line and name on second line in format: "Title<br/>(Name)"
+        // Show title and name on same line with separator to avoid line break issues
         const sanitizedTitle = sanitizeDisplayText(titleText);
         const sanitizedName = sanitizeDisplayText(name);
-        return sanitizedTitle + "<br/>(" + sanitizedName + ")";
+        return sanitizedTitle + " - (" + sanitizedName + ")";
     }
 }
 
