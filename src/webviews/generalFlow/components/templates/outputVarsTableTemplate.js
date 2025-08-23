@@ -1,9 +1,9 @@
 "use strict";
-// generalFlow outputVarsTableTemplate reuse forms – touch for rebuild
+// generalFlow outputVarsListTemplate – follow Page Init pattern for optional items
 
 function getOutputVarsListTemplate(outputVarSchema) {
-    const { getOutputVarsListTemplate: getFormOutputVarsListTemplate } = require("../../../forms/components/templates/outputVarsTableTemplate");
-    return typeof getFormOutputVarsListTemplate === 'function' ? getFormOutputVarsListTemplate(outputVarSchema) : "";
+    const { getOutputVarsListTemplate: getPageInitOutputVarsListTemplate } = require("../../../pageinits/components/templates/outputVarsTableTemplate");
+    return typeof getPageInitOutputVarsListTemplate === 'function' ? getPageInitOutputVarsListTemplate(outputVarSchema) : "";
 }
 
 module.exports = { getOutputVarsListTemplate };

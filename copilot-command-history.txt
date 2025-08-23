@@ -1,3 +1,20 @@
+2025-08-23  modal-overlay-fix (generalFlow)
+- Change: Removed static modal HTML injection from General Flow main template/generator to prevent orphan .modal-content rendering under tabs; rely on dynamic modals appended to document.body via forms modal functionality.
+- Files: src/webviews/generalFlow/components/detailsViewGenerator.js; src/webviews/generalFlow/components/templates/mainTemplate.js
+- Rationale: Stacking context and missing .modal wrapper caused modal content to appear beneath tab content. Dynamic body-level modals mirror Page Init behavior and resolve z-index issues.
+- Status: Completed; no TS changes; webview JS only.
+
+2025-08-23  output-var-optional-items-parity (generalFlow)
+- Change: Switched General Flow output variable list field template to reuse Page Init’s `getOutputVarsListTemplate` (allowlist + checkbox pattern) so optional items behave identically.
+- Files: src/webviews/generalFlow/components/templates/outputVarsTableTemplate.js
+- Rationale: Follow Page Init details view patterns exactly for optional output var properties.
+- Status: Completed.
+
+2025-08-23  param-optional-items-allowlist (generalFlow)
+- Change: Implemented Page Init-style allowlist + checkbox pattern for General Flow params list template; adds fixed order, enum handling defaults, and browse-button parity.
+- Files: src/webviews/generalFlow/components/templates/paramsListTemplate.js
+- Rationale: Narrow optional items for params to match Page Init view patterns as requested.
+- Status: Completed.
 2025-08-23T02:20:00Z | cmd: whats the error here? flowchart TD [with Mermaid syntax error] | status: success | notes: Fixed Mermaid "Syntax error in text" caused by <br/> HTML tags in node labels. Modified formatMermaidDisplayText() function to replace HTML line breaks with dash separator format. Changed from "Title<br/>(Name)" to "Title - (Name)" to ensure Mermaid compatibility. The <br/> tags were not properly supported in Mermaid node text causing syntax parsing errors. Modified src/webviews/pageflow/components/htmlGenerator.js.
 2025-08-23T02:15:00Z | cmd: get message 'maximum text size in diagram exceeded' | status: success | notes: Fixed Mermaid "maximum text size in diagram exceeded" error by adding maxTextSize: 500000 to mermaid.initialize() configuration. This increases the limit from the default 50,000 characters to 500,000 characters, allowing for much larger and more complex page flow diagrams without hitting the text size limit. Modified src/webviews/pageflow/components/htmlGenerator.js.
 2025-08-23T02:00:00Z | cmd: increase the maxedges to 2000. give a dropdown to allow a change of layout so i can view all options | status: success | notes: Enhanced Mermaid configuration in Page Flow view. Updated mermaid.initialize() to include maxEdges: 2000 for handling larger diagrams. Added dynamic layout selection with current layout value from dropdown. Added new "Layout Engine" dropdown with options: Dagre (Default), ELK (Advanced), Dagre-D3. Added handleMermaidLayoutChange() function to re-initialize Mermaid when layout changes. Enhanced flowchart configuration to set defaultRenderer based on selected layout. Modified src/webviews/pageflow/components/htmlGenerator.js.
@@ -59,3 +76,9 @@
 - CSS styling now matches forms implementation for consistent user experience
 
 ---
+
+2025-08-23  GeneralFlow vs PageInit parity pass
+- Command: Align general flow details view behavior with page init details view
+- Changes: Injected forms' formControlUtilities into generalFlow client script to provide updateInputStyle/setupSettingsInputHandlers; unified copy-name UX to use icon swap like page init; no API changes
+- Status: Completed
+- Notes: General flow now mirrors page init interaction patterns; no schema or provider changes required

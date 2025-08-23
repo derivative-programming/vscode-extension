@@ -1,35 +1,44 @@
 "use strict";
-// generalFlow settingsTabTemplate reuse forms – touch for rebuild
+// General Flow settings – show only specific properties in a fixed order
 const { formatLabel } = require("../../../forms/helpers/formDataHelper");
 
-function getGeneralFlowPropertiesToIgnore() {
-    return [
-        "name",
-        // Arrays are on their own tabs
-        "objectworkflowparam",
-        "objectworkflowoutputvar",
-        // General flow should not expose page/report specific flags here
-        "ispage",
-        "initobjectworkflowname",
-        // Dynaflow classification is shown elsewhere
-        "isdynaflow",
-        "isdynaflowtask"
-    ];
-}
-
 function getSettingsTabTemplate(flow, flowSchemaProps) {
-    const propertiesToIgnore = getGeneralFlowPropertiesToIgnore();
+    // Only show the following settings, in this exact order (case-insensitive match to schema keys)
+    const allowedOrder = [
+        'isAuthorizationRequired',
+        'isCustomLogicOverwritten',
+        'isDynaFlowTask',
+        'isExposedInBusinessObject',
+        'isRequestRunViaDynaFlowAllowed',
+        'pageIntroText',
+        'pageTitleText',
+        'roleRequired'
+    ];
 
-    return Object.entries(flowSchemaProps)
-        .filter(([prop, schema]) => {
-            // Skip array properties as they have their own tabs
-            if (prop === 'objectWorkflowParam' || prop === 'objectWorkflowOutputVar') { return false; }
-            // Skip properties that should not be editable or visible
-            if (propertiesToIgnore.includes(prop.toLowerCase())) { return false; }
-            return true;
-        })
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([prop, schema]) => {
+    // Build a case-insensitive lookup of schema keys
+    const schemaKeyByLower = Object.keys(flowSchemaProps || {}).reduce((acc, key) => {
+        acc[key.toLowerCase()] = key; return acc;
+    }, {});
+
+    // Include common variants for role required to maximize match chance
+    const variantMap = {
+        'rolerequired': ['rolerequired', 'isrolerequired']
+    };
+
+    // Resolve the actual keys present in schema based on allowed order
+    const resolvedKeys = [];
+    for (const name of allowedOrder) {
+        const lc = name.toLowerCase();
+        if (schemaKeyByLower[lc]) { resolvedKeys.push(schemaKeyByLower[lc]); continue; }
+        const variants = variantMap[lc];
+        if (variants) {
+            const found = variants.find(v => schemaKeyByLower[v]);
+            if (found) { resolvedKeys.push(schemaKeyByLower[found]); }
+        }
+    }
+
+    return resolvedKeys.map(prop => {
+            const schema = flowSchemaProps[prop] || {};
             const hasEnum = schema.enum && Array.isArray(schema.enum);
             const isBooleanEnum = hasEnum && schema.enum.length === 2 && schema.enum.every(val => val === true || val === false || val === "true" || val === "false");
             const tooltip = schema.description ? `title="${schema.description}"` : "";
@@ -55,6 +64,7 @@ function getSettingsTabTemplate(flow, flowSchemaProps) {
                     }).join("")}
                 </select>`;
             } else {
+                // Text input for non-enum values
                 inputField = `<input type="text" id="setting-${prop}" name="${prop}" value="${propertyExists ? flow[prop] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
 
@@ -67,4 +77,4 @@ function getSettingsTabTemplate(flow, flowSchemaProps) {
         }).join("");
 }
 
-module.exports = { getSettingsTabTemplate, getGeneralFlowPropertiesToIgnore };
+module.exports = { getSettingsTabTemplate };

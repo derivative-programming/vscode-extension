@@ -9,8 +9,6 @@ function getMainTemplate(
     settingsHtml,
     paramListViewFields,
     outputVarListViewFields,
-    paramModalHtml,
-    outputVarModalHtml,
     clientScript,
     codiconsUri,
     ownerObject = null
@@ -32,6 +30,10 @@ function getMainTemplate(
         .copy-general-flow-name-button:hover { background: var(--vscode-toolbar-hoverBackground) !important; }
         .copy-general-flow-name-button:active { background: var(--vscode-toolbar-activeBackground); transform: scale(0.95); }
         .copy-general-flow-name-button .codicon { font-size: 16px; }
+
+    /* Ensure modals appear above tabs/content in this view */
+    .modal { z-index: 10000 !important; }
+    .modal-content { z-index: 10001 !important; }
     </style>
 </head>
 <body>
@@ -108,9 +110,7 @@ function getMainTemplate(
         </div>
     </div>
 
-    <!-- Modals for adding/editing items -->
-    ${paramModalHtml}
-    ${outputVarModalHtml}
+    <!-- Modals are created dynamically and appended to document.body by the client script -->
 
     <script>
         const vscode = acquireVsCodeApi();
