@@ -82,3 +82,9 @@
 - Changes: Injected forms' formControlUtilities into generalFlow client script to provide updateInputStyle/setupSettingsInputHandlers; unified copy-name UX to use icon swap like page init; no API changes
 - Status: Completed
 - Notes: General flow now mirrors page init interaction patterns; no schema or provider changes required
+
+2025-08-23  refresh-view parity (generalFlow)
+- Change: Updated refresh command flow to track, close, and reopen open General Flow details panels just like Page Init panels during appdna.refreshView. Preserves user context across a full refresh.
+- Files: src/commands/registerCommands.ts
+- Rationale: Ensure General Flow details view behaves the same as Page Init when the tree refresh icon is clicked.
+- Status: Completed.

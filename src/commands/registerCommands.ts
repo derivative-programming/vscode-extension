@@ -112,6 +112,12 @@ export function registerCommands(
             if (pageInitDetailsView && typeof pageInitDetailsView.getOpenPanelItems === "function") {
                 openPageInitPanelsToReopen = pageInitDetailsView.getOpenPanelItems();
             }
+
+            // Store references to any open general flow details panels before refreshing
+            let openGeneralPanelsToReopen: any[] = [];
+            if (generalFlowDetailsView && typeof generalFlowDetailsView.getOpenPanelItems === "function") {
+                openGeneralPanelsToReopen = generalFlowDetailsView.getOpenPanelItems();
+            }
             
             // Store reference to project settings panel if open
             const projectSettingsData = typeof getProjectSettingsPanel === "function" ? getProjectSettingsPanel() : null;
@@ -169,6 +175,11 @@ export function registerCommands(
             // Close all open page-init details panels
             if (pageInitDetailsView && typeof pageInitDetailsView.closeAllPanels === "function") {
                 pageInitDetailsView.closeAllPanels();
+            }
+
+            // Close all open general flow details panels
+            if (generalFlowDetailsView && typeof generalFlowDetailsView.closeAllPanels === "function") {
+                generalFlowDetailsView.closeAllPanels();
             }
             
             // Close project settings panel if open
@@ -314,6 +325,13 @@ export function registerCommands(
             if (openPageInitPanelsToReopen.length > 0 && pageInitDetailsView) {
                 for (const item of openPageInitPanelsToReopen) {
                     pageInitDetailsView.showPageInitDetails(item, modelService, context);
+                }
+            }
+
+            // Reopen any general flow details panels that were previously open with fresh data
+            if (openGeneralPanelsToReopen.length > 0 && generalFlowDetailsView) {
+                for (const item of openGeneralPanelsToReopen) {
+                    generalFlowDetailsView.showGeneralFlowDetails(item, modelService, context);
                 }
             }
             
