@@ -4,12 +4,7 @@ As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
     
 page list...
-- copilot:change owner object filter to a textbox
-
-on pageinit...
-- copilot:header add copy button
-- copilot:move up button should be inactive if top item selected or none selected
-- copilot:move down button should be inactive if bottom item selected or none selected 
+- change owner object filter to a textbox
 
 
 page preview - form...

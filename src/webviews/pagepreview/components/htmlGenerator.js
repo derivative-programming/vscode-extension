@@ -741,6 +741,35 @@ function generateCSS() {
             border-bottom: 1px solid var(--vscode-panel-border);
         }
         
+        /* Page initialization header text styles */
+        .page-init-header-text {
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+        
+        .header-text-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .header-text-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .header-text-label {
+            font-weight: 600;
+            color: var(--vscode-foreground);
+        }
+        
+        .header-text-value {
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+        }
+        
         .form-field {
             display: flex;
             flex-direction: column;
@@ -1718,6 +1747,62 @@ function generateJavaScript(allObjects) {
         let allObjects = ${JSON.stringify(allObjects || [], null, 2)};
         let selectedRoles = new Set(['PUBLIC', ${Array.from(uniqueRoles).map(r => `'${r}'`).join(', ')}]);
         let currentSelectedPage = null;
+        
+        // Helper function to find an initialization workflow by name across all objects
+        function findInitializationWorkflow(initWorkflowName, allObjects) {
+            if (!initWorkflowName || !allObjects || !Array.isArray(allObjects)) {
+                return null;
+            }
+            
+            // Search through all objects for a workflow with the matching name
+            for (const obj of allObjects) {
+                if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                    const foundWorkflow = obj.objectWorkflow.find(workflow => 
+                        workflow.name === initWorkflowName
+                    );
+                    if (foundWorkflow) {
+                        return foundWorkflow;
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        // Helper function to generate header text HTML from initialization flow output variables
+        function generatePageInitHeaderText(initWorkflow) {
+            if (!initWorkflow || !initWorkflow.objectWorkflowOutputVar || !Array.isArray(initWorkflow.objectWorkflowOutputVar)) {
+                return '';
+            }
+            
+            // Filter output variables that have isHeaderText = "true"
+            const headerTextVars = initWorkflow.objectWorkflowOutputVar.filter(outputVar => 
+                outputVar.isHeaderText === "true" && 
+                (!outputVar.hasOwnProperty('isIgnored') || outputVar.isIgnored !== "true")
+            );
+            
+            if (headerTextVars.length === 0) {
+                return '';
+            }
+            
+            let html = '<div class="form-section">';
+            html += '<div class="page-init-header-text">';
+            
+            headerTextVars.forEach(outputVar => {
+                const labelText = outputVar.labelText || outputVar.name || 'Header';
+                const varName = outputVar.name || 'UnknownVar';
+                
+                html += '<div class="header-text-item">';
+                html += '<span class="header-text-label">' + labelText + ':</span> ';
+                html += '<span class="header-text-value">' + varName + ' value</span>';
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            html += '</div>';
+            
+            return html;
+        }
         
         console.log('[DEBUG] PagePreview - Initialized with pages:', allPages);
         console.log('[DEBUG] PagePreview - Initialized with objects:', allObjects);
@@ -2748,6 +2833,14 @@ function generateJavaScript(allObjects) {
                 html += '</div>';
             }
             
+            // Page initialization flow header text - display output variables with isHeaderText=true
+            if (workflowObj.initObjectWorkflowName) {
+                const initWorkflow = findInitializationWorkflow(workflowObj.initObjectWorkflowName, allObjects);
+                if (initWorkflow) {
+                    html += generatePageInitHeaderText(initWorkflow);
+                }
+            }
+            
             // Auto-submit notification - display prominently when isAutoSubmit is true
             if (workflowObj.isAutoSubmit === "true") {
                 html += '<div class="form-section">';
@@ -2991,6 +3084,14 @@ function generateJavaScript(allObjects) {
             
             // Report action buttons (add and other types) - above filters
             html += generateReportActionButtons(page);
+            
+            // Page initialization flow header text - display output variables with isHeaderText=true
+            if (page.initObjectWorkflowName) {
+                const initWorkflow = findInitializationWorkflow(page.initObjectWorkflowName, allObjects);
+                if (initWorkflow) {
+                    html += generatePageInitHeaderText(initWorkflow);
+                }
+            }
             
             // Report filters section (if reportParam exists and not hidden)
             if (page.reportParam && page.reportParam.length > 0 && page.isFilterSectionHidden !== "true") {
