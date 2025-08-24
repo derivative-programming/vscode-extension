@@ -10,11 +10,16 @@ need lookup buttons on source object name and fk object name settings on flow vi
 
 need lookup on Button Object WF Name setting
 
-     
+workflow view
+- add tasks tab
+- add button to add new task
+- add button to add existing task
+- add button to move up task
+- add button to move down task
 
+workflowtask treeview items
+- dont open detail view on click?
 
-review the general flow details view. Review the WORKFLOW treeview items.
-we need a workflow details view. This will be similar to the general flow details view, but only settings tab will exist. Don not try to use the general flow details view files. Copy them to create new ones for workflow details view and rename files and variables accordingly. I'm serious...copy the general flow details view files to start this.
 
 
 report details view...

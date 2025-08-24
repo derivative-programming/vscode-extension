@@ -24,7 +24,7 @@ function getMainTemplate(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Details: ${apiSite.name || 'Unknown API Site'}</title>
-    <link href="${codiconsUri}" rel="stylesheet" />
+    ${codiconsUri ? `<link href="${codiconsUri}" rel="stylesheet" />` : ""}
     <style>
         ${getDetailViewStyles()}
         
@@ -69,35 +69,28 @@ function getMainTemplate(
         .copy-api-name-button .codicon {
             font-size: 16px;
         }
+    /* Ensure left-placed existence checkbox aligns tightly with input */
+    .form-row .setting-checkbox { margin-left: 0; }
     </style>
 </head>
 <body>
     <div class="content">
         <!-- Header with API site name and copy button -->
         <div class="header-container">
-            <h1 class="header-title">API Site: ${apiSite.name || 'Unknown'}</h1>
+            <h1 class="header-title">Details for ${apiSite.name || 'Unknown'} API Site</h1>
             <button type="button" class="copy-api-name-button" title="Copy API site name">
                 <span class="codicon codicon-copy"></span>
             </button>
         </div>
 
-        <!-- Tab Navigation -->
-        <div class="tab-container">
-            <div class="tab-nav">
-                <button class="tab-button active" onclick="openTab(event, 'settings-tab')">
-                    <span class="codicon codicon-settings"></span>
-                    Settings
-                </button>
-            </div>
+        <!-- Tabs (match Forms view markup) -->
+        <div class="tabs">
+            <div class="tab active" data-tab="settings">Settings</div>
+        </div>
 
-            <!-- Settings Tab Content -->
-            <div id="settings-tab" class="tab-content active">
-                <div class="form-container">
-                    <form id="settings-form">
-                        ${settingsHtml}
-                    </form>
-                </div>
-            </div>
+        <!-- Settings Tab Content -->
+        <div id="settings" class="tab-content active">
+            ${settingsHtml}
         </div>
     </div>
 
