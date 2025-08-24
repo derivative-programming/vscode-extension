@@ -413,3 +413,7 @@ STATUS: COMPLETED - Copy button consistency achieved between views
 - Result: Input vars tab now displays: autoCompleteAddressSourceName, autoCompleteAddressTargetType, codeDescription, dataSize, dataType, detailsText, fKListOrderBy, fKObjectName, infoToolTipText, isAutoCompleteAddressSource, isFileUpload, isFK, isFKList, isFKListInactiveIncluded, isFKListSearchable, isFKListUnknownOptionRemoved, isFKLookup, isIgnored, isRadioButtonList, isRequired, isSecured, isVisible, labelText, requiredErrorText, sourceObjectName, sourcePropertyName, validationRuleRegExMatchRequired, validationRuleRegExMatchRequiredErrorText.
 - Build: ✅ webpack compile successful
 - Status: ✅ COMPLETED
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessSubmit
+Command: Open Workflow Task Details for: DFTCampaignCompanyNameEvalResultConvertPrep
+Command: Open Workflow Task Details for: DynaFlowTaskDynaFlowCleanup

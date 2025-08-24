@@ -125,6 +125,15 @@ export class JsonTreeItem extends vscode.TreeItem {
             };
         }
         
+        // If the item represents a DynaFlow Task workflow (WORKFLOW_TASKS), attach a command to show workflow task details.
+        if (contextValue === 'dynaFlowTaskWorkflowItem') {
+            this.command = {
+                title: 'Show Workflow Task Details',
+                command: 'appdna.showWorkflowDetails',
+                arguments: [this]
+            };
+        }
+        
         // Set the id property directly instead of using a getter
         // to avoid conflict with the parent class property
         this.id = `${this.contextValue || 'item'}-${this.label}`;

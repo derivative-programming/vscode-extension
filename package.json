@@ -282,6 +282,11 @@
         "icon": "$(add)"
       },
       {
+        "command": "appdna.showWorkflowTaskDetails",
+        "title": "Show Workflow Task Details",
+        "icon": "$(inspect)"
+      },
+      {
         "command": "appdna.addObject",
         "title": "Add Object",
         "icon": "$(add)"
