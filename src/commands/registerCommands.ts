@@ -60,6 +60,7 @@ import { showRegisterView } from '../webviews/registerView';
 // Page Init Details wrapper
 const pageInitDetailsView = require('../webviews/pageInitDetailsView.js');
 const generalFlowDetailsView = require('../webviews/generalFlowDetailsView.js');
+const dynaFlowDetailsView = require('../webviews/workflowDetailsView.js');
 
 /**
  * Registers all commands for the AppDNA extension
@@ -117,6 +118,12 @@ export function registerCommands(
             let openGeneralPanelsToReopen: any[] = [];
             if (generalFlowDetailsView && typeof generalFlowDetailsView.getOpenPanelItems === "function") {
                 openGeneralPanelsToReopen = generalFlowDetailsView.getOpenPanelItems();
+            }
+
+            // Store references to any open workflow (DynaFlow) details panels before refreshing
+            let openWorkflowPanelsToReopen: any[] = [];
+            if (dynaFlowDetailsView && typeof dynaFlowDetailsView.getOpenPanelItems === "function") {
+                openWorkflowPanelsToReopen = dynaFlowDetailsView.getOpenPanelItems();
             }
             
             // Store reference to project settings panel if open
@@ -180,6 +187,11 @@ export function registerCommands(
             // Close all open general flow details panels
             if (generalFlowDetailsView && typeof generalFlowDetailsView.closeAllPanels === "function") {
                 generalFlowDetailsView.closeAllPanels();
+            }
+
+            // Close all open workflow (DynaFlow) details panels
+            if (dynaFlowDetailsView && typeof dynaFlowDetailsView.closeAllPanels === "function") {
+                dynaFlowDetailsView.closeAllPanels();
             }
             
             // Close project settings panel if open
@@ -334,6 +346,13 @@ export function registerCommands(
                     generalFlowDetailsView.showGeneralFlowDetails(item, modelService, context);
                 }
             }
+
+            // Reopen any workflow (DynaFlow) details panels that were previously open with fresh data
+            if (openWorkflowPanelsToReopen.length > 0 && dynaFlowDetailsView) {
+                for (const item of openWorkflowPanelsToReopen) {
+                    dynaFlowDetailsView.showWorkflowDetails(item, modelService, context);
+                }
+            }
             
             // Reopen project settings panel if it was open
             if (projectSettingsData && projectSettingsData.context && projectSettingsData.modelService) {
@@ -404,10 +423,20 @@ export function registerCommands(
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showWorkflowDetails', (node: JsonTreeItem) => {
             try {
-                if (pageInitDetailsView && typeof pageInitDetailsView.showPageInitDetails === 'function') {
-                    pageInitDetailsView.showPageInitDetails(node, modelService, context);
+                // Page Init (init* flows) are handled separately; DynaFlow (WORKFLOWS) should open the new view
+                if (node?.contextValue === 'pageInitWorkflowItem') {
+                    if (pageInitDetailsView && typeof pageInitDetailsView.showPageInitDetails === 'function') {
+                        pageInitDetailsView.showPageInitDetails(node, modelService, context);
+                    } else {
+                        vscode.window.showErrorMessage('Page Init Details view is not available.');
+                    }
+                    return;
+                }
+                // For DynaFlow workflows from WORKFLOWS
+                if (dynaFlowDetailsView && typeof dynaFlowDetailsView.showWorkflowDetails === 'function') {
+                    dynaFlowDetailsView.showWorkflowDetails(node, modelService, context);
                 } else {
-                    vscode.window.showErrorMessage('Page Init Details view is not available.');
+                    vscode.window.showErrorMessage('Workflow Details view is not available.');
                 }
             } catch (err: any) {
                 vscode.window.showErrorMessage(`Failed to open Page Init Details: ${err?.message || err}`);

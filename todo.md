@@ -10,26 +10,11 @@ need lookup buttons on source object name and fk object name settings on flow vi
 
 need lookup on Button Object WF Name setting
 
-geeneral flow detail view issues...
-- move up and move down button does nothing on click 
-  - input var tab
-  - output var tab
-- move up and move down button does not have correct enabled state, depending on which item is selected in list
-  - input var tab
-  - output var tab
-- reverse button does not work
-  - input var tab
-  - output var tab
-- add input var button modal not creating an item
-- add output var button modal not creating an item
-
      
 
-review the form details view. Review the GENERAL flow treeview items.
-we need a general flow details view. This will be similar to the form details view, but only settings tab, input controls (Parameters), and output variables tabs will exist. Don not try to use the form details view files. Copy them to create new ones for general flow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.
 
-review the form details view. Review the WORKFLOW treeview items.
-we need a workflow details view. This will be similar to the form details view, but only settings tab will exist. Don not try to use the form details view files. Copy them to create new ones for workflow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.
+review the general flow details view. Review the WORKFLOW treeview items.
+we need a workflow details view. This will be similar to the general flow details view, but only settings tab will exist. Don not try to use the general flow details view files. Copy them to create new ones for workflow details view and rename files and variables accordingly. I'm serious...copy the general flow details view files to start this.
 
 
 report details view...
