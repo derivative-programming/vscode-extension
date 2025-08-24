@@ -2,6 +2,21 @@ Agent todo items...
 
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
+
+
+geeneral flow detail view issues...
+- move up and move down button does nothing on click 
+  - input var tab
+  - output var tab
+- move up and move down button does not have correct enabled state, depending on which item is selected in list
+  - input var tab
+  - output var tab
+- reverse button does not work
+  - input var tab
+  - output var tab
+- add input var button modal not creating an item
+- add output var button modal not creating an item
+
      
 
 review the form details view. Review the GENERAL flow treeview items.

@@ -88,3 +88,21 @@
 - Files: src/commands/registerCommands.ts
 - Rationale: Ensure General Flow details view behaves the same as Page Init when the tree refresh icon is clicked.
 - Status: Completed.
+
+2025-08-24  output-var-move-buttons-fix (generalFlow)
+- Change: Fixed non-working "Move Up" and "Move Down" buttons on General Flow output variables tab by adding missing click event handlers, refreshOutputVarsList function, and updateMoveButtonStates function.
+- Files: src/webviews/generalFlow/components/templates/clientScriptTemplate.js
+- Rationale: General Flow was missing the move button functionality that Page Init has - buttons existed in HTML but had no event handlers or state management.
+- Status: Completed.
+
+2025-08-24  params-move-buttons-fix (generalFlow)
+- Change: Fixed non-working "Move Up" and "Move Down" buttons on General Flow input vars (params) tab by adding missing click event handlers, refreshParamsList function, and button state management for params list.
+- Files: src/webviews/generalFlow/components/templates/clientScriptTemplate.js
+- Rationale: Same issue as output vars - params move buttons existed in HTML but had no functionality. Now both params and output vars have complete move/reverse functionality matching Forms and Page Init patterns.
+- Status: Completed.
+
+2025-08-24  reverse-buttons-refresh-fix (generalFlow)
+- Change: Fixed reverse buttons for both params and output vars not updating tree view after reverse operation by adding missing vscode.commands.executeCommand("appdna.refresh") calls to reverseParamArray and reverseOutputVarArray functions.
+- Files: src/webviews/generalFlow/generalFlowDetailsView.js
+- Rationale: The reverse operations were working but not triggering tree refresh like other operations (add, move). Tree wasn't updating to reflect the new order visually.
+- Status: Completed.

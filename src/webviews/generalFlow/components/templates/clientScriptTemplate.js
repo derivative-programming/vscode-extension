@@ -86,6 +86,88 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
             // Output Variable Management Functions
             ${getOutputVariableManagementFunctions()}
 
+            // Refresh Output Variables List function
+            function refreshOutputVarsList(newOutputVars, newSelection = null) {
+                const outputVarsList = document.getElementById('outputVarsList');
+                if (outputVarsList) {
+                    const currentSelection = newSelection !== null ? newSelection : outputVarsList.selectedIndex;
+                    outputVarsList.innerHTML = '';
+                    newOutputVars.forEach((outputVar, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = outputVar.name || 'Unnamed Output Variable';
+                        outputVarsList.appendChild(option);
+                    });
+                    
+                    // Restore selection if still valid
+                    if (currentSelection >= 0 && currentSelection < newOutputVars.length) {
+                        outputVarsList.selectedIndex = currentSelection;
+                        // Trigger the change event to update the details view
+                        outputVarsList.dispatchEvent(new Event('change'));
+                    }
+                    
+                    // Update move button states
+                    const moveUpButton = document.getElementById('moveUpOutputVarButton');
+                    const moveDownButton = document.getElementById('moveDownOutputVarButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(outputVarsList, moveUpButton, moveDownButton);
+                    }
+                    
+                    console.log('[DEBUG] General Flow output vars list refreshed with', newOutputVars.length, 'items');
+                }
+            }
+
+            // Refresh Params List function
+            function refreshParamsList(newParams, newSelection = null) {
+                const paramsList = document.getElementById('paramsList');
+                if (paramsList) {
+                    const currentSelection = newSelection !== null ? newSelection : paramsList.selectedIndex;
+                    paramsList.innerHTML = '';
+                    newParams.forEach((param, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = param.name || 'Unnamed Parameter';
+                        paramsList.appendChild(option);
+                    });
+                    
+                    // Restore selection if still valid
+                    if (currentSelection >= 0 && currentSelection < newParams.length) {
+                        paramsList.selectedIndex = currentSelection;
+                        // Trigger the change event to update the details view
+                        paramsList.dispatchEvent(new Event('change'));
+                    }
+                    
+                    // Update move button states
+                    const moveUpButton = document.getElementById('moveUpParamsButton');
+                    const moveDownButton = document.getElementById('moveDownParamsButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(paramsList, moveUpButton, moveDownButton);
+                    }
+                    
+                    console.log('[DEBUG] General Flow params list refreshed with', newParams.length, 'items');
+                }
+            }
+            
+            // Update move button states helper function
+            function updateMoveButtonStates(listElement, moveUpButton, moveDownButton) {
+                if (!listElement || !moveUpButton || !moveDownButton) return;
+                
+                const selectedIndex = listElement.selectedIndex;
+                const hasSelection = selectedIndex >= 0;
+                const isFirstItem = selectedIndex === 0;
+                const isLastItem = selectedIndex === listElement.options.length - 1;
+                
+                // Disable both buttons if no selection
+                if (!hasSelection) {
+                    moveUpButton.disabled = true;
+                    moveDownButton.disabled = true;
+                } else {
+                    // Enable/disable based on position
+                    moveUpButton.disabled = isFirstItem;
+                    moveDownButton.disabled = isLastItem;
+                }
+            }
+
             // Lightweight DOM initialization for General Flow: wire add buttons and settings handlers only
             document.addEventListener('DOMContentLoaded', () => {
                 // Wire Add Input Control button to open its modal
@@ -104,6 +186,96 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                 if (typeof setupSettingsInputHandlers === 'function') {
                     setupSettingsInputHandlers();
                 }
+
+                // Initialize move button states for output variables
+                const outputVarsList = document.getElementById('outputVarsList');
+                const moveUpOutputVarButton = document.getElementById('moveUpOutputVarButton');
+                const moveDownOutputVarButton = document.getElementById('moveDownOutputVarButton');
+                
+                if (outputVarsList && moveUpOutputVarButton && moveDownOutputVarButton) {
+                    // Update button states on list selection changes
+                    outputVarsList.addEventListener('change', () => {
+                        updateMoveButtonStates(outputVarsList, moveUpOutputVarButton, moveDownOutputVarButton);
+                    });
+                    
+                    // Initialize button states
+                    updateMoveButtonStates(outputVarsList, moveUpOutputVarButton, moveDownOutputVarButton);
+                }
+
+                // Initialize move button states for params
+                const paramsList = document.getElementById('paramsList');
+                const moveUpParamsButton = document.getElementById('moveUpParamsButton');
+                const moveDownParamsButton = document.getElementById('moveDownParamsButton');
+                
+                if (paramsList && moveUpParamsButton && moveDownParamsButton) {
+                    // Update button states on list selection changes
+                    paramsList.addEventListener('change', () => {
+                        updateMoveButtonStates(paramsList, moveUpParamsButton, moveDownParamsButton);
+                    });
+                    
+                    // Initialize button states
+                    updateMoveButtonStates(paramsList, moveUpParamsButton, moveDownParamsButton);
+                }
+            });
+
+            // Wire move and reverse buttons for params (input controls)
+            document.getElementById('moveUpParamsButton')?.addEventListener('click', () => {
+                const paramsList = document.getElementById('paramsList');
+                if (!paramsList || !paramsList.value) return;
+                const selectedIndex = parseInt(paramsList.value);
+                if (selectedIndex > 0) { 
+                    vscode.postMessage({ 
+                        command: 'moveParam', 
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 } 
+                    }); 
+                }
+            });
+
+            document.getElementById('moveDownParamsButton')?.addEventListener('click', () => {
+                const paramsList = document.getElementById('paramsList');
+                if (!paramsList || !paramsList.value) return;
+                const selectedIndex = parseInt(paramsList.value);
+                const paramCount = document.querySelectorAll('#paramsList option').length;
+                if (selectedIndex < paramCount - 1) { 
+                    vscode.postMessage({ 
+                        command: 'moveParam', 
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 } 
+                    }); 
+                }
+            });
+
+            document.getElementById('reverseParamsButton')?.addEventListener('click', () => {
+                vscode.postMessage({ command: 'reverseParams' });
+            });
+
+            // Wire move and reverse buttons for output variables  
+            document.getElementById('moveUpOutputVarButton')?.addEventListener('click', () => {
+                const outputVarsList = document.getElementById('outputVarsList');
+                if (!outputVarsList || !outputVarsList.value) return;
+                const selectedIndex = parseInt(outputVarsList.value);
+                if (selectedIndex > 0) { 
+                    vscode.postMessage({ 
+                        command: 'moveOutputVar', 
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 } 
+                    }); 
+                }
+            });
+
+            document.getElementById('moveDownOutputVarButton')?.addEventListener('click', () => {
+                const outputVarsList = document.getElementById('outputVarsList');
+                if (!outputVarsList || !outputVarsList.value) return;
+                const selectedIndex = parseInt(outputVarsList.value);
+                const outputVarCount = document.querySelectorAll('#outputVarsList option').length;
+                if (selectedIndex < outputVarCount - 1) { 
+                    vscode.postMessage({ 
+                        command: 'moveOutputVar', 
+                        data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 } 
+                    }); 
+                }
+            });
+
+            document.getElementById('reverseOutputVarButton')?.addEventListener('click', () => {
+                vscode.postMessage({ command: 'reverseOutputVar' });
             });
 
             // Message handlers for list refresh updates

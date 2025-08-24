@@ -211,6 +211,7 @@ function reverseParamArray(flowRef, modelService, panel) {
         list.reverse();
         if (typeof modelService.markUnsavedChanges === 'function') { modelService.markUnsavedChanges(); }
         panel.webview.postMessage({ command: 'refreshParamsList', data: list, newSelection: 0 });
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (e) { console.error('reverseParamArray error:', e); }
 }
 
@@ -282,6 +283,7 @@ function reverseOutputVarArray(flowRef, modelService, panel) {
         list.reverse();
         if (typeof modelService.markUnsavedChanges === 'function') { modelService.markUnsavedChanges(); }
         panel.webview.postMessage({ command: 'refreshOutputVarsList', data: list, newSelection: 0 });
+        vscode.commands.executeCommand("appdna.refresh");
     } catch (e) { console.error('reverseOutputVarArray error:', e); }
 }
 
