@@ -1232,3 +1232,4 @@ Command: Open Page Init Details for: CampaignAdminDetailsInitReport
 Command: Open Page Init Details for: CTWEmailConfigDetailsInitReport
 Command: Open Page Init Details for: CTWContactUserUpdateInitObjWF
 
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
