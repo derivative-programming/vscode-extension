@@ -7,6 +7,15 @@ function getDetailViewStyles() {
     
     // Add general flow specific styles
     const generalFlowStyles = `
+        /* Header layout to keep copy icon inline with title */
+        .header-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .header-title { margin: 0; }
+
         /* Copy General Flow Name Button Styles */
         .copy-general-flow-name-button {
             background: transparent !important;

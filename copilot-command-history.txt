@@ -395,3 +395,12 @@ STATUS: COMPLETED - Copy button consistency achieved between views
 - Result: Lists rebuild correctly, selection is preserved, details panel updates, and move button states are accurate after each operation.
 - Build: ✅ webpack compile successful
 - Status: ✅ COMPLETED – Buttons and modals parity maintained; no further differences detected.
+
+2025-08-24  general-flow-header-inline-copy-button (UI FIX)
+- Command: "the copy icon button should be next to the title, not on the next line"
+- Change: Ensured header uses flex layout so copy icon sits inline with the title in General Flow details view.
+- Files Modified:
+  * src/webviews/generalFlow/styles/detailsViewStyles.js (added .header-container and .header-title styles)
+- Result: Copy icon button aligns on the same line as the title, matching Page Init.
+- Build: ✅ webpack compile successful
+- Status: ✅ COMPLETED
