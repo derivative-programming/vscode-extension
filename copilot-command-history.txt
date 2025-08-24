@@ -106,3 +106,15 @@
 - Files: src/webviews/generalFlow/generalFlowDetailsView.js
 - Rationale: The reverse operations were working but not triggering tree refresh like other operations (add, move). Tree wasn't updating to reflect the new order visually.
 - Status: Completed.
+
+2025-08-24  reverse-buttons-parity-fix (generalFlow)
+- Change: Corrected reverse button behavior to match Page Init patterns by removing vscode.commands.executeCommand("appdna.refresh") calls from reverseParamArray and reverseOutputVarArray functions, keeping only webview postMessage for list refresh.
+- Files: src/webviews/generalFlow/generalFlowDetailsView.js
+- Rationale: Page Init's move/reverse operations only send webview refresh messages, not tree refresh commands. General Flow should follow the same pattern for consistency.
+- Status: Completed.
+
+2025-08-24  duplicate-event-handlers-fix (generalFlow)
+- Change: Fixed double-reverse issue caused by duplicate event handlers by removing General Flow's move/reverse button handlers and letting Forms module handle them. Updated backend to handle both Forms and General Flow message formats.
+- Files: src/webviews/generalFlow/components/templates/clientScriptTemplate.js, src/webviews/generalFlow/generalFlowDetailsView.js
+- Rationale: General Flow was importing Forms' button handlers AND adding its own, causing double-click effects. Forms handlers work correctly when backend supports both message formats.
+- Status: Completed.

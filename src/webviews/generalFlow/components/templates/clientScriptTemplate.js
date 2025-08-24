@@ -218,66 +218,6 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                 }
             });
 
-            // Wire move and reverse buttons for params (input controls)
-            document.getElementById('moveUpParamsButton')?.addEventListener('click', () => {
-                const paramsList = document.getElementById('paramsList');
-                if (!paramsList || !paramsList.value) return;
-                const selectedIndex = parseInt(paramsList.value);
-                if (selectedIndex > 0) { 
-                    vscode.postMessage({ 
-                        command: 'moveParam', 
-                        data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 } 
-                    }); 
-                }
-            });
-
-            document.getElementById('moveDownParamsButton')?.addEventListener('click', () => {
-                const paramsList = document.getElementById('paramsList');
-                if (!paramsList || !paramsList.value) return;
-                const selectedIndex = parseInt(paramsList.value);
-                const paramCount = document.querySelectorAll('#paramsList option').length;
-                if (selectedIndex < paramCount - 1) { 
-                    vscode.postMessage({ 
-                        command: 'moveParam', 
-                        data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 } 
-                    }); 
-                }
-            });
-
-            document.getElementById('reverseParamsButton')?.addEventListener('click', () => {
-                vscode.postMessage({ command: 'reverseParams' });
-            });
-
-            // Wire move and reverse buttons for output variables  
-            document.getElementById('moveUpOutputVarButton')?.addEventListener('click', () => {
-                const outputVarsList = document.getElementById('outputVarsList');
-                if (!outputVarsList || !outputVarsList.value) return;
-                const selectedIndex = parseInt(outputVarsList.value);
-                if (selectedIndex > 0) { 
-                    vscode.postMessage({ 
-                        command: 'moveOutputVar', 
-                        data: { fromIndex: selectedIndex, toIndex: selectedIndex - 1 } 
-                    }); 
-                }
-            });
-
-            document.getElementById('moveDownOutputVarButton')?.addEventListener('click', () => {
-                const outputVarsList = document.getElementById('outputVarsList');
-                if (!outputVarsList || !outputVarsList.value) return;
-                const selectedIndex = parseInt(outputVarsList.value);
-                const outputVarCount = document.querySelectorAll('#outputVarsList option').length;
-                if (selectedIndex < outputVarCount - 1) { 
-                    vscode.postMessage({ 
-                        command: 'moveOutputVar', 
-                        data: { fromIndex: selectedIndex, toIndex: selectedIndex + 1 } 
-                    }); 
-                }
-            });
-
-            document.getElementById('reverseOutputVarButton')?.addEventListener('click', () => {
-                vscode.postMessage({ command: 'reverseOutputVar' });
-            });
-
             // Message handlers for list refresh updates
             window.addEventListener('message', event => {
                 const message = event.data;

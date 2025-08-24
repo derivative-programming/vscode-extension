@@ -131,6 +131,9 @@ function showGeneralFlowDetails(item, modelService, context) {
                 case "reverseParams":
                     if (modelService && flowReference) { reverseParamArray(flowReference, modelService, panel); }
                     return;
+                case "reverseParam":
+                    if (modelService && flowReference) { reverseParamArray(flowReference, modelService, panel); }
+                    return;
                 case "addParam":
                     if (modelService && flowReference) { addParamToGeneral(flowReference, modelService); }
                     return;
@@ -145,7 +148,11 @@ function showGeneralFlowDetails(item, modelService, context) {
                     if (modelService && flowReference) { removeOutputVarProperty(message, flowReference, modelService); }
                     return;
                 case "moveOutputVar":
-                    if (modelService && flowReference) { moveOutputVarInArray(message.data, flowReference, modelService, panel); }
+                    if (modelService && flowReference) { 
+                        // Handle both Forms format (direct fromIndex/toIndex) and General Flow format (data wrapper)
+                        const moveData = message.data ? message.data : { fromIndex: message.fromIndex, toIndex: message.toIndex };
+                        moveOutputVarInArray(moveData, flowReference, modelService, panel); 
+                    }
                     return;
                 case "reverseOutputVar":
                     if (modelService && flowReference) { reverseOutputVarArray(flowReference, modelService, panel); }
@@ -211,7 +218,6 @@ function reverseParamArray(flowRef, modelService, panel) {
         list.reverse();
         if (typeof modelService.markUnsavedChanges === 'function') { modelService.markUnsavedChanges(); }
         panel.webview.postMessage({ command: 'refreshParamsList', data: list, newSelection: 0 });
-        vscode.commands.executeCommand("appdna.refresh");
     } catch (e) { console.error('reverseParamArray error:', e); }
 }
 
@@ -283,7 +289,6 @@ function reverseOutputVarArray(flowRef, modelService, panel) {
         list.reverse();
         if (typeof modelService.markUnsavedChanges === 'function') { modelService.markUnsavedChanges(); }
         panel.webview.postMessage({ command: 'refreshOutputVarsList', data: list, newSelection: 0 });
-        vscode.commands.executeCommand("appdna.refresh");
     } catch (e) { console.error('reverseOutputVarArray error:', e); }
 }
 
