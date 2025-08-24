@@ -214,6 +214,15 @@ function getOutputVariableManagementFunctions() {
                 }
                 updateInputStyle(inputElement, true);
                 
+                // Enable/disable browse button for sourceObjectName field
+                if (propName === 'sourceObjectName') {
+                    const browseButton = tableCell.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = false;
+                        console.log('Enabled browse button for', propName);
+                    }
+                }
+                
                 // Disable the checkbox to prevent unchecking
                 this.disabled = true;
                 this.setAttribute('data-originally-checked', 'true');
@@ -233,6 +242,15 @@ function getOutputVariableManagementFunctions() {
                     inputElement.disabled = true;
                 }
                 updateInputStyle(inputElement, false);
+                
+                // Enable/disable browse button for sourceObjectName field
+                if (propName === 'sourceObjectName') {
+                    const browseButton = tableCell.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = true;
+                        console.log('Disabled browse button for', propName);
+                    }
+                }
             }
             
             // Send message to update the model

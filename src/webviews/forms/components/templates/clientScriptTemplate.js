@@ -449,6 +449,50 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                 }
             }
 
+            // DOM Event handling for browse buttons (data object lookup)
+            document.addEventListener('click', function(event) {
+                // Check if the clicked element is a lookup button or its child
+                let button = event.target;
+                if (button.classList.contains('codicon')) {
+                    // If clicked on the icon, get the parent button
+                    button = button.parentElement;
+                }
+                
+                if (button && button.classList && button.classList.contains('lookup-button')) {
+                    console.log('Browse button clicked:', button);
+                    const propKey = button.getAttribute('data-prop');
+                    console.log('Property key:', propKey);
+                    
+                    if (propKey === 'sourceObjectName') {
+                        console.log('Handling sourceObjectName browse');
+                        // Handle data object browse functionality
+                        let inputField = button.parentElement.querySelector('input[type="text"]');
+                        
+                        // If not found (list view), try using data-index
+                        if (!inputField) {
+                            const dataIndex = button.getAttribute('data-index');
+                            console.log('Using data index:', dataIndex);
+                            if (dataIndex !== null) {
+                                const fieldId = 'outputVar' + propKey + dataIndex;
+                                inputField = document.getElementById(fieldId);
+                            }
+                        }
+                        
+                        if (inputField) {
+                            console.log('Input field found:', inputField);
+                            const currentValue = inputField.value;
+                            console.log('Current value:', currentValue);
+                            console.log('All data objects:', allDataObjects);
+                            createDataObjectSearchModal(currentValue, inputField);
+                        } else {
+                            console.error('Input field not found');
+                        }
+                    }
+                } else {
+                    console.log('Not a lookup button click');
+                }
+            });
+
         })();
     `;
 }
