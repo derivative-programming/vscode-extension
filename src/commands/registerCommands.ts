@@ -63,6 +63,8 @@ const pageInitDetailsView = require('../webviews/pageInitDetailsView.js');
 const generalFlowDetailsView = require('../webviews/generalFlowDetailsView.js');
 const dynaFlowDetailsView = require('../webviews/workflowDetailsView.js');
 const workflowTaskDetailsView = require('../webviews/workflowTaskDetailsView.js');
+// API Details wrapper
+const apiDetailsView = require('../webviews/apis/apiDetailsView.js');
 
 /**
  * Registers all commands for the AppDNA extension
@@ -131,6 +133,12 @@ export function registerCommands(
             let openWorkflowTaskPanelsToReopen: any[] = [];
             if (workflowTaskDetailsView && typeof workflowTaskDetailsView.getOpenPanelItems === "function") {
                 openWorkflowTaskPanelsToReopen = workflowTaskDetailsView.getOpenPanelItems();
+            }
+            
+            // Store references to any open API details panels before refreshing
+            let openApiPanelsToReopen: any[] = [];
+            if (apiDetailsView && typeof apiDetailsView.getOpenPanelItems === "function") {
+                openApiPanelsToReopen = apiDetailsView.getOpenPanelItems();
             }
             
             // Store reference to project settings panel if open
@@ -203,6 +211,11 @@ export function registerCommands(
             // Close all open workflow task details panels
             if (workflowTaskDetailsView && typeof workflowTaskDetailsView.closeAllPanels === "function") {
                 workflowTaskDetailsView.closeAllPanels();
+            }
+            
+            // Close all open API details panels
+            if (apiDetailsView && typeof apiDetailsView.closeAllPanels === "function") {
+                apiDetailsView.closeAllPanels();
             }
             
             // Close project settings panel if open
@@ -368,6 +381,13 @@ export function registerCommands(
             if (openWorkflowTaskPanelsToReopen.length > 0 && workflowTaskDetailsView) {
                 for (const item of openWorkflowTaskPanelsToReopen) {
                     workflowTaskDetailsView.showWorkflowTaskDetails(item, modelService, context);
+                }
+            }
+            
+            // Reopen any API details panels that were previously open with fresh data
+            if (openApiPanelsToReopen.length > 0 && apiDetailsView) {
+                for (const item of openApiPanelsToReopen) {
+                    apiDetailsView.showApiDetails(item, modelService, context);
                 }
             }
             

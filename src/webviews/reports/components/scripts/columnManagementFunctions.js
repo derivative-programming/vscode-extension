@@ -350,6 +350,12 @@ function getColumnManagementFunctions() {
         createAddDestinationButtonColumnModal();
     });
 
+    // Add general flow button column click handler
+    document.getElementById('add-general-flow-button-column-btn').addEventListener('click', function() {
+        console.log('[DEBUG] Add general flow button column button clicked');
+        createAddGeneralFlowButtonColumnModal();
+    });
+
     // Subscribe to Owner Properties checkbox handler
     const subscribeOwnerCheckbox = document.getElementById('subscribeOwnerProperties');
     if (subscribeOwnerCheckbox) {

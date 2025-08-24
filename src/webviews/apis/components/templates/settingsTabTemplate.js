@@ -9,8 +9,8 @@ const { formatLabel } = require("../../../forms/helpers/formDataHelper");
 function getApiSitePropertiesToIgnore() {
     return [
         "name", // name should not be editable in settings
-        "apienvironment", // complex array property - will have its own tab if needed
-        "apiendpoint", // complex array property - will have its own tab if needed
+        "apienvironment", // complex array property - handled in dedicated views
+        "apiendpoint", // complex array property - handled in dedicated views
     ];
 }
 
@@ -19,15 +19,9 @@ function getApiSitePropertiesToIgnore() {
  * Based on the issue requirements
  * @returns {Array<string>} Array of property names to include
  */
+// We no longer hardcode an include list. Follow schema-driven generation per guidelines.
 function getApiSitePropertiesToInclude() {
-    return [
-        "apilogreportname",
-        "description", 
-        "ispublic",
-        "issiteloggingenabled",
-        "title",
-        "versionnumber"
-    ];
+    return null; // sentinel indicating: include all non-array/object props except ignore list
 }
 
 /**
@@ -38,76 +32,67 @@ function getApiSitePropertiesToInclude() {
  */
 function getSettingsTabTemplate(apiSite, apiSiteSchemaProps) {
     const propertiesToIgnore = getApiSitePropertiesToIgnore();
-    const propertiesToInclude = getApiSitePropertiesToInclude();
-    
+
     return Object.entries(apiSiteSchemaProps)
         .filter(([prop, schema]) => {
-            // Skip properties that should not be editable or visible
-            if (propertiesToIgnore.includes(prop.toLowerCase())) {
-                return false;
-            }
-            
-            // Include only the properties requested in the issue
-            return propertiesToInclude.includes(prop.toLowerCase());
+            const key = String(prop || "").toLowerCase();
+            if (propertiesToIgnore.includes(key)) { return false; }
+            // Skip arrays and objects; settings tab is for scalar/editable primitives and enums
+            const type = schema && schema.type;
+            if (type === "array" || type === "object") { return false; }
+            return true;
         })
-        .sort((a, b) => a[0].localeCompare(b[0])) // Sort alphabetically by property name
+        .sort((a, b) => a[0].localeCompare(b[0]))
         .map(([prop, schema]) => {
-            // Check if property has enum values
-            const hasEnum = schema.enum && Array.isArray(schema.enum);
-            // Check if it's a boolean enum (containing only true/false values)
-            const isBooleanEnum = hasEnum && schema.enum.length === 2 && 
-                schema.enum.every(val => val === true || val === false || val === "true" || val === "false");
-            
-            // Get description for tooltip
-            const tooltip = schema.description ? `title="${schema.description}"` : "";
-            
-            // Check if the property exists in the API site object
-            const propertyExists = apiSite.hasOwnProperty(prop) && apiSite[prop] !== null && apiSite[prop] !== undefined;
-            
-            // Generate appropriate input field based on whether it has enum values
+            const hasEnum = Array.isArray(schema?.enum);
+            const isBooleanEnum = hasEnum && schema.enum.length === 2 && schema.enum.every(val =>
+                val === true || val === false || val === "true" || val === "false"
+            );
+            const type = schema?.type;
+            const tooltip = schema?.description ? `title="${schema.description}"` : "";
+            const propertyExists = Object.prototype.hasOwnProperty.call(apiSite, prop) && apiSite[prop] !== null && apiSite[prop] !== undefined;
+
+            // Build input control
             let inputField = "";
+            const dataTypeAttr = hasEnum
+                ? `data-type="enum"`
+                : `data-type="${type || "string"}"`;
+
             if (hasEnum) {
-                // Generate select dropdown for enum values
-                inputField = `<select id="setting-${prop}" name="${prop}" ${tooltip} ${!propertyExists ? "readonly disabled" : ""}>
-                    ${schema.enum
-                        .slice() // Create a copy to avoid mutating the original array
-                        .sort() // Sort alphabetically
-                        .map(option => {
+                inputField = `<select id="setting-${prop}" name="${prop}" ${tooltip} ${dataTypeAttr} ${!propertyExists ? "readonly disabled" : ""}>
+                    ${schema.enum.slice().sort().map(option => {
                         let isSelected = false;
-                        
                         if (propertyExists) {
-                            // Use the actual API site value if property exists
                             isSelected = apiSite[prop] === option;
-                        } else {
-                            // Property doesn't exist - set defaults
-                            if (schema.default !== undefined) {
-                                // Use the schema's default value if available
-                                isSelected = option === schema.default;
-                            } else if (isBooleanEnum) {
-                                // Default to 'false' for boolean enums if no default specified
-                                isSelected = (option === false || option === "false");
-                            } else if (schema.enum.indexOf(option) === 0) {
-                                // For non-boolean enums with no default, select the first option
-                                isSelected = true;
-                            }
+                        } else if (schema.default !== undefined) {
+                            isSelected = option === schema.default;
+                        } else if (isBooleanEnum) {
+                            isSelected = (option === false || option === "false");
+                        } else if (schema.enum.indexOf(option) === 0) {
+                            isSelected = true;
                         }
-                        
-                        return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
+                        const selectedAttr = isSelected ? " selected" : "";
+                        return `<option value="${option}"${selectedAttr}>${option}</option>`;
                     }).join("")}
                 </select>`;
             } else {
-                // Generate text input for non-enum values
-                inputField = `<input type="text" id="setting-${prop}" name="${prop}" value="${propertyExists ? apiSite[prop] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
+                // Choose input type by schema.type
+                let inputType = "text";
+                if (type === "number" || type === "integer") { inputType = "number"; }
+                inputField = `<input type="${inputType}" id="setting-${prop}" name="${prop}" ${dataTypeAttr} value="${propertyExists ? apiSite[prop] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
-            
-            // If the property exists, add a data attribute to indicate it was originally checked
-            // This will help prevent unchecking properties that already exist
+
+            // Optional browse button pattern parity (none specific for APIs yet)
+            let controlContainer = inputField;
+
+            // Existence checkbox goes to the left of the control, per guidelines
             const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
-            
+            const checkbox = `<input type="checkbox" class="setting-checkbox" data-prop="${prop}" data-is-enum="${hasEnum}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence" />`;
+
             return `<div class="form-row">
                 <label for="setting-${prop}" ${tooltip}>${formatLabel(prop)}:</label>
-                ${inputField}
-                <input type="checkbox" class="setting-checkbox" data-prop="${prop}" data-is-enum="${hasEnum}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} style="margin-left: 5px; transform: scale(0.8);" title="Toggle property existence">
+                ${controlContainer}
+                ${checkbox}
             </div>`;
         }).join("");
 }

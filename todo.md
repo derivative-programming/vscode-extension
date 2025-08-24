@@ -3,19 +3,29 @@ Agent todo items...
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
 
+only show WORKFLOWS and WORKFLOW TASKS treeview items if dyanflow and dynaflow task data objects exist
 
-add owner object display under title on flow views
+add wf task ...
+- create array item and dft
+- add validation
 
-need lookup buttons on source object name and fk object name settings on flow views
+copilot:add owner object display under title on flow views
+
+need lookup buttons on fk object name settings on flow view
+
+copilot:need lookup buttons on source object name settings on flow views
 
 need lookup on Button Object WF Name setting
 
-     
+workflow view
+- add tasks tab
+- add button to add new task
+- add button to add existing task
+- add button to move up task
+- add button to move down task
 
-
-review the general flow details view. Review the WORKFLOW treeview items.
-we need a workflow details view. This will be similar to the general flow details view, but only settings tab will exist. Don not try to use the general flow details view files. Copy them to create new ones for workflow details view and rename files and variables accordingly. I'm serious...copy the general flow details view files to start this.
-
+workflowtask treeview items
+- dont open detail view on click?
 
 report details view...
 - allow creation of column async flow button
