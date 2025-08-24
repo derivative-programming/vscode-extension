@@ -807,6 +807,59 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                 };
                 if (field.tagName === 'SELECT') { field.addEventListener('change', handler); } else { field.addEventListener('input', handler); field.addEventListener('change', handler); }
             });
+
+            // Handle refresh messages from the extension (match Page Init behavior)
+            window.addEventListener('message', event => {
+                const message = event.data;
+                switch (message.command) {
+                    case 'refreshParamsList': {
+                        const paramsListEl = document.getElementById('paramsList');
+                        if (!paramsListEl) break;
+                        currentParams = Array.isArray(message.data) ? message.data : [];
+                        const currentSelection = (message.newSelection != null) ? message.newSelection : paramsListEl.selectedIndex;
+                        // Rebuild options
+                        paramsListEl.innerHTML = '';
+                        currentParams.forEach((p, i) => {
+                            const opt = document.createElement('option');
+                            opt.value = i; opt.textContent = p?.name || 'Unnamed Input Control';
+                            paramsListEl.appendChild(opt);
+                        });
+                        // Restore selection and trigger change for details panel
+                        if (currentSelection >= 0 && currentSelection < currentParams.length) {
+                            paramsListEl.selectedIndex = currentSelection;
+                            paramsListEl.dispatchEvent(new Event('change'));
+                        }
+                        // Sync move button states
+                        const up = document.getElementById('moveUpParamButton');
+                        const down = document.getElementById('moveDownParamButton');
+                        if (up && down) { updateMoveButtonStates(paramsListEl, up, down); }
+                        break;
+                    }
+                    case 'refreshOutputVarsList': {
+                        const outputVarsListEl = document.getElementById('outputVarsList');
+                        if (!outputVarsListEl) break;
+                        currentOutputVars = Array.isArray(message.data) ? message.data : [];
+                        const currentSelection = (message.newSelection != null) ? message.newSelection : outputVarsListEl.selectedIndex;
+                        // Rebuild options
+                        outputVarsListEl.innerHTML = '';
+                        currentOutputVars.forEach((ov, i) => {
+                            const opt = document.createElement('option');
+                            opt.value = i; opt.textContent = ov?.name || 'Unnamed Output Variable';
+                            outputVarsListEl.appendChild(opt);
+                        });
+                        // Restore selection and trigger change for details panel
+                        if (currentSelection >= 0 && currentSelection < currentOutputVars.length) {
+                            outputVarsListEl.selectedIndex = currentSelection;
+                            outputVarsListEl.dispatchEvent(new Event('change'));
+                        }
+                        // Sync move button states
+                        const up = document.getElementById('moveUpOutputVarButton');
+                        const down = document.getElementById('moveDownOutputVarButton');
+                        if (up && down) { updateMoveButtonStates(outputVarsListEl, up, down); }
+                        break;
+                    }
+                }
+            });
         })();
     `;
 }

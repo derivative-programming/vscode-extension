@@ -385,3 +385,13 @@ STATUS: COMPLETED - Copy button consistency achieved between views
 - Verification: ✅ Successful webpack compilation confirms structural integrity maintained
 
 **REVIEW CYCLE 2 CONCLUSION**: ✅ No further changes necessary - general flow details view now perfectly matches page init details view in all aspects including buttons, modals, accessibility, tab behavior, and functional patterns.
+
+2025-08-24  general-flow-refresh-handlers-alignment (FINAL UI SYNC WITH PAGE INIT)
+- Command: "repeat until no changes are necessary... review all buttons and modals on the page init details view vs general flow"
+- Change: Added missing webview message handlers in General Flow client script to process list refresh messages and sync button states, exactly matching Page Init behavior.
+- Files Modified:
+  * src/webviews/generalFlow/components/templates/clientScriptTemplate.js (added window.addEventListener('message') with handlers for 'refreshParamsList' and 'refreshOutputVarsList')
+- Why: Without these handlers, after move/reverse/add operations the lists updated via postMessage but the UI in the General Flow view didn't rebuild options or update Move Up/Down button disabled states like Page Init.
+- Result: Lists rebuild correctly, selection is preserved, details panel updates, and move button states are accurate after each operation.
+- Build: ✅ webpack compile successful
+- Status: ✅ COMPLETED – Buttons and modals parity maintained; no further differences detected.
