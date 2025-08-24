@@ -2,6 +2,29 @@
 
 This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
 
+## Latest Implementation Notes (2025-08-24)
+
+### General Flow Modal Implementation - **COMPLETED** (2025-08-24)
+- **Issue**: General Flow details view showing "Add output variable modal - not yet implemented" and "Add input control modal - not yet implemented" console messages
+- **Root Cause**: Placeholder functions in `clientScriptTemplate.js` that only logged messages instead of opening modals
+- **Solution**: Complete modal implementation following Page Init patterns:
+  - **Modal Templates**: Created proper HTML structure with wrapped modal divs for both input controls and output variables
+  - **Modal Integration**: Updated details view generator and main template to include modal HTML
+  - **Modal Functionality**: Implemented full JavaScript functionality including:
+    - Modal show/hide with proper focus management
+    - Tab switching between single add and bulk add modes
+    - Form validation (name uniqueness, format rules, length limits)
+    - Event handling for buttons, Enter key, click outside to close
+    - Message passing to extension using `addParamWithName` and `addOutputVarWithName` commands
+    - Form clearing and error display
+- **Architecture Pattern**: Follows the established Page Init modal pattern but adapted for General Flow's dual needs (input controls + output variables)
+- **Files Modified**:
+  - `modalTemplates.js`: Added proper modal wrapper divs and functionality
+  - `detailsViewGenerator.js`: Import and pass modals to main template
+  - `mainTemplate.js`: Include modal HTML in template output
+  - `clientScriptTemplate.js`: Replaced placeholder functions with full implementations
+- **Status**: ✅ Both "Add Input Control" and "Add Output Variable" modals are now fully functional
+
 ## Code Review Notes (2025-08-02)
 
 ### Page Preview Form Controls - Date/DateTime Implementation

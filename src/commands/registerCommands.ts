@@ -55,10 +55,14 @@ import { showPagePreview, getPagePreviewPanel, closePagePreviewView } from '../w
 import { showFilterInputCommand, clearFilterCommand, showReportFilterInputCommand, clearReportFilterCommand, showDataObjectFilterInputCommand, clearDataObjectFilterCommand, showFormFilterInputCommand, clearFormFilterCommand, showPageInitFilterInputCommand, clearPageInitFilterCommand, showWorkflowsFilterInputCommand, clearWorkflowsFilterCommand, showWorkflowTasksFilterInputCommand, clearWorkflowTasksFilterCommand, showGeneralFilterInputCommand, clearGeneralFilterCommand } from './filterTreeViewCommands';
 // Import showAppDNASettingsView and related functions
 import { showAppDNASettingsView, reloadAppDNASettingsPanel } from '../webviews/appDnaSettingsView';
+import { addLogToCommandHistory } from '../utils/commandLog';
 // Import showRegisterView
 import { showRegisterView } from '../webviews/registerView';
 // Page Init Details wrapper
 const pageInitDetailsView = require('../webviews/pageInitDetailsView.js');
+const generalFlowDetailsView = require('../webviews/generalFlowDetailsView.js');
+const dynaFlowDetailsView = require('../webviews/workflowDetailsView.js');
+const workflowTaskDetailsView = require('../webviews/workflowTaskDetailsView.js');
 
 /**
  * Registers all commands for the AppDNA extension
@@ -110,6 +114,23 @@ export function registerCommands(
             let openPageInitPanelsToReopen: any[] = [];
             if (pageInitDetailsView && typeof pageInitDetailsView.getOpenPanelItems === "function") {
                 openPageInitPanelsToReopen = pageInitDetailsView.getOpenPanelItems();
+            }
+
+            // Store references to any open general flow details panels before refreshing
+            let openGeneralPanelsToReopen: any[] = [];
+            if (generalFlowDetailsView && typeof generalFlowDetailsView.getOpenPanelItems === "function") {
+                openGeneralPanelsToReopen = generalFlowDetailsView.getOpenPanelItems();
+            }
+
+            // Store references to any open workflow (DynaFlow) details panels before refreshing
+            let openWorkflowPanelsToReopen: any[] = [];
+            if (dynaFlowDetailsView && typeof dynaFlowDetailsView.getOpenPanelItems === "function") {
+                openWorkflowPanelsToReopen = dynaFlowDetailsView.getOpenPanelItems();
+            }
+            // Store references to any open workflow task details panels before refreshing
+            let openWorkflowTaskPanelsToReopen: any[] = [];
+            if (workflowTaskDetailsView && typeof workflowTaskDetailsView.getOpenPanelItems === "function") {
+                openWorkflowTaskPanelsToReopen = workflowTaskDetailsView.getOpenPanelItems();
             }
             
             // Store reference to project settings panel if open
@@ -168,6 +189,20 @@ export function registerCommands(
             // Close all open page-init details panels
             if (pageInitDetailsView && typeof pageInitDetailsView.closeAllPanels === "function") {
                 pageInitDetailsView.closeAllPanels();
+            }
+
+            // Close all open general flow details panels
+            if (generalFlowDetailsView && typeof generalFlowDetailsView.closeAllPanels === "function") {
+                generalFlowDetailsView.closeAllPanels();
+            }
+
+            // Close all open workflow (DynaFlow) details panels
+            if (dynaFlowDetailsView && typeof dynaFlowDetailsView.closeAllPanels === "function") {
+                dynaFlowDetailsView.closeAllPanels();
+            }
+            // Close all open workflow task details panels
+            if (workflowTaskDetailsView && typeof workflowTaskDetailsView.closeAllPanels === "function") {
+                workflowTaskDetailsView.closeAllPanels();
             }
             
             // Close project settings panel if open
@@ -315,6 +350,26 @@ export function registerCommands(
                     pageInitDetailsView.showPageInitDetails(item, modelService, context);
                 }
             }
+
+            // Reopen any general flow details panels that were previously open with fresh data
+            if (openGeneralPanelsToReopen.length > 0 && generalFlowDetailsView) {
+                for (const item of openGeneralPanelsToReopen) {
+                    generalFlowDetailsView.showGeneralFlowDetails(item, modelService, context);
+                }
+            }
+
+            // Reopen any workflow (DynaFlow) details panels that were previously open with fresh data
+            if (openWorkflowPanelsToReopen.length > 0 && dynaFlowDetailsView) {
+                for (const item of openWorkflowPanelsToReopen) {
+                    dynaFlowDetailsView.showWorkflowDetails(item, modelService, context);
+                }
+            }
+            // Reopen any workflow task details panels that were previously open with fresh data
+            if (openWorkflowTaskPanelsToReopen.length > 0 && workflowTaskDetailsView) {
+                for (const item of openWorkflowTaskPanelsToReopen) {
+                    workflowTaskDetailsView.showWorkflowTaskDetails(item, modelService, context);
+                }
+            }
             
             // Reopen project settings panel if it was open
             if (projectSettingsData && projectSettingsData.context && projectSettingsData.modelService) {
@@ -381,17 +436,54 @@ export function registerCommands(
         })
     );
 
-    // Register handler for PAGE_INIT workflow item command from tree
+    // Register handler for workflow items from tree (PAGE_INIT vs WORKFLOWS vs WORKFLOW_TASKS)
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.showWorkflowDetails', (node: JsonTreeItem) => {
             try {
-                if (pageInitDetailsView && typeof pageInitDetailsView.showPageInitDetails === 'function') {
-                    pageInitDetailsView.showPageInitDetails(node, modelService, context);
+                // Page Init (init* flows) are handled separately; DynaFlow (WORKFLOWS) should open the new view
+                if (node?.contextValue === 'pageInitWorkflowItem') {
+                    try { addLogToCommandHistory(`Open Page Init Details for: ${node?.label}`); } catch {}
+                    if (pageInitDetailsView && typeof pageInitDetailsView.showPageInitDetails === 'function') {
+                        pageInitDetailsView.showPageInitDetails(node, modelService, context);
+                    } else {
+                        vscode.window.showErrorMessage('Page Init Details view is not available.');
+                    }
+                    return;
+                }
+                // Workflow tasks (isDynaFlowTask=true)
+                if (node?.contextValue === 'dynaFlowTaskWorkflowItem') {
+                    try { addLogToCommandHistory(`Open Workflow Task Details for: ${node?.label}`); } catch {}
+                    if (workflowTaskDetailsView && typeof workflowTaskDetailsView.showWorkflowTaskDetails === 'function') {
+                        workflowTaskDetailsView.showWorkflowTaskDetails(node, modelService, context);
+                    } else {
+                        vscode.window.showErrorMessage('Workflow Task Details view is not available.');
+                    }
+                    return;
+                }
+                // For DynaFlow workflows from WORKFLOWS
+                if (dynaFlowDetailsView && typeof dynaFlowDetailsView.showWorkflowDetails === 'function') {
+                    try { addLogToCommandHistory(`Open Workflow Details for: ${node?.label}`); } catch {}
+                    dynaFlowDetailsView.showWorkflowDetails(node, modelService, context);
                 } else {
-                    vscode.window.showErrorMessage('Page Init Details view is not available.');
+                    vscode.window.showErrorMessage('Workflow Details view is not available.');
                 }
             } catch (err: any) {
                 vscode.window.showErrorMessage(`Failed to open Page Init Details: ${err?.message || err}`);
+            }
+        })
+    );
+
+    // Register handler for GENERAL workflow item command from tree
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.showGeneralFlowDetails', (node: JsonTreeItem) => {
+            try {
+                if (generalFlowDetailsView && typeof generalFlowDetailsView.showGeneralFlowDetails === 'function') {
+                    generalFlowDetailsView.showGeneralFlowDetails(node, modelService, context);
+                } else {
+                    vscode.window.showErrorMessage('General Flow Details view is not available.');
+                }
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`Failed to open General Flow Details: ${err?.message || err}`);
             }
         })
     );

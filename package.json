@@ -263,7 +263,7 @@
           "group": "inline",
           "icon": "$(table)"
         }
-      ]
+  ]
     },
     "configuration": {
       "title": "AppDNA",
@@ -280,6 +280,11 @@
         "command": "appdna.addFile",
         "title": "New Project Model",
         "icon": "$(add)"
+      },
+      {
+        "command": "appdna.showWorkflowTaskDetails",
+        "title": "Show Workflow Task Details",
+        "icon": "$(inspect)"
       },
       {
         "command": "appdna.addObject",
@@ -470,6 +475,11 @@
         "command": "appdna.generalList",
         "title": "Show General List",
         "icon": "$(table)"
+      },
+      {
+        "command": "appdna.showGeneralFlowDetails",
+        "title": "Show General Flow Details",
+        "icon": "$(inspect)"
       },
       {
         "command": "appdna.showWorkflowsFilter",

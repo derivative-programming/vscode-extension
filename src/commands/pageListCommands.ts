@@ -124,12 +124,23 @@ export function registerPageListCommands(
                             color: var(--vscode-editor-foreground);
                             margin-bottom: 15px;
                         }
-                        table { border-collapse: collapse; width: 100%; margin-top: 1em; }
-                        th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
+                        table { border-collapse: collapse; width: 100%; margin-top: 1em; min-width: 1200px; }
+                        th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; white-space: nowrap; }
                         th { background: var(--vscode-sideBar-background); cursor: pointer; font-weight: bold; }
+                        td { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+                        td:hover { overflow: visible; white-space: normal; word-wrap: break-word; }
                         tr:nth-child(even) { background: var(--vscode-sideBarSectionHeader-background); }
                         tr:hover { background-color: var(--vscode-list-hoverBackground); }
                         tbody tr { cursor: pointer; }
+                        /* Column-specific widths for better table layout */
+                        th:nth-child(1), td:nth-child(1) { min-width: 120px; max-width: 180px; } /* Name */
+                        th:nth-child(2), td:nth-child(2) { min-width: 150px; max-width: 250px; } /* Title Text */
+                        th:nth-child(3), td:nth-child(3) { min-width: 80px; max-width: 100px; } /* Type */
+                        th:nth-child(4), td:nth-child(4) { min-width: 100px; max-width: 140px; } /* Report Type */
+                        th:nth-child(5), td:nth-child(5) { min-width: 120px; max-width: 180px; } /* Owner Object */
+                        th:nth-child(6), td:nth-child(6) { min-width: 150px; max-width: 200px; } /* Target Child Object */
+                        th:nth-child(7), td:nth-child(7) { min-width: 120px; max-width: 160px; } /* Role Required */
+                        th:nth-child(8), td:nth-child(8) { min-width: 100px; max-width: 100px; } /* Actions */
                         #paging { margin: 1em 0; padding: 10px 0; text-align: center; }
                         button { 
                             margin: 0 4px; 
@@ -396,7 +407,8 @@ export function registerPageListCommands(
                         .table-container {
                             border: 1px solid var(--vscode-panel-border);
                             border-radius: 3px;
-                            overflow: hidden;
+                            overflow-x: auto;
+                            overflow-y: hidden;
                             background-color: var(--vscode-editor-background);
                         }
                     </style>
@@ -445,9 +457,7 @@ export function registerPageListCommands(
                                 </div>
                                 <div class="filter-group">
                                     <label>Owner Object:</label>
-                                    <select id="filterOwnerObject">
-                                        <option value="">All Objects</option>
-                                    </select>
+                                    <input type="text" id="filterOwnerObject" placeholder="Filter by owner object...">
                                 </div>
                                 <div class="filter-group">
                                     <label>Target Child Object:</label>

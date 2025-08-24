@@ -454,8 +454,18 @@ export function registerWorkflowListCommands(
 
                         case 'viewDetails':
                             console.log("[Extension] WorkflowList view details requested for:", message.workflowName);
-                            // Note: Workflow details view not yet implemented
-                            vscode.window.showInformationMessage(`Workflow details view for "${message.workflowName}" not yet implemented.`);
+                            try {
+                                const dynaFlowDetailsView = require('../webviews/workflowDetailsView.js');
+                                const item = { label: message.workflowName, ownerObject: message.ownerObject } as any;
+                                if (dynaFlowDetailsView && typeof dynaFlowDetailsView.showWorkflowDetails === 'function') {
+                                    dynaFlowDetailsView.showWorkflowDetails(item, modelService, context);
+                                } else {
+                                    vscode.window.showErrorMessage('Workflow Details view is not available.');
+                                }
+                            } catch (error: any) {
+                                console.error('[Extension] Error opening Workflow Details view:', error);
+                                vscode.window.showErrorMessage(`Failed to open Workflow Details: ${error?.message || error}`);
+                            }
                             break;
 
                         case 'exportToCSV':

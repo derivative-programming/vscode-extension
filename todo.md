@@ -2,30 +2,19 @@ Agent todo items...
 
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
-    
-page list...
-- copilot:change owner object filter to a textbox
-
-on pageinit...
-- copilot:header add copy button
-- copilot:move up button should be inactive if top item selected or none selected
-- copilot:move down button should be inactive if bottom item selected or none selected 
 
 
-page preview - form...
-- if the form has a page initialization flow assigned, review the page init flow output vars. If isHeaderText=true then we need to display it as a name value pair in the format '[labelText]: [output var name] value' above the input controls
+add owner object display under title on flow views
 
-page preview - report...
-- if the report has a page initialization flow assigned, review the page init flow output vars. If isHeaderText=true then we need to display it as a name value pair in the format '[labelText]: [output var name] value' above the form filter section
+need lookup buttons on source object name and fk object name settings on flow views
 
-review the form details view. Review the PAGE_INIT treeview items.
-we need a page init flow flow details view. This will be similar to the form details view, but only settings tab, and output variables tabs will exist. Don not try to use the form details view files. Copy them to create new ones for page init flow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.
+need lookup on Button Object WF Name setting
 
-review the form details view. Review the GENERAL flow treeview items.
-we need a general flow details view. This will be similar to the form details view, but only settings tab, input controls (Parameters), and output variables tabs will exist. Don not try to use the form details view files. Copy them to create new ones for general flow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.
+     
 
-review the form details view. Review the WORKFLOW treeview items.
-we need a workflow details view. This will be similar to the form details view, but only settings tab will exist. Don not try to use the form details view files. Copy them to create new ones for workflow details view and rename files and variables accordingly. I'm serious...copy the form details view files to start this.
+
+review the general flow details view. Review the WORKFLOW treeview items.
+we need a workflow details view. This will be similar to the general flow details view, but only settings tab will exist. Don not try to use the general flow details view files. Copy them to create new ones for workflow details view and rename files and variables accordingly. I'm serious...copy the general flow details view files to start this.
 
 
 report details view...
@@ -263,7 +252,7 @@ show a list of missing stories. allow user to add them individually
 
 
  
-  `
+
 
 
 *************************
