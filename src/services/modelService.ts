@@ -406,6 +406,64 @@ export class ModelService {
     }
 
     /**
+     * Get the owner object of a specific page init flow (objectWorkflow without isPage=true)
+     * @param pageInitName Name of the page init flow
+     * @returns The object that owns this page init flow, null if not found
+     */
+    public getPageInitOwnerObject(pageInitName: string): ObjectSchema | null {
+        const allObjects = this.getAllObjects();
+        
+        for (const object of allObjects) {
+            if (object.objectWorkflow && Array.isArray(object.objectWorkflow)) {
+                const hasPageInit = object.objectWorkflow.some(workflow => 
+                    (workflow.titleText || workflow.name || '').trim().toLowerCase() === pageInitName.trim().toLowerCase()
+                );
+                if (hasPageInit) {
+                    return object;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Get the owner object of a specific general flow (objectWorkflow with isPage=false)
+     * @param generalFlowName Name of the general flow
+     * @returns The object that owns this general flow, null if not found
+     */
+    public getGeneralFlowOwnerObject(generalFlowName: string): ObjectSchema | null {
+        const allObjects = this.getAllObjects();
+        
+        for (const object of allObjects) {
+            if (object.objectWorkflow && Array.isArray(object.objectWorkflow)) {
+                const hasGeneralFlow = object.objectWorkflow.some(workflow => {
+                    const name = (workflow.titleText || workflow.name || '').trim().toLowerCase();
+                    if (name !== generalFlowName.trim().toLowerCase()) {
+                        return false;
+                    }
+                    
+                    // Apply the same filtering logic as generalFlowDetailsView.js
+                    const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false";
+                    const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
+                    const isPageOk = workflow.isPage === "false";
+                    const workflowName = (workflow.name || '').toLowerCase();
+                    const notInitObjWf = !workflowName.endsWith('initobjwf');
+                    const notInitReport = !workflowName.endsWith('initreport');
+                    
+                    return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
+                });
+                
+                if (hasGeneralFlow) {
+                    return object;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    /**
      * Get the target child object of a specific form (objectWorkflow)
      * @param formName Name of the form
      * @returns The target child object specified in the form's targetChildObject property, null if not found or not set

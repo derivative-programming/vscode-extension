@@ -39,6 +39,9 @@ function getMainTemplate(
     <div class="owner-data-object-section">
         <span class="owner-data-object-label">Owner Data Object:</span>
         <span class="owner-data-object-name">${ownerObject.name || 'Unknown Object'}</span>
+        <button class="edit-owner-button" onclick="openOwnerObjectDetails('${ownerObject.name || ''}')" title="Edit owner data object">
+            <i class="codicon codicon-edit"></i>
+        </button>
     </div>
     ` : ''}
 

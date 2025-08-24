@@ -88,7 +88,10 @@ function showPageInitDetails(item, modelService, context) {
 
     try {
         const allDataObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
-        const ownerObject = null; // Not needed for initial scope
+        
+        // Get the owner data object for this page init flow
+        const ownerObject = modelService && modelService.isFileLoaded() && flowData ? 
+            modelService.getPageInitOwnerObject(flowData.titleText || flowData.name || '') : null;
 
         panel.webview.html = generateDetailsView(
             flowData,
@@ -146,6 +149,25 @@ function showPageInitDetails(item, modelService, context) {
                         addOutputVarToPageInitWithName(flowReference, modelService, message.data.name, panel);
                     } else {
                         console.warn("Cannot add output variable with name: ModelService not available or flow reference not found");
+                    }
+                    return;
+                    
+                case "openOwnerObjectDetails":
+                    console.log('[DEBUG] PageInitDetails - Open owner object details requested for object name:', JSON.stringify(message.objectName));
+                    try {
+                        if (message.objectName) {
+                            // Execute the object details command to open the owner object
+                            vscode.commands.executeCommand('appdna.showDetails', {
+                                label: message.objectName,
+                                objectType: 'object'
+                            });
+                        } else {
+                            console.error('[ERROR] PageInitDetails - No object name provided for opening owner object details');
+                            vscode.window.showErrorMessage('No object name provided for opening details');
+                        }
+                    } catch (error) {
+                        console.error('[ERROR] PageInitDetails - Failed to open owner object details:', error);
+                        vscode.window.showErrorMessage(`Failed to open owner object details: ${error.message}`);
                     }
                     return;
             }
