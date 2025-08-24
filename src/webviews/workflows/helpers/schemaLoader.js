@@ -61,7 +61,23 @@ function getWorkflowSchemaProperties(schema) {
     }
 }
 
+function getWorkflowDynaFlowTaskSchema(schema) {
+    try {
+        // Extract the dynaFlowTask array items schema
+        const dynaFlowTaskSchema = schema?.properties?.root?.properties?.namespace?.items?.properties?.object?.items?.properties?.objectWorkflow?.items?.properties?.dynaFlowTask?.items?.properties;
+        if (!dynaFlowTaskSchema) {
+            console.error("DynaFlowTask schema not found in expected path: properties.root.properties.namespace.items.properties.object.items.properties.objectWorkflow.items.properties.dynaFlowTask.items.properties");
+            return {};
+        }
+        return dynaFlowTaskSchema;
+    } catch (error) {
+        console.error("Error extracting dynaFlowTask schema properties:", error);
+        return {};
+    }
+}
+
 module.exports = {
     loadSchema,
-    getWorkflowSchemaProperties
+    getWorkflowSchemaProperties,
+    getWorkflowDynaFlowTaskSchema
 };

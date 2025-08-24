@@ -163,7 +163,12 @@ function showApiDetails(item, modelService, context) {
  */
 function updateSettingsDirectly(data, apiSiteRef, modelService) {
     try {
+        console.log("[DEBUG] updateSettingsDirectly called for API site");
+        console.log("[DEBUG] apiSiteRef before update:", JSON.stringify(apiSiteRef, null, 2));
+        
         const { property, exists, value } = data || {};
+        console.log("[DEBUG] updateSettingsDirectly received:", property, value, typeof value);
+        
         if (!property) { 
             return; 
         }
@@ -174,8 +179,13 @@ function updateSettingsDirectly(data, apiSiteRef, modelService) {
             delete apiSiteRef[property];
         }
         
+        console.log("[DEBUG] apiSiteRef after update:", JSON.stringify(apiSiteRef, null, 2));
+        
         if (typeof modelService.markUnsavedChanges === 'function') {
             modelService.markUnsavedChanges();
+            console.log("[DEBUG] Model marked as having unsaved changes");
+            // Keep parity with Forms: trigger a tree refresh so unsaved indicator updates promptly
+            vscode.commands.executeCommand("appdna.refresh");
         }
         
         console.log(`Updated API site property ${property}:`, exists ? value : '[removed]');
@@ -221,10 +231,22 @@ function refreshAll() {
             const apiSiteSchemaProps = getApiSiteSchemaProperties(schema);
             
             // Regenerate and update the webview HTML with updated model data
+            let codiconsUri;
+            try {
+                const extCtx = currentContext;
+                if (extCtx) {
+                    codiconsUri = panel.webview.asWebviewUri(
+                        vscode.Uri.file(path.join(extCtx.extensionPath, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css'))
+                    );
+                }
+            } catch (e) {
+                console.warn('Unable to resolve codicons URI during refresh:', e?.message);
+            }
+
             panel.webview.html = generateDetailsView(
                 apiSiteData, 
                 apiSiteSchemaProps, 
-                undefined // codiconsUri not available in this context
+                codiconsUri
             );
         } catch (error) {
             console.error(`Error refreshing API details panel ${panelId}:`, error);

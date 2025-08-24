@@ -9,15 +9,15 @@ Transform your development workflow: design your application model once, then ge
 
 ## Features
 
-### 🏗️ Schema-Driven Model Builder
-- **Dynamic UI Generation**: All forms and controls are automatically generated from your JSON schema
-- **Real-time Validation**: Instant feedback as you edit with schema-based validation
+### 🏗️ Model Builder
+- **Dynamic UI Generation**: All forms and controls are automatically generated from your JSON structure
+- **Real-time Validation**: Instant feedback as you edit with built-in validation
 - **Professional Interface**: Clean, VS Code-integrated design with hierarchical tree view navigation
 
 ### 📝 Intelligent Model Editing
 - **Tree View Navigation**: Navigate your project structure with organized sections:
   - **PROJECT**: Settings, lexicon, user stories, and MCP server management
-  - **DATA OBJECTS**: Schema-based business entities with filtering and search
+  - **DATA OBJECTS**: Business entities with filtering and search
   - **PAGES**: Forms and reports (when advanced properties are enabled)
   - **MODEL SERVICES**: AI-powered processing and code generation services
 - **Form-Based Editor**: Edit JSON properties using intuitive, dynamically generated forms
@@ -43,7 +43,7 @@ Transform your development workflow: design your application model once, then ge
 - **File Watching**: Automatic detection of external file changes
 - **In-Memory Editing**: Changes are made in-memory and saved only when you choose
 - **Property Control**: Toggle property existence with checkboxes - unchecked means the property is omitted from JSON
-- **Tooltips & Descriptions**: Schema descriptions shown as helpful tooltips
+- **Tooltips & Descriptions**: Property descriptions shown as helpful tooltips
 - **Visual Diagrams**: Hierarchy diagrams and page flow visualizations
 - **MCP Integration**: Model Context Protocol server for external tool integration
 - **Keyboard Shortcuts**: Quick access to common actions with Alt+A combinations
@@ -143,10 +143,10 @@ User Stories has evolved into its own dedicated section with comprehensive manag
 - **MODEL SERVICES**: AI-powered processing, validation, and code generation services
 
 ### Detail Panels
-- **Schema-Driven Forms**: Dynamic property editors generated from JSON schema
+- **Dynamic Forms**: Property editors generated from JSON structure
 - **Tabbed Interface**: Organized editing for complex objects (Settings, Parameters, Buttons, etc.)
 - **Property Toggles**: Checkbox controls to include/exclude properties from JSON output
-- **Validation Feedback**: Real-time schema validation with helpful error messages
+- **Validation Feedback**: Real-time validation with helpful error messages
 
 ### Additional Views
 - **Welcome View**: Guided workflow with 9 development steps
@@ -243,7 +243,7 @@ Please report issues on our [GitHub repository](https://github.com/derivative-pr
 ### 1.0.0
 
 Initial release of AppDNA Model Builder featuring:
-- Schema-driven dynamic UI generation
+- Dynamic UI generation
 - Real-time model editing and validation
 - Professional tree view and form-based editing interface
 - Code generation capabilities

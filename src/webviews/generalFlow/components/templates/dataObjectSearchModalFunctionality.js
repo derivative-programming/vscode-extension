@@ -3,7 +3,7 @@
 /**
  * dataObjectSearchModalFunctionality.js
  * Provides JavaScript functionality for the Data Object Search modal
- * Created: 2025-01-16
+ * Created: 2025-08-24 (Copied from Reports webview)
  * Purpose: Handles modal interactions for selecting source object names from data objects
  */
 
@@ -15,13 +15,6 @@ function getDataObjectSearchModalFunctionality() {
     return `
 // Function to create and show the Data Object Search modal
 function createDataObjectSearchModal(currentValue, targetInputElement) {
-    // Remove any existing data object search modal first
-    const existingModal = document.querySelector('.modal');
-    if (existingModal) {
-        existingModal.remove();
-        console.log("Data Object Search Modal: Removed existing modal");
-    }
-    
     // Create modal dialog for selecting data object
     const modal = document.createElement("div");
     modal.className = "modal";
@@ -63,12 +56,11 @@ function createDataObjectSearchModal(currentValue, targetInputElement) {
         if (filterText) {
             const filterTextLower = filterText.toLowerCase();
             filteredObjects = filteredObjects.filter(obj => {
-                const nameMatch = obj.name && obj.name.toLowerCase().includes(filterTextLower);
-                return nameMatch;
+                return obj.name && obj.name.toLowerCase().includes(filterTextLower);
             });
         }
         
-        // Populate the list
+        // Populate the list with filtered data objects
         filteredObjects.forEach(obj => {
             if (obj.name) {
                 const option = document.createElement("option");
@@ -97,15 +89,10 @@ function createDataObjectSearchModal(currentValue, targetInputElement) {
     // Initial population of data object list
     populateDataObjectList();
     
-    // Function to update data object list with current filter values
-    function updateDataObjectList() {
-        const textFilter = dataObjectNameFilter.value.trim();
-        populateDataObjectList(textFilter);
-    }
-    
     // Add event listener for text filter
     dataObjectNameFilter.addEventListener("input", function() {
-        updateDataObjectList();
+        const filterText = dataObjectNameFilter.value.trim();
+        populateDataObjectList(filterText);
     });
     
     // Add event listener to enable/disable accept button based on selection
@@ -135,10 +122,9 @@ function createDataObjectSearchModal(currentValue, targetInputElement) {
             const changeEvent = new Event('change', { bubbles: true });
             targetInputElement.dispatchEvent(changeEvent);
             
-            console.log("Data Object Search Modal: Setting target input value to:", selectedValue);
+            document.body.removeChild(modal);
         }
-        
-        document.body.removeChild(modal);
+        // Note: If no option is selected, do nothing (button should be disabled anyway)
     });
     
     // Handle Cancel button
@@ -158,9 +144,8 @@ function createDataObjectSearchModal(currentValue, targetInputElement) {
         }
     });
     
-    // Handle double-click on list to accept
+    // Handle double-click to accept
     dataObjectList.addEventListener("dblclick", function() {
-        const acceptButton = modal.querySelector("#acceptDataObjectSelection");
         if (!acceptButton.disabled) {
             acceptButton.click();
         }

@@ -77,6 +77,15 @@ function getOutputVariableManagementFunctions() {
                     }
                     
                     updateInputStyle(field, checkbox.checked);
+                    
+                    // Set browse button state for sourceObjectName field
+                    if (outputVarKey === 'sourceObjectName') {
+                        const browseButton = field.parentElement.querySelector('.lookup-button');
+                        if (browseButton) {
+                            browseButton.disabled = !propertyExists;
+                            console.log('List view: set browse button state for', outputVarKey, 'disabled:', !propertyExists, 'propertyExists:', propertyExists);
+                        }
+                    }
                 }
             });
         });
@@ -93,6 +102,15 @@ function getOutputVariableManagementFunctions() {
                 // Set initial state
                 updateInputStyle(field, checkbox.checked);
                 
+                // Set initial browse button state for sourceObjectName field
+                if (outputVarKey === 'sourceObjectName') {
+                    const browseButton = field.parentElement.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = !checkbox.checked;
+                        console.log('List view: initialized browse button state for', outputVarKey, 'disabled:', !checkbox.checked);
+                    }
+                }
+                
                 // Add event listener for checkbox state changes
                 checkbox.addEventListener('change', function() {
                     // Get the currently selected output variable index
@@ -105,6 +123,15 @@ function getOutputVariableManagementFunctions() {
                         field.disabled = !this.checked;
                     }
                     updateInputStyle(field, this.checked);
+                    
+                    // Enable/disable browse button for sourceObjectName field
+                    if (outputVarKey === 'sourceObjectName') {
+                        const browseButton = field.parentElement.querySelector('.lookup-button');
+                        if (browseButton) {
+                            browseButton.disabled = !this.checked;
+                            console.log('List view: checkbox changed for', outputVarKey, 'checked:', this.checked, 'button disabled:', !this.checked);
+                        }
+                    }
                     
                     // Disable the checkbox if it's checked to prevent unchecking
                     if (this.checked) {
@@ -214,6 +241,15 @@ function getOutputVariableManagementFunctions() {
                 }
                 updateInputStyle(inputElement, true);
                 
+                // Enable/disable browse button for sourceObjectName field
+                if (propName === 'sourceObjectName') {
+                    const browseButton = tableCell.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = false;
+                        console.log('Enabled browse button for', propName);
+                    }
+                }
+                
                 // Disable the checkbox to prevent unchecking
                 this.disabled = true;
                 this.setAttribute('data-originally-checked', 'true');
@@ -233,6 +269,15 @@ function getOutputVariableManagementFunctions() {
                     inputElement.disabled = true;
                 }
                 updateInputStyle(inputElement, false);
+                
+                // Enable/disable browse button for sourceObjectName field
+                if (propName === 'sourceObjectName') {
+                    const browseButton = tableCell.querySelector('.lookup-button');
+                    if (browseButton) {
+                        browseButton.disabled = true;
+                        console.log('Disabled browse button for', propName);
+                    }
+                }
             }
             
             // Send message to update the model
