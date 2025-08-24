@@ -415,9 +415,12 @@ export class ModelService {
         
         for (const object of allObjects) {
             if (object.objectWorkflow && Array.isArray(object.objectWorkflow)) {
-                const hasPageInit = object.objectWorkflow.some(workflow => 
-                    (workflow.titleText || workflow.name || '').trim().toLowerCase() === pageInitName.trim().toLowerCase()
-                );
+                const hasPageInit = object.objectWorkflow.some(workflow => {
+                    const titleText = (workflow.titleText || '').trim().toLowerCase();
+                    const name = (workflow.name || '').trim().toLowerCase();
+                    const searchName = pageInitName.trim().toLowerCase();
+                    return titleText === searchName || name === searchName;
+                });
                 if (hasPageInit) {
                     return object;
                 }
@@ -438,8 +441,11 @@ export class ModelService {
         for (const object of allObjects) {
             if (object.objectWorkflow && Array.isArray(object.objectWorkflow)) {
                 const hasGeneralFlow = object.objectWorkflow.some(workflow => {
-                    const name = (workflow.titleText || workflow.name || '').trim().toLowerCase();
-                    if (name !== generalFlowName.trim().toLowerCase()) {
+                    const titleText = (workflow.titleText || '').trim().toLowerCase();
+                    const name = (workflow.name || '').trim().toLowerCase();
+                    const searchName = generalFlowName.trim().toLowerCase();
+                    
+                    if (titleText !== searchName && name !== searchName) {
                         return false;
                     }
                     
