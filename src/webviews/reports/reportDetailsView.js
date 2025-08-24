@@ -198,6 +198,15 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addGeneralFlowButtonColumn":
+                    if (modelService && reportReference) {
+                        // Add a new general flow button column to the report
+                        addGeneralFlowButtonColumnToReport(reportReference, modelService, message.data, panel);
+                    } else {
+                        console.warn("Cannot add general flow button column: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
                 case "addButton":
                     if (modelService && reportReference) {
                         // Add a new button to the report
@@ -452,6 +461,71 @@ function showReportDetails(item, modelService, context) {
                     } catch (error) {
                         console.error('[ERROR] ReportDetails - Failed to execute page preview command:', error);
                         vscode.window.showErrorMessage(`Failed to open page preview: ${error.message}`);
+                    }
+                    return;
+                    
+                case "getGeneralFlowsForModal":
+                    console.log('[DEBUG] ReportDetails - Getting general flows for modal');
+                    if (modelService && typeof modelService.isFileLoaded === "function" && modelService.isFileLoaded()) {
+                        // Get general flows using the same logic as in generalListCommands.ts
+                        const allObjects = modelService.getAllObjects();
+                        let generalFlows = [];
+                        
+                        if (allObjects && allObjects.length > 0) {
+                            for (const obj of allObjects) {
+                                if (obj.objectWorkflow) {
+                                    for (const workflow of obj.objectWorkflow) {
+                                        if (workflow.name) {
+                                            const workflowName = workflow.name.toLowerCase();
+                                            
+                                            // Check all criteria (same as tree view):
+                                            // 1. isDynaFlow property does not exist or is false
+                                            const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false" || workflow.isDynaFlow === false;
+                                            
+                                            // 2. isDynaFlowTask property does not exist or is false  
+                                            const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false" || workflow.isDynaFlowTask === false;
+                                            
+                                            // 3. Contains "page" but does not start with "page" and does not end with "page"
+                                            const isPageOk = workflowName.includes("page") && !workflowName.startsWith("page") && !workflowName.endsWith("page");
+                                            
+                                            // 4. Does not start with "initobj" (initObjWf* flows)
+                                            const notInitObjWf = !workflowName.startsWith("initobj");
+                                            
+                                            // 5. Does not start with "initreport" (initReport* flows)
+                                            const notInitReport = !workflowName.startsWith("initreport");
+                                            
+                                            if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {
+                                                const displayName = workflow.titleText || workflow.name;
+                                                generalFlows.push({
+                                                    name: workflow.name,
+                                                    displayName: displayName,
+                                                    objectName: obj.name || 'Unknown',
+                                                    description: workflow.codeDescription || ''
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Sort by display name
+                        generalFlows.sort((a, b) => a.displayName.localeCompare(b.displayName));
+                        
+                        console.log(`[DEBUG] ReportDetails - Found ${generalFlows.length} general flows`);
+                        
+                        // Send the general flows back to the webview
+                        panel.webview.postMessage({
+                            command: 'populateGeneralFlowsModal',
+                            data: generalFlows
+                        });
+                    } else {
+                        console.warn('Cannot get general flows: ModelService not available or file not loaded');
+                        // Send empty array if no data available
+                        panel.webview.postMessage({
+                            command: 'populateGeneralFlowsModal',
+                            data: []
+                        });
                     }
                     return;
             }
@@ -1345,6 +1419,74 @@ function addDestinationButtonColumnToReport(reportReference, modelService, data,
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding destination button column:", error);
+    }
+}
+
+function addGeneralFlowButtonColumnToReport(reportReference, modelService, data, panel) {
+    console.log("addGeneralFlowButtonColumnToReport called with data:", data);
+    
+    if (!reportReference || !modelService || !data || !data.name || !data.generalFlowName || !data.buttonText) {
+        console.error("Missing required data to add general flow button column");
+        return;
+    }
+    
+    try {
+        // Initialize the columns array if it doesn't exist
+        if (!reportReference.reportColumn) {
+            reportReference.reportColumn = [];
+        }
+        
+        // Determine sourceObjectName based on report's target child object or fallback to report owner
+        const reportName = reportReference.name;
+        const targetChildObject = modelService.getReportTargetChildObject(reportName);
+        let sourceObjectName;
+        
+        if (targetChildObject && targetChildObject.name) {
+            sourceObjectName = targetChildObject.name;
+            console.log("Using target child object as sourceObjectName:", sourceObjectName);
+        } else {
+            // Fallback to report owner object name
+            const reportOwnerObjectName = modelService.getReportOwnerObjectName(reportName);
+            sourceObjectName = reportOwnerObjectName || "UnknownObject";
+            console.log("Using report owner object as sourceObjectName:", sourceObjectName);
+        }
+        
+        // Create a new general flow button column with the required structure
+        const newColumn = {
+            name: data.name,
+            buttonText: data.buttonText,
+            generalFlowName: data.generalFlowName,
+            generalFlowDisplayName: data.generalFlowDisplayName || data.generalFlowName,
+            generalFlowObjectName: data.generalFlowObjectName || "",
+            isButton: "true",
+            isVisible: "true",
+            sourceObjectName: sourceObjectName,
+            sourcePropertyName: "Code",
+            sqlServerDBDataType: "uniqueidentifier"
+        };
+        
+        // Add the new column to the array
+        reportReference.reportColumn.push(newColumn);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the columns list and select the new column
+        if (panel && panel.webview) {
+            const newColumnIndex = reportReference.reportColumn.length - 1; // New column is the last one
+            panel.webview.postMessage({
+                command: 'refreshColumnsList',
+                data: reportReference.reportColumn,
+                newSelection: newColumnIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding general flow button column:", error);
     }
 }
 
