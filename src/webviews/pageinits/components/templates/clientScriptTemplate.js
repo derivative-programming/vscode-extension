@@ -2,6 +2,8 @@
 
 const { getAddOutputVariableModalHtml } = require("./modalTemplates");
 const { getAddOutputVariableModalFunctionality } = require("./addOutputVariableModalFunctionality");
+const { getDataObjectSearchModalTemplate } = require("./dataObjectSearchModalTemplate");
+const { getDataObjectSearchModalFunctionality } = require("./dataObjectSearchModalFunctionality");
 
 function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataObjects = []) {
     return `
@@ -33,6 +35,9 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
 
             // Add Output Variable Modal Functionality
             ${getAddOutputVariableModalFunctionality()}
+            
+            // Include Data Object Search Modal functionality
+            ${getDataObjectSearchModalFunctionality()}
 
             // Initialize list selection behavior similar to forms
             const outputVarsList = document.getElementById('outputVarsList');
@@ -101,6 +106,15 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                                 checkbox.disabled = false;
                                 checkbox.removeAttribute('data-originally-checked');
                             }
+                            
+                            // Update browse button state for sourceObjectName field
+                            if (outputVarKey === 'sourceObjectName') {
+                                const browseButton = field.parentElement.querySelector('.lookup-button');
+                                if (browseButton) {
+                                    browseButton.disabled = !propertyExists;
+                                    console.log('Initialized output var browse button state for', outputVarKey, 'disabled:', !propertyExists);
+                                }
+                            }
                         }
                     });
 
@@ -123,6 +137,16 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                             const selectedIndex = outputVarsList.value;
                             if (selectedIndex === '') return;
                             if (field.tagName === 'INPUT') { field.readOnly = !this.checked; } else if (field.tagName === 'SELECT') { field.disabled = !this.checked; }
+                            
+                            // Enable/disable browse button for sourceObjectName field
+                            if (outputVarKey === 'sourceObjectName') {
+                                const browseButton = field.parentElement.querySelector('.lookup-button');
+                                if (browseButton) {
+                                    browseButton.disabled = !this.checked;
+                                    console.log('Output var checkbox changed for', outputVarKey, 'checked:', this.checked, 'button disabled:', !this.checked);
+                                }
+                            }
+                            
                             if (this.checked) {
                                 this.disabled = true;
                                 this.setAttribute('data-originally-checked', 'true');
@@ -331,6 +355,49 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
                             }
                         }
                         break;
+                }
+            });
+
+            // DOM Event handling for browse buttons (data object lookup)
+            document.addEventListener('click', function(event) {
+                // Check if the clicked element is a lookup button or its child
+                let button = event.target;
+                if (button.classList.contains('codicon')) {
+                    // If clicked on the icon, get the parent button
+                    button = button.parentElement;
+                }
+                
+                if (button && button.classList && button.classList.contains('lookup-button')) {
+                    console.log('Browse button clicked:', button);
+                    const propKey = button.getAttribute('data-prop');
+                    console.log('Property key:', propKey);
+                    
+                    if (propKey === 'sourceObjectName') {
+                        console.log('Handling sourceObjectName browse');
+                        // Handle data object browse functionality
+                        let inputField = button.parentElement.querySelector('input[type="text"]');
+                        
+                        // If not found (list view), try using data-field-id
+                        if (!inputField) {
+                            const fieldId = button.getAttribute('data-field-id');
+                            console.log('Using field ID:', fieldId);
+                            if (fieldId) {
+                                inputField = document.getElementById(fieldId);
+                            }
+                        }
+                        
+                        if (inputField) {
+                            console.log('Input field found:', inputField);
+                            const currentValue = inputField.value;
+                            console.log('Current value:', currentValue);
+                            console.log('All data objects:', allDataObjects);
+                            createDataObjectSearchModal(currentValue, inputField);
+                        } else {
+                            console.error('Input field not found');
+                        }
+                    }
+                } else {
+                    console.log('Not a lookup button click');
                 }
             });
         })();
