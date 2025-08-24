@@ -1,3 +1,38 @@
+2025-08-24  architectural-independence-complete (General Flow completely independent from Forms)
+2025-08-24  architectural-correction-direct-handlers (General Flow → Page Init patterns)
+- Change: Completely removed General Flow's dependency on Forms button management modules; implemented direct button handlers matching Page Init's exact patterns.
+- Files: src/webviews/generalFlow/components/templates/clientScriptTemplate.js (removed Forms imports, added direct handlers)
+- Architecture: General Flow now has standalone implementation like Page Init instead of importing shared Forms modules.
+- Rationale: Page Init doesn't use Forms files and is the "correct" reference; modifying shared Forms modules was wrong approach.
+- Implementation: Direct addEventListener handlers for all buttons (copy, move up/down, reverse, add) with identical message formats and patterns as Page Init.
+- Button Coverage: copyParamsButton, moveUpParamsButton, moveDownParamsButton, reverseParamsButton, copyOutputVarButton, moveUpOutputVarButton, moveDownOutputVarButton, reverseOutputVarButton, add-param-btn, add-output-var-btn.
+- Status: Completed; General Flow now independent of Forms modules with Page Init-matching functionality.
+
+2025-08-24  iteration-3-copy-button-alignment (Forms modules → Page Init style)
+- Change: Aligned Forms module copy button handlers to match Page Init's simplified approach; removed excessive error handling and fallback code for consistency.
+- Files: src/webviews/forms/components/scripts/outputVariableManagementFunctions.js (copyOutputVarButton), src/webviews/forms/components/scripts/parameterManagementFunctions.js (copyParamsButton)
+- Analysis: Forms modules had robust error handling with try/catch, fallbacks, console logging; Page Init uses simpler approach without these features.
+- Rationale: Page Init stated as "correct" reference; consistency requires matching its patterns exactly rather than using "better" implementations.
+- Architecture: Both systems now use identical copy button patterns with same variable naming and feedback mechanisms.
+- Status: Completed; no further changes necessary - comprehensive review found all button/modal functionality now matches Page Init patterns.
+
+2025-08-24  iteration-2-current-data-sync (General Flow refresh functions)
+- Change: Fixed critical issue where General Flow refresh functions didn't update currentOutputVars/currentParams arrays while Forms modules relied on these for move button validation.
+- Files: src/webviews/generalFlow/components/templates/clientScriptTemplate.js (refreshOutputVarsList, refreshParamsList functions)
+- Analysis: Page Init updates currentOutputVars in refresh, but General Flow was missing this. Move down logic checks `selectedIndex < currentOutputVars.length - 1` which would fail.
+- Root Cause: General Flow delegates to refresh functions but forgot to sync data arrays, while Page Init does inline refresh with proper data updates.
+- Architecture: Both systems now maintain identical refresh patterns with proper data synchronization for move button validation.
+- Status: Completed; move buttons should now work correctly after operations.
+
+2025-08-23  comprehensive-button-modal-review (Page Init vs General Flow)
+- Change: Fixed critical message format inconsistency where Forms module output variable move handlers used wrong format compared to Page Init; updated Forms move handlers to match Page Init's `data` wrapper format.
+- Files: src/webviews/forms/components/scripts/outputVariableManagementFunctions.js (moveUpOutputVarButton, moveDownOutputVarButton handlers)
+- Analysis: Comprehensive comparison revealed Page Init uses `{command: 'moveOutputVar', data: {fromIndex: X, toIndex: Y}}` while Forms used `{command: 'moveOutputVar', fromIndex: X, toIndex: Y}` causing General Flow move buttons to fail.
+- Architecture: General Flow imports Forms module handlers; Page Init has direct handlers; backend expects Page Init format.
+- Button Coverage: ✅ All buttons exist in both views ✅ All have handlers ❌ Message formats mismatched
+- Modal Coverage: ✅ Both use identical addOutputVariableModal with matching message formats ✅ General Flow has additional addInputControlModal (Page Init doesn't need params)
+- Status: Completed; proactive systematic review vs reactive piecemeal fixes as requested.
+
 2025-08-23  modal-overlay-fix (generalFlow)
 - Change: Removed static modal HTML injection from General Flow main template/generator to prevent orphan .modal-content rendering under tabs; rely on dynamic modals appended to document.body via forms modal functionality.
 - Files: src/webviews/generalFlow/components/detailsViewGenerator.js; src/webviews/generalFlow/components/templates/mainTemplate.js
