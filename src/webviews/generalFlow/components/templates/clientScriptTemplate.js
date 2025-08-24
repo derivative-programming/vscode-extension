@@ -655,6 +655,15 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                                 checkbox.disabled = false;
                                 checkbox.removeAttribute('data-originally-checked');
                             }
+                            
+                            // Update browse button state for sourceObjectName field
+                            if (outputVarKey === 'sourceObjectName') {
+                                const browseButton = field.parentElement.querySelector('.lookup-button');
+                                if (browseButton) {
+                                    browseButton.disabled = !propertyExists;
+                                    console.log('Initialized output var browse button state for', outputVarKey, 'disabled:', !propertyExists);
+                                }
+                            }
                         }
                     });
 
@@ -677,6 +686,16 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                             const selectedIndex = outputVarsList.value;
                             if (selectedIndex === '') return;
                             if (field.tagName === 'INPUT') { field.readOnly = !this.checked; } else if (field.tagName === 'SELECT') { field.disabled = !this.checked; }
+                            
+                            // Enable/disable browse button for sourceObjectName field
+                            if (outputVarKey === 'sourceObjectName') {
+                                const browseButton = field.parentElement.querySelector('.lookup-button');
+                                if (browseButton) {
+                                    browseButton.disabled = !this.checked;
+                                    console.log('Output var checkbox changed for', outputVarKey, 'checked:', this.checked, 'button disabled:', !this.checked);
+                                }
+                            }
+                            
                             if (this.checked) {
                                 this.disabled = true;
                                 this.setAttribute('data-originally-checked', 'true');
