@@ -15,6 +15,13 @@ function getDataObjectSearchModalFunctionality() {
     return `
 // Function to create and show the Data Object Search modal
 function createDataObjectSearchModal(currentValue, targetInputElement) {
+    // Remove any existing data object search modal first
+    const existingModal = document.querySelector('.modal');
+    if (existingModal) {
+        existingModal.remove();
+        console.log("Data Object Search Modal: Removed existing modal");
+    }
+    
     // Create modal dialog for selecting data object
     const modal = document.createElement("div");
     modal.className = "modal";

@@ -465,15 +465,31 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     
                     if (propKey === 'sourceObjectName') {
                         console.log('Handling sourceObjectName browse');
+                        
+                        // Check if a modal is already open to prevent duplicates
+                        if (document.querySelector('.modal')) {
+                            console.log('Modal already open, ignoring click');
+                            return;
+                        }
+                        
                         // Handle data object browse functionality
                         let inputField = button.parentElement.querySelector('input[type="text"]');
                         
-                        // If not found (list view), try using data-index
+                        // If not found (table view), try using data-index
                         if (!inputField) {
                             const dataIndex = button.getAttribute('data-index');
                             console.log('Using data index:', dataIndex);
                             if (dataIndex !== null) {
                                 const fieldId = 'outputVar' + propKey + dataIndex;
+                                inputField = document.getElementById(fieldId);
+                            }
+                        }
+                        
+                        // If still not found (list view), try using data-field-id
+                        if (!inputField) {
+                            const fieldId = button.getAttribute('data-field-id');
+                            console.log('Using field ID:', fieldId);
+                            if (fieldId) {
                                 inputField = document.getElementById(fieldId);
                             }
                         }
