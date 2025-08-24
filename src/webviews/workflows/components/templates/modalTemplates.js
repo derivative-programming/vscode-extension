@@ -2,7 +2,13 @@
 
 /**
  * File: modalTemplates.js
- * Purpose: Provides modal templates for the workflow details view
+ * Purpose: Provides modal template                       <div class="form-actions">
+                        <button type="button" id="addBulkWorkflowTasks" class="primary-button">Add Tasks</button>
+                        <button type="button" class="secondary-button cancel-button">Cancel</button>
+                    </div>               <div class="form-actions">
+                        <button type="button" id="addSingleWorkflowTask" class="primary-button">Add Task</button>
+                        <button type="button" class="secondary-button cancel-button">Cancel</button>
+                    </div>for the workflow details view
  * Created: 2025-08-24
  */
 
@@ -83,7 +89,7 @@ function getAddWorkflowTaskModalHtml() {
                     <div id="singleValidationError" class="validation-error"></div>
                     <div class="form-actions">
                         <button type="button" id="addSingleWorkflowTask" class="primary-button">Add Task</button>
-                        <button type="button" class="secondary-button close-button">Cancel</button>
+                        <button type="button" class="secondary-button cancel-button">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -97,7 +103,7 @@ function getAddWorkflowTaskModalHtml() {
                     <div id="bulkValidationError" class="validation-error"></div>
                     <div class="form-actions">
                         <button type="button" id="addBulkWorkflowTasks" class="primary-button">Add Tasks</button>
-                        <button type="button" class="secondary-button close-button">Cancel</button>
+                        <button type="button" class="secondary-button cancel-button">Cancel</button>
                     </div>
                 </form>
             </div>

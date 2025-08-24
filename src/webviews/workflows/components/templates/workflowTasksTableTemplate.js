@@ -10,9 +10,7 @@ function getWorkflowTaskPropertiesToHide() {
 function getWorkflowTasksListTemplate(workflowTaskSchema) {
     // Only display these properties for a workflow task, in this exact order
     const allowedOrder = [
-        "description",
-        "contextObjectName",
-        "isDynaFlowRequest"
+        "description"
     ];
 
     // Build case-insensitive key map from schema

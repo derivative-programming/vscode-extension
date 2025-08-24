@@ -72,6 +72,13 @@ function createAddWorkflowTaskModal() {
         document.body.removeChild(modal);
     });
     
+    // Close modal when clicking cancel buttons
+    modal.querySelectorAll(".cancel-button").forEach(button => {
+        button.addEventListener("click", function() {
+            document.body.removeChild(modal);
+        });
+    });
+    
     // Close modal when clicking outside the modal content
     modal.addEventListener("click", function(event) {
         if (event.target === modal) {

@@ -3,6 +3,8 @@ Agent todo items...
 As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
 
+only show WORKFLOWS and WORKFLOW TASKS treeview items if dyanflow and dynaflow task data objects exist
+
 
 copilot:add owner object display under title on flow views
 
