@@ -6,7 +6,9 @@ TemplateFileUpdateRequest
 
 copilot:add owner object display under title on flow views
 
-need lookup buttons on source object name and fk object name settings on flow views
+need lookup buttons on fk object name settings on flow view
+
+copilot:need lookup buttons on source object name settings on flow views
 
 need lookup on Button Object WF Name setting
 
@@ -19,8 +21,6 @@ workflow view
 
 workflowtask treeview items
 - dont open detail view on click?
-
-
 
 report details view...
 - allow creation of column async flow button

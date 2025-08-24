@@ -568,3 +568,9 @@ Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitRep
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
 Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
 Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
