@@ -279,6 +279,23 @@ function getClientScriptTemplate(outputVars, outputVarSchema, flowName, allDataO
             // Make copyPageInitFlowName function globally available
             window.copyPageInitFlowName = copyPageInitFlowName;
 
+            // Owner Object Details Function
+            function openOwnerObjectDetails(objectName) {
+                console.log('[DEBUG] PageInitDetails - Open owner object details requested for object name:', JSON.stringify(objectName));
+                
+                if (vscode && objectName) {
+                    vscode.postMessage({
+                        command: 'openOwnerObjectDetails',
+                        objectName: objectName
+                    });
+                } else {
+                    console.warn('[WARN] PageInitDetails - Cannot open owner object details: vscode API or object name not available');
+                }
+            }
+
+            // Make openOwnerObjectDetails function globally available
+            window.openOwnerObjectDetails = openOwnerObjectDetails;
+
             // Settings tab behavior
             document.querySelectorAll('.setting-checkbox').forEach(chk => {
                 chk.addEventListener('change', function() {

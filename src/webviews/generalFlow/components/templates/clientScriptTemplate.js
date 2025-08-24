@@ -427,6 +427,23 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
             // Make copyGeneralFlowName function globally available
             window.copyGeneralFlowName = copyGeneralFlowName;
 
+            // Owner Object Details Function
+            function openOwnerObjectDetails(objectName) {
+                console.log('[DEBUG] GeneralFlowDetails - Open owner object details requested for object name:', JSON.stringify(objectName));
+                
+                if (vscode && objectName) {
+                    vscode.postMessage({
+                        command: 'openOwnerObjectDetails',
+                        objectName: objectName
+                    });
+                } else {
+                    console.warn('[WARN] GeneralFlowDetails - Cannot open owner object details: vscode API or object name not available');
+                }
+            }
+
+            // Make openOwnerObjectDetails function globally available
+            window.openOwnerObjectDetails = openOwnerObjectDetails;
+
             // Tab switching functionality (exact match to Page Init)
             function activateTab(tabName) {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
