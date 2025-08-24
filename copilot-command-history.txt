@@ -1,3 +1,19 @@
+
+2025-01-27 - COMMAND: Add 'Add General Flow Button Column' feature to Report Details View
+STATUS: COMPLETED ✅
+ISSUE: Need to add "Add General Flow Button Column" button next to "Add destination button column" button in Report details view columns tab
+SOLUTION: Implemented complete feature following the existing destination button column pattern
+ARCHITECTURE: Added parallel implementation with modal for general flow selection, similar to destination button column but for general flows
+FILES CHANGED:
+- src/webviews/reports/components/templates/mainTemplate.js: Added "Add General Flow Button Column" button to columns tab
+- src/webviews/reports/components/scripts/columnManagementFunctions.js: Added event handler for new button  
+- src/webviews/reports/components/templates/addGeneralFlowButtonColumnModalTemplate.js: NEW FILE - Modal template for general flow selection
+- src/webviews/reports/components/templates/addGeneralFlowButtonColumnModalFunctionality.js: NEW FILE - Modal functionality for general flow selection
+- src/webviews/reports/components/templates/clientScriptTemplate.js: Added imports and includes for new modal templates/functionality
+- src/webviews/reports/reportDetailsView.js: Added addGeneralFlowButtonColumn message handler and addGeneralFlowButtonColumnToReport function, plus getGeneralFlowsForModal handler
+FUNCTIONALITY: Modal shows list of general flows (same filtering logic as general list view), allows user to select flow and enter button text, auto-generates column name, creates button column with general flow properties
+BUILD STATUS: Webpack compiling successfully without errors
+
 2025-01-27 - COMMAND: Fix cancel button positioning in Add Workflow Task modal
 STATUS: COMPLETED ✅
 ISSUE: Cancel buttons were appearing in wrong position due to conflicting CSS class usage - close-button class was causing form action buttons to be positioned like header close button
@@ -35,6 +51,7 @@ ARCHITECTURE: Workflow tasks use same property filtering pattern as other detail
 FILES CHANGED:
 - src/webviews/workflows/components/templates/workflowTasksTableTemplate.js: Changed allowedOrder from 3 properties to 1 (description only)
 BUILD STATUS: TypeScript compiling successfully
+
 
 2025-01-27 - COMMAND: Fix VS Code API acquisition error in API Details View
 STATUS: COMPLETED ✅

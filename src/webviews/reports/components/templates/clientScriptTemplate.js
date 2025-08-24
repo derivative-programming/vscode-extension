@@ -17,6 +17,8 @@ const { getDataObjectSearchModalHtml } = require("./dataObjectSearchModalTemplat
 const { getDataObjectSearchModalFunctionality } = require("./dataObjectSearchModalFunctionality");
 const { getAddDestinationButtonColumnModalHtml } = require("./addDestinationButtonColumnModalTemplate");
 const { getAddDestinationButtonColumnModalFunctionality } = require("./addDestinationButtonColumnModalFunctionality");
+const { getAddGeneralFlowButtonColumnModalHtml } = require("./addGeneralFlowButtonColumnModalTemplate");
+const { getAddGeneralFlowButtonColumnModalFunctionality } = require("./addGeneralFlowButtonColumnModalFunctionality");
 
 /**
  * File: clientScriptTemplate.js
@@ -97,11 +99,18 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 return \`${getAddDestinationButtonColumnModalHtml()}\`;
             }
             
+            // Add General Flow Button Column Modal Template Function
+            function getAddGeneralFlowButtonColumnModalHtml() {
+                return \`${getAddGeneralFlowButtonColumnModalHtml()}\`;
+            }
+            
             ${getPageSearchModalFunctionality()}
             
             ${getDataObjectSearchModalFunctionality()}
             
             ${getAddDestinationButtonColumnModalFunctionality()}
+            
+            ${getAddGeneralFlowButtonColumnModalFunctionality()}
             
             // Page Preview Function
             function openPagePreview(reportName, isPage) {
@@ -251,6 +260,14 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                         if (subscribeTargetChildCheckbox) {
                             subscribeTargetChildCheckbox.checked = message.data.isEnabled;
                             subscribeTargetChildCheckbox.disabled = message.data.isDisabled || false;
+                        }
+                        break;
+                    case 'populateGeneralFlowsModal':
+                        // Populate the general flows modal with the received data
+                        if (typeof populateGeneralFlowsModal === 'function') {
+                            populateGeneralFlowsModal(message.data);
+                        } else {
+                            console.warn('populateGeneralFlowsModal function not available');
                         }
                         break;
                 }
