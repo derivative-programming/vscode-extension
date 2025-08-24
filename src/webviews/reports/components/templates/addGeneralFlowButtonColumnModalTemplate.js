@@ -35,8 +35,8 @@ function getAddGeneralFlowButtonColumnModalHtml() {
     
     <div class="form-row">
         <label for="columnName">Column Name:</label>
-        <input type="text" id="columnName" placeholder="Auto-generated from button text and general flow">
-        <div class="field-note">Column name is automatically generated from button text and selected general flow.</div>
+        <input type="text" id="columnName" placeholder="Auto-generated in format: [ButtonText]Link[ObjectName]Code">
+        <div class="field-note">Column name is automatically generated in format: [ButtonText]Link[ObjectName]Code</div>
     </div>
     
     <div id="validationError" class="validation-error"></div>

@@ -5,6 +5,9 @@ TemplateFileUpdateRequest
 
 only show WORKFLOWS and WORKFLOW TASKS treeview items if dyanflow and dynaflow task data objects exist
 
+add wf task ...
+- create array item and dft
+- add validation
 
 copilot:add owner object display under title on flow views
 

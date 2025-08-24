@@ -14,6 +14,35 @@ FILES CHANGED:
 FUNCTIONALITY: Modal shows list of general flows (same filtering logic as general list view), allows user to select flow and enter button text, auto-generates column name, creates button column with general flow properties
 BUILD STATUS: Webpack compiling successfully without errors
 
+2025-08-24 - COMMAND: Update column name format for Add General Flow Button Column modal
+STATUS: COMPLETED ✅
+ISSUE: Column name calculation needed to follow specific format: [button text]Link[general flow owner object name]Code
+SOLUTION: Updated column name generation logic:
+1. Changed from using general flow name to using general flow owner object name
+2. Updated format from "[ButtonText][FlowName]Button" to "[ButtonText]Link[ObjectName]Code"
+3. Updated placeholder and field note text to reflect new format
+4. Added validation to ensure object name is available before generating column name
+ARCHITECTURE: Column names now follow consistent naming pattern that includes "Link" and "Code" suffixes and uses the object name for better identification
+FILES CHANGED:
+- src/webviews/reports/components/templates/addGeneralFlowButtonColumnModalFunctionality.js: Updated updateColumnName function to use new format
+- src/webviews/reports/components/templates/addGeneralFlowButtonColumnModalTemplate.js: Updated placeholder and field note to reflect new format
+IMPACT: Generated column names will be more descriptive and follow consistent naming convention
+BUILD STATUS: Ready for testing
+
+2025-08-24 - COMMAND: Fix General Flow filtering logic inconsistency in Add General Flow Button Column modal
+STATUS: COMPLETED ✅
+ISSUE: Modal used different filtering criteria than tree view - modal checked name patterns while tree view checked property values
+SOLUTION: Updated modal logic to match tree view exactly:
+1. Changed isPage check from name pattern to property check (workflow.isPage === "false")
+2. Changed init flow exclusions from startsWith to endsWith (matching tree view)
+3. Removed boolean type checking to match tree view string-only approach
+4. Updated comments to reflect that logic now matches tree view implementation
+ARCHITECTURE: Ensures consistency between tree view and modal general flow filtering. Both now use identical criteria for what constitutes a "general flow".
+FILES CHANGED:
+- src/webviews/reports/reportDetailsView.js: Updated getGeneralFlowsForModal case to use tree view filtering logic
+IMPACT: Modal will now show the same general flows as appear in the tree view, eliminating user confusion
+BUILD STATUS: Ready for testing
+
 2025-01-27 - COMMAND: Fix cancel button positioning in Add Workflow Task modal
 STATUS: COMPLETED ✅
 ISSUE: Cancel buttons were appearing in wrong position due to conflicting CSS class usage - close-button class was causing form action buttons to be positioned like header close button

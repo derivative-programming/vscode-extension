@@ -467,7 +467,7 @@ function showReportDetails(item, modelService, context) {
                 case "getGeneralFlowsForModal":
                     console.log('[DEBUG] ReportDetails - Getting general flows for modal');
                     if (modelService && typeof modelService.isFileLoaded === "function" && modelService.isFileLoaded()) {
-                        // Get general flows using the same logic as in generalListCommands.ts
+                        // Get general flows using the same logic as tree view (jsonTreeDataProvider.ts)
                         const allObjects = modelService.getAllObjects();
                         let generalFlows = [];
                         
@@ -478,21 +478,21 @@ function showReportDetails(item, modelService, context) {
                                         if (workflow.name) {
                                             const workflowName = workflow.name.toLowerCase();
                                             
-                                            // Check all criteria (same as tree view):
+                                            // Check all criteria (matching tree view logic exactly):
                                             // 1. isDynaFlow property does not exist or is false
-                                            const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false" || workflow.isDynaFlow === false;
+                                            const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false";
                                             
                                             // 2. isDynaFlowTask property does not exist or is false  
-                                            const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false" || workflow.isDynaFlowTask === false;
+                                            const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
                                             
-                                            // 3. Contains "page" but does not start with "page" and does not end with "page"
-                                            const isPageOk = workflowName.includes("page") && !workflowName.startsWith("page") && !workflowName.endsWith("page");
+                                            // 3. isPage property is false (matching tree view property check)
+                                            const isPageOk = workflow.isPage === "false";
                                             
-                                            // 4. Does not start with "initobj" (initObjWf* flows)
-                                            const notInitObjWf = !workflowName.startsWith("initobj");
+                                            // 4. name does not end with initobjwf (matching tree view endsWith check)
+                                            const notInitObjWf = !workflowName.endsWith('initobjwf');
                                             
-                                            // 5. Does not start with "initreport" (initReport* flows)
-                                            const notInitReport = !workflowName.startsWith("initreport");
+                                            // 5. name does not end with initreport (matching tree view endsWith check)
+                                            const notInitReport = !workflowName.endsWith('initreport');
                                             
                                             if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {
                                                 const displayName = workflow.titleText || workflow.name;
@@ -1455,12 +1455,13 @@ function addGeneralFlowButtonColumnToReport(reportReference, modelService, data,
         const newColumn = {
             name: data.name,
             buttonText: data.buttonText,
-            generalFlowName: data.generalFlowName,
+            destinationTargetName: data.generalFlowName,
             generalFlowDisplayName: data.generalFlowDisplayName || data.generalFlowName,
-            generalFlowObjectName: data.generalFlowObjectName || "",
+            destinationContextObjectName: data.generalFlowObjectName || "",
             isButton: "true",
+            isButtonAsyncObjWF: "true",
             isVisible: "true",
-            sourceObjectName: sourceObjectName,
+            sourceObjectName: data.generalFlowObjectName,
             sourcePropertyName: "Code",
             sqlServerDBDataType: "uniqueidentifier"
         };

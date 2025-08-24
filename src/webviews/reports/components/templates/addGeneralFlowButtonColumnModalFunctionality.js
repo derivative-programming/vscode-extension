@@ -64,14 +64,15 @@ function createAddGeneralFlowButtonColumnModal() {
         if (generalFlowSelect && buttonTextInput && columnNameInput) {
             const selectedOption = generalFlowSelect.options[generalFlowSelect.selectedIndex];
             const generalFlowName = selectedOption ? selectedOption.getAttribute('data-flow-name') || selectedOption.value : '';
+            const generalFlowObjectName = selectedOption ? selectedOption.getAttribute('data-object-name') || '' : '';
             const buttonText = buttonTextInput.value.trim();
             
-            if (generalFlowName && buttonText) {
-                // Generate column name from button text and general flow name
+            if (generalFlowName && buttonText && generalFlowObjectName) {
+                // Generate column name in format: [button text]Link[general flow owner object name]Code
                 // Convert to PascalCase and remove spaces/special characters
                 const cleanButtonText = buttonText.replace(/[^a-zA-Z0-9]/g, '');
-                const cleanFlowName = generalFlowName.replace(/[^a-zA-Z0-9]/g, '');
-                const columnName = cleanButtonText + cleanFlowName + "Button";
+                const cleanObjectName = generalFlowObjectName.replace(/[^a-zA-Z0-9]/g, '');
+                const columnName = cleanButtonText + "Link" + cleanObjectName + "Code";
                 columnNameInput.value = columnName;
             } else {
                 columnNameInput.value = '';
