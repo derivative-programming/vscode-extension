@@ -1,3 +1,21 @@
+2025-01-27 - COMMAND: Fix VS Code API acquisition error in API Details View
+STATUS: COMPLETED ✅
+ISSUE: "An instance of the VS Code API has already been acquired" error preventing API details view from loading
+SOLUTION: Removed duplicate acquireVsCodeApi() call from API client script template since it's already declared in main template
+ARCHITECTURE: API main template declares 'const vscode = acquireVsCodeApi()' globally, so client script doesn't need to redeclare it
+FILES CHANGED:
+- src/webviews/apis/components/templates/clientScriptTemplate.js: Removed duplicate acquireVsCodeApi() call
+BUILD STATUS: Webpack compiling successfully without errors
+
+2025-01-27 - COMMAND: Add API Details View to Tree View Refresh System
+STATUS: COMPLETED ✅
+ISSUE: API Details View was not being refreshed when user clicked the tree view refresh button (refresh icon in toolbar)
+SOLUTION: Added API details view to the comprehensive refresh system in registerCommands.ts
+ARCHITECTURE: The refresh system stores open panel references, closes all panels, reloads model from disk, refreshes tree, then reopens panels with fresh data
+FILES CHANGED:
+- src/commands/registerCommands.ts: Added apiDetailsView import and integrated into refresh workflow
+REFRESH FLOW: Store open API panels → close API panels → reload model → refresh tree → reopen API panels with fresh data
+
 2025-08-24 - Fix: API Details View unsaved changes indicator parity
 - Added vscode.commands.executeCommand("appdna.refresh") after modelService.markUnsavedChanges() in src/webviews/apis/apiDetailsView.js updateSettingsDirectly()
 - Rationale: Match Forms behavior so JsonTreeDataProvider’s polling/context updates reflect changes immediately and show the unsaved indicator.
@@ -65,6 +83,39 @@ TESTING READY:
 - Should trigger updateSettingsDirectly() in host
 - Should call markUnsavedChanges() and appdna.refresh
 - Should show unsaved indicator in tree view
+
+2025-01-27 - SYNTAX ERROR FIX: API Client Script Template JavaScript Error
+===============================================================================
+
+ISSUE DISCOVERED:
+- User reported JavaScript syntax error in API details view console:
+  "Uncaught SyntaxError: Unexpected token '}'"
+- Error showed duplicate/malformed structure in generated client script
+
+ROOT CAUSE:
+- Extra closing brace `});` in clientScriptTemplate.js (line 47)
+- Duplicate DOMContentLoaded event listeners causing conflicts
+- apiDOMInitialization.js had its own DOMContentLoaded listener conflicting with main script
+
+SOLUTION IMPLEMENTED:
+1. Fixed clientScriptTemplate.js:
+   - Removed extra `});` closing brace
+   - Cleaned up template string structure
+
+2. Refactored apiDOMInitialization.js:
+   - Removed duplicate DOMContentLoaded listener
+   - Renamed function from `initializeDOMEvents()` to `initializeAPISettings()`
+   - Now just provides the settings setup function without lifecycle management
+
+3. Updated client script DOMContentLoaded handler:
+   - Added call to `initializeAPISettings()` in main DOMContentLoaded listener
+   - Single point of initialization, avoiding conflicts
+
+STATUS: ✅ COMPLETED & VERIFIED
+- Build compiles successfully (webpack 5.99.9 compiled successfully in 6230 ms)
+- JavaScript syntax error resolved
+- API settings initialization now properly integrated
+- Ready for testing API settings unsaved changes functionality
 - Build: Ran watch task; webpack compiled successfully after updates; no errors in edited files
 - Architecture: Keeps schema-driven UI, message contract parity with Forms, codicons URI still supported by caller; no data model changes
 2025-08-24T00:00:00Z | Fix API Details settings client script | Status: Completed

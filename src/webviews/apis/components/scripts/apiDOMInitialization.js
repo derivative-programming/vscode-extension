@@ -14,29 +14,13 @@
 function getAPIDOMInitialization() {
     return `
     // Initialize all DOM event listeners and functionality for API details
-function initializeDOMEvents() {
-    console.log('[DEBUG] Initializing API DOM events');
+function initializeAPISettings() {
+    console.log('[DEBUG] Initializing API settings handlers');
     
     // Set up settings input handlers for API changes
     setupSettingsInputHandlers();
     
-    console.log('[DEBUG] API DOM events initialized');
-}
-
-// Initialize DOM events when the document is ready
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[DEBUG] DOM content loaded, initializing API events');
-    initializeDOMEvents();
-});
-
-// Also initialize if document is already loaded
-if (document.readyState === 'loading') {
-    // Still loading, wait for DOMContentLoaded
-    console.log('[DEBUG] Document still loading, waiting for DOMContentLoaded');
-} else {
-    // Already loaded, initialize immediately  
-    console.log('[DEBUG] Document already loaded, initializing API events immediately');
-    initializeDOMEvents();
+    console.log('[DEBUG] API settings handlers initialized');
 }
     `;
 }

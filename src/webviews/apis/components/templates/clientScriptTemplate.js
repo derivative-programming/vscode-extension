@@ -12,7 +12,7 @@ const { getAPIDOMInitialization } = require("../scripts/apiDOMInitialization");
 function getClientScriptTemplate(apiSite) {
     return `
         (function() {
-            const vscode = acquireVsCodeApi();
+            // vscode API is already available from main template
             let currentApiSite = ${JSON.stringify(apiSite)};
 
             // Tab behavior (Forms parity: .tab + data-tab targets #id)
@@ -56,9 +56,9 @@ function getClientScriptTemplate(apiSite) {
 
             document.addEventListener('DOMContentLoaded', () => {
                 initTabs();
+                initializeAPISettings();
                 const copyBtn = document.querySelector('.copy-api-name-button');
                 if (copyBtn) copyBtn.addEventListener('click', copyApiSiteName);
-            });
             });
         })();
     `;
