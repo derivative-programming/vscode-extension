@@ -404,3 +404,12 @@ STATUS: COMPLETED - Copy button consistency achieved between views
 - Result: Copy icon button aligns on the same line as the title, matching Page Init.
 - Build: ✅ webpack compile successful
 - Status: ✅ COMPLETED
+
+2025-08-24  general-flow-params-settings-allowlist (ALIGN TO SPEC)
+- Command: "general flow detail view input vars tab should show these settings"
+- Change: Updated Input Controls tab to show the exact property set and order from the provided list.
+- Files Modified:
+  * src/webviews/generalFlow/components/templates/paramsListTemplate.js (replaced allowedOrder with the specified properties; kept enum sorting and checkbox pattern)
+- Result: Input vars tab now displays: autoCompleteAddressSourceName, autoCompleteAddressTargetType, codeDescription, dataSize, dataType, detailsText, fKListOrderBy, fKObjectName, infoToolTipText, isAutoCompleteAddressSource, isFileUpload, isFK, isFKList, isFKListInactiveIncluded, isFKListSearchable, isFKListUnknownOptionRemoved, isFKLookup, isIgnored, isRadioButtonList, isRequired, isSecured, isVisible, labelText, requiredErrorText, sourceObjectName, sourcePropertyName, validationRuleRegExMatchRequired, validationRuleRegExMatchRequiredErrorText.
+- Build: ✅ webpack compile successful
+- Status: ✅ COMPLETED

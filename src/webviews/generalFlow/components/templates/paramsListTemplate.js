@@ -3,21 +3,36 @@
 const { formatLabel } = require("../../../forms/helpers/formDataHelper");
 
 function getParamsListTemplate(paramSchema) {
-    // Only display these properties for a parameter, in this exact order
+    // Only display these properties for a parameter, in this exact order (matches screenshot)
     const allowedOrder = [
+        "autoCompleteAddressSourceName",
+        "autoCompleteAddressTargetType",
+        "codeDescription",
         "dataSize",
         "dataType",
-        "defaultValue",
+        "detailsText",
+        "fKListOrderBy",
         "fKObjectName",
+        "infoToolTipText",
+        "isAutoCompleteAddressSource",
+        "isFileUpload",
         "isFK",
+        "isFKList",
+        "isFKListInactiveIncluded",
+        "isFKListSearchable",
+        "isFKListUnknownOptionRemoved",
         "isFKLookup",
         "isIgnored",
+        "isRadioButtonList",
+        "isRequired",
+        "isSecured",
         "isVisible",
         "labelText",
-        "isLabelVisible",
+        "requiredErrorText",
         "sourceObjectName",
         "sourcePropertyName",
-        "conditionalVisiblePropertyName"
+        "validationRuleRegExMatchRequired",
+        "validationRuleRegExMatchRequiredErrorText"
     ];
 
     // Build case-insensitive key map from schema
@@ -29,8 +44,7 @@ function getParamsListTemplate(paramSchema) {
     const variantMap = {
         'datatype': ['sqlserverdbdatatype'],
         'datasize': ['sqlserverdbdatatypesize'],
-        'labeltext': ['headertext', 'headerlabeltext'],
-        'islabelvisible': ['isheaderlabelsvisible', 'isheaderlabelvisible']
+        'labeltext': ['headertext', 'headerlabeltext']
     };
 
     // Resolve actual schema keys present in this order
