@@ -18,6 +18,40 @@ ARCHITECTURE NOTES:
 - No more global list element references that could be null
 - Pattern matches page init exactly: DOM elements accessed only when they exist
 - All move/reverse/copy buttons should now work correctly
+
+2024-12-28 - ADD BROWSE DATA OBJECTS BUTTONS FOR SOURCEOBJECTNAME FIELDS
+USER REQUEST: Add "Browse Data Objects" lookup buttons for sourceObjectName fields in workflow detail views
+ISSUE #299: Following working implementation pattern from columnsTableTemplate.js and paramsTableTemplate.js
+COMPLETED ACTIONS:
+1. ✓ Added browse button for sourceObjectName in forms/outputVarsTableTemplate.js (table view)
+   - Added conditional check for outputVarKey === "sourceObjectName"  
+   - Created lookup-button with codicon-search icon
+   - Enabled/disabled based on propertyExists state
+   - Used data-prop and data-index attributes
+   - Wrapped in control-with-button container
+2. ✓ Added browse button for sourceObjectName in pageinits/outputVarsTableTemplate.js (list view)
+   - Added conditional check for outputVarKey === "sourceObjectName"
+   - Created lookup-button with codicon-search icon  
+   - Used data-prop and data-field-id attributes (list view pattern)
+   - Button disabled by default (readonly mode)
+   - Wrapped in control-with-button container
+3. ✓ Added browse button for sourceObjectName in generalFlow/paramsListTemplate.js (list view)
+   - Added conditional check for propKey === "sourceObjectName"
+   - Created lookup-button with codicon-search icon
+   - Used data-prop and data-field-id attributes
+   - Button disabled by default (readonly mode)
+   - Wrapped in control-with-button container
+4. ✓ Verified webpack compilation successful after all changes
+TECHNICAL DETAILS:
+- Followed exact pattern from working implementations in columnsTableTemplate.js and paramsTableTemplate.js
+- Table views use data-index, list views use data-field-id
+- Button enabled/disabled state follows propertyExists checkbox pattern
+- All buttons use "Browse Data Objects" tooltip
+- Implementation uses controlContainer pattern to conditionally wrap inputField and browseButton
+ARCHITECTURE NOTES:
+- Pattern: if (fieldKey === "sourceObjectName") { create browseButton + controlContainer } else { controlContainer = inputField }
+- Consistent with existing browse button implementations for destinationTargetName and fKObjectName
+- No changes needed to generalFlow/outputVarsTableTemplate.js as it delegates to pageinits implementation
 STATUS: COMPLETED - Fixed critical DOM timing issue preventing all button functionality
 
 2024-12-25 23:00:00 - COMPREHENSIVE CONSISTENCY REVIEW (CYCLE 4)

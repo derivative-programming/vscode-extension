@@ -102,6 +102,18 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
                 inputField = `<input type="text" name="${outputVarKey}" value="${propertyExists ? outputVar[outputVarKey] : ""}" ${tooltip} ${!propertyExists ? "readonly" : ""}>`;
             }
             
+            // Add browse button for sourceObjectName field
+            let browseButton = "";
+            let controlContainer = "";
+            if (outputVarKey === "sourceObjectName") {
+                browseButton = `<button type="button" class="lookup-button" data-prop="${outputVarKey}" data-index="${index}" ${!propertyExists ? "disabled" : ""} title="Browse Data Objects">
+                    <span class="codicon codicon-search"></span>
+                </button>`;
+                controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;
+            } else {
+                controlContainer = inputField;
+            }
+            
             // If the property exists, add a data attribute to indicate it was originally checked
             // and disable the checkbox to prevent unchecking
             const originallyChecked = propertyExists ? "data-originally-checked=\"true\"" : "";
@@ -110,7 +122,7 @@ function getOutputVarsTableTemplate(outputVars, outputVarsSchema) {
             
             return `<td>
                 <div class="control-with-checkbox">
-                    ${inputField}
+                    ${controlContainer}
                     <input type="checkbox" class="outputvar-checkbox" data-prop="${outputVarKey}" data-index="${index}" ${propertyExists ? "checked disabled" : ""} ${originallyChecked} title="Toggle property existence">
                 </div>
             </td>`;
