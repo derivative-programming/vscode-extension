@@ -18,6 +18,20 @@ REFRESH FLOW: Store open API panels → close API panels → reload model → re
 
 2025-08-24 - Fix: API Details View unsaved changes indicator parity
 - Added vscode.commands.executeCommand("appdna.refresh") after modelService.markUnsavedChanges() in src/webviews/apis/apiDetailsView.js updateSettingsDirectly()
+
+2025-08-24 - COMMAND: Analyze sourceObjectName settings and lookup buttons in detail views
+STATUS: COMPLETED ✅
+ARCHITECTURE ANALYSIS: 
+- Found 3 objects in schema with sourceObjectName property:
+  1. Report → reportColumn (line 940 in app-dna.schema.json)
+  2. ObjectWorkflow → objectWorkflowParam (line 1347 in app-dna.schema.json) 
+  3. ObjectWorkflow → objectWorkflowOutputVar (line 1417 in app-dna.schema.json)
+- Detail views with "Browse Data Objects" lookup buttons for sourceObjectName:
+  ✓ Report Details View - HAS lookup buttons (src/webviews/reports/components/templates/)
+  ✓ Form Details View - HAS lookup buttons (src/webviews/forms/components/templates/)
+  ✗ Workflow Details View - does NOT have lookup buttons implemented
+- Pattern: Report and Form views have comprehensive lookup button implementations, but Workflow views are missing this functionality
+- TODO: Need to add lookup buttons for sourceObjectName in workflow view objectWorkflowParam and objectWorkflowOutputVar tabs
 - Rationale: Match Forms behavior so JsonTreeDataProvider’s polling/context updates reflect changes immediately and show the unsaved indicator.
 - Status: Compiles; awaiting UX verification in API Settings edits.
 2025-08-24 12:33 EDT | Align API Details view title/header and settings tab design with Forms
@@ -550,3 +564,7 @@ Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessSubmit
 Command: Open Workflow Task Details for: DFTCampaignCompanyNameEvalResultConvertPrep
 Command: Open Workflow Task Details for: DynaFlowTaskDynaFlowCleanup
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
