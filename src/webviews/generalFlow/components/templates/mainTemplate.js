@@ -30,15 +30,22 @@ function getMainTemplate(
 <body>
     <div class="header-container">
         <h1 class="header-title">Details for ${flowName} General Flow</h1>
-        <button class="copy-page-init-name-button" onclick="copyGeneralFlowName('${flowName || ''}')" title="Copy General Flow Name">
+        <button class="copy-general-flow-name-button" onclick="copyGeneralFlowName('${flowName || ''}')" title="Copy General Flow Name">
             <i class="codicon codicon-copy"></i>
         </button>
     </div>
 
-    <div class="tabs">
-        <div class="tab active" data-tab="settings">Settings</div>
-        <div class="tab" data-tab="params">Input Controls (${paramCount})</div>
-        <div class="tab" data-tab="outputVars">Output Variables (${outputVarCount})</div>
+    ${ownerObject ? `
+    <div class="owner-data-object-section">
+        <span class="owner-data-object-label">Owner Data Object:</span>
+        <span class="owner-data-object-name">${ownerObject.name || 'Unknown Object'}</span>
+    </div>
+    ` : ''}
+
+    <div class="tabs" role="tablist">
+        <div class="tab active" role="tab" tabindex="0" data-tab="settings">Settings</div>
+        <div class="tab" role="tab" tabindex="0" data-tab="params">Input Controls (${paramCount})</div>
+        <div class="tab" role="tab" tabindex="0" data-tab="outputVars">Output Variables (${outputVarCount})</div>
     </div>
 
     <div id="settings" class="tab-content active">
@@ -59,10 +66,10 @@ function getMainTemplate(
                     }).join('')}
                 </select>
                 <div class="list-buttons">
-                    <button id="copyParamsButton" class="copy-props-button">Copy List</button>
-                    <button id="moveUpParamsButton" class="move-button">Move Up</button>
-                    <button id="moveDownParamsButton" class="move-button">Move Down</button>
-                    <button id="reverseParamsButton" class="reverse-button">Reverse</button>
+                    <button id="copyParamButton" class="copy-props-button">Copy List</button>
+                    <button id="moveUpParamButton" class="move-button">Move Up</button>
+                    <button id="moveDownParamButton" class="move-button">Move Down</button>
+                    <button id="reverseParamButton" class="reverse-button">Reverse</button>
                 </div>
             </div>
             <div id="paramDetailsContainer" class="details-container" style="display: none;">
@@ -101,7 +108,9 @@ function getMainTemplate(
         </div>
     </div>
 
-    <!-- No Modal HTML needed - created dynamically like Page Init -->
+    <!-- Modals for adding/editing items -->
+    ${paramModalHtml}
+    ${outputVarModalHtml}
 
     <script>
         const vscode = acquireVsCodeApi();

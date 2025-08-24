@@ -25,7 +25,8 @@ function generateDetailsView(flow, flowSchemaProps, flowParamsSchema, flowOutput
         const settingsHtml = getSettingsTabTemplate(flowForSettings, flowSchemaProps);
         const paramListViewFields = getParamsListTemplate(flowParamsSchema);
         const outputVarListViewFields = getOutputVarsListTemplate(flowOutputVarsSchema);
-        // Modal HTML no longer needed - created dynamically like Page Init
+        const paramModalHtml = getParamModalHtml(flowParamsSchema);
+        const outputVarModalHtml = getOutputVarModalHtml(flowOutputVarsSchema);
 
         const flowName = (flow && (flow.titleText || flow.name)) ? (flow.titleText || flow.name) : 'Unknown Flow';
 
@@ -45,8 +46,8 @@ function generateDetailsView(flow, flowSchemaProps, flowParamsSchema, flowOutput
             settingsHtml,
             paramListViewFields,
             outputVarListViewFields,
-            '', // No param modal HTML
-            '', // No output var modal HTML
+            paramModalHtml,
+            outputVarModalHtml,
             clientScript,
             codiconsUri,
             ownerObject

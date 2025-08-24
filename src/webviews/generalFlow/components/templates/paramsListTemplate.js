@@ -78,19 +78,10 @@ function getParamsListTemplate(paramSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${propKey}" value="" ${tooltip} readonly>`;
         }
 
-        // Add browse button for sourceObjectName and fKObjectName fields
-        let controlContainer = inputField;
-        if (propKey.toLowerCase() === "sourceobjectname" || propKey.toLowerCase() === "fkobjectname") {
-            const browseButton = `<button type="button" class="lookup-button" data-prop="${propKey}" data-field-id="${fieldId}" disabled title="Browse Data Objects">
-                <span class="codicon codicon-search"></span>
-            </button>`;
-            controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;
-        }
-
         return `<div class="form-row">
             <label for="${fieldId}" ${tooltip}>${formatLabel(propKey)}:</label>
             <div class="control-with-checkbox">
-                ${controlContainer}
+                ${inputField}
                 <input type="checkbox" id="${fieldId}Editable" data-field-id="${fieldId}" title="Toggle property existence" class="property-toggle">
             </div>
         </div>`;

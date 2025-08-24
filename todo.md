@@ -4,6 +4,12 @@ As a Admin, I want to view a Template File Update Request
 TemplateFileUpdateRequest 
 
 
+add owner object display under title on flow views
+
+need lookup buttons on source object name and fk object name settings on flow views
+
+need lookup on Button Object WF Name setting
+
 geeneral flow detail view issues...
 - move up and move down button does nothing on click 
   - input var tab
