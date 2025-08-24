@@ -1,3 +1,4 @@
+
 2025-01-27 - COMMAND: Add 'Add General Flow Button Column' feature to Report Details View
 STATUS: COMPLETED ✅
 ISSUE: Need to add "Add General Flow Button Column" button next to "Add destination button column" button in Report details view columns tab
@@ -12,6 +13,45 @@ FILES CHANGED:
 - src/webviews/reports/reportDetailsView.js: Added addGeneralFlowButtonColumn message handler and addGeneralFlowButtonColumnToReport function, plus getGeneralFlowsForModal handler
 FUNCTIONALITY: Modal shows list of general flows (same filtering logic as general list view), allows user to select flow and enter button text, auto-generates column name, creates button column with general flow properties
 BUILD STATUS: Webpack compiling successfully without errors
+
+2025-01-27 - COMMAND: Fix cancel button positioning in Add Workflow Task modal
+STATUS: COMPLETED ✅
+ISSUE: Cancel buttons were appearing in wrong position due to conflicting CSS class usage - close-button class was causing form action buttons to be positioned like header close button
+SOLUTION: Changed cancel buttons from using close-button class to cancel-button class, updated JavaScript event handlers, and added proper CSS styling for cancel-button class
+ARCHITECTURE: Separated concerns between modal header close button (.close-button) and form action cancel buttons (.cancel-button). This prevents CSS conflicts and ensures proper button positioning in form actions area.
+FILES CHANGED:
+- src/webviews/workflows/components/templates/modalTemplates.js: Changed cancel button class from close-button to cancel-button
+- src/webviews/workflows/components/templates/addWorkflowTaskModalFunctionality.js: Added event listeners for cancel-button class
+- src/webviews/workflows/styles/detailsViewStyles.js: Added cancel-button CSS styles
+BUILD STATUS: TypeScript compiling successfully
+
+2025-01-27 - COMMAND: Improve Add Workflow Task modal button layout and header styling
+STATUS: COMPLETED ✅
+ISSUE: User requested proper button layout (cancel button to right of add task button) and X icon positioning in top right of modal header
+SOLUTION: Added CSS styles for modal-header layout and close button positioning to ensure proper visual hierarchy and button arrangement
+ARCHITECTURE: Modal header uses flexbox with space-between to position title on left and X close button on right. Form actions already had proper flex layout with justify-content: flex-end for right-aligned buttons. Added hover states for close button consistent with VS Code design system.
+FILES CHANGED:
+- src/webviews/workflows/styles/detailsViewStyles.js: Added modal-header and close-button CSS styles for proper layout
+BUILD STATUS: TypeScript compiling successfully
+
+2025-01-27 - COMMAND: Fix Add Workflow Task modal cancel button display issue
+STATUS: COMPLETED ✅
+ISSUE: Cancel button display issue in 'Add Workflow Task' modal - missing CSS styles for primary-button and secondary-button classes
+SOLUTION: Added missing CSS styles for .primary-button, .secondary-button, and .form-actions classes to workflow detailsViewStyles.js
+ARCHITECTURE: Workflow modal buttons use primary-button/secondary-button classes but these weren't defined in workflow styles. Added VS Code theme-aware button styling with proper hover states and form-actions container layout.
+FILES CHANGED:
+- src/webviews/workflows/styles/detailsViewStyles.js: Added primary-button, secondary-button, and form-actions CSS styles
+BUILD STATUS: TypeScript compiling successfully
+
+2025-01-27 - COMMAND: Simplify workflow tasks tab to show only description setting
+STATUS: COMPLETED ✅
+ISSUE: Workflow details view workflow tasks tab shows three settings (description, contextObjectName, isDynaFlowRequest) when clicking list item - user requested to show only description
+SOLUTION: Modified allowedOrder array in workflowTasksTableTemplate.js to only include "description" property
+ARCHITECTURE: Workflow tasks use same property filtering pattern as other detail views - allowedOrder array controls which properties are displayed in details form
+FILES CHANGED:
+- src/webviews/workflows/components/templates/workflowTasksTableTemplate.js: Changed allowedOrder from 3 properties to 1 (description only)
+BUILD STATUS: TypeScript compiling successfully
+
 
 2025-01-27 - COMMAND: Fix VS Code API acquisition error in API Details View
 STATUS: COMPLETED ✅
@@ -583,3 +623,14 @@ Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitRep
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
 Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
 Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalProcess
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
