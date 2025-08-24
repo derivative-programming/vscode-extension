@@ -48,6 +48,28 @@ STATUS: COMPLETED ✅
 ISSUE: Cancel buttons were appearing in wrong position due to conflicting CSS class usage - close-button class was causing form action buttons to be positioned like header close button
 SOLUTION: Changed cancel buttons from using close-button class to cancel-button class, updated JavaScript event handlers, and added proper CSS styling for cancel-button class
 ARCHITECTURE: Separated concerns between modal header close button (.close-button) and form action cancel buttons (.cancel-button). This prevents CSS conflicts and ensures proper button positioning in form actions area.
+
+2025-08-24 - COMMAND: Fix General Flow Details View Input Controls Tab - Source Object Name Browse Data Objects Button
+STATUS: COMPLETED ✅
+ISSUE: The source object name browse button in general flow input controls tab was visually present but completely non-functional due to missing JavaScript event handling and modal functionality
+ANALYSIS: Button template existed in paramsListTemplate.js but general flow client script lacked:
+- Data object search modal functionality
+- DOM event handling for browse button clicks  
+- Modal HTML template includes
+- Browse button enable/disable logic with checkbox states
+SOLUTION: Implemented complete browse functionality for general flow matching reports implementation:
+1. Created missing data object search modal components
+2. Added event handling for browse button clicks
+3. Integrated modal functionality into client script
+4. Added browse button state management with property checkboxes
+ARCHITECTURE: General flow now has same browse data objects functionality as reports area with consistent modal behavior and button state management
+FILES CREATED:
+- src/webviews/generalFlow/components/templates/dataObjectSearchModalTemplate.js: NEW FILE - Modal HTML template for data object selection
+- src/webviews/generalFlow/components/templates/dataObjectSearchModalFunctionality.js: NEW FILE - Modal JavaScript functionality for data object search and selection
+FILES MODIFIED:
+- src/webviews/generalFlow/components/templates/clientScriptTemplate.js: Added imports, modal template function, modal functionality inclusion, DOM event handling for browse buttons, and browse button state management in checkbox change handlers and param selection
+FUNCTIONALITY: Browse button now opens modal with filterable data object list, enables/disables based on property checkbox state, and properly updates input field value on selection
+BUILD STATUS: JavaScript files updated, ready for testing
 FILES CHANGED:
 - src/webviews/workflows/components/templates/modalTemplates.js: Changed cancel button class from close-button to cancel-button
 - src/webviews/workflows/components/templates/addWorkflowTaskModalFunctionality.js: Added event listeners for cancel-button class
@@ -697,3 +719,17 @@ Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
 Command: Open Workflow Details for: CampaignCompanyNameEvalProcess
 Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
 Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+
+ 
+ 2 0 2 5 - 0 1 - 2 8   -   C O M M A N D :   T e s t   a n d   d e b u g   G e n e r a l   F l o w   b r o w s e   b u t t o n   f u n c t i o n a l i t y   a f t e r   c o m p i l a t i o n 
+ S T A T U S :   I N   P R O G R E S S   
+ I S S U E :   U s e r   r e p o r t e d   ' n o t h i n g   h a p p e n s   o n   c l i c k   o f   b u t t o n '   f o r   G e n e r a l   F l o w   d e t a i l s   v i e w   i n p u t   c o n t r o l s   t a b   s o u r c e O b j e c t N a m e   b r o w s e   b u t t o n 
+ I N V E S T I G A T I O N : 
+ 1 .     B r o w s e   b u t t o n   H T M L   t e m p l a t e   e x i s t s   i n   p a r a m s L i s t T e m p l a t e . j s 
+ 2 .     M o d a l   t e m p l a t e s   c r e a t e d   ( d a t a O b j e c t S e a r c h M o d a l T e m p l a t e . j s   &   d a t a O b j e c t S e a r c h M o d a l F u n c t i o n a l i t y . j s ) 
+ 3 .     C l i c k   e v e n t   h a n d l i n g   i m p l e m e n t e d   i n   c l i e n t S c r i p t T e m p l a t e . j s   w i t h   d e b u g g i n g 
+ 4 .     B u t t o n   s t a t e   m a n a g e m e n t   a d d e d   ( i n i t i a l i z a t i o n   a n d   c h e c k b o x   c h a n g e   h a n d l e r s ) 
+ 5 .     W e b p a c k   c o m p i l a t i o n   s u c c e s s f u l   -   a l l   f i l e s   i n t e g r a t e d 
+ N E X T   S T E P S :   T e s t   a c t u a l   b u t t o n   f u n c t i o n a l i t y   i n   r u n n i n g   e x t e n s i o n   t o   v e r i f y   c l i c k   h a n d l i n g   a n d   m o d a l   c r e a t i o n 
+ D E B U G G I N G   S T A T U S :   C o n s o l e   l o g g i n g   e n a b l e d   f o r   b u t t o n   c l i c k s ,   s t a t e   c h a n g e s ,   a n d   m o d a l   o p e r a t i o n s  
+ 

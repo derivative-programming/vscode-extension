@@ -2,6 +2,8 @@
 // generalFlow clientScriptTemplate - matching Page Init approach exactly
 
 const { getAddInputControlModalHtml, getAddOutputVariableModalHtml } = require("./modalTemplates");
+const { getDataObjectSearchModalHtml } = require("./dataObjectSearchModalTemplate");
+const { getDataObjectSearchModalFunctionality } = require("./dataObjectSearchModalFunctionality");
 
 /**
  * Generates JavaScript code for client-side functionality of General Flow view
@@ -43,6 +45,11 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
             // Add Output Variable Modal Template Function  
             function getAddOutputVariableModalHtml() {
                 return \`${getAddOutputVariableModalHtml()}\`;
+            }
+
+            // Data Object Search Modal Template Function
+            function getDataObjectSearchModalHtml() {
+                return \`${getDataObjectSearchModalHtml()}\`;
             }
 
             // Function to create and show the Add Input Control modal (matching Page Init pattern)
@@ -507,6 +514,15 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                                 checkbox.disabled = false;
                                 checkbox.removeAttribute('data-originally-checked');
                             }
+                            
+                            // Update browse button state for sourceObjectName field
+                            if (paramKey === 'sourceObjectName') {
+                                const browseButton = field.parentElement.querySelector('.lookup-button');
+                                if (browseButton) {
+                                    browseButton.disabled = !propertyExists;
+                                    console.log('Initialized browse button state for', paramKey, 'disabled:', !propertyExists);
+                                }
+                            }
                         }
                     });
 
@@ -529,6 +545,16 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                             const selectedIndex = paramsList.value;
                             if (selectedIndex === '') return;
                             if (field.tagName === 'INPUT') { field.readOnly = !this.checked; } else if (field.tagName === 'SELECT') { field.disabled = !this.checked; }
+                            
+                            // Enable/disable browse button for sourceObjectName field
+                            if (paramKey === 'sourceObjectName') {
+                                const browseButton = field.parentElement.querySelector('.lookup-button');
+                                if (browseButton) {
+                                    browseButton.disabled = !this.checked;
+                                    console.log('Checkbox changed for', paramKey, 'checked:', this.checked, 'button disabled:', !this.checked);
+                                }
+                            }
+                            
                             if (this.checked) {
                                 this.disabled = true;
                                 this.setAttribute('data-originally-checked', 'true');
@@ -858,6 +884,52 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                         if (up && down) { updateMoveButtonStates(outputVarsListEl, up, down); }
                         break;
                     }
+                }
+            });
+
+            // Include Data Object Search Modal functionality
+            ${getDataObjectSearchModalFunctionality()}
+
+            // DOM Event handling for browse buttons (data object lookup)
+            document.addEventListener('click', function(event) {
+                // Check if the clicked element is a lookup button or its child
+                let button = event.target;
+                if (button.classList.contains('codicon')) {
+                    // If clicked on the icon, get the parent button
+                    button = button.parentElement;
+                }
+                
+                if (button && button.classList && button.classList.contains('lookup-button')) {
+                    console.log('Browse button clicked:', button);
+                    const propKey = button.getAttribute('data-prop');
+                    console.log('Property key:', propKey);
+                    
+                    if (propKey === 'sourceObjectName') {
+                        console.log('Handling sourceObjectName browse');
+                        // Handle data object browse functionality for input controls tab
+                        let inputField = button.parentElement.querySelector('input[type="text"]');
+                        
+                        // If not found (list view), try using data-field-id
+                        if (!inputField) {
+                            const fieldId = button.getAttribute('data-field-id');
+                            console.log('Using field ID:', fieldId);
+                            if (fieldId) {
+                                inputField = document.getElementById(fieldId);
+                            }
+                        }
+                        
+                        if (inputField) {
+                            console.log('Input field found:', inputField);
+                            const currentValue = inputField.value;
+                            console.log('Current value:', currentValue);
+                            console.log('All data objects:', allDataObjects);
+                            createDataObjectSearchModal(currentValue, inputField);
+                        } else {
+                            console.error('Input field not found');
+                        }
+                    }
+                } else {
+                    console.log('Not a lookup button click');
                 }
             });
         })();
