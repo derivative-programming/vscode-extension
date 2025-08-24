@@ -1,15 +1,21 @@
 "use strict";
-// generalFlow modalTemplates reuse forms – touch for rebuild
+// generalFlow modalTemplates reuse forms with complete functionality
+
+const { getAddInputControlModalHtml } = require("../../../forms/components/templates/addInputControlModalTemplate");
+const { getAddOutputVariableModalHtml } = require("../../../forms/components/templates/addOutputVariableModalTemplate");
 
 function getParamModalHtml(paramSchema) {
-    const { getAddInputControlModalHtml } = require("../../../forms/components/templates/addInputControlModalTemplate");
-    // We rely on client script to attach functionality; just return the template
-    return getAddInputControlModalHtml();
+    return `
+<div id="addInputControlModal" class="modal" style="display:none;">
+    ${getAddInputControlModalHtml()}
+</div>`;
 }
 
 function getOutputVarModalHtml(outputVarSchema) {
-    const { getAddOutputVariableModalHtml } = require("../../../forms/components/templates/addOutputVariableModalTemplate");
-    return getAddOutputVariableModalHtml();
+    return `
+<div id="addOutputVarModal" class="modal" style="display:none;">
+    ${getAddOutputVariableModalHtml()}
+</div>`;
 }
 
 module.exports = { getParamModalHtml, getOutputVarModalHtml };

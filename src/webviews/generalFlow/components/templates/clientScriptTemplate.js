@@ -1,6 +1,9 @@
 "use strict";
 // generalFlow clientScriptTemplate - completely independent implementation like Page Init
 
+"use strict";
+// generalFlow clientScriptTemplate - completely independent implementation like Page Init
+
 // No Forms imports - General Flow now has complete independence
 
 /**
@@ -89,7 +92,7 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                 const value = name || flowName;
                 if (!value) { return; }
                 const applyFeedback = () => {
-                    const icon = document.querySelector('.copy-general-flow-name-button .codicon');
+                    const icon = document.querySelector('.copy-page-init-name-button .codicon');
                     if (!icon) { return; }
                     const original = icon.className;
                     icon.className = 'codicon codicon-check';
@@ -107,21 +110,374 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                 }
             };
 
-            // TODO: Add modal templates and functionality for input controls and output variables
-            // These will be implemented based on Page Init patterns
+            // Modal functionality for input controls and output variables (matching Page Init)
             function createAddInputControlModal() {
-                // Placeholder - to be implemented
-                console.log('Add input control modal - not yet implemented');
+                // Create modal dialog for adding input controls
+                const modal = document.createElement("div");
+                modal.className = "modal";
+                
+                // Set the modal content (get HTML from existing templates)
+                modal.innerHTML = \`
+<div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h2>Add Input Control</h2>
+    <div class="tabs">
+        <div class="tab active" data-tab="singleAdd">Single Input Control</div>
+        <div class="tab" data-tab="bulkAdd">Bulk Add</div>
+    </div>
+    <div id="singleAdd" class="tab-content active">
+        <div class="form-row">
+            <label for="inputControlName">Input Control Name:</label>
+            <input type="text" id="inputControlName">
+            <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>
+        </div>
+        <div id="singleValidationError" class="validation-error"></div>
+        <button id="addSingleInputControl">Add Input Control</button>
+    </div>
+    <div id="bulkAdd" class="tab-content">
+        <div class="form-row">
+            <label for="bulkInputControls">Input Control Names (one per line):</label>
+            <textarea id="bulkInputControls" rows="5"></textarea>
+            <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>
+        </div>
+        <div id="bulkValidationError" class="validation-error"></div>
+        <button id="addBulkInputControls">Add Input Controls</button>
+    </div>
+</div>\`;
+                document.body.appendChild(modal);
+                
+                // Show the modal
+                setTimeout(() => {
+                    modal.style.display = "flex";
+                    // Focus on the input control name input when modal opens (single input control tab is active by default)
+                    const inputControlNameInput = modal.querySelector("#inputControlName");
+                    if (inputControlNameInput) {
+                        inputControlNameInput.focus();
+                    }
+                }, 10);
+                
+                // Tab switching in modal
+                modal.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const tabId = tab.getAttribute('data-tab');
+                        // Update active tab
+                        modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        // Update visible tab content
+                        modal.querySelectorAll('.tab-content').forEach(content => {
+                            content.classList.remove('active');
+                            if (content.id === tabId) {
+                                content.classList.add('active');
+                            }
+                        });
+                        
+                        // Set focus based on which tab is now active
+                        setTimeout(() => {
+                            if (tabId === 'singleAdd') {
+                                const inputControlNameInput = modal.querySelector("#inputControlName");
+                                if (inputControlNameInput) {
+                                    inputControlNameInput.focus();
+                                }
+                            } else if (tabId === 'bulkAdd') {
+                                const bulkInputControlsTextarea = modal.querySelector("#bulkInputControls");
+                                if (bulkInputControlsTextarea) {
+                                    bulkInputControlsTextarea.focus();
+                                }
+                            }
+                        }, 10);
+                    });
+                });
+                
+                // Close modal when clicking the x button
+                modal.querySelector(".close-button").addEventListener("click", function() {
+                    document.body.removeChild(modal);
+                });
+                
+                // Close modal when clicking outside the modal content
+                modal.addEventListener("click", function(event) {
+                    if (event.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                });
+                
+                // Add Enter key handling for single input control input
+                const inputControlNameInput = modal.querySelector("#inputControlName");
+                if (inputControlNameInput) {
+                    inputControlNameInput.addEventListener("keypress", function(event) {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            const addButton = modal.querySelector("#addSingleInputControl");
+                            if (addButton && !addButton.disabled) {
+                                addButton.click();
+                            }
+                        }
+                    });
+                }
+                
+                // Validate input control name
+                function validateInputControlName(name) {
+                    if (!name) {
+                        return "Input control name cannot be empty";
+                    }
+                    if (name.length > 100) {
+                        return "Input control name cannot exceed 100 characters";
+                    }
+                    if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
+                        return "Input control name must start with a letter and contain only letters and numbers";
+                    }
+                    if (currentParams.some(param => param.name === name)) {
+                        return "Input control with this name already exists";
+                    }
+                    return null; // Valid
+                }
+                
+                // Add single input control button event listener
+                modal.querySelector("#addSingleInputControl").addEventListener("click", function() {
+                    const inputControlName = modal.querySelector("#inputControlName").value.trim();
+                    const errorElement = modal.querySelector("#singleValidationError");
+                    
+                    const validationError = validateInputControlName(inputControlName);
+                    if (validationError) {
+                        errorElement.textContent = validationError;
+                        return;
+                    }
+                    
+                    // Add the new input control by sending command
+                    vscode.postMessage({
+                        command: 'addParamWithName',
+                        data: {
+                            name: inputControlName
+                        }
+                    });
+                    
+                    // Close the modal
+                    document.body.removeChild(modal);
+                });
+                
+                // Add bulk input controls button event listener
+                modal.querySelector("#addBulkInputControls").addEventListener("click", function() {
+                    const bulkInputControls = modal.querySelector("#bulkInputControls").value;
+                    const inputControlNames = bulkInputControls.split("\\n").map(name => name.trim()).filter(name => name);
+                    const errorElement = modal.querySelector("#bulkValidationError");
+                    
+                    // Validate all input control names
+                    const errors = [];
+                    const validInputControls = [];
+                    
+                    inputControlNames.forEach(name => {
+                        const validationError = validateInputControlName(name);
+                        if (validationError) {
+                            errors.push("\\"" + name + "\\": " + validationError);
+                        } else {
+                            validInputControls.push(name);
+                        }
+                    });
+                    
+                    if (errors.length > 0) {
+                        errorElement.innerHTML = errors.join("<br>");
+                        return;
+                    }
+                    
+                    // Add all valid input controls using individual commands
+                    validInputControls.forEach(name => {
+                        vscode.postMessage({
+                            command: 'addParamWithName',
+                            data: {
+                                name: name
+                            }
+                        });
+                    });
+                    
+                    // Close the modal
+                    document.body.removeChild(modal);
+                });
             }
 
             function createAddOutputVariableModal() {
-                // Placeholder - to be implemented  
-                console.log('Add output variable modal - not yet implemented');
+                // Create modal dialog for adding output variables
+                const modal = document.createElement("div");
+                modal.className = "modal";
+                
+                // Set the modal content (get HTML from existing templates)
+                modal.innerHTML = \`
+<div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h2>Add Output Variable</h2>
+    <div class="tabs">
+        <div class="tab active" data-tab="singleAdd">Single Output Variable</div>
+        <div class="tab" data-tab="bulkAdd">Bulk Add</div>
+    </div>
+    <div id="singleAdd" class="tab-content active">
+        <div class="form-row">
+            <label for="outputVariableName">Output Variable Name:</label>
+            <input type="text" id="outputVariableName">
+            <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>
+        </div>
+        <div id="singleValidationError" class="validation-error"></div>
+        <button id="addSingleOutputVariable">Add Output Variable</button>
+    </div>
+    <div id="bulkAdd" class="tab-content">
+        <div class="form-row">
+            <label for="bulkOutputVariables">Output Variable Names (one per line):</label>
+            <textarea id="bulkOutputVariables" rows="5"></textarea>
+            <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>
+        </div>
+        <div id="bulkValidationError" class="validation-error"></div>
+        <button id="addBulkOutputVariables">Add Output Variables</button>
+    </div>
+</div>\`;
+                document.body.appendChild(modal);
+                
+                // Show the modal
+                setTimeout(() => {
+                    modal.style.display = "flex";
+                    // Focus on the output variable name input when modal opens (single output variable tab is active by default)
+                    const outputVariableNameInput = modal.querySelector("#outputVariableName");
+                    if (outputVariableNameInput) {
+                        outputVariableNameInput.focus();
+                    }
+                }, 10);
+                
+                // Tab switching in modal
+                modal.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const tabId = tab.getAttribute('data-tab');
+                        // Update active tab
+                        modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        // Update visible tab content
+                        modal.querySelectorAll('.tab-content').forEach(content => {
+                            content.classList.remove('active');
+                            if (content.id === tabId) {
+                                content.classList.add('active');
+                            }
+                        });
+                        
+                        // Set focus based on which tab is now active
+                        setTimeout(() => {
+                            if (tabId === 'singleAdd') {
+                                const outputVariableNameInput = modal.querySelector("#outputVariableName");
+                                if (outputVariableNameInput) {
+                                    outputVariableNameInput.focus();
+                                }
+                            } else if (tabId === 'bulkAdd') {
+                                const bulkOutputVariablesTextarea = modal.querySelector("#bulkOutputVariables");
+                                if (bulkOutputVariablesTextarea) {
+                                    bulkOutputVariablesTextarea.focus();
+                                }
+                            }
+                        }, 10);
+                    });
+                });
+                
+                // Close modal when clicking the x button
+                modal.querySelector(".close-button").addEventListener("click", function() {
+                    document.body.removeChild(modal);
+                });
+                
+                // Close modal when clicking outside the modal content
+                modal.addEventListener("click", function(event) {
+                    if (event.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                });
+                
+                // Add Enter key handling for single output variable input
+                const outputVariableNameInput = modal.querySelector("#outputVariableName");
+                if (outputVariableNameInput) {
+                    outputVariableNameInput.addEventListener("keypress", function(event) {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            const addButton = modal.querySelector("#addSingleOutputVariable");
+                            if (addButton && !addButton.disabled) {
+                                addButton.click();
+                            }
+                        }
+                    });
+                }
+                
+                // Validate output variable name
+                function validateOutputVariableName(name) {
+                    if (!name) {
+                        return "Output variable name cannot be empty";
+                    }
+                    if (name.length > 100) {
+                        return "Output variable name cannot exceed 100 characters";
+                    }
+                    if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
+                        return "Output variable name must start with a letter and contain only letters and numbers";
+                    }
+                    if (currentOutputVars.some(outputVar => outputVar.name === name)) {
+                        return "Output variable with this name already exists";
+                    }
+                    return null; // Valid
+                }
+                
+                // Add single output variable button event listener
+                modal.querySelector("#addSingleOutputVariable").addEventListener("click", function() {
+                    const outputVariableName = modal.querySelector("#outputVariableName").value.trim();
+                    const errorElement = modal.querySelector("#singleValidationError");
+                    
+                    const validationError = validateOutputVariableName(outputVariableName);
+                    if (validationError) {
+                        errorElement.textContent = validationError;
+                        return;
+                    }
+                    
+                    // Add the new output variable by sending command
+                    vscode.postMessage({
+                        command: 'addOutputVarWithName',
+                        data: {
+                            name: outputVariableName
+                        }
+                    });
+                    
+                    // Close the modal
+                    document.body.removeChild(modal);
+                });
+                
+                // Add bulk output variables button event listener
+                modal.querySelector("#addBulkOutputVariables").addEventListener("click", function() {
+                    const bulkOutputVariables = modal.querySelector("#bulkOutputVariables").value;
+                    const outputVariableNames = bulkOutputVariables.split("\\n").map(name => name.trim()).filter(name => name);
+                    const errorElement = modal.querySelector("#bulkValidationError");
+                    
+                    // Validate all output variable names
+                    const errors = [];
+                    const validOutputVariables = [];
+                    
+                    outputVariableNames.forEach(name => {
+                        const validationError = validateOutputVariableName(name);
+                        if (validationError) {
+                            errors.push("\\"" + name + "\\": " + validationError);
+                        } else {
+                            validOutputVariables.push(name);
+                        }
+                    });
+                    
+                    if (errors.length > 0) {
+                        errorElement.innerHTML = errors.join("<br>");
+                        return;
+                    }
+                    
+                    // Add all valid output variables using individual commands
+                    validOutputVariables.forEach(name => {
+                        vscode.postMessage({
+                            command: 'addOutputVarWithName',
+                            data: {
+                                name: name
+                            }
+                        });
+                    });
+                    
+                    // Close the modal
+                    document.body.removeChild(modal);
+                });
             }
 
             // Direct button handlers matching Page Init patterns
             
-            // Initialize list selection behavior for params and output vars
+            // Initialize list selection behavior for params and output vars (matching Page Init)
             const paramsList = document.getElementById('paramsList');
             const paramDetailsContainer = document.getElementById('paramDetailsContainer');
             if (paramsList && paramDetailsContainer) {
@@ -188,6 +544,18 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                         updateMoveButtonStates(paramsList, moveUpButton, moveDownButton);
                     }
                 });
+
+                // Initialize details container to be hidden if no selection (matching Page Init)
+                if (paramsList && paramDetailsContainer && (!paramsList.value || paramsList.value === "")) {
+                    paramDetailsContainer.style.display = 'none';
+                }
+
+                // Initialize move button states on load
+                const moveUpButton = document.getElementById('moveUpParamsButton');
+                const moveDownButton = document.getElementById('moveDownParamsButton');
+                if (moveUpButton && moveDownButton) {
+                    updateMoveButtonStates(paramsList, moveUpButton, moveDownButton);
+                }
             }
 
             const outputVarsList = document.getElementById('outputVarsList');
@@ -256,6 +624,11 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                         updateMoveButtonStates(outputVarsList, moveUpButton, moveDownButton);
                     }
                 });
+
+                // Initialize details container to be hidden if no selection (matching Page Init)
+                if (outputVarsList && outputVarDetailsContainer && (!outputVarsList.value || outputVarsList.value === "")) {
+                    outputVarDetailsContainer.style.display = 'none';
+                }
 
                 // Initialize move button states on load
                 const moveUpButton = document.getElementById('moveUpOutputVarButton');
@@ -398,7 +771,37 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
             }
             
             // Ensure a default active tab on load
-            activateTab('params');
+            activateTab('settings');
+
+            // Settings tab behavior (matching Page Init)
+            document.querySelectorAll('.setting-checkbox').forEach(chk => {
+                chk.addEventListener('change', function() {
+                    const prop = this.getAttribute('data-prop');
+                    const isEnum = this.getAttribute('data-is-enum') === 'true';
+                    const field = document.getElementById('setting-' + prop);
+                    if (!field) return;
+                    if (isEnum) { field.disabled = !this.checked; } else { field.readOnly = !this.checked; }
+                    // Enable/disable related browse button if present (e.g., targetChildObject)
+                    const browseBtn = document.querySelector('.lookup-button[data-prop="' + prop + '"]');
+                    if (browseBtn) { browseBtn.disabled = !this.checked; }
+                    if (this.checked) {
+                        this.disabled = true;
+                        this.setAttribute('data-originally-checked', 'true');
+                        if (isEnum && (!field.value || field.value === '')) { if (field.options.length > 0) field.value = field.options[0].value; }
+                    }
+                    vscode.postMessage({ command: 'updateSettings', data: { property: prop, exists: this.checked, value: this.checked ? field.value : null } });
+                });
+            });
+            document.querySelectorAll('#settings input[type="text"], #settings select').forEach(field => {
+                const handler = () => {
+                    const name = field.getAttribute('name');
+                    const isEnum = field.tagName === 'SELECT';
+                    const chk = document.querySelector('.setting-checkbox[data-prop="' + name + '"]');
+                    if (!chk || !chk.checked) return;
+                    vscode.postMessage({ command: 'updateSettings', data: { property: name, exists: true, value: field.value } });
+                };
+                if (field.tagName === 'SELECT') { field.addEventListener('change', handler); } else { field.addEventListener('input', handler); field.addEventListener('change', handler); }
+            });
 
             // Settings field handlers and styling (simplified from Forms version)
             Object.keys(paramSchema).forEach(paramKey => {

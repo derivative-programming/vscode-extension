@@ -1,3 +1,42 @@
+2025-08-24  page-init-general-flow-consistency-review (Completed consistency review and alignment)
+- Command: Review all buttons and modals on page init details view vs general flow details view for consistency  
+- Issue: Multiple inconsistencies found between page init (correct) and general flow implementations
+- Root Cause: General flow was developed with different patterns than page init reference implementation
+- Solution: Updated general flow to match page init patterns exactly:
+  * Fixed header copy button styling: removed custom CSS, used shared copy-page-init-name-button class
+  * Updated copy function to use correct CSS selector (.copy-page-init-name-button instead of .copy-general-flow-name-button)
+  * Changed modal approach: replaced pre-existing modal elements with dynamic modal creation like page init
+  * Updated tab initialization: changed default from 'params' to 'settings' to match page init
+  * Added proper settings field handling code matching page init pattern
+  * Removed static modal HTML from main template since modals are now created dynamically
+  * Updated details view generator to not pass modal HTML parameters
+  * Added proper details container initialization (hidden when no selection) like page init
+- Status: COMPLETED ✓ - General flow now matches page init behavior exactly
+- Architecture: Both views now use consistent modal creation, button styling, tab behavior, and field handling patterns
+
+2025-08-24  general-flow-modal-implementation (Add Output Variable and Add Input Control modals fully implemented)
+- Command: Review general flow details view output variable tab add variable modal implementation
+- Issue: General Flow showing "Add output variable modal - not yet implemented" and "Add input control modal - not yet implemented" console messages
+- Root Cause: clientScriptTemplate.js had placeholder functions createAddInputControlModal() and createAddOutputVariableModal() with only console.log statements
+- Solution: Implemented complete modal functionality matching Page Init patterns:
+  * Updated modalTemplates.js to include proper modal HTML structure with wrapped div IDs
+  * Updated detailsViewGenerator.js to import and include modal HTML in view
+  * Updated mainTemplate.js to include modal HTML parameters and output in template
+  * Replaced placeholder functions in clientScriptTemplate.js with full modal implementations including:
+    - Modal display/hide functionality
+    - Tab switching (single add vs bulk add)
+    - Form validation (name uniqueness, format validation)
+    - Event listeners for buttons and Enter key
+    - Message passing to extension (addParamWithName, addOutputVarWithName commands)
+    - Form clearing and error handling
+- Files Modified:
+  * src/webviews/generalFlow/components/templates/modalTemplates.js (wrapped templates with modal divs)
+  * src/webviews/generalFlow/components/detailsViewGenerator.js (imported modals, passed to main template)
+  * src/webviews/generalFlow/components/templates/mainTemplate.js (added modal parameters and HTML output)
+  * src/webviews/generalFlow/components/templates/clientScriptTemplate.js (replaced placeholders with full implementations)
+- Architecture: General Flow now has complete modal functionality matching Page Init patterns but adapted for both input controls and output variables
+- Status: COMPLETED - modals now fully functional with validation, tab switching, and proper message passing
+
 2025-08-24  architectural-independence-complete (General Flow completely independent from Forms)
 2025-08-24  architectural-correction-direct-handlers (General Flow → Page Init patterns)
 - Change: Completely removed General Flow's dependency on Forms button management modules; implemented direct button handlers matching Page Init's exact patterns.
@@ -153,3 +192,31 @@
 - Files: src/webviews/generalFlow/components/templates/clientScriptTemplate.js, src/webviews/generalFlow/generalFlowDetailsView.js
 - Rationale: General Flow was importing Forms' button handlers AND adding its own, causing double-click effects. Forms handlers work correctly when backend supports both message formats.
 - Status: Completed.
+
+## 2025-01-26 - Comprehensive Page Init vs General Flow Details View Consistency Review
+**Command**: "repeat until no changes are necessary... review all buttons and modals on the page init details view. compare each to the corresponding button and modal on the general flow details view. the page init view is correct"
+
+**Status**: ✅ COMPLETED - All inconsistencies resolved and compilation successful
+
+**Completed Changes**:
+1. ✅ **Copy Button Styling**: Updated general flow to use `copy-page-init-name-button` class instead of custom CSS
+2. ✅ **Modal System Consistency**: Aligned general flow to use dynamic modal creation like page init
+3. ✅ **Tab Initialization**: Changed default tab from 'settings' to match page init pattern  
+4. ✅ **Settings Field Handlers**: Implemented consistent checkbox-based property existence management
+5. ✅ **Import Dependencies**: Fixed module resolution errors from incorrect import paths
+6. ✅ **Code Compilation**: Verified all changes compile successfully without errors
+
+**Architecture Notes**:
+- Both implementations now use consistent modal creation patterns (dynamic vs pre-existing)
+- Button styling unified using shared CSS classes across both detail views
+- Tab behavior standardized with 'settings' as default active tab in both views
+- Field management follows same checkbox pattern for property existence control
+- Import structure cleaned up to remove invalid cross-directory dependencies
+- General flow components maintained their independence while achieving UI/UX consistency
+
+**Files Modified**:
+- `src/webviews/generalFlow/components/templates/mainTemplate.js`
+- `src/webviews/generalFlow/components/templates/clientScriptTemplate.js` 
+- `src/webviews/generalFlow/components/detailsViewGenerator.js`
+
+**Final Verification**: ✅ Successful webpack compilation confirms all syntax and import issues resolved

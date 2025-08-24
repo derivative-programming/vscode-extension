@@ -5,6 +5,7 @@ const { getDetailViewStyles } = require("../styles/detailsViewStyles");
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
 const { getParamsListTemplate } = require("./templates/paramsListTemplate");
 const { getOutputVarsListTemplate } = require("./templates/outputVarsTableTemplate");
+const { getParamModalHtml, getOutputVarModalHtml } = require("./templates/modalTemplates");
 const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
 const { getMainTemplate } = require("./templates/mainTemplate");
 
@@ -24,7 +25,7 @@ function generateDetailsView(flow, flowSchemaProps, flowParamsSchema, flowOutput
         const settingsHtml = getSettingsTabTemplate(flowForSettings, flowSchemaProps);
         const paramListViewFields = getParamsListTemplate(flowParamsSchema);
         const outputVarListViewFields = getOutputVarsListTemplate(flowOutputVarsSchema);
-    // Modals are created dynamically via client script; no static modal HTML injection
+        // Modal HTML no longer needed - created dynamically like Page Init
 
         const flowName = (flow && (flow.titleText || flow.name)) ? (flow.titleText || flow.name) : 'Unknown Flow';
 
@@ -37,13 +38,15 @@ function generateDetailsView(flow, flowSchemaProps, flowParamsSchema, flowOutput
             allDataObjects
         );
 
-    const result = getMainTemplate(
+        const result = getMainTemplate(
             flow,
             params.length,
             outputVars.length,
             settingsHtml,
             paramListViewFields,
             outputVarListViewFields,
+            '', // No param modal HTML
+            '', // No output var modal HTML
             clientScript,
             codiconsUri,
             ownerObject

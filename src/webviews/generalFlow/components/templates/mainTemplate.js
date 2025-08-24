@@ -9,6 +9,8 @@ function getMainTemplate(
     settingsHtml,
     paramListViewFields,
     outputVarListViewFields,
+    paramModalHtml,
+    outputVarModalHtml,
     clientScript,
     codiconsUri,
     ownerObject = null
@@ -23,23 +25,12 @@ function getMainTemplate(
     <link href="${codiconsUri}" rel="stylesheet" />
     <style>
         ${getDetailViewStyles()}
-
-        .header-container { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-        .header-title { margin: 0; }
-        .copy-general-flow-name-button { background: transparent !important; border: none; color: var(--vscode-foreground); cursor: pointer; padding: 6px; border-radius: 4px; transition: background 0.15s; display: flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; }
-        .copy-general-flow-name-button:hover { background: var(--vscode-toolbar-hoverBackground) !important; }
-        .copy-general-flow-name-button:active { background: var(--vscode-toolbar-activeBackground); transform: scale(0.95); }
-        .copy-general-flow-name-button .codicon { font-size: 16px; }
-
-    /* Ensure modals appear above tabs/content in this view */
-    .modal { z-index: 10000 !important; }
-    .modal-content { z-index: 10001 !important; }
     </style>
 </head>
 <body>
     <div class="header-container">
         <h1 class="header-title">Details for ${flowName} General Flow</h1>
-        <button class="copy-general-flow-name-button" onclick="copyGeneralFlowName('${flowName || ''}')" title="Copy General Flow Name">
+        <button class="copy-page-init-name-button" onclick="copyGeneralFlowName('${flowName || ''}')" title="Copy General Flow Name">
             <i class="codicon codicon-copy"></i>
         </button>
     </div>
@@ -110,7 +101,7 @@ function getMainTemplate(
         </div>
     </div>
 
-    <!-- Modals are created dynamically and appended to document.body by the client script -->
+    <!-- No Modal HTML needed - created dynamically like Page Init -->
 
     <script>
         const vscode = acquireVsCodeApi();
