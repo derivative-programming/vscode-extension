@@ -1332,3 +1332,48 @@ Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
 Command: Open Workflow Details for: CampaignCompanyNameEvalProcess
 Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
 Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+
+### Command: "review the data object list view. to the immediate left of the actions column add a 'Is Lookup' column. if isLookup=true on the data object, show a checked checkbox, if false or property does not exist show a unchecked checkbox. Add a filter dropdown with values All, yes, no"
+
+**Date:** August 30, 2025
+**Status:** COMPLETED ✅
+
+**Changes Made:**
+
+1. **Frontend JavaScript (`src/webviews/dataObjectListView.js`)**:
+   - Added "isLookup" column to table columns array
+   - Updated table rendering to include checkbox for isLookup property
+   - Added isLookup filter to applyFilters() function
+   - Updated clearFilters() to reset isLookup dropdown
+   - Added event listener for isLookup filter dropdown
+   - Updated no-data row colspan from 4 to 5
+
+2. **Backend TypeScript (`src/commands/dataObjectListCommands.ts`)**:
+   - Added HTML for isLookup filter dropdown with options (All, Yes, No)
+   - Added CSS styles for is-lookup-cell class
+   - Updated data object extraction to include isLookup property
+   - Fixed TypeScript boolean handling for isLookup property
+   - Enhanced sorting logic to handle boolean isLookup values
+   - Updated CSV export to include Is Lookup column
+
+3. **User Experience Features**:
+   - Read-only checkboxes showing isLookup status
+   - Filter dropdown with All/Yes/No options
+   - Proper sorting support for boolean column
+   - CSV export includes isLookup data
+   - Maintains existing ignored object styling
+
+**Architecture Notes:**
+- Follows existing data object list view patterns
+- Uses disabled checkboxes for read-only display
+- Maintains consistency with other filter implementations
+- Properly handles both string and boolean isLookup values from model
+- Column positioned between Declaration Text and Actions as requested
+
+**Testing Needed:**
+- Verify isLookup checkbox display matches data object property
+- Test filter dropdown functionality (All/Yes/No)
+- Confirm sorting works for isLookup column
+- Validate CSV export includes new column
+- Check responsive layout with additional column

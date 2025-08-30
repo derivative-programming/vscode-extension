@@ -413,6 +413,18 @@ export function registerDataObjectListCommands(
                             overflow: hidden;
                             background-color: var(--vscode-editor-background);
                         }
+                        
+                        /* Is Lookup column styles */
+                        .is-lookup-cell {
+                            text-align: center;
+                            width: 80px;
+                        }
+                        
+                        .is-lookup-cell input[type="checkbox"] {
+                            cursor: default;
+                            margin: 0;
+                            transform: scale(1.1);
+                        }
                     </style>
                 </head>
                 <body>
@@ -441,6 +453,14 @@ export function registerDataObjectListCommands(
                                 <div class="filter-group">
                                     <label>Declaration Text:</label>
                                     <input type="text" id="filterDeclarationText" placeholder="Filter by declaration text...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Is Lookup:</label>
+                                    <select id="filterIsLookup">
+                                        <option value="all">All</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="filter-actions">
@@ -600,7 +620,9 @@ function loadDataObjectData(panel: vscode.WebviewPanel, modelService: ModelServi
         allObjects.forEach(obj => {
             // Create declaration text based on object properties
             let declarationText = '';
-            if (obj.isLookup === 'true') {
+            const isLookup = Boolean(obj.isLookup === 'true' || obj.isLookup);
+            
+            if (isLookup) {
                 declarationText = `${obj.name} is a lookup`;
             } else if (obj.parentObjectName) {
                 declarationText = `${obj.name} is a child of ${obj.parentObjectName}`;
@@ -611,6 +633,7 @@ function loadDataObjectData(panel: vscode.WebviewPanel, modelService: ModelServi
                 name: obj.name || 'Unnamed Object',
                 description: obj.codeDescription || '',
                 declarationText: declarationText,
+                isLookup: isLookup,
                 isIgnored: obj.isNotImplemented === 'true'
             });
         });
@@ -618,15 +641,23 @@ function loadDataObjectData(panel: vscode.WebviewPanel, modelService: ModelServi
         // Sort the data if requested
         if (sortColumn) {
             dataObjectItems.sort((a, b) => {
-                let aVal = a[sortColumn] || '';
-                let bVal = b[sortColumn] || '';
+                let aVal = a[sortColumn];
+                let bVal = b[sortColumn];
                 
-                // Convert to lowercase for string comparison
-                if (typeof aVal === 'string') {
-                    aVal = aVal.toLowerCase();
-                }
-                if (typeof bVal === 'string') {
-                    bVal = bVal.toLowerCase();
+                // Handle boolean values for isLookup column
+                if (sortColumn === 'isLookup') {
+                    aVal = aVal ? 1 : 0;
+                    bVal = bVal ? 1 : 0;
+                } else {
+                    // Convert to lowercase for string comparison
+                    aVal = aVal || '';
+                    bVal = bVal || '';
+                    if (typeof aVal === 'string') {
+                        aVal = aVal.toLowerCase();
+                    }
+                    if (typeof bVal === 'string') {
+                        bVal = bVal.toLowerCase();
+                    }
                 }
                 
                 if (aVal < bVal) {
@@ -671,12 +702,13 @@ function loadDataObjectData(panel: vscode.WebviewPanel, modelService: ModelServi
 async function saveDataObjectsToCSV(items: any[], modelService: ModelService): Promise<string> {
     try {
         // Create CSV content
-        const csvHeader = 'Name,Description,Declaration Text\n';
+        const csvHeader = 'Name,Description,Declaration Text,Is Lookup\n';
         const csvRows = items.map(item => {
             const name = (item.name || '').replace(/"/g, '""');
             const description = (item.description || '').replace(/"/g, '""');
             const declarationText = (item.declarationText || '').replace(/"/g, '""');
-            return `"${name}","${description}","${declarationText}"`;
+            const isLookup = item.isLookup ? 'Yes' : 'No';
+            return `"${name}","${description}","${declarationText}","${isLookup}"`;
         }).join('\n');
         
         const csvContent = csvHeader + csvRows;
