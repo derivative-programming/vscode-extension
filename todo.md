@@ -1,6 +1,6 @@
 Agent todo items...
 
- 
+
 
 workflow - need add existing dft button
 
@@ -11,7 +11,6 @@ general flow - input params - unnecessary settings
 
 general flow - output vars  - unnecessary settings
 
-data object list - is lookup column and filter
 
 allow add of general flow
 
