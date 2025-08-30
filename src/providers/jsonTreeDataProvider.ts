@@ -371,7 +371,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 rolesItem.command = {
                     command: 'appdna.showDetails',
                     title: 'Show Details',
-                    arguments: [roleDataObjectItem]
+                    arguments: [roleDataObjectItem, 'lookupItems']
                 };
                 items.push(rolesItem);
                 
@@ -964,13 +964,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     });
                     
                     return Promise.resolve(
-                        sortedObjects.map((obj: any, index: number) =>
-                            new JsonTreeItem(
+                        sortedObjects.map((obj: any, index: number) => {
+                            const item = new JsonTreeItem(
                                 obj.name || `Object ${allObjects.indexOf(obj) + 1}`,
                                 vscode.TreeItemCollapsibleState.None,
                                 'dataObjectItem'
-                            )
-                        )
+                            );
+                            // Add command to open data object details view with settings tab
+                            item.command = {
+                                command: 'appdna.showDetails',
+                                title: 'Show Details',
+                                arguments: [item]
+                            };
+                            return item;
+                        })
                     );
                 } else {
                     // Fallback to direct file reading if model isn't loaded
@@ -997,13 +1004,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     });
                     
                     return Promise.resolve(
-                        sortedObjects.map((obj: any, index: number) =>
-                            new JsonTreeItem(
+                        sortedObjects.map((obj: any, index: number) => {
+                            const item = new JsonTreeItem(
                                 obj.name || `Object ${index + 1}`,
                                 vscode.TreeItemCollapsibleState.None,
                                 'dataObjectItem'
-                            )
-                        )
+                            );
+                            // Add command to open data object details view with settings tab
+                            item.command = {
+                                command: 'appdna.showDetails',
+                                title: 'Show Details',
+                                arguments: [item]
+                            };
+                            return item;
+                        })
                     );
                 }
             } catch (error) {

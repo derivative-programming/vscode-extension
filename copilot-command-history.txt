@@ -597,7 +597,83 @@ FILES CHANGED:
 - src/commands/registerCommands.ts: Added apiDetailsView import and integrated into refresh workflow
 REFRESH FLOW: Store open API panels → close API panels → reload model → refresh tree → reopen API panels with fresh data
 
-2025-08-24 - Fix: API Details View unsaved changes indicator parity
+2025-08-30 - COMMAND: Review user stories tree view roles item and data object tree view items click behavior
+STATUS: COMPLETED ✅
+USER REQUEST: Review the user stories tree view item and its child roles treeview item. Review on click of it that the role data object details view is displayed. Also review the data object treeview items and a click of one opens the same details view. In the case of a data object click it should show the settings tab initially. In the case of the user stories role item click, it should open the lookup items tab.
+
+ANALYSIS COMPLETED:
+1. ✓ Found Roles item under USER STORIES has command 'appdna.showDetails' with Role data object
+2. ✓ Found data objects under DATA OBJECTS section had NO commands assigned (clicking did nothing)
+3. ✓ Found showDetails command opens objectDetailsView.showObjectDetails()
+4. ✓ Found details view always defaulted to Settings tab (hardcoded)
+
+CHANGES IMPLEMENTED:
+1. ✓ Added commands to data object items in jsonTreeDataProvider.ts
+   - Modified both ModelService path and fallback path to create items with commands
+   - Added command: 'appdna.showDetails' with tree item as argument
+   
+2. ✓ Enhanced showDetails command to support initial tab parameter
+   - Modified registerCommands.ts to accept optional initialTab parameter
+   - Updated signature: showDetails(node, initialTab)
+   
+3. ✓ Updated objectDetailsView to accept and use initial tab
+   - Modified showObjectDetails(item, modelService, initialTab = 'settings')
+   - Passed initialTab to generateDetailsView()
+   
+4. ✓ Enhanced generateDetailsView and mainTemplate to support initial tab
+   - Updated function signatures to accept initialTab parameter
+   - Modified HTML generation to set active tab based on initialTab
+   - Updated CSS classes: ${initialTab === 'settings' ? 'active' : ''}
+   
+5. ✓ Updated Roles item to open lookup items tab
+   - Modified command arguments: [roleDataObjectItem, 'lookupItems']
+   
+6. ✓ Fixed compatibility issues
+   - Updated dataObjectListCommands.ts to remove incorrect context parameter
+
+TESTING STATUS: Ready for testing
+ARCHITECTURE NOTES: 
+- Data objects now clickable and open details view with Settings tab (default behavior)
+- Role item under User Stories opens Role data object with Lookup Items tab active
+- Initial tab parameter is only used for initial opening, not for refresh operations
+- All existing calling code maintained compatibility with optional parameter pattern
+
+2025-08-30 - FIX: Lookup Items tab not showing when requested via initialTab
+STATUS: COMPLETED ✅
+ISSUE: Clicking 'Roles' under User Stories opened the Role data object view but did not show the lookup items tab
+ROOT CAUSE: Lookup Items tab was only shown when object.isLookup === "true", but Role data object may not have this property set
+
+CHANGES IMPLEMENTED:
+1. ✓ Updated mainTemplate.js tab visibility logic
+   - Changed condition from: object.isLookup === "true" 
+   - To: (object.isLookup === "true" || initialTab === 'lookupItems')
+   - Applied to both tab header and tab content sections
+   
+2. ✓ Updated detailsViewGenerator.js lookup items HTML generation
+   - Changed condition to generate lookupItemsHtml when initialTab === 'lookupItems'
+   - Ensures lookup items content is available even if isLookup is not set
+
+RESULT: Lookup Items tab now shows and is active when clicking Roles under User Stories, regardless of Role object's isLookup property setting.
+
+2025-08-30 - FIX: Wrapper function not passing initialTab parameter  
+STATUS: COMPLETED ✅
+ISSUE: Lookup Items tab still not showing despite previous fixes
+ROOT CAUSE: The wrapper function showObjectDetailsWrapper() in objectDetailsView.js was not accepting or passing through the initialTab parameter
+
+DEBUG FINDINGS:
+- Command correctly received: initialTab: lookupItems
+- Wrapper called but logged: initialTab: settings (defaulted)
+- Issue was in the wrapper function signature and parameter passing
+
+CHANGES IMPLEMENTED:
+1. ✓ Updated showObjectDetailsWrapper function signature
+   - Added initialTab parameter: function showObjectDetailsWrapper(item, modelService, initialTab)
+   - Updated wrapper to pass through: showObjectDetails(item, modelService, initialTab)
+   - Added proper parameter documentation
+
+2. ✓ Cleaned up debug logging from previous troubleshooting
+
+RESULT: Roles item under User Stories now correctly opens Role data object with Lookup Items tab active.
 - Added vscode.commands.executeCommand("appdna.refresh") after modelService.markUnsavedChanges() in src/webviews/apis/apiDetailsView.js updateSettingsDirectly()
 
 2025-08-24 - COMMAND: Analyze sourceObjectName settings and lookup buttons in detail views
@@ -1233,3 +1309,23 @@ Command: Open Page Init Details for: CTWEmailConfigDetailsInitReport
 Command: Open Page Init Details for: CTWContactUserUpdateInitObjWF
 
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalProcess
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantThreadListInitReport
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults

@@ -606,15 +606,17 @@ export function registerCommands(
     
     // Register show details command
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.showDetails', (node: JsonTreeItem) => {
+        vscode.commands.registerCommand('appdna.showDetails', (node: JsonTreeItem, initialTab?: string) => {
+            console.log(`[DEBUG] showDetails command called with node: ${node.label}, initialTab: ${initialTab}`);
+            
             // Ensure the objectDetailsView module is loaded correctly
             if (!objectDetailsView || typeof objectDetailsView.showObjectDetails !== 'function') {
                 vscode.window.showErrorMessage('Failed to load objectDetailsView module. Please check the extension setup.');
                 return;
             }
 
-            // Use the objectDetailsView implementation with modelService only
-            objectDetailsView.showObjectDetails(node, modelService);
+            // Use the objectDetailsView implementation with modelService and optional initial tab
+            objectDetailsView.showObjectDetails(node, modelService, initialTab);
         })
     );    
     
