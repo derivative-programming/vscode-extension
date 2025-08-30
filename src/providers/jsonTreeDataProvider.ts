@@ -527,23 +527,27 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 generalItem.tooltip = "General workflow flows";
                 items.push(generalItem);
                 
-                // Create WORKFLOWS as a child of FLOWS
-                const workflowsItem = new JsonTreeItem(
-                    'WORKFLOWS',
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    'workflows showWorkflowsFilter showWorkflowsList'
-                );
-                workflowsItem.tooltip = "Object workflows where isPage=false";
-                items.push(workflowsItem);
+                // Only show WORKFLOWS if DynaFlow data object exists
+                if (modelLoaded && this.modelService.hasDynaFlowDataObject()) {
+                    const workflowsItem = new JsonTreeItem(
+                        'WORKFLOWS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'workflows showWorkflowsFilter showWorkflowsList'
+                    );
+                    workflowsItem.tooltip = "DynaFlow workflows (requires DynaFlow data object)";
+                    items.push(workflowsItem);
+                }
                 
-                // Create WORKFLOW_TASKS as a child of FLOWS
-                const workflowTasksItem = new JsonTreeItem(
-                    'WORKFLOW_TASKS',
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    'workflowTasks showWorkflowTasksFilter'
-                );
-                workflowTasksItem.tooltip = "Individual workflow tasks and steps";
-                items.push(workflowTasksItem);
+                // Only show WORKFLOW_TASKS if both DynaFlow and DynaFlowTask data objects exist
+                if (modelLoaded && this.modelService.hasDynaFlowDataObject() && this.modelService.hasDynaFlowTaskDataObject()) {
+                    const workflowTasksItem = new JsonTreeItem(
+                        'WORKFLOW_TASKS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'workflowTasks showWorkflowTasksFilter'
+                    );
+                    workflowTasksItem.tooltip = "DynaFlow task workflows (requires DynaFlow and DynaFlowTask data objects)";
+                    items.push(workflowTasksItem);
+                }
                 
                 return Promise.resolve(items);
             } catch (error) {

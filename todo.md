@@ -12,15 +12,11 @@ workflow - need add existing dft button
 
 workflow details view - owner object display needs an edit button
 
-general flow - input controls - unnecessary settings
+general flow - input params - unnecessary settings
 
 general flow - output vars  - unnecessary settings
 
 data object list - is lookup column and filter
-
-only show WORKFLOW   treeview items if  dynaflow data objects exist
-
-only show WORKFLOW TASKS treeview items if  dynaflow task data objects exist
 
 allow add of general flow
 
