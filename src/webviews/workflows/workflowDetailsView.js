@@ -236,21 +236,18 @@ function addWorkflowTaskToWorkflow(flowReference, modelService) {
             flow.dynaFlowTask = [];
         }
         
-        // Create a new workflow task with a default name
-        const newWorkflowTask = {
-            name: `WorkflowTask${flow.dynaFlowTask.length + 1}`
-        };
+        // Generate a default name that doesn't conflict
+        let taskCounter = flow.dynaFlowTask.length + 1;
+        let workflowTaskName = `WorkflowTask${taskCounter}`;
         
-        // Add the new workflow task to the flow
-        flow.dynaFlowTask.push(newWorkflowTask);
-        
-        // Mark as having unsaved changes
-        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
-            modelService.markUnsavedChanges();
+        // Ensure the name is unique in the current workflow
+        while (flow.dynaFlowTask.some(task => task.name === workflowTaskName)) {
+            taskCounter++;
+            workflowTaskName = `WorkflowTask${taskCounter}`;
         }
         
-        // Refresh the UI
-        vscode.commands.executeCommand("appdna.refresh");
+        // Use the enhanced function to add the workflow task properly
+        addWorkflowTaskToWorkflowWithName(flowReference, modelService, workflowTaskName, null);
     } catch (error) {
         console.error("Error adding workflow task to workflow:", error);
     }
@@ -275,18 +272,74 @@ function addWorkflowTaskToWorkflowWithName(flowReference, modelService, workflow
         // Use the flow reference directly since it's already the flow object
         const flow = flowReference;
         
-        // Initialize the workflow tasks array if it doesn't exist
+        // Find the DynaFlowTask data object
+        const allObjects = modelService.getAllObjects();
+        const dynaFlowTaskObject = allObjects.find(obj => 
+            obj.name && obj.name.trim().toLowerCase() === 'dynaflowtask'
+        );
+        
+        if (!dynaFlowTaskObject) {
+            console.error("DynaFlowTask data object not found in model");
+            vscode.window.showErrorMessage("DynaFlowTask data object must exist in the model to add workflow tasks.");
+            return;
+        }
+        
+        // Check for duplicate names in both the current workflow and DynaFlowTask object
+        // 1. Check current workflow dynaFlowTask array
         if (!flow.dynaFlowTask) {
             flow.dynaFlowTask = [];
         }
         
-        // Create a new workflow task with the specified name
+        const duplicateInWorkflow = flow.dynaFlowTask.some(task => 
+            task.name && task.name.trim().toLowerCase() === workflowTaskName.trim().toLowerCase()
+        );
+        
+        if (duplicateInWorkflow) {
+            console.error(`Workflow task with name "${workflowTaskName}" already exists in current workflow`);
+            vscode.window.showErrorMessage(`A workflow task named "${workflowTaskName}" already exists in this workflow.`);
+            return;
+        }
+        
+        // 2. Check DynaFlowTask object's objectWorkflow array for isDynaFlowTask=true items
+        if (!dynaFlowTaskObject.objectWorkflow) {
+            dynaFlowTaskObject.objectWorkflow = [];
+        }
+        
+        const duplicateInDynaFlowTask = dynaFlowTaskObject.objectWorkflow.some(workflow => 
+            workflow.isDynaFlowTask === "true" && 
+            workflow.name && 
+            workflow.name.trim().toLowerCase() === workflowTaskName.trim().toLowerCase()
+        );
+        
+        if (duplicateInDynaFlowTask) {
+            console.error(`DynaFlowTask workflow with name "${workflowTaskName}" already exists in DynaFlowTask object`);
+            vscode.window.showErrorMessage(`A DynaFlowTask workflow named "${workflowTaskName}" already exists.`);
+            return;
+        }
+        
+        // Create a new workflow task in the current workflow's dynaFlowTask array
         const newWorkflowTask = {
             name: workflowTaskName
         };
         
-        // Add the new workflow task to the array
+        // Add the new workflow task to the current workflow
         flow.dynaFlowTask.push(newWorkflowTask);
+        
+        // Create a corresponding objectWorkflow item in the DynaFlowTask object
+        const newDynaFlowTaskWorkflow = {
+            name: workflowTaskName,
+            isDynaFlowTask: "true",
+            isPage: "false",
+            isAuthorizationRequired: "false",
+            objectWorkflowParam: [],
+            objectWorkflowOutputVar: [],
+            objectWorkflowButton: []
+        };
+        
+        // Add the new workflow to the DynaFlowTask object
+        dynaFlowTaskObject.objectWorkflow.push(newDynaFlowTaskWorkflow);
+        
+        console.log(`Added workflow task "${workflowTaskName}" to both current workflow and DynaFlowTask object`);
         
         // Mark as having unsaved changes
         if (modelService && typeof modelService.markUnsavedChanges === 'function') {
@@ -306,6 +359,7 @@ function addWorkflowTaskToWorkflowWithName(flowReference, modelService, workflow
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding workflow task with name:", error);
+        vscode.window.showErrorMessage(`Error adding workflow task: ${error.message}`);
     }
 }
 
