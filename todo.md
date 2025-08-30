@@ -2,9 +2,6 @@ Agent todo items...
 
  
 
-user stories - role click : go to lookup items tab
-
-no detail view on workflow tasks treeview click
 
 test add wf task ...
 - create array item and dft
@@ -12,7 +9,6 @@ test add wf task ...
 
 workflow - need add existing dft button
 
-general flow tab - input control > input param
 
 workflow details view - owner object display needs an edit button
 
