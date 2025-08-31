@@ -737,4 +737,34 @@ export class ModelService {
         
         return allPageWorkflows;
     }
+
+    /**
+     * Check if a "DynaFlow" data object exists in the model
+     * @returns True if a data object named "DynaFlow" exists, false otherwise
+     */
+    public hasDynaFlowDataObject(): boolean {
+        const allObjects = this.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            return false;
+        }
+
+        return allObjects.some(obj => 
+            obj.name && obj.name.trim().toLowerCase() === 'dynaflow'
+        );
+    }
+
+    /**
+     * Check if a "DynaFlowTask" data object exists in the model
+     * @returns True if a data object named "DynaFlowTask" exists, false otherwise
+     */
+    public hasDynaFlowTaskDataObject(): boolean {
+        const allObjects = this.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            return false;
+        }
+
+        return allObjects.some(obj => 
+            obj.name && obj.name.trim().toLowerCase() === 'dynaflowtask'
+        );
+    }
 }

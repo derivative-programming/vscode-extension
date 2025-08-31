@@ -37,8 +37,9 @@ export async function showReportDetailsCommand(item: JsonTreeItem, modelService:
 /**
  * Command handler for adding a report using the wizard
  * @param modelService The ModelService instance
+ * @param context The extension context
  */
-export async function addReportCommand(modelService: any): Promise<void> {
+export async function addReportCommand(modelService: any, context: vscode.ExtensionContext): Promise<void> {
     if (!modelService || !modelService.isFileLoaded()) {
         vscode.window.showErrorMessage('No model file is loaded. Please open or create a model file first.');
         return;
@@ -46,7 +47,7 @@ export async function addReportCommand(modelService: any): Promise<void> {
     
     try {
         // Show the add report wizard
-        showAddReportWizard(modelService);
+        showAddReportWizard(modelService, context);
         
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -70,7 +71,7 @@ export function registerReportCommands(context: vscode.ExtensionContext, modelSe
     // Register the command to add a new report
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.addReport', () => {
-            addReportCommand(modelService);
+            addReportCommand(modelService, context);
         })
     );
 }

@@ -13,8 +13,9 @@ const openPanels = new Map();
  * Opens a webview panel displaying details for a data object
  * @param {Object} item The tree item representing the data object
  * @param {Object} modelService The ModelService instance
+ * @param {string} initialTab Optional initial tab to show ('settings', 'props', 'lookupItems')
  */
-function showObjectDetails(item, modelService) {
+function showObjectDetails(item, modelService, initialTab = 'settings') {
     // Create a normalized panel ID to ensure consistency
     const normalizedLabel = item.label.trim().toLowerCase();
     const panelId = `objectDetails-${normalizedLabel}`;
@@ -100,7 +101,7 @@ function showObjectDetails(item, modelService) {
     const allObjects = modelService && modelService.isFileLoaded() ? modelService.getAllObjects() : [];
     
     // Set the HTML content with the full object data
-    panel.webview.html = generateDetailsView(objectData, objectSchemaProps, propItemsSchema, allObjects);
+    panel.webview.html = generateDetailsView(objectData, objectSchemaProps, propItemsSchema, allObjects, initialTab);
     
     // Ensure the settings tab is selected by default when opening the view
     // Use a small delay to ensure the webview DOM is fully loaded

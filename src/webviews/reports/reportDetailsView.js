@@ -390,7 +390,7 @@ function showReportDetails(item, modelService, context) {
                             
                             // Import and call the object details view
                             const { showObjectDetails } = require("../objects/objectDetailsView");
-                            showObjectDetails(ownerItem, modelService);
+                            showObjectDetails(ownerItem, modelService, currentContext);
                         } catch (error) {
                             console.error('[ERROR] ReportDetails - Failed to open owner object details:', error);
                             vscode.window.showErrorMessage(`Failed to open object details: ${error.message}`);

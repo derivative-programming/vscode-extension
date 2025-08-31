@@ -698,6 +698,32 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    // Setup export button
+    const exportBtn = document.getElementById("exportButton");
+    if (exportBtn) {
+        exportBtn.onclick = function() {
+            console.log("[WebView] Export button clicked");
+            
+            // Get current filtered data to export
+            const dataToExport = roleRequirementsData.items || [];
+            
+            if (dataToExport.length === 0) {
+                vscode.postMessage({
+                    command: 'showError',
+                    message: 'No data available to export'
+                });
+                return;
+            }
+            
+            console.log("[WebView] Exporting", dataToExport.length, "role requirements");
+            
+            vscode.postMessage({
+                command: 'exportToCSV',
+                data: { items: dataToExport }
+            });
+        };
+    }
+
     // Setup modal functionality
     const modal = document.getElementById('generateStoriesModal');
     if (modal) {
@@ -830,6 +856,24 @@ window.addEventListener("message", function(event) {
             vscode.postMessage({
                 command: 'showError',
                 message: `Failed to save access change: ${message.error || 'Unknown error'}`
+            });
+        }
+    } else if (message.command === "csvExportReady") {
+        console.log("[Webview] CSV export ready:", message);
+        if (message.success) {
+            // Trigger download by sending the content back to extension to save to workspace
+            vscode.postMessage({
+                command: 'saveCsvToWorkspace',
+                data: {
+                    content: message.csvContent,
+                    filename: message.filename
+                }
+            });
+        } else {
+            console.error("[Webview] CSV export failed:", message.error);
+            vscode.postMessage({
+                command: 'showError',
+                message: `Failed to export CSV: ${message.error || 'Unknown error'}`
             });
         }
     }

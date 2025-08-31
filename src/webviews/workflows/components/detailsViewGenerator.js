@@ -27,7 +27,8 @@ function generateDetailsView(flow, flowSchemaProps, flowDynaFlowTaskSchema, codi
             workflowTasks,
             flowDynaFlowTaskSchema,
             flowName,
-            allDataObjects
+            allDataObjects,
+            flow
         );
 
         const result = getMainTemplate(
