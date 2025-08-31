@@ -1436,3 +1436,4 @@ Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
 Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
 Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults

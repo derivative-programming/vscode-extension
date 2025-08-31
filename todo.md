@@ -2,9 +2,11 @@ Agent todo items...
 
   
 
-general flow - input params - unnecessary settings
+general flow - input params - unnecessary settings ✓ COMPLETED - removed UI-specific properties
+Required Error Text:
 
-general flow - output vars  - unnecessary settings
+general flow - output vars  - unnecessary settings ✓ COMPLETED - removed UI-specific properties
+
 
 
 allow add of general flow
