@@ -6,6 +6,49 @@
  */
 function getUIEventHandlers() {
     return `
+    // Set up VS Code message listener for tab restoration
+    window.addEventListener('message', event => {
+        const message = event.data;
+        if (message.command === 'restoreTab') {
+            console.log('[DEBUG] Restoring tab:', message.tabId);
+            restoreActiveTab(message.tabId);
+        }
+    });
+
+    // Function to restore the active tab with retry logic
+    function restoreActiveTab(tabId) {
+        function attemptRestore() {
+            // Remove active class from all tabs and tab contents
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to the specified tab and its content
+            const targetTab = document.querySelector('.tab[data-tab="' + tabId + '"]');
+            const targetContent = document.getElementById(tabId);
+            
+            if (targetTab && targetContent) {
+                targetTab.classList.add('active');
+                targetContent.classList.add('active');
+                console.log('[DEBUG] Successfully restored tab:', tabId);
+                return true;
+            } else {
+                console.warn('[DEBUG] Elements not ready yet for tab:', tabId);
+                return false;
+            }
+        }
+        
+        // Try immediately first
+        if (!attemptRestore()) {
+            // If not successful, try again after a short delay
+            setTimeout(() => {
+                if (!attemptRestore()) {
+                    // Last try after a longer delay
+                    setTimeout(attemptRestore, 500);
+                }
+            }, 100);
+        }
+    }
+
     // Tab switching and view switching - wrapped in DOMContentLoaded to ensure DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
         // Tab switching
@@ -23,6 +66,12 @@ function getUIEventHandlers() {
                     if (content.id === tabId) {
                         content.classList.add('active');
                     }
+                });
+                
+                // Notify VS Code about tab change for persistence
+                vscode.postMessage({
+                    command: 'tabChanged',
+                    tabId: tabId
                 });
             });
         });

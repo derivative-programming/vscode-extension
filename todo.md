@@ -1,6 +1,8 @@
 Agent todo items...
  
 
+addig form or report or flow is breaking schema validations
+
 copilot:add data obj wizard opens detail view with no tab selected
 
 copilot:allow add of general flow
@@ -102,7 +104,7 @@ allow single broad search textbox on all filter sections
 
 
 allow export on all tables - data object list download csv button as example
-- copilot:user story requirements fullfilment view
+- done:user story requirements fullfilment view
 - done:user story role requirements view
 - copilot:model change request list view
 

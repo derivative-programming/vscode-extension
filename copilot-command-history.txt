@@ -1,3 +1,4 @@
+ 
 ﻿2024-12-31 XX:XX:XX - MODEL CHANGE REQUEST LIST VIEW - CSV EXPORT
 USER REQUEST: "Review the data object list view and its 'download csv' icon button. Review the model change request list view. We want to add a similar 'download csv' button there."
 **Status**: ✅ COMPLETED
@@ -26,13 +27,44 @@ USER REQUEST: "Review the data object list view and its 'download csv' icon butt
 - Maintains consistent UX across all CSV export functionality
 - Follows existing message-passing patterns between webview and extension
 - All change request fields included in export for comprehensive data access
+ 
+﻿2024-12-31 XX:XX:XX - ADD DATA OBJECT WIZARD - SETTINGS TAB SELECTION FIX (UPDATED)
+USER REQUEST: "Add Data Object Wizard was opening the object details view without properly selecting the settings tab"
+FOLLOW-UP: "context should be the third require param to showobjectdetails. initialTab should be an optional fourth param with default value 'settings'"
+**Status**: COMPLETED
+
+**Changes Made**:
+1. Updated showObjectDetails function signature in objects/objectDetailsView.js
+   - Changed from: (item, modelService, initialTab = 'settings')
+   - Changed to: (item, modelService, context, initialTab = 'settings')
+   - Now matches pattern of other detail views (showReportDetails, showFormDetails, etc.)
+
+2. Updated wrapper function in objectDetailsView.js
+   - Added context parameter to maintain consistency
+
+3. Updated all calls to showObjectDetails across codebase:
+   - addObjectWizardView.js line 164: Added context parameter, kept 'settings' as initialTab
+   - registerCommands.ts line 342: Added context parameter, kept 'settings' as initialTab  
+   - registerCommands.ts line 619: Added context parameter, preserved existing initialTab variable
+   - reportDetailsView.js line 393: Added context parameter (currentContext), set 'settings' as initialTab
+   - hierarchyView.js line 75: Added 'settings' as initialTab (context was already correct)
+
+**Architecture Notes**:
+- showObjectDetails function signature: (item, modelService, context, initialTab = 'settings')
+- Pattern now consistent with other detail views requiring context parameter
+- Tab restoration uses setTimeout with postMessage command 'restoreTab'
+- Wizard now properly opens object details with settings tab selected
+- All calls maintain consistency: context as 3rd param, initialTab as optional 4th param
+
+--- 
 
 2024-12-31 XX:XX:XX - USER STORY REQUIREMENT FULFILLMENTS VIEW - AUTO-OPEN CSV ON DOWNLOAD
 USER REQUEST: "user story requirement fulfillments view downlaod to csv button shoudl open the csv immediately"
 **Status**:  COMPLETED
 
 **Changes Made**:
-1. Modified equirementsFulfillmentCommands.ts in 'saveCsvToWorkspace' case
+1. Modified 
+equirementsFulfillmentCommands.ts in 'saveCsvToWorkspace' case
    - Added automatic file opening after CSV save operation
    - Added scode.window.showTextDocument(fileUri) to open CSV immediately
    - Pattern matches other views like workflowListCommands.ts
@@ -47,3 +79,4 @@ USER REQUEST: "user story requirement fulfillments view downlaod to csv button s
 - No changes to webview logic required - only extension command handler
 - File path constructed using workspace root and filename from message data
 
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
