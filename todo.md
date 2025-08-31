@@ -1,57 +1,111 @@
 Agent todo items...
+ 
 
-As a Admin, I want to view a Template File Update Request
-TemplateFileUpdateRequest 
+add data obj wizard opens detail view with no tab selected
 
-only show WORKFLOWS and WORKFLOW TASKS treeview items if dyanflow and dynaflow task data objects exist
+allow add of general flow
 
-add wf task ...
-- create array item and dft
-- add validation
+allow add of page init flow (plus sign on page detail view next to empty display)
 
-copilot:add owner object display under title on flow views
+need lookup buttons on fk object name settings on flow view..
+- copilot:general flow - input var
+- copilot:general flow - output var
+- copilot:page init flow - output var
 
-need lookup buttons on fk object name settings on flow view
+copilot:report - add general flow modal - need lookup on Button Object WF Name setting
 
-copilot:need lookup buttons on source object name settings on flow views
+report column - need lookup on Button Object WF Name setting? are we displaying this property? are we showing a page lookup now?
 
-need lookup on Button Object WF Name setting
+report details view 
+- test: allow creation of column async flow button
 
-workflow view
-- add tasks tab
-- add button to add new task
-- add button to add existing task
-- add button to move up task
-- add button to move down task
-
-workflowtask treeview items
-- dont open detail view on click?
-
-report details view...
-- allow creation of column async flow button
-- add button - multiselect
+report details  column - add button - multiselect
  
 add report col by selection of one or more properties in data object lineage
 
 form details button tab button type setting dropdown?  
 
+data object reference list view - show where it is used - with counts - new view ...
+- report header
+- report column
+- form control
+- form header
+- form output var
+- init page flow output var
+- general flow output var
+- workflow
+
+data object user story  reference count
+
+data object prop reference list view - show where prop is used - new view off - with counts -  data object reference list view ....
+- report header
+- report column
+- form control
+- form header
+- form output var
+- init page flow output var
+- general flow output var
+
+
+user stories - page coverage view?
+list all pages and show which have been mapped to a user story?
+
+
+data object user story action distribution...
+(view all, view, add, update, delete) across objects in user stories
+
+page preview - report header - show source of data 
+page preview - report column - show source of data 
+page preview - form header - show source of data 
+page preview - form control - show source of data 
+
+
+`
+report data source view... list columns and their source data object and prop
+
+form data source view... list controls and their source data object and prop
+
+workflow - show task flow diagram using mermaid
+
+page usage...
+in all user journeys we can get a count of pages that are used most
+
+page list - data object prop dependency count on each page?
+
+analysis treeview item... ask ai for ideas
+- metrics - page count, user story count, data object count, workflow count, form count, report count
+- complexity graphs.
+  - data object: user story count?, reference count?, prop count?
+  - page: control count?, dependency (on data object props) count
+  - role: user story count?, page count?
+  - user story: journey count? dependency count of all pages used?
+
+
+user story kanban board view?
+- drag and drop support
+- swimlanes for different stages
+- card details view
+
+gant chart view?
+
+note when workflows are launched? by what pages?
+note what workflows modify which data objects and props?
+
+
+allow single broad search textbox on all filter sections
+
+
+allow export on all tables
+
+automatically generate a text file that ai can read to get info on the app (read only)
+- setting on project to automatically do this on save? in separate process?
 
 
 apis
  
 
-preview form...
-- header display
-
-preview report grid view...
-- header display
-
-- preview report navigation view...
-- header display
-
-preview report three column view...
-- header display
-
+page flow - too large for mermaid to display
+ 
 
 add report...
 - API Get
@@ -261,7 +315,7 @@ suggestions (stories to add to fulfil requirements)...
 show a list of missing stories. allow user to add them individually
 
 
- 
+
 
 
 

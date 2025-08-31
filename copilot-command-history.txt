@@ -597,7 +597,83 @@ FILES CHANGED:
 - src/commands/registerCommands.ts: Added apiDetailsView import and integrated into refresh workflow
 REFRESH FLOW: Store open API panels → close API panels → reload model → refresh tree → reopen API panels with fresh data
 
-2025-08-24 - Fix: API Details View unsaved changes indicator parity
+2025-08-30 - COMMAND: Review user stories tree view roles item and data object tree view items click behavior
+STATUS: COMPLETED ✅
+USER REQUEST: Review the user stories tree view item and its child roles treeview item. Review on click of it that the role data object details view is displayed. Also review the data object treeview items and a click of one opens the same details view. In the case of a data object click it should show the settings tab initially. In the case of the user stories role item click, it should open the lookup items tab.
+
+ANALYSIS COMPLETED:
+1. ✓ Found Roles item under USER STORIES has command 'appdna.showDetails' with Role data object
+2. ✓ Found data objects under DATA OBJECTS section had NO commands assigned (clicking did nothing)
+3. ✓ Found showDetails command opens objectDetailsView.showObjectDetails()
+4. ✓ Found details view always defaulted to Settings tab (hardcoded)
+
+CHANGES IMPLEMENTED:
+1. ✓ Added commands to data object items in jsonTreeDataProvider.ts
+   - Modified both ModelService path and fallback path to create items with commands
+   - Added command: 'appdna.showDetails' with tree item as argument
+   
+2. ✓ Enhanced showDetails command to support initial tab parameter
+   - Modified registerCommands.ts to accept optional initialTab parameter
+   - Updated signature: showDetails(node, initialTab)
+   
+3. ✓ Updated objectDetailsView to accept and use initial tab
+   - Modified showObjectDetails(item, modelService, initialTab = 'settings')
+   - Passed initialTab to generateDetailsView()
+   
+4. ✓ Enhanced generateDetailsView and mainTemplate to support initial tab
+   - Updated function signatures to accept initialTab parameter
+   - Modified HTML generation to set active tab based on initialTab
+   - Updated CSS classes: ${initialTab === 'settings' ? 'active' : ''}
+   
+5. ✓ Updated Roles item to open lookup items tab
+   - Modified command arguments: [roleDataObjectItem, 'lookupItems']
+   
+6. ✓ Fixed compatibility issues
+   - Updated dataObjectListCommands.ts to remove incorrect context parameter
+
+TESTING STATUS: Ready for testing
+ARCHITECTURE NOTES: 
+- Data objects now clickable and open details view with Settings tab (default behavior)
+- Role item under User Stories opens Role data object with Lookup Items tab active
+- Initial tab parameter is only used for initial opening, not for refresh operations
+- All existing calling code maintained compatibility with optional parameter pattern
+
+2025-08-30 - FIX: Lookup Items tab not showing when requested via initialTab
+STATUS: COMPLETED ✅
+ISSUE: Clicking 'Roles' under User Stories opened the Role data object view but did not show the lookup items tab
+ROOT CAUSE: Lookup Items tab was only shown when object.isLookup === "true", but Role data object may not have this property set
+
+CHANGES IMPLEMENTED:
+1. ✓ Updated mainTemplate.js tab visibility logic
+   - Changed condition from: object.isLookup === "true" 
+   - To: (object.isLookup === "true" || initialTab === 'lookupItems')
+   - Applied to both tab header and tab content sections
+   
+2. ✓ Updated detailsViewGenerator.js lookup items HTML generation
+   - Changed condition to generate lookupItemsHtml when initialTab === 'lookupItems'
+   - Ensures lookup items content is available even if isLookup is not set
+
+RESULT: Lookup Items tab now shows and is active when clicking Roles under User Stories, regardless of Role object's isLookup property setting.
+
+2025-08-30 - FIX: Wrapper function not passing initialTab parameter  
+STATUS: COMPLETED ✅
+ISSUE: Lookup Items tab still not showing despite previous fixes
+ROOT CAUSE: The wrapper function showObjectDetailsWrapper() in objectDetailsView.js was not accepting or passing through the initialTab parameter
+
+DEBUG FINDINGS:
+- Command correctly received: initialTab: lookupItems
+- Wrapper called but logged: initialTab: settings (defaulted)
+- Issue was in the wrapper function signature and parameter passing
+
+CHANGES IMPLEMENTED:
+1. ✓ Updated showObjectDetailsWrapper function signature
+   - Added initialTab parameter: function showObjectDetailsWrapper(item, modelService, initialTab)
+   - Updated wrapper to pass through: showObjectDetails(item, modelService, initialTab)
+   - Added proper parameter documentation
+
+2. ✓ Cleaned up debug logging from previous troubleshooting
+
+RESULT: Roles item under User Stories now correctly opens Role data object with Lookup Items tab active.
 - Added vscode.commands.executeCommand("appdna.refresh") after modelService.markUnsavedChanges() in src/webviews/apis/apiDetailsView.js updateSettingsDirectly()
 
 2025-08-24 - COMMAND: Analyze sourceObjectName settings and lookup buttons in detail views
@@ -1233,3 +1309,134 @@ Command: Open Page Init Details for: CTWEmailConfigDetailsInitReport
 Command: Open Page Init Details for: CTWContactUserUpdateInitObjWF
 
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalProcess
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantThreadListInitReport
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalProcess
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+
+### Command: "review the data object list view. to the immediate left of the actions column add a 'Is Lookup' column. if isLookup=true on the data object, show a checked checkbox, if false or property does not exist show a unchecked checkbox. Add a filter dropdown with values All, yes, no"
+
+**Date:** August 30, 2025
+**Status:** COMPLETED ✅
+
+**Changes Made:**
+
+1. **Frontend JavaScript (`src/webviews/dataObjectListView.js`)**:
+   - Added "isLookup" column to table columns array
+   - Updated table rendering to include checkbox for isLookup property
+   - Added isLookup filter to applyFilters() function
+   - Updated clearFilters() to reset isLookup dropdown
+   - Added event listener for isLookup filter dropdown
+   - Updated no-data row colspan from 4 to 5
+
+2. **Backend TypeScript (`src/commands/dataObjectListCommands.ts`)**:
+   - Added HTML for isLookup filter dropdown with options (All, Yes, No)
+   - Added CSS styles for is-lookup-cell class
+   - Updated data object extraction to include isLookup property
+   - Fixed TypeScript boolean handling for isLookup property
+   - Enhanced sorting logic to handle boolean isLookup values
+   - Updated CSV export to include Is Lookup column
+
+3. **User Experience Features**:
+   - Read-only checkboxes showing isLookup status
+   - Filter dropdown with All/Yes/No options
+   - Proper sorting support for boolean column
+   - CSV export includes isLookup data
+   - Maintains existing ignored object styling
+
+**Architecture Notes:**
+- Follows existing data object list view patterns
+- Uses disabled checkboxes for read-only display
+- Maintains consistency with other filter implementations
+- Properly handles both string and boolean isLookup values from model
+- Column positioned between Declaration Text and Actions as requested
+
+**Testing Needed:**
+- Verify isLookup checkbox display matches data object property
+- Test filter dropdown functionality (All/Yes/No)
+- Confirm sorting works for isLookup column
+- Validate CSV export includes new column
+- Check responsive layout with additional column
+C O M M A N D :   R e v i e w   w o r k f l o w   d e t a i l s   v i e w   a n d   A d d   W o r k f l o w   T a s k   m o d a l   -   C O M P L E T E D 
+ 
+ A R C H I T E C T U R E   A N A L Y S I S : 
+ -   C o m p r e h e n s i v e   t a b b e d   i n t e r f a c e   w i t h   S e t t i n g s   a n d   W o r k f l o w   T a s k s   t a b s 
+ -   S o p h i s t i c a t e d   m o d a l   s y s t e m   w i t h   s i n g l e / b u l k   t a s k   a d d i t i o n   m o d e s     
+ -   D u a l - o b j e c t   u p d a t e   p a t t e r n   ( w o r k f l o w . d y n a F l o w T a s k   +   D y n a F l o w T a s k . o b j e c t W o r k f l o w ) 
+ -   S c h e m a - d r i v e n   f o r m   g e n e r a t i o n   w i t h   c h e c k b o x - c o n t r o l l e d   p r o p e r t y   e x i s t e n c e 
+ -   M e s s a g e - b a s e d   w e b v i e w   c o m m u n i c a t i o n   w i t h   r o b u s t   e r r o r   h a n d l i n g 
+ -   R e a l - t i m e   v a l i d a t i o n   a n d   U I   r e f r e s h   m e c h a n i s m s 
+ 
+ K E Y   F I N D I N G S : 
+ -   W e l l - s t r u c t u r e d   c o m p o n e n t   a r c h i t e c t u r e   i n   s r c / w e b v i e w s / w o r k f l o w s / 
+ -   A d v a n c e d   m o d a l   f u n c t i o n a l i t y   w i t h   t a b   s w i t c h i n g   a n d   v a l i d a t i o n 
+ -   P r o p e r   d u p l i c a t e   p r e v e n t i o n   a c r o s s   m u l t i p l e   d a t a   s t r u c t u r e s 
+ -   E f f i c i e n t   l i s t   m a n a g e m e n t   w i t h   m o v e   o p e r a t i o n s   a n d   a u t o - s e l e c t i o n 
+ -   S t r o n g   U X   p a t t e r n s   i n c l u d i n g   k e y b o a r d   n a v i g a t i o n   a n d   v i s u a l   f e e d b a c k 
+ 
+ D O C U M E N T A T I O N   C R E A T E D : 
+ -   d o c s / a r c h i t e c t u r e / w o r k f l o w - d e t a i l s - v i e w - a n d - t a s k - a d d i t i o n . m d 
+ 
+ S T A T U S :     C o m p l e t e   r e v i e w   w i t h   d e t a i l e d   a r c h i t e c t u r e   d o c u m e n t a t i o n  
+ C O M M A N D :   C h a n g e   b u t t o n   t e x t   t o   ' A d d   N e w   W o r k f l o w   T a s k '   -   C O M P L E T E D 
+ 
+ C H A N G E S   M A D E : 
+ -   U p d a t e d   m a i n   t e m p l a t e   b u t t o n   t e x t :   ' A d d   W o r k f l o w   T a s k '     ' A d d   N e w   W o r k f l o w   T a s k ' 
+ -   U p d a t e d   m o d a l   t i t l e   i n   b o t h   m o d a l   t e m p l a t e   f u n c t i o n s :   ' A d d   W o r k f l o w   T a s k '     ' A d d   N e w   W o r k f l o w   T a s k ' 
+ -   M a i n t a i n e d   c o n s i s t e n c y   a c r o s s   b u t t o n   a n d   m o d a l   t i t l e 
+ 
+ F I L E S   M O D I F I E D : 
+ -   s r c / w e b v i e w s / w o r k f l o w s / c o m p o n e n t s / t e m p l a t e s / m a i n T e m p l a t e . j s 
+ -   s r c / w e b v i e w s / w o r k f l o w s / c o m p o n e n t s / t e m p l a t e s / m o d a l T e m p l a t e s . j s   ( 2   i n s t a n c e s ) 
+ 
+ S T A T U S :     B u t t o n   t e x t   u p d a t e d   s u c c e s s f u l l y  
+ R e s t o r e   A d d   E x i s t i n g   W o r k f l o w   T a s k   B u t t o n   -   R e - a d d e d   t h e   ' A d d   E x i s t i n g   W o r k f l o w   T a s k '   b u t t o n   t h a t   w a s   m i s s i n g   f r o m   m a i n T e m p l a t e . j s .   T h e   b u t t o n   i s   p o s i t i o n e d   t o   t h e   l e f t   o f   ' A d d   N e w   W o r k f l o w   T a s k '   b u t t o n   a s   r e q u e s t e d .   A l l   s u p p o r t i n g   f u n c t i o n a l i t y   ( m o d a l ,   h a n d l e r s ,   m u l t i - s e l e c t i o n )   w a s   a l r e a d y   i m p l e m e n t e d   i n   p r e v i o u s   c o n v e r s a t i o n .  
+  
+ 2024-12-28: COMPLETED - Add Existing Workflow Task Button Implementation - Full functionality restored and verified
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+2024-12-28: COMPLETED - Fixed Add Existing Workflow Task button positioning and modal width - Moved Add Existing button to be immediately left of Add New button, removed large-modal class to match Add New modal design
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+2024-12-28: COMPLETED - Fixed workflow task button positioning - Added CSS override to make Add New and Add Existing buttons appear beside each other instead of spread apart
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+2024-12-28: UPDATED - Enhanced workflow task button positioning fix - Added wrapper div around buttons and improved CSS targeting for better button grouping
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+2024-12-28: COMPLETED - Removed ID display from Add Existing Workflow Task modal - Cleaned up task list to show only task names without clutter
+2024-12-28: FIXED - Null task IDs issue in Add Existing Workflow Task - Changed from using dynaFlowTaskID to task names for workflow task identification and selection
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+2024-12-28: FIXED - Removed save() method call from Add Existing Workflow Task - Now follows same pattern as Add New task by only updating model in memory and marking unsaved changes
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+2024-12-28: FIXED - Button order in Add Existing Workflow Task modal - Moved Cancel button to the right of Add Selected Tasks button for standard UI pattern
+2024-12-28: ADDED - Filter textbox to Add Existing Workflow Task modal - Added real-time filtering functionality to easily find specific tasks in the list
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: BuildDataFileImageCatalogRequest
+Command: Open Workflow Task Details for: CampaignPkgExportRequestBuild
