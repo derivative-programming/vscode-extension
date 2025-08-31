@@ -19,10 +19,11 @@ function getAddGeneralFlowButtonColumnModalHtml() {
     
     <div class="form-row">
         <label for="generalFlowName">General Flow:</label>
-        <div class="general-flow-list-container">
-            <select id="generalFlowName" size="8">
-                <option value="" disabled selected>Loading general flows...</option>
-            </select>
+        <div class="control-with-button">
+            <input type="text" id="generalFlowName" placeholder="Enter general flow name">
+            <button type="button" class="lookup-button" id="browseGeneralFlow" title="Browse for General Flow">
+                <i class="codicon codicon-search"></i>
+            </button>
         </div>
         <div class="field-note">Select the general flow that the button will execute.</div>
     </div>

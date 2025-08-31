@@ -30,13 +30,10 @@ function createAddGeneralFlowButtonColumnModal() {
     setTimeout(() => {
         modal.style.display = "flex";
         
-        // Load general flows and populate the select list
-        loadGeneralFlowsForModal(modal);
-        
-        // Focus on the general flow select when modal opens
-        const generalFlowSelect = modal.querySelector("#generalFlowName");
-        if (generalFlowSelect) {
-            generalFlowSelect.focus();
+        // Focus on the general flow input when modal opens
+        const generalFlowInput = modal.querySelector("#generalFlowName");
+        if (generalFlowInput) {
+            generalFlowInput.focus();
         }
     }, 10);
     
@@ -55,16 +52,24 @@ function createAddGeneralFlowButtonColumnModal() {
         }
     });
     
+    // Browse general flow button functionality
+    const browseButton = modal.querySelector("#browseGeneralFlow");
+    if (browseButton) {
+        browseButton.addEventListener("click", function() {
+            const generalFlowInput = modal.querySelector("#generalFlowName");
+            createGeneralFlowSearchModal(generalFlowInput.value, generalFlowInput);
+        });
+    }
+    
     // Auto-generate column name when general flow or button text changes
     function updateColumnName() {
-        const generalFlowSelect = modal.querySelector("#generalFlowName");
+        const generalFlowInput = modal.querySelector("#generalFlowName");
         const buttonTextInput = modal.querySelector("#buttonText");
         const columnNameInput = modal.querySelector("#columnName");
         
-        if (generalFlowSelect && buttonTextInput && columnNameInput) {
-            const selectedOption = generalFlowSelect.options[generalFlowSelect.selectedIndex];
-            const generalFlowName = selectedOption ? selectedOption.getAttribute('data-flow-name') || selectedOption.value : '';
-            const generalFlowObjectName = selectedOption ? selectedOption.getAttribute('data-object-name') || '' : '';
+        if (generalFlowInput && buttonTextInput && columnNameInput) {
+            const generalFlowName = generalFlowInput.value.trim();
+            const generalFlowObjectName = generalFlowInput.getAttribute('data-object-name') || '';
             const buttonText = buttonTextInput.value.trim();
             
             if (generalFlowName && buttonText && generalFlowObjectName) {
@@ -81,11 +86,12 @@ function createAddGeneralFlowButtonColumnModal() {
     }
     
     // Add event listeners for auto-generation
-    const generalFlowSelect = modal.querySelector("#generalFlowName");
+    const generalFlowInput = modal.querySelector("#generalFlowName");
     const buttonTextInput = modal.querySelector("#buttonText");
     
-    if (generalFlowSelect) {
-        generalFlowSelect.addEventListener("change", updateColumnName);
+    if (generalFlowInput) {
+        generalFlowInput.addEventListener("change", updateColumnName);
+        generalFlowInput.addEventListener("input", updateColumnName);
     }
     
     if (buttonTextInput) {
@@ -97,15 +103,14 @@ function createAddGeneralFlowButtonColumnModal() {
     const addButton = modal.querySelector("#addGeneralFlowButtonColumn");
     if (addButton) {
         addButton.addEventListener("click", function() {
-            const generalFlowSelect = modal.querySelector("#generalFlowName");
+            const generalFlowInput = modal.querySelector("#generalFlowName");
             const buttonTextInput = modal.querySelector("#buttonText");
             const columnNameInput = modal.querySelector("#columnName");
             const errorElement = modal.querySelector("#validationError");
             
-            const selectedOption = generalFlowSelect.options[generalFlowSelect.selectedIndex];
-            const generalFlowName = selectedOption ? selectedOption.getAttribute('data-flow-name') || selectedOption.value : '';
-            const generalFlowDisplayName = selectedOption ? selectedOption.text : '';
-            const objectName = selectedOption ? selectedOption.getAttribute('data-object-name') || '' : '';
+            const generalFlowName = generalFlowInput.value.trim();
+            const generalFlowDisplayName = generalFlowName; // For input, name and display name are the same
+            const objectName = generalFlowInput.getAttribute('data-object-name') || '';
             const buttonText = buttonTextInput.value.trim();
             const columnName = columnNameInput.value.trim();
             
@@ -115,7 +120,7 @@ function createAddGeneralFlowButtonColumnModal() {
             // Validation
             if (!generalFlowName) {
                 errorElement.textContent = "General flow is required.";
-                generalFlowSelect.focus();
+                generalFlowInput.focus();
                 return;
             }
             
@@ -162,9 +167,9 @@ function createAddGeneralFlowButtonColumnModal() {
         });
     }
     
-    // Add Enter key handling for general flow select
-    if (generalFlowSelect) {
-        generalFlowSelect.addEventListener("keypress", function(event) {
+    // Add Enter key handling for general flow input
+    if (generalFlowInput) {
+        generalFlowInput.addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();
                 const buttonTextInput = modal.querySelector("#buttonText");
@@ -187,67 +192,6 @@ function createAddGeneralFlowButtonColumnModal() {
             }
         });
     }
-}
-
-// Function to load general flows and populate the modal select list
-function loadGeneralFlowsForModal(modal) {
-    // Request general flows data from the extension
-    vscode.postMessage({
-        command: 'getGeneralFlowsForModal'
-    });
-    
-    // Listen for the response (this will be handled by the main message listener)
-    // The response will call populateGeneralFlowsModal function
-}
-
-// Function to populate the general flows select list
-function populateGeneralFlowsModal(generalFlows, modal) {
-    if (!modal) {
-        // Find the modal by looking for the general flow select element
-        modal = document.querySelector('#generalFlowName')?.closest('.modal');
-    }
-    
-    if (!modal) {
-        console.warn('Could not find general flow modal to populate');
-        return;
-    }
-    
-    const selectElement = modal.querySelector('#generalFlowName');
-    if (!selectElement) {
-        console.warn('Could not find general flow select element');
-        return;
-    }
-    
-    // Clear existing options
-    selectElement.innerHTML = '';
-    
-    if (!generalFlows || generalFlows.length === 0) {
-        selectElement.innerHTML = '<option value="" disabled selected>No general flows available</option>';
-        return;
-    }
-    
-    // Add default option
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    defaultOption.textContent = 'Select a general flow...';
-    selectElement.appendChild(defaultOption);
-    
-    // Add options for each general flow
-    generalFlows.forEach(flow => {
-        const option = document.createElement('option');
-        option.value = flow.name;
-        option.setAttribute('data-flow-name', flow.name);
-        option.setAttribute('data-object-name', flow.objectName || '');
-        option.textContent = flow.displayName || flow.name;
-        if (flow.description) {
-            option.title = flow.description;
-        }
-        selectElement.appendChild(option);
-    });
-    
-    console.log(\`Populated general flows modal with \${generalFlows.length} flows\`);
 }
 `;
 }
