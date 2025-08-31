@@ -120,7 +120,7 @@ function showAddReportWizard(modelService, context) {
                             newReport.layoutName = roleRequired + "Layout";
                         }
                         
-                        if (targetObjectName && visualizationType === "grid") {
+                        if (targetObjectName && visualizationType === "Grid") {
                             newReport.targetChildObject = targetObjectName;
                         }
                         
@@ -545,7 +545,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                     Choose how you want the report data to be displayed.
                 </div>
                 <div class="form-group">
-                    <div class="viz-option" data-value="grid" tabindex="0">
+                    <div class="viz-option" data-value="Grid" tabindex="0">
                         <div class="viz-title">Table</div>
                         <div class="viz-description">Display data in a tabular format with rows and columns</div>
                     </div>

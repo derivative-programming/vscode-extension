@@ -78,8 +78,9 @@ export class ModelDataProvider {
     /**
      * Validate JSON data against the schema
      * @param jsonData JSON data to validate
+     * @returns Object with validation result and detailed error information
      */
-    public async validateJson(jsonData: any): Promise<boolean> {
+    public async validateJson(jsonData: any): Promise<{valid: boolean; errors: any[] | null; detailedMessage?: string}> {
         try {
             // Load the schema
             const schema = await SchemaLoader.getInstance().loadSchema();
@@ -87,15 +88,37 @@ export class ModelDataProvider {
             // Validate the JSON against the schema
             const result = validate(jsonData, schema as any);
             
-            // Log validation errors if any
-            if (!result.valid) {
+            // Create detailed error message if validation fails
+            let detailedMessage = "";
+            if (!result.valid && result.errors && result.errors.length > 0) {
                 console.error("JSON validation errors:", result.errors);
+                
+                // Create a user-friendly summary of validation errors
+                const errorSummary = result.errors.slice(0, 5).map((error, index) => {
+                    const path = error.property || error.instance || "root";
+                    const message = error.message || "Unknown validation error";
+                    return `${index + 1}. Path: "${path}" - ${message}`;
+                }).join('\n');
+                
+                const totalErrors = result.errors.length;
+                const hasMoreErrors = totalErrors > 5;
+                
+                detailedMessage = `JSON validation failed with ${totalErrors} error${totalErrors === 1 ? '' : 's'}:\n\n${errorSummary}${hasMoreErrors ? '\n\n... and ' + (totalErrors - 5) + ' more errors.' : ''}`;
             }
             
-            return result.valid;
+            return {
+                valid: result.valid,
+                errors: result.errors || null,
+                detailedMessage
+            };
         } catch (error) {
             console.error("Error validating JSON:", error);
-            throw error;
+            const errorMessage = `Schema validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            return {
+                valid: false,
+                errors: [{message: errorMessage}],
+                detailedMessage: errorMessage
+            };
         }
     }
     
@@ -109,9 +132,10 @@ export class ModelDataProvider {
             const jsonData = await this.loadJsonFile(filePath);
             
             // Validate JSON data (optional - can be commented out for performance with very large files)
-            const isValid = await this.validateJson(jsonData);
-            if (!isValid) {
-                throw new Error("JSON validation failed");
+            const validationResult = await this.validateJson(jsonData);
+            if (!validationResult.valid) {
+                const errorMessage = validationResult.detailedMessage || "JSON validation failed";
+                throw new Error(errorMessage);
             }
             
             // Create root model from the root data
