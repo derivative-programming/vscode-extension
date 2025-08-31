@@ -829,6 +829,16 @@ function requestRefresh() {
     vscode.postMessage({ command: 'refresh' });
 }
 
+// Export to CSV (global function for onclick)
+function exportToCSV() {
+    vscode.postMessage({
+        command: 'exportToCSV',
+        data: {
+            items: requirementsFulfillmentData.items
+        }
+    });
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log("[Webview] Requirements Fulfillment view DOM loaded");
@@ -843,6 +853,32 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("[Webview] Refresh button clicked");
             showSpinner();
             vscode.postMessage({ command: 'refresh' });
+        });
+    }
+    
+    // Setup export button event listener
+    const exportButton = document.getElementById('exportButton');
+    if (exportButton) {
+        exportButton.addEventListener('click', function() {
+            console.log("[Webview] Export button clicked");
+            exportToCSV();
+        });
+        // Apply same styling as refresh button
+        exportButton.style.background = "none";
+        exportButton.style.border = "none";
+        exportButton.style.color = "var(--vscode-editor-foreground)";
+        exportButton.style.padding = "4px 8px";
+        exportButton.style.cursor = "pointer";
+        exportButton.style.display = "flex";
+        exportButton.style.alignItems = "center";
+        exportButton.style.borderRadius = "4px";
+        exportButton.style.transition = "background 0.15s";
+        // Add hover effect
+        exportButton.addEventListener("mouseenter", function() {
+            exportButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        exportButton.addEventListener("mouseleave", function() {
+            exportButton.style.background = "none";
         });
     }
     
@@ -897,5 +933,20 @@ window.addEventListener("message", function(event) {
         
         // Hide spinner when data is loaded
         hideSpinner();
+    } else if (message.command === "csvExportReady") {
+        console.log('[Webview] CSV export ready');
+        if (message.success !== false) {
+            // Send CSV content to extension to save to workspace
+            vscode.postMessage({
+                command: 'saveCsvToWorkspace',
+                data: {
+                    content: message.csvContent,
+                    filename: message.filename
+                }
+            });
+        } else {
+            console.error('Error exporting CSV:', message.error);
+            alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
+        }
     }
 });

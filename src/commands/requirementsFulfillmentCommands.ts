@@ -49,6 +49,305 @@ export function closeRequirementsFulfillmentPanel(): void {
 }
 
 /**
+ * Save requirements fulfillment data to CSV format
+ */
+async function saveRequirementsFulfillmentToCSV(items: any[], modelService: ModelService): Promise<string> {
+    // Define CSV headers
+    const headers = ['Role', 'Data Object', 'Action', 'Access', 'User Story Status', 'Mapping Status', 'User Journey Status', 'Fulfillment Status'];
+    
+    // Create CSV content
+    let csvContent = headers.join(',') + '\n';
+    
+    // Add data rows
+    items.forEach(item => {
+        // Get user story status
+        const userStoryExists = checkUserStoryExists(item.role, item.action, item.dataObject, item.userStories || []);
+        let userStoryStatus = '';
+        if (item.access === 'Required') {
+            userStoryStatus = userStoryExists ? 'Story Exists' : 'Story Missing';
+        } else if (item.access === 'Not Allowed') {
+            userStoryStatus = userStoryExists ? 'Story Exists' : 'No Story';
+        }
+        
+        // Get mapping status  
+        const mappingInfo = checkMappingStatus(item.role, item.action, item.dataObject, item.userStories || [], item.pageMappings || {});
+        let mappingStatus = '';
+        if (mappingInfo.totalCount === 0) {
+            mappingStatus = 'No Stories';
+        } else if (mappingInfo.mappedCount === mappingInfo.totalCount) {
+            mappingStatus = `${mappingInfo.mappedCount}/${mappingInfo.totalCount} Mapped`;
+        } else if (mappingInfo.mappedCount > 0) {
+            mappingStatus = `${mappingInfo.mappedCount}/${mappingInfo.totalCount} Mapped`;
+        } else {
+            mappingStatus = `0/${mappingInfo.totalCount} Mapped`;
+        }
+        
+        // Get user journey status
+        const journeyInfo = checkUserJourneyExists(item.role, item.action, item.dataObject, item.userStories || [], item.pageMappings || {}, item.userJourneyData || []);
+        let journeyStatus = '';
+        if (journeyInfo.totalMappedPages === 0) {
+            journeyStatus = 'No Mapped Pages';
+        } else if (journeyInfo.hasJourney) {
+            journeyStatus = `${journeyInfo.journeyCount}/${journeyInfo.totalMappedPages} Journey`;
+        } else {
+            journeyStatus = 'No Journey';
+        }
+        
+        // Get fulfillment status
+        const fulfillmentInfo = checkFulfillmentStatus(item.role, item.action, item.dataObject, item.access, item.userStories || [], item.userJourneyData || []);
+        const fulfillmentStatus = fulfillmentInfo.status;
+        
+        const row = [
+            item.role || '',
+            item.dataObject || '',
+            item.action || '',
+            item.access || '',
+            userStoryStatus,
+            mappingStatus,
+            journeyStatus,
+            fulfillmentStatus
+        ];
+        
+        // Escape and quote values that contain commas, quotes, or newlines
+        const escapedRow = row.map(value => {
+            let escapedValue = String(value || '');
+            if (escapedValue.includes(',') || escapedValue.includes('"') || escapedValue.includes('\n')) {
+                escapedValue = '"' + escapedValue.replace(/"/g, '""') + '"';
+            }
+            return escapedValue;
+        });
+        
+        csvContent += escapedRow.join(',') + '\n';
+    });
+    
+    return csvContent;
+}
+
+// Helper functions for CSV generation (simplified versions of the webview logic)
+function checkUserStoryExists(role: string, action: string, dataObject: string, userStories: any[]): boolean {
+    if (!userStories || userStories.length === 0) {
+        return false;
+    }
+    
+    const roleLower = role.toLowerCase();
+    const actionLower = action.toLowerCase(); 
+    const dataObjectLower = dataObject.toLowerCase();
+    
+    return userStories.some(story => {
+        const parsed = parseUserStory(story.storyText);
+        if (!parsed) { return false; }
+        
+        const roleMatch = parsed.role && (
+            parsed.role === roleLower ||
+            parsed.role.includes(roleLower) ||
+            roleLower.includes(parsed.role)
+        );
+        
+        let actionMatch = false;
+        if (parsed.action) {
+            if (actionLower === 'view') {
+                actionMatch = parsed.action === 'view' || parsed.action === 'view all';
+            } else {
+                actionMatch = parsed.action === actionLower;
+            }
+        }
+        
+        const dataObjectMatch = parsed.dataObjects.some((obj: string) => 
+            obj === dataObjectLower ||
+            obj === dataObjectLower + 's' ||
+            obj === dataObjectLower.replace(/s$/, '')
+        );
+        
+        return roleMatch && actionMatch && dataObjectMatch;
+    });
+}
+
+function parseUserStory(storyText: string): any {
+    if (!storyText) { return null; }
+    
+    const text = storyText.toLowerCase();
+    
+    // Extract role
+    let role = null;
+    const rolePatterns = [
+        /as an? ([^,]+)/,
+        /\[([^\]]+)\]/,
+        /^([^,]+),/
+    ];
+    
+    for (const pattern of rolePatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            role = match[1].trim();
+            break;
+        }
+    }
+    
+    // Extract action
+    let action = null;
+    const actionPatterns = [
+        /\b(view all)\b/,
+        /\b(view)\b/,
+        /\b(add)\b/,
+        /\b(create)\b/,
+        /\b(update)\b/,
+        /\b(edit)\b/,
+        /\b(delete)\b/,
+        /\b(remove)\b/
+    ];
+    
+    for (const pattern of actionPatterns) {
+        const match = text.match(pattern);
+        if (match) {
+            action = match[1];
+            if (action === 'create') { action = 'add'; }
+            if (action === 'edit') { action = 'update'; }
+            if (action === 'remove') { action = 'delete'; }
+            break;
+        }
+    }
+    
+    // Extract data objects
+    const dataObjects: string[] = [];
+    const objectPatterns = [
+        /(?:view all|view|add|create|update|edit|delete|remove)\s+(?:a\s+|an\s+|the\s+)?([a-z]+(?:\s+[a-z]+)*)/g,
+        /(?:of|for)\s+(?:a\s+|an\s+|the\s+)?([a-z]+(?:\s+[a-z]+)*)/g
+    ];
+    
+    for (const pattern of objectPatterns) {
+        let match;
+        while ((match = pattern.exec(text)) !== null) {
+            const obj = match[1].trim();
+            if (obj && !dataObjects.includes(obj)) {
+                dataObjects.push(obj);
+                if (obj.endsWith('s')) {
+                    const singular = obj.slice(0, -1);
+                    if (!dataObjects.includes(singular)) {
+                        dataObjects.push(singular);
+                    }
+                } else {
+                    const plural = obj + 's';
+                    if (!dataObjects.includes(plural)) {
+                        dataObjects.push(plural);
+                    }
+                }
+            }
+        }
+    }
+    
+    return {
+        role,
+        action,
+        dataObjects
+    };
+}
+
+function checkMappingStatus(role: string, action: string, dataObject: string, userStories: any[], pageMappings: any): any {
+    if (!userStories || userStories.length === 0 || !pageMappings) {
+        return { hasMapping: false, mappedCount: 0, totalCount: 0 };
+    }
+    
+    const roleLower = role.toLowerCase();
+    const actionLower = action.toLowerCase();
+    const dataObjectLower = dataObject.toLowerCase();
+    
+    const matchingStories = userStories.filter(story => {
+        const parsed = parseUserStory(story.storyText);
+        if (!parsed) { return false; }
+        
+        const roleMatch = parsed.role && (
+            parsed.role === roleLower ||
+            parsed.role.includes(roleLower) ||
+            roleLower.includes(parsed.role)
+        );
+        
+        let actionMatch = false;
+        if (parsed.action) {
+            if (actionLower === 'view') {
+                actionMatch = parsed.action === 'view' || parsed.action === 'view all';
+            } else {
+                actionMatch = parsed.action === actionLower;
+            }
+        }
+        
+        const dataObjectMatch = parsed.dataObjects.some((obj: string) => 
+            obj === dataObjectLower ||
+            obj === dataObjectLower + 's' ||
+            obj === dataObjectLower.replace(/s$/, '')
+        );
+        
+        return roleMatch && actionMatch && dataObjectMatch;
+    });
+    
+    const totalCount = matchingStories.length;
+    if (totalCount === 0) {
+        return { hasMapping: false, mappedCount: 0, totalCount: 0 };
+    }
+    
+    let mappedCount = 0;
+    matchingStories.forEach(story => {
+        const storyNumber = story.storyNumber;
+        if (storyNumber && pageMappings[storyNumber]) {
+            const mapping = pageMappings[storyNumber];
+            if (mapping.pageMapping && 
+                ((Array.isArray(mapping.pageMapping) && mapping.pageMapping.length > 0) ||
+                 (typeof mapping.pageMapping === 'string' && mapping.pageMapping.trim().length > 0))) {
+                mappedCount++;
+            }
+        }
+    });
+    
+    return { 
+        hasMapping: mappedCount > 0, 
+        mappedCount: mappedCount, 
+        totalCount: totalCount
+    };
+}
+
+function checkUserJourneyExists(role: string, action: string, dataObject: string, userStories: any[], pageMappings: any, userJourneyData: any[]): any {
+    const mappingInfo = checkMappingStatus(role, action, dataObject, userStories, pageMappings);
+    
+    if (!mappingInfo.hasMapping) {
+        return { hasJourney: false, journeyCount: 0, totalMappedPages: 0 };
+    }
+    
+    // This is a simplified version - in practice we'd need to extract mapped pages and check journey data
+    // For CSV export, we'll use a basic approximation
+    return {
+        hasJourney: userJourneyData && userJourneyData.length > 0,
+        journeyCount: userJourneyData ? Math.min(userJourneyData.length, mappingInfo.mappedCount) : 0,
+        totalMappedPages: mappingInfo.mappedCount
+    };
+}
+
+function checkFulfillmentStatus(role: string, action: string, dataObject: string, access: string, userStories: any[], userJourneyData: any[]): any {
+    if (access === 'Required') {
+        const storyExists = checkUserStoryExists(role, action, dataObject, userStories);
+        if (!storyExists) {
+            return { status: 'Fail' };
+        }
+        
+        const hasJourney = userJourneyData && userJourneyData.length > 0;
+        if (!hasJourney) {
+            return { status: 'Fail' };
+        }
+        
+        return { status: 'Pass' };
+    }
+    
+    if (access === 'Not Allowed') {
+        const storyExists = checkUserStoryExists(role, action, dataObject, userStories);
+        if (!storyExists) {
+            return { status: 'Pass' };
+        } else {
+            return { status: 'Fail' };
+        }
+    }
+    
+    return { status: 'Pass' };
+}
+
+/**
  * Load requirements fulfillment data - only "Required" and "Not Allowed" items
  */
 async function loadRequirementsFulfillmentData(panel: vscode.WebviewPanel, modelService: ModelService, sortColumn?: string, sortDescending?: boolean): Promise<void> {
@@ -378,6 +677,115 @@ export function showRequirementsFulfillment(context: vscode.ExtensionContext, mo
                 case 'refresh':
                     console.log("[Extension] Refreshing requirements fulfillment data");
                     await loadRequirementsFulfillmentData(panel, modelService);
+                    break;
+                    
+                case 'exportToCSV':
+                    console.log("[Extension] Requirements fulfillment CSV export requested");
+                    try {
+                        // Get additional data needed for CSV export
+                        const model = modelService.getCurrentModel();
+                        let userStories: any[] = [];
+                        let pageMappings: any = {};
+                        let userJourneyData: any[] = [];
+                        
+                        // Get user stories
+                        if (model?.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
+                            const namespace = model.namespace[0];
+                            if (namespace.userStory && Array.isArray(namespace.userStory)) {
+                                userStories = namespace.userStory;
+                            }
+                        }
+                        
+                        // Load page mappings
+                        const modelFilePath = modelService.getCurrentFilePath();
+                        if (modelFilePath) {
+                            const modelDir = path.dirname(modelFilePath);
+                            const mappingFilePath = path.join(modelDir, 'app-dna-user-story-page-mapping.json');
+                            
+                            if (fs.existsSync(mappingFilePath)) {
+                                const mappingContent = fs.readFileSync(mappingFilePath, 'utf8');
+                                const mappingData = JSON.parse(mappingContent);
+                                pageMappings = mappingData.pageMappings || {};
+                            }
+                            
+                            // Load user journey data
+                            const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
+                            if (fs.existsSync(journeyFilePath)) {
+                                const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                                const journeyDataFromFile = JSON.parse(journeyContent);
+                                
+                                userStories.forEach((story: any) => {
+                                    const storyNumber = story.storyNumber;
+                                    const existingMapping = pageMappings[storyNumber];
+                                    
+                                    if (existingMapping?.pageMapping) {
+                                        const pages = Array.isArray(existingMapping.pageMapping) ? existingMapping.pageMapping : [existingMapping.pageMapping];
+                                        
+                                        pages.forEach((page: string) => {
+                                            if (page && page.trim()) {
+                                                const pageDistanceData = journeyDataFromFile.pageDistances?.find((pd: any) => pd.destinationPage === page);
+                                                const journeyPageDistance = pageDistanceData ? pageDistanceData.distance : -1;
+                                                
+                                                userJourneyData.push({
+                                                    storyNumber: storyNumber,
+                                                    page: page,
+                                                    journeyPageDistance: journeyPageDistance
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                        
+                        // Add additional data to items for CSV generation
+                        const itemsWithData = message.data.items.map((item: any) => ({
+                            ...item,
+                            userStories,
+                            pageMappings,
+                            userJourneyData
+                        }));
+                        
+                        const csvContent = await saveRequirementsFulfillmentToCSV(itemsWithData, modelService);
+                        const now = new Date();
+                        const pad = (n: number) => n.toString().padStart(2, '0');
+                        const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                        const filename = `requirements-fulfillment-${timestamp}.csv`;
+                        
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            csvContent: csvContent,
+                            filename: filename,
+                            success: true
+                        });
+                    } catch (error) {
+                        console.error('[Extension] Error exporting CSV:', error);
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            success: false,
+                            error: error instanceof Error ? error.message : String(error)
+                        });
+                    }
+                    break;
+                    
+                case 'saveCsvToWorkspace':
+                    try {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        
+                        if (!workspaceFolders || workspaceFolders.length === 0) {
+                            vscode.window.showErrorMessage('No workspace folder is open');
+                            return;
+                        }
+                        
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const filePath = path.join(workspaceRoot, message.data.filename);
+                        
+                        fs.writeFileSync(filePath, message.data.content, 'utf8');
+                        vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                    } catch (error) {
+                        console.error('[Extension] Error saving CSV to workspace:', error);
+                        vscode.window.showErrorMessage('Failed to save CSV file: ' + (error instanceof Error ? error.message : String(error)));
+                    }
                     break;
                     
                 case 'showError':
@@ -738,9 +1146,14 @@ function getWebviewContent(context: vscode.ExtensionContext, panel: vscode.Webvi
             <div id="record-info" class="record-info">
                 Loading requirements...
             </div>
-            <button id="refreshButton" class="refresh-button" title="Refresh Table">
-                <span class="codicon codicon-refresh"></span>
-            </button>
+            <div style="display: flex; gap: 8px;">
+                <button id="exportButton" class="refresh-button" title="Export to CSV">
+                    <span class="codicon codicon-cloud-download"></span>
+                </button>
+                <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                    <span class="codicon codicon-refresh"></span>
+                </button>
+            </div>
         </div>
         
         <table id="requirementsFulfillmentTable">
