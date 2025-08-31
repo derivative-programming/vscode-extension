@@ -158,6 +158,23 @@ function showWorkflowDetails(item, modelService, context) {
                         console.warn("Cannot add existing workflow tasks: ModelService not available or flow reference not found");
                     }
                     return;
+                case "openOwnerObjectDetails":
+                    console.log('[DEBUG] WorkflowDetails - Open owner object details requested for object name:', JSON.stringify(message.objectName));
+                    try {
+                        if (message.objectName) {
+                            // Execute the object details command to open the owner object
+                            vscode.commands.executeCommand('appdna.showDetails', {
+                                label: message.objectName,
+                                objectType: 'object'
+                            });
+                        } else {
+                            console.error('[ERROR] WorkflowDetails - No object name provided for opening owner object details');
+                        }
+                    } catch (error) {
+                        console.error('[ERROR] WorkflowDetails - Failed to open owner object details:', error);
+                        vscode.window.showErrorMessage(`Failed to open owner object details: ${error.message}`);
+                    }
+                    return;
             }
         }
     );

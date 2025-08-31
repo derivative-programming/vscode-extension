@@ -1431,3 +1431,8 @@ Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
 2024-12-28: FIXED - Button order in Add Existing Workflow Task modal - Moved Cancel button to the right of Add Selected Tasks button for standard UI pattern
 2024-12-28: ADDED - Filter textbox to Add Existing Workflow Task modal - Added real-time filtering functionality to easily find specific tasks in the list
 Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Task Details for: CTWFormSubmissionRequestProcessClosing
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
+Command: Open Workflow Details for: CampaignCompanyNameEvalConvertResults
