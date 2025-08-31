@@ -8,8 +8,9 @@ let activeWizardPanel = null;
 /**
  * Shows the Add Object Wizard in a webview
  * @param {Object} modelService ModelService instance
+ * @param {vscode.ExtensionContext} context Extension context
  */
-function showAddObjectWizard(modelService) {
+function showAddObjectWizard(modelService, context) {
     // If a wizard panel already exists, reveal it instead of creating a new one
     if (activeWizardPanel) {
         activeWizardPanel.reveal(vscode.ViewColumn.One);
@@ -160,7 +161,7 @@ function showAddObjectWizard(modelService) {
                         
                         // Open the Data Object Details view for the newly created object
                         const mockTreeItem = { label: objectName };
-                        showObjectDetails(mockTreeItem, modelService);
+                        showObjectDetails(mockTreeItem, modelService, context);
                         
                         // If successful, close the panel after a short delay to allow the user to see the success message
                         setTimeout(() => {

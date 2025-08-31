@@ -371,7 +371,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 rolesItem.command = {
                     command: 'appdna.showDetails',
                     title: 'Show Details',
-                    arguments: [roleDataObjectItem]
+                    arguments: [roleDataObjectItem, 'lookupItems']
                 };
                 items.push(rolesItem);
                 
@@ -527,23 +527,27 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 generalItem.tooltip = "General workflow flows";
                 items.push(generalItem);
                 
-                // Create WORKFLOWS as a child of FLOWS
-                const workflowsItem = new JsonTreeItem(
-                    'WORKFLOWS',
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    'workflows showWorkflowsFilter showWorkflowsList'
-                );
-                workflowsItem.tooltip = "Object workflows where isPage=false";
-                items.push(workflowsItem);
+                // Only show WORKFLOWS if DynaFlow data object exists
+                if (modelLoaded && this.modelService.hasDynaFlowDataObject()) {
+                    const workflowsItem = new JsonTreeItem(
+                        'WORKFLOWS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'workflows showWorkflowsFilter showWorkflowsList'
+                    );
+                    workflowsItem.tooltip = "DynaFlow workflows (requires DynaFlow data object)";
+                    items.push(workflowsItem);
+                }
                 
-                // Create WORKFLOW_TASKS as a child of FLOWS
-                const workflowTasksItem = new JsonTreeItem(
-                    'WORKFLOW_TASKS',
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    'workflowTasks showWorkflowTasksFilter'
-                );
-                workflowTasksItem.tooltip = "Individual workflow tasks and steps";
-                items.push(workflowTasksItem);
+                // Only show WORKFLOW_TASKS if both DynaFlow and DynaFlowTask data objects exist
+                if (modelLoaded && this.modelService.hasDynaFlowDataObject() && this.modelService.hasDynaFlowTaskDataObject()) {
+                    const workflowTasksItem = new JsonTreeItem(
+                        'WORKFLOW_TASKS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'workflowTasks showWorkflowTasksFilter'
+                    );
+                    workflowTasksItem.tooltip = "DynaFlow task workflows (requires DynaFlow and DynaFlowTask data objects)";
+                    items.push(workflowTasksItem);
+                }
                 
                 return Promise.resolve(items);
             } catch (error) {
@@ -964,13 +968,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     });
                     
                     return Promise.resolve(
-                        sortedObjects.map((obj: any, index: number) =>
-                            new JsonTreeItem(
+                        sortedObjects.map((obj: any, index: number) => {
+                            const item = new JsonTreeItem(
                                 obj.name || `Object ${allObjects.indexOf(obj) + 1}`,
                                 vscode.TreeItemCollapsibleState.None,
                                 'dataObjectItem'
-                            )
-                        )
+                            );
+                            // Add command to open data object details view with settings tab
+                            item.command = {
+                                command: 'appdna.showDetails',
+                                title: 'Show Details',
+                                arguments: [item]
+                            };
+                            return item;
+                        })
                     );
                 } else {
                     // Fallback to direct file reading if model isn't loaded
@@ -997,13 +1008,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     });
                     
                     return Promise.resolve(
-                        sortedObjects.map((obj: any, index: number) =>
-                            new JsonTreeItem(
+                        sortedObjects.map((obj: any, index: number) => {
+                            const item = new JsonTreeItem(
                                 obj.name || `Object ${index + 1}`,
                                 vscode.TreeItemCollapsibleState.None,
                                 'dataObjectItem'
-                            )
-                        )
+                            );
+                            // Add command to open data object details view with settings tab
+                            item.command = {
+                                command: 'appdna.showDetails',
+                                title: 'Show Details',
+                                arguments: [item]
+                            };
+                            return item;
+                        })
                     );
                 }
             } catch (error) {
