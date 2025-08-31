@@ -18,9 +18,10 @@ const { getLookupItemsTemplate } = require("./templates/lookupItemsTemplate");
  * @param {Object} objectSchemaProps Schema properties for the object
  * @param {Object} propItemsSchema Schema properties for property items
  * @param {Array} allObjects Array of all available objects for FK lookup
+ * @param {string} initialTab Initial tab to show ('settings', 'props', 'lookupItems')
  * @returns {string} HTML content
  */
-function generateDetailsView(object, objectSchemaProps, propItemsSchema, allObjects) {
+function generateDetailsView(object, objectSchemaProps, propItemsSchema, allObjects, initialTab = 'settings') {
     const props = object.prop || [];
     const lookupItems = object.lookupItem || [];
     
@@ -38,17 +39,17 @@ function generateDetailsView(object, objectSchemaProps, propItemsSchema, allObje
     const { tableHeaders, tableRows, propColumns } = getPropertiesTableTemplate(props, propItemsSchema);
     const listViewFields = getPropertiesListTemplate(propItemsSchema);
     
-    // Generate lookup items tab content if this is a lookup object
+    // Generate lookup items tab content if this is a lookup object or if lookup items tab is requested
     const { loadSchema, getObjectSchemaProperties, getPropItemsSchema, getLookupItemsSchema } = require("../helpers/schemaLoader");
     const schema = loadSchema();
     const lookupItemsSchema = getLookupItemsSchema(schema);
-    const lookupItemsHtml = (object.isLookup === "true") ? getLookupItemsTemplate(lookupItems, lookupItemsSchema) : null;
+    const lookupItemsHtml = (object.isLookup === "true" || initialTab === 'lookupItems') ? getLookupItemsTemplate(lookupItems, lookupItemsSchema) : null;
     
     // Generate client-side JavaScript
     const clientScript = getClientScriptTemplate(props, propItemsSchema, object.name, allObjects, object, lookupItemsSchema);
     
     // Combine all parts into the main template
-    return getMainTemplate(object, props.length, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript, lookupItemsHtml, lookupItems.length);
+    return getMainTemplate(object, props.length, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript, lookupItemsHtml, lookupItems.length, initialTab);
 }
 
 module.exports = {

@@ -11,9 +11,10 @@
  * @param {string} clientScript HTML script tag with JavaScript
  * @param {Object} lookupItemsHtml HTML content for lookup items tab (null if not a lookup object)
  * @param {number} lookupItemsLength Number of lookup items
+ * @param {string} initialTab Initial tab to show ('settings', 'props', 'lookupItems')
  * @returns {string} Complete HTML for the details view
  */
-function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript, lookupItemsHtml, lookupItemsLength) {
+function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableRows, listViewFields, clientScript, lookupItemsHtml, lookupItemsLength, initialTab = 'settings') {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>    <meta charset="UTF-8">
@@ -28,12 +29,18 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
     <h1>Details for ${object.name} Data Object</h1>
     
     <div class="tabs">
-        <div class="tab active" data-tab="settings">Settings</div>
-        <div class="tab" data-tab="props">Properties (${propsLength})</div>
-        ${object.isLookup === "true" ? `<div class="tab" data-tab="lookupItems">Lookup Items (${lookupItemsLength || 0})</div>` : ""}
+        <div class="tab ${initialTab === 'settings' ? 'active' : ''}" data-tab="settings">Settings</div>
+        <div class="tab ${initialTab === 'props' ? 'active' : ''}" data-tab="props">Properties (${propsLength})</div>
+        ${(object.isLookup === "true" || initialTab === 'lookupItems') ? `<div class="tab ${initialTab === 'lookupItems' ? 'active' : ''}" data-tab="lookupItems">Lookup Items (${lookupItemsLength || 0})</div>` : ""}
     </div>
     
-    <div id="settings" class="tab-content active">
+    <script>
+        console.log("[DEBUG] MainTemplate - object.isLookup:", "${object.isLookup}");
+        console.log("[DEBUG] MainTemplate - initialTab:", "${initialTab}");
+        console.log("[DEBUG] MainTemplate - lookup tab condition:", ${(object.isLookup === "true" || initialTab === 'lookupItems')});
+    </script>
+    
+    <div id="settings" class="tab-content ${initialTab === 'settings' ? 'active' : ''}">
         ${object.error ? 
             `<div class="error">${object.error}</div>` : 
             `<form id="settingsForm">
@@ -42,7 +49,7 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
         }
     </div>
     
-    <div id="props" class="tab-content">
+    <div id="props" class="tab-content ${initialTab === 'props' ? 'active' : ''}">
         <div class="view-icons">
             <div class="view-icons-left">
                 <span class="icon list-icon active" data-view="propsList">List View</span>
@@ -88,8 +95,8 @@ function getMainTemplate(object, propsLength, settingsHtml, tableHeaders, tableR
         ${clientScript}
     </div>
 
-    ${object.isLookup === "true" ? `
-    <div id="lookupItems" class="tab-content">
+    ${(object.isLookup === "true" || initialTab === 'lookupItems') ? `
+    <div id="lookupItems" class="tab-content ${initialTab === 'lookupItems' ? 'active' : ''}">
         <div class="view-icons">
             <div class="view-icons-left">
                 <span class="icon list-icon active" data-view="lookupList">List View</span>

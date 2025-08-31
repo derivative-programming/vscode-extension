@@ -71,7 +71,40 @@ export class ModelService {
         } catch (error) {
             // Log and re-throw the error
             console.error("Error loading file:", error);
-            vscode.window.showErrorMessage(`Failed to load file: ${error instanceof Error ? error.message : String(error)}`);
+            
+            // Create a more informative error message for validation failures
+            let errorMessage = error instanceof Error ? error.message : String(error);
+            let fileName = path.basename(filePath);
+            
+            // If it's a validation error, provide a more detailed dialog
+            if (errorMessage.includes("JSON validation failed")) {
+                // Show a more detailed error message with an option to view details
+                const selection = await vscode.window.showErrorMessage(
+                    `Failed to load file: ${fileName}`,
+                    {
+                        detail: `JSON validation failed. The file structure does not match the schema requirements.\n\nClick "Show Details" to see specific validation errors, or check the Developer Console (Help > Toggle Developer Tools) for complete error information.`,
+                        modal: true
+                    },
+                    "Show Details",
+                    "OK"
+                );
+                
+                if (selection === "Show Details") {
+                    // Show detailed error in an information message (since error dialogs are limited in size)
+                    await vscode.window.showInformationMessage(
+                        `Validation errors in ${fileName}:`,
+                        {
+                            detail: errorMessage,
+                            modal: true
+                        },
+                        "OK"
+                    );
+                }
+            } else {
+                // For other errors, show standard error message
+                vscode.window.showErrorMessage(`Failed to load file: ${fileName} - ${errorMessage}`);
+            }
+            
             throw error;
         }
     }
@@ -736,5 +769,35 @@ export class ModelService {
         }
         
         return allPageWorkflows;
+    }
+
+    /**
+     * Check if a "DynaFlow" data object exists in the model
+     * @returns True if a data object named "DynaFlow" exists, false otherwise
+     */
+    public hasDynaFlowDataObject(): boolean {
+        const allObjects = this.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            return false;
+        }
+
+        return allObjects.some(obj => 
+            obj.name && obj.name.trim().toLowerCase() === 'dynaflow'
+        );
+    }
+
+    /**
+     * Check if a "DynaFlowTask" data object exists in the model
+     * @returns True if a data object named "DynaFlowTask" exists, false otherwise
+     */
+    public hasDynaFlowTaskDataObject(): boolean {
+        const allObjects = this.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            return false;
+        }
+
+        return allObjects.some(obj => 
+            obj.name && obj.name.trim().toLowerCase() === 'dynaflowtask'
+        );
     }
 }

@@ -339,7 +339,7 @@ export function registerCommands(
             // Reopen any object details panels that were previously open with fresh data
             if (openPanelsToReopen.length > 0 && objectDetailsView) {
                 for (const item of openPanelsToReopen) {
-                    objectDetailsView.showObjectDetails(item, modelService);
+                    objectDetailsView.showObjectDetails(item, modelService, context, 'settings');
                 }
             }
             
@@ -353,7 +353,7 @@ export function registerCommands(
             // Reopen any form details panels that were previously open with fresh data
             if (openFormPanelsToReopen.length > 0 && formDetailsView) {
                 for (const item of openFormPanelsToReopen) {
-                    formDetailsView.showFormDetails(item, modelService);
+                    formDetailsView.showFormDetails(item, modelService, context);
                 }
             }
 
@@ -565,7 +565,7 @@ export function registerCommands(
     // Register add object command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.addObject', async () => {
-            await addObjectCommand(appDNAFilePath, jsonTreeDataProvider, modelService);
+            await addObjectCommand(appDNAFilePath, jsonTreeDataProvider, modelService, context);
         })
     );
 
@@ -606,15 +606,17 @@ export function registerCommands(
     
     // Register show details command
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.showDetails', (node: JsonTreeItem) => {
+        vscode.commands.registerCommand('appdna.showDetails', (node: JsonTreeItem, initialTab?: string) => {
+            console.log(`[DEBUG] showDetails command called with node: ${node.label}, initialTab: ${initialTab}`);
+            
             // Ensure the objectDetailsView module is loaded correctly
             if (!objectDetailsView || typeof objectDetailsView.showObjectDetails !== 'function') {
                 vscode.window.showErrorMessage('Failed to load objectDetailsView module. Please check the extension setup.');
                 return;
             }
 
-            // Use the objectDetailsView implementation with modelService only
-            objectDetailsView.showObjectDetails(node, modelService);
+            // Use the objectDetailsView implementation with modelService and optional initial tab
+            objectDetailsView.showObjectDetails(node, modelService, context, initialTab);
         })
     );    
     
@@ -1052,7 +1054,7 @@ export function registerCommands(
     // Register add form command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.addForm', () => {
-            addFormCommand(modelService);
+            addFormCommand(modelService, context);
         })
     );
 
