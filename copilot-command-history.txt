@@ -1230,6 +1230,18 @@ Command: Open Page Init Details for: AIAssistantFileConfigDetailsInitReport
 Command: Open Page Init Details for: AIATMessageConfigDetailsInitReport
 Command: Open Page Init Details for: CampaignAdminDetailsInitReport
 Command: Open Page Init Details for: CTWEmailConfigDetailsInitReport
-Command: Open Page Init Details for: CTWContactUserUpdateInitObjWF
-
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+
+2025-01-27 - COMMAND: Replace general flow button column modal select list with textbox and browse button
+STATUS: COMPLETED ✅
+ISSUE: Add General Flow Button Column modal uses a select list dropdown instead of textbox with browse button like the destination modal
+SOLUTION: Replaced select list with textbox and browse button pattern, created general flow search modal components
+ARCHITECTURE: Created modal components following the same pattern as page search modal for consistency
+FILES CREATED:
+- src/webviews/reports/components/templates/generalFlowSearchModalTemplate.js: NEW FILE - General flow search modal HTML template
+- src/webviews/reports/components/templates/generalFlowSearchModalFunctionality.js: NEW FILE - General flow search modal JavaScript functionality
+FILES CHANGED:
+- src/webviews/reports/components/templates/addGeneralFlowButtonColumnModalTemplate.js: Replaced select list with textbox and browse button using control-with-button pattern
+- src/webviews/reports/components/templates/addGeneralFlowButtonColumnModalFunctionality.js: Updated to handle textbox input instead of select, added browse button click handler, removed old populate functions
+- src/webviews/reports/components/templates/clientScriptTemplate.js: Added imports for new modal components, included template functions and functionality, updated message handler for modal population
+TECHNICAL NOTES: General flow modal now follows same UI pattern as destination modal with textbox + browse button. Browse button opens search modal with filtering capability. Data attributes are preserved for column generation.
