@@ -733,7 +733,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                                     // Check if name ends with 'initreport' or 'initobjwf'
                                     if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
                                         console.log('PAGE_INIT: Found matching workflow:', workflow.name);
-                                        const displayName = workflow.titleText || workflow.name;
+                                        const displayName = workflow.name; // Use actual workflow name, not titleText
                                         // Apply filters (global and page init specific)
                                         if (this.applyFilter(displayName) && this.applyPageInitFilter(displayName)) {
                                             console.log('PAGE_INIT: Workflow passed filters, adding:', displayName);

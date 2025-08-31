@@ -42,4 +42,4 @@
 - **Enhanced UX**: Cleaner interface without unnecessary add functionality
 
 ## Architecture Alignment:
-The endpoints tab now closely mirrors the form input controls tab pattern while remaining appropriate for API endpoint management context.
+The endpoints tab now closely mirrors the form input controls tab pattern while remaining appropriate for API endpoint management context.Command: Open Page Init Details for: CampaignAdminAddCampaignBuildDocReqListRequestTest20InitObjWF
