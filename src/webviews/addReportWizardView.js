@@ -14,8 +14,9 @@ let activeWizardPanel = null;
 /**
  * Shows the Add Report Wizard in a webview
  * @param {Object} modelService ModelService instance
+ * @param {vscode.ExtensionContext} context Extension context
  */
-function showAddReportWizard(modelService) {
+function showAddReportWizard(modelService, context) {
     // If a wizard panel already exists, reveal it instead of creating a new one
     if (activeWizardPanel) {
         activeWizardPanel.reveal(vscode.ViewColumn.One);
@@ -174,7 +175,7 @@ function showAddReportWizard(modelService) {
                                 reportName: reportName,
                                 contextValue: 'report'
                             };
-                            showReportDetails(reportNode, modelService);
+                            showReportDetails(reportNode, modelService, context);
                             
                         }, 1500);
                         

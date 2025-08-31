@@ -173,6 +173,57 @@ export async function showChangeRequestsListView(context: vscode.ExtensionContex
                         vscode.window.showInformationMessage(message.message);
                     }
                     return;
+                    
+                case 'exportToCSV':
+                    console.log("[Extension] Change requests CSV export requested");
+                    try {
+                        const csvContent = await saveChangeRequestsToCSV(message.data.items);
+                        const now = new Date();
+                        const pad = (n: number) => n.toString().padStart(2, '0');
+                        const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                        const filename = `change-requests-${requestCode}-${timestamp}.csv`;
+                        
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            csvContent: csvContent,
+                            filename: filename,
+                            success: true
+                        });
+                    } catch (error) {
+                        console.error('[Extension] Error exporting change requests CSV:', error);
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            success: false,
+                            error: error.message
+                        });
+                    }
+                    return;
+                    
+                case 'saveCsvToWorkspace':
+                    try {
+                        const fs = require('fs');
+                        const path = require('path');
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        
+                        if (!workspaceFolders || workspaceFolders.length === 0) {
+                            vscode.window.showErrorMessage('No workspace folder is open');
+                            return;
+                        }
+                        
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const filePath = path.join(workspaceRoot, message.data.filename);
+                        
+                        fs.writeFileSync(filePath, message.data.content, 'utf8');
+                        vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                        
+                        // Open the file in VS Code
+                        const fileUri = vscode.Uri.file(filePath);
+                        vscode.window.showTextDocument(fileUri);
+                    } catch (error) {
+                        console.error('[Extension] Error saving change requests CSV to workspace:', error);
+                        vscode.window.showErrorMessage(`Failed to save CSV: ${error.message}`);
+                    }
+                    return;
             }
         },
         undefined,
@@ -550,6 +601,10 @@ export function getWebviewContent(scriptUri: vscode.Uri, requestCode: string, cs
                     </button>
                 </div>
                 <div class="action-controls">
+                    <button id="exportButton" class="refresh-button" title="Download CSV">
+                        <i class="codicon codicon-cloud-download"></i>
+                        <span>Export CSV</span>
+                    </button>
                     <button id="applyAllApprovedBtn" class="action-button" title="Apply all approved change requests that haven't been applied yet">Apply All Approved</button>
                 </div>
             </div>
@@ -1455,6 +1510,50 @@ async function handleValidatePendingChangeRequests(panel: vscode.WebviewPanel, r
         panel.webview.postMessage({ command: 'modelValidationSetError', text: `Failed to validate pending change requests: ${error.message}` });
         // Ensure we notify the webview to hide the spinner
         panel.webview.postMessage({ command: 'operationComplete' });
+    }
+}
+
+/**
+ * Generates CSV content from change requests data.
+ * @param items Array of change request items
+ * @returns Promise resolving to CSV content string
+ */
+async function saveChangeRequestsToCSV(items: any[]): Promise<string> {
+    try {
+        // Create CSV header
+        const csvHeader = '"Code","Description","Property Name","Old Value","New Value","Status","Rejection Reason"\n';
+        
+        // Create CSV rows
+        const csvRows = items.map(item => {
+            // Escape and quote all values, handling null and undefined
+            const code = `"${(item.Code || item.code || '').toString().replace(/"/g, '""')}"`;
+            const description = `"${(item.Description || item.description || '').toString().replace(/"/g, '""')}"`;
+            const propertyName = `"${(item.PropertyName || item.propertyName || '').toString().replace(/"/g, '""')}"`;
+            const oldValue = `"${(item.OldValue !== undefined && item.OldValue !== null ? item.OldValue : (item.oldValue !== undefined && item.oldValue !== null ? item.oldValue : '')).toString().replace(/"/g, '""')}"`;
+            const newValue = `"${(item.NewValue !== undefined && item.NewValue !== null ? item.NewValue : (item.newValue !== undefined && item.newValue !== null ? item.newValue : '')).toString().replace(/"/g, '""')}"`;
+            
+            // Determine status
+            let status = 'Pending';
+            if (item.IsProcessed) {
+                status = 'Applied';
+            } else if (item.IsApproved) {
+                status = 'Approved';
+            } else if (item.IsRejected) {
+                status = 'Rejected';
+            }
+            const statusQuoted = `"${status}"`;
+            
+            const rejectionReason = `"${(item.RejectionReason || '').toString().replace(/"/g, '""')}"`;
+            
+            return `${code},${description},${propertyName},${oldValue},${newValue},${statusQuoted},${rejectionReason}`;
+        }).join('\n');
+        
+        const csvContent = csvHeader + csvRows;
+        
+        return csvContent;
+    } catch (error) {
+        console.error("[Extension] Error creating change requests CSV:", error);
+        throw error;
     }
 }
 
