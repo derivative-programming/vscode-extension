@@ -91,8 +91,23 @@ function showAddFormWizard(modelService, context) {
                             newForm.workflowAction = action;
                         }
                         
-                        // Add the new form to the owner object
+                        // Create page init flow for the form
+                        // Page init flows are objectWorkflow items with names ending in "InitObjWF"
+                        // that handle initialization logic for the form/page
+                        const pageInitFlowName = formName + "InitObjWF";
+                        const newPageInitFlow = {
+                            name: pageInitFlowName,
+                            titleText: formTitle + " Page Init",
+                            objectWorkflowOutputVar: []
+                        };
+                        
+                        // Set the form's initObjectWorkflowName to reference the page init flow
+                        // This creates the connection between the form and its initialization flow
+                        newForm.initObjectWorkflowName = pageInitFlowName;
+                        
+                        // Add both the form and page init flow to the owner object
                         ownerObject.objectWorkflow.push(newForm);
+                        ownerObject.objectWorkflow.push(newPageInitFlow);
                         
                         // Mark model as having unsaved changes
                         modelService.markUnsavedChanges();
@@ -106,7 +121,7 @@ function showAddFormWizard(modelService, context) {
                         // Send success message
                         panel.webview.postMessage({ 
                             command: "success", 
-                            message: `Form "${formName}" created successfully!`
+                            message: `Form "${formName}" and page init flow "${pageInitFlowName}" created successfully!`
                         });
                         
                         // Close the wizard after a short delay
