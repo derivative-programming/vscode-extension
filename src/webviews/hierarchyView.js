@@ -72,7 +72,7 @@ async function showHierarchyDiagram(context, modelService) {
                         
                         // Call the showObjectDetails function
                         const objectDetailsView = require('./objectDetailsView');
-                        objectDetailsView.showObjectDetails(mockTreeItem, modelService);
+                        objectDetailsView.showObjectDetails(mockTreeItem, modelService, currentContext, 'settings');
                     }
                     return;
                 

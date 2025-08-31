@@ -47,7 +47,7 @@ function getMainTemplate(
 
     <div class="tabs" role="tablist">
         <div class="tab active" role="tab" tabindex="0" data-tab="settings">Settings</div>
-        <div class="tab" role="tab" tabindex="0" data-tab="params">Input Controls (${paramCount})</div>
+        <div class="tab" role="tab" tabindex="0" data-tab="params">Input Params (${paramCount})</div>
         <div class="tab" role="tab" tabindex="0" data-tab="outputVars">Output Variables (${outputVarCount})</div>
     </div>
 
@@ -57,14 +57,14 @@ function getMainTemplate(
 
     <div id="params" class="tab-content">
         <div class="view-icons" data-tab="params">
-            <button id="add-param-btn" class="add-prop-button">Add Input Control</button>
+            <button id="add-param-btn" class="add-prop-button">Add Input Param</button>
         </div>
 
         <div id="paramsListView" class="view-content active">
             <div class="list-container">
                 <select id="paramsList" size="10">
                     ${(flow.objectWorkflowParam || []).map((param, index) => {
-                        const name = (param && typeof param === 'object' && param.name) ? param.name : 'Unnamed Input Control';
+                        const name = (param && typeof param === 'object' && param.name) ? param.name : 'Unnamed Input Param';
                         return `<option value="${index}">${name}</option>`;
                     }).join('')}
                 </select>

@@ -253,6 +253,30 @@ async function saveRoleRequirementsData(requirements: any[], filePath: string): 
     }
 }
 
+/**
+ * Save role requirements data to CSV file
+ */
+async function saveRoleRequirementsToCSV(items: any[], modelService: ModelService): Promise<string> {
+    try {
+        // Create CSV content
+        const csvHeader = 'Role,Data Object,Action,Access\n';
+        const csvRows = items.map(item => {
+            const role = (item.role || '').replace(/"/g, '""');
+            const dataObject = (item.dataObject || '').replace(/"/g, '""');
+            const action = (item.action || '').replace(/"/g, '""');
+            const access = (item.access || '').replace(/"/g, '""');
+            return `"${role}","${dataObject}","${action}","${access}"`;
+        }).join('\n');
+        
+        const csvContent = csvHeader + csvRows;
+        
+        return csvContent;
+    } catch (error) {
+        console.error("[Extension] Error creating CSV:", error);
+        throw error;
+    }
+}
+
 export function registerRoleRequirementsCommands(
     context: vscode.ExtensionContext,
     appDNAFilePath: string | null,
@@ -873,6 +897,9 @@ export function registerRoleRequirementsCommands(
                             <button id="applyButton" class="apply-button" disabled>Apply to Selected</button>
                         </div>
                         <div class="header-actions">
+                            <button id="exportButton" class="icon-button" title="Download CSV">
+                                <i class="codicon codicon-cloud-download"></i>
+                            </button>
                             <button id="validateButton" class="icon-button" title="Validate All Requirements">
                             </button>
                             <button id="generateStoriesButton" class="icon-button" title="Generate User Stories for Allowed/Required Access">
@@ -1106,6 +1133,55 @@ export function registerRoleRequirementsCommands(
                                     success: false,
                                     error: error instanceof Error ? error.message : 'Unknown error'
                                 });
+                            }
+                            break;
+
+                        case 'exportToCSV':
+                            console.log("[Extension] RoleRequirements CSV export requested");
+                            try {
+                                const csvContent = await saveRoleRequirementsToCSV(message.data.items, modelService);
+                                const now = new Date();
+                                const pad = (n: number) => n.toString().padStart(2, '0');
+                                const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                                const filename = `role-requirements-${timestamp}.csv`;
+                                
+                                panel.webview.postMessage({
+                                    command: 'csvExportReady',
+                                    csvContent: csvContent,
+                                    filename: filename,
+                                    success: true
+                                });
+                            } catch (error) {
+                                console.error('[Extension] Error exporting CSV:', error);
+                                panel.webview.postMessage({
+                                    command: 'csvExportReady',
+                                    success: false,
+                                    error: error.message
+                                });
+                            }
+                            break;
+
+                        case 'saveCsvToWorkspace':
+                            try {
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    vscode.window.showErrorMessage('No workspace folder is open');
+                                    return;
+                                }
+                                
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const filePath = path.join(workspaceRoot, message.data.filename);
+                                
+                                fs.writeFileSync(filePath, message.data.content, 'utf8');
+                                vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                                
+                                // Open the file in VS Code
+                                const fileUri = vscode.Uri.file(filePath);
+                                vscode.window.showTextDocument(fileUri);
+                            } catch (error) {
+                                console.error('[Extension] Error saving CSV to workspace:', error);
+                                vscode.window.showErrorMessage(`Failed to save CSV: ${error.message}`);
                             }
                             break;
                     }

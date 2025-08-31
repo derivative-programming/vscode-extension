@@ -35,6 +35,9 @@ function getMainTemplate(
     <div class="owner-data-object-section">
         <span class="owner-data-object-label">Owner Data Object:</span>
         <span class="owner-data-object-name">${ownerObject.name || 'Unknown Object'}</span>
+        <button class="edit-owner-button" onclick="openOwnerObjectDetails('${ownerObject.name || ''}')" title="Edit owner data object">
+            <i class="codicon codicon-edit"></i>
+        </button>
     </div>
     ` : ''}
 
@@ -49,7 +52,10 @@ function getMainTemplate(
 
     <div id="workflowTasks" class="tab-content">
         <div class="view-icons" data-tab="workflowTasks">
-            <button id="add-workflow-task-btn" class="add-prop-button">Add Workflow Task</button>
+            <div class="workflow-task-buttons">
+                <button id="add-workflow-task-btn" class="add-prop-button">Add New Workflow Task</button>
+                <button id="add-existing-workflow-task-btn" class="add-prop-button">Add Existing Workflow Task</button>
+            </div>
         </div>
 
         <div id="workflowTasksListView" class="view-content active">

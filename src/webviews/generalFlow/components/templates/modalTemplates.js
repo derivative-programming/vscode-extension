@@ -5,28 +5,28 @@ function getAddInputControlModalHtml() {
     return `
 <div class="modal-content">
     <span class="close-button">&times;</span>
-    <h2>Add Input Control</h2>
+    <h2>Add Input Param</h2>
     <div class="tabs">
-        <div class="tab active" data-tab="singleAdd">Single Input Control</div>
+        <div class="tab active" data-tab="singleAdd">Single Input Param</div>
         <div class="tab" data-tab="bulkAdd">Bulk Add</div>
     </div>
     <div id="singleAdd" class="tab-content active">
         <div class="form-row">
-            <label for="inputControlName">Input Control Name:</label>
+            <label for="inputControlName">Input Param Name:</label>
             <input type="text" id="inputControlName">
             <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>
         </div>
         <div id="singleValidationError" class="validation-error"></div>
-        <button id="addSingleInputControl">Add Input Control</button>
+        <button id="addSingleInputControl">Add Input Param</button>
     </div>
     <div id="bulkAdd" class="tab-content">
         <div class="form-row">
-            <label for="bulkInputControls">Input Control Names (one per line):</label>
+            <label for="bulkInputControls">Input Param Names (one per line):</label>
             <textarea id="bulkInputControls" rows="5"></textarea>
             <div class="field-note">Use Pascal case (Example: FirstName). No spaces are allowed in names. Alpha characters only. Maximum 100 characters.</div>
         </div>
         <div id="bulkValidationError" class="validation-error"></div>
-        <button id="addBulkInputControls">Add Input Controls</button>
+        <button id="addBulkInputControls">Add Input Params</button>
     </div>
 </div>`;
 }

@@ -10,8 +10,9 @@ const vscode = require('vscode');
 /**
  * Shows the Add Form Wizard in a webview
  * @param {Object} modelService - The ModelService instance
+ * @param {vscode.ExtensionContext} context - Extension context
  */
-function showAddFormWizard(modelService) {
+function showAddFormWizard(modelService, context) {
     // Get all objects for owner object selection
     let allObjects = [];
     let roleObjects = [];
@@ -148,7 +149,7 @@ function showAddFormWizard(modelService) {
                                     formItem.description = ownerObjectName;
                                     
                                     // Open the form details view
-                                    showFormDetails(formItem, modelService);
+                                    showFormDetails(formItem, modelService, context, 'settings');
                                 } catch (error) {
                                     console.log('Could not auto-open form details:', error.message);
                                 }

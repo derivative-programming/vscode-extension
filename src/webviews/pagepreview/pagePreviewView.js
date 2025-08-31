@@ -165,6 +165,13 @@ function showFormDetailsForPreview(formName, objectName, modelService) {
     console.log('[DEBUG] PagePreview - showFormDetailsForPreview called with:', formName, objectName);
     
     try {
+        // Check if context is available
+        if (!currentContext) {
+            console.error('[ERROR] PagePreview - currentContext is not available for form details');
+            vscode.window.showErrorMessage('Extension context not available. Please ensure the page preview is properly initialized.');
+            return;
+        }
+        
         // Create a mock tree item similar to what the tree view would create
         const mockTreeItem = {
             label: formName,
@@ -174,6 +181,7 @@ function showFormDetailsForPreview(formName, objectName, modelService) {
         
         console.log('[DEBUG] PagePreview - Created mock tree item:', mockTreeItem);
         console.log('[DEBUG] PagePreview - ModelService available:', !!modelService);
+        console.log('[DEBUG] PagePreview - CurrentContext available:', !!currentContext);
         
         // Import and call the form details view (JavaScript file)
         console.log('[DEBUG] PagePreview - About to require formDetailsView.js');
@@ -200,6 +208,13 @@ function showReportDetailsForPreview(reportName, objectName, modelService) {
     console.log('[DEBUG] PagePreview - showReportDetailsForPreview called with:', reportName, objectName);
     
     try {
+        // Check if context is available
+        if (!currentContext) {
+            console.error('[ERROR] PagePreview - currentContext is not available');
+            vscode.window.showErrorMessage('Extension context not available. Please ensure the page preview is properly initialized.');
+            return;
+        }
+        
         // Create a mock tree item similar to what the tree view would create
         const mockTreeItem = {
             label: reportName,
@@ -209,6 +224,7 @@ function showReportDetailsForPreview(reportName, objectName, modelService) {
         
         console.log('[DEBUG] PagePreview - Created mock tree item:', mockTreeItem);
         console.log('[DEBUG] PagePreview - ModelService available:', !!modelService);
+        console.log('[DEBUG] PagePreview - CurrentContext available:', !!currentContext);
         
         // Import and call the report details view (JavaScript file)
         console.log('[DEBUG] PagePreview - About to require reportDetailsView.js');

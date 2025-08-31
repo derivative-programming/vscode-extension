@@ -350,7 +350,7 @@ function refreshAll() {
         try {
             const { panel, item, modelService } = entry;
             if (panel && !panel.disposed) {
-                showPageInitDetails(item, modelService);
+                showPageInitDetails(item, modelService, currentContext);
             }
         } catch (e) { console.error('refreshAll pageinit error:', e); }
     }
