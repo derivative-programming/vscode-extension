@@ -1,4 +1,33 @@
-﻿2024-12-31 XX:XX:XX - USER STORY REQUIREMENT FULFILLMENTS VIEW - AUTO-OPEN CSV ON DOWNLOAD
+﻿2024-12-31 XX:XX:XX - MODEL CHANGE REQUEST LIST VIEW - CSV EXPORT
+USER REQUEST: "Review the data object list view and its 'download csv' icon button. Review the model change request list view. We want to add a similar 'download csv' button there."
+**Status**: ✅ COMPLETED
+
+**Changes Made**:
+1. Modified `changeRequestsListView.ts`:
+   - Added export button to HTML template in action-controls section
+   - Added 'exportToCSV' message handler that calls `saveChangeRequestsToCSV()`
+   - Added 'saveCsvToWorkspace' message handler to save and open CSV file
+   - Added `saveChangeRequestsToCSV()` function that generates CSV with headers: Code, Description, Property Name, Old Value, New Value, Status, Rejection Reason
+
+2. Modified `changeRequestsListView.js`:
+   - Added event listener for export button click
+   - Added `exportToCSV()` function that sends 'exportToCSV' message to extension
+   - Added 'csvExportReady' message handler that forwards to 'saveCsvToWorkspace'
+
+**Technical Details**:
+- CSV export flow: webview 'exportToCSV' → extension generates CSV → 'csvExportReady' → webview sends 'saveCsvToWorkspace' → extension saves and opens file
+- Uses same pattern as dataObjectListView.js for consistency
+- CSV filename includes request code and timestamp: `change-requests-{requestCode}-{timestamp}.csv`
+- All CSV values are properly quoted and escaped for proper parsing
+- File opens automatically in VS Code after successful save
+- Export button styled consistent with refresh/validate buttons
+
+**Architecture Notes**:
+- Maintains consistent UX across all CSV export functionality
+- Follows existing message-passing patterns between webview and extension
+- All change request fields included in export for comprehensive data access
+
+2024-12-31 XX:XX:XX - USER STORY REQUIREMENT FULFILLMENTS VIEW - AUTO-OPEN CSV ON DOWNLOAD
 USER REQUEST: "user story requirement fulfillments view downlaod to csv button shoudl open the csv immediately"
 **Status**:  COMPLETED
 

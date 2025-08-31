@@ -1525,12 +1525,12 @@ async function saveChangeRequestsToCSV(items: any[]): Promise<string> {
         
         // Create CSV rows
         const csvRows = items.map(item => {
-            // Escape and quote all values
+            // Escape and quote all values, handling null and undefined
             const code = `"${(item.Code || item.code || '').toString().replace(/"/g, '""')}"`;
             const description = `"${(item.Description || item.description || '').toString().replace(/"/g, '""')}"`;
             const propertyName = `"${(item.PropertyName || item.propertyName || '').toString().replace(/"/g, '""')}"`;
-            const oldValue = `"${(item.OldValue !== undefined ? item.OldValue : (item.oldValue !== undefined ? item.oldValue : '')).toString().replace(/"/g, '""')}"`;
-            const newValue = `"${(item.NewValue !== undefined ? item.NewValue : (item.newValue !== undefined ? item.newValue : '')).toString().replace(/"/g, '""')}"`;
+            const oldValue = `"${(item.OldValue !== undefined && item.OldValue !== null ? item.OldValue : (item.oldValue !== undefined && item.oldValue !== null ? item.oldValue : '')).toString().replace(/"/g, '""')}"`;
+            const newValue = `"${(item.NewValue !== undefined && item.NewValue !== null ? item.NewValue : (item.newValue !== undefined && item.newValue !== null ? item.newValue : '')).toString().replace(/"/g, '""')}"`;
             
             // Determine status
             let status = 'Pending';
