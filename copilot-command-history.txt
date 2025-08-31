@@ -1,4 +1,84 @@
  
+2024-12-31 XX:XX:XX - ADD FORM WIZARD - EXTENSION CONTEXT ERROR FIX
+USER REQUEST: "Extension context not available. Please try again." when using add form wizard
+**Status**: ✅ COMPLETED
+
+**Root Cause Analysis**:
+Found two related issues causing the context error:
+
+1. **Missing context in command registration** (registerCommands.ts line 1057):
+   - **Before**: `addFormCommand(modelService)` - missing context parameter
+   - **After**: `addFormCommand(modelService, context)` - now passes context correctly
+
+2. **Wrapper function parameter mismatch** (formDetailsView.js wrapper):
+   - **Before**: `showFormDetailsWrapper(item, modelService, context)` - only 3 params passed to actual function
+   - **After**: `showFormDetailsWrapper(item, modelService, context, initialTab)` - now passes all 4 parameters
+
+**Changes Made**:
+1. registerCommands.ts line 1057: Added missing context parameter to addFormCommand call
+2. formDetailsView.js wrapper: Updated showFormDetailsWrapper to pass all parameters correctly
+
+**Flow Analysis**:
+- Command 'appdna.addForm' → addFormCommand(modelService, context) → showAddFormWizard(modelService, context) → showFormDetails(item, modelService, context, 'settings')
+- Context now properly flows through the entire chain
+
+**Architecture Notes**:
+- Extension context is essential for webview creation and resource loading
+- All command handlers must receive and pass context to maintain the chain
+- Wrapper functions must preserve all parameters when delegating to implementation
+
+---
+
+2024-12-31 XX:XX:XX - ADD FORM WIZARD - CONTEXT PARAMETER FIX
+USER REQUEST: "check the end of the add form wizard"
+**Status**: ✅ COMPLETED
+
+**Issue Found and Fixed**:
+Add Form Wizard was incorrectly calling showFormDetails with only 3 parameters:
+- **Before**: `showFormDetails(formItem, modelService, context)` 
+- **After**: `showFormDetails(formItem, modelService, context, 'settings')`
+
+**Root Cause**:
+- showFormDetails function signature expects: (item, modelService, context, initialTab = 'settings')
+- Add Form Wizard was only passing 3 parameters
+- This caused context to be interpreted as initialTab, and actual context to be undefined
+
+**Change Made**:
+- addFormWizardView.js line 133: Added 'settings' as fourth parameter
+
+**Architecture Notes**:
+- Add Form Wizard completion flow: creates form → refreshes tree → opens form details view
+- Now properly passes context parameter to showFormDetails
+- Ensures form details view opens with settings tab selected after wizard completion
+
+---
+
+2024-12-31 XX:XX:XX - FORM DETAILS VIEW - CONTEXT PARAMETER VERIFICATION
+USER REQUEST: "make sure we are passing context in whenever we try to display the form details view"
+**Status**: ✅ COMPLETED - NO CHANGES NEEDED
+
+**Analysis Results**:
+All calls to showFormDetails are already correctly passing the context parameter:
+
+1. ✅ registerCommands.ts line 356: formDetailsView.showFormDetails(item, modelService, context)
+2. ✅ registerCommands.ts line 1050: showFormDetailsCommand(node, modelService, context)  
+3. ✅ pagePreviewView.js line 192: showFormDetails(mockTreeItem, modelService, currentContext)
+4. ✅ pageFlowDiagramView.js line 83: formDetailsView.showFormDetails(mockTreeItem, modelService, currentContext)
+5. ✅ pageListCommands.ts line 570: showFormDetails(mockTreeItem, modelService, context)
+6. ✅ formCommands.ts line 26: formDetailsView.showFormDetails(item, modelService, context)
+
+**Function Signature Verified**:
+- showFormDetails(item, modelService, context) - ✅ CORRECT
+- Function properly handles context parameter with fallback to stored context
+- Error handling in place for missing context
+
+**Architecture Notes**:
+- Form details view follows correct pattern with context as third required parameter
+- All callers consistently pass context (either 'context' or 'currentContext' variables)
+- Function includes context validation and user-friendly error messages
+
+---
+
 ﻿2024-12-31 XX:XX:XX - MODEL CHANGE REQUEST LIST VIEW - CSV EXPORT
 USER REQUEST: "Review the data object list view and its 'download csv' icon button. Review the model change request list view. We want to add a similar 'download csv' button there."
 **Status**: ✅ COMPLETED

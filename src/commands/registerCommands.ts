@@ -1054,7 +1054,7 @@ export function registerCommands(
     // Register add form command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.addForm', () => {
-            addFormCommand(modelService);
+            addFormCommand(modelService, context);
         })
     );
 

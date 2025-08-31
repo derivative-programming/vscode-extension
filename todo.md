@@ -103,10 +103,6 @@ note what workflows modify which data objects and props?
 allow single broad search textbox on all filter sections
 
 
-allow export on all tables - data object list download csv button as example
-- done:user story requirements fullfilment view
-- done:user story role requirements view
-- copilot:model change request list view
 
 automatically generate a text file that ai can read to get info on the app (read only)
 - setting on project to automatically do this on save? in separate process?

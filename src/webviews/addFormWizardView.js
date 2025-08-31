@@ -134,7 +134,7 @@ function showAddFormWizard(modelService, context) {
                                     formItem.description = ownerObjectName;
                                     
                                     // Open the form details view
-                                    showFormDetails(formItem, modelService, context);
+                                    showFormDetails(formItem, modelService, context, 'settings');
                                 } catch (error) {
                                     console.log('Could not auto-open form details:', error.message);
                                 }
