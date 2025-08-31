@@ -49,7 +49,10 @@ function getMainTemplate(
 
     <div id="workflowTasks" class="tab-content">
         <div class="view-icons" data-tab="workflowTasks">
-            <button id="add-workflow-task-btn" class="add-prop-button">Add New Workflow Task</button>
+            <div class="workflow-task-buttons">
+                <button id="add-workflow-task-btn" class="add-prop-button">Add New Workflow Task</button>
+                <button id="add-existing-workflow-task-btn" class="add-prop-button">Add Existing Workflow Task</button>
+            </div>
         </div>
 
         <div id="workflowTasksListView" class="view-content active">

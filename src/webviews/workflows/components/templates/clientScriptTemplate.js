@@ -2,14 +2,16 @@
 
 const { getAddWorkflowTaskModalHtml } = require("./modalTemplates");
 const { getAddWorkflowTaskModalFunctionality } = require("./addWorkflowTaskModalFunctionality");
+const { getAddExistingWorkflowTaskModalFunctionality } = require("./addExistingWorkflowTaskModalFunctionality");
 
-function getClientScriptTemplate(workflowTasks, workflowTaskSchema, flowName, allDataObjects = []) {
+function getClientScriptTemplate(workflowTasks, workflowTaskSchema, flowName, allDataObjects = [], flowObject = null) {
     return `
         (function() {
             let currentWorkflowTasks = ${JSON.stringify(workflowTasks)};
             const workflowTaskSchema = ${JSON.stringify(workflowTaskSchema)};
             const flowName = ${JSON.stringify(flowName)};
             const allDataObjects = ${JSON.stringify(allDataObjects)};
+            const currentWorkflowObjectId = ${flowObject ? flowObject.objectWorkflowID || null : null};
 
             // Basic modal behavior
             const modal = { el: null };
@@ -33,6 +35,9 @@ function getClientScriptTemplate(workflowTasks, workflowTaskSchema, flowName, al
 
             // Add Workflow Task Modal Functionality
             ${getAddWorkflowTaskModalFunctionality()}
+
+            // Add Existing Workflow Task Modal Functionality
+            ${getAddExistingWorkflowTaskModalFunctionality()}
 
             // Initialize list selection behavior similar to page inits
             const workflowTasksList = document.getElementById('workflowTasksList');
