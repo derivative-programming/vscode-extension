@@ -159,9 +159,9 @@ function showAddObjectWizard(modelService, context) {
                         // Show success message and close the wizard
                         panel.webview.postMessage({ command: "objectCreated", objectName });
                         
-                        // Open the Data Object Details view for the newly created object
+                        // Open the Data Object Details view for the newly created object with settings tab selected
                         const mockTreeItem = { label: objectName };
-                        showObjectDetails(mockTreeItem, modelService, context);
+                        showObjectDetails(mockTreeItem, modelService, context, 'settings');
                         
                         // If successful, close the panel after a short delay to allow the user to see the success message
                         setTimeout(() => {

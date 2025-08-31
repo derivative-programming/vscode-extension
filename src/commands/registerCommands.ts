@@ -339,7 +339,7 @@ export function registerCommands(
             // Reopen any object details panels that were previously open with fresh data
             if (openPanelsToReopen.length > 0 && objectDetailsView) {
                 for (const item of openPanelsToReopen) {
-                    objectDetailsView.showObjectDetails(item, modelService, context);
+                    objectDetailsView.showObjectDetails(item, modelService, context, 'settings');
                 }
             }
             
@@ -616,7 +616,7 @@ export function registerCommands(
             }
 
             // Use the objectDetailsView implementation with modelService and optional initial tab
-            objectDetailsView.showObjectDetails(node, modelService, initialTab);
+            objectDetailsView.showObjectDetails(node, modelService, context, initialTab);
         })
     );    
     
