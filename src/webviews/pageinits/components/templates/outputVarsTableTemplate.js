@@ -83,11 +83,16 @@ function getOutputVarsListTemplate(outputVarsSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${outputVarKey}" value="" ${tooltip} readonly>`;
         }
 
-        // Add browse button for sourceObjectName field
+        // Add browse button for sourceObjectName and fKObjectName fields
         let browseButton = "";
         let controlContainer = "";
         if (outputVarKey === "sourceObjectName") {
-            browseButton = `<button type="button" class="lookup-button" data-prop="${outputVarKey}" data-field-id="${fieldId}" disabled title="Browse Data Objects">
+            browseButton = `<button type="button" class="lookup-button" data-prop="${outputVarKey}" data-field-id="${fieldId}" title="Browse Data Objects">
+                <span class="codicon codicon-search"></span>
+            </button>`;
+            controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;
+        } else if (outputVarKey === "fKObjectName") {
+            browseButton = `<button type="button" class="lookup-button" data-prop="${outputVarKey}" data-field-id="${fieldId}" title="Browse Data Objects">
                 <span class="codicon codicon-search"></span>
             </button>`;
             controlContainer = `<div class="control-with-button">${inputField}${browseButton}</div>`;
