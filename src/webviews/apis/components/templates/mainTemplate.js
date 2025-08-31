@@ -4,14 +4,18 @@ const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
 /**
  * Gets the main HTML template for the API details view
  * @param {Object} apiSite The API site data object
+ * @param {number} endpointCount Number of endpoints in the API site
  * @param {string} settingsHtml HTML content for the settings tab
+ * @param {string} endpointListViewFields HTML fields for endpoints list view
  * @param {string} clientScript JavaScript code for the client
  * @param {string} codiconsUri URI for the codicon CSS file
  * @returns {string} Complete HTML document
  */
 function getMainTemplate(
     apiSite, 
+    endpointCount,
     settingsHtml, 
+    endpointListViewFields,
     clientScript,
     codiconsUri
 ) {
@@ -86,11 +90,41 @@ function getMainTemplate(
         <!-- Tabs (match Forms view markup) -->
         <div class="tabs">
             <div class="tab active" data-tab="settings">Settings</div>
+            <div class="tab" data-tab="endpoints">Endpoints (${endpointCount})</div>
         </div>
 
         <!-- Settings Tab Content -->
         <div id="settings" class="tab-content active">
             ${settingsHtml}
+        </div>
+
+        <!-- Endpoints Tab Content -->
+        <div id="endpoints" class="tab-content">
+            <div class="view-icons" data-tab="endpoints">
+                <button id="add-endpoint-btn" class="add-prop-button">Add Endpoint</button>
+            </div>
+
+            <div id="endpointsListView" class="view-content active">
+                <div class="list-container">
+                    <select id="endpointsList" size="10">
+                        ${(apiSite.apiEndPoint || []).map((endpoint, index) => {
+                            const name = (endpoint && typeof endpoint === 'object' && endpoint.name) ? endpoint.name : 'Unnamed Endpoint';
+                            return `<option value="${index}">${name}</option>`;
+                        }).join('')}
+                    </select>
+                    <div class="list-buttons">
+                        <button id="copyEndpointsButton" class="copy-props-button">Copy List</button>
+                        <button id="moveUpEndpointsButton" class="move-button">Move Up</button>
+                        <button id="moveDownEndpointsButton" class="move-button">Move Down</button>
+                        <button id="reverseEndpointsButton" class="reverse-button">Reverse</button>
+                    </div>
+                </div>
+                <div id="endpointDetailsContainer" class="details-container" style="display: none;">
+                    <form id="endpointDetailsForm">
+                        ${endpointListViewFields}
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 

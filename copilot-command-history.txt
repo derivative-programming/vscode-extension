@@ -280,7 +280,13 @@ Files: src/data/models/ModelDataProvider.ts, src/services/modelService.ts
 
 
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
+ 
 
+2025-01-27 - API DETAILS VIEW - ENDPOINTS TAB IMPLEMENTATION - COMPLETED
+USER REQUEST: "api details view - endpoints tab" (Issue #323)
+IMPLEMENTATION SUMMARY: Successfully added Endpoints tab to API details view following Form Parameters pattern
+STATUS: ✅ COMPLETE - Feature fully implemented and tested
+ 
 2025-01-27 - COMMAND: Replace general flow button column modal select list with textbox and browse button
 STATUS: COMPLETED ✅
 ISSUE: Add General Flow Button Column modal uses a select list dropdown instead of textbox with browse button like the destination modal
@@ -294,6 +300,7 @@ FILES CHANGED:
 - src/webviews/reports/components/templates/addGeneralFlowButtonColumnModalFunctionality.js: Updated to handle textbox input instead of select, added browse button click handler, removed old populate functions
 - src/webviews/reports/components/templates/clientScriptTemplate.js: Added imports for new modal components, included template functions and functionality, updated message handler for modal population
 TECHNICAL NOTES: General flow modal now follows same UI pattern as destination modal with textbox + browse button. Browse button opens search modal with filtering capability. Data attributes are preserved for column generation.
+
 
 2025-08-31 - COMMAND: PAge Init Flow details view - fk object name setting - browse data objects button
 STATUS: ✅ COMPLETED
