@@ -294,3 +294,24 @@ FILES CHANGED:
 - src/webviews/reports/components/templates/addGeneralFlowButtonColumnModalFunctionality.js: Updated to handle textbox input instead of select, added browse button click handler, removed old populate functions
 - src/webviews/reports/components/templates/clientScriptTemplate.js: Added imports for new modal components, included template functions and functionality, updated message handler for modal population
 TECHNICAL NOTES: General flow modal now follows same UI pattern as destination modal with textbox + browse button. Browse button opens search modal with filtering capability. Data attributes are preserved for column generation.
+
+2025-08-31 - COMMAND: PAge Init Flow details view - fk object name setting - browse data objects button
+STATUS: ✅ COMPLETED
+ISSUE: Page Init Flow Details View output variables tab missing browse button for fKObjectName field
+SOLUTION: Added browse button for fKObjectName following the same pattern as sourceObjectName 
+ARCHITECTURE: Page Init Flow Details View now has browse buttons for both sourceObjectName and fKObjectName fields in the output variables tab
+FILES MODIFIED:
+- src/webviews/pageinits/components/templates/outputVarsTableTemplate.js: Added fKObjectName browse button to list template
+- src/webviews/pageinits/components/templates/clientScriptTemplate.js: Updated JavaScript to handle both sourceObjectName and fKObjectName browse buttons
+TECHNICAL DETAILS:
+- Template changes: Added fKObjectName condition alongside sourceObjectName for browse button generation
+- JavaScript changes: Updated three key areas to support both fields:
+  1. Button state initialization when output variable is selected
+  2. Button enable/disable when property checkbox is toggled  
+  3. Click event handling for both browse buttons
+- Removed hardcoded 'disabled' attribute from browse buttons - JavaScript handles enable/disable dynamically
+- Both buttons use data-field-id pattern appropriate for list view templates
+- Browse buttons follow exact same pattern as working forms implementation
+TESTING: ✅ All tests passed - template generates correct HTML, JavaScript handles both fields properly
+BUILD: ✅ Webpack compilation successful
+FIXES: Issue #304
