@@ -673,7 +673,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                     }
                     
                     // Skip target object step if not grid visualization
-                    if (nextStepNumber === 4 && selectedVisualization !== 'grid') {
+                    if (nextStepNumber === 4 && selectedVisualization !== 'Grid') {
                         nextStepNumber = 5;
                     }
                     
@@ -691,7 +691,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                     }
                     
                     // Skip target object step if not grid visualization
-                    if (prevStepNumber === 4 && selectedVisualization !== 'grid') {
+                    if (prevStepNumber === 4 && selectedVisualization !== 'Grid') {
                         prevStepNumber = 3;
                     }
                     
@@ -765,7 +765,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                 document.getElementById('step3BackBtn').addEventListener('click', previousStep);
                 document.getElementById('step3NextBtn').addEventListener('click', function() {
                     // If grid is selected, go to target object step, otherwise skip to report details
-                    if (selectedVisualization === 'grid') {
+                    if (selectedVisualization === 'Grid') {
                         nextStep();
                     } else {
                         showStep(5);
@@ -845,7 +845,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                 });
                 
                 document.getElementById('step5BackBtn').addEventListener('click', function() {
-                    if (selectedVisualization === 'grid') {
+                    if (selectedVisualization === 'Grid') {
                         previousStep();
                     } else {
                         showStep(3);
@@ -896,7 +896,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                         generatedName += selectedRole;
                     }
                     
-                    if (selectedVisualization === 'grid' && selectedTargetObject) {
+                    if (selectedVisualization === 'Grid' && selectedTargetObject) {
                         generatedName += selectedTargetObject;
                     } else if (selectedVisualization === 'DetailThreeColumn') {
                         generatedName += 'Detail';

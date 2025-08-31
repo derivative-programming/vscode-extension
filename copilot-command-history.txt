@@ -1,3 +1,30 @@
+**Add Report Wizard Bug Fix - 2025-08-31**
+
+## Issue Identified:
+- When selecting "Table" visualization in the Add Report Wizard, it didn't proceed to Step 4 (Target Object Selection)
+- Root cause: Case sensitivity mismatch between data-value "Grid" and comparison string 'grid' (lowercase)
+
+## Changes Made:
+1. **Fixed Step 3 Next Button Logic**: Updated comparison from 'grid' to 'Grid' to match data-value
+2. **Fixed Navigation Step Skipping**: Updated nextStep() function to use 'Grid' instead of 'grid'
+3. **Fixed Back Navigation**: Updated previousStep() function to use 'Grid' instead of 'grid'  
+4. **Fixed Step 5 Back Button**: Updated step5BackBtn logic to use 'Grid' instead of 'grid'
+5. **Fixed Report Name Generation**: Updated generateReportName() function to use 'Grid' instead of 'grid'
+
+## Files Modified:
+
+### `src/webviews/addReportWizardView.js`
+- Line 768: `if (selectedVisualization === 'Grid')` (was 'grid')
+- Line 676: `if (nextStepNumber === 4 && selectedVisualization !== 'Grid')` (was 'grid')
+- Line 694: `if (prevStepNumber === 4 && selectedVisualization !== 'Grid')` (was 'grid')
+- Line 848: `if (selectedVisualization === 'Grid')` (was 'grid')
+- Line 899: `if (selectedVisualization === 'Grid' && selectedTargetObject)` (was 'grid')
+
+## Architecture Notes:
+- The HTML uses data-value="Grid" (uppercase) which is correct and consistent with other parts of the codebase
+- The visualization type is stored and used as "Grid" throughout the system
+- This fix ensures proper wizard navigation flow for table/grid reports
+
 **API Endpoints Tab Improvements - 2025-08-31**
 
 ## Changes Made:

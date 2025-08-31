@@ -1,12 +1,10 @@
 Agent todo items...
  
-api endpoint tab...
-- issue on format of list item settings
-- move up and move down enabled setting issues depending on list item selected.
-- add button to sort alphabetically
+page init flow...
+- page references tab
+  - table of all pages using it with edit icon button and preview icon button
 
 allow add of general flow
-
 
 allow add of page init flow (plus sign on page detail view next to empty display)
  
