@@ -3,6 +3,8 @@
 const { getSettingsTabTemplate } = require("./templates/settingsTabTemplate");
 const { getMainTemplate } = require("./templates/mainTemplate");
 const { getClientScriptTemplate } = require("./templates/clientScriptTemplate");
+const { getEndpointsListTemplate } = require("./templates/endpointsListTemplate");
+const { loadSchema, getApiEndPointSchema } = require("../helpers/schemaLoader");
 
 /**
  * Generates the complete HTML for the API details view
@@ -30,18 +32,33 @@ function generateDetailsView(apiSite, apiSiteSchemaProps, codiconsUri) {
         const apiSiteName = (apiSite && apiSite.name) ? apiSite.name : 'Unknown API Site';
         console.log("[DEBUG] Using apiSiteName:", apiSiteName);
         
+        // Count endpoints
+        const endpointCount = (apiSite.apiEndPoint && Array.isArray(apiSite.apiEndPoint)) ? apiSite.apiEndPoint.length : 0;
+        console.log("[DEBUG] Found", endpointCount, "endpoints");
+        
+        // Load endpoint schema
+        const schema = loadSchema();
+        const endpointSchema = getApiEndPointSchema(schema);
+        console.log("[DEBUG] Loaded endpoint schema with", Object.keys(endpointSchema).length, "properties");
+        
         // Generate the settings tab content using the template
         console.log("[DEBUG] Generating settings tab...");
         const settingsHtml = getSettingsTabTemplate(apiSite, apiSiteSchemaProps);
         
+        // Generate the endpoints list view fields
+        console.log("[DEBUG] Generating endpoints list view...");
+        const endpointListViewFields = getEndpointsListTemplate(endpointSchema);
+        
         // Get the main client script template
-        const clientScript = getClientScriptTemplate(apiSite);
+        const clientScript = getClientScriptTemplate(apiSite, endpointSchema);
         
         // Generate the complete HTML document
         console.log("[DEBUG] Generating main template...");
         const result = getMainTemplate(
             apiSite,
+            endpointCount,
             settingsHtml,
+            endpointListViewFields,
             clientScript,
             codiconsUri
         );

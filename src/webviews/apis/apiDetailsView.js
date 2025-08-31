@@ -150,6 +150,42 @@ function showApiDetails(item, modelService, context) {
                         console.warn("Cannot update settings: ModelService not available or API site reference not found");
                     }
                     return;
+                    
+                case "addEndpointWithName":
+                    if (modelService && apiSiteReference) {
+                        // Add a new endpoint to the API site with specified name
+                        addEndpointToApiSiteWithName(apiSiteReference, modelService, message.data.name, panel);
+                    } else {
+                        console.warn("Cannot add endpoint with name: ModelService not available or API site reference not found");
+                    }
+                    return;
+                    
+                case "updateEndpointFull":
+                    if (modelService && apiSiteReference) {
+                        // Update the complete endpoint with new data
+                        updateEndpointFull(message.data, apiSiteReference, modelService);
+                    } else {
+                        console.warn("Cannot update endpoint: ModelService not available or API site reference not found");
+                    }
+                    return;
+                    
+                case "moveEndpointInArray":
+                    if (modelService && apiSiteReference) {
+                        // Move endpoint in the array
+                        moveEndpointInArray(message.data, apiSiteReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot move endpoint: ModelService not available or API site reference not found");
+                    }
+                    return;
+                    
+                case "reverseEndpointsArray":
+                    if (modelService && apiSiteReference) {
+                        // Reverse the endpoints array
+                        reverseEndpointsArray(apiSiteReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot reverse endpoints: ModelService not available or API site reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -271,6 +307,196 @@ function closeAllPanels() {
     }
     activePanels.clear();
     openPanels.clear();
+}
+
+/**
+ * Add an endpoint to the API site with specified name
+ * @param {Object} apiSiteReference Direct reference to the API site object
+ * @param {Object} modelService Model service instance
+ * @param {string} endpointName Name for the new endpoint
+ * @param {Object} panel The webview panel to refresh
+ */
+function addEndpointToApiSiteWithName(apiSiteReference, modelService, endpointName, panel) {
+    console.log("addEndpointToApiSiteWithName called with name:", endpointName);
+    
+    if (!apiSiteReference || !modelService || !endpointName) {
+        console.error("Missing required data to add endpoint with name");
+        return;
+    }
+    
+    try {
+        // Initialize the endpoints array if it doesn't exist
+        if (!apiSiteReference.apiEndPoint) {
+            apiSiteReference.apiEndPoint = [];
+        }
+        
+        // Create a new endpoint with the specified name
+        const newEndpoint = {
+            name: endpointName
+        };
+        
+        // Add the new endpoint to the array
+        apiSiteReference.apiEndPoint.push(newEndpoint);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the endpoints list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshEndpointsList',
+                data: apiSiteReference.apiEndPoint,
+                newSelection: apiSiteReference.apiEndPoint.length - 1 // Select the newly added endpoint
+            });
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding endpoint:", error);
+    }
+}
+
+/**
+ * Update a complete endpoint with new data
+ * @param {Object} data Data containing index and endpoint object
+ * @param {Object} apiSiteReference Direct reference to the API site object
+ * @param {Object} modelService Model service instance
+ */
+function updateEndpointFull(data, apiSiteReference, modelService) {
+    console.log(`updateEndpointFull called with data:`, data);
+    
+    if (!apiSiteReference || !data || data.index === undefined || !data.endpoint || !modelService) {
+        console.error("Missing required data for full endpoint update");
+        return;
+    }
+    
+    try {
+        // Initialize the endpoints array if it doesn't exist
+        if (!apiSiteReference.apiEndPoint) {
+            apiSiteReference.apiEndPoint = [];
+        }
+        
+        // Check if the endpoint exists
+        if (data.index >= apiSiteReference.apiEndPoint.length) {
+            console.error(`Endpoint index ${data.index} out of bounds`);
+            return;
+        }
+        
+        // Update the endpoint with the new data
+        apiSiteReference.apiEndPoint[data.index] = data.endpoint;
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error updating endpoint:", error);
+    }
+}
+
+/**
+ * Moves an endpoint in the apiEndPoint array
+ * @param {Object} data Data containing fromIndex and toIndex
+ * @param {Object} apiSiteReference Direct reference to the API site object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
+ */
+function moveEndpointInArray(data, apiSiteReference, modelService, panel) {
+    console.log(`moveEndpointInArray called with data:`, data);
+    
+    if (!apiSiteReference || !data || data.fromIndex === undefined || data.toIndex === undefined || !modelService) {
+        console.error("Missing required data for endpoint move");
+        return;
+    }
+    
+    try {
+        // Initialize the endpoints array if it doesn't exist
+        if (!apiSiteReference.apiEndPoint) {
+            apiSiteReference.apiEndPoint = [];
+        }
+        
+        const { fromIndex, toIndex } = data;
+        const endpoints = apiSiteReference.apiEndPoint;
+        
+        // Validate indices
+        if (fromIndex < 0 || fromIndex >= endpoints.length || toIndex < 0 || toIndex >= endpoints.length) {
+            console.error("Invalid indices for endpoint move");
+            return;
+        }
+        
+        // Move the endpoint
+        const [movedEndpoint] = endpoints.splice(fromIndex, 1);
+        endpoints.splice(toIndex, 0, movedEndpoint);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the endpoints list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshEndpointsList',
+                data: apiSiteReference.apiEndPoint,
+                newSelection: toIndex
+            });
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error moving endpoint:", error);
+    }
+}
+
+/**
+ * Reverses the endpoints array
+ * @param {Object} apiSiteReference Direct reference to the API site object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
+ */
+function reverseEndpointsArray(apiSiteReference, modelService, panel) {
+    console.log("reverseEndpointsArray called");
+    
+    if (!apiSiteReference || !modelService) {
+        console.error("Missing required data for endpoints reverse");
+        return;
+    }
+    
+    try {
+        // Initialize the endpoints array if it doesn't exist
+        if (!apiSiteReference.apiEndPoint) {
+            apiSiteReference.apiEndPoint = [];
+        }
+        
+        // Reverse the array
+        apiSiteReference.apiEndPoint.reverse();
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the endpoints list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshEndpointsList',
+                data: apiSiteReference.apiEndPoint,
+                newSelection: null // Don't maintain selection after reverse
+            });
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error reversing endpoints:", error);
+    }
 }
 
 module.exports = {
