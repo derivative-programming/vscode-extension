@@ -124,6 +124,25 @@ function showAddReportWizard(modelService, context) {
                             newReport.targetChildObject = targetObjectName;
                         }
                         
+                        // Create page init flow for the report
+                        const pageInitFlowName = reportName + "InitReport";
+                        const pageInitFlow = {
+                            name: pageInitFlowName,
+                            titleText: reportTitle + " Initialization",
+                            objectWorkflowOutputVar: []
+                        };
+                        
+                        // Ensure the owner object has an objectWorkflow array
+                        if (!ownerObject.objectWorkflow) {
+                            ownerObject.objectWorkflow = [];
+                        }
+                        
+                        // Add the page init flow to the owner object
+                        ownerObject.objectWorkflow.push(pageInitFlow);
+                        
+                        // Set the report's initObjectWorkflowName to reference the page init flow
+                        newReport.initObjectWorkflowName = pageInitFlowName;
+                        
                         // Add the new report to the owner object
                         ownerObject.report.push(newReport);
                         
