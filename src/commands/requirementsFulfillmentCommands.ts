@@ -55,8 +55,8 @@ async function saveRequirementsFulfillmentToCSV(items: any[], modelService: Mode
     // Define CSV headers
     const headers = ['Role', 'Data Object', 'Action', 'Access', 'User Story Status', 'Mapping Status', 'User Journey Status', 'Fulfillment Status'];
     
-    // Create CSV content
-    let csvContent = headers.join(',') + '\n';
+    // Create CSV content - wrap headers in quotes
+    let csvContent = headers.map(header => `"${header}"`).join(',') + '\n';
     
     // Add data rows
     items.forEach(item => {
@@ -108,16 +108,16 @@ async function saveRequirementsFulfillmentToCSV(items: any[], modelService: Mode
             fulfillmentStatus
         ];
         
-        // Escape and quote values that contain commas, quotes, or newlines
-        const escapedRow = row.map(value => {
+        // Wrap all values in double quotes and escape any existing quotes
+        const quotedRow = row.map(value => {
             let escapedValue = String(value || '');
-            if (escapedValue.includes(',') || escapedValue.includes('"') || escapedValue.includes('\n')) {
-                escapedValue = '"' + escapedValue.replace(/"/g, '""') + '"';
-            }
-            return escapedValue;
+            // Escape any existing double quotes by doubling them
+            escapedValue = escapedValue.replace(/"/g, '""');
+            // Wrap in double quotes
+            return `"${escapedValue}"`;
         });
         
-        csvContent += escapedRow.join(',') + '\n';
+        csvContent += quotedRow.join(',') + '\n';
     });
     
     return csvContent;
@@ -782,6 +782,10 @@ export function showRequirementsFulfillment(context: vscode.ExtensionContext, mo
                         
                         fs.writeFileSync(filePath, message.data.content, 'utf8');
                         vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                        
+                        // Open the file in VS Code
+                        const fileUri = vscode.Uri.file(filePath);
+                        vscode.window.showTextDocument(fileUri);
                     } catch (error) {
                         console.error('[Extension] Error saving CSV to workspace:', error);
                         vscode.window.showErrorMessage('Failed to save CSV file: ' + (error instanceof Error ? error.message : String(error)));

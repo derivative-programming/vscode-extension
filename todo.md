@@ -1,11 +1,17 @@
 Agent todo items...
  
 
-add data obj wizard opens detail view with no tab selected
+copilot:add data obj wizard opens detail view with no tab selected
 
-allow add of general flow
+copilot:allow add of general flow
+
+copilot:api view - endpoints tab
 
 allow add of page init flow (plus sign on page detail view next to empty display)
+
+create page init flow when creating...
+- copilot:form
+- copilot:report
 
 need lookup buttons on fk object name settings on flow view..
 - copilot:general flow - input var
@@ -95,7 +101,10 @@ note what workflows modify which data objects and props?
 allow single broad search textbox on all filter sections
 
 
-allow export on all tables
+allow export on all tables - data object list download csv button as example
+- copilot:user story requirements fullfilment view
+- done:user story role requirements view
+- copilot:model change request list view
 
 automatically generate a text file that ai can read to get info on the app (read only)
 - setting on project to automatically do this on save? in separate process?
