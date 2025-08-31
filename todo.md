@@ -13,7 +13,6 @@ allow add of page init flow (plus sign on page detail view next to empty display
 
 create page init flow when creating...
 - copilot:form
-- copilot:report
 
 need lookup buttons on fk object name settings on flow view..
 - copilot:general flow - input var
