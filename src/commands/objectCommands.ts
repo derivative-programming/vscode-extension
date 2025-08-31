@@ -16,11 +16,13 @@ const { showAddObjectWizard } = require('../webviews/addObjectWizardView');
  * @param appDNAFilePath Path to the app-dna.json file
  * @param jsonTreeDataProvider The tree data provider
  * @param modelService Optional ModelService instance
+ * @param context Extension context
  */
 export async function addObjectCommand(
     appDNAFilePath: string | null, 
     jsonTreeDataProvider: any,
-    modelService?: ModelService
+    modelService?: ModelService,
+    context?: vscode.ExtensionContext
 ): Promise<void> {
     if (!appDNAFilePath || !fs.existsSync(appDNAFilePath)) {
         vscode.window.showErrorMessage('AppDNA file not found. Please create the file first.');
@@ -39,7 +41,7 @@ export async function addObjectCommand(
         }
         
         // Show the add object wizard
-        showAddObjectWizard(modelService);
+        showAddObjectWizard(modelService, context);
         
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

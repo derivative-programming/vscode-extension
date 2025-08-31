@@ -7,11 +7,13 @@ const { showObjectDetails, refreshAll, getOpenPanelItems, closeAllPanels } = req
  * Shows object details in a webview
  * @param {Object} item The tree item representing the object
  * @param {Object} modelService ModelService instance
+ * @param {Object} context Extension context
+ * @param {string} initialTab Optional initial tab to show
  */
-function showObjectDetailsWrapper(item, modelService) {
-    console.log(`Wrapper called for ${item.label}`);
+function showObjectDetailsWrapper(item, modelService, context, initialTab) {
+    console.log(`Wrapper called for ${item.label} with initialTab: ${initialTab}`);
     // Pass parameters to the implementation
-    showObjectDetails(item, modelService);
+    showObjectDetails(item, modelService, context, initialTab);
 }
 
 // Export the functions to maintain compatibility with existing code

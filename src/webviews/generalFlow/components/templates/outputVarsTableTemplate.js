@@ -11,15 +11,11 @@ function getOutputVarPropertiesToHide() {
 
 function getOutputVarsListTemplate(outputVarsSchema) {
     // Properties for General Flow output variables based on objectWorkflowOutputVar schema
-    // Ordered alphabetically for consistency
+    // Removed UI-specific properties that are not relevant for general workflow output variables
     const allowedOrder = [
-        "buttonNavURL",
-        "buttonObjectWFName", 
-        "buttonText",
         "conditionalVisiblePropertyName",
         "defaultValue",
         "fKObjectName",
-        "isAutoRedirectURL",
         "isFK",
         "isFKLookup",
         "isHeaderText",
@@ -88,10 +84,10 @@ function getOutputVarsListTemplate(outputVarsSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${outputVarKey}" value="" ${tooltip} readonly>`;
         }
 
-        // Add browse button for sourceObjectName field
+        // Add browse button for sourceObjectName and fKObjectName fields
         let browseButton = "";
         let controlContainer = "";
-        if (outputVarKey === "sourceObjectName") {
+        if (outputVarKey === "sourceObjectName" || outputVarKey === "fKObjectName") {
             browseButton = `<button type="button" class="lookup-button" data-prop="${outputVarKey}" data-field-id="${fieldId}" disabled title="Browse Data Objects">
                 <span class="codicon codicon-search"></span>
             </button>`;

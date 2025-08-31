@@ -142,6 +142,39 @@ function showWorkflowDetails(item, modelService, context) {
                         console.warn("Cannot add workflow task with name: ModelService not available or flow reference not found");
                     }
                     return;
+                case "getAvailableWorkflowTasks":
+                    if (modelService) {
+                        // Get all DynaFlowTask objects that have isDynaFlowTask=true
+                        getAvailableWorkflowTasksForSelection(modelService, panel);
+                    } else {
+                        console.warn("Cannot get available workflow tasks: ModelService not available");
+                    }
+                    return;
+                case "addExistingWorkflowTasksToWorkflow":
+                    if (modelService && flowReference) {
+                        // Add existing workflow tasks to the workflow
+                        addExistingWorkflowTasksToWorkflow(flowReference, modelService, message.data.taskNames, panel);
+                    } else {
+                        console.warn("Cannot add existing workflow tasks: ModelService not available or flow reference not found");
+                    }
+                    return;
+                case "openOwnerObjectDetails":
+                    console.log('[DEBUG] WorkflowDetails - Open owner object details requested for object name:', JSON.stringify(message.objectName));
+                    try {
+                        if (message.objectName) {
+                            // Execute the object details command to open the owner object
+                            vscode.commands.executeCommand('appdna.showDetails', {
+                                label: message.objectName,
+                                objectType: 'object'
+                            });
+                        } else {
+                            console.error('[ERROR] WorkflowDetails - No object name provided for opening owner object details');
+                        }
+                    } catch (error) {
+                        console.error('[ERROR] WorkflowDetails - Failed to open owner object details:', error);
+                        vscode.window.showErrorMessage(`Failed to open owner object details: ${error.message}`);
+                    }
+                    return;
             }
         }
     );
@@ -236,21 +269,18 @@ function addWorkflowTaskToWorkflow(flowReference, modelService) {
             flow.dynaFlowTask = [];
         }
         
-        // Create a new workflow task with a default name
-        const newWorkflowTask = {
-            name: `WorkflowTask${flow.dynaFlowTask.length + 1}`
-        };
+        // Generate a default name that doesn't conflict
+        let taskCounter = flow.dynaFlowTask.length + 1;
+        let workflowTaskName = `WorkflowTask${taskCounter}`;
         
-        // Add the new workflow task to the flow
-        flow.dynaFlowTask.push(newWorkflowTask);
-        
-        // Mark as having unsaved changes
-        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
-            modelService.markUnsavedChanges();
+        // Ensure the name is unique in the current workflow
+        while (flow.dynaFlowTask.some(task => task.name === workflowTaskName)) {
+            taskCounter++;
+            workflowTaskName = `WorkflowTask${taskCounter}`;
         }
         
-        // Refresh the UI
-        vscode.commands.executeCommand("appdna.refresh");
+        // Use the enhanced function to add the workflow task properly
+        addWorkflowTaskToWorkflowWithName(flowReference, modelService, workflowTaskName, null);
     } catch (error) {
         console.error("Error adding workflow task to workflow:", error);
     }
@@ -275,18 +305,74 @@ function addWorkflowTaskToWorkflowWithName(flowReference, modelService, workflow
         // Use the flow reference directly since it's already the flow object
         const flow = flowReference;
         
-        // Initialize the workflow tasks array if it doesn't exist
+        // Find the DynaFlowTask data object
+        const allObjects = modelService.getAllObjects();
+        const dynaFlowTaskObject = allObjects.find(obj => 
+            obj.name && obj.name.trim().toLowerCase() === 'dynaflowtask'
+        );
+        
+        if (!dynaFlowTaskObject) {
+            console.error("DynaFlowTask data object not found in model");
+            vscode.window.showErrorMessage("DynaFlowTask data object must exist in the model to add workflow tasks.");
+            return;
+        }
+        
+        // Check for duplicate names in both the current workflow and DynaFlowTask object
+        // 1. Check current workflow dynaFlowTask array
         if (!flow.dynaFlowTask) {
             flow.dynaFlowTask = [];
         }
         
-        // Create a new workflow task with the specified name
+        const duplicateInWorkflow = flow.dynaFlowTask.some(task => 
+            task.name && task.name.trim().toLowerCase() === workflowTaskName.trim().toLowerCase()
+        );
+        
+        if (duplicateInWorkflow) {
+            console.error(`Workflow task with name "${workflowTaskName}" already exists in current workflow`);
+            vscode.window.showErrorMessage(`A workflow task named "${workflowTaskName}" already exists in this workflow.`);
+            return;
+        }
+        
+        // 2. Check DynaFlowTask object's objectWorkflow array for isDynaFlowTask=true items
+        if (!dynaFlowTaskObject.objectWorkflow) {
+            dynaFlowTaskObject.objectWorkflow = [];
+        }
+        
+        const duplicateInDynaFlowTask = dynaFlowTaskObject.objectWorkflow.some(workflow => 
+            workflow.isDynaFlowTask === "true" && 
+            workflow.name && 
+            workflow.name.trim().toLowerCase() === workflowTaskName.trim().toLowerCase()
+        );
+        
+        if (duplicateInDynaFlowTask) {
+            console.error(`DynaFlowTask workflow with name "${workflowTaskName}" already exists in DynaFlowTask object`);
+            vscode.window.showErrorMessage(`A DynaFlowTask workflow named "${workflowTaskName}" already exists.`);
+            return;
+        }
+        
+        // Create a new workflow task in the current workflow's dynaFlowTask array
         const newWorkflowTask = {
             name: workflowTaskName
         };
         
-        // Add the new workflow task to the array
+        // Add the new workflow task to the current workflow
         flow.dynaFlowTask.push(newWorkflowTask);
+        
+        // Create a corresponding objectWorkflow item in the DynaFlowTask object
+        const newDynaFlowTaskWorkflow = {
+            name: workflowTaskName,
+            isDynaFlowTask: "true",
+            isPage: "false",
+            isAuthorizationRequired: "false",
+            objectWorkflowParam: [],
+            objectWorkflowOutputVar: [],
+            objectWorkflowButton: []
+        };
+        
+        // Add the new workflow to the DynaFlowTask object
+        dynaFlowTaskObject.objectWorkflow.push(newDynaFlowTaskWorkflow);
+        
+        console.log(`Added workflow task "${workflowTaskName}" to both current workflow and DynaFlowTask object`);
         
         // Mark as having unsaved changes
         if (modelService && typeof modelService.markUnsavedChanges === 'function') {
@@ -306,6 +392,7 @@ function addWorkflowTaskToWorkflowWithName(flowReference, modelService, workflow
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding workflow task with name:", error);
+        vscode.window.showErrorMessage(`Error adding workflow task: ${error.message}`);
     }
 }
 
@@ -314,7 +401,7 @@ function refreshAll() {
         try {
             const { panel, item, modelService } = entry;
             if (panel && !panel.disposed) {
-                showWorkflowDetails(item, modelService);
+                showWorkflowDetails(item, modelService, currentContext);
             }
         } catch (e) { console.error('refreshAll workflow error:', e); }
     }
@@ -326,6 +413,145 @@ function getOpenPanelItems() {
         if (entry && entry.item) { items.push(entry.item); }
     }
     return items;
+}
+
+function getAvailableWorkflowTasksForSelection(modelService, panel) {
+    console.log('[DEBUG] Getting available workflow tasks for selection');
+    
+    try {
+        const allObjects = modelService.getAllObjects();
+        console.log(`[DEBUG] Total objects in model: ${allObjects.length}`);
+        
+        // Debug: Show all unique name values
+        const uniqueNames = [...new Set(allObjects.map(obj => obj.name))].sort();
+        console.log('[DEBUG] All name values in model:', uniqueNames);
+        
+        // Look for objects with "Task" in the name
+        const taskObjects = allObjects.filter(obj => 
+            obj.name && obj.name.toLowerCase().includes('task')
+        );
+        console.log(`[DEBUG] Objects with 'task' in name: ${taskObjects.length}`);
+        if (taskObjects.length > 0) {
+            console.log('[DEBUG] Task object names:', taskObjects.map(obj => obj.name));
+            console.log('[DEBUG] Sample task object:', JSON.stringify(taskObjects[0], null, 2));
+        }
+        
+        // Debug: Show all DynaFlowTask objects regardless of isDynaFlowTask
+        const allDynaFlowTaskObjects = allObjects.filter(obj => obj.name === 'DynaFlowTask');
+        console.log(`[DEBUG] Total DynaFlowTask objects: ${allDynaFlowTaskObjects.length}`);
+        
+        if (allDynaFlowTaskObjects.length > 0) {
+            console.log('[DEBUG] Sample DynaFlowTask object:', JSON.stringify(allDynaFlowTaskObjects[0], null, 2));
+        }
+        
+        // Now we need to look for workflow tasks within the DynaFlowTask object's objectWorkflow array
+        let dynaFlowTaskWorkflows = [];
+        const dynaFlowTaskObject = allObjects.find(obj => obj.name === 'DynaFlowTask');
+        if (dynaFlowTaskObject && Array.isArray(dynaFlowTaskObject.objectWorkflow)) {
+            dynaFlowTaskWorkflows = dynaFlowTaskObject.objectWorkflow.filter(workflow => 
+                workflow.isDynaFlowTask === "true"
+            );
+        }
+        
+        console.log(`[DEBUG] Found ${dynaFlowTaskWorkflows.length} workflow tasks in DynaFlowTask object with isDynaFlowTask=true`);
+        
+        console.log(`[DEBUG] Found ${dynaFlowTaskWorkflows.length} workflow tasks in DynaFlowTask object with isDynaFlowTask=true`);
+        
+        // Send the available tasks back to the webview
+        panel.webview.postMessage({
+            command: 'availableWorkflowTasksResponse',
+            data: dynaFlowTaskWorkflows
+        });
+        
+    } catch (error) {
+        console.error('[ERROR] Failed to get available workflow tasks:', error);
+        panel.webview.postMessage({
+            command: 'availableWorkflowTasksResponse',
+            data: []
+        });
+    }
+}
+
+function addExistingWorkflowTasksToWorkflow(flowReference, modelService, taskNames, panel) {
+    console.log('[DEBUG] Adding existing workflow tasks to workflow:', taskNames);
+    
+    try {
+        if (!Array.isArray(taskNames) || taskNames.length === 0) {
+            console.warn('[WARN] No valid task names provided');
+            return;
+        }
+        
+        // Find the DynaFlowTask object and get the workflow tasks from it
+        const allObjects = modelService.getAllObjects();
+        const dynaFlowTaskObject = allObjects.find(obj => obj.name === 'DynaFlowTask');
+        
+        if (!dynaFlowTaskObject || !Array.isArray(dynaFlowTaskObject.objectWorkflow)) {
+            console.warn('[WARN] DynaFlowTask object not found or has no objectWorkflow array');
+            return;
+        }
+        
+        // Find the workflow tasks that match the selected names
+        const selectedWorkflowTasks = dynaFlowTaskObject.objectWorkflow.filter(workflow => 
+            workflow.isDynaFlowTask === "true" && 
+            taskNames.includes(workflow.name)
+        );
+        
+        if (selectedWorkflowTasks.length === 0) {
+            console.warn('[WARN] No matching workflow tasks found for provided names');
+            return;
+        }
+        
+        // Ensure the dynaFlowTask array exists
+        if (!Array.isArray(flowReference.dynaFlowTask)) {
+            flowReference.dynaFlowTask = [];
+        }
+        
+        // Add each selected task to the workflow
+        let addedCount = 0;
+        selectedWorkflowTasks.forEach(workflowTask => {
+            // Check if this task is already in the workflow by name
+            const existingTask = flowReference.dynaFlowTask.find(wt => 
+                wt.name === workflowTask.name
+            );
+            
+            if (!existingTask) {
+                // Create a new workflow task entry
+                const newWorkflowTask = {
+                    name: workflowTask.name
+                };
+                
+                flowReference.dynaFlowTask.push(newWorkflowTask);
+                addedCount++;
+                console.log(`[DEBUG] Added existing task ${workflowTask.name} to workflow`);
+            } else {
+                console.log(`[DEBUG] Task ${workflowTask.name} already exists in workflow`);
+            }
+        });
+        
+        if (addedCount > 0) {
+            // Mark as having unsaved changes
+            if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+                modelService.markUnsavedChanges();
+            }
+            
+            console.log(`[SUCCESS] Added ${addedCount} existing workflow tasks to workflow`);
+            
+            // Send message to webview to refresh the workflow tasks list
+            if (panel && panel.webview) {
+                panel.webview.postMessage({
+                    command: 'refreshWorkflowTasksList',
+                    data: flowReference.dynaFlowTask,
+                    newSelection: flowReference.dynaFlowTask.length - addedCount // Select one of the newly added items
+                });
+            }
+        } else {
+            console.log('[INFO] No new workflow tasks were added (all already existed)');
+        }
+        
+    } catch (error) {
+        console.error('[ERROR] Failed to add existing workflow tasks:', error);
+        vscode.window.showErrorMessage(`Failed to add workflow tasks: ${error.message}`);
+    }
 }
 
 function closeAllPanels() {

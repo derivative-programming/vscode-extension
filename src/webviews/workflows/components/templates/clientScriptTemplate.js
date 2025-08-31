@@ -2,14 +2,16 @@
 
 const { getAddWorkflowTaskModalHtml } = require("./modalTemplates");
 const { getAddWorkflowTaskModalFunctionality } = require("./addWorkflowTaskModalFunctionality");
+const { getAddExistingWorkflowTaskModalFunctionality } = require("./addExistingWorkflowTaskModalFunctionality");
 
-function getClientScriptTemplate(workflowTasks, workflowTaskSchema, flowName, allDataObjects = []) {
+function getClientScriptTemplate(workflowTasks, workflowTaskSchema, flowName, allDataObjects = [], flowObject = null) {
     return `
         (function() {
             let currentWorkflowTasks = ${JSON.stringify(workflowTasks)};
             const workflowTaskSchema = ${JSON.stringify(workflowTaskSchema)};
             const flowName = ${JSON.stringify(flowName)};
             const allDataObjects = ${JSON.stringify(allDataObjects)};
+            const currentWorkflowObjectId = ${flowObject ? flowObject.objectWorkflowID || null : null};
 
             // Basic modal behavior
             const modal = { el: null };
@@ -33,6 +35,9 @@ function getClientScriptTemplate(workflowTasks, workflowTaskSchema, flowName, al
 
             // Add Workflow Task Modal Functionality
             ${getAddWorkflowTaskModalFunctionality()}
+
+            // Add Existing Workflow Task Modal Functionality
+            ${getAddExistingWorkflowTaskModalFunctionality()}
 
             // Initialize list selection behavior similar to page inits
             const workflowTasksList = document.getElementById('workflowTasksList');
@@ -284,6 +289,23 @@ function getClientScriptTemplate(workflowTasks, workflowTaskSchema, flowName, al
                 };
                 if (field.tagName === 'SELECT') { field.addEventListener('change', handler); } else { field.addEventListener('input', handler); field.addEventListener('change', handler); }
             });
+
+            // Owner Object Details Function
+            function openOwnerObjectDetails(objectName) {
+                console.log('[DEBUG] WorkflowDetails - Open owner object details requested for object name:', JSON.stringify(objectName));
+                
+                if (vscode && objectName) {
+                    vscode.postMessage({
+                        command: 'openOwnerObjectDetails',
+                        objectName: objectName
+                    });
+                } else {
+                    console.warn('[WARN] WorkflowDetails - Cannot open owner object details: vscode API or object name not available');
+                }
+            }
+
+            // Make openOwnerObjectDetails function globally available
+            window.openOwnerObjectDetails = openOwnerObjectDetails;
 
             // Tabs
             function activateTab(tabName) {

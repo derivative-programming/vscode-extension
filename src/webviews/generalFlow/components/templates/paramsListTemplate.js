@@ -3,34 +3,19 @@
 const { formatLabel } = require("../../../forms/helpers/formDataHelper");
 
 function getParamsListTemplate(paramSchema) {
-    // Only display these properties for a parameter, in this exact order (matches screenshot)
+    // Only display these properties for a parameter, in this exact order
+    // Removed UI-specific properties that are not relevant for general workflow parameters
     const allowedOrder = [
-        "autoCompleteAddressSourceName",
-        "autoCompleteAddressTargetType",
         "codeDescription",
         "dataSize",
         "dataType",
-        "detailsText",
-        "fKListOrderBy",
+        "defaultValue",
         "fKObjectName",
-        "infoToolTipText",
-        "isAutoCompleteAddressSource",
-        "isFileUpload",
         "isFK",
-        "isFKList",
-        "isFKListInactiveIncluded",
-        "isFKListSearchable",
-        "isFKListUnknownOptionRemoved",
         "isFKLookup",
         "isIgnored",
-        "isRadioButtonList",
         "isRequired",
         "isSecured",
-        "isVisible",
-        "labelText",
-        "requiredErrorText",
-        "sourceObjectName",
-        "sourcePropertyName",
         "validationRuleRegExMatchRequired",
         "validationRuleRegExMatchRequiredErrorText"
     ];
@@ -92,10 +77,10 @@ function getParamsListTemplate(paramSchema) {
             inputField = `<input type="text" id="${fieldId}" name="${propKey}" value="" ${tooltip} readonly>`;
         }
 
-        // Add browse button for sourceObjectName field
+        // Add browse button for sourceObjectName and fKObjectName fields
         let browseButton = "";
         let controlContainer = "";
-        if (propKey === "sourceObjectName") {
+        if (propKey === "sourceObjectName" || propKey === "fKObjectName") {
             browseButton = `<button type="button" class="lookup-button" data-prop="${propKey}" data-field-id="${fieldId}" disabled title="Browse Data Objects">
                 <span class="codicon codicon-search"></span>
             </button>`;

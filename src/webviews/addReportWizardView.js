@@ -14,8 +14,9 @@ let activeWizardPanel = null;
 /**
  * Shows the Add Report Wizard in a webview
  * @param {Object} modelService ModelService instance
+ * @param {vscode.ExtensionContext} context Extension context
  */
-function showAddReportWizard(modelService) {
+function showAddReportWizard(modelService, context) {
     // If a wizard panel already exists, reveal it instead of creating a new one
     if (activeWizardPanel) {
         activeWizardPanel.reveal(vscode.ViewColumn.One);
@@ -119,9 +120,28 @@ function showAddReportWizard(modelService) {
                             newReport.layoutName = roleRequired + "Layout";
                         }
                         
-                        if (targetObjectName && visualizationType === "grid") {
+                        if (targetObjectName && visualizationType === "Grid") {
                             newReport.targetChildObject = targetObjectName;
                         }
+                        
+                        // Create page init flow for the report
+                        const pageInitFlowName = reportName + "InitReport";
+                        const pageInitFlow = {
+                            name: pageInitFlowName,
+                            titleText: reportTitle + " Initialization",
+                            objectWorkflowOutputVar: []
+                        };
+                        
+                        // Ensure the owner object has an objectWorkflow array
+                        if (!ownerObject.objectWorkflow) {
+                            ownerObject.objectWorkflow = [];
+                        }
+                        
+                        // Add the page init flow to the owner object
+                        ownerObject.objectWorkflow.push(pageInitFlow);
+                        
+                        // Set the report's initObjectWorkflowName to reference the page init flow
+                        newReport.initObjectWorkflowName = pageInitFlowName;
                         
                         // Add the new report to the owner object
                         ownerObject.report.push(newReport);
@@ -155,7 +175,7 @@ function showAddReportWizard(modelService) {
                                 reportName: reportName,
                                 contextValue: 'report'
                             };
-                            showReportDetails(reportNode, modelService);
+                            showReportDetails(reportNode, modelService, context);
                             
                         }, 1500);
                         
@@ -525,7 +545,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                     Choose how you want the report data to be displayed.
                 </div>
                 <div class="form-group">
-                    <div class="viz-option" data-value="grid" tabindex="0">
+                    <div class="viz-option" data-value="Grid" tabindex="0">
                         <div class="viz-title">Table</div>
                         <div class="viz-description">Display data in a tabular format with rows and columns</div>
                     </div>

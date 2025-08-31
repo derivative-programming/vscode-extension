@@ -22,7 +22,7 @@ function getWorkflowTaskModalHtml(workflowTaskSchema) {
     <div id="addModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add Workflow Task</h2>
+                <h2>Add New Workflow Task</h2>
                 <span class="close-button">&times;</span>
             </div>
             <div class="modal-body">
@@ -71,7 +71,7 @@ function getAddWorkflowTaskModalHtml() {
     return `
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Add Workflow Task</h2>
+            <h2>Add New Workflow Task</h2>
             <span class="close-button">&times;</span>
         </div>
         <div class="modal-body">
