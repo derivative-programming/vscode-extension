@@ -1,25 +1,16 @@
 Agent todo items...
  
+api endpoint tab...
+- issue on format of list item settings
+- move up and move down enabled setting issues depending on list item selected.
+- add button to sort alphabetically
 
-addig form or report or flow is breaking schema validations
+allow add of general flow
 
-copilot:add data obj wizard opens detail view with no tab selected
-
-copilot:allow add of general flow
-
-copilot:api view - endpoints tab
 
 allow add of page init flow (plus sign on page detail view next to empty display)
-
-create page init flow when creating...
-- copilot:form
-
-need lookup buttons on fk object name settings on flow view..
-- copilot:general flow - input var
-- copilot:general flow - output var
-- copilot:page init flow - output var
-
-copilot:report - add general flow modal - need lookup on Button Object WF Name setting
+ 
+add form wizard cration of init page shows title instead of name of init flow in treeview.
 
 report column - need lookup on Button Object WF Name setting? are we displaying this property? are we showing a page lookup now?
 

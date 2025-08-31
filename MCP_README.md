@@ -72,7 +72,7 @@ For GitHub Copilot to properly discover and use the MCP server, the following se
         "command": "${execPath}",
         "args": [
           "${workspaceFolder}",
-          "--extensionDevelopmentPath=${execPath}/extensions/derivative-programming.appdna-1.0.15",
+          "--extensionDevelopmentPath=${execPath}/extensions/derivative-programming.appdna-1.0.16",
           "--command=appdna.startMCPServer"
         ]
       }
