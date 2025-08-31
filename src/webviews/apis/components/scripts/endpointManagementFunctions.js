@@ -231,12 +231,27 @@ function getEndpointManagementFunctions() {
         });
     }
 
+    // Sort endpoints alphabetically by name
+    function sortEndpoints() {
+        if (currentEndpoints.length < 2) return;
+
+        vscode.postMessage({
+            command: 'sortEndpointsArray',
+            data: {}
+        });
+    }
+
     // Set up endpoint event listeners
     function setupEndpointEventListeners() {
         // Endpoints list buttons
         const copyEndpointsButton = document.getElementById('copyEndpointsButton');
         if (copyEndpointsButton) {
             copyEndpointsButton.addEventListener('click', copyEndpointsList);
+        }
+
+        const sortEndpointsButton = document.getElementById('sortEndpointsButton');
+        if (sortEndpointsButton) {
+            sortEndpointsButton.addEventListener('click', sortEndpoints);
         }
 
         const moveUpEndpointsButton = document.getElementById('moveUpEndpointsButton');

@@ -186,6 +186,15 @@ function showApiDetails(item, modelService, context) {
                         console.warn("Cannot reverse endpoints: ModelService not available or API site reference not found");
                     }
                     return;
+                    
+                case "sortEndpointsArray":
+                    if (modelService && apiSiteReference) {
+                        // Sort the endpoints array alphabetically
+                        sortEndpointsArray(apiSiteReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot sort endpoints: ModelService not available or API site reference not found");
+                    }
+                    return;
             }
         }
     );
@@ -496,6 +505,59 @@ function reverseEndpointsArray(apiSiteReference, modelService, panel) {
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error reversing endpoints:", error);
+    }
+}
+
+/**
+ * Sorts the endpoints array alphabetically by name
+ * @param {Object} apiSiteReference Direct reference to the API site object
+ * @param {Object} modelService Model service instance
+ * @param {Object} panel The webview panel to refresh
+ */
+function sortEndpointsArray(apiSiteReference, modelService, panel) {
+    console.log("sortEndpointsArray called");
+    
+    if (!apiSiteReference || !modelService) {
+        console.error("Missing required data for endpoints sort");
+        return;
+    }
+    
+    try {
+        // Initialize the endpoints array if it doesn't exist
+        if (!apiSiteReference.apiEndPoint) {
+            apiSiteReference.apiEndPoint = [];
+        }
+        
+        if (apiSiteReference.apiEndPoint.length < 2) {
+            console.log("Not enough endpoints to sort");
+            return;
+        }
+        
+        // Sort the array alphabetically by name (case-insensitive)
+        apiSiteReference.apiEndPoint.sort((a, b) => {
+            const nameA = (a && a.name) ? a.name.toLowerCase() : '';
+            const nameB = (b && b.name) ? b.name.toLowerCase() : '';
+            return nameA.localeCompare(nameB);
+        });
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the endpoints list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshEndpointsList',
+                data: apiSiteReference.apiEndPoint,
+                newSelection: null // Don't maintain selection after sort
+            });
+        }
+        
+        // Refresh the view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error sorting endpoints:", error);
     }
 }
 

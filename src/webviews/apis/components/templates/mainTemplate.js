@@ -110,6 +110,7 @@ function getMainTemplate(
                     </select>
                     <div class="list-buttons">
                         <button id="copyEndpointsButton" class="copy-props-button">Copy List</button>
+                        <button id="sortEndpointsButton" class="sort-button">Sort</button>
                         <button id="moveUpEndpointsButton" class="move-button">Move Up</button>
                         <button id="moveDownEndpointsButton" class="move-button">Move Down</button>
                         <button id="reverseEndpointsButton" class="reverse-button">Reverse</button>
