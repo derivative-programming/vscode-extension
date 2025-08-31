@@ -17,9 +17,10 @@ const { showFormDetails, refreshAll, getOpenPanelItems, closeAllPanels } = requi
  * @param {Object} item The tree item representing the form
  * @param {Object} modelService ModelService instance
  * @param {vscode.ExtensionContext} context Extension context (optional)
+ * @param {string} initialTab Optional initial tab to show
  */
-function showFormDetailsWrapper(item, modelService, context) {
-    return showFormDetails(item, modelService, context);
+function showFormDetailsWrapper(item, modelService, context, initialTab) {
+    return showFormDetails(item, modelService, context, initialTab);
 }
 
 /**

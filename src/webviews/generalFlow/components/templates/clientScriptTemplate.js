@@ -37,7 +37,7 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                 if (e.target && e.target.classList && e.target.classList.contains('close-button')) { closeModal(); }
             });
 
-            // Add Input Control Modal Template Function
+            // Add Input Param Modal Template Function
             function getAddInputControlModalHtml() {
                 return \`${getAddInputControlModalHtml()}\`;
             }
@@ -52,9 +52,9 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                 return \`${getDataObjectSearchModalHtml()}\`;
             }
 
-            // Function to create and show the Add Input Control modal (matching Page Init pattern)
+            // Function to create and show the Add Input Param modal (matching Page Init pattern)
             function createAddInputControlModal() {
-                // Create modal dialog for adding input controls
+                // Create modal dialog for adding input params
                 const modal = document.createElement("div");
                 modal.className = "modal";
                 
@@ -68,7 +68,7 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                 // Show the modal
                 setTimeout(() => {
                     modal.style.display = "flex";
-                    // Focus on the input control name input when modal opens (single input control tab is active by default)
+                    // Focus on the input param name input when modal opens (single input param tab is active by default)
                     const inputControlNameInput = modal.querySelector("#inputControlName");
                     if (inputControlNameInput) {
                         inputControlNameInput.focus();
@@ -119,7 +119,7 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                     }
                 });
                 
-                // Add Enter key handling for single input control input
+                // Add Enter key handling for single input param input
                 const inputControlNameInput = modal.querySelector("#inputControlName");
                 if (inputControlNameInput) {
                     inputControlNameInput.addEventListener("keypress", function(event) {
@@ -133,26 +133,26 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                     });
                 }
                 
-                // Validate input control name
+                // Validate input param name
                 function validateInputControlName(name) {
                     if (!name) {
-                        return "Input control name cannot be empty";
+                        return "Input param name cannot be empty";
                     }
                     if (name.length > 100) {
-                        return "Input control name cannot exceed 100 characters";
+                        return "Input param name cannot exceed 100 characters";
                     }
                     if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(name)) {
-                        return "Input control name must start with a letter and contain only letters and numbers";
+                        return "Input param name must start with a letter and contain only letters and numbers";
                     }
                     if (currentParams.some(param => param.name === name)) {
-                        return "Input control with this name already exists";
+                        return "Input param with this name already exists";
                     }
                     return null; // Valid
                 }
                 
-                // Function to add a new input control (called from add input control modal)
+                // Function to add a new input param (called from add input param modal)
                 function addNewInputControl(inputControlName) {
-                    // Send message to add a new input control with the specified name
+                    // Send message to add a new input param with the specified name
                     vscode.postMessage({
                         command: 'addParamWithName',
                         data: {
@@ -161,7 +161,7 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                     });
                 }
                 
-                // Add single input control button event listener
+                // Add single input param button event listener
                 modal.querySelector("#addSingleInputControl").addEventListener("click", function() {
                     const inputControlName = modal.querySelector("#inputControlName").value.trim();
                     const errorElement = modal.querySelector("#singleValidationError");
@@ -172,20 +172,20 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                         return;
                     }
                     
-                    // Add the new input control by sending individual add commands
+                    // Add the new input param by sending individual add commands
                     addNewInputControl(inputControlName);
                     
                     // Close the modal
                     document.body.removeChild(modal);
                 });
                 
-                // Add bulk input controls button event listener
+                // Add bulk input params button event listener
                 modal.querySelector("#addBulkInputControls").addEventListener("click", function() {
                     const bulkInputControls = modal.querySelector("#bulkInputControls").value;
                     const inputControlNames = bulkInputControls.split("\\n").map(name => name.trim()).filter(name => name);
                     const errorElement = modal.querySelector("#bulkValidationError");
                     
-                    // Validate all input control names
+                    // Validate all input param names
                     const errors = [];
                     const validInputControls = [];
                     
@@ -203,7 +203,7 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                         return;
                     }
                     
-                    // Add all valid input controls using individual commands
+                    // Add all valid input params using individual commands
                     validInputControls.forEach(name => {
                         addNewInputControl(name);
                     });
@@ -883,7 +883,7 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                         paramsListEl.innerHTML = '';
                         currentParams.forEach((p, i) => {
                             const opt = document.createElement('option');
-                            opt.value = i; opt.textContent = p?.name || 'Unnamed Input Control';
+                            opt.value = i; opt.textContent = p?.name || 'Unnamed Input Param';
                             paramsListEl.appendChild(opt);
                         });
                         // Restore selection and trigger change for details panel

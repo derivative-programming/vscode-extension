@@ -19,6 +19,8 @@ const { getAddDestinationButtonColumnModalHtml } = require("./addDestinationButt
 const { getAddDestinationButtonColumnModalFunctionality } = require("./addDestinationButtonColumnModalFunctionality");
 const { getAddGeneralFlowButtonColumnModalHtml } = require("./addGeneralFlowButtonColumnModalTemplate");
 const { getAddGeneralFlowButtonColumnModalFunctionality } = require("./addGeneralFlowButtonColumnModalFunctionality");
+const { getGeneralFlowSearchModalHtml } = require("./generalFlowSearchModalTemplate");
+const { getGeneralFlowSearchModalFunctionality } = require("./generalFlowSearchModalFunctionality");
 
 /**
  * File: clientScriptTemplate.js
@@ -104,6 +106,11 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                 return \`${getAddGeneralFlowButtonColumnModalHtml()}\`;
             }
             
+            // General Flow Search Modal Template Function
+            function getGeneralFlowSearchModalHtml() {
+                return \`${getGeneralFlowSearchModalHtml()}\`;
+            }
+            
             ${getPageSearchModalFunctionality()}
             
             ${getDataObjectSearchModalFunctionality()}
@@ -111,6 +118,8 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             ${getAddDestinationButtonColumnModalFunctionality()}
             
             ${getAddGeneralFlowButtonColumnModalFunctionality()}
+            
+            ${getGeneralFlowSearchModalFunctionality()}
             
             // Page Preview Function
             function openPagePreview(reportName, isPage) {
@@ -264,10 +273,10 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                         break;
                     case 'populateGeneralFlowsModal':
                         // Populate the general flows modal with the received data
-                        if (typeof populateGeneralFlowsModal === 'function') {
-                            populateGeneralFlowsModal(message.data);
+                        if (window.currentGeneralFlowSearchModal && window.currentGeneralFlowSearchModal.populateCallback) {
+                            window.currentGeneralFlowSearchModal.populateCallback(message.data);
                         } else {
-                            console.warn('populateGeneralFlowsModal function not available');
+                            console.warn('No active general flow search modal to populate');
                         }
                         break;
                 }

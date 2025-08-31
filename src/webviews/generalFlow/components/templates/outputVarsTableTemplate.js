@@ -11,15 +11,11 @@ function getOutputVarPropertiesToHide() {
 
 function getOutputVarsListTemplate(outputVarsSchema) {
     // Properties for General Flow output variables based on objectWorkflowOutputVar schema
-    // Ordered alphabetically for consistency
+    // Removed UI-specific properties that are not relevant for general workflow output variables
     const allowedOrder = [
-        "buttonNavURL",
-        "buttonObjectWFName", 
-        "buttonText",
         "conditionalVisiblePropertyName",
         "defaultValue",
         "fKObjectName",
-        "isAutoRedirectURL",
         "isFK",
         "isFKLookup",
         "isHeaderText",

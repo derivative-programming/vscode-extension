@@ -132,6 +132,7 @@ function applyFilters() {
     const nameFilter = document.getElementById('filterName')?.value.toLowerCase() || '';
     const descriptionFilter = document.getElementById('filterDescription')?.value.toLowerCase() || '';
     const declarationTextFilter = document.getElementById('filterDeclarationText')?.value.toLowerCase() || '';
+    const isLookupFilter = document.getElementById('filterIsLookup')?.value || '';
     
     // Filter the data
     const filteredItems = dataObjectData.items.filter(item => {
@@ -139,7 +140,18 @@ function applyFilters() {
         const descriptionMatch = !descriptionFilter || (item.description || '').toLowerCase().includes(descriptionFilter);
         const declarationTextMatch = !declarationTextFilter || (item.declarationText || '').toLowerCase().includes(declarationTextFilter);
         
-        return nameMatch && descriptionMatch && declarationTextMatch;
+        // Handle isLookup filter
+        let isLookupMatch = true;
+        if (isLookupFilter && isLookupFilter !== 'all') {
+            const itemIsLookup = item.isLookup === true;
+            if (isLookupFilter === 'yes') {
+                isLookupMatch = itemIsLookup;
+            } else if (isLookupFilter === 'no') {
+                isLookupMatch = !itemIsLookup;
+            }
+        }
+        
+        return nameMatch && descriptionMatch && declarationTextMatch && isLookupMatch;
     });
     
     // Update the table with filtered data
@@ -168,6 +180,12 @@ function clearFilters() {
             element.value = '';
         }
     });
+    
+    // Clear the Is Lookup filter
+    const isLookupFilter = document.getElementById('filterIsLookup');
+    if (isLookupFilter) {
+        isLookupFilter.value = 'all';
+    }
     
     // Re-render table with original data
     renderTable();
@@ -209,6 +227,7 @@ function renderTableWithData(items) {
         { key: "name", label: "Name", sortable: true },
         { key: "description", label: "Description", sortable: true },
         { key: "declarationText", label: "Declaration Text", sortable: true },
+        { key: "isLookup", label: "Is Lookup", sortable: true },
         { key: "actions", label: "Actions", sortable: false }
     ];
     
@@ -282,6 +301,23 @@ function renderTableWithData(items) {
             }
             row.appendChild(declarationTextCell);
             
+            // Is Lookup column
+            const isLookupCell = document.createElement('td');
+            isLookupCell.className = 'is-lookup-cell';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = item.isLookup === true;
+            checkbox.disabled = true; // Read-only display
+            checkbox.style.pointerEvents = 'none';
+            
+            if (item.isIgnored) {
+                isLookupCell.style.opacity = '0.6';
+            }
+            
+            isLookupCell.appendChild(checkbox);
+            row.appendChild(isLookupCell);
+            
             // Actions column
             const actionsCell = document.createElement('td');
             const actionsContainer = document.createElement('div');
@@ -311,7 +347,7 @@ function renderTableWithData(items) {
         // Show "No data" row
         const noDataRow = document.createElement('tr');
         const noDataCell = document.createElement('td');
-        noDataCell.setAttribute('colspan', '4');
+        noDataCell.setAttribute('colspan', '5');
         noDataCell.textContent = 'No data objects to display';
         noDataCell.style.textAlign = 'center';
         noDataCell.style.fontStyle = 'italic';
@@ -348,4 +384,10 @@ function setupFilterEventListeners() {
             element.addEventListener('change', applyFilters);
         }
     });
+    
+    // Add event listener for the Is Lookup filter dropdown
+    const isLookupFilter = document.getElementById('filterIsLookup');
+    if (isLookupFilter) {
+        isLookupFilter.addEventListener('change', applyFilters);
+    }
 }
