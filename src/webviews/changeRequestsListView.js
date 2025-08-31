@@ -41,6 +41,23 @@
             case 'operationComplete':
                 hideSpinner(); // Hide spinner when any operation completes
                 break;
+                
+            case 'csvExportReady':
+                console.log('[ChangeRequestsList] CSV export ready');
+                if (message.success !== false) {
+                    // Send CSV content to extension to save to workspace
+                    vscode.postMessage({
+                        command: 'saveCsvToWorkspace',
+                        data: {
+                            content: message.csvContent,
+                            filename: message.filename
+                        }
+                    });
+                } else {
+                    console.error('Error exporting CSV:', message.error);
+                    alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
+                }
+                break;
         }
     });    // Set up event listeners
     statusFilterSelect.addEventListener('change', renderChangeRequests);
@@ -72,6 +89,14 @@
         const rejectSelectedBtn = document.getElementById('rejectSelectedBtn');
         if (rejectSelectedBtn) {
             rejectSelectedBtn.addEventListener('click', openBatchRejectModal);
+        }
+        
+        const exportButton = document.getElementById('exportButton');
+        if (exportButton) {
+            exportButton.addEventListener('click', () => {
+                console.log('[ChangeRequestsList] Export button clicked');
+                exportToCSV();
+            });
         }
     } catch (error) {
         console.error("[Webview] Error setting up action buttons:", error);
@@ -849,6 +874,19 @@
                 <h3>Error</h3>
                 <p>${message}</p>
             </div>`;
+    }
+
+    /**
+     * Export change requests to CSV
+     */
+    function exportToCSV() {
+        console.log('[ChangeRequestsList] Export to CSV requested');
+        vscode.postMessage({
+            command: 'exportToCSV',
+            data: {
+                items: changeRequestsData
+            }
+        });
     }
 
     // Send ready message to extension
