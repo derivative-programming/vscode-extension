@@ -3,6 +3,7 @@
 ## Changes Made:
 1. **Removed Add Endpoint Button**: Eliminated the 'Add Endpoint' button and related functionality
 2. **Skipped Subscription Controls**: No subscription controls added (as requested)
+3. **Fixed Move Button States**: Added missing event listener to update move up/down button states when endpointsList selection changes
 3. **Enhanced Property Field Generation**: Improved to match form input controls pattern
 
 ## Files Modified:

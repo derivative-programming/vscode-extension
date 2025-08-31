@@ -114,6 +114,29 @@ function getClientScriptTemplate(apiSite, endpointSchema = {}) {
                 }
             }
 
+            // Initialize move button states when page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                // Set up event listeners for list selection changes
+                const endpointsList = document.getElementById('endpointsList');
+                
+                if (endpointsList) {
+                    endpointsList.addEventListener('change', function() {
+                        const moveUpButton = document.getElementById('moveUpEndpointsButton');
+                        const moveDownButton = document.getElementById('moveDownEndpointsButton');
+                        if (moveUpButton && moveDownButton) {
+                            updateMoveButtonStates(endpointsList, moveUpButton, moveDownButton);
+                        }
+                    });
+                    
+                    // Initialize button states
+                    const moveUpButton = document.getElementById('moveUpEndpointsButton');
+                    const moveDownButton = document.getElementById('moveDownEndpointsButton');
+                    if (moveUpButton && moveDownButton) {
+                        updateMoveButtonStates(endpointsList, moveUpButton, moveDownButton);
+                    }
+                }
+            });
+
             // Message handlers for list refresh updates
             window.addEventListener('message', event => {
                 const message = event.data;
