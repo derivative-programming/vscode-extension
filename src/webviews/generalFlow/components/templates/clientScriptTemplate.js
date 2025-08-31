@@ -532,8 +532,8 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                                 checkbox.removeAttribute('data-originally-checked');
                             }
                             
-                            // Update browse button state for sourceObjectName field
-                            if (paramKey === 'sourceObjectName') {
+                            // Update browse button state for sourceObjectName and fKObjectName fields
+                            if (paramKey === 'sourceObjectName' || paramKey === 'fKObjectName') {
                                 const browseButton = field.parentElement.querySelector('.lookup-button');
                                 if (browseButton) {
                                     browseButton.disabled = !propertyExists;
@@ -563,8 +563,8 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                             if (selectedIndex === '') return;
                             if (field.tagName === 'INPUT') { field.readOnly = !this.checked; } else if (field.tagName === 'SELECT') { field.disabled = !this.checked; }
                             
-                            // Enable/disable browse button for sourceObjectName field
-                            if (paramKey === 'sourceObjectName') {
+                            // Enable/disable browse button for sourceObjectName and fKObjectName fields
+                            if (paramKey === 'sourceObjectName' || paramKey === 'fKObjectName') {
                                 const browseButton = field.parentElement.querySelector('.lookup-button');
                                 if (browseButton) {
                                     browseButton.disabled = !this.checked;
@@ -673,8 +673,8 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                                 checkbox.removeAttribute('data-originally-checked');
                             }
                             
-                            // Update browse button state for sourceObjectName field
-                            if (outputVarKey === 'sourceObjectName') {
+                            // Update browse button state for sourceObjectName and fKObjectName fields
+                            if (outputVarKey === 'sourceObjectName' || outputVarKey === 'fKObjectName') {
                                 const browseButton = field.parentElement.querySelector('.lookup-button');
                                 if (browseButton) {
                                     browseButton.disabled = !propertyExists;
@@ -704,8 +704,8 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                             if (selectedIndex === '') return;
                             if (field.tagName === 'INPUT') { field.readOnly = !this.checked; } else if (field.tagName === 'SELECT') { field.disabled = !this.checked; }
                             
-                            // Enable/disable browse button for sourceObjectName field
-                            if (outputVarKey === 'sourceObjectName') {
+                            // Enable/disable browse button for sourceObjectName and fKObjectName fields
+                            if (outputVarKey === 'sourceObjectName' || outputVarKey === 'fKObjectName') {
                                 const browseButton = field.parentElement.querySelector('.lookup-button');
                                 if (browseButton) {
                                     browseButton.disabled = !this.checked;
@@ -940,8 +940,8 @@ function getClientScriptTemplate(params, outputVars, paramSchema, outputVarSchem
                     const propKey = button.getAttribute('data-prop');
                     console.log('Property key:', propKey);
                     
-                    if (propKey === 'sourceObjectName') {
-                        console.log('Handling sourceObjectName browse');
+                    if (propKey === 'sourceObjectName' || propKey === 'fKObjectName') {
+                        console.log('Handling sourceObjectName or fKObjectName browse');
                         // Handle data object browse functionality for input controls tab
                         let inputField = button.parentElement.querySelector('input[type="text"]');
                         
