@@ -102,6 +102,15 @@ function showObjectDetails(item, modelService) {
     // Set the HTML content with the full object data
     panel.webview.html = generateDetailsView(objectData, objectSchemaProps, propItemsSchema, allObjects);
     
+    // Ensure the settings tab is selected by default when opening the view
+    // Use a small delay to ensure the webview DOM is fully loaded
+    setTimeout(() => {
+        panel.webview.postMessage({
+            command: 'restoreTab',
+            tabId: 'settings'
+        });
+    }, 100);
+    
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(
         message => {
@@ -131,6 +140,13 @@ function showObjectDetails(item, modelService) {
                     } else {
                         console.warn("Cannot update lookup items: ModelService not available or object reference not found");
                     }
+                    return;
+                    
+                case "tabChanged":
+                    // Store the active tab for this panel for persistence
+                    console.log(`[DEBUG] Tab changed to: ${message.tabId} for panel: ${panelId}`);
+                    // Note: We could store this in a Map if we needed cross-session persistence
+                    // For now, we just log it as the main goal is immediate tab restoration
                     return;
             }
         }
@@ -178,6 +194,14 @@ function refreshAll() {
             
             // Update the HTML content
             panel.webview.html = generateDetailsView(objectData, objectSchemaProps, propItemsSchema, allObjects);
+            
+            // Restore the settings tab after refresh
+            setTimeout(() => {
+                panel.webview.postMessage({
+                    command: 'restoreTab',
+                    tabId: 'settings'
+                });
+            }, 100);
         }
     }
 }
