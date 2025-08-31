@@ -96,7 +96,7 @@ async function showPageFlowDiagram(context, modelService) {
                         
                         // Call the showReportDetails function
                         const reportDetailsView = require('../reports/reportDetailsView');
-                        reportDetailsView.showReportDetails(mockTreeItem, modelService);
+                        reportDetailsView.showReportDetails(mockTreeItem, modelService, currentContext);
                     }
                     return;
                 

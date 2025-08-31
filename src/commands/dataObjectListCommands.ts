@@ -527,7 +527,7 @@ export function registerDataObjectListCommands(
                             };
                             try {
                                 const { showObjectDetails } = require('../webviews/objectDetailsView');
-                                showObjectDetails(mockTreeItem, modelService);
+                                showObjectDetails(mockTreeItem, modelService, dataObjectListPanel.context);
                             } catch (error) {
                                 console.error('[ERROR] DataObjectList - Failed to open object details:', error);
                                 vscode.window.showErrorMessage(`Failed to open object details: ${error.message}`);

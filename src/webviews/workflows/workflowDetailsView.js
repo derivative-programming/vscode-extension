@@ -401,7 +401,7 @@ function refreshAll() {
         try {
             const { panel, item, modelService } = entry;
             if (panel && !panel.disposed) {
-                showWorkflowDetails(item, modelService);
+                showWorkflowDetails(item, modelService, currentContext);
             }
         } catch (e) { console.error('refreshAll workflow error:', e); }
     }

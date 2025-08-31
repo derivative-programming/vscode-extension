@@ -346,7 +346,7 @@ function refreshAll() {
         try {
             const { panel, item, modelService } = entry;
             if (panel && !panel.disposed) {
-                showGeneralFlowDetails(item, modelService);
+                showGeneralFlowDetails(item, modelService, currentContext);
             }
         } catch (e) { console.error('refreshAll generalFlow error:', e); }
     }

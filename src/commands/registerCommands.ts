@@ -339,7 +339,7 @@ export function registerCommands(
             // Reopen any object details panels that were previously open with fresh data
             if (openPanelsToReopen.length > 0 && objectDetailsView) {
                 for (const item of openPanelsToReopen) {
-                    objectDetailsView.showObjectDetails(item, modelService);
+                    objectDetailsView.showObjectDetails(item, modelService, context);
                 }
             }
             
@@ -353,7 +353,7 @@ export function registerCommands(
             // Reopen any form details panels that were previously open with fresh data
             if (openFormPanelsToReopen.length > 0 && formDetailsView) {
                 for (const item of openFormPanelsToReopen) {
-                    formDetailsView.showFormDetails(item, modelService);
+                    formDetailsView.showFormDetails(item, modelService, context);
                 }
             }
 
@@ -565,7 +565,7 @@ export function registerCommands(
     // Register add object command
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.addObject', async () => {
-            await addObjectCommand(appDNAFilePath, jsonTreeDataProvider, modelService);
+            await addObjectCommand(appDNAFilePath, jsonTreeDataProvider, modelService, context);
         })
     );
 

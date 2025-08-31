@@ -1,30 +1,23 @@
 Agent todo items...
+ 
 
-  
-
-general flow - input params - unnecessary settings ✓ COMPLETED - removed UI-specific properties
-Required Error Text:
-
-general flow - output vars  - unnecessary settings ✓ COMPLETED - removed UI-specific properties
-
-
+add data obj wizard opens detail view with no tab selected
 
 allow add of general flow
 
 allow add of page init flow (plus sign on page detail view next to empty display)
 
 need lookup buttons on fk object name settings on flow view..
-- general flow - input var
-- general flow - output var
-- page init flow - output var
+- copilot:general flow - input var
+- copilot:general flow - output var
+- copilot:page init flow - output var
 
-
-report - add general flow modal - need lookup on Button Object WF Name setting
+copilot:report - add general flow modal - need lookup on Button Object WF Name setting
 
 report column - need lookup on Button Object WF Name setting? are we displaying this property? are we showing a page lookup now?
 
-
-report details view - test allow creation of column async flow button
+report details view 
+- test: allow creation of column async flow button
 
 report details  column - add button - multiselect
  
@@ -104,7 +97,9 @@ allow single broad search textbox on all filter sections
 
 allow export on all tables
 
-automatically generate a txt file that ai can read to get info on the app (read only)
+automatically generate a text file that ai can read to get info on the app (read only)
+- setting on project to automatically do this on save? in separate process?
+
 
 apis
  
