@@ -100,10 +100,6 @@ function getMainTemplate(
 
         <!-- Endpoints Tab Content -->
         <div id="endpoints" class="tab-content">
-            <div class="view-icons" data-tab="endpoints">
-                <button id="add-endpoint-btn" class="add-prop-button">Add Endpoint</button>
-            </div>
-
             <div id="endpointsListView" class="view-content active">
                 <div class="list-container">
                     <select id="endpointsList" size="10">

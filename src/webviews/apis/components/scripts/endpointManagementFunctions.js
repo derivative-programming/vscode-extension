@@ -48,25 +48,42 @@ function getEndpointManagementFunctions() {
                         if (propertyExists) {
                             // If property exists, use its value
                             field.value = endpoint[endpointKey];
-                            field.disabled = false;
-                            checkbox.checked = true;
                         } else {
-                            // If property doesn't exist, reset
-                            field.value = '';
-                            field.disabled = true;
-                            checkbox.checked = false;
+                            // If property doesn't exist, use default value logic
+                            const schema = endpointSchema[endpointKey] || {};
+                            if (schema.default !== undefined) {
+                                // Use the schema's default value if available
+                                field.value = schema.default;
+                            } else {
+                                // Otherwise, leave the default that was set in the HTML template
+                                // The template already handles boolean enums and first-option defaults
+                            }
                         }
+                        field.disabled = !propertyExists;
                     } else {
-                        if (propertyExists) {
-                            // If property exists, use its value
-                            field.value = endpoint[endpointKey];
-                            field.disabled = false;
-                            checkbox.checked = true;
-                        } else {
-                            // If property doesn't exist, reset
-                            field.value = '';
-                            field.disabled = true;
-                            checkbox.checked = false;
+                        field.value = propertyExists ? endpoint[endpointKey] : '';
+                        field.readOnly = !propertyExists;
+                    }
+                    
+                    checkbox.checked = propertyExists;
+                    
+                    // If the property exists, disable the checkbox to prevent unchecking
+                    if (propertyExists) {
+                        checkbox.disabled = true;
+                        checkbox.setAttribute('data-originally-checked', 'true');
+                    } else {
+                        checkbox.disabled = false;
+                        checkbox.removeAttribute('data-originally-checked');
+                    }
+                    
+                    updateInputStyle(field, checkbox.checked);
+                    
+                    // Set browse button state for specific fields (if any)
+                    // This follows the form pattern for browse buttons
+                    if (endpointKey === 'sourceObjectName' || endpointKey === 'targetObjectName') {
+                        const browseButton = document.querySelector('[data-field-id="' + fieldId + '"].lookup-button');
+                        if (browseButton) {
+                            browseButton.disabled = !checkbox.checked;
                         }
                     }
                 }
@@ -120,34 +137,51 @@ function getEndpointManagementFunctions() {
 
         if (isChecked) {
             // Enable editing
-            field.disabled = false;
-            // Set default value for enums
-            if (field.tagName === 'SELECT' && field.options.length > 1) {
-                field.value = field.options[1].value; // First non-empty option
+            if (field.tagName === 'SELECT') {
+                field.disabled = false;
+                // Set default value for select elements
+                if (field.options.length > 0) {
+                    field.value = field.options[0].value;
+                }
             } else if (field.tagName === 'INPUT') {
+                field.readOnly = false;
                 // Keep existing value or set empty
                 field.value = field.value || '';
             }
+            
+            // Update styling
+            updateInputStyle(field, true);
+            
             // Trigger property change to add the property
             handleEndpointPropertyChange(fieldId, field.value);
         } else {
             // Disable editing and remove property
-            field.disabled = true;
+            if (field.tagName === 'SELECT') {
+                field.disabled = true;
+            } else if (field.tagName === 'INPUT') {
+                field.readOnly = true;
+            }
             field.value = '';
+            
+            // Update styling
+            updateInputStyle(field, false);
+            
             handleEndpointPropertyChange(fieldId, '');
         }
     }
 
-    // Add endpoint functionality
-    function addEndpoint() {
-        console.log('Add endpoint clicked');
-        // Show modal for adding new endpoint with name
-        const name = prompt('Enter endpoint name:');
-        if (name && name.trim()) {
-            vscode.postMessage({
-                command: 'addEndpointWithName',
-                data: { name: name.trim() }
-            });
+    // Update input styling based on enabled/disabled state (matching form pattern)
+    function updateInputStyle(inputElement, isEnabled) {
+        if (isEnabled) {
+            inputElement.style.backgroundColor = '';
+            inputElement.style.color = '';
+            inputElement.style.opacity = '';
+            inputElement.style.cursor = '';
+        } else {
+            inputElement.style.backgroundColor = 'var(--vscode-input-disabledBackground, #e9e9e9)';
+            inputElement.style.color = 'var(--vscode-input-disabledForeground, #999)';
+            inputElement.style.opacity = '0.8';
+            inputElement.style.cursor = 'not-allowed';
         }
     }
 
@@ -199,12 +233,6 @@ function getEndpointManagementFunctions() {
 
     // Set up endpoint event listeners
     function setupEndpointEventListeners() {
-        // Add endpoint button
-        const addEndpointBtn = document.getElementById('add-endpoint-btn');
-        if (addEndpointBtn) {
-            addEndpointBtn.addEventListener('click', addEndpoint);
-        }
-
         // Endpoints list buttons
         const copyEndpointsButton = document.getElementById('copyEndpointsButton');
         if (copyEndpointsButton) {
@@ -226,7 +254,7 @@ function getEndpointManagementFunctions() {
             reverseEndpointsButton.addEventListener('click', reverseEndpoints);
         }
 
-        // Endpoint property change listeners
+        // Initialize toggle editable behavior for endpoint list view form fields  
         Object.keys(endpointSchema).forEach(endpointKey => {
             if (endpointKey === 'name') return;
             
@@ -234,22 +262,101 @@ function getEndpointManagementFunctions() {
             const field = document.getElementById(fieldId);
             const checkbox = document.getElementById(fieldId + 'Editable');
             
-            if (field) {
-                field.addEventListener('change', (e) => {
-                    handleEndpointPropertyChange(fieldId, e.target.value);
+            if (field && checkbox) {
+                // Set initial state
+                updateInputStyle(field, checkbox.checked);
+                
+                // Add event listener for checkbox state changes
+                checkbox.addEventListener('change', function() {
+                    // Get the currently selected endpoint index
+                    const selectedIndex = endpointsList.value;
+                    if (selectedIndex === '') return;
+                    
+                    if (field.tagName === 'INPUT') {
+                        field.readOnly = !this.checked;
+                    } else if (field.tagName === 'SELECT') {
+                        field.disabled = !this.checked;
+                    }
+                    updateInputStyle(field, this.checked);
+                    
+                    // Handle browse button state for specific fields
+                    if (endpointKey === 'sourceObjectName' || endpointKey === 'targetObjectName') {
+                        const browseButton = document.querySelector('[data-field-id="' + fieldId + '"].lookup-button');
+                        if (browseButton) {
+                            browseButton.disabled = !this.checked;
+                        }
+                    }
+                    
+                    // Disable the checkbox if it's checked to prevent unchecking
+                    if (this.checked) {
+                        this.disabled = true;
+                        this.setAttribute('data-originally-checked', 'true');
+                        
+                        // If this is a select element, make sure it has a valid value
+                        if (field.tagName === 'SELECT' && (!field.value || field.value === '')) {
+                            if (field.options.length > 0) {
+                                field.value = field.options[0].value;
+                            }
+                        }
+                    }
+                    
+                    // Send message to update the model
+                    const selectedEndpointIndex = parseInt(selectedIndex);
+                    const updatedEndpoint = { ...currentEndpoints[selectedEndpointIndex] };
+                    
+                    if (this.checked) {
+                        // Add or update the property in the endpoint
+                        updatedEndpoint[endpointKey] = field.value;
+                    } else {
+                        // Remove the property from the endpoint
+                        delete updatedEndpoint[endpointKey];
+                    }
+                    
+                    // Update local array and send to backend
+                    currentEndpoints[selectedEndpointIndex] = updatedEndpoint;
+                    vscode.postMessage({
+                        command: 'updateEndpointFull',
+                        data: {
+                            index: selectedEndpointIndex,
+                            endpoint: updatedEndpoint
+                        }
+                    });
                 });
                 
-                field.addEventListener('input', (e) => {
-                    handleEndpointPropertyChange(fieldId, e.target.value);
-                });
-            }
-            
-            if (checkbox) {
-                checkbox.addEventListener('change', (e) => {
-                    handleEndpointPropertyCheckboxChange(fieldId + 'Editable', e.target.checked);
-                });
+                // Update model when input value changes
+                const updateInputHandler = function() {
+                    const selectedIndex = endpointsList.value;
+                    if (selectedIndex === '' || !checkbox.checked) return;
+                    
+                    // Send message to update the model
+                    const selectedEndpointIndex = parseInt(selectedIndex);
+                    const updatedEndpoint = { ...currentEndpoints[selectedEndpointIndex] };
+                    updatedEndpoint[endpointKey] = field.value;
+                    
+                    // Update local array and send to backend
+                    currentEndpoints[selectedEndpointIndex] = updatedEndpoint;
+                    vscode.postMessage({
+                        command: 'updateEndpointFull',
+                        data: {
+                            index: selectedEndpointIndex,
+                            endpoint: updatedEndpoint
+                        }
+                    });
+                };
+                
+                if (field.tagName === 'SELECT') {
+                    field.addEventListener('change', updateInputHandler);
+                } else {
+                    field.addEventListener('input', updateInputHandler);
+                    field.addEventListener('change', updateInputHandler);
+                }
             }
         });
+        
+        // Initialize endpointsList - hide details if no endpoint is selected
+        if (endpointsList && endpointDetailsContainer && (!endpointsList.value || endpointsList.value === "")) {
+            endpointDetailsContainer.style.display = 'none';
+        }
     }
     `;
 }

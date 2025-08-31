@@ -1,0 +1,43 @@
+**API Endpoints Tab Improvements - 2025-08-31**
+
+## Changes Made:
+1. **Removed Add Endpoint Button**: Eliminated the 'Add Endpoint' button and related functionality
+2. **Skipped Subscription Controls**: No subscription controls added (as requested)
+3. **Enhanced Property Field Generation**: Improved to match form input controls pattern
+
+## Files Modified:
+
+### 1. `src/webviews/apis/components/templates/mainTemplate.js`
+- Removed the `<div class="view-icons">` section containing the Add Endpoint button
+- Streamlined the endpoints tab layout
+
+### 2. `src/webviews/apis/components/templates/endpointsListTemplate.js`  
+- Enhanced property field generation to match form input controls pattern
+- Added support for boolean enum default values
+- Implemented proper checkbox pattern with `control-with-checkbox` wrapper
+- Added browse button support for specific fields (sourceObjectName, targetObjectName)
+- Used proper `readonly` attributes for text inputs instead of `disabled`
+- Improved tooltip and schema-based default value handling
+
+### 3. `src/webviews/apis/components/scripts/endpointManagementFunctions.js`
+- Removed `addEndpoint()` function completely
+- Removed add endpoint button event listener setup
+- Enhanced checkbox handling to match form pattern with proper styling
+- Added `updateInputStyle()` function for consistent disabled/enabled styling
+- Improved endpoint list change handler with:
+  - Proper property existence checking
+  - Schema-based default value logic  
+  - Checkbox disable/enable behavior
+  - Browse button state management
+- Replaced simple property change listeners with comprehensive event handling
+- Added proper input validation and model update logic
+
+## Key Improvements:
+- **Consistent UI Pattern**: Endpoints tab now follows same interaction model as form input controls
+- **Better Property Management**: Enhanced checkbox behavior prevents unchecking existing properties
+- **Improved Styling**: Proper disabled/readonly styling with VS Code theme variables
+- **Schema-Driven Defaults**: Better handling of enum defaults and boolean values
+- **Enhanced UX**: Cleaner interface without unnecessary add functionality
+
+## Architecture Alignment:
+The endpoints tab now closely mirrors the form input controls tab pattern while remaining appropriate for API endpoint management context.

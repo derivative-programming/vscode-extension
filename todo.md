@@ -56,8 +56,6 @@ page preview - report header - show source of data
 page preview - report column - show source of data 
 page preview - form header - show source of data 
 page preview - form control - show source of data 
-
-
 `
 report data source view... list columns and their source data object and prop
 
@@ -78,7 +76,6 @@ analysis treeview item... ask ai for ideas
   - role: user story count?, page count?
   - user story: journey count? dependency count of all pages used?
 
-
 user story kanban board view?
 - drag and drop support
 - swimlanes for different stages
@@ -89,10 +86,7 @@ gant chart view?
 note when workflows are launched? by what pages?
 note what workflows modify which data objects and props?
 
-
 allow single broad search textbox on all filter sections
-
-
 
 automatically generate a text file that ai can read to get info on the app (read only)
 - setting on project to automatically do this on save? in separate process?
@@ -100,9 +94,7 @@ automatically generate a text file that ai can read to get info on the app (read
 
 apis
  
-
 page flow - too large for mermaid to display
- 
 
 add report...
 - API Get
