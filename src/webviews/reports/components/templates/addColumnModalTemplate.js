@@ -12,6 +12,7 @@ function getAddColumnModalHtml() {
     <div class="tabs">
         <div class="tab active" data-tab="singleAdd">Single Column</div>
         <div class="tab" data-tab="bulkAdd">Bulk Add</div>
+        <div class="tab" data-tab="availProps">Avail Data Object Props</div>
     </div>    <div id="singleAdd" class="tab-content active">
         <div class="form-row">
             <label for="columnName">Column Name:</label>
@@ -29,6 +30,17 @@ function getAddColumnModalHtml() {
         </div>
         <div id="bulkValidationError" class="validation-error"></div>
         <button id="addBulkColumns">Add Columns</button>
+    </div>
+    <div id="availProps" class="tab-content">
+        <div class="form-row">
+            <label>Available Data Object Properties:</label>
+            <div id="availPropsContainer" class="properties-container">
+                <!-- Properties will be dynamically populated here -->
+            </div>
+            <div class="field-note">Select one or more properties from the available data objects. Columns will be named using the format "[DataObjectName][PropertyName]".</div>
+        </div>
+        <div id="propsValidationError" class="validation-error"></div>
+        <button id="addSelectedProps">Add Selected Properties</button>
     </div>
 </div>`;
 }

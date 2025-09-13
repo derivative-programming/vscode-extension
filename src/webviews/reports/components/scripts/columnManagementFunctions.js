@@ -525,6 +525,9 @@ function getColumnManagementFunctions() {
                         if (bulkColumnsTextarea) {
                             bulkColumnsTextarea.focus();
                         }
+                    } else if (tabId === 'availProps') {
+                        // Load properties when the tab is first opened
+                        loadAvailableProperties(modal);
                     }
                 }, 10);
             });
@@ -676,6 +679,153 @@ function getColumnManagementFunctions() {
                 console.error("Error adding columns:", error);
                 errorElement.textContent = "Error adding columns. Please try again.";
             }
+        });
+        
+        // Add selected properties button event listener
+        const addPropsButton = modal.querySelector("#addSelectedProps");
+        if (addPropsButton) {
+            addPropsButton.addEventListener("click", function() {
+                const selectedCheckboxes = modal.querySelectorAll('#availPropsContainer input[type="checkbox"]:checked');
+                const errorElement = modal.querySelector("#propsValidationError");
+                
+                if (selectedCheckboxes.length === 0) {
+                    errorElement.textContent = "Please select at least one property.";
+                    return;
+                }
+                
+                // Clear any previous error
+                errorElement.textContent = "";
+                
+                try {
+                    console.log('[DEBUG] Adding property-based columns');
+                    
+                    // Add all selected properties as columns
+                    selectedCheckboxes.forEach(checkbox => {
+                        const objectName = checkbox.getAttribute('data-object-name');
+                        const propertyName = checkbox.getAttribute('data-property-name');
+                        const dataType = checkbox.getAttribute('data-data-type');
+                        const dataSize = checkbox.getAttribute('data-data-size');
+                        const isLookupProperty = checkbox.getAttribute('data-is-lookup-property') === 'true';
+                        const sourceLookupObjImplementationObjName = checkbox.getAttribute('data-source-lookup-obj-implementation-obj-name');
+                        const sourceObjectName = checkbox.getAttribute('data-source-object-name');
+                        const sourcePropertyName = checkbox.getAttribute('data-source-property-name');
+                        
+                        let columnName;
+                        if (isLookupProperty) {
+                            // For lookup properties: [data object name][lookup object name][lookup property name]
+                            columnName = sourceLookupObjImplementationObjName + sourceObjectName + sourcePropertyName;
+                        } else {
+                            // For regular properties: [object name][property name]
+                            columnName = objectName + propertyName;
+                        }
+                        
+                        // Create the column data structure
+                        const columnData = {
+                            name: columnName,
+                            dataType: dataType,
+                            dataSize: dataSize,
+                            isVisible: "true",
+                        };
+                        
+                        if (isLookupProperty) {
+                            // For lookup properties, use the lookup object metadata
+                            columnData.isLookupProperty = true;
+                            columnData.sourceLookupObjImplementationObjName = sourceLookupObjImplementationObjName;
+                            columnData.sourceObjectName = sourceObjectName;
+                            columnData.sourcePropertyName = sourcePropertyName;
+                        } else {
+                            // For regular properties
+                            columnData.sourceObjectName = objectName;
+                            columnData.sourcePropertyName = propertyName;
+                        }
+                        
+                        // Add the new column with property metadata
+                        addNewPropertyColumn(columnData);
+                    });
+                    
+                    // Close the modal
+                    document.body.removeChild(modal);
+                    columnModalCreationInProgress = false;
+                } catch (error) {
+                    console.error("Error adding property columns:", error);
+                    errorElement.textContent = "Error adding property columns. Please try again.";
+                }
+            });
+        }
+    }
+    
+    // Function to load available properties into the modal
+    function loadAvailableProperties(modal) {
+        console.log('[DEBUG] Loading available properties');
+        
+        // Request available properties from the backend
+        vscode.postMessage({
+            command: 'getAvailableProperties',
+            data: {}
+        });
+        
+        // Note: The response will be handled in the message listener
+        // and will call populateAvailableProperties function
+    }
+    
+    // Function to populate the properties container
+    function populateAvailableProperties(propertiesData) {
+        const container = document.querySelector('#availPropsContainer');
+        if (!container) return;
+        
+        let html = '';
+        
+        propertiesData.forEach(objectData => {
+            if (objectData.properties && objectData.properties.length > 0) {
+                html += '<div class="object-group">';
+                html += '<h4>' + objectData.objectName + '</h4>';
+                
+                objectData.properties.forEach(prop => {
+                    const checkboxId = 'prop_' + objectData.objectName + '_' + prop.name.replace(/\./g, '_');
+                    const displayText = prop.fullPath || (objectData.objectName + '.' + prop.name);
+                    const dataTypeInfo = prop.dataType ? ' (' + prop.dataType + (prop.dataSize ? '(' + prop.dataSize + ')' : '') + ')' : '';
+                    
+                    html += '<div class="property-item">';
+                    html += '<label>';
+                    html += '<input type="checkbox" id="' + checkboxId + '" ';
+                    html += 'data-object-name="' + objectData.objectName + '" ';
+                    html += 'data-property-name="' + prop.name + '" ';
+                    html += 'data-data-type="' + (prop.dataType || '') + '" ';
+                    html += 'data-data-size="' + (prop.dataSize || '') + '"';
+                    
+                    // Add lookup property specific attributes
+                    if (prop.isLookupProperty) {
+                        html += ' data-is-lookup-property="true"';
+                        html += ' data-source-lookup-obj-implementation-obj-name="' + (prop.sourceLookupObjImplementationObjName || '') + '"';
+                        html += ' data-source-object-name="' + (prop.sourceObjectName || '') + '"';
+                        html += ' data-source-property-name="' + (prop.sourcePropertyName || '') + '"';
+                    } else {
+                        html += ' data-is-lookup-property="false"';
+                    }
+                    
+                    html += '>';
+                    html += '<span class="property-display">' + displayText + dataTypeInfo + '</span>';
+                    html += '</label>';
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+            }
+        });
+        
+        if (html === '') {
+            html = '<div class="no-properties">No properties available</div>';
+        }
+        
+        container.innerHTML = html;
+    }
+    
+    // Function to add a new column with property metadata
+    function addNewPropertyColumn(columnData) {
+        // Send message to add a new column with property metadata
+        vscode.postMessage({
+            command: 'addPropertyColumn',
+            data: columnData
         });
     }
     `;

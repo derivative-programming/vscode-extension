@@ -189,6 +189,24 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addPropertyColumn":
+                    if (modelService && reportReference) {
+                        // Add a new column based on a data object property
+                        addPropertyColumnToReport(reportReference, modelService, message.data, panel);
+                    } else {
+                        console.warn("Cannot add property column: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
+                case "getAvailableProperties":
+                    if (modelService && reportReference) {
+                        // Get available data object properties for the report
+                        getAvailablePropertiesForReport(reportReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot get available properties: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
                 case "addDestinationButtonColumn":
                     if (modelService && reportReference) {
                         // Add a new destination button column to the report
@@ -2336,6 +2354,241 @@ function updateTargetChildSubscription(data, reportReference, modelService, pane
         
     } catch (error) {
         console.error("Error updating target child subscription:", error);
+    }
+}
+
+/**
+ * Adds a new column to the report based on a data object property
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {Object} data The property data including sourceObjectName, sourcePropertyName, dataType, dataSize
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addPropertyColumnToReport(reportReference, modelService, data, panel) {
+    console.log("addPropertyColumnToReport called with data:", data);
+    
+    if (!reportReference || !modelService || !data || !data.name) {
+        console.error("Missing required data to add property column");
+        return;
+    }
+    
+    try {
+        // Initialize the columns array if it doesn't exist
+        if (!reportReference.reportColumn) {
+            reportReference.reportColumn = [];
+        }
+        
+        // Create a new column with property metadata
+        const newColumn = {
+            name: data.name,
+            isButton: 'false'
+        };
+        
+        // Handle lookup properties vs regular properties
+        if (data.isLookupProperty) {
+            // For lookup properties, use the lookup object metadata
+            newColumn.sourceObjectName = data.sourceObjectName; // The lookup object name
+            newColumn.sourcePropertyName = data.sourcePropertyName; // The lookup property name
+            newColumn.sourceLookupObjImplementationObjName = data.sourceLookupObjImplementationObjName; // The original data object name
+        } else {
+            // For regular properties
+            newColumn.sourceObjectName = data.sourceObjectName || '';
+            newColumn.sourcePropertyName = data.sourcePropertyName || '';
+        }
+        
+        // Add data type if provided
+        if (data.dataType) {
+            newColumn.sqlServerDBDataType = data.dataType;
+        }
+        
+        // Add data size if provided
+        if (data.dataSize) {
+            newColumn.sqlServerDBDataTypeSize = data.dataSize;
+        }
+
+        if (data.isVisible) {
+            newColumn.isVisible = data.isVisible;
+        }
+        
+        // Add the new column to the array
+        reportReference.reportColumn.push(newColumn);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the columns list and select the new column
+        if (panel && panel.webview) {
+            const newColumnIndex = reportReference.reportColumn.length - 1; // New column is the last one
+            panel.webview.postMessage({
+                command: 'refreshColumnsList',
+                data: reportReference.reportColumn,
+                newSelection: newColumnIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding property column:", error);
+    }
+}
+
+/**
+ * Gets available data object properties for the report and sends them to the webview
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance  
+ * @param {Object} panel The webview panel to send response
+ */
+function getAvailablePropertiesForReport(reportReference, modelService, panel) {
+    console.log("getAvailablePropertiesForReport called");
+    
+    try {
+        const propertiesData = [];
+        
+        // Get all data objects from the model
+        const allObjects = modelService.getAllObjects();
+        
+        // Function to get parent hierarchy for an object
+        function getParentHierarchy(objectName) {
+            const parents = [];
+            let currentObjectName = objectName;
+            
+            while (currentObjectName) {
+                const obj = allObjects.find(o => o.name && o.name.toLowerCase() === currentObjectName.toLowerCase());
+                if (obj && obj.parentObjectName) {
+                    const parentObj = allObjects.find(p => p.name && p.name.toLowerCase() === obj.parentObjectName.toLowerCase());
+                    if (parentObj && !parents.find(p => p.name === parentObj.name)) {
+                        parents.push(parentObj);
+                        currentObjectName = parentObj.name;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            
+            return parents;
+        }
+        
+        // Function to extract properties from an object
+        function extractPropertiesFromObject(obj) {
+            const properties = [];
+            
+            if (obj.prop && Array.isArray(obj.prop)) {
+                obj.prop.forEach(prop => {
+                    if (prop.name) {
+                        // Add the regular property
+                        properties.push({
+                            name: prop.name,
+                            dataType: prop.sqlServerDBDataType || '',
+                            dataSize: prop.sqlServerDBDataTypeSize || '',
+                            fullPath: `${obj.name}.${prop.name}`,
+                            isFKLookup: prop.isFKLookup === 'true',
+                            fKObjectName: prop.fKObjectName || ''
+                        });
+                        
+                        // If this is a FK lookup property, add the lookup object properties
+                        if (prop.isFKLookup === 'true' && prop.fKObjectName) {
+                            const lookupObject = allObjects.find(o => o.name && o.name.toLowerCase() === prop.fKObjectName.toLowerCase());
+                            if (lookupObject && lookupObject.prop && Array.isArray(lookupObject.prop)) {
+                                lookupObject.prop.forEach(lookupProp => {
+                                    if (lookupProp.name) {
+                                        properties.push({
+                                            name: `${prop.name}.${lookupObject.name}.${lookupProp.name}`,
+                                            dataType: lookupProp.sqlServerDBDataType || '',
+                                            dataSize: lookupProp.sqlServerDBDataTypeSize || '',
+                                            fullPath: `${obj.name}.${prop.name}.${lookupObject.name}.${lookupProp.name}`,
+                                            isLookupProperty: true,
+                                            sourceLookupObjImplementationObjName: obj.name,
+                                            sourceObjectName: lookupObject.name,
+                                            sourcePropertyName: lookupProp.name,
+                                            parentPropertyName: prop.name
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+            }
+            
+            return properties;
+        }
+        
+        // Start with target child object if it exists
+        const reportName = reportReference.name;
+        const targetChildObject = modelService.getReportTargetChildObject(reportName);
+        
+        if (targetChildObject) {
+            // Add target child object properties first
+            const targetProperties = extractPropertiesFromObject(targetChildObject);
+            if (targetProperties.length > 0) {
+                propertiesData.push({
+                    objectName: targetChildObject.name,
+                    properties: targetProperties
+                });
+            }
+            
+            // Add parent hierarchy properties
+            const parentHierarchy = getParentHierarchy(targetChildObject.name);
+            parentHierarchy.forEach(parentObj => {
+                const parentProperties = extractPropertiesFromObject(parentObj);
+                if (parentProperties.length > 0) {
+                    propertiesData.push({
+                        objectName: parentObj.name,
+                        properties: parentProperties
+                    });
+                }
+            });
+        } else {
+            // If no target child, get the report owner object
+            const reportOwnerObject = modelService.getReportOwnerObject(reportName);
+            if (reportOwnerObject) {
+                const ownerProperties = extractPropertiesFromObject(reportOwnerObject);
+                if (ownerProperties.length > 0) {
+                    propertiesData.push({
+                        objectName: reportOwnerObject.name,
+                        properties: ownerProperties
+                    });
+                }
+                
+                // Add parent hierarchy properties for the owner object
+                const parentHierarchy = getParentHierarchy(reportOwnerObject.name);
+                parentHierarchy.forEach(parentObj => {
+                    const parentProperties = extractPropertiesFromObject(parentObj);
+                    if (parentProperties.length > 0) {
+                        propertiesData.push({
+                            objectName: parentObj.name,
+                            properties: parentProperties
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Send the properties data to the webview
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'populateAvailableProperties',
+                data: propertiesData
+            });
+        }
+        
+        console.log("Available properties data sent:", propertiesData.length, "objects");
+        
+    } catch (error) {
+        console.error("Error getting available properties:", error);
+        
+        // Send empty data on error
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'populateAvailableProperties',
+                data: []
+            });
+        }
     }
 }
 

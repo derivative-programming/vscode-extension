@@ -501,6 +501,117 @@ function getDetailViewStyles() {
         .secondary-button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+
+        /* Modal tabs styling */
+        .modal-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            margin-bottom: 15px;
+        }
+
+        .modal-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            background-color: var(--vscode-tab-inactiveBackground);
+            border: none;
+            outline: none;
+            color: var(--vscode-tab-inactiveForeground);
+            margin-right: 2px;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+            user-select: none;
+            font-size: 13px;
+        }
+
+        .modal-tab.active {
+            background-color: var(--vscode-tab-activeBackground);
+            color: var(--vscode-tab-activeForeground);
+            border-bottom: 2px solid var(--vscode-focusBorder);
+        }
+
+        .modal-tab-content {
+            display: none;
+        }
+
+        .modal-tab-content.active {
+            display: block;
+        }
+
+        /* Properties container styling */
+        .properties-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            border-radius: 3px;
+            padding: 8px;
+        }
+
+        .object-group {
+            margin-bottom: 15px;
+        }
+
+        .object-header {
+            font-weight: bold;
+            font-size: 13px;
+            color: var(--vscode-foreground);
+            margin-bottom: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+
+        .property-item {
+            display: flex;
+            align-items: center;
+            padding: 3px 0;
+            margin: 2px 0;
+        }
+
+        .property-checkbox {
+            margin-right: 8px;
+            transform: scale(0.9);
+            cursor: pointer;
+        }
+
+        .property-name {
+            flex: 1;
+            font-size: 12px;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+        }
+
+        .property-type {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            margin-left: 8px;
+            font-style: italic;
+        }
+
+        .property-item:hover {
+            background-color: var(--vscode-list-hoverBackground);
+            border-radius: 2px;
+        }
+
+        /* Select all controls for properties */
+        .select-all-container {
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+
+        .select-all-item {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+        }
+
+        .select-all-checkbox {
+            margin-right: 8px;
+            transform: scale(0.9);
+            cursor: pointer;
+        }
     `;
 }
 

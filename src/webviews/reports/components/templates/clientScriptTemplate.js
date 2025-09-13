@@ -285,6 +285,14 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                             console.warn('No active general flow search modal to populate');
                         }
                         break;
+                    case 'populateAvailableProperties':
+                        // Populate the available properties in the add column modal
+                        if (typeof populateAvailableProperties === 'function') {
+                            populateAvailableProperties(message.data);
+                        } else {
+                            console.warn('populateAvailableProperties function not available');
+                        }
+                        break;
                 }
             });
             
