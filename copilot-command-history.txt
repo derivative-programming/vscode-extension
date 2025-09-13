@@ -1,3 +1,73 @@
+**Add General Flow Wizard Implementation - 2025-08-31**
+
+## Task: Create Add General Flow Wizard
+- Review existing FORMS treeview plus icon button and Add Form Wizard
+- Create similar plus icon button for GENERAL flow treeview item
+- Copy all files to create new "Add General Flow Wizard" view
+- Follow same wizard steps as form wizard but for general flows
+- Architecture: Similar to form wizard but creates objectWorkflow items without isPage="true"
+
+**Fix Flow Name Generation Logic - 2025-08-31**
+
+## Issue:
+- General flow name generation logic was different from form name generation
+- Missing role inclusion in flow names
+- Incorrect action vs target logic
+- Different title formatting
+
+## Fix Applied:
+Updated both generateFlowName() and generateFlowTitle() to match form wizard exactly:
+
+1. **Name Generation Pattern:**
+   - Before: `owner + (target || action || "GeneralFlow")`
+   - After: `owner + role + action + (target if newInstance)`
+
+2. **Title Generation Pattern:**
+   - Before: Simple concatenation with spaces
+   - After: Proper human-readable format: `[Action] [ObjectName]` or `[Action] [ChildObject]`
+
+3. **Added convertToHumanReadable() function** for consistent CamelCase to spaced text conversion
+
+4. **Improved Logic:**
+   - Uses 'Add' as default action for new instances
+   - Includes role in name generation
+   - Proper conditional logic for target vs owner object naming
+
+Build Status: ✅ Successful compilation
+Now matches form wizard naming patterns exactly
+
+**Fix Step 2 'Required Role' Dropdown - 2025-08-31**
+
+## Issue:
+- Step 2 'Required Role' dropdown items were incorrect
+- Was showing Role object names instead of actual role values
+- Root cause: Logic copied Role object names directly instead of extracting lookupItem values
+
+## Fix Applied:
+1. Updated role options generation to extract from Role objects' lookupItem arrays
+2. Changed filter to use obj.lookupItem and item.displayName properties  
+3. Updated conditions to check roleOptions.length instead of roleObjects.length
+4. Now matches form wizard pattern exactly
+
+Code Changes:
+- Extract role options: roleObjects.filter(obj => obj.lookupItem).flatMap(obj => obj.lookupItem).filter(item => item.displayName)
+- Use item.displayName for option values and display text
+- Updated hasRoleObjects logic to use roleOptions.length
+
+Build Status: ✅ Successful compilation
+
+**Duplicate Command Registration Fix - 2025-08-31**
+
+## Issue: 
+- Extension activation failed with error: "command 'appdna.showGeneralFlowDetails' already exists"
+- Root cause: Command was being registered multiple times in registerCommands.ts
+
+## Fix Applied:
+1. Removed duplicate registrations at lines 498 and 1065 in registerCommands.ts
+2. Added proper import: `import { registerGeneralFlowCommands } from './generalFlowCommands'`
+3. Replaced manual registrations with function call: `registerGeneralFlowCommands(context, modelService)`
+4. Build Status: ✅ Successful compilation, no more duplicate errors
+
 **Add Report Wizard Bug Fix - 2025-08-31**
 
 ## Issue Identified:

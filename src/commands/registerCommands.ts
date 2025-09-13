@@ -12,6 +12,7 @@ import { addFileCommand, addObjectCommand, removeObjectCommand, generateCodeComm
 import { newProjectCommand, openProjectCommand, saveProjectCommand } from './projectCommands';
 import { startMCPServerCommand, stopMCPServerCommand } from './mcpCommands';
 import { startMCPHttpServerCommand, stopMCPHttpServerCommand } from './mcpHttpCommands';
+import { registerGeneralFlowCommands } from './generalFlowCommands';
 import * as objectDetailsView from '../webviews/objectDetailsView';
 import * as reportDetailsView from '../webviews/reports/reportDetailsView';
 import * as formDetailsView from '../webviews/formDetailsView';
@@ -489,21 +490,6 @@ export function registerCommands(
                 }
             } catch (err: any) {
                 vscode.window.showErrorMessage(`Failed to open Page Init Details: ${err?.message || err}`);
-            }
-        })
-    );
-
-    // Register handler for GENERAL workflow item command from tree
-    context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.showGeneralFlowDetails', (node: JsonTreeItem) => {
-            try {
-                if (generalFlowDetailsView && typeof generalFlowDetailsView.showGeneralFlowDetails === 'function') {
-                    generalFlowDetailsView.showGeneralFlowDetails(node, modelService, context);
-                } else {
-                    vscode.window.showErrorMessage('General Flow Details view is not available.');
-                }
-            } catch (err: any) {
-                vscode.window.showErrorMessage(`Failed to open General Flow Details: ${err?.message || err}`);
             }
         })
     );
@@ -1057,6 +1043,9 @@ export function registerCommands(
             addFormCommand(modelService, context);
         })
     );
+
+    // Register general flow commands
+    registerGeneralFlowCommands(context, modelService);
 
     // Register show API details command
     // Import and delegate to apiCommands module

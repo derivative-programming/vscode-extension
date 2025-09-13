@@ -5,14 +5,15 @@ const { formatLabel } = require("../../../forms/helpers/formDataHelper");
 function getSettingsTabTemplate(flow, flowSchemaProps) {
     // Only show the following settings, in this exact order (case-insensitive match to schema keys)
     const allowedOrder = [
+        'isPage',
         'isAuthorizationRequired',
+        'roleRequired',
+        'isExposedInBusinessObject',
         'isCustomLogicOverwritten',
         'isDynaFlowTask',
-        'isExposedInBusinessObject',
         'isRequestRunViaDynaFlowAllowed',
         'pageIntroText',
-        'pageTitleText',
-        'roleRequired'
+        'pageTitleText'
     ];
 
     // Build a case-insensitive lookup of schema keys

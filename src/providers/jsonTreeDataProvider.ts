@@ -646,7 +646,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                                     
                                     // All criteria must be true
                                     if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {
-                                        const displayName = workflow.titleText || workflow.name;
+                                        const displayName = workflow.name || workflow.titleText;
                                         const objectName = obj.name || 'Unknown Object';
                                         
                                         // Apply filters (global and general specific)
@@ -810,7 +810,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
                             obj.objectWorkflow.forEach((workflow: any) => {
                                 if (workflow.name && workflow.isDynaFlow === "true") {
-                                    const displayName = workflow.titleText || workflow.name;
+                                    const displayName = workflow.name || workflow.titleText;
                                     
                                     // Apply filters (global and workflows specific)
                                     if (this.applyFilter(displayName) && this.applyWorkflowsFilter(displayName)) {
@@ -878,7 +878,7 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                         if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
                             obj.objectWorkflow.forEach((workflow: any) => {
                                 if (workflow.name && workflow.isDynaFlowTask === "true") {
-                                    const displayName = workflow.titleText || workflow.name;
+                                    const displayName = workflow.name || workflow.titleText;
                                     
                                     // Apply filters (global and workflow tasks specific)
                                     if (this.applyFilter(displayName) && this.applyWorkflowTasksFilter(displayName)) {

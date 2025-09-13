@@ -299,6 +299,50 @@ export class ModelService {
     }
 
     /**
+     * Get all general flows (objectWorkflow that are not pages, not DynaFlow, not DynaFlowTask, and not init flows)
+     * @returns Array of all general flow objects
+     */
+    public getAllGeneralFlows(): any[] {
+        // Get all objects from all namespaces
+        const allObjects = this.getAllObjects();
+        if (!allObjects || allObjects.length === 0) {
+            return [];
+        }
+
+        // Flatten the arrays of general flows from all objects
+        const allGeneralFlows: any[] = [];
+        
+        for (const object of allObjects) {
+            if (object.objectWorkflow && Array.isArray(object.objectWorkflow)) {
+                // Filter for general flows using the same logic as generalFlowDetailsView.js
+                const generalFlows = object.objectWorkflow.filter((workflow: any) => {
+                    // 1. isDynaFlow property does not exist or is false
+                    const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false";
+                    
+                    // 2. isDynaFlowTask property does not exist or is false
+                    const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
+                    
+                    // 3. isPage property is false
+                    const isPageOk = workflow.isPage === "false";
+                    
+                    // 4. name does not end with initobjwf
+                    const workflowName = (workflow.name || '').toLowerCase();
+                    const notInitObjWf = !workflowName.endsWith('initobjwf');
+                    
+                    // 5. name does not end with initreport
+                    const notInitReport = !workflowName.endsWith('initreport');
+                    
+                    // All criteria must be true
+                    return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
+                });
+                allGeneralFlows.push(...generalFlows);
+            }
+        }
+        
+        return allGeneralFlows;
+    }
+
+    /**
      * Get a specific report by name
      * @param reportName Name of the report to find
      * @returns The report object if found, null otherwise

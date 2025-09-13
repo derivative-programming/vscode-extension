@@ -1,4 +1,35 @@
-2024-12-31 XX:XX:XX - USER STORY REQUIREMENT FULFILLMENTS VIEW - WRAP ALL CSV CELLS IN QUOTES
+==============================
+COMMAND HISTORY ENTRY - ADD GENERAL FLOW WIZARD
+==============================
+Date: Sun Aug 31 2025 15:50:00 GMT-0400
+Command: "Add similar plus icon button on the GENERAL flow treeview item and have it open a similar 'Add General Flow Wizard' view"
+Status: ✅ COMPLETED SUCCESSFULLY
+
+Implementation Summary:
+- Created addGeneralFlowWizardView.js: 5-step wizard for creating general flows
+- Created generalFlowCommands.ts: Command handlers for general flow operations
+- Updated package.json: Added command, menu item, and keyboard shortcut (alt+a g)
+- Updated registerCommands.ts: Registered general flow commands
+- Enhanced ModelService: Added getAllGeneralFlows() method
+
+Architecture Notes:
+- Followed existing pattern from form wizard implementation
+- Used consistent webview message passing architecture
+- Maintained schema-driven UI generation approach
+- Added proper tree view menu integration
+- Implemented keyboard shortcut for accessibility
+
+Build Status: ✅ Successful compilation
+Files Modified: 5 files created/updated
+No errors detected in webpack build
+
+Next Steps:
+- Test the plus icon appears on GENERAL tree items
+- Verify wizard opens and functions correctly
+- Confirm general flows are created successfully
+==============================
+
+PREVIOUS ENTRIES:
 USER REQUEST: "all cells in the export need to be wrapped in double quotes"
 **Status**: ✅ COMPLETED
 

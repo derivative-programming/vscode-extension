@@ -132,6 +132,12 @@
           "icon": "$(add)"
         },
         {
+          "command": "appdna.addGeneralFlow",
+          "when": "viewItem =~ /general.*showGeneralFilter/",
+          "group": "inline@1",
+          "icon": "$(add)"
+        },
+        {
           "command": "appdna.showHierarchyDiagram",
           "when": "viewItem =~ /dataObjects.*showHierarchy/",
           "group": "inline",
@@ -299,6 +305,11 @@
       {
         "command": "appdna.addForm",
         "title": "Add Form",
+        "icon": "$(add)"
+      },
+      {
+        "command": "appdna.addGeneralFlow",
+        "title": "Add General Flow",
         "icon": "$(add)"
       },
       {
@@ -543,6 +554,10 @@
       {
         "command": "appdna.addForm",
         "key": "alt+a f"
+      },
+      {
+        "command": "appdna.addGeneralFlow",
+        "key": "alt+a g"
       },
       {
         "command": "appdna.refreshView",

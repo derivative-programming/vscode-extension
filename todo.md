@@ -6,14 +6,14 @@ page init flow...
 
 allow add of general flow
 
+
+
 allow add of page init flow (plus sign on page detail view next to empty display)
  
 add form wizard cration of init page shows title instead of name of init flow in treeview.
 
 report column - need lookup on Button Object WF Name setting? are we displaying this property? are we showing a page lookup now?
 
-report details view 
-- test: allow creation of column async flow button
 
 report details  column - add button - multiselect
  
@@ -178,7 +178,6 @@ functions
         - show validation request change request list
  
   
-test:When completed, create a report item in the owner data object report array. Add the new report item to the treeview. Open the new report item in the report details view.
 
 in the case where the model file is not found or deleted, set the flag showing the model is updated to false. should not be showing indicator that changes exist on the treeview title item
 
@@ -186,104 +185,7 @@ dont validate on model change request approval.
 
 does 'validate all' work?  validate all when view comes up?
    
-
-report items...
-extension...
-{
-                "name": "CustomerUserCustomerRoleTest",
-                "titleText": "Customer User Customer Role",
-                "visualizationType": "grid",
-                "isCustomSqlUsed": "false",
-                "isPage": "true",
-                "reportColumn": [
-                  {
-                    "name": "TestCol"
-                  }
-                ],
-                "reportButton": [
-                  {
-                    "buttonName": "Back",
-                    "buttonText": "Back",
-                    "buttonType": "back"
-                  },
-                  {
-                    "buttonName": "TestBtn"
-                  }
-                ],
-                "reportParam": [
-                  {
-                    "name": "TestFilter"
-                  }
-                ],
-                "isAuthorizationRequired": "true",
-                "roleRequired": "User",
-                "layoutName": "UserLayout",
-                "targetChildObject": "CustomerRole"
-              }
-win app...
-
-              {
-                "isCustomSqlUsed": "false",
-                "isPage": "true",
-                "layoutName": "UserLayout",
-                "name": "CustomerUserCustomerEmailRequestListTest",
-                "reportButton": [
-                  {
-                    "buttonName": "Back",
-                    "buttonText": "Back",
-                    "buttonType": "back"
-                  },
-                  {
-                    "buttonName": "TestBtn",
-                    "buttonText": "Test Btn",
-                    "buttonType": "other"
-                  },
-                  {
-                    "buttonName": "CustomerUserCustomerEmailRequestListTestBreadcrumb",
-                    "buttonType": "breadcrumb",
-                    "destinationContextObjectName": "Customer",
-                    "destinationTargetName": "CustomerUserCustomerEmailRequestListTest"
-                  }
-                ],
-                "reportColumn": [
-                  {
-                    "isButton": "false",
-                    "name": "TestCol"
-                  },
-                  {
-                    "buttonText": "TestDestBtn",
-                    "destinationContextObjectName": "CustomerEmailRequest",
-                    "destinationTargetName": "CustomerEmailRequestConfigDetails",
-                    "isButton": "true",
-                    "isVisible": "true",
-                    "name": "TestDestBtnLinkCustomerEmailRequestCode",
-                    "sourceObjectName": "CustomerEmailRequest",
-                    "sourcePropertyName": "Code",
-                    "sqlServerDBDataType": "uniqueidentifier"
-                  },
-                  {//TODO async flow btn
-                    "buttonText": "TestAsyncFlowBtn",
-                    "destinationContextObjectName": "CustomerEmailRequest",
-                    "destinationTargetName": "CustomerEmailRequestAdminGetAttachment",
-                    "isButton": "true",
-                    "isButtonAsyncObjWF": "true",
-                    "isVisible": "true",
-                    "name": "TestAsyncFlowBtnLinkCustomerEmailRequestCode",
-                    "sourceObjectName": "CustomerEmailRequest",
-                    "sourcePropertyName": "Code",
-                    "sqlServerDBDataType": "uniqueidentifier"
-                  }
-                ],
-                "reportParam": [
-                  {
-                    "name": "TestFilter"
-                  }
-                ],
-                "roleRequired": "User",
-                "targetChildObject": "CustomerEmailRequest",
-                "titleText": "Customer User Customer Email Request List Test",
-                "visualizationType": "Grid"
-              },
+ 
 
 
 *************************
