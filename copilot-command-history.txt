@@ -28,6 +28,28 @@ Updated both generateFlowName() and generateFlowTitle() to match form wizard exa
 
 3. **Added convertToHumanReadable() function** for consistent CamelCase to spaced text conversion
 
+**Remove Title Field from General Flow Wizard - 2025-09-13**
+
+## Issue:
+- General flows do not use the titleText property, only the name property
+- Wizard was asking for unnecessary title input
+- Created confusion between name and title fields
+
+## Changes Applied:
+1. **Removed titleText property** from created general flow object
+2. **Updated Step 5 HTML** from "Name and Title" to just "Name"
+3. **Removed title input field** and validation from UI
+4. **Removed validateTitle case** from message handler
+5. **Removed generateFlowTitle function** entirely
+6. **Updated all generateFlowTitle() calls** throughout the code
+7. **Simplified updateCreateButton** to only validate name
+8. **Updated createGeneralFlow data** to exclude flowTitle
+
+Result: Cleaner, more focused wizard that only collects necessary information.
+
+Status: ✅ COMPLETED SUCCESSFULLY
+Architecture: Maintained existing patterns while simplifying the interface
+
 4. **Improved Logic:**
    - Uses 'Add' as default action for new instances
    - Includes role in name generation

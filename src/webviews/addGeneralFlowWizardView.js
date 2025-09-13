@@ -40,7 +40,7 @@ function showAddGeneralFlowWizard(modelService, context) {
             switch (message.command) {
                 case 'createGeneralFlow':
                     try {
-                        const { ownerObjectName, roleRequired, isCreatingNewInstance, targetObjectName, action, flowName, flowTitle } = message.data;
+                        const { ownerObjectName, roleRequired, isCreatingNewInstance, targetObjectName, action, flowName } = message.data;
                         
                         // Find the owner object
                         const ownerObject = allObjects.find(obj => obj.name === ownerObjectName);
@@ -60,7 +60,6 @@ function showAddGeneralFlowWizard(modelService, context) {
                         // Create the new general flow
                         const newGeneralFlow = {
                             name: flowName,
-                            titleText: flowTitle,
                             objectWorkflowOutputVar: [],
                             isPage: "false",
                             isExposedInBusinessObject: "true"
@@ -187,46 +186,6 @@ function showAddGeneralFlowWizard(modelService, context) {
                             command: "nameValidation", 
                             isValid: false, 
                             message: "Error validating name"
-                        });
-                    }
-                    return;
-                    
-                case "validateTitle":
-                    try {
-                        const { flowTitle } = message.data;
-                        
-                        // Validate title is not empty
-                        if (!flowTitle) {
-                            panel.webview.postMessage({ 
-                                command: "titleValidation", 
-                                isValid: false, 
-                                message: "General flow title cannot be empty"
-                            });
-                            return;
-                        }
-                        
-                        // Validate title length does not exceed 100 characters
-                        if (flowTitle.length > 100) {
-                            panel.webview.postMessage({ 
-                                command: "titleValidation", 
-                                isValid: false, 
-                                message: "General flow title cannot exceed 100 characters"
-                            });
-                            return;
-                        }
-                        
-                        // Title is valid
-                        panel.webview.postMessage({ 
-                            command: "titleValidation", 
-                            isValid: true, 
-                            message: "General flow title is valid"
-                        });
-                        
-                    } catch (error) {
-                        panel.webview.postMessage({ 
-                            command: "titleValidation", 
-                            isValid: false, 
-                            message: "Error validating title"
                         });
                     }
                     return;
@@ -513,19 +472,14 @@ function generateWizardHTML(allObjects, roleObjects) {
             
             <!-- Step 5: General Flow Details -->
             <div id="step5" class="step">
-                <h2>Step 5: General Flow Name and Title</h2>
+                <h2>Step 5: General Flow Name</h2>
                 <div class="description">
-                    Provide a name and title for the new general flow. The name will be used internally, while the title will be displayed to users.
+                    Provide a name for the new general flow. The name will be used internally to identify this workflow.
                 </div>
                 <div class="form-group">
                     <label for="flowName">General Flow Name:</label>
                     <input type="text" id="flowName" placeholder="Enter general flow name (PascalCase, e.g., ProcessCustomerData)">
                     <div id="flowNameValidation" class="validation-message"></div>
-                </div>
-                <div class="form-group">
-                    <label for="flowTitle">General Flow Title:</label>
-                    <input type="text" id="flowTitle" placeholder="Enter general flow title (e.g., Process Customer Data)">
-                    <div id="flowTitleValidation" class="validation-message"></div>
                 </div>
                 <div class="button-container">
                     <button type="button" id="step5BackBtn" class="secondary-button">Back</button>
@@ -623,7 +577,6 @@ function generateWizardHTML(allObjects, roleObjects) {
                     } else if (currentStep === '4a' || currentStep === '4b') {
                         showStep(5);
                         generateFlowName();
-                        generateFlowTitle();
                     } else {
                         showStep(currentStep + 1);
                     }
@@ -707,7 +660,6 @@ function generateWizardHTML(allObjects, roleObjects) {
                 document.getElementById('step4aNextBtn').addEventListener('click', () => {
                     showStep(5);
                     generateFlowName();
-                    generateFlowTitle();
                 });
                 
                 // Handle step 4a keyboard navigation
@@ -752,7 +704,6 @@ function generateWizardHTML(allObjects, roleObjects) {
                 document.getElementById('step4bNextBtn').addEventListener('click', () => {
                     showStep(5);
                     generateFlowName();
-                    generateFlowTitle();
                 });
                 
                 // Handle step 4b keyboard navigation
@@ -765,7 +716,6 @@ function generateWizardHTML(allObjects, roleObjects) {
                 
                 // Step 5: General Flow Details
                 document.getElementById('flowName').addEventListener('input', validateFlowName);
-                document.getElementById('flowTitle').addEventListener('input', validateFlowTitle);
                 
                 document.getElementById('step5BackBtn').addEventListener('click', previousStep);
                 document.getElementById('createGeneralFlowBtn').addEventListener('click', function() {
@@ -775,8 +725,7 @@ function generateWizardHTML(allObjects, roleObjects) {
                         isCreatingNewInstance: isCreatingNewInstance,
                         targetObjectName: selectedTarget,
                         action: selectedAction,
-                        flowName: document.getElementById('flowName').value.trim(),
-                        flowTitle: document.getElementById('flowTitle').value.trim()
+                        flowName: document.getElementById('flowName').value.trim()
                     };
                     
                     vscode.postMessage({
@@ -810,38 +759,6 @@ function generateWizardHTML(allObjects, roleObjects) {
                     validateFlowName();
                 }
                 
-                function generateFlowTitle() {
-                    const owner = selectedOwner ? convertToHumanReadable(selectedOwner) : 'Object';
-                    const target = selectedTarget ? convertToHumanReadable(selectedTarget) : '';
-                    
-                    // Use 'Add' as default action when creating new instance, otherwise use selectedAction
-                    const action = isCreatingNewInstance === true ? (selectedAction || 'Add') : (selectedAction || '');
-                    const actionReadable = action ? convertToHumanReadable(action) : '';
-                    
-                    let title = '';
-                    
-                    // Format: [Action] [OwnerObjectName] or [Action] [ChildObjectName]
-                    if (actionReadable) {
-                        title = actionReadable + ' ';
-                        // Use child object name if creating new instance, otherwise use owner object name
-                        if (target && isCreatingNewInstance) {
-                            title += target;
-                        } else {
-                            title += owner;
-                        }
-                    } else {
-                        // If no action, just use the object name
-                        if (target && isCreatingNewInstance) {
-                            title = target;
-                        } else {
-                            title = owner;
-                        }
-                    }
-                    
-                    document.getElementById('flowTitle').value = title;
-                    validateFlowTitle();
-                }
-                
                 function validateFlowName() {
                     const flowName = document.getElementById('flowName').value;
                     if (flowName) {
@@ -856,27 +773,11 @@ function generateWizardHTML(allObjects, roleObjects) {
                     }
                 }
                 
-                function validateFlowTitle() {
-                    const flowTitle = document.getElementById('flowTitle').value;
-                    if (flowTitle) {
-                        vscode.postMessage({
-                            command: 'validateTitle',
-                            data: { flowTitle }
-                        });
-                    } else {
-                        document.getElementById('flowTitleValidation').textContent = '';
-                        document.getElementById('flowTitleValidation').className = 'validation-message';
-                        updateCreateButton();
-                    }
-                }
-                
                 function updateCreateButton() {
                     const flowName = document.getElementById('flowName').value.trim();
-                    const flowTitle = document.getElementById('flowTitle').value.trim();
                     const nameValid = document.getElementById('flowNameValidation').classList.contains('valid') || !flowName;
-                    const titleValid = document.getElementById('flowTitleValidation').classList.contains('valid') || !flowTitle;
                     
-                    document.getElementById('createGeneralFlowBtn').disabled = !flowName || !flowTitle || !nameValid || !titleValid;
+                    document.getElementById('createGeneralFlowBtn').disabled = !flowName || !nameValid;
                 }
                 
                 function convertToHumanReadable(text) {
@@ -893,13 +794,6 @@ function generateWizardHTML(allObjects, roleObjects) {
                             const nameValidationDiv = document.getElementById('flowNameValidation');
                             nameValidationDiv.textContent = message.message;
                             nameValidationDiv.className = message.isValid ? 'validation-message valid' : 'validation-message invalid';
-                            updateCreateButton();
-                            break;
-                            
-                        case 'titleValidation':
-                            const titleValidationDiv = document.getElementById('flowTitleValidation');
-                            titleValidationDiv.textContent = message.message;
-                            titleValidationDiv.className = message.isValid ? 'validation-message valid' : 'validation-message invalid';
                             updateCreateButton();
                             break;
                             
