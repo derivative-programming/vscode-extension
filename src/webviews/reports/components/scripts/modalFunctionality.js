@@ -322,6 +322,55 @@ function getModalFunctionality() {
         const cancelButton = modal.querySelector("#cancelMultiSelectButton");
         const errorElement = modal.querySelector("#multiSelectValidationError");
         
+        // Store original button text for validation response
+        let originalButtonText = '';
+        
+        // Listen for validation response from backend
+        function handleValidationResponse(event) {
+            const message = event.data;
+            if (message.command === 'multiSelectButtonValidationResult') {
+                addButton.disabled = false;
+                addButton.textContent = "Add Button";
+                
+                if (message.data.valid) {
+                    // Validation passed - proceed to create the button
+                    try {
+                        vscode.postMessage({
+                            command: 'addMultiSelectButton',
+                            data: {
+                                buttonText: message.data.buttonText
+                            }
+                        });
+                        
+                        // Close the modal
+                        document.body.removeChild(modal);
+                        
+                        // Remove the event listener
+                        window.removeEventListener('message', handleValidationResponse);
+                    } catch (error) {
+                        console.error("Error adding multi-select button:", error);
+                        errorElement.textContent = "Error adding button. Please try again.";
+                    }
+                } else {
+                    // Validation failed - show error
+                    errorElement.textContent = message.data.error;
+                }
+            }
+        }
+        
+        // Add validation response listener
+        window.addEventListener('message', handleValidationResponse);
+        
+        // Remove listener when modal is closed
+        const originalRemoveChild = document.body.removeChild;
+        document.body.removeChild = function(child) {
+            if (child === modal) {
+                window.removeEventListener('message', handleValidationResponse);
+                document.body.removeChild = originalRemoveChild;
+            }
+            return originalRemoveChild.call(this, child);
+        };
+
         // Validation function
         function validateButtonText(text) {
             if (!text || text.trim() === '') {
@@ -330,7 +379,18 @@ function getModalFunctionality() {
             if (text.length > 100) {
                 return "Button text cannot exceed 100 characters";
             }
-            return null; // Valid
+            
+            // Generate button name from text (Pascal case, remove spaces)
+            const buttonName = text.replace(/\s+/g, '');
+            
+            // Check if button with this name already exists
+            if (currentButtons && currentButtons.some(button => button.buttonName === buttonName)) {
+                return "Button with this name already exists";
+            }
+            
+            // Check if the generated flow name would conflict with existing flows
+            // We need to send a validation request to the backend for this
+            return null; // Basic validation passed, backend will do final validation
         }
         
         // Add button event listener
@@ -347,20 +407,28 @@ function getModalFunctionality() {
                 // Clear any previous error
                 errorElement.textContent = "";
                 
+                // Disable the add button while validating
+                addButton.disabled = true;
+                addButton.textContent = "Validating...";
+                
                 try {
-                    // Send message to backend to add multi-select button
+                    // Send validation request to backend first
                     vscode.postMessage({
-                        command: 'addMultiSelectButton',
+                        command: 'validateMultiSelectButton',
                         data: {
                             buttonText: buttonText
                         }
                     });
                     
-                    // Close the modal
-                    document.body.removeChild(modal);
+                    // The backend will respond with validation result
+                    // If valid, it will proceed to create the button
+                    // If invalid, it will send back an error message
+                    
                 } catch (error) {
-                    console.error("Error adding multi-select button:", error);
-                    errorElement.textContent = "Error adding button. Please try again.";
+                    console.error("Error validating multi-select button:", error);
+                    errorElement.textContent = "Error validating button. Please try again.";
+                    addButton.disabled = false;
+                    addButton.textContent = "Add Button";
                 }
             });
         }

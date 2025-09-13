@@ -234,6 +234,23 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "validateMultiSelectButton":
+                    if (modelService && reportReference) {
+                        // Validate the multi-select button and flow names
+                        validateMultiSelectButtonNames(reportReference, modelService, message.data.buttonText, panel);
+                    } else {
+                        console.warn("Cannot validate multi-select button: ModelService not available or report reference not found");
+                        // Send error back to webview
+                        panel.webview.postMessage({
+                            command: 'multiSelectButtonValidationResult',
+                            data: { 
+                                valid: false, 
+                                error: "ModelService not available" 
+                            }
+                        });
+                    }
+                    return;
+                    
                 case "addMultiSelectButton":
                     if (modelService && reportReference) {
                         // Add a new multi-select button to the report
@@ -1682,6 +1699,158 @@ function addBreadcrumbToReport(reportReference, modelService, pageName, panel) {
 }
 
 /**
+ * Validates that multi-select button name and flow name don't already exist
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {string} buttonText Display text for the button
+ * @param {Object} panel The webview panel for sending response messages
+ */
+function validateMultiSelectButtonNames(reportReference, modelService, buttonText, panel) {
+    try {
+        console.log("Validating multi-select button names for buttonText:", buttonText);
+        
+        if (!reportReference || !modelService || !buttonText) {
+            panel.webview.postMessage({
+                command: 'multiSelectButtonValidationResult',
+                data: { 
+                    valid: false, 
+                    error: "Missing required data for validation" 
+                }
+            });
+            return;
+        }
+        
+        // Generate button name from text (Pascal case, remove spaces)
+        const buttonName = buttonText.replace(/\s+/g, '');
+        
+        // Check if button with this name already exists in the report
+        if (reportReference.reportButton && reportReference.reportButton.some(button => button.buttonName === buttonName)) {
+            panel.webview.postMessage({
+                command: 'multiSelectButtonValidationResult',
+                data: { 
+                    valid: false, 
+                    error: "Button with this name already exists" 
+                }
+            });
+            return;
+        }
+        
+        // Get the report properties needed to construct the flow name
+        const reportName = reportReference.name || 'UnknownReport';
+        const destinationContextObjectName = modelService.getReportOwnerObjectName ? modelService.getReportOwnerObjectName(reportName) : '';
+        const roleRequired = reportReference.roleRequired || '';
+        const targetChildObject = reportReference.targetChildObject || '';
+        
+        // Construct the flow name: [OwnerObjectName][Role][TargetChildObjectName]MultiSelect[ButtonName]
+        const flowName = (destinationContextObjectName || '') + (roleRequired || '') + (targetChildObject || '') + 'MultiSelect' + buttonName;
+        
+        // Check if a flow with this name already exists in the destination object
+        if (destinationContextObjectName) {
+            const allObjects = modelService.getAllObjects ? modelService.getAllObjects() : [];
+            const targetObject = allObjects.find(obj => 
+                obj.name && obj.name.trim().toLowerCase() === destinationContextObjectName.trim().toLowerCase()
+            );
+            
+            if (targetObject && targetObject.objectWorkflow) {
+                const existingFlow = targetObject.objectWorkflow.find(flow => 
+                    flow.name && flow.name === flowName
+                );
+                
+                if (existingFlow) {
+                    panel.webview.postMessage({
+                        command: 'multiSelectButtonValidationResult',
+                        data: { 
+                            valid: false, 
+                            error: `General flow with name "${flowName}" already exists in object "${destinationContextObjectName}"` 
+                        }
+                    });
+                    return;
+                }
+            }
+        }
+        
+        // All validations passed - proceed to create the button
+        panel.webview.postMessage({
+            command: 'multiSelectButtonValidationResult',
+            data: { 
+                valid: true, 
+                buttonText: buttonText 
+            }
+        });
+        
+    } catch (error) {
+        console.error("Error validating multi-select button names:", error);
+        panel.webview.postMessage({
+            command: 'multiSelectButtonValidationResult',
+            data: { 
+                valid: false, 
+                error: "Error during validation. Please try again." 
+            }
+        });
+    }
+}
+
+/**
+ * Creates a general flow (objectWorkflow) in the specified object for a multi-select button
+ * @param {Object} modelService ModelService instance
+ * @param {string} objectName Name of the object to add the flow to
+ * @param {string} flowName Name of the flow to create
+ * @param {string} roleRequired Role required for the flow
+ */
+function createGeneralFlowForMultiSelectButton(modelService, objectName, flowName, roleRequired) {
+    try {
+        console.log("Creating general flow:", { objectName, flowName, roleRequired });
+        
+        if (!modelService || !objectName || !flowName) {
+            console.error("Missing required data to create general flow");
+            return;
+        }
+        
+        // Get all objects and find the target object
+        const allObjects = modelService.getAllObjects ? modelService.getAllObjects() : [];
+        const targetObject = allObjects.find(obj => 
+            obj.name && obj.name.trim().toLowerCase() === objectName.trim().toLowerCase()
+        );
+        
+        if (!targetObject) {
+            console.error("Target object not found:", objectName);
+            return;
+        }
+        
+        // Initialize objectWorkflow array if it doesn't exist
+        if (!targetObject.objectWorkflow) {
+            targetObject.objectWorkflow = [];
+        }
+        
+        // Check if flow with this name already exists
+        const existingFlow = targetObject.objectWorkflow.find(flow => 
+            flow.name && flow.name === flowName
+        );
+        
+        if (existingFlow) {
+            console.log("General flow already exists:", flowName);
+            return;
+        }
+        
+        // Create the new general flow
+        const newFlow = {
+            name: flowName,
+            isPage: "false",
+            roleRequired: roleRequired || "",
+            objectWorkflowButton: []
+        };
+        
+        // Add the flow to the object
+        targetObject.objectWorkflow.push(newFlow);
+        
+        console.log("General flow created successfully:", flowName);
+        
+    } catch (error) {
+        console.error("Error creating general flow:", error);
+    }
+}
+
+/**
  * Adds a new multi-select button to the report
  * @param {Object} reportReference Reference to the report object
  * @param {Object} modelService ModelService instance
@@ -1731,6 +1900,11 @@ function addMultiSelectButtonToReport(reportReference, modelService, buttonText,
         
         // Add the new button to the array
         reportReference.reportButton.push(newButton);
+
+        // Also create a general flow in the destination context object
+        if (destinationContextObjectName) {
+            createGeneralFlowForMultiSelectButton(modelService, destinationContextObjectName, destinationTargetName, roleRequired);
+        }
         
         // Mark as having unsaved changes
         if (modelService && typeof modelService.markUnsavedChanges === 'function') {

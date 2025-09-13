@@ -1,27 +1,14 @@
 Agent todo items...
- 
-report details  column - add button - multiselect...
-just ask for button text
-report name example... AIAssistantThreadConfigAIATMessageList
-report button example...
-{
-      "buttonType": "multiSelectProcessing",
-      "buttonName": "Test", (Pascal conversion of button text with no spaces)
-      "buttonText": "Test",
-      "destinationContextObjectName": "AIAssistantThread",
-      "destinationTargetName": "AIAssistantThreadConfigAIATMessageMultiSelectTest"
-    }
-{
-  "name": "AIAssistantThreadConfigAIATMessageMultiSelectTest",
-  "isPage": "false",
-  "roleRequired": "Config",
-  "objectWorkflowButton": []
-}
+  
+
+
+report button - Destination Target Name lookup button can be a general flow too
 
 add report columns from lineage property list. add report col by selection of one or more properties in data object lineage
 
 add form controls from lineage property list
 
+whereever we show a lookup button we shoudl also show an edit butotn to open its detail view
 
 page init flow...
 - page references tab
