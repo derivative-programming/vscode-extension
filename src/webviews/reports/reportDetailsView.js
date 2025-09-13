@@ -234,6 +234,15 @@ function showReportDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addMultiSelectButton":
+                    if (modelService && reportReference) {
+                        // Add a new multi-select button to the report
+                        addMultiSelectButtonToReport(reportReference, modelService, message.data.buttonText, panel);
+                    } else {
+                        console.warn("Cannot add multi-select button: ModelService not available or report reference not found");
+                    }
+                    return;
+                    
                 case "addParam":
                     if (modelService && reportReference) {
                         // Add a new param to the report
@@ -1669,6 +1678,79 @@ function addBreadcrumbToReport(reportReference, modelService, pageName, panel) {
         vscode.commands.executeCommand("appdna.refresh");
     } catch (error) {
         console.error("Error adding breadcrumb:", error);
+    }
+}
+
+/**
+ * Adds a new multi-select button to the report
+ * @param {Object} reportReference Reference to the report object
+ * @param {Object} modelService ModelService instance
+ * @param {string} buttonText Display text for the button
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addMultiSelectButtonToReport(reportReference, modelService, buttonText, panel) {
+    console.log("addMultiSelectButtonToReport called with buttonText:", buttonText);
+    
+    if (!reportReference || !modelService || !buttonText) {
+        console.error("Missing required data to add multi-select button");
+        return;
+    }
+    
+    try {
+        // Initialize the buttons array if it doesn't exist
+        if (!reportReference.reportButton) {
+            reportReference.reportButton = [];
+        }
+        
+        // Generate a button name from the button text (Pascal case, remove spaces)
+        const buttonName = buttonText.replace(/\s+/g, '');
+        
+        // Get the report name and required properties to construct destination target name
+        const reportName = reportReference.name || 'UnknownReport';
+        
+        // Try to get the owner data object name of the report
+        const destinationContextObjectName = modelService.getReportOwnerObjectName ? modelService.getReportOwnerObjectName(reportName) : '';
+        
+        // Get the role required and target child object from the report
+        const roleRequired = reportReference.roleRequired || '';
+        const targetChildObject = reportReference.targetChildObject || '';
+        
+        // Construct destinationTargetName: [OwnerObjectName][Role][TargetChildObjectName]MultiSelect[ButtonName]
+        const destinationTargetName = (destinationContextObjectName || '') + (roleRequired || '') + (targetChildObject || '') + 'MultiSelect' + buttonName;
+        
+        // Create a new multi-select processing button with the specified properties
+        const newButton = {
+            buttonType: "multiSelectProcessing",
+            buttonName: buttonName,
+            buttonText: buttonText,
+            destinationContextObjectName: destinationContextObjectName,
+            destinationTargetName: destinationTargetName,
+            isVisible: "true",
+            isEnabled: "true"
+        };
+        
+        // Add the new button to the array
+        reportReference.reportButton.push(newButton);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the buttons list and select the new button
+        if (panel && panel.webview) {
+            const newButtonIndex = reportReference.reportButton.length - 1; // New button is the last one
+            panel.webview.postMessage({
+                command: 'refreshButtonsList',
+                data: reportReference.reportButton,
+                newSelection: newButtonIndex
+            });
+        }
+        
+        // Refresh the tree view
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding multi-select button:", error);
     }
 }
 

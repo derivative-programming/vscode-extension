@@ -465,6 +465,42 @@ function getDetailViewStyles() {
             font-size: 12px;
             font-style: italic;
         }
+
+        /* Modal buttons styling */
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .primary-button {
+            padding: 8px 16px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .primary-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+
+        .secondary-button {
+            padding: 8px 16px;
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .secondary-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
     `;
 }
 

@@ -10,6 +10,7 @@ const { getDOMInitialization } = require("../scripts/domInitialization");
 const { getModalFunctionality } = require("../scripts/modalFunctionality");
 const { getAddColumnModalHtml } = require("./addColumnModalTemplate");
 const { getAddButtonModalHtml } = require("./addButtonModalTemplate");
+const { getAddMultiSelectButtonModalHtml } = require("./addMultiSelectButtonModalTemplate");
 const { getAddParamModalHtml } = require("./addParamModalTemplate");
 const { getPageSearchModalHtml } = require("./pageSearchModalTemplate");
 const { getPageSearchModalFunctionality } = require("./pageSearchModalFunctionality");
@@ -79,6 +80,11 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
             // Add Button Modal Template Function
             function getAddButtonModalHtml() {
                 return \`${getAddButtonModalHtml()}\`;
+            }
+            
+            // Add Multi-Select Button Modal Template Function
+            function getAddMultiSelectButtonModalHtml() {
+                return \`${getAddMultiSelectButtonModalHtml()}\`;
             }
             
             // Add Param Modal Template Function

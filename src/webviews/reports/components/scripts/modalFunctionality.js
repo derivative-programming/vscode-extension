@@ -286,6 +286,139 @@ function getModalFunctionality() {
         });
     }
 
+    // Function to create and show the Add Multi-Select Button modal
+    function createAddMultiSelectButtonModal() {
+        // Create modal dialog for adding multi-select button
+        const modal = document.createElement("div");
+        modal.className = "modal";
+        
+        // Import the modal HTML template
+        const modalContent = getAddMultiSelectButtonModalHtml();
+        
+        // Set the modal content
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+        
+        // Wait for DOM to be ready before attaching event listeners
+        setTimeout(() => {
+            // Show the modal
+            modal.style.display = "flex";
+            
+            // Focus on the button text input when modal opens
+            const buttonTextInput = modal.querySelector("#multiSelectButtonText");
+            if (buttonTextInput) {
+                buttonTextInput.focus();
+            }
+            
+            // Add event listeners
+            attachMultiSelectButtonModalEventListeners(modal);
+        }, 10);
+    }
+
+    // Function to attach event listeners to the multi-select button modal
+    function attachMultiSelectButtonModalEventListeners(modal) {
+        const buttonTextInput = modal.querySelector("#multiSelectButtonText");
+        const addButton = modal.querySelector("#addMultiSelectButton");
+        const cancelButton = modal.querySelector("#cancelMultiSelectButton");
+        const errorElement = modal.querySelector("#multiSelectValidationError");
+        
+        // Validation function
+        function validateButtonText(text) {
+            if (!text || text.trim() === '') {
+                return "Button text cannot be empty";
+            }
+            if (text.length > 100) {
+                return "Button text cannot exceed 100 characters";
+            }
+            return null; // Valid
+        }
+        
+        // Add button event listener
+        if (addButton) {
+            addButton.addEventListener("click", function() {
+                const buttonText = buttonTextInput.value.trim();
+                const validationError = validateButtonText(buttonText);
+                
+                if (validationError) {
+                    errorElement.textContent = validationError;
+                    return;
+                }
+                
+                // Clear any previous error
+                errorElement.textContent = "";
+                
+                try {
+                    // Send message to backend to add multi-select button
+                    vscode.postMessage({
+                        command: 'addMultiSelectButton',
+                        data: {
+                            buttonText: buttonText
+                        }
+                    });
+                    
+                    // Close the modal
+                    document.body.removeChild(modal);
+                } catch (error) {
+                    console.error("Error adding multi-select button:", error);
+                    errorElement.textContent = "Error adding button. Please try again.";
+                }
+            });
+        }
+        
+        // Cancel button event listener
+        if (cancelButton) {
+            cancelButton.addEventListener("click", function() {
+                document.body.removeChild(modal);
+            });
+        }
+        
+        // Close modal when clicking the x button
+        const closeButton = modal.querySelector(".close-button");
+        if (closeButton) {
+            closeButton.addEventListener("click", function() {
+                document.body.removeChild(modal);
+            });
+        }
+        
+        // Close modal when clicking outside the modal content
+        modal.addEventListener("click", function(event) {
+            if (event.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+        
+        // Add Enter key handling for button text input
+        if (buttonTextInput) {
+            buttonTextInput.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    if (addButton && !addButton.disabled) {
+                        addButton.click();
+                    }
+                }
+            });
+        }
+    }
+
+    // Add Multi-Select Button Modal Template Function
+    function getAddMultiSelectButtonModalHtml() {
+        return "" +
+    "<div class='modal-content'>" +
+        "<span class='close-button'>&times;</span>" +
+        "<h2>Add Multi-Select Button</h2>" +
+        "<div class='form-row'>" +
+            "<label for='multiSelectButtonText'>Button Text:</label>" +
+            "<input type='text' id='multiSelectButtonText' placeholder='Enter button text' />" +
+            "<div class='field-note'>Enter the display text for the multi-select button. This will be shown to users on the interface.</div>" +
+        "</div>" +
+        "<div id='multiSelectValidationError' class='validation-error'></div>" +
+        "<div class='modal-buttons'>" +
+            "<button id='addMultiSelectButton' class='primary-button'>Add</button>" +
+            "<button id='cancelMultiSelectButton' class='secondary-button'>Cancel</button>" +
+        "</div>" +
+    "</div>";
+    }
+
     // Function to create and show the Add Column modal
     function createAddColumnModal() {
         // Create modal dialog for adding columns

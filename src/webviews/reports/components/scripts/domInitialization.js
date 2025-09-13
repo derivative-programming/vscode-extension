@@ -167,6 +167,7 @@ function getDOMInitialization() {
         const addColumnBtn = document.getElementById('add-column-btn');
         const addButtonBtn = document.getElementById('add-button-btn');
         const addBreadcrumbBtn = document.getElementById('add-breadcrumb-btn');
+        const addMultiSelectButtonBtn = document.getElementById('add-multi-select-button-btn');
         const addParamBtn = document.getElementById('add-param-btn');
         
         if (addColumnBtn) {
@@ -187,6 +188,12 @@ function getDOMInitialization() {
             });
         }
         
+        if (addMultiSelectButtonBtn) {
+            addMultiSelectButtonBtn.addEventListener('click', function() {
+                createAddMultiSelectButtonModal();
+            });
+        }
+
         if (addParamBtn) {
             addParamBtn.addEventListener('click', function() {
                 createAddParamModal();

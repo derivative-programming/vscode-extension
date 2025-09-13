@@ -300,6 +300,7 @@ function getMainTemplate(report, columnCount, buttonCount, paramCount,
         <div class="view-icons" data-tab="buttons">
             <button id="add-breadcrumb-btn" class="add-prop-button">Add Breadcrumb</button>
             <button id="add-button-btn" class="add-prop-button">Add Button</button>
+            <button id="add-multi-select-button-btn" class="add-prop-button">Add Multi-Select Button</button>
         </div>
 
         <div id="buttonsListView" class="view-content active">

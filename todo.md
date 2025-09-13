@@ -1,27 +1,42 @@
 Agent todo items...
  
+report details  column - add button - multiselect...
+just ask for button text
+report name example... AIAssistantThreadConfigAIATMessageList
+report button example...
+{
+      "buttonType": "multiSelectProcessing",
+      "buttonName": "Test", (Pascal conversion of button text with no spaces)
+      "buttonText": "Test",
+      "destinationContextObjectName": "AIAssistantThread",
+      "destinationTargetName": "AIAssistantThreadConfigAIATMessageMultiSelectTest"
+    }
+{
+  "name": "AIAssistantThreadConfigAIATMessageMultiSelectTest",
+  "isPage": "false",
+  "roleRequired": "Config",
+  "objectWorkflowButton": []
+}
+
+add report columns from lineage property list. add report col by selection of one or more properties in data object lineage
+
+add form controls from lineage property list
+
+
 page init flow...
 - page references tab
   - table of all pages using it with edit icon button and preview icon button
 
-allow add of general flow
-
-
 
 allow add of page init flow (plus sign on page detail view next to empty display)
  
-add form wizard cration of init page shows title instead of name of init flow in treeview.
 
 report column - need lookup on Button Object WF Name setting? are we displaying this property? are we showing a page lookup now?
 
 
-report details  column - add button - multiselect
- 
-add report col by selection of one or more properties in data object lineage
-
 form details button tab button type setting dropdown?  
 
-data object reference list view - show where it is used - with counts - new view ...
+data object reference list view (uses, used by) - show where it is used - with counts - new view ...
 - report header
 - report column
 - form control
