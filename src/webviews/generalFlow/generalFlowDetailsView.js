@@ -56,19 +56,24 @@ function showGeneralFlowDetails(item, modelService, context) {
     let flowReference = null;
     if (modelService && typeof modelService.isFileLoaded === "function" && modelService.isFileLoaded()) {
         const allObjects = modelService.getAllObjects();
-        const targetName = (item.label || '').trim().toLowerCase();
+        const targetName = (item.label || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
         for (const obj of allObjects) {
             const list = Array.isArray(obj.objectWorkflow) ? obj.objectWorkflow : [];
             const found = list.find(wf => {
-                const n = (wf.titleText || wf.name || '').trim().toLowerCase();
-                if (n !== targetName) { return false; }
-                const isDynaFlowOk = !wf.isDynaFlow || wf.isDynaFlow === "false";
-                const isDynaFlowTaskOk = !wf.isDynaFlowTask || wf.isDynaFlowTask === "false";
-                const isPageOk = wf.isPage === "false";
-                const nn = (wf.name || '').toLowerCase();
-                const notInitObjWf = !nn.endsWith('initobjwf');
-                const notInitReport = !nn.endsWith('initreport');
-                return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
+                const nameNormalized = (wf.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+                console.log('[DEBUG] Checking workflow:', wf.name, 'nameNormalized:', nameNormalized, 'target:', targetName);
+                // Match by name only
+                if (nameNormalized === targetName) {
+                    const isDynaFlowOk = !wf.isDynaFlow || wf.isDynaFlow === "false";
+                    const isDynaFlowTaskOk = !wf.isDynaFlowTask || wf.isDynaFlowTask === "false";
+                    const isPageOk = wf.isPage === "false";
+                    const nn = (wf.name || '').toLowerCase();
+                    const notInitObjWf = !nn.endsWith('initobjwf');
+                    const notInitReport = !nn.endsWith('initreport');
+                    console.log('[DEBUG] Workflow filters - isDynaFlowOk:', isDynaFlowOk, 'isDynaFlowTaskOk:', isDynaFlowTaskOk, 'isPageOk:', isPageOk, '(isPage value:', wf.isPage, ') notInitObjWf:', notInitObjWf, 'notInitReport:', notInitReport);
+                    return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
+                }
+                return false;
             });
             if (found) { flowData = found; flowReference = found; break; }
         }

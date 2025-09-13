@@ -3,6 +3,9 @@
 const { formatLabel } = require("../../../forms/helpers/formDataHelper");
 
 function getSettingsTabTemplate(flow, flowSchemaProps) {
+    console.log('[DEBUG] flowForSettings object keys:', Object.keys(flow || {}));
+    console.log('[DEBUG] flowForSettings object:', flow);
+    
     // Only show the following settings, in this exact order (case-insensitive match to schema keys)
     const allowedOrder = [
         'isPage',
@@ -30,11 +33,20 @@ function getSettingsTabTemplate(flow, flowSchemaProps) {
     const resolvedKeys = [];
     for (const name of allowedOrder) {
         const lc = name.toLowerCase();
-        if (schemaKeyByLower[lc]) { resolvedKeys.push(schemaKeyByLower[lc]); continue; }
+        if (schemaKeyByLower[lc]) { 
+            resolvedKeys.push(schemaKeyByLower[lc]); 
+            if (name === 'isExposedInBusinessObject') {
+                console.log('[DEBUG] Found isExposedInBusinessObject in schema as:', schemaKeyByLower[lc]);
+            }
+            continue; 
+        }
         const variants = variantMap[lc];
         if (variants) {
             const found = variants.find(v => schemaKeyByLower[v]);
             if (found) { resolvedKeys.push(schemaKeyByLower[found]); }
+        }
+        if (name === 'isExposedInBusinessObject') {
+            console.log('[DEBUG] isExposedInBusinessObject NOT found in schema keys:', Object.keys(flowSchemaProps || {}));
         }
     }
 
@@ -44,6 +56,14 @@ function getSettingsTabTemplate(flow, flowSchemaProps) {
             const isBooleanEnum = hasEnum && schema.enum.length === 2 && schema.enum.every(val => val === true || val === false || val === "true" || val === "false");
             const tooltip = schema.description ? `title="${schema.description}"` : "";
             const propertyExists = flow.hasOwnProperty(prop) && flow[prop] !== null && flow[prop] !== undefined;
+            
+            if (prop === 'isExposedInBusinessObject') {
+                console.log('[DEBUG] Processing isExposedInBusinessObject:');
+                console.log('[DEBUG] - Property exists in model:', propertyExists);
+                console.log('[DEBUG] - Model value:', flow[prop]);
+                console.log('[DEBUG] - Schema enum:', schema.enum);
+                console.log('[DEBUG] - Has enum:', hasEnum);
+            }
 
             let inputField = "";
             if (hasEnum) {
