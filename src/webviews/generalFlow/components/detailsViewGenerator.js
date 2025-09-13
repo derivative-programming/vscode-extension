@@ -28,7 +28,7 @@ function generateDetailsView(flow, flowSchemaProps, flowParamsSchema, flowOutput
         const paramModalHtml = getParamModalHtml(flowParamsSchema);
         const outputVarModalHtml = getOutputVarModalHtml(flowOutputVarsSchema);
 
-        const flowName = (flow && (flow.titleText || flow.name)) ? (flow.titleText || flow.name) : 'Unknown Flow';
+        const flowName = (flow && flow.name) || 'Unknown Flow';
 
         const clientScript = getClientScriptTemplate(
             params,

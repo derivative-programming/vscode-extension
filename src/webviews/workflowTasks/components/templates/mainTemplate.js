@@ -2,7 +2,7 @@
 const { getDetailViewStyles } = require("../../styles/detailsViewStyles");
 
 function getMainTemplate(flow, settingsHtml, codiconsUri, ownerObject = null) {
-    const flowName = flow && (flow.titleText || flow.name) ? (flow.titleText || flow.name) : 'Unknown Workflow Task';
+    const flowName = flow && flow.name ? flow.name : 'Unknown Workflow Task';
     return `<!DOCTYPE html>
 <html lang="en">
 <head>

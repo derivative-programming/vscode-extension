@@ -21,7 +21,7 @@ function generateDetailsView(flow, flowSchemaProps, flowDynaFlowTaskSchema, codi
         const workflowTaskListViewFields = getWorkflowTasksListTemplate(flowDynaFlowTaskSchema);
         const workflowTaskModalHtml = getWorkflowTaskModalHtml(flowDynaFlowTaskSchema);
         const styles = getDetailViewStyles();
-        const flowName = (flow && (flow.titleText || flow.name)) ? (flow.titleText || flow.name) : 'Unknown Flow';
+        const flowName = (flow && flow.name) || 'Unknown Flow';
 
         const clientScript = getClientScriptTemplate(
             workflowTasks,

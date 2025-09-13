@@ -101,7 +101,7 @@ function showGeneralFlowDetails(item, modelService, context) {
         
         // Get the owner data object for this general flow
         const ownerObject = modelService && modelService.isFileLoaded() && flowData ? 
-            modelService.getGeneralFlowOwnerObject(flowData.titleText || flowData.name || '') : null;
+            modelService.getGeneralFlowOwnerObject(flowData.name) : null;
 
         panel.webview.html = generateDetailsView(
             flowData,

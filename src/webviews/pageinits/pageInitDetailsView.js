@@ -60,7 +60,7 @@ function showPageInitDetails(item, modelService, context) {
         const targetName = (item.label || '').trim().toLowerCase();
         for (const obj of allObjects) {
             const list = Array.isArray(obj.objectWorkflow) ? obj.objectWorkflow : [];
-            const found = list.find(wf => (wf.titleText || wf.name || '').trim().toLowerCase() === targetName);
+            const found = list.find(wf => (wf.name || wf.titleText || '').trim().toLowerCase() === targetName);
             if (found) {
                 flowData = found;
                 flowReference = found; // hold reference
@@ -91,7 +91,7 @@ function showPageInitDetails(item, modelService, context) {
         
         // Get the owner data object for this page init flow
         const ownerObject = modelService && modelService.isFileLoaded() && flowData ? 
-            modelService.getPageInitOwnerObject(flowData.titleText || flowData.name || '') : null;
+            modelService.getPageInitOwnerObject(flowData.name) : null;
 
         panel.webview.html = generateDetailsView(
             flowData,

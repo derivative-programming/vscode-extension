@@ -61,7 +61,7 @@ function showWorkflowDetails(item, modelService, context) {
         for (const obj of allObjects) {
             const list = Array.isArray(obj.objectWorkflow) ? obj.objectWorkflow : [];
             const found = list.find(wf => {
-                const n = (wf.titleText || wf.name || '').trim().toLowerCase();
+                const n = (wf.name || wf.titleText || '').trim().toLowerCase();
                 if (n !== targetName) { return false; }
                 return wf.isDynaFlow === "true";
             });
