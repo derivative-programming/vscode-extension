@@ -128,7 +128,7 @@ async function createOrUpdateMcpConfig(): Promise<void> {
             "mcpVersion": "2024-11-05",
             "name": "AppDNA User Story MCP Server",
             "description": "MCP server for interacting with AppDNA user stories and model data",
-            "version": "1.0.16",
+            "version": "1.0.17",
             "capabilities": {
                 "tools": {
                     "listChanged": false

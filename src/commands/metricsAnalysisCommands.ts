@@ -803,9 +803,11 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; script-src 'nonce-${nonce}'; font-src ${webview.cspSource};">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; font-src ${webview.cspSource};">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="${codiconsUri}" rel="stylesheet">
+    <script nonce="${nonce}" src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script nonce="${nonce}" src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <title>Analysis - Metrics</title>
     
     <style nonce="${nonce}">
@@ -1108,6 +1110,105 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Chart styling */
+        .chart-container {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: var(--vscode-sideBar-background);
+            border-radius: 6px;
+            border: 1px solid var(--vscode-panel-border);
+        }
+        
+        #metricsChart {
+            width: 100% !important;
+            height: 400px !important;
+            background-color: var(--vscode-editor-background);
+            border-radius: 4px;
+        }
+        
+        /* Date range selector styling */
+        .date-range-container {
+            margin: 20px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .date-range-container label {
+            color: var(--vscode-foreground);
+            font-weight: 500;
+            margin-right: 5px;
+        }
+        
+        .date-range-select {
+            padding: 6px 12px;
+            background-color: var(--vscode-dropdown-background);
+            color: var(--vscode-dropdown-foreground);
+            border: 1px solid var(--vscode-dropdown-border);
+            border-radius: 3px;
+            font-size: var(--vscode-font-size);
+            font-family: var(--vscode-font-family);
+            min-width: 120px;
+            cursor: pointer;
+        }
+        
+        .date-range-select:hover {
+            background-color: var(--vscode-dropdown-listBackground);
+        }
+        
+        .date-range-select:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            border-color: var(--vscode-focusBorder);
+        }
+        
+        /* Metrics selection styling */
+        .metrics-selection {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: var(--vscode-sideBar-background);
+            border-radius: 6px;
+            border: 1px solid var(--vscode-panel-border);
+        }
+        
+        .metrics-selection h3 {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--vscode-editor-foreground);
+        }
+        
+        .checkbox-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 8px;
+        }
+        
+        .metric-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .metric-checkbox:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        
+        .metric-checkbox input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        .metric-checkbox label {
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--vscode-editor-foreground);
+            user-select: none;
+        }
+        
     </style>
 </head>
 <body>
@@ -1177,18 +1278,28 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
     
     <div id="history-tab" class="tab-content">
         <div id="history-loading" class="loading">Loading historical metrics...</div>
-        <div class="table-container hidden" id="history-table-container">
-            <table id="history-metrics-table">
-                <thead>
-                    <tr>
-                        <th data-column="date">Date <span class="sort-indicator">▼</span></th>
-                        <th data-column="name">Metric Name <span class="sort-indicator">▼</span></th>
-                        <th data-column="value">Value <span class="sort-indicator">▼</span></th>
-                    </tr>
-                </thead>
-                <tbody id="history-metrics-body">
-                </tbody>
-            </table>
+        
+        <div class="date-range-container hidden" id="date-range-container">
+            <label for="date-range-select">Time Range:</label>
+            <select id="date-range-select" class="date-range-select">
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="60">Last 60 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="365">Last year</option>
+                <option value="all" selected>All</option>
+            </select>
+        </div>
+        
+        <div class="chart-container hidden" id="chart-container">
+            <canvas id="metricsChart" width="800" height="400"></canvas>
+        </div>
+        
+        <div class="metrics-selection hidden" id="metrics-selection">
+            <h3>Select Metrics to Display</h3>
+            <div id="metrics-checkboxes" class="checkbox-list">
+                <!-- Checkboxes will be populated dynamically -->
+            </div>
         </div>
         
         <div class="table-footer">

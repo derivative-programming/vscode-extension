@@ -14,6 +14,12 @@ let currentSortDescending = false;
 let historySortColumn = 'date';
 let historySortDescending = false;
 
+// Chart-related variables
+let metricsChart = null;
+let availableMetrics = [];
+let selectedMetrics = new Set();
+let currentDateRange = 'all'; // Track current date range filter
+
 // Initialize the view when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeTabs();
@@ -407,10 +413,39 @@ window.addEventListener('message', event => {
         case 'historyMetricsData':
             allHistoryItems = message.data || [];
             historyMetricsData = allHistoryItems.slice(); // Copy for filtering
-            renderHistoryMetrics();
-            renderHistoryRecordInfo();
-            // Initial sort by date
-            updateSortIndicators('history', historySortColumn, historySortDescending);
+            
+            // Hide loading message and show chart container and date range
+            const historyLoading = document.getElementById('history-loading');
+            const chartContainer = document.getElementById('chart-container');
+            const dateRangeContainer = document.getElementById('date-range-container');
+            
+            if (historyLoading) {
+                historyLoading.classList.add('hidden');
+                historyLoading.classList.remove('show-block');
+            }
+            
+            if (chartContainer) {
+                chartContainer.classList.remove('hidden');
+                chartContainer.classList.add('show-block');
+            }
+            
+            if (dateRangeContainer) {
+                dateRangeContainer.classList.remove('hidden');
+                dateRangeContainer.classList.add('show-block');
+            }
+            
+            // Add event listener to date range selector
+            const dateRangeSelect = document.getElementById('date-range-select');
+            if (dateRangeSelect) {
+                dateRangeSelect.removeEventListener('change', handleDateRangeChange); // Remove existing listener
+                dateRangeSelect.addEventListener('change', handleDateRangeChange);
+            }
+            
+            // Initialize chart and checkboxes
+            initializeMetricsChart();
+            createMetricsCheckboxes();
+            updateChart();
+            
             hideSpinner();
             break;
             
@@ -446,4 +481,234 @@ function escapeHtml(unsafe) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// Chart-related functions
+function initializeMetricsChart() {
+    const canvas = document.getElementById('metricsChart');
+    if (!canvas) {
+        console.error('Chart canvas not found');
+        return;
+    }
+    
+    // Check if Chart.js and adapter are loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded');
+        return;
+    }
+    
+    console.log('Chart.js version:', Chart.version);
+    console.log('Available adapters:', Chart.registry.adapters);
+    
+    // Destroy existing chart if it exists
+    if (metricsChart) {
+        metricsChart.destroy();
+    }
+    
+    const ctx = canvas.getContext('2d');
+    
+    metricsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Metrics History Over Time',
+                    color: getComputedStyle(document.body).getPropertyValue('--vscode-foreground')
+                },
+                legend: {
+                    labels: {
+                        color: getComputedStyle(document.body).getPropertyValue('--vscode-foreground')
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        displayFormats: {
+                            day: 'MMM dd',
+                            hour: 'MMM dd HH:mm'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date',
+                        color: getComputedStyle(document.body).getPropertyValue('--vscode-foreground')
+                    },
+                    ticks: {
+                        color: getComputedStyle(document.body).getPropertyValue('--vscode-foreground')
+                    },
+                    grid: {
+                        color: getComputedStyle(document.body).getPropertyValue('--vscode-panel-border')
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Value',
+                        color: getComputedStyle(document.body).getPropertyValue('--vscode-foreground')
+                    },
+                    ticks: {
+                        color: getComputedStyle(document.body).getPropertyValue('--vscode-foreground')
+                    },
+                    grid: {
+                        color: getComputedStyle(document.body).getPropertyValue('--vscode-panel-border')
+                    }
+                }
+            }
+        }
+    });
+    
+    // Show chart container
+    document.getElementById('chart-container').classList.remove('hidden');
+}
+
+function createMetricsCheckboxes() {
+    // Get unique metric names from history data
+    availableMetrics = [...new Set(historyMetricsData.map(item => item.metric_name))].sort();
+    
+    const checkboxContainer = document.getElementById('metrics-checkboxes');
+    if (!checkboxContainer) {
+        return;
+    }
+    
+    checkboxContainer.innerHTML = '';
+    
+    availableMetrics.forEach(metricName => {
+        const checkboxDiv = document.createElement('div');
+        checkboxDiv.className = 'metric-checkbox';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `metric-${metricName.replace(/\s+/g, '-').toLowerCase()}`;
+        checkbox.value = metricName;
+        checkbox.addEventListener('change', handleMetricCheckboxChange);
+        
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.textContent = metricName;
+        
+        checkboxDiv.appendChild(checkbox);
+        checkboxDiv.appendChild(label);
+        
+        // Add click handler to the div to toggle checkbox
+        checkboxDiv.addEventListener('click', (e) => {
+            if (e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+                handleMetricCheckboxChange({ target: checkbox });
+            }
+        });
+        
+        checkboxContainer.appendChild(checkboxDiv);
+    });
+    
+    // Show metrics selection container
+    document.getElementById('metrics-selection').classList.remove('hidden');
+}
+
+function handleMetricCheckboxChange(event) {
+    const metricName = event.target.value;
+    
+    if (event.target.checked) {
+        selectedMetrics.add(metricName);
+    } else {
+        selectedMetrics.delete(metricName);
+    }
+    
+    updateChart();
+}
+
+function updateChart() {
+    if (!metricsChart) {
+        return;
+    }
+    
+    // Clear existing datasets
+    metricsChart.data.datasets = [];
+    
+    // Generate colors for each metric
+    const colors = generateColors(selectedMetrics.size);
+    let colorIndex = 0;
+    
+    selectedMetrics.forEach(metricName => {
+        // Get data points for this metric
+        const metricData = historyMetricsData
+            .filter(item => item.metric_name === metricName)
+            .map(item => ({
+                x: new Date(item.date),
+                y: parseFloat(item.value) || 0
+            }))
+            .sort((a, b) => a.x - b.x);
+        
+        if (metricData.length > 0) {
+            metricsChart.data.datasets.push({
+                label: metricName,
+                data: metricData,
+                borderColor: colors[colorIndex],
+                backgroundColor: colors[colorIndex] + '20', // Add transparency
+                fill: false,
+                tension: 0.1
+            });
+            colorIndex++;
+        }
+    });
+    
+    metricsChart.update();
+}
+
+function generateColors(count) {
+    const colors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF',
+        '#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56'
+    ];
+    
+    // If we need more colors than available, generate them
+    while (colors.length < count) {
+        colors.push(`hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`);
+    }
+    
+    return colors.slice(0, count);
+}
+
+// Filter history data by date range
+function filterDataByDateRange(data, dateRange) {
+    if (dateRange === 'all') {
+        return data;
+    }
+    
+    const now = new Date();
+    const daysToSubtract = parseInt(dateRange);
+    const cutoffDate = new Date(now.getTime() - (daysToSubtract * 24 * 60 * 60 * 1000));
+    
+    return data.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= cutoffDate;
+    });
+}
+
+// Handle date range change
+function handleDateRangeChange(event) {
+    currentDateRange = event.target.value;
+    
+    // Filter the history data based on selected range
+    const filteredData = filterDataByDateRange(allHistoryItems, currentDateRange);
+    historyMetricsData = filteredData.slice();
+    
+    // Update checkboxes with available metrics in filtered data
+    createMetricsCheckboxes();
+    
+    // Update chart with filtered data
+    updateChart();
 }
