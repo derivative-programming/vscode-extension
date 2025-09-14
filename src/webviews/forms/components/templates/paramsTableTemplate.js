@@ -9,9 +9,9 @@ function getParamPropertiesToHide() {
     return [
         "name",
         "defaultvalue",
-        "isfk",
-        "isfklookup",
-        "fklistorderby",
+        // "isfk",
+        // "isfklookup",
+        // "fklistorderby",
         "isunknownlookupallowed",
         // Additional properties to hide based on user requirements
         "fkobjectqueryname",
