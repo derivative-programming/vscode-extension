@@ -699,7 +699,10 @@ function getColumnManagementFunctions() {
                 try {
                     console.log('[DEBUG] Adding property-based columns');
                     
-                    // Add all selected properties as columns
+                    // First, collect all column names to be created and check for duplicates
+                    const columnsToAdd = [];
+                    const duplicateColumns = [];
+                    
                     selectedCheckboxes.forEach(checkbox => {
                         const objectName = checkbox.getAttribute('data-object-name');
                         const propertyName = checkbox.getAttribute('data-property-name');
@@ -719,27 +722,53 @@ function getColumnManagementFunctions() {
                             columnName = objectName + propertyName;
                         }
                         
-                        // Create the column data structure
-                        const columnData = {
-                            name: columnName,
-                            dataType: dataType,
-                            dataSize: dataSize,
-                            isVisible: "true",
-                        };
+                        // Check if column already exists in the current report
+                        const existingColumns = getCurrentReportColumns();
+                        console.log('[DEBUG] Checking for duplicates, columnName:', columnName, 'existingColumns:', existingColumns);
+                        const columnExists = existingColumns.some(col => col.name === columnName);
+                        console.log('[DEBUG] Column exists?', columnExists);
                         
-                        if (isLookupProperty) {
-                            // For lookup properties, use the lookup object metadata
-                            columnData.isLookupProperty = true;
-                            columnData.sourceLookupObjImplementationObjName = sourceLookupObjImplementationObjName;
-                            columnData.sourceObjectName = sourceObjectName;
-                            columnData.sourcePropertyName = sourcePropertyName;
+                        if (columnExists) {
+                            duplicateColumns.push(columnName);
+                            console.log('[DEBUG] Added to duplicates:', columnName);
                         } else {
-                            // For regular properties
-                            columnData.sourceObjectName = objectName;
-                            columnData.sourcePropertyName = propertyName;
+                            // Create the column data structure
+                            const columnData = {
+                                name: columnName,
+                                dataType: dataType,
+                                dataSize: dataSize,
+                                isVisible: "true",
+                            };
+                            
+                            if (isLookupProperty) {
+                                // For lookup properties, use the lookup object metadata
+                                columnData.isLookupProperty = true;
+                                columnData.sourceLookupObjImplementationObjName = sourceLookupObjImplementationObjName;
+                                columnData.sourceObjectName = sourceObjectName;
+                                columnData.sourcePropertyName = sourcePropertyName;
+                            } else {
+                                // For regular properties
+                                columnData.sourceObjectName = objectName;
+                                columnData.sourcePropertyName = propertyName;
+                            }
+                            
+                            columnsToAdd.push(columnData);
                         }
-                        
-                        // Add the new column with property metadata
+                    });
+                    
+                    // Show validation error if there are duplicates
+                    if (duplicateColumns.length > 0) {
+                        const errorMessage = "The following columns already exist: " + duplicateColumns.join(", ");
+                        console.log('[DEBUG] Setting validation error:', errorMessage);
+                        console.log('[DEBUG] Error element:', errorElement);
+                        errorElement.textContent = errorMessage;
+                        return;
+                    }
+                    
+                    console.log('[DEBUG] No duplicates found, proceeding with', columnsToAdd.length, 'columns');
+                    
+                    // Add all valid columns
+                    columnsToAdd.forEach(columnData => {
                         addNewPropertyColumn(columnData);
                     });
                     
@@ -818,6 +847,40 @@ function getColumnManagementFunctions() {
         }
         
         container.innerHTML = html;
+    }
+    
+    // Function to get current report columns for validation
+    function getCurrentReportColumns() {
+        try {
+            // First try to get from global currentColumns variable
+            if (typeof currentColumns !== 'undefined' && Array.isArray(currentColumns)) {
+                console.log('[DEBUG] Using currentColumns variable:', currentColumns);
+                return currentColumns;
+            }
+            
+            // Fallback: Get columns from the current list view
+            const columnsList = document.getElementById('columnsList');
+            const columns = [];
+            
+            console.log('[DEBUG] Getting current columns, columnsList:', columnsList);
+            
+            if (columnsList && columnsList.options) {
+                console.log('[DEBUG] Found columnsList with', columnsList.options.length, 'options');
+                for (let i = 0; i < columnsList.options.length; i++) {
+                    const option = columnsList.options[i];
+                    console.log('[DEBUG] Column option:', option.value, option.text);
+                    columns.push({ name: option.value });
+                }
+            } else {
+                console.warn('[DEBUG] columnsList not found or has no options');
+            }
+            
+            console.log('[DEBUG] Returning columns:', columns);
+            return columns;
+        } catch (error) {
+            console.error("Error getting current report columns:", error);
+            return [];
+        }
     }
     
     // Function to add a new column with property metadata

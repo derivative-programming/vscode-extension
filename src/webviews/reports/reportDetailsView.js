@@ -2378,6 +2378,23 @@ function addPropertyColumnToReport(reportReference, modelService, data, panel) {
             reportReference.reportColumn = [];
         }
         
+        // Check if a column with this name already exists
+        const existingColumn = reportReference.reportColumn.find(col => col.name === data.name);
+        if (existingColumn) {
+            console.warn("Column with name '" + data.name + "' already exists");
+            
+            // Send error message back to webview
+            if (panel && panel.webview) {
+                panel.webview.postMessage({
+                    command: 'showColumnError',
+                    data: {
+                        error: "Column '" + data.name + "' already exists in the report."
+                    }
+                });
+            }
+            return;
+        }
+        
         // Create a new column with property metadata
         const newColumn = {
             name: data.name,

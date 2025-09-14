@@ -293,6 +293,15 @@ function getClientScriptTemplate(columns, buttons, params, columnSchema, buttonS
                             console.warn('populateAvailableProperties function not available');
                         }
                         break;
+                    case 'showColumnError':
+                        // Show error message in the add column modal
+                        const errorElement = document.getElementById('propsValidationError') || document.getElementById('validationError');
+                        if (errorElement) {
+                            errorElement.textContent = message.data.error;
+                        } else {
+                            console.error('Column error:', message.data.error);
+                        }
+                        break;
                 }
             });
             
