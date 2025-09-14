@@ -198,7 +198,7 @@ function getDetailViewStyles() {
             padding: 20px;
             border: 1px solid var(--vscode-panel-border);
             border-radius: 4px;
-            width: 400px;
+            width: 600px;
             max-width: 90vw;
             max-height: 80vh;
             overflow-y: auto;
@@ -529,6 +529,99 @@ function getDetailViewStyles() {
         
         .subscription-checkbox {
             cursor: pointer;
+        }
+
+        /* Properties Container Styling */
+        .properties-container {
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: var(--vscode-input-background);
+            margin-bottom: 15px;
+        }
+
+        .object-group {
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+
+        .object-group:last-child {
+            border-bottom: none;
+        }
+
+        .object-header {
+            background-color: var(--vscode-list-hoverBackground);
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 13px;
+            color: var(--vscode-foreground);
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+
+        .property-item {
+            display: flex;
+            align-items: center;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+
+        .property-item:last-child {
+            border-bottom: none;
+        }
+
+        .property-item:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+
+        .property-item.selected {
+            background-color: var(--vscode-list-activeSelectionBackground);
+            color: var(--vscode-list-activeSelectionForeground);
+        }
+
+        .property-checkbox {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .property-name {
+            flex: 1;
+            margin-right: 8px;
+            font-weight: 500;
+        }
+
+        .property-type {
+            color: var(--vscode-descriptionForeground);
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        .property-size {
+            color: var(--vscode-descriptionForeground);
+            font-size: 11px;
+        }
+
+        .fk-lookup-indicator {
+            color: var(--vscode-symbolIcon-referenceForeground);
+            font-size: 11px;
+            margin-left: 4px;
+        }
+
+        .lookup-property {
+            padding-left: 24px;
+            background-color: var(--vscode-list-inactiveSelectionBackground);
+        }
+
+        .property-validation-message {
+            color: var(--vscode-errorForeground);
+            font-size: 11px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .property-validation-message.show {
+            display: block;
         }
     `;
 }

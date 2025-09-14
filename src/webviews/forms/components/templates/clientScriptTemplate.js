@@ -264,6 +264,27 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                             console.log('[Form Target Child Subscription] Checkbox state set to:', message.data.isSubscribed, 'disabled:', message.data.isDisabled);
                         }
                         break;
+                    case 'populateAvailableProperties':
+                        console.log('[DEBUG] Received available properties:', message.data);
+                        console.log('[DEBUG] Message data length:', message.data ? message.data.length : 0);
+                        
+                        // Try to find the properties container and populate it directly
+                        const container = document.querySelector('#availPropsContainer');
+                        console.log('[DEBUG] Properties container found:', !!container);
+                        
+                        if (container) {
+                            console.log('[DEBUG] Populating properties directly in client script');
+                            populatePropertiesDirectly(container, message.data);
+                        } else {
+                            console.log('[DEBUG] Properties container not found - modal may not be open');
+                            
+                            // Also try the window function approach as fallback
+                            if (window.populateAvailableProperties) {
+                                console.log('[DEBUG] Calling window.populateAvailableProperties as fallback');
+                                window.populateAvailableProperties(message.data);
+                            }
+                        }
+                        break;
                 }
             });
             
@@ -508,6 +529,70 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                     console.log('Not a lookup button click');
                 }
             });
+
+            // Function to populate properties directly when message is received
+            function populatePropertiesDirectly(container, propertiesData) {
+                console.log('[DEBUG] populatePropertiesDirectly called with data:', propertiesData);
+                console.log('[DEBUG] Properties data length:', propertiesData ? propertiesData.length : 0);
+                
+                let html = '';
+                
+                if (!propertiesData || propertiesData.length === 0) {
+                    html = '<div style="padding: 20px; text-align: center; color: var(--vscode-descriptionForeground);">No properties available for this form.</div>';
+                    console.log('[DEBUG] No properties data available');
+                } else {
+                    propertiesData.forEach((objectData, objectIndex) => {
+                        console.log('[DEBUG] Processing object ' + objectIndex + ':', objectData.objectName, 'with', objectData.properties ? objectData.properties.length : 0, 'properties');
+                        
+                        if (objectData.properties && objectData.properties.length > 0) {
+                            html += '<div class="object-group">';
+                            html += '<h4 class="object-header">' + objectData.objectName + '</h4>';
+                            
+                            objectData.properties.forEach((prop, propIndex) => {
+                                console.log('[DEBUG] Processing property ' + propIndex + ':', prop.name, prop.dataType);
+                                
+                                const checkboxId = 'prop_' + objectData.objectName + '_' + prop.name.replace(/\\./g, '_');
+                                const displayText = prop.fullPath || (objectData.objectName + '.' + prop.name);
+                                const dataTypeInfo = prop.dataType ? ' (' + prop.dataType + (prop.dataSize ? '(' + prop.dataSize + ')' : '') + ')' : '';
+                                
+                                html += '<div class="property-item' + (prop.isLookupProperty ? ' lookup-property' : '') + '">';
+                                html += '<input type="checkbox" class="property-checkbox" id="' + checkboxId + '"';
+                                html += ' data-object-name="' + objectData.objectName + '"';
+                                html += ' data-property-name="' + prop.name + '"';
+                                html += ' data-full-path="' + displayText + '"';
+                                html += ' data-data-type="' + (prop.dataType || '') + '"';
+                                html += ' data-data-size="' + (prop.dataSize || '') + '"';
+                                html += ' data-label-text="' + (prop.labelText || '') + '"';
+                                
+                                if (prop.isLookupProperty) {
+                                    html += ' data-is-lookup-property="true"';
+                                    html += ' data-source-lookup-obj-implementation-obj-name="' + (prop.sourceLookupObjImplementationObjName || '') + '"';
+                                    html += ' data-source-object-name="' + (prop.sourceObjectName || '') + '"';
+                                    html += ' data-source-property-name="' + (prop.sourcePropertyName || '') + '"';
+                                } else {
+                                    html += ' data-is-lookup-property="false"';
+                                }
+                                
+                                html += '>';
+                                html += '<label for="' + checkboxId + '" class="property-name">' + displayText + '</label>';
+                                html += '<span class="property-type">' + dataTypeInfo + '</span>';
+                                
+                                if (prop.isFKLookup) {
+                                    html += '<span class="fk-lookup-indicator">FK</span>';
+                                }
+                                
+                                html += '</div>';
+                            });
+                            
+                            html += '</div>';
+                        }
+                    });
+                }
+                
+                container.innerHTML = html;
+                console.log('[DEBUG] Properties container populated with HTML length:', html.length);
+                console.log('[DEBUG] Container content preview:', html.substring(0, 200));
+            }
 
         })();
     `;

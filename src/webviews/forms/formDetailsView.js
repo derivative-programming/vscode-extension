@@ -387,6 +387,15 @@ function showFormDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addParamWithData":
+                    if (modelService && formReference) {
+                        // Add a new parameter to the form with full property data
+                        addParamToFormWithData(formReference, modelService, message.data, panel);
+                    } else {
+                        console.warn("Cannot add parameter with data: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
                 case "addButton":
                     if (modelService && formReference) {
                         // Add a new button to the form
@@ -420,6 +429,15 @@ function showFormDetails(item, modelService, context) {
                         addOutputVarToFormWithName(formReference, modelService, message.data.name, panel);
                     } else {
                         console.warn("Cannot add output variable with name: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "getAvailablePropertiesForForm":
+                    if (modelService && formReference) {
+                        // Get available data object properties for the form and send them to the webview
+                        getAvailablePropertiesForForm(formReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot get available properties: ModelService not available or form reference not found");
                     }
                     return;
                     
@@ -1582,6 +1600,70 @@ function addParamToFormWithName(formReference, modelService, paramName, panel) {
     }
 }
 
+function addParamToFormWithData(formReference, modelService, paramData, panel) {
+    console.log("addParamToFormWithData called with data:", paramData);
+    console.log("[DEBUG] Received labelText:", paramData.labelText);
+    
+    if (!formReference || !modelService || !paramData) {
+        console.error("Missing required data to add parameter with data");
+        return;
+    }
+    
+    try {
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
+        
+        // Initialize the parameters array if it doesn't exist
+        if (!form.objectWorkflowParam) {
+            form.objectWorkflowParam = [];
+        }
+        
+        // Create a new parameter with the full property data
+        const newParam = {
+            name: paramData.name,
+            sourceObjectName: paramData.sourceObjectName,
+            sourcePropertyName: paramData.sourcePropertyName,
+            sqlServerDBDataType: paramData.sqlServerDBDataType,
+            sqlServerDBDataTypeSize: paramData.sqlServerDBDataTypeSize,
+            labelText: paramData.labelText,
+            isVisible: 'true'
+        };
+        
+        // Add FK properties if this is a FK lookup property
+        if (paramData.isFKLookup === 'true') {
+            newParam.isFKLookup = paramData.isFKLookup;
+            newParam.fKObjectName = paramData.fKObjectName || '';
+            newParam.isFKList = 'true';
+            newParam.isFK = 'true';
+            newParam.sqlServerDBDataType = 'uniqueidentifier';
+            newParam.sqlServerDBDataTypeSize = '';
+            newParam.name = paramData.name + 'Code';
+        }
+        
+        // Add the new parameter to the array
+        form.objectWorkflowParam.push(newParam);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the params list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: form.objectWorkflowParam,
+                newSelection: form.objectWorkflowParam.length - 1 // Select the newly added item
+            });
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding parameter with data:", error);
+    }
+}
+
 function addButtonToForm(formReference, modelService) {
     console.log("addButtonToForm called");
     
@@ -2102,6 +2184,178 @@ function updateFormTargetChildSubscription(data, formReference, modelService) {
     } catch (error) {
         console.error('[Form Target Child Subscription] Error updating subscription:', error);
         vscode.window.showErrorMessage(`Failed to update target child subscription: ${error.message}`);
+    }
+}
+
+/**
+ * Gets available data object properties for the form and sends them to the webview
+ * @param {Object} formReference Reference to the form object
+ * @param {Object} modelService ModelService instance  
+ * @param {Object} panel The webview panel to send response
+ */
+function getAvailablePropertiesForForm(formReference, modelService, panel) {
+    console.log("=== getAvailablePropertiesForForm called ===");
+    console.log("Form reference:", formReference);
+    console.log("ModelService available:", !!modelService);
+    console.log("Panel available:", !!panel);
+    
+    try {
+        const propertiesData = [];
+        
+        // Get all data objects from the model
+        const allObjects = modelService.getAllObjects();
+        console.log("All objects count:", allObjects ? allObjects.length : 0);
+        console.log("Sample objects:", allObjects ? allObjects.slice(0, 2).map(o => ({ name: o.name, hasProps: !!(o.prop && o.prop.length) })) : []);
+        
+        // Function to get parent hierarchy for an object
+        function getParentHierarchy(objectName) {
+            console.log("Getting parent hierarchy for:", objectName);
+            const parents = [];
+            let currentObjectName = objectName;
+            
+            while (currentObjectName) {
+                const obj = allObjects.find(o => o.name && o.name.toLowerCase() === currentObjectName.toLowerCase());
+                if (obj && obj.parentObjectName) {
+                    const parentObj = allObjects.find(p => p.name && p.name.toLowerCase() === obj.parentObjectName.toLowerCase());
+                    if (parentObj && !parents.find(p => p.name === parentObj.name)) {
+                        parents.push(parentObj);
+                        currentObjectName = parentObj.name;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            
+            console.log("Parent hierarchy:", parents.map(p => p.name));
+            return parents;
+        }
+        
+        // Function to extract properties from an object
+        function extractPropertiesFromObject(obj) {
+            console.log("Extracting properties from object:", obj.name);
+            console.log("Object has prop array:", !!(obj.prop && Array.isArray(obj.prop)));
+            console.log("Prop array length:", obj.prop ? obj.prop.length : 0);
+            
+            const properties = [];
+            
+            if (obj.prop && Array.isArray(obj.prop)) {
+                obj.prop.forEach((prop, index) => {
+                    console.log(`Property ${index}:`, { name: prop.name, dataType: prop.sqlServerDBDataType, isFKLookup: prop.isFKLookup });
+                    
+                    if (prop.name) {
+                        console.log(`[DEBUG] Property ${prop.name} labelText:`, prop.labelText);
+                        
+                        // Add the regular property
+                        properties.push({
+                            name: prop.name,
+                            dataType: prop.sqlServerDBDataType || '',
+                            dataSize: prop.sqlServerDBDataTypeSize || '',
+                            fullPath: `${obj.name}.${prop.name}`,
+                            labelText: prop.labelText, // Don't convert to empty string, keep original value
+                            isFKLookup: prop.isFKLookup === 'true',
+                            fKObjectName: prop.fKObjectName || ''
+                        });
+                        
+                        // Note: For forms, we don't include lookup object properties 
+                        // (like 'Tac.PacID.Pac.Description') in the available properties list
+                    }
+                });
+            }
+            
+            console.log("Extracted properties count:", properties.length);
+            console.log("Sample properties:", properties.slice(0, 3).map(p => ({ name: p.name, dataType: p.dataType })));
+            return properties;
+        }
+        
+        // Start with form target object if it exists
+        const formName = formReference.name;
+        console.log("Processing form:", formName);
+        
+        const targetObject = modelService.getFormTargetChildObject(formName);
+        console.log("Target object found:", !!targetObject, targetObject ? targetObject.name : 'none');
+        
+        if (targetObject) {
+            // Add target object properties first
+            const targetProperties = extractPropertiesFromObject(targetObject);
+            if (targetProperties.length > 0) {
+                propertiesData.push({
+                    objectName: targetObject.name,
+                    properties: targetProperties
+                });
+                console.log("Added target object properties:", targetObject.name, targetProperties.length);
+            }
+            
+            // Add parent hierarchy properties
+            const parentHierarchy = getParentHierarchy(targetObject.name);
+            parentHierarchy.forEach(parentObj => {
+                const parentProperties = extractPropertiesFromObject(parentObj);
+                if (parentProperties.length > 0) {
+                    propertiesData.push({
+                        objectName: parentObj.name,
+                        properties: parentProperties
+                    });
+                    console.log("Added parent object properties:", parentObj.name, parentProperties.length);
+                }
+            });
+        } else {
+            // If no target object, get the form owner object
+            const formOwnerObject = modelService.getFormOwnerObject(formName);
+            console.log("Form owner object found:", !!formOwnerObject, formOwnerObject ? formOwnerObject.name : 'none');
+            
+            if (formOwnerObject) {
+                const ownerProperties = extractPropertiesFromObject(formOwnerObject);
+                if (ownerProperties.length > 0) {
+                    propertiesData.push({
+                        objectName: formOwnerObject.name,
+                        properties: ownerProperties
+                    });
+                    console.log("Added owner object properties:", formOwnerObject.name, ownerProperties.length);
+                }
+                
+                // Add parent hierarchy properties for the owner object
+                const parentHierarchy = getParentHierarchy(formOwnerObject.name);
+                parentHierarchy.forEach(parentObj => {
+                    const parentProperties = extractPropertiesFromObject(parentObj);
+                    if (parentProperties.length > 0) {
+                        propertiesData.push({
+                            objectName: parentObj.name,
+                            properties: parentProperties
+                        });
+                        console.log("Added parent object properties:", parentObj.name, parentProperties.length);
+                    }
+                });
+            }
+        }
+        
+        console.log("Final properties data:", propertiesData.length, "objects");
+        console.log("Properties data structure:", propertiesData.map(obj => ({ objectName: obj.objectName, propertyCount: obj.properties.length })));
+        
+        // Send the properties data to the webview
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'populateAvailableProperties',
+                data: propertiesData
+            });
+            console.log("Sent populateAvailableProperties message with", propertiesData.length, "objects");
+        } else {
+            console.error("Panel or webview not available for sending message");
+        }
+        
+        console.log("Available properties data sent:", propertiesData.length, "objects");
+        
+    } catch (error) {
+        console.error("Error getting available properties for form:", error);
+        console.error("Error stack:", error.stack);
+        
+        // Send empty data on error
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'populateAvailableProperties',
+                data: []
+            });
+        }
     }
 }
 

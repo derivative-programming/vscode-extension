@@ -1,3 +1,85 @@
+## 2024-12-31 - Enhanced Property-Based Input Control Creation with Full Data
+
+**Command**: Enhanced property-based input control creation to set all relevant properties instead of just the name
+
+**Status**: ✅ COMPLETED - Input controls now created with complete property metadata
+
+**Details**: 
+- **Frontend Enhancement**: Modified property selection to collect and pass full property data including:
+  - Source Object Name (sourceObjectName)
+  - Source Property Name (sourcePropertyName) 
+  - SQL Server DB Data Type (sqlServerDBDataType)
+  - SQL Server DB Data Type Size (sqlServerDBDataTypeSize)
+  - Label Text (labelText) - uses full property path
+  - Is Visible (isVisible) - defaults to 'true'
+- **Backend Integration**: Added addParamWithData command and function for property-rich parameter creation
+- **Data Flow**: addNewInputControlWithData → addParamWithData → addParamToFormWithData → full parameter object
+- **UI Enhancement**: Added missing data-data-size attribute to property checkboxes
+
+**Architecture Notes**:
+- Property-based controls use addParamWithData command vs manual controls use addParamWithName
+- Full property metadata preserved from schema to in-memory model
+- Label text uses property full path for better UX (e.g., "ObjectName.PropertyName")
+- Maintains backward compatibility with existing single-name input control creation
+
+**In-Memory Model Structure**:
+```json
+{
+  "objectWorkflowParam": [
+    {
+      "name": "ObjectNamePropertyName",
+      "sourceObjectName": "ObjectName", 
+      "sourcePropertyName": "PropertyName",
+      "sqlServerDBDataType": "nvarchar",
+      "sqlServerDBDataTypeSize": "50",
+      "labelText": "ObjectName.PropertyName",
+      "isVisible": "true"
+    }
+  ]
+}
+```
+
+## 2024-12-31 - Bug Fix: Forms Available Properties ModelService Method Error
+
+**Command**: Fix TypeError: modelService.getFormTargetObject is not a function in forms available properties implementation
+
+**Status**: ✅ COMPLETED - Fixed incorrect method call in getAvailablePropertiesForForm function
+
+**Details**: 
+- **Issue**: Called non-existent modelService.getFormTargetObject() method causing TypeError
+- **Root Cause**: ModelService has getFormTargetChildObject() and getFormOwnerObject() methods, not getFormTargetObject()
+- **Solution**: Updated function to use correct ModelService methods:
+  - getFormTargetChildObject() for form target object
+  - getFormOwnerObject() as fallback when no target object exists
+- **Testing**: Extension compiles successfully after fix
+
+**Architecture Notes**:
+- Forms have targetChildObject property that references the target data object
+- Owner object is the object that contains the form workflow definition
+- Target child object is the actual data object the form operates on
+- Proper fallback hierarchy: target child object → owner object → parent hierarchy
+
+## 2024-12-31 - Avail Data Object Props Tab for Forms Input Controls
+
+**Command**: Implement "Avail Data Object Props" tab for forms input controls modal to match reports functionality
+
+**Status**: ✅ COMPLETED - Forms modal now has property-based input control creation capability
+
+**Details**: 
+- **Template Update**: Added third tab to addInputControlModalTemplate.js with properties container
+- **Frontend Logic**: Enhanced addInputControlModalFunctionality.js with property loading and selection
+- **Backend Integration**: Implemented getAvailablePropertiesForForm function in formDetailsView.js
+- **Message Handling**: Added populateAvailableProperties command handler in client script template
+- **Styling**: Added comprehensive CSS for properties container, object groups, and property items
+- **Architecture**: Follows same pattern as reports but adapted for forms individual command structure
+
+**Architecture Notes**:
+- Uses forms individual addParamWithName command vs reports bulk operations
+- Extracts properties from form target/owner objects and parent hierarchy
+- Supports FK lookup properties with nested property display
+- Maintains property validation and duplicate checking
+- Provides consistent UI/UX across forms and reports modals
+
 ## 2024-09-13 - Multi-Select Button Enhanced Validation
 
 **Command**: Enhanced multi-select button modal with comprehensive validation to prevent duplicate button and flow names
@@ -296,3 +378,54 @@ Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitRep
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantFileListInitReport
 Command: Open Workflow Details for: BuildDataFileImageCatalogRequest
 Command: Open Workflow Task Details for: DFTBuildDataFileImageCatalogRequestBuildDataFile
+
+## 2025-01-27 - Fixed labelText Usage for Property-Based Input Controls
+
+**Command**: Updated property-based input control creation to use actual labelText from schema instead of defaulting to fullPath
+
+**Status**: ✅ COMPLETED - Properties now display and use correct labelText from data object properties
+
+**Details**:
+- **Backend Enhancement**: Modified getAvailablePropertiesForForm to extract labelText property from both regular and lookup properties
+- **Frontend Update**: Updated populateAvailableProperties to include labelText in data attributes and use as primary display text
+- **Fallback Logic**: Uses labelText first, then fullPath, then controlName as fallbacks for proper display
+- **Data Flow**: Property schema labelText → backend extraction → frontend display → input control creation
+
+**Architecture Notes**:
+- Properties have labelText field in schema for UI display purposes
+- Better utilizes existing schema structure instead of generating display text
+- Maintains backward compatibility with fullPath fallback for properties without labelText
+
+## 2025-01-27 - Removed Lookup Properties from Forms Available Properties List
+
+**Command**: Simplified forms available properties list by removing lookup properties with nested format (e.g., 'Tac.PacID.Pac.Description')
+
+**Status**: ✅ COMPLETED - Forms now only show regular properties in available properties list
+
+**Details**:
+- **Backend Simplification**: Removed FK lookup property generation logic from getAvailablePropertiesForForm function
+- **Frontend Cleanup**: Removed lookup property handling, data attributes, and styling from property display
+- **Simplified Logic**: Forms now only handle regular properties with format [ObjectName][PropertyName]
+- **Better UX**: Cleaner property list without confusing nested lookup property paths
+
+**Architecture Notes**:
+- Forms use simpler property model compared to reports
+- Regular properties only: no complex lookup chains needed for form input controls
+- Maintains FK indicator for properties that are foreign keys but doesn't expand their lookup chains
+
+## 2025-01-27 - Enhanced FK Property Support for Form Input Controls
+
+**Command**: Enhanced property-based input control creation to properly handle FK lookup properties with required FK metadata
+
+**Status**: ✅ COMPLETED - FK properties now include all necessary FK metadata when creating input controls
+
+**Details**:
+- **Frontend Enhancement**: Added FK data attributes extraction (data-is-fk-lookup, data-fk-object-name) from property checkboxes
+- **Control Creation Logic**: Enhanced to detect FK properties and include FK metadata in control data
+- **Backend Integration**: Updated addParamToFormWithData to set FK properties (isFKLookup, fKObjectName, isFKList) when applicable
+- **Property Detection**: Properties with isFKLookup='true' now properly create input controls with FK configuration
+
+**Architecture Notes**:
+- FK properties automatically get isFKLookup='true', fKObjectName from source property, and isFKList='false' by default
+- Maintains separation between regular properties and FK lookup properties in input control creation
+- FK metadata ensures proper form input control behavior for foreign key relationships
