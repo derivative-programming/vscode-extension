@@ -225,12 +225,23 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     apisItem.tooltip = "API sites from all namespaces";
                     console.log('[DEBUG] Created APIS item with contextValue:', apisItem.contextValue);
                     items.push(apisItem);
+                    
+                    // Create ANALYSIS as a top-level item (only if advanced properties are enabled)
+                    const analysisItem = new JsonTreeItem(
+                        'ANALYSIS',
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        'analysis'
+                    );
+                    analysisItem.iconPath = new vscode.ThemeIcon('graph');
+                    analysisItem.tooltip = "Model analysis and insights";
+                    console.log('[DEBUG] Created ANALYSIS item with contextValue:', analysisItem.contextValue);
+                    items.push(analysisItem);
                 }
                 
                 items.push(modelServicesItem);
                 
-                // Return tree items in order: PROJECT, DATA OBJECTS, USER STORIES, [PAGES], [FLOWS], [APIS], MODEL SERVICES
-                // (PAGES, FLOWS, and APIS only shown when advanced properties are enabled)
+                // Return tree items in order: PROJECT, DATA OBJECTS, USER STORIES, [PAGES], [FLOWS], [APIS], [ANALYSIS], MODEL SERVICES
+                // (PAGES, FLOWS, APIS, and ANALYSIS only shown when advanced properties are enabled)
                 return Promise.resolve(items);
             } else {
                 // File doesn't exist, show empty tree
@@ -607,6 +618,32 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 return Promise.resolve(items);
             } catch (error) {
                 console.error('Error reading API sites:', error);
+                return Promise.resolve([]);
+            }
+        }
+
+        // Handle ANALYSIS as a parent item - show analysis tools and insights
+        if (element?.contextValue?.startsWith('analysis') && fileExists) {
+            try {
+                const items: JsonTreeItem[] = [];
+                
+                // Create Metrics item
+                const metricsItem = new JsonTreeItem(
+                    'Metrics',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisMetrics'
+                );
+                metricsItem.tooltip = "Model metrics and measurement data";
+                metricsItem.command = {
+                    command: 'appdna.metricsAnalysis',
+                    title: 'Show Metrics Analysis',
+                    arguments: []
+                };
+                items.push(metricsItem);
+                
+                return Promise.resolve(items);
+            } catch (error) {
+                console.error('Error reading analysis items:', error);
                 return Promise.resolve([]);
             }
         }

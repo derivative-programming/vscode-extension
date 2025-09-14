@@ -19,7 +19,6 @@ wherever we show a lookup button we should also show an edit button to open its 
 report column - need lookup on Button Object WF Name setting? are we displaying this property? are we showing a page lookup now?
 
 
-form details button tab button type setting dropdown?  
 
 data object reference list view (uses, used by) - show where it is used - with counts - new view ...
 - report header
@@ -73,6 +72,8 @@ analysis treeview item... ask ai for ideas
   - page: control count?, dependency (on data object props) count
   - role: user story count?, page count?
   - user story: journey count? dependency count of all pages used?
+
+report on change of metrics over time?
 
 user story kanban board view?
 - drag and drop support

@@ -1,0 +1,431 @@
+// Description: Handles the metrics analysis webview display with tabs, filters, and sortable tables.
+// Created: September 14, 2025
+
+// Acquire the VS Code API
+const vscode = acquireVsCodeApi();
+
+// Keep track of the current state
+let currentMetricsData = [];
+let historyMetricsData = [];
+let allCurrentItems = []; // For filtering
+let allHistoryItems = []; // For filtering
+let currentSortColumn = 'name';
+let currentSortDescending = false;
+let historySortColumn = 'date';
+let historySortDescending = false;
+
+// Initialize the view when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTabs();
+    initializeTableSorting();
+    initializeFilters();
+    initializeButtons();
+    loadCurrentMetrics();
+});
+
+// Initialize tab functionality
+function initializeTabs() {
+    const tabs = document.querySelectorAll('.tab');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchTab(tabName);
+        });
+    });
+}
+
+// Switch between tabs
+function switchTab(tabName) {
+    // Remove active class from all tabs and content
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab and content
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    
+    // Load data if needed
+    if (tabName === 'history' && historyMetricsData.length === 0) {
+        loadHistoryMetrics();
+    }
+}
+
+// Initialize table sorting
+function initializeTableSorting() {
+    // Current metrics table sorting
+    const currentHeaders = document.querySelectorAll('#current-metrics-table th');
+    currentHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const column = this.getAttribute('data-column');
+            sortCurrentMetrics(column);
+        });
+    });
+    
+    // History metrics table sorting
+    const historyHeaders = document.querySelectorAll('#history-metrics-table th');
+    historyHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const column = this.getAttribute('data-column');
+            sortHistoryMetrics(column);
+        });
+    });
+}
+
+// Initialize filter functionality
+function initializeFilters() {
+    // Add event listeners for filter inputs
+    const filterInputs = document.querySelectorAll('#filterMetricName, #filterMetricValue');
+    filterInputs.forEach(input => {
+        input.addEventListener('input', applyFilters);
+    });
+}
+
+// Initialize button functionality
+function initializeButtons() {
+    const refreshButton = document.getElementById('refreshButton');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', refresh);
+    }
+    
+    const exportButton = document.getElementById('exportButton');
+    if (exportButton) {
+        exportButton.addEventListener('click', exportToCSV);
+    }
+}
+
+// Toggle filter section visibility (global function for onclick)
+function toggleFilterSection() {
+    const filterContent = document.getElementById('filterContent');
+    const chevron = document.getElementById('filterChevron');
+    
+    if (filterContent && chevron) {
+        const isCollapsed = filterContent.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            filterContent.classList.remove('collapsed');
+            chevron.classList.remove('codicon-chevron-right');
+            chevron.classList.add('codicon-chevron-down');
+        } else {
+            filterContent.classList.add('collapsed');
+            chevron.classList.remove('codicon-chevron-down');
+            chevron.classList.add('codicon-chevron-right');
+        }
+    }
+}
+
+// Apply filters to the current metrics data
+function applyFilters() {
+    const metricNameFilter = document.getElementById('filterMetricName')?.value.toLowerCase() || '';
+    const metricValueFilter = document.getElementById('filterMetricValue')?.value.toLowerCase() || '';
+    
+    let filteredItems = allCurrentItems.filter(item => {
+        const matchesName = !metricNameFilter || (item.name || '').toLowerCase().includes(metricNameFilter);
+        const matchesValue = !metricValueFilter || (item.value || '').toLowerCase().includes(metricValueFilter);
+        
+        return matchesName && matchesValue;
+    });
+    
+    // Update currentMetricsData with filtered results
+    currentMetricsData = filteredItems;
+    
+    // Re-render the table
+    renderCurrentMetrics();
+    renderCurrentRecordInfo();
+}
+
+// Clear all filters (global function for onclick)
+function clearFilters() {
+    document.getElementById('filterMetricName').value = '';
+    document.getElementById('filterMetricValue').value = '';
+    
+    // Reset to show all items
+    currentMetricsData = allCurrentItems.slice();
+    
+    // Re-render the table
+    renderCurrentMetrics();
+    renderCurrentRecordInfo();
+}
+
+// Refresh data (global function for onclick)
+function refresh() {
+    showSpinner();
+    loadCurrentMetrics();
+    if (document.getElementById('history-tab').classList.contains('active')) {
+        loadHistoryMetrics();
+    }
+}
+
+// Export to CSV (global function for onclick)
+function exportToCSV() {
+    const activeTab = document.querySelector('.tab-content.active');
+    const isHistoryTab = activeTab && activeTab.id === 'history-tab';
+    
+    vscode.postMessage({
+        command: 'exportToCSV',
+        data: {
+            items: isHistoryTab ? historyMetricsData : currentMetricsData,
+            type: isHistoryTab ? 'history' : 'current'
+        }
+    });
+}
+
+// Show spinner
+function showSpinner() {
+    const spinnerOverlay = document.getElementById("spinner-overlay");
+    if (spinnerOverlay) {
+        spinnerOverlay.classList.remove("hidden");
+        spinnerOverlay.classList.add("show-flex");
+    }
+}
+
+// Hide spinner
+function hideSpinner() {
+    const spinnerOverlay = document.getElementById("spinner-overlay");
+    if (spinnerOverlay) {
+        spinnerOverlay.classList.add("hidden");
+        spinnerOverlay.classList.remove("show-flex");
+    }
+}
+
+// Sort current metrics
+function sortCurrentMetrics(column) {
+    if (currentSortColumn === column) {
+        currentSortDescending = !currentSortDescending;
+    } else {
+        currentSortColumn = column;
+        currentSortDescending = false;
+    }
+    
+    currentMetricsData.sort((a, b) => {
+        let aVal = a[column] || '';
+        let bVal = b[column] || '';
+        
+        // Convert to string for comparison
+        aVal = aVal.toString().toLowerCase();
+        bVal = bVal.toString().toLowerCase();
+        
+        let comparison = aVal.localeCompare(bVal);
+        return currentSortDescending ? -comparison : comparison;
+    });
+    
+    renderCurrentMetrics();
+    updateSortIndicators('current', column, currentSortDescending);
+}
+
+// Sort history metrics
+function sortHistoryMetrics(column) {
+    if (historySortColumn === column) {
+        historySortDescending = !historySortDescending;
+    } else {
+        historySortColumn = column;
+        historySortDescending = false;
+    }
+    
+    historyMetricsData.sort((a, b) => {
+        let aVal = a[column] || '';
+        let bVal = b[column] || '';
+        
+        // Convert to string for comparison
+        aVal = aVal.toString().toLowerCase();
+        bVal = bVal.toString().toLowerCase();
+        
+        let comparison = aVal.localeCompare(bVal);
+        return historySortDescending ? -comparison : comparison;
+    });
+    
+    renderHistoryMetrics();
+    updateSortIndicators('history', column, historySortDescending);
+}
+
+// Update sort indicators
+function updateSortIndicators(tableType, column, descending) {
+    const table = document.getElementById(`${tableType}-metrics-table`);
+    const indicators = table.querySelectorAll('.sort-indicator');
+    
+    // Reset all indicators
+    indicators.forEach(indicator => {
+        indicator.classList.remove('active');
+        indicator.textContent = '▼';
+    });
+    
+    // Set active indicator
+    const activeHeader = table.querySelector(`th[data-column="${column}"] .sort-indicator`);
+    if (activeHeader) {
+        activeHeader.classList.add('active');
+        activeHeader.textContent = descending ? '▲' : '▼';
+    }
+}
+
+// Load current metrics
+function loadCurrentMetrics() {
+    console.log('Loading current metrics...');
+    const loadingEl = document.getElementById('current-loading');
+    const containerEl = document.getElementById('current-table-container');
+    
+    if (loadingEl) {
+        loadingEl.classList.remove('hidden');
+        loadingEl.classList.add('show-block');
+    }
+    if (containerEl) {
+        containerEl.classList.add('hidden');
+        containerEl.classList.remove('show-block');
+    }
+    
+    vscode.postMessage({
+        command: 'getCurrentMetrics'
+    });
+}
+
+// Load history metrics
+function loadHistoryMetrics() {
+    console.log('Loading history metrics...');
+    const loadingEl = document.getElementById('history-loading');
+    const containerEl = document.getElementById('history-table-container');
+    
+    if (loadingEl) {
+        loadingEl.classList.remove('hidden');
+        loadingEl.classList.add('show-block');
+    }
+    if (containerEl) {
+        containerEl.classList.add('hidden');
+        containerEl.classList.remove('show-block');
+    }
+    
+    vscode.postMessage({
+        command: 'getHistoryMetrics'
+    });
+}
+
+// Render current metrics table
+function renderCurrentMetrics() {
+    const tbody = document.getElementById('current-metrics-body');
+    tbody.innerHTML = '';
+    
+    currentMetricsData.forEach(metric => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(metric.name)}</td>
+            <td>${escapeHtml(metric.value)}</td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Show table and hide loading
+    const loadingEl = document.getElementById('current-loading');
+    const containerEl = document.getElementById('current-table-container');
+    
+    if (loadingEl) {
+        loadingEl.classList.add('hidden');
+        loadingEl.classList.remove('show-block');
+    }
+    if (containerEl) {
+        containerEl.classList.remove('hidden');
+        containerEl.classList.add('show-block');
+    }
+}
+
+// Render history metrics table
+function renderHistoryMetrics() {
+    const tbody = document.getElementById('history-metrics-body');
+    tbody.innerHTML = '';
+    
+    if (historyMetricsData.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="3" class="empty-state">
+                No historical data available
+            </td>
+        `;
+        tbody.appendChild(row);
+    } else {
+        historyMetricsData.forEach(metric => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${escapeHtml(metric.date)}</td>
+                <td>${escapeHtml(metric.name)}</td>
+                <td>${escapeHtml(metric.value)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // Show table and hide loading
+    const loadingEl = document.getElementById('history-loading');
+    const containerEl = document.getElementById('history-table-container');
+    
+    if (loadingEl) {
+        loadingEl.classList.add('hidden');
+        loadingEl.classList.remove('show-block');
+    }
+    if (containerEl) {
+        containerEl.classList.remove('hidden');
+        containerEl.classList.add('show-block');
+    }
+}
+
+// Render current record information
+function renderCurrentRecordInfo() {
+    const recordInfo = document.getElementById('current-record-info');
+    if (recordInfo) {
+        const totalRecords = allCurrentItems.length;
+        const filteredRecords = currentMetricsData.length;
+        
+        if (totalRecords === filteredRecords) {
+            recordInfo.textContent = `${totalRecords} record${totalRecords !== 1 ? 's' : ''}`;
+        } else {
+            recordInfo.textContent = `${filteredRecords} of ${totalRecords} record${totalRecords !== 1 ? 's' : ''}`;
+        }
+    }
+}
+
+// Render history record information
+function renderHistoryRecordInfo() {
+    const recordInfo = document.getElementById('history-record-info');
+    if (recordInfo) {
+        const totalRecords = historyMetricsData.length;
+        recordInfo.textContent = `${totalRecords} record${totalRecords !== 1 ? 's' : ''}`;
+    }
+}
+
+// Handle messages from the extension
+window.addEventListener('message', event => {
+    const message = event.data;
+    console.log('Received message:', message);
+    
+    switch (message.command) {
+        case 'currentMetricsData':
+            allCurrentItems = message.data || [];
+            currentMetricsData = allCurrentItems.slice(); // Copy for filtering
+            renderCurrentMetrics();
+            renderCurrentRecordInfo();
+            // Initial sort by name
+            updateSortIndicators('current', currentSortColumn, currentSortDescending);
+            hideSpinner();
+            break;
+            
+        case 'historyMetricsData':
+            allHistoryItems = message.data || [];
+            historyMetricsData = allHistoryItems.slice(); // Copy for filtering
+            renderHistoryMetrics();
+            renderHistoryRecordInfo();
+            // Initial sort by date
+            updateSortIndicators('history', historySortColumn, historySortDescending);
+            hideSpinner();
+            break;
+    }
+});
+
+// Utility function to escape HTML
+function escapeHtml(unsafe) {
+    if (unsafe === null || unsafe === undefined) {
+        return '';
+    }
+    return unsafe
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}

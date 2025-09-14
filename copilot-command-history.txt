@@ -1,3 +1,200 @@
+## 2025-09-14 - Fixed METRICS Analysis View CSP and Resource Loading Issues
+
+**Command**: Fix Content Security Policy violations and resource loading issues in metrics analysis view
+
+**Status**: ✅ COMPLETED - Resolved CSP violations and 401 Unauthorized errors
+
+**Details**: 
+- **CSP Policy Issues**: Fixed Content Security Policy violations blocking inline styles
+  - Added nonce to style tag: `style-src ${webview.cspSource} 'nonce-${nonce}'`
+  - Updated CSP to allow nonce-based inline styles
+- **Resource Loading**: Fixed codicons CSS 401 Unauthorized error
+  - Added codicons path to localResourceRoots: `node_modules/@vscode/codicons`
+  - Proper resource URI generation for webview access
+- **Inline Style Removal**: Replaced all inline style.display calls with CSS classes
+  - Added utility classes: `.hidden`, `.show-block`, `.show-flex`
+  - Updated HTML elements to use classes instead of inline styles
+  - Modified JavaScript to use classList instead of style.display
+- **JavaScript Updates**: Enhanced DOM manipulation for CSP compliance
+  - Show/hide spinner using classList methods
+  - Load states managed with CSS classes
+  - Table container visibility controlled via classes
+  - Removed all CSP-violating inline style modifications
+- **HTML Template**: Updated template structure
+  - Added nonce to style tag
+  - Replaced inline style attributes with CSS classes
+  - Proper resource loading for codicons
+- **Error Resolution**: 
+  - Fixed "Refused to apply inline style" CSP violations
+  - Resolved codicons 401 Unauthorized loading error
+  - Eliminated webview sandbox warnings
+
+**Technical Changes**:
+- CSP Policy: Added nonce support for inline styles
+- LocalResourceRoots: Added codicons directory
+- CSS Classes: Added utility classes for show/hide
+- JavaScript: Replaced style.display with classList
+- HTML: Removed all inline style attributes
+
+**Files Modified**:
+- `src/commands/metricsAnalysisCommands.ts` - CSP policy, resource roots, HTML template
+- `src/webviews/metricsAnalysisView.js` - DOM manipulation methods
+
+## 2025-09-14 - Redesigned METRICS Analysis View with Professional UI
+
+**Command**: Redesign the metrics analysis view to follow form details view tab design and user journey view table design patterns
+
+**Status**: ✅ COMPLETED - Complete redesign following established design patterns
+
+**Details**: 
+- **Design Pattern Analysis**: Studied form details view for tab structure and user journey view for table/filter design
+- **HTML Template Redesign**: Complete rewrite following VS Code extension design patterns:
+  - Professional header with title and description
+  - Tab system matching form details view styling
+  - Filter section with collapsible header following user journey pattern
+  - Table container with proper VS Code theme integration
+  - Action buttons (Export, Refresh) with consistent styling
+  - Spinner overlay for loading states
+  - Table footer with record counts
+- **CSS Styling**: Professional styling following VS Code design system:
+  - Proper tab styling with active/inactive states
+  - Filter section with collapsible functionality
+  - Table styling with hover effects and sorting indicators
+  - Professional button styling with hover states
+  - Responsive design with proper spacing
+- **JavaScript Enhancements**: Enhanced functionality:
+  - Filter functionality for metric name and value
+  - Record count display in table footer
+  - Spinner management for loading states
+  - Export and refresh button handlers
+  - Improved tab switching logic
+  - Better error handling and empty states
+- **Features Added**:
+  - Collapsible filter section with chevron indicator
+  - Real-time filtering on metric name and value
+  - Clear filters functionality
+  - Export to CSV capability
+  - Refresh data functionality
+  - Professional loading states
+  - Record count information
+- **Architecture Pattern**: Follows established extension patterns:
+  - Form details view tab structure
+  - User journey view filter and table design
+  - Consistent VS Code theme integration
+  - Professional action buttons and controls
+
+**Files Modified**:
+- `src/commands/metricsAnalysisCommands.ts` - Complete HTML template redesign
+- `src/webviews/metricsAnalysisView.js` - Enhanced JavaScript functionality
+
+**Design References**:
+- Tab design: `src/webviews/forms/styles/detailsViewStyles.js`
+- Filter/table design: `src/commands/userStoriesJourneyCommands.ts`
+
+## 2025-09-14 - Created METRICS Analysis View
+
+**Command**: On click of METRICS, open a new metrics analysis view with title 'Analysis - Metrics', tabs for 'Current' and 'History', and sortable table with 'Metric Name' and 'Value' columns
+
+**Status**: ✅ COMPLETED - Full metrics analysis view implementation with tabs and sortable tables
+
+**Details**: 
+- **Command Registration**: Added `appdna.metricsAnalysis` command to METRICS tree item in jsonTreeDataProvider.ts
+- **Command Implementation**: Created metricsAnalysisCommands.ts with full webview panel management:
+  - Panel creation with title "Analysis - Metrics"
+  - Message handling for getCurrentMetrics and getHistoryMetrics
+  - Data retrieval using ModelService.getAllObjects() for Data Object Count metric
+- **Webview Frontend**: Created metricsAnalysisView.js with:
+  - Tab switching between 'Current' and 'History'
+  - Sortable tables with click-to-sort headers
+  - Sort indicators (▼/▲) showing current sort direction
+  - HTML escaping for security
+  - VS Code theme integration
+- **HTML Template**: Embedded in command file with:
+  - Current tab: 'Metric Name' and 'Value' columns
+  - History tab: 'Date', 'Metric Name', and 'Value' columns
+  - Loading states and empty data handling
+  - CSS styling following VS Code design patterns
+- **Data Implementation**: 
+  - Data Object Count metric as first row in Current tab
+  - Historical data placeholder (empty for now)
+  - Sortable by both metric name and value
+- **File Structure**:
+  - `src/commands/metricsAnalysisCommands.ts` - Command registration and webview management
+  - `src/webviews/metricsAnalysisView.js` - Frontend JavaScript functionality
+  - `package.json` - Command contribution with pulse icon
+  - `src/commands/registerCommands.ts` - Command registration import and call
+
+**Architecture Pattern**: Follows existing webview pattern with command registration, panel management, message passing, and VS Code theme integration
+
+## 2025-09-14 - Added METRICS Sub-Item to ANALYSIS Tree View
+
+**Command**: Create a sub-item 'METRICS' in the tree view under ANALYSIS
+
+**Status**: ✅ COMPLETED - METRICS sub-item added to ANALYSIS tree view (removed unauthorized items)
+
+**Details**: 
+- **Tree View Structure**: Added METRICS as the only child item under ANALYSIS
+- **Tree Item Properties**:
+  - Label: 'METRICS'
+  - Icon: 'pulse' (ThemeIcon)
+  - Collapsible state: None (leaf item)
+  - Context value: 'analysisMetrics'
+  - Tooltip: "Model metrics and measurement data"
+- **Correction**: Removed unauthorized items (Model Overview, Data Relationships, Workflow Analysis, Performance Insights) that were added without request
+- **Architecture Pattern**: Follows existing tree view pattern with contextValue naming convention
+- **Modified Files**: 
+  - `src/providers/jsonTreeDataProvider.ts` - Added METRICS item as only child of ANALYSIS
+
+**Current ANALYSIS Children**: METRICS (only)
+
+## 2025-09-14 - Added ANALYSIS Item to Tree View
+
+**Command**: Create a new 'ANALYSIS' item in the tree view to display between APIS and MODEL SERVICES
+
+**Status**: ✅ COMPLETED - ANALYSIS tree item added with corrected implementation
+
+**Details**: 
+- **Tree View Structure**: Added ANALYSIS item to root level between APIS and MODEL SERVICES (only shown when advanced properties are enabled)
+- **Tree Item Properties**:
+  - Label: 'ANALYSIS'
+  - Icon: 'graph' (ThemeIcon)
+  - Collapsible state: Collapsed
+  - Context value: 'analysis'
+  - Tooltip: "Model analysis and insights"
+- **Children Implementation**: Added handler for analysis contextValue (initially empty, later populated with only METRICS)
+- **Architecture Pattern**: Follows existing tree view pattern with contextValue-based children handling
+- **Modified Files**: 
+  - `src/providers/jsonTreeDataProvider.ts` - Added tree item creation and children handler
+  - Updated tree order comment to reflect new structure
+
+**Tree Order**: PROJECT → DATA OBJECTS → USER STORIES → [PAGES] → [FLOWS] → [APIS] → [ANALYSIS] → MODEL SERVICES
+(Items in brackets only shown when advanced properties are enabled)
+
+**Command**: Create a new 'ANALYSIS' item in the tree view to display between APIS and MODEL SERVICES
+
+**Status**: ✅ COMPLETED - ANALYSIS tree item added with analysis tools and insights
+
+**Details**: 
+- **Tree View Structure**: Added ANALYSIS item to root level between APIS and MODEL SERVICES (only shown when advanced properties are enabled)
+- **Tree Item Properties**:
+  - Label: 'ANALYSIS'
+  - Icon: 'graph' (ThemeIcon)
+  - Collapsible state: Collapsed
+  - Context value: 'analysis'
+  - Tooltip: "Model analysis and insights"
+- **Children Implementation**: Added handler for analysis contextValue with four analysis options:
+  - Model Overview - Basic model statistics and information 
+  - Data Relationships - Analyze data object relationships and dependencies
+  - Workflow Analysis - Analyze workflow patterns and complexity metrics
+  - Performance Insights - Performance optimization recommendations
+- **Architecture Pattern**: Follows existing tree view pattern with contextValue-based children handling
+- **Modified Files**: 
+  - `src/providers/jsonTreeDataProvider.ts` - Added tree item creation and children handler
+  - Updated tree order comment to reflect new structure
+
+**Tree Order**: PROJECT → DATA OBJECTS → USER STORIES → [PAGES] → [FLOWS] → [APIS] → [ANALYSIS] → MODEL SERVICES
+(Items in brackets only shown when advanced properties are enabled)
+
 ## 2025-09-14 - Added Lookups Tab to Add Input Control Modal
 
 **Command**: Add a 'Lookups' tab to the Add Input Control modal that lists lookup data objects (isLookup = 'true') and creates FK input controls

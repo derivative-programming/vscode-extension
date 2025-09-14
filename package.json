@@ -413,6 +413,11 @@
         "icon": "$(checklist)"
       },
       {
+        "command": "appdna.metricsAnalysis",
+        "title": "Show Metrics Analysis",
+        "icon": "$(pulse)"
+      },
+      {
         "command": "appdna.userStoriesPageMapping",
         "title": "User Stories Page Mapping",
         "icon": "$(link)"
