@@ -122,11 +122,82 @@ export function registerMetricsAnalysisCommands(context: vscode.ExtensionContext
                         data: historyMetrics
                     });
                     break;
+                
+                case 'exportToCSV':
+                    console.log("[Extension] Metrics CSV export requested");
+                    try {
+                        const csvContent = await saveMetricsToCSV(message.data.items, modelService);
+                        const now = new Date();
+                        const pad = (n: number) => n.toString().padStart(2, '0');
+                        const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                        const filename = `metrics-analysis-${timestamp}.csv`;
+                        
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            csvContent: csvContent,
+                            filename: filename,
+                            success: true
+                        });
+                    } catch (error) {
+                        console.error('[Extension] Error exporting metrics CSV:', error);
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            success: false,
+                            error: error.message
+                        });
+                    }
+                    break;
+
+                case 'saveCsvToWorkspace':
+                    try {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        
+                        if (!workspaceFolders || workspaceFolders.length === 0) {
+                            vscode.window.showErrorMessage('No workspace folder is open');
+                            return;
+                        }
+                        
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const filePath = path.join(workspaceRoot, message.data.filename);
+                        
+                        fs.writeFileSync(filePath, message.data.content, 'utf8');
+                        vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                        
+                        // Open the file in VS Code
+                        const fileUri = vscode.Uri.file(filePath);
+                        vscode.window.showTextDocument(fileUri);
+                    } catch (error) {
+                        console.error('[Extension] Error saving CSV to workspace:', error);
+                        vscode.window.showErrorMessage(`Failed to save CSV: ${error.message}`);
+                    }
+                    break;
             }
         });
     });
 
     context.subscriptions.push(metricsAnalysisCommand);
+}
+
+/**
+ * Save metrics data to CSV file
+ */
+async function saveMetricsToCSV(items: any[], modelService: ModelService): Promise<string> {
+    try {
+        // Create CSV content
+        const csvHeader = 'Metric Name,Value\n';
+        const csvRows = items.map(item => {
+            const name = (item.name || '').replace(/"/g, '""');
+            const value = (item.value || '').replace(/"/g, '""');
+            return `"${name}","${value}"`;
+        }).join('\n');
+        
+        const csvContent = csvHeader + csvRows;
+        
+        return csvContent;
+    } catch (error) {
+        console.error("[Extension] Error creating metrics CSV:", error);
+        throw error;
+    }
 }
 
 /**
@@ -752,20 +823,26 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
         }
         
         .icon-button {
-            background: var(--vscode-toolbar-activeBackground);
-            border: 1px solid var(--vscode-input-border);
+            background: none;
+            border: none;
             color: var(--vscode-foreground);
-            padding: 6px 8px;
+            padding: 5px;
             border-radius: 3px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            font-size: 16px;
         }
         
         .icon-button:hover {
             background: var(--vscode-toolbar-hoverBackground);
             color: var(--vscode-foreground);
+        }
+        
+        .icon-button:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: 2px;
         }
         
         /* Table styling */
@@ -922,11 +999,9 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
         <div class="header-actions">
             <button id="exportButton" class="icon-button" title="Export to CSV">
                 <i class="codicon codicon-cloud-download"></i>
-                Export
             </button>
             <button id="refreshButton" class="icon-button" title="Refresh Data">
                 <i class="codicon codicon-refresh"></i>
-                Refresh
             </button>
         </div>
         

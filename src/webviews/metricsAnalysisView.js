@@ -413,6 +413,24 @@ window.addEventListener('message', event => {
             updateSortIndicators('history', historySortColumn, historySortDescending);
             hideSpinner();
             break;
+            
+        case 'csvExportReady':
+            console.log('CSV export ready:', message);
+            if (message.success) {
+                // Trigger download by sending the content back to extension to save to workspace
+                vscode.postMessage({
+                    command: 'saveCsvToWorkspace',
+                    data: {
+                        content: message.csvContent,
+                        filename: message.filename
+                    }
+                });
+            } else {
+                console.error('CSV export failed:', message.error);
+                // Could show an error message to user here
+                alert('Failed to export CSV: ' + (message.error || 'Unknown error'));
+            }
+            break;
     }
 });
 
