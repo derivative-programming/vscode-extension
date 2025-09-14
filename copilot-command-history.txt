@@ -1,3 +1,37 @@
+## 2025-09-14 - Added Lookups Tab to Add Input Control Modal
+
+**Command**: Add a 'Lookups' tab to the Add Input Control modal that lists lookup data objects (isLookup = 'true') and creates FK input controls
+
+**Status**: ✅ COMPLETED - Full implementation with backend, frontend, and UI integration
+
+**Details**: 
+- **Modal Template**: Added Lookups tab to addInputControlModalTemplate.js with checkbox selection UI
+- **Backend Integration**: 
+  - Added getLookupObjectsForForm message handler and function to filter objects where isLookup = 'true'
+  - Added addParamWithLookupData message handler and function to create FK input controls
+  - Duplicate checking prevents creating controls that already exist
+- **Frontend JavaScript**: 
+  - Added tab switching support and loadLookupObjects function in addInputControlModalFunctionality.js
+  - Added populateLookupObjects function to render lookup objects as checkboxes
+  - Added addNewInputControlWithLookupData function for backend communication
+- **UI Styling**: Added lookups-container, checkbox-grid, and checkbox-item CSS styles for consistent appearance
+- **Message Handling**: Added populateLookupObjects case in clientScriptTemplate.js
+
+**Input Control Properties Created**:
+```javascript
+{
+  "name": "[lookup object name]Code",
+  "sqlServerDBDataType": "uniqueidentifier", 
+  "isFK": "true",
+  "fKObjectName": "[lookup object name]",
+  "isFKLookup": "true",
+  "isFKList": "true", 
+  "isFKListInactiveIncluded": "true"
+}
+```
+
+**Architecture Pattern**: Follows existing tab-based modal pattern with backend data loading, message passing, and UI refresh
+
 ## 2024-12-31 - Enhanced Property-Based Input Control Creation with Full Data
 
 **Command**: Enhanced property-based input control creation to set all relevant properties instead of just the name

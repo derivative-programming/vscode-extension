@@ -396,6 +396,15 @@ function showFormDetails(item, modelService, context) {
                     }
                     return;
                     
+                case "addParamWithLookupData":
+                    if (modelService && formReference) {
+                        // Add a new parameter to the form with lookup FK data
+                        addParamToFormWithLookupData(formReference, modelService, message.data, panel);
+                    } else {
+                        console.warn("Cannot add parameter with lookup data: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
                 case "addButton":
                     if (modelService && formReference) {
                         // Add a new button to the form
@@ -438,6 +447,15 @@ function showFormDetails(item, modelService, context) {
                         getAvailablePropertiesForForm(formReference, modelService, panel);
                     } else {
                         console.warn("Cannot get available properties: ModelService not available or form reference not found");
+                    }
+                    return;
+                    
+                case "getLookupObjectsForForm":
+                    if (modelService && formReference) {
+                        // Get available lookup data objects for the form and send them to the webview
+                        getLookupObjectsForForm(formReference, modelService, panel);
+                    } else {
+                        console.warn("Cannot get lookup objects: ModelService not available or form reference not found");
                     }
                     return;
                     
@@ -2356,6 +2374,143 @@ function getAvailablePropertiesForForm(formReference, modelService, panel) {
                 data: []
             });
         }
+    }
+}
+
+/**
+ * Gets all lookup data objects (isLookup = 'true') for the lookup input control modal
+ * @param {Object} formReference Reference to the form object
+ * @param {Object} modelService ModelService instance
+ * @param {Object} panel The webview panel for sending messages
+ */
+function getLookupObjectsForForm(formReference, modelService, panel) {
+    console.log("=== getLookupObjectsForForm called ===");
+    
+    try {
+        // Get all data objects from the model
+        let allDataObjects = [];
+        if (modelService && typeof modelService.getAllObjects === 'function') {
+            allDataObjects = modelService.getAllObjects();
+        }
+        
+        console.log("Total data objects found:", allDataObjects.length);
+        
+        // Filter to only include lookup objects (isLookup = 'true')
+        const lookupObjects = allDataObjects.filter(obj => obj.isLookup === 'true');
+        
+        console.log("Lookup objects found:", lookupObjects.length);
+        
+        // Create simplified data structure for the webview
+        const lookupData = lookupObjects.map(obj => ({
+            name: obj.name,
+            objectName: obj.objectName || obj.name,
+            description: obj.description || ''
+        }));
+        
+        console.log("Processed lookup data:", lookupData);
+        
+        // Send the lookup data to the webview
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'populateLookupObjects',
+                data: lookupData
+            });
+        } else {
+            console.error("Panel or webview not available for sending lookup data");
+        }
+        
+        console.log("Lookup objects data sent:", lookupData.length, "lookups");
+        
+    } catch (error) {
+        console.error("Error getting lookup objects for form:", error);
+        console.error("Error stack:", error.stack);
+        
+        // Send empty data on error
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'populateLookupObjects',
+                data: []
+            });
+        }
+    }
+}
+
+/**
+ * Adds a new parameter to the form with lookup FK data
+ * @param {Object} formReference Reference to the form object
+ * @param {Object} modelService ModelService instance
+ * @param {Object} lookupData Object containing lookup information
+ * @param {Object} panel The webview panel for sending refresh messages
+ */
+function addParamToFormWithLookupData(formReference, modelService, lookupData, panel) {
+    console.log("addParamToFormWithLookupData called with data:", lookupData);
+    
+    if (!formReference || !modelService || !lookupData || !lookupData.lookupObjectName) {
+        console.error("Missing required data to add parameter with lookup data");
+        return;
+    }
+    
+    try {
+        // Use the form reference directly since it's already the form object
+        const form = formReference;
+        
+        // Initialize the parameters array if it doesn't exist
+        if (!form.objectWorkflowParam) {
+            form.objectWorkflowParam = [];
+        }
+        
+        // Create the parameter name by appending "Code" to the lookup object name
+        const paramName = lookupData.lookupObjectName + "Code";
+        
+        // Check if a parameter with this name already exists
+        const existingParam = form.objectWorkflowParam.find(param => param.name === paramName);
+        if (existingParam) {
+            console.warn(`Parameter with name "${paramName}" already exists`);
+            // Still send refresh message to update UI
+            if (panel && panel.webview) {
+                panel.webview.postMessage({
+                    command: 'refreshParamsList',
+                    data: form.objectWorkflowParam,
+                    newSelection: form.objectWorkflowParam.findIndex(param => param.name === paramName)
+                });
+            }
+            return;
+        }
+        
+        // Create a new parameter with lookup FK properties
+        const newParam = {
+            name: paramName,
+            sqlServerDBDataType: "uniqueidentifier",
+            isFK: "true",
+            fKObjectName: lookupData.lookupObjectName,
+            isFKLookup: "true",
+            isFKList: "true",
+            isFKListInactiveIncluded: "true"
+        };
+        
+        // Add the new parameter to the array
+        form.objectWorkflowParam.push(newParam);
+        
+        console.log("Added new lookup parameter:", newParam);
+        
+        // Mark as having unsaved changes
+        if (modelService && typeof modelService.markUnsavedChanges === 'function') {
+            modelService.markUnsavedChanges();
+        }
+        
+        // Send message to webview to refresh the params list
+        if (panel && panel.webview) {
+            panel.webview.postMessage({
+                command: 'refreshParamsList',
+                data: form.objectWorkflowParam,
+                newSelection: form.objectWorkflowParam.length - 1 // Select the newly added item
+            });
+        }
+        
+        // Refresh the UI
+        vscode.commands.executeCommand("appdna.refresh");
+    } catch (error) {
+        console.error("Error adding parameter with lookup data:", error);
     }
 }
 

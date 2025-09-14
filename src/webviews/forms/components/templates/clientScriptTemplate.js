@@ -285,6 +285,18 @@ function getClientScriptTemplate(params, buttons, outputVars, paramSchema, butto
                             }
                         }
                         break;
+                    case 'populateLookupObjects':
+                        console.log('[DEBUG] Received lookup objects:', message.data);
+                        console.log('[DEBUG] Lookup data length:', message.data ? message.data.length : 0);
+                        
+                        // Try to find the lookups container and populate it
+                        if (window.populateLookupObjects) {
+                            console.log('[DEBUG] Calling window.populateLookupObjects');
+                            window.populateLookupObjects(message.data);
+                        } else {
+                            console.log('[DEBUG] window.populateLookupObjects not available');
+                        }
+                        break;
                 }
             });
             

@@ -19,6 +19,7 @@ function getAddInputControlModalHtml() {
         <div class="tab active" data-tab="singleAdd">Single Input Control</div>
         <div class="tab" data-tab="bulkAdd">Bulk Add</div>
         <div class="tab" data-tab="availProps">Avail Data Object Props</div>
+        <div class="tab" data-tab="lookups">Lookups</div>
     </div>
     <div id="singleAdd" class="tab-content active">
         <div class="form-row">
@@ -48,6 +49,17 @@ function getAddInputControlModalHtml() {
         </div>
         <div id="propsValidationError" class="validation-error"></div>
         <button id="addSelectedProps">Add Selected Properties</button>
+    </div>
+    <div id="lookups" class="tab-content">
+        <div class="form-row">
+            <label>Available Lookup Data Objects:</label>
+            <div id="lookupsContainer" class="lookups-container">
+                <!-- Lookup objects will be dynamically populated here -->
+            </div>
+            <div class="field-note">Select one or more lookup data objects to create FK input controls. Input controls will be named using the format "[LookupObjectName]Code".</div>
+        </div>
+        <div id="lookupsValidationError" class="validation-error"></div>
+        <button id="addSelectedLookups">Add Selected Lookups</button>
     </div>
 </div>`;
 }

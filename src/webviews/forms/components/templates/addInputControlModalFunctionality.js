@@ -66,6 +66,10 @@ function createAddInputControlModal() {
                     console.log('[DEBUG] Available Properties tab activated');
                     // Load available properties when this tab is activated
                     loadAvailableProperties(modal);
+                } else if (tabId === 'lookups') {
+                    console.log('[DEBUG] Lookups tab activated');
+                    // Load lookup objects when this tab is activated
+                    loadLookupObjects(modal);
                 }
             }, 10);
         });
@@ -275,6 +279,76 @@ function createAddInputControlModal() {
             }
         });
     }
+    
+    // Add selected lookups button event listener
+    const addLookupsButton = modal.querySelector("#addSelectedLookups");
+    if (addLookupsButton) {
+        addLookupsButton.addEventListener("click", function() {
+            const selectedCheckboxes = modal.querySelectorAll('#lookupsContainer input[type="checkbox"]:checked');
+            const errorElement = modal.querySelector("#lookupsValidationError");
+            
+            if (selectedCheckboxes.length === 0) {
+                errorElement.textContent = "Please select at least one lookup object.";
+                return;
+            }
+            
+            // Clear any previous error
+            errorElement.textContent = "";
+            
+            try {
+                console.log('[DEBUG] Adding lookup-based input controls');
+                
+                // First, collect all lookup input control data to be created and check for duplicates
+                const lookupsToAdd = [];
+                const duplicateLookups = [];
+                
+                selectedCheckboxes.forEach(checkbox => {
+                    const lookupObjectName = checkbox.getAttribute('data-lookup-object-name');
+                    const controlName = lookupObjectName + 'Code';
+                    
+                    console.log('[DEBUG] Processing lookup object:', lookupObjectName, 'control name:', controlName);
+                    
+                    // Check if input control already exists
+                    const existingControls = getCurrentInputControls();
+                    const controlExists = existingControls.some(ctrl => ctrl.name === controlName);
+                    
+                    if (controlExists) {
+                        duplicateLookups.push(controlName);
+                    } else {
+                        lookupsToAdd.push({
+                            lookupObjectName: lookupObjectName,
+                            controlName: controlName
+                        });
+                    }
+                });
+                
+                // Show validation error if there are duplicates
+                if (duplicateLookups.length > 0) {
+                    errorElement.textContent = "The following input controls already exist: " + duplicateLookups.join(", ");
+                    return;
+                }
+                
+                console.log('[DEBUG] No duplicates found, proceeding with', lookupsToAdd.length, 'lookup controls');
+                
+                // Process each selected lookup object
+                lookupsToAdd.forEach(lookupItem => {
+                    // Create lookup data for the backend
+                    const lookupData = {
+                        lookupObjectName: lookupItem.lookupObjectName
+                    };
+                    
+                    // Add the lookup input control
+                    addNewInputControlWithLookupData(lookupData);
+                });
+                
+                // Close the modal
+                document.body.removeChild(modal);
+            } catch (error) {
+                console.error("Error adding lookup-based input controls:", error);
+                errorElement.textContent = "Error adding lookup input controls. Please try again.";
+            }
+        });
+    }
 }
 
 // Function to add a new input control (called from add input control modal)
@@ -294,6 +368,15 @@ function addNewInputControlWithData(controlData) {
     vscode.postMessage({
         command: 'addParamWithData',
         data: controlData
+    });
+}
+
+// Function to add a new input control with lookup FK data (called from lookup-based addition)
+function addNewInputControlWithLookupData(lookupData) {
+    // Send message to add a new parameter with lookup FK data
+    vscode.postMessage({
+        command: 'addParamWithLookupData',
+        data: lookupData
     });
 }
 
@@ -419,8 +502,70 @@ function getCurrentInputControls() {
     }
 }
 
+// Function to load lookup objects into the modal
+function loadLookupObjects(modal) {
+    console.log('[DEBUG] Loading lookup objects for form');
+    console.log('[DEBUG] Modal exists:', !!modal);
+    console.log('[DEBUG] vscode API exists:', !!vscode);
+    
+    // Request lookup objects from the backend
+    vscode.postMessage({
+        command: 'getLookupObjectsForForm',
+        data: {}
+    });
+    
+    console.log('[DEBUG] Sent getLookupObjectsForForm message to backend');
+    
+    // Note: The response will be handled in the message listener
+    // and will call populateLookupObjects function
+}
+
+// Function to populate the lookup objects container
+function populateLookupObjects(lookupData) {
+    console.log('[DEBUG] populateLookupObjects called with data:', lookupData);
+    console.log('[DEBUG] Lookup data length:', lookupData ? lookupData.length : 0);
+    
+    const container = document.querySelector('#lookupsContainer');
+    console.log('[DEBUG] Lookups container found:', !!container);
+    
+    if (!container) {
+        console.error('[DEBUG] Lookups container not found!');
+        return;
+    }
+    
+    let html = '';
+    
+    if (!lookupData || lookupData.length === 0) {
+        html = '<div style="padding: 20px; text-align: center; color: var(--vscode-descriptionForeground);">No lookup objects available.</div>';
+    } else {
+        // Group by object type if needed, for now show all in one list
+        html = '<div class="checkbox-grid">';
+        
+        lookupData.forEach(lookup => {
+            const lookupObjectName = lookup.name || lookup.objectName;
+            const description = lookup.description || '';
+            
+            html += \`
+                <div class="checkbox-item">
+                    <input type="checkbox" 
+                           data-lookup-object-name="\${lookupObjectName}"
+                           id="lookup_\${lookupObjectName}">
+                    <label for="lookup_\${lookupObjectName}" class="property-name">\${lookupObjectName}</label>
+                    \${description ? \`<span class="property-description">\${description}</span>\` : ''}
+                </div>
+            \`;
+        });
+        
+        html += '</div>';
+    }
+    
+    container.innerHTML = html;
+    console.log('[DEBUG] Lookup objects populated, HTML length:', html.length);
+}
+
 // Make functions available globally for client script message handler
 window.populateAvailableProperties = populateAvailableProperties;
+window.populateLookupObjects = populateLookupObjects;
 `;
 }
 

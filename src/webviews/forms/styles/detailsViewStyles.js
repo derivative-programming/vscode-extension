@@ -623,6 +623,66 @@ function getDetailViewStyles() {
         .property-validation-message.show {
             display: block;
         }
+        
+        /* Lookups Container Styling */
+        .lookups-container {
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: var(--vscode-input-background);
+            margin-bottom: 15px;
+        }
+        
+        .checkbox-grid {
+            padding: 8px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            margin-bottom: 4px;
+        }
+        
+        .checkbox-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .checkbox-item:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .checkbox-item label.property-name {
+            font-weight: 500;
+            color: var(--vscode-foreground);
+            flex: 1;
+            cursor: pointer;
+            margin: 0;
+        }
+        
+        .checkbox-item .property-info {
+            color: var(--vscode-descriptionForeground);
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        
+        .checkbox-item .property-description {
+            color: var(--vscode-descriptionForeground);
+            font-size: 10px;
+            font-style: italic;
+            margin-left: 8px;
+        }
     `;
 }
 
