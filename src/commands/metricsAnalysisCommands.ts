@@ -108,6 +108,10 @@ export function registerMetricsAnalysisCommands(context: vscode.ExtensionContext
                 case 'getCurrentMetrics':
                     // Get current metrics data
                     const currentMetrics = getCurrentMetricsData(modelService);
+                    
+                    // Update metric history with current values
+                    updateMetricHistory(currentMetrics, modelService);
+                    
                     panel.webview.postMessage({
                         command: 'currentMetricsData',
                         data: currentMetrics
@@ -115,8 +119,8 @@ export function registerMetricsAnalysisCommands(context: vscode.ExtensionContext
                     break;
                 
                 case 'getHistoryMetrics':
-                    // Get historical metrics data (placeholder for now)
-                    const historyMetrics = getHistoryMetricsData();
+                    // Get historical metrics data
+                    const historyMetrics = getHistoryMetricsData(modelService);
                     panel.webview.postMessage({
                         command: 'historyMetricsData',
                         data: historyMetrics
@@ -176,6 +180,126 @@ export function registerMetricsAnalysisCommands(context: vscode.ExtensionContext
     });
 
     context.subscriptions.push(metricsAnalysisCommand);
+}
+
+/**
+ * Convert display text to snake_case name
+ */
+function toSnakeCase(displayText: string): string {
+    return displayText
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '');
+}
+
+/**
+ * Load metric history from file
+ */
+function loadMetricHistory(modelService: ModelService): any {
+    try {
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            return { metrics: [] };
+        }
+        
+        const historyFilePath = path.join(path.dirname(modelFilePath), 'app-dna-analysis-metric-history.json');
+        
+        if (fs.existsSync(historyFilePath)) {
+            const historyContent = fs.readFileSync(historyFilePath, 'utf8');
+            return JSON.parse(historyContent);
+        }
+        
+        return { metrics: [] };
+    } catch (error) {
+        console.error('Error loading metric history:', error);
+        return { metrics: [] };
+    }
+}
+
+/**
+ * Save metric history to file
+ */
+function saveMetricHistory(historyData: any, modelService: ModelService): void {
+    try {
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            return;
+        }
+        
+        const historyFilePath = path.join(path.dirname(modelFilePath), 'app-dna-analysis-metric-history.json');
+        fs.writeFileSync(historyFilePath, JSON.stringify(historyData, null, 2), 'utf8');
+    } catch (error) {
+        console.error('Error saving metric history:', error);
+    }
+}
+
+/**
+ * Update metric history with current values
+ */
+function updateMetricHistory(currentMetrics: any[], modelService: ModelService): void {
+    try {
+        const historyData = loadMetricHistory(modelService);
+        const currentDateTime = new Date().toISOString();
+        
+        // Create a lookup for existing metrics
+        const existingMetrics = new Map<string, any>();
+        historyData.metrics.forEach((metric: any) => {
+            existingMetrics.set(metric.name, metric);
+        });
+        
+        // Process each current metric
+        currentMetrics.forEach((currentMetric: any) => {
+            const name = toSnakeCase(currentMetric.name);
+            const displayText = currentMetric.name;
+            const currentValue = currentMetric.value;
+            
+            let metricEntry = existingMetrics.get(name);
+            
+            if (!metricEntry) {
+                // Create new metric entry and add initial history entry
+                metricEntry = {
+                    name: name,
+                    display_text: displayText,
+                    current_value: currentValue,
+                    value_history: [
+                        {
+                            utc_date_time: currentDateTime,
+                            value: currentValue
+                        }
+                    ]
+                };
+                historyData.metrics.push(metricEntry);
+                existingMetrics.set(name, metricEntry);
+                
+                console.log(`[Extension] New metric created with initial history: ${displayText} = ${currentValue}`);
+            } else {
+                // Update display text in case it changed
+                metricEntry.display_text = displayText;
+                
+                // Check if value has changed
+                if (metricEntry.current_value !== currentValue) {
+                    // Add to history
+                    metricEntry.value_history.push({
+                        utc_date_time: currentDateTime,
+                        value: currentValue
+                    });
+                    
+                    // Update current value
+                    const previousValue = metricEntry.current_value;
+                    metricEntry.current_value = currentValue;
+                    
+                    console.log(`[Extension] Metric history updated for ${displayText}: ${previousValue} -> ${currentValue}`);
+                }
+            }
+        });
+        
+        // Save updated history
+        saveMetricHistory(historyData, modelService);
+        
+    } catch (error) {
+        console.error('Error updating metric history:', error);
+    }
 }
 
 /**
@@ -629,11 +753,35 @@ function getCurrentMetricsData(modelService: ModelService): any[] {
 }
 
 /**
- * Gets historical metrics data (placeholder)
+ * Gets historical metrics data from the history file
  */
-function getHistoryMetricsData(): any[] {
-    // Placeholder for historical data
-    return [];
+function getHistoryMetricsData(modelService: ModelService): any[] {
+    try {
+        const historyData = loadMetricHistory(modelService);
+        
+        // Transform the data for the history view
+        const historyItems: any[] = [];
+        
+        historyData.metrics.forEach((metric: any) => {
+            if (metric.value_history && metric.value_history.length > 0) {
+                metric.value_history.forEach((historyEntry: any) => {
+                    historyItems.push({
+                        metric_name: metric.display_text,
+                        date: historyEntry.utc_date_time,
+                        value: historyEntry.value
+                    });
+                });
+            }
+        });
+        
+        // Sort by date (newest first)
+        historyItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        return historyItems;
+    } catch (error) {
+        console.error('Error getting history metrics data:', error);
+        return [];
+    }
 }
 
 /**

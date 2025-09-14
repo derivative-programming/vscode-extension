@@ -1,3 +1,105 @@
+## 2025-09-14 - Fixed Metric History Tracking to Include Initial Values
+
+**Command**: Add initial history entry when creating new metrics to properly track first occurrence
+
+**Status**: ✅ COMPLETED - Fixed metric history to record initial values as historical data points
+
+**Details**: 
+- **Issue Fixed**: When new metrics were first discovered, their initial values were not being recorded in value_history
+- **Root Cause**: `updateMetricHistory()` was only adding history entries for value changes, not for initial metric creation
+- **Solution Implemented**: Modified new metric creation logic to include initial history entry
+- **Updated Logic**:
+  - **New Metric Creation**: Now creates initial value_history entry with first observed value and timestamp
+  - **Existing Metric Updates**: Continues to track value changes as before
+  - **Complete History**: Every metric value that has ever been observed is now recorded in history
+
+- **Before Fix**:
+  ```json
+  {
+    "name": "page_count",
+    "current_value": "5",
+    "value_history": []  // Empty - initial value not recorded
+  }
+  ```
+
+- **After Fix**:
+  ```json
+  {
+    "name": "page_count", 
+    "current_value": "5",
+    "value_history": [
+      {
+        "utc_date_time": "2025-09-14T...",
+        "value": "5"  // Initial value properly recorded
+      }
+    ]
+  }
+  ```
+
+- **Benefits**:
+  - **Complete History**: Every metric value is now captured from first observation
+  - **Chart-Ready**: Initial data points available for trend visualization
+  - **Historical Accuracy**: True chronological record of all metric values
+  - **Debugging**: Clear log messages distinguish between new metrics and value changes
+
+- **Logging Enhanced**: Added specific console messages for new metric creation vs. value updates for better debugging
+
+## 2025-09-14 - Implemented Metric History Tracking System
+
+**Command**: Create comprehensive metric history tracking to store metric values over time for chart display
+
+**Status**: ✅ COMPLETED - Implemented full metric history tracking system with persistent storage
+
+**Details**: 
+- **File Storage**: Created `app-dna-analysis-metric-history.json` file system for persistent metric tracking
+- **Data Structure**: Implemented comprehensive metric history schema:
+  ```json
+  {
+    "metrics": [
+      {
+        "name": "snake_case_name",
+        "display_text": "Original Display Text",
+        "current_value": "latest_value",
+        "value_history": [
+          {
+            "utc_date_time": "2025-09-14T...",
+            "value": "historical_value"
+          }
+        ]
+      }
+    ]
+  }
+  ```
+
+- **Core Functions Implemented**:
+  1. **`toSnakeCase()`**: Converts display text to snake_case names (e.g., "Page Count" → "page_count")
+  2. **`loadMetricHistory()`**: Loads existing history from JSON file
+  3. **`saveMetricHistory()`**: Persists history data to JSON file
+  4. **`updateMetricHistory()`**: Core logic to track metric changes and add to history
+  5. **`getHistoryMetricsData()`**: Returns formatted historical data for history tab display
+
+- **Automatic Tracking**: Integrated with current metrics display:
+  - Every time current metrics tab is displayed, values are checked against history
+  - If any metric value has changed, new entry is added to value_history array
+  - Timestamps are stored in UTC ISO format for consistency
+  - Only value changes trigger history entries (no duplicate entries for same values)
+
+- **History Tab Enhancement**: Updated history metrics data to return actual historical values instead of placeholder data
+
+- **Change Detection Logic**: 
+  - Compares current metric values with stored current_value
+  - Creates new metrics entries for newly discovered metrics
+  - Updates display_text if metric names change
+  - Adds timestamped history entries only when values change
+
+- **Benefits**: 
+  - Foundation for future chart/graph display of metric trends
+  - Historical analysis of model evolution over time
+  - Persistent tracking across VS Code sessions
+  - Automatic, transparent operation requiring no user intervention
+
+- **Architecture Notes**: History file is stored alongside the app-dna.json model file for logical grouping and easy workspace management
+
 ## 2025-09-14 - Updated Icon Button Styling to Remove Default Background and Border
 
 **Command**: Remove background and border from icon buttons, showing them only on hover
