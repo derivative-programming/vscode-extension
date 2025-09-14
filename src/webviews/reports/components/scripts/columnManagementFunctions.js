@@ -708,6 +708,8 @@ function getColumnManagementFunctions() {
                         const propertyName = checkbox.getAttribute('data-property-name');
                         const dataType = checkbox.getAttribute('data-data-type');
                         const dataSize = checkbox.getAttribute('data-data-size');
+                        const labelText = checkbox.getAttribute('data-label-text');
+                        console.log('[DEBUG] Property:', propertyName, 'labelText:', labelText);
                         const isLookupProperty = checkbox.getAttribute('data-is-lookup-property') === 'true';
                         const sourceLookupObjImplementationObjName = checkbox.getAttribute('data-source-lookup-obj-implementation-obj-name');
                         const sourceObjectName = checkbox.getAttribute('data-source-object-name');
@@ -738,7 +740,10 @@ function getColumnManagementFunctions() {
                                 dataType: dataType,
                                 dataSize: dataSize,
                                 isVisible: "true",
+                                headerText: labelText || '' // Use labelText as headerText
                             };
+                            
+                            console.log('[DEBUG] Created column data with headerText:', columnData.headerText);
                             
                             if (isLookupProperty) {
                                 // For lookup properties, use the lookup object metadata
@@ -820,7 +825,8 @@ function getColumnManagementFunctions() {
                     html += 'data-object-name="' + objectData.objectName + '" ';
                     html += 'data-property-name="' + prop.name + '" ';
                     html += 'data-data-type="' + (prop.dataType || '') + '" ';
-                    html += 'data-data-size="' + (prop.dataSize || '') + '"';
+                    html += 'data-data-size="' + (prop.dataSize || '') + '" ';
+                    html += 'data-label-text="' + (prop.labelText || '') + '"';
                     
                     // Add lookup property specific attributes
                     if (prop.isLookupProperty) {

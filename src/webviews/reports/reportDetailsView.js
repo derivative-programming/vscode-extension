@@ -2427,6 +2427,12 @@ function addPropertyColumnToReport(reportReference, modelService, data, panel) {
             newColumn.isVisible = data.isVisible;
         }
         
+        // Add headerText if provided
+        if (data.headerText) {
+            newColumn.headerText = data.headerText;
+            console.log("Set headerText for column:", data.name, "to:", data.headerText);
+        }
+        
         // Add the new column to the array
         reportReference.reportColumn.push(newColumn);
         
@@ -2497,12 +2503,15 @@ function getAvailablePropertiesForReport(reportReference, modelService, panel) {
             if (obj.prop && Array.isArray(obj.prop)) {
                 obj.prop.forEach(prop => {
                     if (prop.name) {
+                        console.log(`[DEBUG] REPORTS extractPropertiesFromObject - Property ${prop.name} labelText:`, prop.labelText);
+                        
                         // Add the regular property
                         properties.push({
                             name: prop.name,
                             dataType: prop.sqlServerDBDataType || '',
                             dataSize: prop.sqlServerDBDataTypeSize || '',
                             fullPath: `${obj.name}.${prop.name}`,
+                            labelText: prop.labelText, // Include labelText for headerText usage
                             isFKLookup: prop.isFKLookup === 'true',
                             fKObjectName: prop.fKObjectName || ''
                         });
@@ -2518,6 +2527,7 @@ function getAvailablePropertiesForReport(reportReference, modelService, panel) {
                                             dataType: lookupProp.sqlServerDBDataType || '',
                                             dataSize: lookupProp.sqlServerDBDataTypeSize || '',
                                             fullPath: `${obj.name}.${prop.name}.${lookupObject.name}.${lookupProp.name}`,
+                                            labelText: lookupProp.labelText, // Include labelText for lookup properties too
                                             isLookupProperty: true,
                                             sourceLookupObjImplementationObjName: obj.name,
                                             sourceObjectName: lookupObject.name,
