@@ -62,6 +62,13 @@ function getButtonsListTemplate(buttonsSchema) {
                     return `<option value="${option}" ${isSelected ? "selected" : ""}>${option}</option>`;
                 }).join("")}
             </select>`;
+        } else if (buttonKey === "buttonType") {
+            // Special handling for buttonType field - provide dropdown with predefined options
+            inputField = `<select id="${fieldId}" name="${buttonKey}" ${tooltip} disabled>
+                <option value="submit">submit</option>
+                <option value="cancel">cancel</option>
+                <option value="other" selected>other</option>
+            </select>`;
         } else {
             inputField = `<input type="text" id="${fieldId}" name="${buttonKey}" value="" ${tooltip} readonly>`;
         }

@@ -1,21 +1,19 @@
 Agent todo items...
   
 
-
-report button - Destination Target Name lookup button can be a general flow too
-
-add report columns from lineage property list. add report col by selection of one or more properties in data object lineage
-
-add form controls from lineage property list
-
-whereever we show a lookup button we shoudl also show an edit butotn to open its detail view
-
 page init flow...
-- page references tab
+- page 'used by' tab
   - table of all pages using it with edit icon button and preview icon button
 
+make sure pageinit flows are created when forms and reports are created
 
 allow add of page init flow (plus sign on page detail view next to empty display)
+
+
+report button - Destination Target Name lookup button can be a general flow too
+`
+wherever we show a lookup button we should also show an edit button to open its detail view
+
  
 
 report column - need lookup on Button Object WF Name setting? are we displaying this property? are we showing a page lookup now?
