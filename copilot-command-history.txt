@@ -1,3 +1,193 @@
+## 2025-09-14 - Added Lookup and Non-Lookup Data Object Count Metrics
+
+**Command**: Add Lookup Data Object Count and Non-Lookup Data Object Count metrics to show data object breakdown
+
+**Status**: ✅ COMPLETED - Added both lookup and non-lookup data object count metrics
+
+**Details**: 
+- **New Metrics Implementation**: Added two complementary metrics to getCurrentMetricsData function:
+  
+  1. **Lookup Data Object Count**: 
+     - Counts data objects where `isLookup === "true"`
+     - Represents reference/lookup tables used for dropdowns and selections
+     - Examples: Role, Status, Category lookup tables
+  
+  2. **Non-Lookup Data Object Count**:
+     - Counts data objects where `isLookup !== "true"`
+     - Represents main business entities/transactional data objects
+     - Examples: User, Order, Product entities
+     
+- **Data Source**: Both metrics iterate through namespace.object array
+- **Calculation Logic**: Simple boolean check on `isLookup` property for each object
+- **Complementary Nature**: Lookup Count + Non-Lookup Count = Total Data Object Count
+- **Use Cases**: 
+  - Understanding model structure (reference data vs. business entities)
+  - Assessing complexity of role requirements (non-lookup objects are used in role requirements)
+  - Model design analysis and optimization
+- **Architecture Notes**: These metrics help users understand the composition of their data model and the scope of objects involved in role-based access control
+
+## 2025-09-14 - Fixed Role Extraction Logic to Use Specific 'Role' Data Object
+
+**Command**: Correct role extraction logic to specifically target the 'Role' data object instead of generic lookup objects
+
+**Status**: ✅ COMPLETED - Fixed role extraction for all role-related metrics
+
+**Details**: 
+- **Issue Identified**: Role extraction was using generic `isLookup === "true"` logic instead of specifically targeting the 'Role' data object
+- **Root Cause**: Misalignment with role requirements view which specifically looks for data object named 'Role'
+- **Correct Logic**: Roles come from the data object named 'Role' (case-insensitive match: `obj.name.toLowerCase() === 'role'`)
+- **Metrics Updated**:
+  1. **Role Count**: Now specifically extracts from 'Role' data object's lookup items
+  2. **User Story Role Requirement Assignment Count**: Updated to use specific 'Role' data object logic
+  3. **User Story Role Requirement Not Assigned Count**: Updated to use specific 'Role' data object logic
+- **Consistency**: All three metrics now use identical role extraction logic matching roleRequirementsCommands.ts line 73-83
+- **Expected Result**: Role counts should now be accurate and match exactly what appears in the role requirements view
+- **Architecture Notes**: This ensures metrics extract roles from the designated 'Role' data object rather than scanning all lookup objects
+
+## 2025-09-14 - Added Role Count Metric to METRICS Analysis View
+
+**Command**: Add Role Count metric to show total number of roles in the model
+
+**Status**: ✅ COMPLETED - Added Role Count metric
+
+**Details**: 
+- **New Metric Implementation**: Added Role Count to getCurrentMetricsData function:
+  - **Role Count**: Counts the total number of roles found in the model
+  - **Data Source**: Extracts roles from lookup items in namespace objects
+  - **Calculation Logic**:
+    1. Find all objects where isLookup === "true"
+    2. Iterate through their lookupItem arrays
+    3. Add item.name to a Set (for uniqueness)
+    4. Filter out roles named 'unknown' (case-insensitive)
+    5. Return the size of the Set
+  - **Consistency**: Uses exact same role extraction logic as role requirements metrics
+  - **Unknown Role Handling**: Excludes 'unknown' roles to match role requirements view behavior
+- **Use Case**: Provides visibility into the total number of roles defined in the model, useful for understanding the scope of role-based access control
+- **Architecture Notes**: This metric helps users understand the breadth of their role definitions and complements the role requirement assignment metrics
+
+## 2025-09-14 - Fixed Role Requirement Metrics to Match Role Requirements View Logic
+
+**Command**: Align role requirement metrics calculation with role requirements view display logic
+
+**Status**: ✅ COMPLETED - Fixed metrics to match role requirements view exactly
+
+**Details**: 
+- **Issue Identified**: Role requirement metrics were showing more counts than rows displayed in role requirements view
+- **Root Cause Analysis**: Discrepancy in calculation logic between metrics and role requirements view
+- **Fixes Applied**:
+  1. **Actions Array Order**: Changed from `['View', 'View All', 'Add', 'Update', 'Delete']` to `['View All', 'View', 'Add', 'Update', 'Delete']` to match roleRequirementsCommands.ts line 125
+  2. **Unknown Role Filtering**: Added same logic as role requirements view to skip roles with name 'unknown' (case-insensitive)
+  3. **Consistent Logic**: Both Assignment Count and Not Assigned Count metrics now use identical logic to role requirements view
+- **Expected Result**: Role requirement metrics should now exactly match the total number of rows displayed in the role requirements view
+- **Verification**: Assignment Count + Not Assigned Count should equal the total rows shown in role requirements table
+- **Architecture Notes**: Metrics now use exact same role extraction, data object filtering, action array, and combination generation logic as the role requirements view
+
+## 2025-09-14 - Added User Story Role Requirement Not Assigned Count Metric
+
+**Command**: Add User Story Role Requirement Not Assigned Count metric to complement assignment count
+
+**Status**: ✅ COMPLETED - Added User Story Role Requirement Not Assigned Count metric
+
+**Details**: 
+- **New Metric Implementation**: Added User Story Role Requirement Not Assigned Count to getCurrentMetricsData function:
+  - **User Story Role Requirement Not Assigned Count**: Counts role requirement entries where access is 'Unassigned'
+  - **Data Source**: Reads from `app-dna-user-story-role-requirements.json` file (same as assignment count metric)
+  - **Calculation Process**:
+    1. Extract all roles from lookup items in namespace objects
+    2. Extract all data objects (non-lookup objects) from namespace
+    3. Load app-dna-user-story-role-requirements.json and parse roleRequirements array
+    4. For each role + data object + action combination, check if access == 'Unassigned'
+    5. Count total unassigned requirements across all combinations
+  - **Actions Checked**: ['View', 'View All', 'Add', 'Update', 'Delete']
+  - **Unassigned Definition**: Role requirement has default 'Unassigned' access level (not yet configured)
+- **Complementary Metrics**: This metric works with the existing Assignment Count metric to provide complete coverage:
+  - Assignment Count: access != 'Unassigned' (Allowed, Required, Not Allowed)
+  - Not Assigned Count: access == 'Unassigned' (default/unconfigured)
+- **Architecture Notes**: Both metrics together should equal the total possible role requirement combinations, providing a complete view of requirements configuration status
+
+## 2025-09-14 - Fixed User Story Role Requirement Assignment Count Metric File Path
+
+**Command**: Correct file path for role requirements data in metrics calculation
+
+**Status**: ✅ COMPLETED - Fixed file path to use correct role requirements file
+
+**Details**: 
+- **Issue Fixed**: Metrics calculation was using wrong filename for role requirements data
+- **Previous Path**: `requirements.json` (incorrect)
+- **Correct Path**: `app-dna-user-story-role-requirements.json` (matches roleRequirementsCommands.ts implementation)
+- **Root Cause**: Inconsistency between metrics calculation and role requirements view data source
+- **Verification**: Updated path matches line 134 in roleRequirementsCommands.ts where file is defined
+- **Impact**: Metric will now correctly count assigned role requirements from the proper data file
+
+## 2025-09-14 - Updated User Story Role Requirement Assignment Count Metric Implementation
+
+**Command**: Update User Story Role Requirement Assignment Count metric to match role requirements view logic
+
+**Status**: ✅ COMPLETED - Updated User Story Role Requirement Assignment Count metric based on role requirements view
+
+**Details**: 
+- **Corrected Metric Implementation**: Updated User Story Role Requirement Assignment Count to match role requirements view behavior:
+  - **Previous Logic**: Was counting user stories with extractable roles (incorrect)
+  - **New Logic**: Counts role requirement entries where access is NOT 'Unassigned' 
+  - **Data Source**: Reads from requirements.json file in same directory as model file
+  - **Calculation Process**:
+    1. Extract all roles from lookup items in namespace objects
+    2. Extract all data objects (non-lookup objects) from namespace
+    3. Load requirements.json and parse roleRequirements array
+    4. For each role + data object + action combination, check if access != 'Unassigned'
+    5. Count total assigned requirements across all combinations
+  - **Actions Checked**: ['View', 'View All', 'Add', 'Update', 'Delete']
+  - **Assignment Definition**: Role requirement is "assigned" when access is 'Allowed', 'Required', or 'Not Allowed' (anything except 'Unassigned')
+- **Architecture Notes**: This metric now properly reflects role requirements assignment status as displayed in the role requirements view, where users can see and modify access levels for role/data object/action combinations
+
+## 2025-09-14 - Added User Story Role Requirement Assignment Count Metric to METRICS Analysis View
+
+**Command**: Add User Story Role Requirement Assignment Count metric based on user story role requirements view calculation logic
+
+**Status**: ✅ COMPLETED - Added User Story Role Requirement Assignment Count metric
+
+**Details**: 
+- **Metric Implementation**: Added User Story Role Requirement Assignment Count to getCurrentMetricsData function:
+  - **User Story Role Requirement Assignment Count**: Counts user stories that have successfully extracted roles (not 'Unassigned')
+  - **Calculation Logic**: Iterates through all user stories, uses extractRoleFromUserStory() to extract roles, counts stories where role extraction succeeds
+  - **Helper Function**: Added extractRoleFromUserStory() function that matches patterns:
+    - Pattern 1: "A [Role] wants to..." 
+    - Pattern 2: "As a [Role], I want to..."
+  - **Code Reuse**: Function implementation follows exact same logic used throughout extension (userStoriesView.js, userStoryTools.ts, requirementsFulfillmentView.js)
+- **Architecture Notes**: Stories with extractable roles are considered "assigned", stories without extractable roles are "unassigned"
+
+## 2025-09-14 - Added User Story Count Metric to METRICS Analysis View
+
+**Command**: Add User Story Count metric based on user story view calculation logic
+
+**Status**: ✅ COMPLETED - Added User Story Count metric
+
+**Details**: 
+- **Metric Implementation**: Added User Story Count to getCurrentMetricsData function following namespace access pattern:
+  - **User Story Count**: Total count of all user stories in `namespace.userStory` array
+  - **Calculation Logic**: Accesses current model → first namespace → userStory array length
+  - **Null Safety**: Includes proper checks for model existence, namespace array, and userStory array
+- **Code Pattern**: Follows same approach used in user story views and MCP tools
+- **Architecture Notes**: User stories are stored in the first namespace of the model as an array
+
+## 2025-09-14 - Added Additional Metrics Rows to METRICS Analysis View
+
+**Command**: Add rows for metrics: Page Count, Report Count, Form Count, Page Init Count, General Flow Count, Workflow Count, Workflow Task Count based on tree view calculations
+
+**Status**: ✅ COMPLETED - Added comprehensive metrics calculations
+
+**Details**: 
+- **Metrics Implementation**: Added 7 new metrics to getCurrentMetricsData function following exact tree view logic:
+  - **Page Count**: Forms (isPage=true) + Reports (isPage=true or undefined)
+  - **Report Count**: All reports from getAllReports()
+  - **Form Count**: Object workflows with isPage=true (getAllPageObjectWorkflows())
+  - **Page Init Count**: Workflows ending with 'initreport' or 'initobjwf'
+  - **General Flow Count**: Workflows matching 5 criteria (!isDynaFlow, !isDynaFlowTask, isPage=false, !endsWith('initobjwf'), !endsWith('initreport'))
+  - **Workflow Count**: Workflows where isDynaFlow=true
+  - **Workflow Task Count**: Workflows where isDynaFlowTask=true
+- **Code Accuracy**: Each calculation precisely matches the filtering logic used in jsonTreeDataProvider.ts
+- **Architecture Notes**: Metrics provide comprehensive model statistics for analysis and monitoring
+
 ## 2025-09-14 - Fixed METRICS Analysis View CSP and Resource Loading Issues
 
 **Command**: Fix Content Security Policy violations and resource loading issues in metrics analysis view
