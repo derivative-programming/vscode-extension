@@ -355,398 +355,468 @@ function extractRoleFromUserStory(text: string): string | null {
 }
 
 /**
+ * Calculate data object count metric
+ */
+function calculateDataObjectCount(modelService: ModelService): number {
+    try {
+        return modelService.getAllObjects().length;
+    } catch (error) {
+        console.error('Error calculating data object count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate page count metric (forms with isPage=true + reports with isPage=true or undefined)
+ */
+function calculatePageCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let pageCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            // Count forms (object workflows with isPage=true)
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === "true") {
+                        pageCount++;
+                    }
+                });
+            }
+            
+            // Count reports (with isPage=true or undefined)
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if (report.isPage === "true" || report.isPage === undefined) {
+                        pageCount++;
+                    }
+                });
+            }
+        });
+        
+        return pageCount;
+    } catch (error) {
+        console.error('Error calculating page count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate report count metric
+ */
+function calculateReportCount(modelService: ModelService): number {
+    try {
+        return modelService.getAllReports().length;
+    } catch (error) {
+        console.error('Error calculating report count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate form count metric (object workflows with isPage=true)
+ */
+function calculateFormCount(modelService: ModelService): number {
+    try {
+        return modelService.getAllPageObjectWorkflows().length;
+    } catch (error) {
+        console.error('Error calculating form count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate page init count metric (workflows ending with 'initreport' or 'initobjwf')
+ */
+function calculatePageInitCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let pageInitCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.name) {
+                        const workflowName = workflow.name.toLowerCase();
+                        if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
+                            pageInitCount++;
+                        }
+                    }
+                });
+            }
+        });
+        
+        return pageInitCount;
+    } catch (error) {
+        console.error('Error calculating page init count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate general flow count metric (workflows that meet specific criteria)
+ */
+function calculateGeneralFlowCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let generalFlowCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.name) {
+                        const workflowName = workflow.name.toLowerCase();
+                        
+                        // Check all criteria (matching tree view logic exactly):
+                        // 1. isDynaFlow property does not exist or is false
+                        const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false";
+                        
+                        // 2. isDynaFlowTask property does not exist or is false  
+                        const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
+                        
+                        // 3. isPage property is false (matching tree view property check)
+                        const isPageOk = workflow.isPage === "false";
+                        
+                        // 4. name does not end with initobjwf (matching tree view endsWith check)
+                        const notInitObjWf = !workflowName.endsWith('initobjwf');
+                        
+                        // 5. name does not end with initreport
+                        const notInitReport = !workflowName.endsWith('initreport');
+                        
+                        // All criteria must be true
+                        if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {
+                            generalFlowCount++;
+                        }
+                    }
+                });
+            }
+        });
+        
+        return generalFlowCount;
+    } catch (error) {
+        console.error('Error calculating general flow count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate workflow count metric (workflows where isDynaFlow is true)
+ */
+function calculateWorkflowCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let workflowCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.name && workflow.isDynaFlow === "true") {
+                        workflowCount++;
+                    }
+                });
+            }
+        });
+        
+        return workflowCount;
+    } catch (error) {
+        console.error('Error calculating workflow count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate workflow task count metric (workflows where isDynaFlowTask is true)
+ */
+function calculateWorkflowTaskCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let workflowTaskCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.name && workflow.isDynaFlowTask === "true") {
+                        workflowTaskCount++;
+                    }
+                });
+            }
+        });
+        
+        return workflowTaskCount;
+    } catch (error) {
+        console.error('Error calculating workflow task count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate user story count metric
+ */
+function calculateUserStoryCount(modelService: ModelService): number {
+    try {
+        const currentModel = modelService.getCurrentModel();
+        
+        if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
+            const namespace = currentModel.namespace[0];
+            if (namespace.userStory && Array.isArray(namespace.userStory)) {
+                return namespace.userStory.length;
+            }
+        }
+        
+        return 0;
+    } catch (error) {
+        console.error('Error calculating user story count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate role count metric
+ */
+function calculateRoleCount(modelService: ModelService): number {
+    try {
+        const currentModel = modelService.getCurrentModel();
+        
+        if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
+            const namespace = currentModel.namespace[0];
+            
+            // Get all roles from the 'Role' data object's lookup items
+            const roles = new Set<string>();
+            if (namespace.object && Array.isArray(namespace.object)) {
+                namespace.object.forEach((obj: any) => {
+                    if (obj.name && obj.name.toLowerCase() === 'role') {
+                        // Get roles from the Role data object's lookup items
+                        if (obj.lookupItem && Array.isArray(obj.lookupItem)) {
+                            obj.lookupItem.forEach((item: any) => {
+                                if (item.name && item.name.toLowerCase() !== 'unknown') {
+                                    roles.add(item.name);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+            
+            return roles.size;
+        }
+        
+        return 0;
+    } catch (error) {
+        console.error('Error calculating role count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate lookup and non-lookup data object counts
+ */
+function calculateDataObjectCounts(modelService: ModelService): { lookup: number; nonLookup: number } {
+    try {
+        const currentModel = modelService.getCurrentModel();
+        let lookupCount = 0;
+        let nonLookupCount = 0;
+        
+        if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
+            const namespace = currentModel.namespace[0];
+            
+            if (namespace.object && Array.isArray(namespace.object)) {
+                namespace.object.forEach((obj: any) => {
+                    if (obj.isLookup === "true") {
+                        lookupCount++;
+                    } else {
+                        nonLookupCount++;
+                    }
+                });
+            }
+        }
+        
+        return { lookup: lookupCount, nonLookup: nonLookupCount };
+    } catch (error) {
+        console.error('Error calculating data object counts:', error);
+        return { lookup: 0, nonLookup: 0 };
+    }
+}
+
+/**
+ * Calculate user story role requirement metrics (both assigned and unassigned)
+ */
+function calculateUserStoryRoleRequirements(modelService: ModelService): { assigned: number; unassigned: number } {
+    try {
+        const currentModel = modelService.getCurrentModel();
+        let assignedCount = 0;
+        let unassignedCount = 0;
+        
+        if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
+            const namespace = currentModel.namespace[0];
+            
+            // Get all roles from the 'Role' data object's lookup items
+            const roles = new Set<string>();
+            if (namespace.object && Array.isArray(namespace.object)) {
+                namespace.object.forEach((obj: any) => {
+                    if (obj.name && obj.name.toLowerCase() === 'role') {
+                        // Get roles from the Role data object's lookup items
+                        if (obj.lookupItem && Array.isArray(obj.lookupItem)) {
+                            obj.lookupItem.forEach((item: any) => {
+                                if (item.name && item.name.toLowerCase() !== 'unknown') {
+                                    roles.add(item.name);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+            
+            // Get all data objects (non-lookup objects)
+            const dataObjects: any[] = [];
+            if (namespace.object && Array.isArray(namespace.object)) {
+                namespace.object.forEach((obj: any) => {
+                    if (obj.isLookup !== "true") {
+                        dataObjects.push({
+                            name: obj.name,
+                            id: obj.id || obj.name || ''
+                        });
+                    }
+                });
+            }
+            
+            // Get role requirements from app-dna-user-story-role-requirements.json file
+            const modelFilePath = ModelService.getInstance().getCurrentFilePath();
+            if (modelFilePath) {
+                const requirementsFilePath = path.join(path.dirname(modelFilePath), 'app-dna-user-story-role-requirements.json');
+                if (fs.existsSync(requirementsFilePath)) {
+                    try {
+                        const requirementsContent = fs.readFileSync(requirementsFilePath, 'utf8');
+                        const requirementsData = JSON.parse(requirementsContent);
+                        
+                        if (requirementsData.roleRequirements && Array.isArray(requirementsData.roleRequirements)) {
+                            const requirementsLookup = new Map<string, string>();
+                            requirementsData.roleRequirements.forEach((req: any) => {
+                                const key = `${req.role}|${req.dataObject}|${req.action}`;
+                                requirementsLookup.set(key, req.access);
+                            });
+                            
+                            // Count role requirements
+                            const actions = ['View All', 'View', 'Add', 'Update', 'Delete'];
+                            Array.from(roles).forEach(role => {
+                                // Skip 'Unknown' roles
+                                if (role && role.toLowerCase() === 'unknown') {
+                                    return;
+                                }
+                                
+                                dataObjects.forEach(dataObject => {
+                                    actions.forEach(action => {
+                                        const key = `${role}|${dataObject.name}|${action}`;
+                                        const access = requirementsLookup.get(key) || 'Unassigned';
+                                        if (access === 'Unassigned') {
+                                            unassignedCount++;
+                                        } else {
+                                            assignedCount++;
+                                        }
+                                    });
+                                });
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error reading requirements.json:', error);
+                    }
+                }
+            }
+        }
+        
+        return { assigned: assignedCount, unassigned: unassignedCount };
+    } catch (error) {
+        console.error('Error calculating user story role requirements:', error);
+        return { assigned: 0, unassigned: 0 };
+    }
+}
+
+/**
  * Gets current metrics data from the model
  */
 function getCurrentMetricsData(modelService: ModelService): any[] {
     const metrics = [];
     
-    // Data Object Count metric
-    const dataObjectCount = modelService.getAllObjects().length;
+    // Calculate all metrics using individual functions
+    const dataObjectCount = calculateDataObjectCount(modelService);
     metrics.push({
         name: 'Data Object Count',
         value: dataObjectCount.toString()
     });
     
-    // Page Count metric (forms with isPage=true + reports with isPage=true or undefined)
-    const allObjects = modelService.getAllObjects();
-    let pageCount = 0;
-    
-    allObjects.forEach((obj: any) => {
-        // Count forms (object workflows with isPage=true)
-        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
-            obj.objectWorkflow.forEach((workflow: any) => {
-                if (workflow.isPage === "true") {
-                    pageCount++;
-                }
-            });
-        }
-        
-        // Count reports (with isPage=true or undefined)
-        if (obj.report && Array.isArray(obj.report)) {
-            obj.report.forEach((report: any) => {
-                if (report.isPage === "true" || report.isPage === undefined) {
-                    pageCount++;
-                }
-            });
-        }
-    });
-    
+    const pageCount = calculatePageCount(modelService);
     metrics.push({
         name: 'Page Count',
         value: pageCount.toString()
     });
     
-    // Report Count metric
-    const reportCount = modelService.getAllReports().length;
+    const reportCount = calculateReportCount(modelService);
     metrics.push({
         name: 'Report Count',
         value: reportCount.toString()
     });
     
-    // Form Count metric (object workflows with isPage=true)
-    const formCount = modelService.getAllPageObjectWorkflows().length;
+    const formCount = calculateFormCount(modelService);
     metrics.push({
         name: 'Form Count',
         value: formCount.toString()
     });
     
-    // Page Init Count metric (workflows ending with 'initreport' or 'initobjwf')
-    let pageInitCount = 0;
-    allObjects.forEach((obj: any) => {
-        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
-            obj.objectWorkflow.forEach((workflow: any) => {
-                if (workflow.name) {
-                    const workflowName = workflow.name.toLowerCase();
-                    if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
-                        pageInitCount++;
-                    }
-                }
-            });
-        }
-    });
-    
+    const pageInitCount = calculatePageInitCount(modelService);
     metrics.push({
         name: 'Page Init Count',
         value: pageInitCount.toString()
     });
     
-    // General Flow Count metric (workflows that meet specific criteria)
-    let generalFlowCount = 0;
-    allObjects.forEach((obj: any) => {
-        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
-            obj.objectWorkflow.forEach((workflow: any) => {
-                if (workflow.name) {
-                    const workflowName = workflow.name.toLowerCase();
-                    
-                    // Check all criteria (matching tree view logic exactly):
-                    // 1. isDynaFlow property does not exist or is false
-                    const isDynaFlowOk = !workflow.isDynaFlow || workflow.isDynaFlow === "false";
-                    
-                    // 2. isDynaFlowTask property does not exist or is false  
-                    const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
-                    
-                    // 3. isPage property is false (matching tree view property check)
-                    const isPageOk = workflow.isPage === "false";
-                    
-                    // 4. name does not end with initobjwf (matching tree view endsWith check)
-                    const notInitObjWf = !workflowName.endsWith('initobjwf');
-                    
-                    // 5. name does not end with initreport
-                    const notInitReport = !workflowName.endsWith('initreport');
-                    
-                    // All criteria must be true
-                    if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {
-                        generalFlowCount++;
-                    }
-                }
-            });
-        }
-    });
-    
+    const generalFlowCount = calculateGeneralFlowCount(modelService);
     metrics.push({
         name: 'General Flow Count',
         value: generalFlowCount.toString()
     });
     
-    // Workflow Count metric (workflows where isDynaFlow is true)
-    let workflowCount = 0;
-    allObjects.forEach((obj: any) => {
-        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
-            obj.objectWorkflow.forEach((workflow: any) => {
-                if (workflow.name && workflow.isDynaFlow === "true") {
-                    workflowCount++;
-                }
-            });
-        }
-    });
-    
+    const workflowCount = calculateWorkflowCount(modelService);
     metrics.push({
         name: 'Workflow Count',
         value: workflowCount.toString()
     });
     
-    // Workflow Task Count metric (workflows where isDynaFlowTask is true)
-    let workflowTaskCount = 0;
-    allObjects.forEach((obj: any) => {
-        if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
-            obj.objectWorkflow.forEach((workflow: any) => {
-                if (workflow.name && workflow.isDynaFlowTask === "true") {
-                    workflowTaskCount++;
-                }
-            });
-        }
-    });
-    
+    const workflowTaskCount = calculateWorkflowTaskCount(modelService);
     metrics.push({
         name: 'Workflow Task Count',
         value: workflowTaskCount.toString()
     });
     
-    // User Story Count metric
-    const currentModel = modelService.getCurrentModel();
-    let userStoryCount = 0;
-    if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
-        const namespace = currentModel.namespace[0];
-        if (namespace.userStory && Array.isArray(namespace.userStory)) {
-            userStoryCount = namespace.userStory.length;
-        }
-    }
-    
+    const userStoryCount = calculateUserStoryCount(modelService);
     metrics.push({
         name: 'User Story Count',
         value: userStoryCount.toString()
     });
     
-    // User Story Role Requirement Assignment Count metric (role requirements that are not 'Unassigned')
-    let userStoryRoleAssignmentCount = 0;
-    if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
-        const namespace = currentModel.namespace[0];
-        
-        // Get all roles from the 'Role' data object's lookup items
-        const roles = new Set<string>();
-        if (namespace.object && Array.isArray(namespace.object)) {
-            namespace.object.forEach((obj: any) => {
-                if (obj.name && obj.name.toLowerCase() === 'role') {
-                    // Get roles from the Role data object's lookup items
-                    if (obj.lookupItem && Array.isArray(obj.lookupItem)) {
-                        obj.lookupItem.forEach((item: any) => {
-                            if (item.name && item.name.toLowerCase() !== 'unknown') {
-                                roles.add(item.name);
-                            }
-                        });
-                    }
-                }
-            });
-        }
-        
-        // Get all data objects (non-lookup objects)
-        const dataObjects: any[] = [];
-        if (namespace.object && Array.isArray(namespace.object)) {
-            namespace.object.forEach((obj: any) => {
-                if (obj.isLookup !== "true") {
-                    dataObjects.push({
-                        name: obj.name,
-                        id: obj.id || obj.name || ''
-                    });
-                }
-            });
-        }
-        
-        // Get role requirements from app-dna-user-story-role-requirements.json file
-        const modelFilePath = ModelService.getInstance().getCurrentFilePath();
-        if (modelFilePath) {
-            const requirementsFilePath = path.join(path.dirname(modelFilePath), 'app-dna-user-story-role-requirements.json');
-            if (fs.existsSync(requirementsFilePath)) {
-                try {
-                    const requirementsContent = fs.readFileSync(requirementsFilePath, 'utf8');
-                    const requirementsData = JSON.parse(requirementsContent);
-                    
-                    if (requirementsData.roleRequirements && Array.isArray(requirementsData.roleRequirements)) {
-                        const requirementsLookup = new Map<string, string>();
-                        requirementsData.roleRequirements.forEach((req: any) => {
-                            const key = `${req.role}|${req.dataObject}|${req.action}`;
-                            requirementsLookup.set(key, req.access);
-                        });
-                        
-                        // Count role requirements that are not 'Unassigned'
-                        const actions = ['View All', 'View', 'Add', 'Update', 'Delete'];
-                        Array.from(roles).forEach(role => {
-                            // Skip 'Unknown' roles (same logic as role requirements view)
-                            if (role && role.toLowerCase() === 'unknown') {
-                                return;
-                            }
-                            
-                            dataObjects.forEach(dataObject => {
-                                actions.forEach(action => {
-                                    const key = `${role}|${dataObject.name}|${action}`;
-                                    const access = requirementsLookup.get(key) || 'Unassigned';
-                                    if (access !== 'Unassigned') {
-                                        userStoryRoleAssignmentCount++;
-                                    }
-                                });
-                            });
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error reading requirements.json:', error);
-                }
-            }
-        }
-    }
-    
+    const roleRequirements = calculateUserStoryRoleRequirements(modelService);
     metrics.push({
         name: 'User Story Role Requirement Assignment Count',
-        value: userStoryRoleAssignmentCount.toString()
+        value: roleRequirements.assigned.toString()
     });
-    
-    // User Story Role Requirement Not Assigned Count metric (role requirements that are 'Unassigned')
-    let userStoryRoleNotAssignedCount = 0;
-    if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
-        const namespace = currentModel.namespace[0];
-        
-        // Get all roles from the 'Role' data object's lookup items
-        const roles = new Set<string>();
-        if (namespace.object && Array.isArray(namespace.object)) {
-            namespace.object.forEach((obj: any) => {
-                if (obj.name && obj.name.toLowerCase() === 'role') {
-                    // Get roles from the Role data object's lookup items
-                    if (obj.lookupItem && Array.isArray(obj.lookupItem)) {
-                        obj.lookupItem.forEach((item: any) => {
-                            if (item.name && item.name.toLowerCase() !== 'unknown') {
-                                roles.add(item.name);
-                            }
-                        });
-                    }
-                }
-            });
-        }
-        
-        // Get all data objects (non-lookup objects)
-        const dataObjects: any[] = [];
-        if (namespace.object && Array.isArray(namespace.object)) {
-            namespace.object.forEach((obj: any) => {
-                if (obj.isLookup !== "true") {
-                    dataObjects.push({
-                        name: obj.name,
-                        id: obj.id || obj.name || ''
-                    });
-                }
-            });
-        }
-        
-        // Get role requirements from app-dna-user-story-role-requirements.json file
-        const modelFilePath = ModelService.getInstance().getCurrentFilePath();
-        if (modelFilePath) {
-            const requirementsFilePath = path.join(path.dirname(modelFilePath), 'app-dna-user-story-role-requirements.json');
-            if (fs.existsSync(requirementsFilePath)) {
-                try {
-                    const requirementsContent = fs.readFileSync(requirementsFilePath, 'utf8');
-                    const requirementsData = JSON.parse(requirementsContent);
-                    
-                    if (requirementsData.roleRequirements && Array.isArray(requirementsData.roleRequirements)) {
-                        const requirementsLookup = new Map<string, string>();
-                        requirementsData.roleRequirements.forEach((req: any) => {
-                            const key = `${req.role}|${req.dataObject}|${req.action}`;
-                            requirementsLookup.set(key, req.access);
-                        });
-                        
-                        // Count role requirements that are 'Unassigned'
-                        const actions = ['View All', 'View', 'Add', 'Update', 'Delete'];
-                        Array.from(roles).forEach(role => {
-                            // Skip 'Unknown' roles (same logic as role requirements view)
-                            if (role && role.toLowerCase() === 'unknown') {
-                                return;
-                            }
-                            
-                            dataObjects.forEach(dataObject => {
-                                actions.forEach(action => {
-                                    const key = `${role}|${dataObject.name}|${action}`;
-                                    const access = requirementsLookup.get(key) || 'Unassigned';
-                                    if (access === 'Unassigned') {
-                                        userStoryRoleNotAssignedCount++;
-                                    }
-                                });
-                            });
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error reading app-dna-user-story-role-requirements.json:', error);
-                }
-            }
-        }
-    }
     
     metrics.push({
         name: 'User Story Role Requirement Not Assigned Count',
-        value: userStoryRoleNotAssignedCount.toString()
+        value: roleRequirements.unassigned.toString()
     });
     
-    // Role Count metric
-    let roleCount = 0;
-    if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
-        const namespace = currentModel.namespace[0];
-        
-        // Get all roles from the 'Role' data object's lookup items (same logic as role requirements)
-        const roles = new Set<string>();
-        if (namespace.object && Array.isArray(namespace.object)) {
-            namespace.object.forEach((obj: any) => {
-                if (obj.name && obj.name.toLowerCase() === 'role') {
-                    // Get roles from the Role data object's lookup items
-                    if (obj.lookupItem && Array.isArray(obj.lookupItem)) {
-                        obj.lookupItem.forEach((item: any) => {
-                            if (item.name && item.name.toLowerCase() !== 'unknown') {
-                                roles.add(item.name);
-                            }
-                        });
-                    }
-                }
-            });
-        }
-        
-        roleCount = roles.size;
-    }
-    
+    const roleCount = calculateRoleCount(modelService);
     metrics.push({
         name: 'Role Count',
         value: roleCount.toString()
     });
     
-    // Lookup Data Object Count metric
-    let lookupDataObjectCount = 0;
-    if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
-        const namespace = currentModel.namespace[0];
-        
-        if (namespace.object && Array.isArray(namespace.object)) {
-            namespace.object.forEach((obj: any) => {
-                if (obj.isLookup === "true") {
-                    lookupDataObjectCount++;
-                }
-            });
-        }
-    }
-    
+    const dataObjectCounts = calculateDataObjectCounts(modelService);
     metrics.push({
         name: 'Lookup Data Object Count',
-        value: lookupDataObjectCount.toString()
+        value: dataObjectCounts.lookup.toString()
     });
-    
-    // Non-Lookup Data Object Count metric
-    let nonLookupDataObjectCount = 0;
-    if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
-        const namespace = currentModel.namespace[0];
-        
-        if (namespace.object && Array.isArray(namespace.object)) {
-            namespace.object.forEach((obj: any) => {
-                if (obj.isLookup !== "true") {
-                    nonLookupDataObjectCount++;
-                }
-            });
-        }
-    }
     
     metrics.push({
         name: 'Non-Lookup Data Object Count',
-        value: nonLookupDataObjectCount.toString()
+        value: dataObjectCounts.nonLookup.toString()
     });
     
     return metrics;

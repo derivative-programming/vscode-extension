@@ -529,6 +529,38 @@ function initializeMetricsChart() {
                     labels: {
                         color: getComputedStyle(document.body).getPropertyValue('--vscode-foreground')
                     }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: getComputedStyle(document.body).getPropertyValue('--vscode-editorHoverWidget-background'),
+                    titleColor: getComputedStyle(document.body).getPropertyValue('--vscode-editorHoverWidget-foreground'),
+                    bodyColor: getComputedStyle(document.body).getPropertyValue('--vscode-editorHoverWidget-foreground'),
+                    borderColor: getComputedStyle(document.body).getPropertyValue('--vscode-editorHoverWidget-border'),
+                    borderWidth: 1,
+                    cornerRadius: 4,
+                    displayColors: true,
+                    callbacks: {
+                        title: function(context) {
+                            // Format the date more nicely
+                            const date = new Date(context[0].parsed.x);
+                            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                        },
+                        label: function(context) {
+                            const metricName = context.dataset.label;
+                            const value = context.parsed.y;
+                            // Format the value with proper precision
+                            const formattedValue = Number.isInteger(value) ? value.toString() : value.toFixed(2);
+                            return `${metricName}: ${formattedValue}`;
+                        },
+                        afterBody: function(context) {
+                            // Add additional context if there are multiple data points
+                            if (context.length > 1) {
+                                return ['', 'Click on a metric name in the legend to toggle its visibility'];
+                            }
+                            return [];
+                        }
+                    }
                 }
             },
             scales: {
@@ -593,6 +625,10 @@ function createMetricsCheckboxes() {
         checkbox.type = 'checkbox';
         checkbox.id = `metric-${metricName.replace(/\s+/g, '-').toLowerCase()}`;
         checkbox.value = metricName;
+        
+        // Preserve previous selection state
+        checkbox.checked = selectedMetrics.has(metricName);
+        
         checkbox.addEventListener('change', handleMetricCheckboxChange);
         
         const label = document.createElement('label');
@@ -706,7 +742,19 @@ function handleDateRangeChange(event) {
     const filteredData = filterDataByDateRange(allHistoryItems, currentDateRange);
     historyMetricsData = filteredData.slice();
     
+    // Get available metrics in the filtered data
+    const availableMetricsInRange = [...new Set(historyMetricsData.map(item => item.metric_name))];
+    
+    // Remove any selected metrics that are no longer available in the filtered range
+    const selectedMetricsArray = Array.from(selectedMetrics);
+    selectedMetricsArray.forEach(metricName => {
+        if (!availableMetricsInRange.includes(metricName)) {
+            selectedMetrics.delete(metricName);
+        }
+    });
+    
     // Update checkboxes with available metrics in filtered data
+    // (this will now preserve the selection state)
     createMetricsCheckboxes();
     
     // Update chart with filtered data
