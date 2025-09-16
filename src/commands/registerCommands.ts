@@ -49,6 +49,7 @@ import { registerUserStoriesQACommands, getUserStoriesQAPanel, closeUserStoriesQ
 import { registerUserStoriesPageMappingCommands, getUserStoriesPageMappingPanel, closeUserStoriesPageMappingPanel } from './userStoriesPageMappingCommands';
 import { registerUserStoriesJourneyCommands, getUserStoriesJourneyPanel, closeUserStoriesJourneyPanel } from './userStoriesJourneyCommands';
 import { registerMetricsAnalysisCommands, getMetricsAnalysisPanel, closeMetricsAnalysisPanel } from './metricsAnalysisCommands';
+import { registerDataObjectUsageAnalysisCommands, getDataObjectUsageAnalysisPanel, closeDataObjectUsageAnalysisPanel } from './dataObjectUsageAnalysisCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
@@ -776,6 +777,9 @@ export function registerCommands(
     
     // Register metrics analysis commands
     registerMetricsAnalysisCommands(context, modelService);
+    
+    // Register data object usage analysis commands
+    registerDataObjectUsageAnalysisCommands(context, modelService);
     
     // Register model AI processing commands
     registerModelAIProcessingCommands(context, appDNAFilePath, modelService);

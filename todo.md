@@ -1,6 +1,32 @@
 Agent todo items...
   
 
+Data Object Usage Report...
+- new icon button on 'DATA OBJECTS' treeview item
+- similar design to 'Metrics Analysis' view
+- two tabs...
+  - tab 1: 'Data Object Usage Summary' - summary counts of where data objects are used
+    - columns:
+      - Data Object Name
+      - Total Reference Count
+  - tab 2:'Data Object Usage Detail' - table of all data objects with detail of where they are used
+    - columns: 
+      - Data Object Name
+      - Reference Type 
+        - Form Owner Object
+        - Report Owner Object
+        - Report Target Child Object
+        - Form Target Child Object
+        - Page Init Flow Owner Object
+        - General Flow Owner Object
+        - Workflow Owner Object
+        - Form Control Source Object
+        - Report Column Source Object
+      - Referenced By (name of form, report, page flow, general flow, workflow) 
+      - actions (edit icon button to open detail view of the item using it)
+  
+
+
 page init flow...
 - page 'used by' tab
   - table of all pages using it with edit icon button and preview icon button
@@ -66,14 +92,12 @@ in all user journeys we can get a count of pages that are used most
 page list - data object prop dependency count on each page?
 
 analysis treeview item... ask ai for ideas
-- metrics - page count, user story count, data object count, workflow count, form count, report count
 - complexity graphs.
   - data object: user story count?, reference count?, prop count?
   - page: control count?, dependency (on data object props) count
   - role: user story count?, page count?
   - user story: journey count? dependency count of all pages used?
 
-report on change of metrics over time?
 
 user story kanban board view?
 - drag and drop support

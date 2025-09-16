@@ -168,6 +168,12 @@
           "icon": "$(table)"
         },
         {
+          "command": "appdna.dataObjectUsageAnalysis",
+          "when": "viewItem =~ /dataObjects.*showDataObjectUsageAnalysis/",
+          "group": "inline",
+          "icon": "$(references)"
+        },
+        {
           "command": "appdna.showReportFilter",
           "when": "viewItem =~ /reports.*showReportFilter/",
           "group": "inline",
@@ -416,6 +422,11 @@
         "command": "appdna.metricsAnalysis",
         "title": "Show Metrics Analysis",
         "icon": "$(pulse)"
+      },
+      {
+        "command": "appdna.dataObjectUsageAnalysis",
+        "title": "Show Data Object Usage Analysis",
+        "icon": "$(references)"
       },
       {
         "command": "appdna.userStoriesPageMapping",
