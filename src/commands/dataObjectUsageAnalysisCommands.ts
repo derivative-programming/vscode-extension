@@ -345,6 +345,10 @@ function countDataObjectReferences(dataObjectName: string, modelService: ModelSe
             if (ownerObject && ownerObject.name === dataObjectName) {
                 count++;
             }
+            // Also check if this data object is the target child object for this form
+            if (workflow.targetChildObject === dataObjectName) {
+                count++;
+            }
         });
         
         // Check Reports - find reports that belong to this data object
@@ -417,6 +421,14 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                     itemType: 'form'
                 });
             }
+            // Also check if this data object is the target child object for this form
+            if (workflow.targetChildObject === dataObjectName) {
+                references.push({
+                    type: 'Form Target Object',
+                    referencedBy: workflow.name || 'Unnamed Form',
+                    itemType: 'form'
+                });
+            }
         });
         
         // Check Reports - find reports that belong to this data object
@@ -444,7 +456,7 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
             // Check report columns for references to this data object
             if (report.reportColumn && Array.isArray(report.reportColumn)) {
                 report.reportColumn.forEach((column: any) => {
-                    if (column.sourceObject === dataObjectName) {
+                    if (column.sourceObjectName === dataObjectName) {
                         references.push({
                             type: 'Report Column Source Object',
                             referencedBy: report.name || 'Unnamed Report',
@@ -472,9 +484,9 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                     if (obj.name === dataObjectName) {
                         let flowType = 'General Flow';
                         if (workflow.isDynaFlow === "true") {
-                            flowType = 'DynaFlow';
+                            flowType = 'Workflow';
                         } else if (workflow.isDynaFlowTask === "true") {
-                            flowType = 'DynaFlow Task';
+                            flowType = 'Workflow Task';
                         } else if (workflow.name && (workflow.name.endsWith('initreport') || workflow.name.endsWith('initobjwf'))) {
                             flowType = 'Page Init Flow';
                         }
@@ -530,14 +542,15 @@ async function saveUsageDataToCSV(items: any[], modelService: ModelService): Pro
         });
     } else {
         // Detail CSV format
-        csvContent = 'Data Object Name,Reference Type,Referenced By\n';
+        csvContent = 'Data Object Name,Reference Type,Referenced By,Item Type\n';
         
         items.forEach(item => {
             const dataObjectName = (item.dataObjectName || '').replace(/"/g, '""');
             const referenceType = (item.referenceType || '').replace(/"/g, '""');
             const referencedBy = (item.referencedBy || '').replace(/"/g, '""');
+            const itemType = (item.itemType || '').replace(/"/g, '""');
             
-            csvContent += `"${dataObjectName}","${referenceType}","${referencedBy}"\n`;
+            csvContent += `"${dataObjectName}","${referenceType}","${referencedBy}","${itemType}"\n`;
         });
     }
     

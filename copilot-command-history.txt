@@ -1,14 +1,23 @@
-2024-12-21 - Data Object Usage Analysis Feature Implementation - SUMMARY EXPORT FIX
+2024-12-21 - Data Object Usage Analysis Feature Implementation - TERMINOLOGY FIX
 ======================================================================
 
 COMMAND: "I want to add a new icon button on DATA OBJECTS for a new 'Data Object Usage Report' view"
 REFINEMENT: "refresh button should show a processing animation like we show on the refresh button click on the data object list view"
 BUG FIX 1: "the export buttons on the data object uage view tabs seem to do nothing. they should work like the export button on the data object list view"
 BUG FIX 2: "the export on the summary tab seems incorrect"
+TERMINOLOGY FIX: "'DynaFlow owner object' should be 'Workflow owner object'. 'DynaFlow task owner object' should be 'Workflow task owner object'."
 
-STATUS: ✅ FULLY COMPLETED WITH ENHANCED SUMMARY EXPORT
+STATUS: ✅ FULLY COMPLETED WITH CONSISTENT TERMINOLOGY
 
-FINAL UPDATE: Fixed summary CSV export data mismatch and enhanced with detailed breakdown
+FINAL UPDATE: Updated terminology to align with user-facing language preferences
+
+TERMINOLOGY FIX IMPLEMENTATION:
+🔧 Issue: Reference types displayed "DynaFlow Owner Object" and "DynaFlow Task Owner Object"
+✅ Updated flowType mapping: 'DynaFlow' → 'Workflow'
+✅ Updated flowType mapping: 'DynaFlow Task' → 'Workflow Task'
+✅ Preserved underlying data model property names (isDynaFlow, isDynaFlowTask)
+✅ Results in user-friendly display names: "Workflow Owner Object" and "Workflow Task Owner Object"
+✅ Extension compiles successfully with no TypeScript errors
 
 SUMMARY EXPORT FIX IMPLEMENTATION:
 🔧 Root Cause: Property name mismatch - summary data uses 'totalReferences' but CSV export looked for 'totalReferenceCount'
