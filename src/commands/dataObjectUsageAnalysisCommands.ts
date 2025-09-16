@@ -70,7 +70,7 @@ export function registerDataObjectUsageAnalysisCommands(context: vscode.Extensio
         // Create and show new panel
         const panel = vscode.window.createWebviewPanel(
             'dataObjectUsageAnalysis',
-            'Analysis - Data Object Usage',
+            'Data Object Usage',
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -246,44 +246,25 @@ function getUsageSummaryData(modelService: ModelService): any[] {
             let totalReferences = 0;
             let formReferences = 0;
             let reportReferences = 0;
-            let workflowReferences = 0;
+            let flowReferences = 0;
             
-            // Count references across all usage types
-            totalReferences = countDataObjectReferences(dataObject.name, modelService);
+            // Use the same detailed analysis function that the detail tab uses
+            const references = findAllDataObjectReferences(dataObject.name, modelService);
+            totalReferences = references.length;
             
-            // For testing purposes, add some mock data if no references found
-            if (totalReferences === 0) {
-                // Add some test references for the first few objects
-                const testIndex = summaryData.length;
-                if (testIndex < 3) {
-                    totalReferences = Math.floor(Math.random() * 10) + 1;
-                    formReferences = Math.floor(totalReferences * 0.4);
-                    reportReferences = Math.floor(totalReferences * 0.3);
-                    workflowReferences = totalReferences - formReferences - reportReferences;
-                } else {
-                    // Show actual zero counts for other objects
-                    totalReferences = 0;
-                    formReferences = 0;
-                    reportReferences = 0;
-                    workflowReferences = 0;
-                }
-            } else {
-                // For now, use simplified counting - we can enhance this later
-                // The total references include all types, so we'll estimate breakdowns
-                const references = findAllDataObjectReferences(dataObject.name, modelService);
-                formReferences = references.filter(ref => ref.type.includes('Form')).length;
-                reportReferences = references.filter(ref => ref.type.includes('Report')).length;
-                workflowReferences = references.filter(ref => ref.type.includes('Workflow') || ref.type.includes('Flow')).length;
-            }
+            // Break down the references by type
+            formReferences = references.filter(ref => ref.type.includes('Form')).length;
+            reportReferences = references.filter(ref => ref.type.includes('Report')).length;
+            flowReferences = references.filter(ref => ref.type.includes('Flow')).length;
             
-            console.log(`Object ${dataObject.name}: total=${totalReferences}, form=${formReferences}, report=${reportReferences}, workflow=${workflowReferences}`);
+            console.log(`Object ${dataObject.name}: total=${totalReferences}, form=${formReferences}, report=${reportReferences}, flow=${flowReferences}`);
             
             summaryData.push({
                 dataObjectName: dataObject.name,
                 totalReferences: totalReferences,
                 formReferences: formReferences,
                 reportReferences: reportReferences,
-                workflowReferences: workflowReferences
+                flowReferences: flowReferences
             });
         });
         
@@ -329,29 +310,9 @@ function getUsageDetailData(modelService: ModelService): any[] {
                     dataObjectName: dataObject.name,
                     referenceType: ref.type,
                     referencedBy: ref.referencedBy,
-                    itemType: ref.itemType,
-                    itemName: ref.itemName
+                    itemType: ref.itemType
                 });
             });
-            
-            // For testing purposes, add some mock detail data if no references found
-            if (references.length === 0 && index < 3) {
-                // Add some mock references for the first few objects
-                const mockReferenceTypes = ['Form Owner Object', 'Report Target Object', 'Workflow Source Object'];
-                const mockItemTypes = ['form', 'report', 'workflow'];
-                const mockReferences = Math.floor(Math.random() * 3) + 1;
-                
-                for (let i = 0; i < mockReferences; i++) {
-                    const refTypeIndex = i % mockReferenceTypes.length;
-                    detailData.push({
-                        dataObjectName: dataObject.name,
-                        referenceType: mockReferenceTypes[refTypeIndex],
-                        referencedBy: `Mock ${mockItemTypes[refTypeIndex]} ${i + 1}`,
-                        itemType: mockItemTypes[refTypeIndex],
-                        itemName: `Mock ${mockItemTypes[refTypeIndex]} ${i + 1}`
-                    });
-                }
-            }
         });
         
         // Sort by data object name, then by reference type
@@ -408,12 +369,17 @@ function countDataObjectReferences(dataObjectName: string, modelService: ModelSe
             }
         });
         
-        // Check Workflows (all types) - find workflows that belong to this data object
+        // Check Flows (all types) - find flows that belong to this data object
         const allObjects = modelService.getAllObjects();
         allObjects.forEach(obj => {
             if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
                 obj.objectWorkflow.forEach((workflow: any) => {
-                    // The workflow belongs to this object, so check if this object matches our target
+                    // Skip page workflows since they're handled as forms above
+                    if (workflow.isPage === "true") {
+                        return; // Skip forms, they're already counted above
+                    }
+                    
+                    // The flow belongs to this object, so check if this object matches our target
                     if (obj.name === dataObjectName) {
                         count++;
                     }
@@ -448,8 +414,7 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                 references.push({
                     type: 'Form Owner Object',
                     referencedBy: workflow.name || 'Unnamed Form',
-                    itemType: 'form',
-                    itemName: workflow.name || 'Unnamed Form'
+                    itemType: 'form'
                 });
             }
         });
@@ -465,8 +430,7 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                 references.push({
                     type: 'Report Owner Object',
                     referencedBy: report.name || 'Unnamed Report',
-                    itemType: 'report',
-                    itemName: report.name || 'Unnamed Report'
+                    itemType: 'report'
                 });
             }
             // Also check if this data object is the target child object
@@ -474,8 +438,7 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                 references.push({
                     type: 'Report Target Object',
                     referencedBy: report.name || 'Unnamed Report',
-                    itemType: 'report',
-                    itemName: report.name || 'Unnamed Report'
+                    itemType: 'report'
                 });
             }
             // Check report columns for references to this data object
@@ -485,46 +448,47 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                         references.push({
                             type: 'Report Column Source Object',
                             referencedBy: report.name || 'Unnamed Report',
-                            itemType: 'report',
-                            itemName: report.name || 'Unnamed Report'
+                            itemType: 'report'
                         });
                     }
                 });
             }
         });
         
-        // Check All Workflows - find workflows that belong to this data object
-        console.log('Checking workflows...');
+        // Check All Flows - find flows that belong to this data object
+        console.log('Checking flows...');
         const allObjects = modelService.getAllObjects();
-        let totalWorkflows = 0;
+        let totalFlows = 0;
         allObjects.forEach(obj => {
             if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
-                totalWorkflows += obj.objectWorkflow.length;
                 obj.objectWorkflow.forEach((workflow: any) => {
-                    // The workflow belongs to this object, so check if this object matches our target
+                    // Skip page workflows since they're handled as forms above
+                    if (workflow.isPage === "true") {
+                        return; // Skip forms, they're already counted above
+                    }
+                    
+                    totalFlows++;
+                    // The flow belongs to this object, so check if this object matches our target
                     if (obj.name === dataObjectName) {
-                        let workflowType = 'General Workflow';
-                        if (workflow.isPage === "true") {
-                            workflowType = 'Form Workflow';
-                        } else if (workflow.isDynaFlow === "true") {
-                            workflowType = 'DynaFlow Workflow';
+                        let flowType = 'General Flow';
+                        if (workflow.isDynaFlow === "true") {
+                            flowType = 'DynaFlow';
                         } else if (workflow.isDynaFlowTask === "true") {
-                            workflowType = 'DynaFlow Task Workflow';
+                            flowType = 'DynaFlow Task';
                         } else if (workflow.name && (workflow.name.endsWith('initreport') || workflow.name.endsWith('initobjwf'))) {
-                            workflowType = 'Page Init Workflow';
+                            flowType = 'Page Init Flow';
                         }
                         
                         references.push({
-                            type: workflowType + ' Owner Object',
-                            referencedBy: workflow.name || 'Unnamed Workflow',
-                            itemType: 'workflow',
-                            itemName: workflow.name || 'Unnamed Workflow'
+                            type: flowType + ' Owner Object',
+                            referencedBy: workflow.name || 'Unnamed Flow',
+                            itemType: 'flow'
                         });
                     }
                 });
             }
         });
-        console.log(`Found ${totalWorkflows} total workflows across all objects`);
+        console.log(`Found ${totalFlows} total flows across all objects`);
         
         console.log(`Total references found for '${dataObjectName}': ${references.length}`);
         if (references.length > 0) {
@@ -547,19 +511,22 @@ async function saveUsageDataToCSV(items: any[], modelService: ModelService): Pro
     }
     
     // Determine if this is summary or detail data based on the first item
-    const isSummaryData = items[0].hasOwnProperty('totalReferenceCount');
+    const isSummaryData = items[0].hasOwnProperty('totalReferences');
     
     let csvContent = '';
     
     if (isSummaryData) {
-        // Summary CSV format
-        csvContent = 'Data Object Name,Total Reference Count\n';
+        // Summary CSV format with detailed breakdown
+        csvContent = 'Data Object Name,Total Reference Count,Form References,Report References,Flow References\n';
         
         items.forEach(item => {
             const dataObjectName = (item.dataObjectName || '').replace(/"/g, '""');
-            const totalReferenceCount = item.totalReferenceCount || 0;
+            const totalReferenceCount = item.totalReferences || 0;
+            const formReferences = item.formReferences || 0;
+            const reportReferences = item.reportReferences || 0;
+            const flowReferences = item.flowReferences || 0;
             
-            csvContent += `"${dataObjectName}",${totalReferenceCount}\n`;
+            csvContent += `"${dataObjectName}",${totalReferenceCount},${formReferences},${reportReferences},${flowReferences}\n`;
         });
     } else {
         // Detail CSV format
@@ -599,7 +566,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; script-src 'nonce-${nonce}'; font-src ${webview.cspSource};">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="${codiconsUri}" rel="stylesheet">
-    <title>Analysis - Data Object Usage</title>
+    <title>Data Object Usage</title>
     
     <style nonce="${nonce}">
         body {
@@ -932,7 +899,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
 </head>
 <body>
     <div class="validation-header">
-        <h2>Analysis - Data Object Usage</h2>
+        <h2>Data Object Usage</h2>
         <p>Data object usage analysis with summary counts and detailed reference information</p>
     </div>
     
@@ -943,7 +910,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
     
     <div id="summary-tab" class="tab-content active">
         <div class="filter-section">
-            <div class="filter-header" onclick="toggleFilterSection()">
+            <div class="filter-header" data-action="toggle-filter">
                 <span class="codicon codicon-chevron-down" id="filterChevron"></span>
                 <span>Filters</span>
             </div>
@@ -955,7 +922,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                     </div>
                 </div>
                 <div class="filter-actions">
-                    <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
+                    <button data-action="clear-filters" class="filter-button-secondary">Clear All</button>
                 </div>
             </div>
         </div>
@@ -974,11 +941,11 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             <table id="summary-table">
                 <thead>
                     <tr>
-                        <th onclick="sortTable(0, 'summary-table')">Data Object Name <span class="sort-indicator">▼</span></th>
-                        <th onclick="sortTable(1, 'summary-table')">Total References <span class="sort-indicator">▼</span></th>
-                        <th onclick="sortTable(2, 'summary-table')">Form References <span class="sort-indicator">▼</span></th>
-                        <th onclick="sortTable(3, 'summary-table')">Report References <span class="sort-indicator">▼</span></th>
-                        <th onclick="sortTable(4, 'summary-table')">Workflow References <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="0" data-table="summary-table">Data Object Name <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="1" data-table="summary-table">Total References <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="2" data-table="summary-table">Form References <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="3" data-table="summary-table">Report References <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="4" data-table="summary-table">Flow References <span class="sort-indicator">▼</span></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -997,7 +964,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
     
     <div id="detail-tab" class="tab-content">
         <div class="filter-section">
-            <div class="filter-header" onclick="toggleDetailFilterSection()">
+            <div class="filter-header" data-action="toggle-detail-filter">
                 <span class="codicon codicon-chevron-down" id="detailFilterChevron"></span>
                 <span>Filters</span>
             </div>
@@ -1009,7 +976,9 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                     </div>
                     <div class="filter-group">
                         <label>Reference Type:</label>
-                        <input type="text" id="filterReferenceType" placeholder="Filter by reference type...">
+                        <select id="filterReferenceType">
+                            <option value="">All Types</option>
+                        </select>
                     </div>
                     <div class="filter-group">
                         <label>Referenced By:</label>
@@ -1017,7 +986,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                     </div>
                 </div>
                 <div class="filter-actions">
-                    <button onclick="clearDetailFilters()" class="filter-button-secondary">Clear All</button>
+                    <button data-action="clear-detail-filters" class="filter-button-secondary">Clear All</button>
                 </div>
             </div>
         </div>
@@ -1036,11 +1005,10 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             <table id="detail-table">
                 <thead>
                     <tr>
-                        <th onclick="sortTable(0, 'detail-table')">Data Object Name <span class="sort-indicator">▼</span></th>
-                        <th onclick="sortTable(1, 'detail-table')">Reference Type <span class="sort-indicator">▼</span></th>
-                        <th onclick="sortTable(2, 'detail-table')">Referenced By <span class="sort-indicator">▼</span></th>
-                        <th onclick="sortTable(3, 'detail-table')">Item Type <span class="sort-indicator">▼</span></th>
-                        <th onclick="sortTable(4, 'detail-table')">Item Name <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="0" data-table="detail-table">Data Object Name <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="1" data-table="detail-table">Reference Type <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="2" data-table="detail-table">Referenced By <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="3" data-table="detail-table">Item Type <span class="sort-indicator">▼</span></th>
                     </tr>
                 </thead>
                 <tbody id="detailTableBody">
