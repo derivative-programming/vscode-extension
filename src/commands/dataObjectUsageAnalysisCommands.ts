@@ -325,8 +325,8 @@ function getUsageSummaryData(modelService: ModelService): any[] {
             });
         });
         
-        // Sort by reference count (highest first)
-        summaryData.sort((a, b) => b.totalReferences - a.totalReferences);
+        // Sort by data object name alphabetically
+        summaryData.sort((a, b) => a.dataObjectName.localeCompare(b.dataObjectName));
         
     } catch (error) {
         console.error('Error getting usage summary data:', error);
@@ -668,7 +668,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; script-src 'nonce-${nonce}'; font-src ${webview.cspSource};">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; script-src 'nonce-${nonce}' https://d3js.org; font-src ${webview.cspSource};">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="${codiconsUri}" rel="stylesheet">
     <title>Data Object Usage</title>
@@ -1020,6 +1020,107 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             width: 60px;
         }
         
+        /* Treemap specific styles */
+        .treemap-container {
+            padding: 15px;
+        }
+        
+        .treemap-header {
+            margin-bottom: 20px;
+        }
+        
+        .treemap-header h3 {
+            margin: 0 0 5px 0;
+            color: var(--vscode-foreground);
+            font-size: 16px;
+        }
+        
+        .treemap-header p {
+            margin: 0;
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
+        }
+        
+        .treemap-viz {
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .treemap-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 12px;
+            color: var(--vscode-foreground);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            border: 1px solid var(--vscode-panel-border);
+        }
+        
+        .legend-color.high-usage {
+            background-color: #d73a49;
+        }
+        
+        .legend-color.medium-usage {
+            background-color: #f66a0a;
+        }
+        
+        .legend-color.low-usage {
+            background-color: #28a745;
+        }
+        
+        .legend-color.no-usage {
+            background-color: var(--vscode-button-secondaryBackground);
+        }
+        
+        /* Treemap rectangle styles */
+        .treemap-rect {
+            stroke: var(--vscode-panel-border);
+            stroke-width: 1px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .treemap-rect:hover {
+            opacity: 0.8;
+            stroke-width: 2px;
+        }
+        
+        .treemap-text {
+            font-family: var(--vscode-font-family);
+            font-size: 11px;
+            fill: white;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+        }
+        
+        .treemap-tooltip {
+            position: absolute;
+            background: var(--vscode-editorHoverWidget-background);
+            border: 1px solid var(--vscode-editorHoverWidget-border);
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 12px;
+            color: var(--vscode-editorHoverWidget-foreground);
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
     </style>
 </head>
 <body>
@@ -1031,6 +1132,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
     <div class="tabs">
         <button class="tab active" data-tab="summary">Summary</button>
         <button class="tab" data-tab="detail">Detail</button>
+        <button class="tab" data-tab="treemap">Proportional Usage</button>
     </div>
     
     <div id="summary-tab" class="tab-content active">
@@ -1150,10 +1252,40 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
         </div>
     </div>
     
+    <div id="treemap-tab" class="tab-content">
+        <div class="treemap-container">
+            <div class="treemap-header">
+                <h3>Data Object Usage Proportions</h3>
+                <p>Size represents total reference count. Hover for details.</p>
+            </div>
+            <div id="treemap-loading" class="loading">Loading treemap...</div>
+            <div id="treemap-visualization" class="treemap-viz hidden"></div>
+            <div class="treemap-legend">
+                <div class="legend-item">
+                    <span class="legend-color high-usage"></span>
+                    <span>High Usage (20+ references)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color medium-usage"></span>
+                    <span>Medium Usage (5-19 references)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color low-usage"></span>
+                    <span>Low Usage (1-4 references)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color no-usage"></span>
+                    <span>No Usage (0 references)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div id="spinner-overlay" class="spinner-overlay hidden">
         <div class="spinner"></div>
     </div>
     
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;

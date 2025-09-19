@@ -9,6 +9,7 @@ const vscode = acquireVsCodeApi();
 // State management
 let currentSummaryData = [];
 let currentDetailData = [];
+let treemapData = [];
 let summarySort = { column: null, direction: 'asc' };
 let detailSort = { column: null, direction: 'asc' };
 let currentTab = 'summary';
@@ -62,6 +63,8 @@ function switchTab(tabName) {
         loadSummaryData();
     } else if (tabName === 'detail') {
         loadDetailData();
+    } else if (tabName === 'treemap') {
+        loadTreemapData();
     }
 }
 
@@ -233,12 +236,12 @@ function renderSummaryTable(data) {
         tableBody.appendChild(row);
     });
     
-    // Initialize sort indicators - summary data comes pre-sorted by total references descending
+    // Initialize sort indicators - summary data comes pre-sorted by data object name ascending
     const summaryTable = document.getElementById('summary-table');
     if (summaryTable) {
-        summarySort.column = 1; // Total References column
-        summarySort.direction = 'desc';
-        updateSortIndicators(summaryTable, 1, 'desc');
+        summarySort.column = 0; // Data Object Name column
+        summarySort.direction = 'asc';
+        updateSortIndicators(summaryTable, 0, 'asc');
     }
 }
 
@@ -472,6 +475,10 @@ window.addEventListener('message', event => {
         case 'summaryData':
             console.log('Rendering summary data:', message.data);
             renderSummaryTable(message.data);
+            // Also render treemap if that's the current tab
+            if (currentTab === 'treemap') {
+                renderTreemap(message.data);
+            }
             hideSpinner();
             break;
             
@@ -589,4 +596,163 @@ function hideSpinner() {
         spinnerOverlay.classList.add("hidden");
         spinnerOverlay.classList.remove("show-flex");
     }
+}
+
+// Treemap functionality
+
+// Load treemap data
+function loadTreemapData() {
+    // Use the same summary data for treemap
+    vscode.postMessage({ command: 'getSummaryData' });
+}
+
+// Render treemap visualization
+function renderTreemap(data) {
+    treemapData = data;
+    const container = document.getElementById('treemap-visualization');
+    const loadingElement = document.getElementById('treemap-loading');
+    
+    if (!container || !loadingElement) {
+        console.error('Treemap container elements not found');
+        return;
+    }
+    
+    // Show container and hide loading
+    container.classList.remove('hidden');
+    loadingElement.classList.add('hidden');
+    
+    // Clear previous content
+    container.innerHTML = '';
+    
+    // Set up dimensions
+    const containerRect = container.getBoundingClientRect();
+    const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+    const width = Math.max(800, containerRect.width - margin.left - margin.right);
+    const height = 500 - margin.top - margin.bottom;
+    
+    // Create SVG
+    const svg = d3.select(container)
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+        
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    // Prepare data for treemap
+    const hierarchyData = {
+        name: 'root',
+        children: data.map(item => ({
+            name: item.dataObjectName,
+            value: Math.max(1, item.totalReferences), // Ensure minimum size of 1
+            totalReferences: item.totalReferences,
+            formReferences: item.formReferences || 0,
+            reportReferences: item.reportReferences || 0,
+            flowReferences: item.flowReferences || 0,
+            userStoryReferences: item.userStoryReferences || 0
+        }))
+    };
+    
+    // Create treemap layout
+    const treemap = d3.treemap()
+        .size([width, height])
+        .padding(2)
+        .round(true);
+    
+    const root = d3.hierarchy(hierarchyData)
+        .sum(d => d.value)
+        .sort((a, b) => b.value - a.value);
+    
+    treemap(root);
+    
+    // Color scale based on usage levels
+    const colorScale = d3.scaleThreshold()
+        .domain([1, 5, 20])
+        .range(['var(--vscode-button-secondaryBackground)', '#28a745', '#f66a0a', '#d73a49']);
+    
+    // Create tooltip
+    const tooltip = d3.select('body')
+        .append('div')
+        .attr('class', 'treemap-tooltip')
+        .style('opacity', 0);
+    
+    // Create rectangles
+    const cell = g.selectAll('g')
+        .data(root.leaves())
+        .enter().append('g')
+        .attr('transform', d => `translate(${d.x0},${d.y0})`);
+    
+    cell.append('rect')
+        .attr('class', 'treemap-rect')
+        .attr('width', d => d.x1 - d.x0)
+        .attr('height', d => d.y1 - d.y0)
+        .attr('fill', d => getUsageColor(d.data.totalReferences))
+        .on('mouseover', function(event, d) {
+            // Show tooltip
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            
+            const tooltipContent = `
+                <strong>${d.data.name}</strong><br/>
+                Total References: ${d.data.totalReferences}<br/>
+                Forms: ${d.data.formReferences}<br/>
+                Reports: ${d.data.reportReferences}<br/>
+                Flows: ${d.data.flowReferences}<br/>
+                User Stories: ${d.data.userStoryReferences}
+            `;
+            
+            tooltip.html(tooltipContent)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() {
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        })
+        .on('click', function(event, d) {
+            // Switch to detail tab and filter by this data object
+            switchTab('detail');
+            const detailFilter = document.getElementById('detailFilter');
+            if (detailFilter) {
+                detailFilter.value = d.data.name;
+                filterDetailTable(d.data.name);
+            }
+        });
+    
+    // Add text labels
+    cell.append('text')
+        .attr('class', 'treemap-text')
+        .attr('x', d => (d.x1 - d.x0) / 2)
+        .attr('y', d => (d.y1 - d.y0) / 2)
+        .text(d => {
+            const width = d.x1 - d.x0;
+            const height = d.y1 - d.y0;
+            // Only show text if rectangle is large enough
+            if (width > 60 && height > 20) {
+                return d.data.name;
+            }
+            return '';
+        })
+        .style('font-size', d => {
+            const width = d.x1 - d.x0;
+            const height = d.y1 - d.y0;
+            const area = width * height;
+            return Math.min(14, Math.max(8, Math.sqrt(area) / 8)) + 'px';
+        });
+}
+
+// Get color based on usage level
+function getUsageColor(totalReferences) {
+    if (totalReferences >= 20) {
+        return '#d73a49';  // High usage - red
+    }
+    if (totalReferences >= 5) {
+        return '#f66a0a';   // Medium usage - orange  
+    }
+    if (totalReferences >= 1) {
+        return '#28a745';   // Low usage - green
+    }
+    return 'var(--vscode-button-secondaryBackground)'; // No usage - gray
 }
