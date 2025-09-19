@@ -313,7 +313,13 @@ function getUsageSummaryData(modelService: ModelService): any[] {
             flowReferences = references.filter(ref => ref.type.includes('Flow')).length;
             userStoryReferences = references.filter(ref => ref.type.includes('User Story')).length;
             
-            console.log(`Object ${dataObject.name}: total=${totalReferences}, form=${formReferences}, report=${reportReferences}, flow=${flowReferences}, userStory=${userStoryReferences}`);
+            // Calculate property count (complexity measure)
+            let propertyCount = 0;
+            if (dataObject.prop && Array.isArray(dataObject.prop)) {
+                propertyCount = dataObject.prop.length;
+            }
+            
+            console.log(`Object ${dataObject.name}: total=${totalReferences}, form=${formReferences}, report=${reportReferences}, flow=${flowReferences}, userStory=${userStoryReferences}, properties=${propertyCount}`);
             
             summaryData.push({
                 dataObjectName: dataObject.name,
@@ -321,7 +327,8 @@ function getUsageSummaryData(modelService: ModelService): any[] {
                 formReferences: formReferences,
                 reportReferences: reportReferences,
                 flowReferences: flowReferences,
-                userStoryReferences: userStoryReferences
+                userStoryReferences: userStoryReferences,
+                propertyCount: propertyCount
             });
         });
         
@@ -1121,6 +1128,141 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         
+        /* Bubble chart specific styles */
+        .bubble-container {
+            padding: 15px;
+        }
+        
+        .bubble-header {
+            margin-bottom: 20px;
+        }
+        
+        .bubble-header h3 {
+            margin: 0 0 5px 0;
+            color: var(--vscode-foreground);
+            font-size: 16px;
+        }
+        
+        .bubble-header p {
+            margin: 0;
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
+        }
+        
+        .bubble-viz {
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .bubble-quadrants {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .quadrant-legend {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--vscode-foreground);
+        }
+        
+        .quadrant-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+        }
+        
+        .quadrant-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid var(--vscode-panel-border);
+        }
+        
+        .quadrant-color.high-usage-low-complexity {
+            background-color: #28a745; /* Green - Good */
+        }
+        
+        .quadrant-color.high-usage-high-complexity {
+            background-color: #dc3545; /* Red - Needs attention */
+        }
+        
+        .quadrant-color.low-usage-low-complexity {
+            background-color: #6f42c1; /* Purple - Simple utility */
+        }
+        
+        .quadrant-color.low-usage-high-complexity {
+            background-color: #fd7e14; /* Orange - Over-engineered */
+        }
+        
+        /* Bubble chart elements */
+        .bubble-circle {
+            cursor: pointer;
+            stroke: var(--vscode-panel-border);
+            stroke-width: 1px;
+            opacity: 0.8;
+            transition: opacity 0.2s, stroke-width 0.2s;
+        }
+        
+        .bubble-circle:hover {
+            opacity: 1;
+            stroke-width: 2px;
+        }
+        
+        .bubble-text {
+            font-family: var(--vscode-font-family);
+            font-size: 10px;
+            fill: var(--vscode-foreground);
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+        }
+        
+        .axis-line {
+            stroke: var(--vscode-panel-border);
+            stroke-width: 1px;
+        }
+        
+        .axis-text {
+            font-family: var(--vscode-font-family);
+            font-size: 11px;
+            fill: var(--vscode-foreground);
+        }
+        
+        .axis-label {
+            font-family: var(--vscode-font-family);
+            font-size: 12px;
+            fill: var(--vscode-foreground);
+            font-weight: bold;
+        }
+        
+        .grid-line {
+            stroke: var(--vscode-panel-border);
+            stroke-width: 0.5px;
+            opacity: 0.3;
+        }
+        
+        .bubble-tooltip {
+            position: absolute;
+            background: var(--vscode-editorHoverWidget-background);
+            border: 1px solid var(--vscode-editorHoverWidget-border);
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 12px;
+            color: var(--vscode-editorHoverWidget-foreground);
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
     </style>
 </head>
 <body>
@@ -1133,6 +1275,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
         <button class="tab active" data-tab="summary">Summary</button>
         <button class="tab" data-tab="detail">Detail</button>
         <button class="tab" data-tab="treemap">Proportional Usage</button>
+        <button class="tab" data-tab="bubble">Complexity vs. Usage</button>
     </div>
     
     <div id="summary-tab" class="tab-content active">
@@ -1276,6 +1419,37 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                 <div class="legend-item">
                     <span class="legend-color no-usage"></span>
                     <span>No Usage (0 references)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="bubble-tab" class="tab-content">
+        <div class="bubble-container">
+            <div class="bubble-header">
+                <h3>Complexity vs. Usage Analysis</h3>
+                <p>X-axis: Property Count (Complexity) • Y-axis: Total References (Usage) • Bubble Size: User Story References</p>
+            </div>
+            <div id="bubble-loading" class="loading">Loading bubble chart...</div>
+            <div id="bubble-visualization" class="bubble-viz hidden"></div>
+            <div class="bubble-quadrants">
+                <div class="quadrant-legend">
+                    <div class="quadrant-item">
+                        <span class="quadrant-color high-usage-low-complexity"></span>
+                        <span><strong>High Usage, Low Complexity:</strong> Well-designed core objects</span>
+                    </div>
+                    <div class="quadrant-item">
+                        <span class="quadrant-color high-usage-high-complexity"></span>
+                        <span><strong>High Usage, High Complexity:</strong> Critical objects needing attention</span>
+                    </div>
+                    <div class="quadrant-item">
+                        <span class="quadrant-color low-usage-low-complexity"></span>
+                        <span><strong>Low Usage, Low Complexity:</strong> Simple utility objects</span>
+                    </div>
+                    <div class="quadrant-item">
+                        <span class="quadrant-color low-usage-high-complexity"></span>
+                        <span><strong>Low Usage, High Complexity:</strong> Potential over-engineering</span>
+                    </div>
                 </div>
             </div>
         </div>

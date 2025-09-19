@@ -65,6 +65,8 @@ function switchTab(tabName) {
         loadDetailData();
     } else if (tabName === 'treemap') {
         loadTreemapData();
+    } else if (tabName === 'bubble') {
+        loadBubbleData();
     }
 }
 
@@ -479,6 +481,10 @@ window.addEventListener('message', event => {
             if (currentTab === 'treemap') {
                 renderTreemap(message.data);
             }
+            // Also render bubble chart if that's the current tab
+            if (currentTab === 'bubble') {
+                renderBubbleChart(message.data);
+            }
             hideSpinner();
             break;
             
@@ -741,6 +747,172 @@ function renderTreemap(data) {
             const area = width * height;
             return Math.min(14, Math.max(8, Math.sqrt(area) / 8)) + 'px';
         });
+}
+
+// Load bubble chart data
+function loadBubbleData() {
+    // Use the same summary data for bubble chart
+    vscode.postMessage({ command: 'getSummaryData' });
+}
+
+// Render bubble chart visualization
+function renderBubbleChart(data) {
+    const container = document.getElementById('bubble-visualization');
+    const loadingElement = document.getElementById('bubble-loading');
+    
+    if (!container || !loadingElement) {
+        console.error('Bubble chart container elements not found');
+        return;
+    }
+    
+    // Clear any existing content
+    container.innerHTML = '';
+    
+    // Setup dimensions
+    const margin = {top: 20, right: 20, bottom: 60, left: 80};
+    const width = 800 - margin.left - margin.right;
+    const height = 600 - margin.top - margin.bottom;
+    
+    // Create SVG
+    const svg = d3.select(container)
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    // Setup scales
+    const xExtent = d3.extent(data, d => d.propertyCount);
+    const yExtent = d3.extent(data, d => d.totalReferences);
+    const sizeExtent = d3.extent(data, d => d.userStoryReferences);
+    
+    const xScale = d3.scaleLinear()
+        .domain([0, Math.max(1, xExtent[1])])
+        .range([0, width]);
+    
+    const yScale = d3.scaleLinear()
+        .domain([0, Math.max(1, yExtent[1])])
+        .range([height, 0]);
+    
+    const sizeScale = d3.scaleSqrt()
+        .domain([0, Math.max(1, sizeExtent[1])])
+        .range([4, 30]);
+    
+    // Add quadrant lines
+    const xMidpoint = xScale(xExtent[1] / 2);
+    const yMidpoint = yScale(yExtent[1] / 2);
+    
+    // Vertical line (complexity divider)
+    g.append('line')
+        .attr('x1', xMidpoint)
+        .attr('x2', xMidpoint)
+        .attr('y1', 0)
+        .attr('y2', height)
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-dasharray', '5,5')
+        .attr('opacity', 0.5);
+    
+    // Horizontal line (usage divider)
+    g.append('line')
+        .attr('x1', 0)
+        .attr('x2', width)
+        .attr('y1', yMidpoint)
+        .attr('y2', yMidpoint)
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-dasharray', '5,5')
+        .attr('opacity', 0.5);
+    
+    // Add axes
+    g.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale))
+        .append('text')
+        .attr('x', width / 2)
+        .attr('y', 40)
+        .attr('fill', 'var(--vscode-foreground)')
+        .style('text-anchor', 'middle')
+        .text('Property Count (Complexity)');
+    
+    g.append('g')
+        .call(d3.axisLeft(yScale))
+        .append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', -50)
+        .attr('x', -height / 2)
+        .attr('fill', 'var(--vscode-foreground)')
+        .style('text-anchor', 'middle')
+        .text('Total References (Usage)');
+    
+    // Create tooltip
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'bubble-tooltip')
+        .style('opacity', 0)
+        .style('position', 'absolute')
+        .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+        .style('border', '1px solid var(--vscode-panel-border)')
+        .style('border-radius', '3px')
+        .style('padding', '8px')
+        .style('font-size', '12px')
+        .style('z-index', '1000')
+        .style('pointer-events', 'none');
+    
+    // Add bubbles
+    g.selectAll('.bubble')
+        .data(data)
+        .enter()
+        .append('circle')
+        .attr('class', 'bubble')
+        .attr('cx', d => xScale(d.propertyCount))
+        .attr('cy', d => yScale(d.totalReferences))
+        .attr('r', d => sizeScale(d.userStoryReferences))
+        .attr('fill', d => getBubbleColor(d.propertyCount, d.totalReferences, xExtent[1], yExtent[1]))
+        .attr('stroke', 'var(--vscode-foreground)')
+        .attr('stroke-width', 1)
+        .attr('opacity', 0.7)
+        .on('mouseover', function(event, d) {
+            d3.select(this).attr('opacity', 1);
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            tooltip.html(`
+                <strong>${d.dataObjectName}</strong><br/>
+                Properties: ${d.propertyCount}<br/>
+                Total References: ${d.totalReferences}<br/>
+                User Stories: ${d.userStoryReferences}<br/>
+                Forms: ${d.formReferences}<br/>
+                Reports: ${d.reportReferences}<br/>
+                Flows: ${d.flowReferences}
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function() {
+            d3.select(this).attr('opacity', 0.7);
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+    
+    // Hide loading and show visualization
+    loadingElement.classList.add('hidden');
+    container.classList.remove('hidden');
+}
+
+// Get bubble color based on quadrant
+function getBubbleColor(complexity, usage, maxComplexity, maxUsage) {
+    const isHighComplexity = complexity > (maxComplexity / 2);
+    const isHighUsage = usage > (maxUsage / 2);
+    
+    if (isHighUsage && !isHighComplexity) {
+        return '#28a745'; // Green - High usage, low complexity (good design)
+    } else if (isHighUsage && isHighComplexity) {
+        return '#dc3545'; // Red - High usage, high complexity (needs attention)
+    } else if (!isHighUsage && !isHighComplexity) {
+        return '#6c757d'; // Gray - Low usage, low complexity (simple utility)
+    } else {
+        return '#fd7e14'; // Orange - Low usage, high complexity (potential over-engineering)
+    }
 }
 
 // Get color based on usage level

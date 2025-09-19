@@ -1,5 +1,17 @@
 Agent todo items...
   
+generate svg button  on proportional usage tab
+
+generate svg button on complexity vs usage tab
+
+analysis treeview item... 
+- data object sub item
+  - proportional usage sub item (on click open data object usage view proportional usage tab)
+  - complexity vs usage sub item(on click open data object usage view complexity vs usage tab)
+
+
+data object db size report
+- text should count as large (10k? 100k?)
 
 no sourceobjectname in form param model or interface?
 

@@ -1,3 +1,32 @@
+2024-12-21 - Data Object Usage Analysis - Bubble Chart Implementation - COMPLEXITY ANALYSIS
+======================================================================
+
+COMMAND: "i like the Bubble Chart - Complexity vs Usage idea. create a 'Complexity vs. Usage' tab to show it"
+STATUS: COMPLETED
+CHANGES:
+- Fixed TypeScript property access: dataObject.objectProperty → dataObject.prop (correct ObjectSchema property)
+- Added propertyCount field to summary data structure for X-axis complexity measurement
+- Implemented loadBubbleData() function in dataObjectUsageAnalysisView.js
+- Created comprehensive renderBubbleChart() D3.js visualization with:
+  * X-axis: Property count (complexity measure)
+  * Y-axis: Total references (usage measure)
+  * Bubble size: User story references
+  * Color-coded quadrants for analysis insights
+- Added interactive tooltips showing detailed reference breakdowns
+- Integrated bubble chart into existing message handling system
+- Utilized existing CSS styles for bubble chart elements
+
+ARCHITECTURE NOTES:
+- Four-tab analysis interface: Summary, Detail, Treemap, Bubble Chart
+- Data flow: Extension getUsageSummaryData() → propertyCount from dataObject.prop.length
+- Frontend: loadBubbleData() → 'getSummaryData' → renderBubbleChart() on bubble tab
+- D3.js scales, axes, quadrant lines, and interactive bubble visualization
+- Complexity analysis quadrants: Green (efficient), Red (critical), Gray (simple), Orange (over-engineered)
+
+FILES MODIFIED:
+- src/commands/dataObjectUsageAnalysisCommands.ts: Property count calculation
+- src/webviews/dataObjectUsageAnalysisView.js: Bubble chart visualization
+
 2024-12-21 - Data Object Usage Analysis Feature Implementation - TERMINOLOGY FIX
 ======================================================================
 
