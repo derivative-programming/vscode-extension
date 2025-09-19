@@ -601,15 +601,14 @@ async function saveUsageDataToCSV(items: any[], modelService: ModelService): Pro
         });
     } else {
         // Detail CSV format
-        csvContent = 'Data Object Name,Reference Type,Referenced By,Item Type\n';
+        csvContent = 'Data Object Name,Reference Type,Referenced By\n';
         
         items.forEach(item => {
             const dataObjectName = (item.dataObjectName || '').replace(/"/g, '""');
             const referenceType = (item.referenceType || '').replace(/"/g, '""');
             const referencedBy = (item.referencedBy || '').replace(/"/g, '""');
-            const itemType = (item.itemType || '').replace(/"/g, '""');
             
-            csvContent += `"${dataObjectName}","${referenceType}","${referencedBy}","${itemType}"\n`;
+            csvContent += `"${dataObjectName}","${referenceType}","${referencedBy}"\n`;
         });
     }
     
@@ -1085,7 +1084,6 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                         <th data-sort-column="0" data-table="detail-table">Data Object Name <span class="sort-indicator">▼</span></th>
                         <th data-sort-column="1" data-table="detail-table">Reference Type <span class="sort-indicator">▼</span></th>
                         <th data-sort-column="2" data-table="detail-table">Referenced By <span class="sort-indicator">▼</span></th>
-                        <th data-sort-column="3" data-table="detail-table">Item Type <span class="sort-indicator">▼</span></th>
                         <th>Actions</th>
                     </tr>
                 </thead>

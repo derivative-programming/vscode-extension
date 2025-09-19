@@ -260,7 +260,6 @@ function renderDetailTable(data) {
             <td>${escapeHtml(item.dataObjectName)}</td>
             <td>${escapeHtml(item.referenceType)}</td>
             <td>${escapeHtml(item.referencedBy)}</td>
-            <td>${escapeHtml(item.itemType)}</td>
             <td class="action-cell">
                 <button class="edit-button" data-item-type="${escapeHtml(item.itemType)}" data-item-name="${escapeHtml(item.referencedBy)}" data-reference-type="${escapeHtml(item.referenceType)}" title="Open ${item.itemType} details">
                     <i class="codicon codicon-edit"></i>
@@ -331,7 +330,7 @@ function filterDetailTable(filterText) {
     
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
-        if (cells.length < 4) {
+        if (cells.length < 3) {
             return;
         }
         

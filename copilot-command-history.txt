@@ -1,6 +1,24 @@
 2024-12-21 - Data Object Usage Analysis Feature Implementation - TERMINOLOGY FIX
 ======================================================================
 
+COMMAND: "remove item type from the export as well"
+STATUS: COMPLETED
+CHANGES:
+- Updated saveUsageDataToCSV function to remove Item Type column from detail CSV export
+- Changed CSV header from "Data Object Name,Reference Type,Referenced By,Item Type" to "Data Object Name,Reference Type,Referenced By"
+- Removed itemType variable and column from CSV row generation in detail export
+- Summary export remains unchanged (no item type column there)
+ARCHITECTURE NOTES: CSV export now matches the simplified UI, maintaining consistency between display and export
+
+COMMAND: "in the detail tab hide the item type column"
+STATUS: COMPLETED
+CHANGES:
+- Removed Item Type column header from detail table HTML template in dataObjectUsageAnalysisCommands.ts
+- Updated detail table row rendering to exclude Item Type cell in dataObjectUsageAnalysisView.js  
+- Adjusted cell count validation in filterDetailTable function from 4 to 3 cells minimum
+- Preserved item type data in button attributes for functionality while hiding from UI
+ARCHITECTURE NOTES: Clean UI simplification, item type still available via button data attributes for backend operations
+
 COMMAND: "I want to add a new icon button on DATA OBJECTS for a new 'Data Object Usage Report' view"
 REFINEMENT: "refresh button should show a processing animation like we show on the refresh button click on the data object list view"
 BUG FIX 1: "the export buttons on the data object uage view tabs seem to do nothing. they should work like the export button on the data object list view"
