@@ -640,6 +640,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     arguments: []
                 };
                 items.push(metricsItem);
+
+                // Create Data Object Usage item
+                const dataObjectUsageItem = new JsonTreeItem(
+                    'Data Object Usage',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisDataObjectUsage'
+                );
+                dataObjectUsageItem.tooltip = "Analyze where data objects are referenced across forms, reports, flows, and other components";
+                dataObjectUsageItem.command = {
+                    command: 'appdna.dataObjectUsageAnalysis',
+                    title: 'Show Data Object Usage Analysis',
+                    arguments: []
+                };
+                items.push(dataObjectUsageItem);
                 
                 return Promise.resolve(items);
             } catch (error) {

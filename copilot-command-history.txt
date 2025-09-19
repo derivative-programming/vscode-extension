@@ -266,3 +266,35 @@ INTEGRATION POINTS:
 - Export functions integrate with VS Code workspace APIs
 - Consistent styling with existing extension viewsCommand: Open Page Init Details for: AIAssistantConfigAIAssistantThreadListInitReport
 Command: Open Page Init Details for: AIAssistantConfigAIAssistantThreadListInitReport
+
+2025-09-19 - Analysis Tree - Add Data Object Usage Item
+======================================================================
+
+COMMAND: "under anaylitics treeview item create a 'Data Object Usage' sub item. on click open the data object usage view"
+STATUS: COMPLETED
+CHANGE SUMMARY:
+- Added new 'Data Object Usage' child node beneath ANALYSIS tree section in jsonTreeDataProvider.ts
+- Node label: Data Object Usage
+- Context Value: analysisDataObjectUsage (reserved for future conditional menus)
+- Command: appdna.dataObjectUsageAnalysis (invokes existing usage analysis webview)
+- Tooltip: Explains cross-component reference analysis
+
+ARCHITECTURE NOTES:
+- Mirrors existing 'Metrics' analysis child pattern for consistency
+- Keeps analysis tools grouped; order currently: Metrics, Data Object Usage (alphabetical)
+- Reuses existing fully implemented Data Object Usage Analysis webview/panel singleton
+- No package.json changes required (invokes already contributed command)
+
+FILES MODIFIED:
+- src/providers/jsonTreeDataProvider.ts (added creation of dataObjectUsageItem)
+- copilot-command-history.txt (this log entry)
+
+VERIFICATION:
+- TypeScript updated; pending compile run to confirm no typing issues
+- Command already registered in registerCommands.ts; tree item triggers panel
+
+FUTURE ENHANCEMENTS (OPTIONAL):
+- Add inline action icon under ANALYSIS root similar to DATA OBJECTS button if desired
+- Add context-based enablement if model not loaded
+- Potential additional analysis nodes (e.g., Unused Objects, Flow Coverage) maintain same pattern
+
