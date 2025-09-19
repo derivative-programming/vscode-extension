@@ -34,8 +34,11 @@ export class UserStoryTools {
             return {
                 success: false,
                 error: 'Invalid format. Examples of correct formats:\n' + 
-                       '- "As a User, I want to add a task"\n' + 
-                       '- "A Manager wants to view all reports"'
+                       '- "A Manager wants to view all reports"\n' + 
+                       '- "A Manager wants to view all tasks in a project"\n' + 
+                       '- "A User wants to add a task"\n' + 
+                       '- "As a User, I want to update an employee"\n' + 
+                       '- "As a Manager, I want to view all items in the application"'
             };
         }
 
@@ -260,8 +263,10 @@ export class UserStoryTools {
     /**
      * Validates user story text against allowed formats.
      * Accepts:
-     *   - A [Role Name] wants to [View all, view, add, update, delete] [a,an,all] [Object Name(s)]
-     *   - As a [Role Name], I want to [View all, view, add, update, delete] [a,an,all] [Object Name(s)]
+     *   - A [Role Name] wants to [view, add, update, delete] [a,an] [Object Name(s)]
+     *   - A [Role Name] wants to view all [Object Name(s)] in a [Container Object Name]
+     *   - As a [Role Name], I want to [view, add, update, delete] [a,an] [Object Name(s)]
+     *   - As a [Role Name], I want to view all [Object Name(s)] in a [Container Object Name]
      * Brackets are optional, case is ignored, and 'a', 'an', or 'all' are allowed before the object.
      * @param text User story text to validate
      * @returns boolean indicating if the format is valid
@@ -274,13 +279,17 @@ export class UserStoryTools {
         // Remove extra spaces
         const t = text.trim().replace(/\s+/g, " ");
         
-        // Regex for: A [Role] wants to [action] [a|an|all] [object]
-        const re1 = /^A\s+\[?\w+(?: \w+)*\]?\s+wants to\s+\[?(View all|view|add|update|delete)\]?\s+(a|an|all)\s+\[?\w+(?: \w+)*\]?$/i;
+        // Regex for: A [Role] wants to view all [objects] in a [container] OR in the [container]
+        const re1ViewAll = /^A\s+[\w\s]+\s+wants to\s+view all\s+[\w\s]+\s+in (?:a |the )[\w\s]+$/i;
+        // Regex for: As a [Role], I want to view all [objects] in a [container] OR in the [container]  
+        const re2ViewAll = /^As a\s+[\w\s]+\s*,\s*I want to\s+view all\s+[\w\s]+\s+in (?:a |the )[\w\s]+$/i;
         
-        // Regex for: As a [Role], I want to [action] [a|an|all] [object]
-        const re2 = /^As a\s+\[?\w+(?: \w+)*\]?\s*,?\s*I want to\s+\[?(View all|view|add|update|delete)\]?\s+(a|an|all)\s+\[?\w+(?: \w+)*\]?$/i;
+        // Regex for: A [Role] wants to [action] [a|an] [object] (single object actions)
+        const re1Single = /^A\s+[\w\s]+\s+wants to\s+(?:view|add|create|update|edit|delete|remove)\s+(?:a |an )[\w\s]+$/i;
+        // Regex for: As a [Role], I want to [action] [a|an] [object] (single object actions)
+        const re2Single = /^As a\s+[\w\s]+\s*,\s*I want to\s+(?:view|add|create|update|edit|delete|remove)\s+(?:a |an )[\w\s]+$/i;
         
-        return re1.test(t) || re2.test(t);
+        return re1ViewAll.test(t) || re2ViewAll.test(t) || re1Single.test(t) || re2Single.test(t);
     }
 
     /**

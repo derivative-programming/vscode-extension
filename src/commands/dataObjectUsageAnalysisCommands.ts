@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ModelService } from '../services/modelService';
+import { extractDataObjectsFromUserStory, isDataObjectMatch } from '../utils/userStoryUtils';
 
 // Track active panels to avoid duplicates
 const activePanels = new Map<string, vscode.WebviewPanel>();
@@ -300,6 +301,7 @@ function getUsageSummaryData(modelService: ModelService): any[] {
             let formReferences = 0;
             let reportReferences = 0;
             let flowReferences = 0;
+            let userStoryReferences = 0;
             
             // Use the same detailed analysis function that the detail tab uses
             const references = findAllDataObjectReferences(dataObject.name, modelService);
@@ -309,15 +311,17 @@ function getUsageSummaryData(modelService: ModelService): any[] {
             formReferences = references.filter(ref => ref.type.includes('Form')).length;
             reportReferences = references.filter(ref => ref.type.includes('Report')).length;
             flowReferences = references.filter(ref => ref.type.includes('Flow')).length;
+            userStoryReferences = references.filter(ref => ref.type.includes('User Story')).length;
             
-            console.log(`Object ${dataObject.name}: total=${totalReferences}, form=${formReferences}, report=${reportReferences}, flow=${flowReferences}`);
+            console.log(`Object ${dataObject.name}: total=${totalReferences}, form=${formReferences}, report=${reportReferences}, flow=${flowReferences}, userStory=${userStoryReferences}`);
             
             summaryData.push({
                 dataObjectName: dataObject.name,
                 totalReferences: totalReferences,
                 formReferences: formReferences,
                 reportReferences: reportReferences,
-                flowReferences: flowReferences
+                flowReferences: flowReferences,
+                userStoryReferences: userStoryReferences
             });
         });
         
@@ -561,6 +565,35 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
         });
         console.log(`Found ${totalFlows} total flows across all objects`);
         
+        // Check User Stories - find user stories that reference this data object
+        console.log('Checking user stories...');
+        const currentModel = modelService.getCurrentModel();
+        if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
+            const namespace = currentModel.namespace[0];
+            if (namespace.userStory && Array.isArray(namespace.userStory)) {
+                console.log(`Found ${namespace.userStory.length} user stories`);
+                namespace.userStory.forEach((userStory: any) => {
+                    if (userStory.storyText && typeof userStory.storyText === 'string') {
+                        // Extract data objects from the user story text using the same logic as userStoriesView.js
+                        const extractedObjects = extractDataObjectsFromUserStory(userStory.storyText);
+                        
+                        // Check if any extracted object matches our target data object
+                        const isReferenced = extractedObjects.some(extractedName => 
+                            isDataObjectMatch(extractedName, dataObjectName)
+                        );
+                        
+                        if (isReferenced) {
+                            references.push({
+                                type: 'User Story Reference',
+                                referencedBy: userStory.storyText || 'Unnamed User Story',
+                                itemType: 'userStory'
+                            });
+                        }
+                    }
+                });
+            }
+        }
+        
         console.log(`Total references found for '${dataObjectName}': ${references.length}`);
         if (references.length > 0) {
             console.log('Sample references:', references.slice(0, 3));
@@ -588,7 +621,7 @@ async function saveUsageDataToCSV(items: any[], modelService: ModelService): Pro
     
     if (isSummaryData) {
         // Summary CSV format with detailed breakdown
-        csvContent = 'Data Object Name,Total Reference Count,Form References,Report References,Flow References\n';
+        csvContent = 'Data Object Name,Total Reference Count,Form References,Report References,Flow References,User Story References\n';
         
         items.forEach(item => {
             const dataObjectName = (item.dataObjectName || '').replace(/"/g, '""');
@@ -596,8 +629,9 @@ async function saveUsageDataToCSV(items: any[], modelService: ModelService): Pro
             const formReferences = item.formReferences || 0;
             const reportReferences = item.reportReferences || 0;
             const flowReferences = item.flowReferences || 0;
+            const userStoryReferences = item.userStoryReferences || 0;
             
-            csvContent += `"${dataObjectName}",${totalReferenceCount},${formReferences},${reportReferences},${flowReferences}\n`;
+            csvContent += `"${dataObjectName}",${totalReferenceCount},${formReferences},${reportReferences},${flowReferences},${userStoryReferences}\n`;
         });
     } else {
         // Detail CSV format
@@ -1037,6 +1071,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                         <th data-sort-column="2" data-table="summary-table">Form References <span class="sort-indicator">▼</span></th>
                         <th data-sort-column="3" data-table="summary-table">Report References <span class="sort-indicator">▼</span></th>
                         <th data-sort-column="4" data-table="summary-table">Flow References <span class="sort-indicator">▼</span></th>
+                        <th data-sort-column="5" data-table="summary-table">User Story References <span class="sort-indicator">▼</span></th>
                         <th>Actions</th>
                     </tr>
                 </thead>

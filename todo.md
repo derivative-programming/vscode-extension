@@ -5,28 +5,6 @@ no sourceobjectname in form param model or interface?
 
 check sort arrow on all tables
 
-Data Object Usage Report...
-- two tabs...
-  - tab 1: 'Data Object Usage Summary' - summary counts of where data objects are used
-    - columns:
-      - Data Object Name
-      - Total Reference Count
-  - tab 2:'Data Object Usage Detail' - table of all data objects with detail of where they are used
-    - columns: 
-      - Data Object Name
-      - Reference Type 
-        - Form Owner Object
-        - Report Owner Object
-        - Report Target Child Object
-        - Form Target Child Object
-        - Page Init Flow Owner Object
-        - General Flow Owner Object
-        - Workflow Owner Object
-        - Form Control Source Object
-        - Report Column Source Object
-      - Referenced By (name of form, report, page flow, general flow, workflow) 
-      - actions (edit icon button to open detail view of the item using it)
-  
 
 
 page init flow...

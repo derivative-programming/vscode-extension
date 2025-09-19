@@ -223,6 +223,7 @@ function renderSummaryTable(data) {
             <td class="number-cell">${item.formReferences}</td>
             <td class="number-cell">${item.reportReferences}</td>
             <td class="number-cell">${item.flowReferences}</td>
+            <td class="number-cell">${item.userStoryReferences || 0}</td>
             <td class="action-cell">
                 <button class="view-details-btn" data-object-name="${escapeHtml(item.dataObjectName)}">
                     View Details
