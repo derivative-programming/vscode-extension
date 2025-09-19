@@ -9,8 +9,8 @@ const vscode = acquireVsCodeApi();
 // State management
 let currentSummaryData = [];
 let currentDetailData = [];
-let currentSortColumn = null;
-let currentSortDirection = 'asc';
+let summarySort = { column: null, direction: 'asc' };
+let detailSort = { column: null, direction: 'asc' };
 let currentTab = 'summary';
 
 // Initialize the view
@@ -231,6 +231,14 @@ function renderSummaryTable(data) {
         `;
         tableBody.appendChild(row);
     });
+    
+    // Initialize sort indicators - summary data comes pre-sorted by total references descending
+    const summaryTable = document.getElementById('summary-table');
+    if (summaryTable) {
+        summarySort.column = 1; // Total References column
+        summarySort.direction = 'desc';
+        updateSortIndicators(summaryTable, 1, 'desc');
+    }
 }
 
 // Render detail table
@@ -268,6 +276,14 @@ function renderDetailTable(data) {
         `;
         tableBody.appendChild(row);
     });
+    
+    // Initialize sort indicators - detail data comes pre-sorted by data object name ascending
+    const detailTable = document.getElementById('detail-table');
+    if (detailTable) {
+        detailSort.column = 0; // Data Object Name column
+        detailSort.direction = 'asc';
+        updateSortIndicators(detailTable, 0, 'asc');
+    }
     
     // Populate the reference type dropdown
     populateReferenceTypeDropdown(data);
@@ -376,12 +392,15 @@ function sortTable(columnIndex, tableId) {
     const tbody = table.querySelector('tbody');
     const rows = Array.from(tbody.querySelectorAll('tr'));
     
+    // Get the appropriate sort state for this table
+    const sortState = tableId === 'summary-table' ? summarySort : detailSort;
+    
     // Determine sort direction
-    if (currentSortColumn === columnIndex) {
-        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+    if (sortState.column === columnIndex) {
+        sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
     } else {
-        currentSortDirection = 'asc';
-        currentSortColumn = columnIndex;
+        sortState.direction = 'asc';
+        sortState.column = columnIndex;
     }
     
     // Sort rows
@@ -400,7 +419,7 @@ function sortTable(columnIndex, tableId) {
             comparison = cellA.localeCompare(cellB);
         }
         
-        return currentSortDirection === 'asc' ? comparison : -comparison;
+        return sortState.direction === 'asc' ? comparison : -comparison;
     });
     
     // Clear tbody and re-append sorted rows
@@ -408,17 +427,27 @@ function sortTable(columnIndex, tableId) {
     rows.forEach(row => tbody.appendChild(row));
     
     // Update sort indicators in headers
-    updateSortIndicators(table, columnIndex, currentSortDirection);
+    updateSortIndicators(table, columnIndex, sortState.direction);
 }
 
 // Update sort indicators
 function updateSortIndicators(table, sortedColumn, direction) {
-    const headers = table.querySelectorAll('th[onclick]');
+    const headers = table.querySelectorAll('th[data-sort-column]');
     
     headers.forEach((header, index) => {
-        header.classList.remove('sort-asc', 'sort-desc');
+        const indicator = header.querySelector('.sort-indicator');
+        if (!indicator) {
+            return;
+        }
+        
         if (index === sortedColumn) {
-            header.classList.add(`sort-${direction}`);
+            // This is the active sorted column
+            indicator.classList.add('active');
+            indicator.textContent = direction === 'asc' ? '▲' : '▼';
+        } else {
+            // This is an inactive column
+            indicator.classList.remove('active');
+            indicator.textContent = '▼';
         }
     });
 }

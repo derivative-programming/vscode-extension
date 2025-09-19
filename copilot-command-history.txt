@@ -1,6 +1,19 @@
 2024-12-21 - Data Object Usage Analysis Feature Implementation - TERMINOLOGY FIX
 ======================================================================
 
+COMMAND: "we need to fix the sort direction indicators on all columns on both tabs"
+STATUS: COMPLETED
+CHANGES:
+- Fixed updateSortIndicators function to use correct selector (th[data-sort-column] instead of th[onclick])
+- Updated sort indicators to show proper arrows: ▲ for ascending, ▼ for descending
+- Added proper .active class management for sort indicators
+- Separated sort state for summary and detail tables (summarySort, detailSort objects)
+- Updated sortTable function to use table-specific sort state
+- Added initialization of sort indicators in renderSummaryTable and renderDetailTable
+- Summary table defaults to Total References column descending sort
+- Detail table defaults to Data Object Name column ascending sort
+ARCHITECTURE NOTES: Proper sort state management per table, visual feedback for current sort column and direction
+
 COMMAND: "remove item type from the export as well"
 STATUS: COMPLETED
 CHANGES:
