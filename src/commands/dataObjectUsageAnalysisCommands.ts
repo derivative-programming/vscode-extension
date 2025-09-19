@@ -173,6 +173,87 @@ export function registerDataObjectUsageAnalysisCommands(context: vscode.Extensio
                     }
                     break;
                     
+                case 'saveSvgToWorkspace':
+                    try {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        
+                        if (!workspaceFolders || workspaceFolders.length === 0) {
+                            vscode.window.showErrorMessage('No workspace folder is open');
+                            panel.webview.postMessage({
+                                command: 'svgSaveComplete',
+                                success: false,
+                                error: 'No workspace folder is open'
+                            });
+                            return;
+                        }
+                        
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const filePath = path.join(workspaceRoot, message.data.filename);
+                        
+                        fs.writeFileSync(filePath, message.data.content, 'utf8');
+                        vscode.window.showInformationMessage(`SVG file saved to workspace: ${message.data.filename}`);
+                        
+                        // Notify webview of successful save
+                        panel.webview.postMessage({
+                            command: 'svgSaveComplete',
+                            success: true,
+                            filePath: message.data.filename,
+                            type: message.data.type
+                        });
+                        
+                        // Optionally open the file in VS Code
+                        const fileUri = vscode.Uri.file(filePath);
+                        vscode.window.showTextDocument(fileUri);
+                    } catch (error) {
+                        console.error('[Extension] Error saving SVG to workspace:', error);
+                        vscode.window.showErrorMessage(`Failed to save SVG: ${error.message}`);
+                        panel.webview.postMessage({
+                            command: 'svgSaveComplete',
+                            success: false,
+                            error: error.message
+                        });
+                    }
+                    break;
+                case 'savePngToWorkspace':
+                    try {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        if (!workspaceFolders || workspaceFolders.length === 0) {
+                            vscode.window.showErrorMessage('No workspace folder is open');
+                            panel.webview.postMessage({
+                                command: 'pngSaveComplete',
+                                success: false,
+                                error: 'No workspace folder is open'
+                            });
+                            return;
+                        }
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const filePath = path.join(workspaceRoot, message.data.filename);
+                        const buffer = Buffer.from(message.data.base64.replace(/^data:image\/png;base64,/, ''), 'base64');
+                        fs.writeFileSync(filePath, buffer);
+                        vscode.window.showInformationMessage(`PNG file saved to workspace: ${message.data.filename}`);
+                        panel.webview.postMessage({
+                            command: 'pngSaveComplete',
+                            success: true,
+                            filePath: message.data.filename,
+                            type: message.data.type
+                        });
+                        const fileUri = vscode.Uri.file(filePath);
+                        vscode.commands.executeCommand('vscode.open', fileUri);
+                    } catch (error) {
+                        console.error('[Extension] Error saving PNG to workspace:', error);
+                        vscode.window.showErrorMessage(`Failed to save PNG: ${error.message}`);
+                        panel.webview.postMessage({
+                            command: 'pngSaveComplete',
+                            success: false,
+                            error: error.message
+                        });
+                    }
+                    break;
+                    
+                case 'showError':
+                    vscode.window.showErrorMessage(message.error || 'An error occurred');
+                    break;
+                    
                 case 'viewDetails':
                     // Handle opening detail view for the referenced item
                     try {
@@ -675,7 +756,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; script-src 'nonce-${nonce}' https://d3js.org; font-src ${webview.cspSource};">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: blob: ${webview.cspSource}; style-src ${webview.cspSource} 'nonce-${nonce}'; script-src 'nonce-${nonce}' https://d3js.org; font-src ${webview.cspSource};">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="${codiconsUri}" rel="stylesheet">
     <title>Data Object Usage</title>
@@ -1034,6 +1115,49 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
         
         .treemap-header {
             margin-bottom: 20px;
+        }
+        
+        .treemap-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .treemap-title {
+            flex: 1;
+        }
+        
+        .treemap-actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .svg-export-btn {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: 1px solid var(--vscode-button-border);
+            border-radius: 2px;
+            padding: 6px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        
+        .svg-export-btn:hover {
+            background: var(--vscode-button-hoverBackground);
+        }
+        
+        .svg-export-btn:active {
+            background: var(--vscode-button-activeBackground);
+        }
+        
+        .svg-export-btn .codicon {
+            font-size: 14px;
         }
         
         .treemap-header h3 {
@@ -1398,11 +1522,25 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
     <div id="treemap-tab" class="tab-content">
         <div class="treemap-container">
             <div class="treemap-header">
-                <h3>Data Object Usage Proportions</h3>
-                <p>Size represents total reference count. Hover for details.</p>
+                <div class="treemap-header-content">
+                    <div class="treemap-title">
+                        <h3>Data Object Usage Proportions</h3>
+                        <p>Size represents total reference count. Hover for details.</p>
+                    </div>
+                    <div class="treemap-actions">
+                        <button id="generateTreemapPngBtn" class="svg-export-btn">
+                            <span class="codicon codicon-device-camera"></span>
+                            Generate PNG
+                        </button>
+                    </div>
+                </div>
             </div>
             <div id="treemap-loading" class="loading">Loading treemap...</div>
             <div id="treemap-visualization" class="treemap-viz hidden"></div>
+            <div id="treemap-inline-preview" class="treemap-inline-preview hidden">
+                <h4>Latest Export Preview</h4>
+                <div id="treemap-inline-preview-content"></div>
+            </div>
             <div class="treemap-legend">
                 <div class="legend-item">
                     <span class="legend-color high-usage"></span>
@@ -1429,9 +1567,19 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             <div class="bubble-header">
                 <h3>Complexity vs. Usage Analysis</h3>
                 <p>X-axis: Property Count (Complexity) • Y-axis: Total References (Usage) • Bubble Size: User Story References</p>
+                <div class="bubble-actions">
+                    <button id="generateBubblePngBtn" class="svg-export-btn">
+                        <span class="codicon codicon-device-camera"></span>
+                        Generate PNG
+                    </button>
+                </div>
             </div>
             <div id="bubble-loading" class="loading">Loading bubble chart...</div>
             <div id="bubble-visualization" class="bubble-viz hidden"></div>
+            <div id="bubble-inline-preview" class="treemap-inline-preview hidden">
+                <h4>Latest Bubble Chart Export</h4>
+                <div id="bubble-inline-preview-content"></div>
+            </div>
             <div class="bubble-quadrants">
                 <div class="quadrant-legend">
                     <div class="quadrant-item">

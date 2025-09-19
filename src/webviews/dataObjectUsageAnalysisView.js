@@ -85,6 +85,8 @@ function setupEventListeners() {
     // Export buttons
     const exportSummaryBtn = document.getElementById('exportSummaryBtn');
     const exportDetailBtn = document.getElementById('exportDetailBtn');
+        const generateTreemapPngBtn = document.getElementById('generateTreemapPngBtn');
+        const generateBubblePngBtn = document.getElementById('generateBubblePngBtn');
     const refreshSummaryBtn = document.getElementById('refreshSummaryButton');
     const refreshDetailBtn = document.getElementById('refreshDetailButton');
     
@@ -101,6 +103,20 @@ function setupEventListeners() {
             vscode.postMessage({ command: 'exportToCSV', data: { items: currentDetailData } });
         });
     }
+    
+        // SVG export removed per latest requirement.
+        if (generateTreemapPngBtn) {
+            generateTreemapPngBtn.addEventListener('click', function() {
+                console.log('Generate treemap PNG button clicked');
+                generateTreemapPng();
+            });
+        }
+        if (generateBubblePngBtn) {
+            generateBubblePngBtn.addEventListener('click', function() {
+                console.log('Generate bubble chart PNG button clicked');
+                generateBubbleChartPng();
+            });
+        }
     
     if (refreshSummaryBtn) {
         refreshSummaryBtn.addEventListener('click', function() {
@@ -519,6 +535,20 @@ window.addEventListener('message', event => {
                 alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
             }
             break;
+            
+        case 'svgSaveComplete':
+            if (message.success) {
+                console.log('SVG saved successfully:', message.filePath);
+                // Could show a success notification here
+            } else {
+                console.error('SVG save failed:', message.error);
+                alert('Error saving SVG: ' + (message.error || 'Unknown error'));
+            }
+            break;
+            
+        case 'showError':
+            alert(message.error || 'An error occurred');
+            break;
     }
 });
 
@@ -674,7 +704,7 @@ function renderTreemap(data) {
     // Color scale based on usage levels
     const colorScale = d3.scaleThreshold()
         .domain([1, 5, 20])
-        .range(['var(--vscode-button-secondaryBackground)', '#28a745', '#f66a0a', '#d73a49']);
+        .range(['#6c757d', '#28a745', '#f66a0a', '#d73a49']); // Replaced CSS variable with actual gray color
     
     // Create tooltip
     const tooltip = d3.select('body')
@@ -727,17 +757,27 @@ function renderTreemap(data) {
             }
         });
     
-    // Add text labels
+    // Add text labels  
     cell.append('text')
         .attr('class', 'treemap-text')
         .attr('x', d => (d.x1 - d.x0) / 2)
         .attr('y', d => (d.y1 - d.y0) / 2)
+        .attr('data-name', d => d.data.name) // Store data name for SVG export
         .text(d => {
             const width = d.x1 - d.x0;
             const height = d.y1 - d.y0;
-            // Only show text if rectangle is large enough
-            if (width > 60 && height > 20) {
+            // More permissive thresholds for better text coverage
+            if (width > 30 && height > 12) {
                 return d.data.name;
+            }
+            // For smaller rectangles, show abbreviated text
+            else if (width > 15 && height > 8) {
+                const maxChars = Math.max(1, Math.floor(width / 5));
+                return d.data.name.substring(0, maxChars);
+            }
+            // For very small rectangles, show just initials if possible
+            else if (width > 8 && height > 6) {
+                return d.data.name.charAt(0);
             }
             return '';
         })
@@ -745,7 +785,7 @@ function renderTreemap(data) {
             const width = d.x1 - d.x0;
             const height = d.y1 - d.y0;
             const area = width * height;
-            return Math.min(14, Math.max(8, Math.sqrt(area) / 8)) + 'px';
+            return Math.min(14, Math.max(6, Math.sqrt(area) / 8)) + 'px';
         });
 }
 
@@ -926,5 +966,350 @@ function getUsageColor(totalReferences) {
     if (totalReferences >= 1) {
         return '#28a745';   // Low usage - green
     }
-    return 'var(--vscode-button-secondaryBackground)'; // No usage - gray
+    return '#6c757d'; // No usage - gray (replaced CSS variable with actual color)
 }
+
+// Generate and download SVG from treemap visualization
+// Build (but do not save) the treemap SVG string so it can be reused by SVG + PNG exporters
+function buildTreemapSvgString() {
+    const treemapContainer = document.getElementById('treemap-visualization');
+    if (!treemapContainer || treemapContainer.classList.contains('hidden')) {
+        throw new Error('Treemap visualization must be loaded before generating SVG');
+    }
+    const svgElement = treemapContainer.querySelector('svg');
+    if (!svgElement) {
+        throw new Error('No SVG visualization found to export');
+    }
+    // Clone the SVG to avoid modifying the original
+    const clonedSvg = svgElement.cloneNode(true);
+    const originalRects = svgElement.querySelectorAll('rect');
+    const clonedRects = clonedSvg.querySelectorAll('rect');
+    originalRects.forEach((originalRect, index) => {
+        if (clonedRects[index]) {
+            const computedStyle = window.getComputedStyle(originalRect);
+            const clonedRect = clonedRects[index];
+            const fillColor = originalRect.getAttribute('fill') || computedStyle.fill;
+            const strokeColor = computedStyle.stroke === 'none' ? '#ffffff' : computedStyle.stroke;
+            const strokeWidth = computedStyle.strokeWidth || '1';
+            const opacity = computedStyle.opacity || '1';
+            const resolvedFill = fillColor && fillColor.startsWith && fillColor.startsWith('var(') ? '#6c757d' : fillColor;
+            const resolvedStroke = strokeColor && strokeColor.startsWith && strokeColor.startsWith('var(') ? '#ffffff' : strokeColor;
+            clonedRect.setAttribute('fill', resolvedFill || '#6c757d');
+            clonedRect.setAttribute('stroke', resolvedStroke || '#ffffff');
+            clonedRect.setAttribute('stroke-width', strokeWidth);
+            clonedRect.setAttribute('opacity', opacity);
+            if (clonedRect.getAttribute('width') && clonedRect.getAttribute('height')) {
+                const width = parseFloat(clonedRect.getAttribute('width'));
+                const height = parseFloat(clonedRect.getAttribute('height'));
+                if (width > 0 && height > 0) {
+                    if (!clonedRect.getAttribute('fill') || clonedRect.getAttribute('fill') === 'none') {
+                        clonedRect.setAttribute('fill', '#6c757d');
+                    }
+                }
+            }
+        }
+    });
+    const originalTexts = svgElement.querySelectorAll('text');
+    const clonedTexts = clonedSvg.querySelectorAll('text');
+    originalTexts.forEach((originalText, index) => {
+        if (clonedTexts[index]) {
+            const computedStyle = window.getComputedStyle(originalText);
+            const clonedText = clonedTexts[index];
+            clonedText.textContent = originalText.textContent;
+            const textFill = computedStyle.fill && computedStyle.fill.startsWith && computedStyle.fill.startsWith('var(') ? '#333333' : computedStyle.fill;
+            const cleanFontFamily = (computedStyle.fontFamily || 'Arial, sans-serif').replace(/"/g, '');
+            clonedText.setAttribute('fill', textFill || '#333333');
+            clonedText.setAttribute('font-family', cleanFontFamily);
+            clonedText.setAttribute('font-size', computedStyle.fontSize || '12px');
+            clonedText.setAttribute('font-weight', computedStyle.fontWeight || 'normal');
+            clonedText.setAttribute('text-anchor', originalText.getAttribute('text-anchor') || 'middle');
+            clonedText.setAttribute('dominant-baseline', originalText.getAttribute('dominant-baseline') || 'central');
+            if (!clonedText.getAttribute('fill') || clonedText.getAttribute('fill') === 'none') {
+                clonedText.setAttribute('fill', '#333333');
+            }
+            if (!clonedText.textContent || clonedText.textContent.trim() === '') {
+                const dataName = originalText.getAttribute('data-name');
+                if (dataName) {
+                    const rect = originalText.previousElementSibling;
+                    if (rect && rect.tagName === 'rect') {
+                        const width = parseFloat(rect.getAttribute('width') || '0');
+                        const height = parseFloat(rect.getAttribute('height') || '0');
+                        if (width > 20 && height > 8) {
+                            clonedText.textContent = dataName;
+                        } else if (width > 10 && height > 6) {
+                            const maxChars = Math.max(1, Math.floor(width / 4));
+                            clonedText.textContent = dataName.substring(0, maxChars);
+                        } else if (width > 6 && height > 4) {
+                            clonedText.textContent = dataName.charAt(0);
+                        }
+                    }
+                }
+            }
+        }
+    });
+    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    let rawWidth = parseFloat(clonedSvg.getAttribute('width') || svgElement.getBoundingClientRect().width || 800);
+    let rawHeight = parseFloat(clonedSvg.getAttribute('height') || svgElement.getBoundingClientRect().height || 600);
+    const width = Math.max(1, Math.round(rawWidth));
+    const height = Math.max(1, Math.round(rawHeight));
+    clonedSvg.setAttribute('width', String(width));
+    clonedSvg.setAttribute('height', String(height));
+    if (!clonedSvg.getAttribute('viewBox')) {
+        clonedSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    }
+    clonedSvg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+    const titleElement = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    titleElement.textContent = 'Data Object Usage Proportions - Treemap Visualization';
+    clonedSvg.insertBefore(titleElement, clonedSvg.firstChild);
+    const descElement = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
+    descElement.textContent = 'Generated on ' + new Date().toLocaleString() + '. Size represents total reference count. Color indicates usage level.';
+    clonedSvg.insertBefore(descElement, clonedSvg.children[1]);
+    const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    styleElement.setAttribute('type', 'text/css');
+    styleElement.textContent = `\ntext { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 12px; font-weight: bold; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: #333333; }\nrect { stroke: #ffffff; stroke-width: 1px; cursor: pointer; }\nrect:hover { stroke-width: 2px; opacity: 0.9; }\n.high-usage { fill: #d73a49; }\n.medium-usage { fill: #f66a0a; }\n.low-usage { fill: #28a745; }\n.no-usage { fill: #6c757d; }\n.treemap-root-bg { fill: #ffffff; }\n`;
+    clonedSvg.insertBefore(styleElement, clonedSvg.children[2]);
+    const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bgRect.setAttribute('class', 'treemap-root-bg');
+    bgRect.setAttribute('x', '0');
+    bgRect.setAttribute('y', '0');
+    bgRect.setAttribute('width', String(width));
+    bgRect.setAttribute('height', String(height));
+    const firstGroup = clonedSvg.querySelector('g');
+    if (firstGroup) {
+        clonedSvg.insertBefore(bgRect, firstGroup);
+    } else {
+        clonedSvg.appendChild(bgRect);
+    }
+    const interactiveElements = clonedSvg.querySelectorAll('[onclick], [onmouseover], [onmouseout]');
+    interactiveElements.forEach(el => {
+        el.removeAttribute('onclick');
+        el.removeAttribute('onmouseover');
+        el.removeAttribute('onmouseout');
+    });
+    const serializer = new XMLSerializer();
+    let svgString = serializer.serializeToString(clonedSvg);
+    if (!svgString.startsWith('<?xml')) {
+        svgString = `<?xml version="1.0" encoding="UTF-8"?>\n` + svgString;
+    }
+    console.log('Generated SVG preview (first 500 chars):', svgString.substring(0, 500));
+    console.log('SVG element count - rects:', clonedRects.length, 'texts:', clonedTexts.length);
+    console.log(`Export dimensions: ${width}x${height}`);
+    return { svgString, width, height };
+}
+
+function generateTreemapSvg() {
+    const treemapContainer = document.getElementById('treemap-visualization');
+    if (!treemapContainer || treemapContainer.classList.contains('hidden')) {
+        console.error('Treemap visualization not found or not visible');
+        vscode.postMessage({ 
+            command: 'showError', 
+            error: 'Treemap visualization must be loaded before generating SVG' 
+        });
+        return;
+    }
+    
+    const svgElement = treemapContainer.querySelector('svg');
+    if (!svgElement) {
+        console.error('SVG element not found in treemap visualization');
+        vscode.postMessage({ 
+            command: 'showError', 
+            error: 'No SVG visualization found to export' 
+        });
+        return;
+    }
+    
+    try {
+        const { svgString } = buildTreemapSvgString();
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const filename = `data-object-usage-treemap-${timestamp}.svg`;
+        vscode.postMessage({
+            command: 'saveSvgToWorkspace',
+            data: { content: svgString, filename, type: 'treemap' }
+        });
+        // Inline SVG preview (vector)
+        const preview = document.getElementById('treemap-inline-preview');
+        const previewContent = document.getElementById('treemap-inline-preview-content');
+        if (preview && previewContent) {
+            preview.classList.remove('hidden');
+            const vectorWrapper = document.createElement('div');
+            vectorWrapper.style.border = '1px solid var(--vscode-editorWidget-border,#ccc)';
+            vectorWrapper.style.marginBottom = '8px';
+            // Remove XML decl and <style> block (CSP friendly) before injecting
+            let inlineSafe = svgString
+                .replace(/<\?xml[^>]*>/, '')
+                .replace(/<style[\s\S]*?<\/style>/gi, '');
+            vectorWrapper.innerHTML = inlineSafe;
+            previewContent.innerHTML = '';
+            previewContent.appendChild(vectorWrapper);
+        }
+        console.log('SVG export initiated for treemap with enhanced styling');
+        
+    } catch (error) {
+        console.error('Error generating SVG:', error);
+        vscode.postMessage({ 
+            command: 'showError', 
+            error: 'Failed to generate SVG: ' + error.message 
+        });
+    }
+}
+
+    // PNG export fallback by rasterizing current SVG
+    function generateTreemapPng() {
+        try {
+            const { svgString, width, height } = buildTreemapSvgString();
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            // White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+            canvas.toBlob(function(blob) {
+                if (!blob) {
+                    vscode.postMessage({ command: 'showError', error: 'Canvas conversion failed' });
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64 = reader.result;
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                    const filename = `data-object-usage-treemap-${timestamp}.png`;
+                    vscode.postMessage({
+                        command: 'savePngToWorkspace',
+                        data: { base64, filename, type: 'treemap' }
+                    });
+                    // Inline preview
+                    const preview = document.getElementById('treemap-inline-preview');
+                    const previewContent = document.getElementById('treemap-inline-preview-content');
+                    if (preview && previewContent) {
+                        preview.classList.remove('hidden');
+                        // Preserve existing SVG preview if present
+                        const imgEl = document.createElement('img');
+                        imgEl.src = base64;
+                        imgEl.alt = 'Treemap PNG Preview';
+                        imgEl.style.maxWidth = '100%';
+                        imgEl.style.border = '1px solid var(--vscode-editorWidget-border,#ccc)';
+                        // Append instead of replace to show both formats
+                        previewContent.appendChild(imgEl);
+                    }
+                };
+                reader.readAsDataURL(blob);
+            }, 'image/png');
+        };
+        img.onerror = function() {
+            vscode.postMessage({ command: 'showError', error: 'Failed to render SVG to image' });
+        };
+        img.src = url;
+        } catch (err) {
+            vscode.postMessage({ command: 'showError', error: 'Failed to generate PNG: ' + err.message });
+        }
+    }
+
+        // Bubble chart PNG export (build ad-hoc SVG snapshot then rasterize)
+        function generateBubbleChartPng() {
+            try {
+                const bubbleContainer = document.getElementById('bubble-visualization');
+                if (!bubbleContainer || bubbleContainer.classList.contains('hidden')) {
+                    vscode.postMessage({ command: 'showError', error: 'Load bubble chart before exporting PNG' });
+                    return;
+                }
+                const svgElement = bubbleContainer.querySelector('svg');
+                if (!svgElement) {
+                    vscode.postMessage({ command: 'showError', error: 'Bubble chart SVG not found' });
+                    return;
+                }
+                // Clone and inline key styles (axes text, circle colors, lines)
+                const cloned = svgElement.cloneNode(true);
+                // Inline circle styles
+                cloned.querySelectorAll('circle').forEach(c => {
+                    const cs = window.getComputedStyle(c);
+                    const fill = c.getAttribute('fill') || cs.fill || '#4c78a8';
+                    const stroke = c.getAttribute('stroke') || cs.stroke || '#333333';
+                    c.setAttribute('fill', fill.startsWith('var(') ? '#4c78a8' : fill);
+                    c.setAttribute('stroke', stroke.startsWith('var(') ? '#333333' : stroke);
+                    c.setAttribute('stroke-width', c.getAttribute('stroke-width') || '1');
+                    c.setAttribute('opacity', c.getAttribute('opacity') || cs.opacity || '0.7');
+                });
+                // Inline line styles
+                cloned.querySelectorAll('line').forEach(l => {
+                    const cs = window.getComputedStyle(l);
+                    const stroke = l.getAttribute('stroke') || cs.stroke || '#999999';
+                    l.setAttribute('stroke', stroke.startsWith('var(') ? '#999999' : stroke);
+                    const dash = l.getAttribute('stroke-dasharray') || cs.strokeDasharray;
+                    if (dash) {
+                        l.setAttribute('stroke-dasharray', dash);
+                    }
+                    l.setAttribute('opacity', l.getAttribute('opacity') || cs.opacity || '0.5');
+                });
+                // Inline text styles
+                cloned.querySelectorAll('text').forEach(t => {
+                    const cs = window.getComputedStyle(t);
+                    const fill = cs.fill && cs.fill.startsWith && cs.fill.startsWith('var(') ? '#333333' : cs.fill;
+                    t.setAttribute('fill', fill || '#333333');
+                    t.setAttribute('font-family', (cs.fontFamily || 'Arial, sans-serif').replace(/"/g, ''));
+                    t.setAttribute('font-size', cs.fontSize || '12px');
+                });
+                const width = parseInt(cloned.getAttribute('width') || svgElement.getBoundingClientRect().width || 800, 10);
+                const height = parseInt(cloned.getAttribute('height') || svgElement.getBoundingClientRect().height || 600, 10);
+                if (!cloned.getAttribute('viewBox')) {
+                    cloned.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                }
+                const serializer = new XMLSerializer();
+                let svgString = serializer.serializeToString(cloned);
+                if (!svgString.startsWith('<?xml')) {
+                    svgString = `<?xml version="1.0" encoding="UTF-8"?>\n` + svgString;
+                }
+                const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0);
+                    URL.revokeObjectURL(url);
+                    canvas.toBlob(function(b) {
+                        if (!b) {
+                            vscode.postMessage({ command: 'showError', error: 'Canvas conversion failed (bubble)' });
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onloadend = function() {
+                            const base64 = reader.result;
+                            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                            const filename = `data-object-usage-bubble-${timestamp}.png`;
+                            vscode.postMessage({ command: 'savePngToWorkspace', data: { base64, filename, type: 'bubble' } });
+                            const preview = document.getElementById('bubble-inline-preview');
+                            const previewContent = document.getElementById('bubble-inline-preview-content');
+                            if (preview && previewContent) {
+                                preview.classList.remove('hidden');
+                                const imgEl = document.createElement('img');
+                                imgEl.src = base64;
+                                imgEl.alt = 'Bubble Chart PNG Preview';
+                                imgEl.style.maxWidth = '100%';
+                                imgEl.style.border = '1px solid var(--vscode-editorWidget-border,#ccc)';
+                                previewContent.innerHTML = '';
+                                previewContent.appendChild(imgEl);
+                            }
+                        };
+                        reader.readAsDataURL(b);
+                    }, 'image/png');
+                };
+                img.onerror = function() {
+                    vscode.postMessage({ command: 'showError', error: 'Failed to render bubble chart SVG to image' });
+                };
+                img.src = url;
+            } catch (err) {
+                vscode.postMessage({ command: 'showError', error: 'Failed to generate bubble chart PNG: ' + err.message });
+            }
+        }
