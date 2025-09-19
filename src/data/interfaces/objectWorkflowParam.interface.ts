@@ -26,4 +26,9 @@ export interface ObjectWorkflowParamSchema {
     isUnknownLookupAllowed?: string;
     inputControl?: string;
     isIgnored?: string;
+    // Added to support form input control source references per schema
+    sourceObjectName?: string;
+    sourcePropertyName?: string;
+    // Allow forward-compatible optional properties from evolving schema
+    [key: string]: any;
 }

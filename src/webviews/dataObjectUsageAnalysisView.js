@@ -168,6 +168,20 @@ function setupEventListeners() {
             clearDetailFilters();
         }
         
+        // Handle edit buttons in detail table
+        if (event.target.closest('.edit-button')) {
+            const button = event.target.closest('.edit-button');
+            const itemType = button.getAttribute('data-item-type');
+            const itemName = button.getAttribute('data-item-name');
+            const referenceType = button.getAttribute('data-reference-type');
+            if (itemType && itemName) {
+                vscode.postMessage({
+                    command: 'viewDetails',
+                    data: { itemType: itemType, itemName: itemName, referenceType: referenceType }
+                });
+            }
+        }
+        
         // Handle table header sorting
         const sortableHeader = event.target.closest('th[data-sort-column]');
         if (sortableHeader) {
@@ -247,6 +261,11 @@ function renderDetailTable(data) {
             <td>${escapeHtml(item.referenceType)}</td>
             <td>${escapeHtml(item.referencedBy)}</td>
             <td>${escapeHtml(item.itemType)}</td>
+            <td class="action-cell">
+                <button class="edit-button" data-item-type="${escapeHtml(item.itemType)}" data-item-name="${escapeHtml(item.referencedBy)}" data-reference-type="${escapeHtml(item.referenceType)}" title="Open ${item.itemType} details">
+                    <i class="codicon codicon-edit"></i>
+                </button>
+            </td>
         `;
         tableBody.appendChild(row);
     });

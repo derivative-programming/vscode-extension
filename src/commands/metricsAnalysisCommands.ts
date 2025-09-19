@@ -438,7 +438,7 @@ function calculatePageInitCount(modelService: ModelService): number {
                 obj.objectWorkflow.forEach((workflow: any) => {
                     if (workflow.name) {
                         const workflowName = workflow.name.toLowerCase();
-                        if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
+                        if (workflowName.toLowerCase().endsWith('initreport') || workflowName.toLowerCase().endsWith('initobjwf')) {
                             pageInitCount++;
                         }
                     }
@@ -478,10 +478,10 @@ function calculateGeneralFlowCount(modelService: ModelService): number {
                         const isPageOk = workflow.isPage === "false";
                         
                         // 4. name does not end with initobjwf (matching tree view endsWith check)
-                        const notInitObjWf = !workflowName.endsWith('initobjwf');
+                        const notInitObjWf = !workflowName.toLowerCase().endsWith('initobjwf');
                         
                         // 5. name does not end with initreport
-                        const notInitReport = !workflowName.endsWith('initreport');
+                        const notInitReport = !workflowName.toLowerCase().endsWith('initreport');
                         
                         // All criteria must be true
                         if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {

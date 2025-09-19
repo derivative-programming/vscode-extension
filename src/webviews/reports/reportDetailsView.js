@@ -533,10 +533,10 @@ function showReportDetails(item, modelService, context) {
                                             const isPageOk = workflow.isPage === "false";
                                             
                                             // 4. name does not end with initobjwf (matching tree view endsWith check)
-                                            const notInitObjWf = !workflowName.endsWith('initobjwf');
+                                            const notInitObjWf = !workflowName.toLowerCase().endsWith('initobjwf');
                                             
                                             // 5. name does not end with initreport (matching tree view endsWith check)
-                                            const notInitReport = !workflowName.endsWith('initreport');
+                                            const notInitReport = !workflowName.toLowerCase().endsWith('initreport');
                                             
                                             if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {
                                                 const displayName = workflow.titleText || workflow.name;

@@ -134,4 +134,5 @@ INTEGRATION POINTS:
 - Tree view button appears when DATA OBJECTS context is active
 - Command execution opens webview panel with usage analysis
 - Export functions integrate with VS Code workspace APIs
-- Consistent styling with existing extension views
+- Consistent styling with existing extension viewsCommand: Open Page Init Details for: AIAssistantConfigAIAssistantThreadListInitReport
+Command: Open Page Init Details for: AIAssistantConfigAIAssistantThreadListInitReport

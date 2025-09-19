@@ -676,10 +676,10 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                                     const isPageOk = workflow.isPage === "false";
                                     
                                     // 4. name does not end with initobjwf
-                                    const notInitObjWf = !workflowName.endsWith('initobjwf');
+                                    const notInitObjWf = !workflowName.toLowerCase().endsWith('initobjwf');
                                     
                                     // 5. name does not end with initreport
-                                    const notInitReport = !workflowName.endsWith('initreport');
+                                    const notInitReport = !workflowName.toLowerCase().endsWith('initreport');
                                     
                                     // All criteria must be true
                                     if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {
@@ -766,9 +766,9 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                             obj.objectWorkflow.forEach((workflow: any) => {
                                 if (workflow.name) {
                                     const workflowName = workflow.name.toLowerCase();
-                                    console.log('PAGE_INIT: Checking workflow:', workflow.name, 'ends with initreport?', workflowName.endsWith('initreport'), 'ends with initobjwf?', workflowName.endsWith('initobjwf'));
+                                    console.log('PAGE_INIT: Checking workflow:', workflow.name, 'ends with initreport?', workflowName.toLowerCase().endsWith('initreport'), 'ends with initobjwf?', workflowName.toLowerCase().endsWith('initobjwf'));
                                     // Check if name ends with 'initreport' or 'initobjwf'
-                                    if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
+                                    if (workflowName.toLowerCase().endsWith('initreport') || workflowName.toLowerCase().endsWith('initobjwf')) {
                                         console.log('PAGE_INIT: Found matching workflow:', workflow.name);
                                         const displayName = workflow.name; // Use actual workflow name, not titleText
                                         // Apply filters (global and page init specific)

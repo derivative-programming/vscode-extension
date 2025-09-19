@@ -175,32 +175,85 @@ export function registerDataObjectUsageAnalysisCommands(context: vscode.Extensio
                 case 'viewDetails':
                     // Handle opening detail view for the referenced item
                     try {
-                        const { itemType, itemName } = message.data;
+                        const { itemType, itemName, referenceType } = message.data;
+                        
+                        // Extract actual item name (for form parameters, remove the " / ParamName" suffix)
+                        let actualItemName = itemName;
+                        if (itemName.includes(' / ')) {
+                            actualItemName = itemName.split(' / ')[0];
+                        }
                         
                         if (itemType === 'form') {
                             // Open form details
                             const mockTreeItem = {
-                                label: itemName,
+                                label: actualItemName,
                                 contextValue: 'formItem',
-                                tooltip: `${itemName}`
+                                tooltip: `${actualItemName}`
                             };
                             const { showFormDetails } = require('../webviews/forms/formDetailsView');
                             showFormDetails(mockTreeItem, modelService, dataObjectUsageAnalysisPanel.context);
                         } else if (itemType === 'report') {
                             // Open report details
                             const mockTreeItem = {
-                                label: itemName,
+                                label: actualItemName,
                                 contextValue: 'reportItem',
-                                tooltip: `${itemName}`
+                                tooltip: `${actualItemName}`
                             };
                             const { showReportDetails } = require('../webviews/reports/reportDetailsView');
                             showReportDetails(mockTreeItem, modelService, dataObjectUsageAnalysisPanel.context);
+                        } else if (itemType === 'flow') {
+                            // Check the reference type to route to the appropriate detail view
+                            if (referenceType && referenceType.includes('Page Init Flow')) {
+                                // Open page init flow details
+                                const mockTreeItem = {
+                                    label: actualItemName,
+                                    contextValue: 'pageInitItem',
+                                    tooltip: `${actualItemName}`
+                                };
+                                const { showPageInitDetails } = require('../webviews/pageinits/pageInitDetailsView');
+                                showPageInitDetails(mockTreeItem, modelService, dataObjectUsageAnalysisPanel.context);
+                            } else if (referenceType && referenceType.includes('Workflow Task')) {
+                                // Open workflow task details
+                                const mockTreeItem = {
+                                    label: actualItemName,
+                                    contextValue: 'workflowTaskItem',
+                                    tooltip: `${actualItemName}`
+                                };
+                                const { showWorkflowTaskDetails } = require('../webviews/workflowTasks/workflowTaskDetailsView');
+                                showWorkflowTaskDetails(mockTreeItem, modelService, dataObjectUsageAnalysisPanel.context);
+                            } else if (referenceType && referenceType.includes('Workflow') && !referenceType.includes('Workflow Task')) {
+                                // Open workflow details (but not workflow task)
+                                const mockTreeItem = {
+                                    label: actualItemName,
+                                    contextValue: 'workflowItem',
+                                    tooltip: `${actualItemName}`
+                                };
+                                const { showWorkflowDetails } = require('../webviews/workflows/workflowDetailsView');
+                                showWorkflowDetails(mockTreeItem, modelService, dataObjectUsageAnalysisPanel.context);
+                            } else {
+                                // For general flows, we need to find the parent object and open the general flow details
+                                // Flow names are typically in format "ObjectName.FlowName"
+                                let objectName = actualItemName;
+                                if (actualItemName.includes('.')) {
+                                    objectName = actualItemName.split('.')[0];
+                                }
+                                
+                                const mockTreeItem = {
+                                    label: actualItemName,
+                                    contextValue: 'generalFlowItem',
+                                    tooltip: `${actualItemName}`,
+                                    // Add additional context for flow details
+                                    parentObjectName: objectName
+                                };
+                                const { showGeneralFlowDetails } = require('../webviews/generalFlow/generalFlowDetailsView');
+                                showGeneralFlowDetails(mockTreeItem, modelService, dataObjectUsageAnalysisPanel.context);
+                            }
                         } else if (itemType === 'dataObject') {
                             // Open data object details
                             const mockTreeItem = {
-                                label: itemName,
+                                label: actualItemName,
                                 contextValue: 'dataObjectItem',
-                                tooltip: `${itemName}`
+                                tooltip: `${actualItemName}`
                             };
                             const { showObjectDetails } = require('../webviews/objects/objectDetailsView');
                             showObjectDetails(mockTreeItem, modelService, dataObjectUsageAnalysisPanel.context);
@@ -330,73 +383,6 @@ function getUsageDetailData(modelService: ModelService): any[] {
     return detailData;
 }
 
-/**
- * Counts total references to a data object across all usage types
- */
-function countDataObjectReferences(dataObjectName: string, modelService: ModelService): number {
-    let count = 0;
-    
-    try {
-        // Check Forms (page workflows) - find forms that belong to this data object
-        const allPageWorkflows = modelService.getAllPageObjectWorkflows();
-        allPageWorkflows.forEach((workflow: any) => {
-            // Get the owner object of this form
-            const ownerObject = modelService.getFormOwnerObject(workflow.name);
-            if (ownerObject && ownerObject.name === dataObjectName) {
-                count++;
-            }
-            // Also check if this data object is the target child object for this form
-            if (workflow.targetChildObject === dataObjectName) {
-                count++;
-            }
-        });
-        
-        // Check Reports - find reports that belong to this data object
-        const allReports = modelService.getAllReports();
-        allReports.forEach((report: any) => {
-            // Get the owner object of this report
-            const ownerObject = modelService.getReportOwnerObject(report.name);
-            if (ownerObject && ownerObject.name === dataObjectName) {
-                count++;
-            }
-            // Also check if this data object is the target child object
-            if (report.targetChildObject === dataObjectName) {
-                count++;
-            }
-            // Check report columns for references to this data object
-            if (report.reportColumn && Array.isArray(report.reportColumn)) {
-                report.reportColumn.forEach((column: any) => {
-                    if (column.sourceObject === dataObjectName) {
-                        count++;
-                    }
-                });
-            }
-        });
-        
-        // Check Flows (all types) - find flows that belong to this data object
-        const allObjects = modelService.getAllObjects();
-        allObjects.forEach(obj => {
-            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
-                obj.objectWorkflow.forEach((workflow: any) => {
-                    // Skip page workflows since they're handled as forms above
-                    if (workflow.isPage === "true") {
-                        return; // Skip forms, they're already counted above
-                    }
-                    
-                    // The flow belongs to this object, so check if this object matches our target
-                    if (obj.name === dataObjectName) {
-                        count++;
-                    }
-                });
-            }
-        });
-        
-    } catch (error) {
-        console.error('Error counting data object references:', error);
-    }
-    
-    return count;
-}
 
 /**
  * Finds all references to a data object with detailed information
@@ -427,6 +413,34 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                     type: 'Form Target Object',
                     referencedBy: workflow.name || 'Unnamed Form',
                     itemType: 'form'
+                });
+            }
+
+            // NEW: Check form input control source references via objectWorkflowParam entries
+            // Using schema fields: sourceObjectName (preferred) or legacy fKObjectName as fallback
+            if (workflow.objectWorkflowParam && Array.isArray(workflow.objectWorkflowParam)) {
+                workflow.objectWorkflowParam.forEach((param: any) => {
+                    const sourceObj = param.sourceObjectName || param.fKObjectName; // support both
+                    if (sourceObj === dataObjectName) {
+                        references.push({
+                            type: 'Form Input Control Source Object',
+                            referencedBy: (workflow.name || 'Unnamed Form') + ' / ' + (param.name || 'Unnamed Param'),
+                            itemType: 'form'
+                        });
+                    }
+                });
+            }
+
+            // NEW: Check form output variable source references via objectWorkflowOutputVar entries
+            if (workflow.objectWorkflowOutputVar && Array.isArray(workflow.objectWorkflowOutputVar)) {
+                workflow.objectWorkflowOutputVar.forEach((outputVar: any) => {
+                    if (outputVar.sourceObjectName === dataObjectName) {
+                        references.push({
+                            type: 'Form Output Variable Source Object',
+                            referencedBy: (workflow.name || 'Unnamed Form') + ' / ' + (outputVar.name || 'Unnamed Output Var'),
+                            itemType: 'form'
+                        });
+                    }
                 });
             }
         });
@@ -487,7 +501,7 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                             flowType = 'Workflow';
                         } else if (workflow.isDynaFlowTask === "true") {
                             flowType = 'Workflow Task';
-                        } else if (workflow.name && (workflow.name.endsWith('initreport') || workflow.name.endsWith('initobjwf'))) {
+                        } else if (workflow.name && (workflow.name.toLowerCase().endsWith('initreport') || workflow.name.toLowerCase().endsWith('initobjwf'))) {
                             flowType = 'Page Init Flow';
                         }
                         
@@ -495,6 +509,51 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                             type: flowType + ' Owner Object',
                             referencedBy: workflow.name || 'Unnamed Flow',
                             itemType: 'flow'
+                        });
+                    }
+
+                    // NEW: Check flow input parameter source references via objectWorkflowParam entries
+                    if (workflow.objectWorkflowParam && Array.isArray(workflow.objectWorkflowParam)) {
+                        workflow.objectWorkflowParam.forEach((param: any) => {
+                            const sourceObj = param.sourceObjectName || param.fKObjectName; // support both
+                            if (sourceObj === dataObjectName) {
+                                let flowType = 'General Flow';
+                                if (workflow.isDynaFlow === "true") {
+                                    flowType = 'Workflow';
+                                } else if (workflow.isDynaFlowTask === "true") {
+                                    flowType = 'Workflow Task';
+                                } else if (workflow.name && (workflow.name.toLowerCase().endsWith('initreport') || workflow.name.toLowerCase().endsWith('initobjwf'))) {
+                                    flowType = 'Page Init Flow';
+                                }
+                                
+                                references.push({
+                                    type: flowType + ' Input Parameter Source Object',
+                                    referencedBy: (workflow.name || 'Unnamed Flow') + ' / ' + (param.name || 'Unnamed Param'),
+                                    itemType: 'flow'
+                                });
+                            }
+                        });
+                    }
+
+                    // NEW: Check flow output variable source references via objectWorkflowOutputVar entries
+                    if (workflow.objectWorkflowOutputVar && Array.isArray(workflow.objectWorkflowOutputVar)) {
+                        workflow.objectWorkflowOutputVar.forEach((outputVar: any) => {
+                            if (outputVar.sourceObjectName === dataObjectName) {
+                                let flowType = 'General Flow';
+                                if (workflow.isDynaFlow === "true") {
+                                    flowType = 'Workflow';
+                                } else if (workflow.isDynaFlowTask === "true") {
+                                    flowType = 'Workflow Task';
+                                } else if (workflow.name && (workflow.name.toLowerCase().endsWith('initreport') || workflow.name.toLowerCase().endsWith('initobjwf'))) {
+                                    flowType = 'Page Init Flow';
+                                }
+                                
+                                references.push({
+                                    type: flowType + ' Output Variable Source Object',
+                                    referencedBy: (workflow.name || 'Unnamed Flow') + ' / ' + (outputVar.name || 'Unnamed Output Var'),
+                                    itemType: 'flow'
+                                });
+                            }
                         });
                     }
                 });
@@ -908,6 +967,11 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             transform: scale(0.95);
         }
         
+        .action-cell {
+            text-align: center;
+            width: 60px;
+        }
+        
     </style>
 </head>
 <body>
@@ -1022,6 +1086,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                         <th data-sort-column="1" data-table="detail-table">Reference Type <span class="sort-indicator">▼</span></th>
                         <th data-sort-column="2" data-table="detail-table">Referenced By <span class="sort-indicator">▼</span></th>
                         <th data-sort-column="3" data-table="detail-table">Item Type <span class="sort-indicator">▼</span></th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="detailTableBody">

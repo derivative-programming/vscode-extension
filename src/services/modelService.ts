@@ -327,10 +327,10 @@ export class ModelService {
                     
                     // 4. name does not end with initobjwf
                     const workflowName = (workflow.name || '').toLowerCase();
-                    const notInitObjWf = !workflowName.endsWith('initobjwf');
+                    const notInitObjWf = !workflowName.toLowerCase().endsWith('initobjwf');
                     
                     // 5. name does not end with initreport
-                    const notInitReport = !workflowName.endsWith('initreport');
+                    const notInitReport = !workflowName.toLowerCase().endsWith('initreport');
                     
                     // All criteria must be true
                     return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
@@ -531,8 +531,8 @@ export class ModelService {
                     const isDynaFlowTaskOk = !workflow.isDynaFlowTask || workflow.isDynaFlowTask === "false";
                     const isPageOk = workflow.isPage === "false";
                     const workflowName = (workflow.name || '').toLowerCase();
-                    const notInitObjWf = !workflowName.endsWith('initobjwf');
-                    const notInitReport = !workflowName.endsWith('initreport');
+                    const notInitObjWf = !workflowName.toLowerCase().endsWith('initobjwf');
+                    const notInitReport = !workflowName.toLowerCase().endsWith('initreport');
                     
                     return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
                 });

@@ -556,10 +556,10 @@ function loadGeneralFlowData(panel: vscode.WebviewPanel, modelService: ModelServ
                         const isPageOk = workflow.isPage === "false";
                         
                         // 4. name does not end with initobjwf
-                        const notInitObjWf = !workflowName.endsWith('initobjwf');
+                        const notInitObjWf = !workflowName.toLowerCase().endsWith('initobjwf');
                         
                         // 5. name does not end with initreport
-                        const notInitReport = !workflowName.endsWith('initreport');
+                        const notInitReport = !workflowName.toLowerCase().endsWith('initreport');
                         
                         // All criteria must be true
                         if (isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport) {

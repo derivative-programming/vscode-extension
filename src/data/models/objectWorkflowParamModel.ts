@@ -28,6 +28,9 @@ export class ObjectWorkflowParamModel implements ObjectWorkflowParamSchema {
     isUnknownLookupAllowed?: string;
     inputControl?: string;
     isIgnored?: string;
+    // Added based on schema (lines ~1325-1340) to support referencing a source object/property for form input control sources
+    sourceObjectName?: string;
+    sourcePropertyName?: string;
 
     constructor(data?: Partial<ObjectWorkflowParamSchema>) {
         // Optional properties are only assigned if they exist in data
@@ -52,8 +55,11 @@ export class ObjectWorkflowParamModel implements ObjectWorkflowParamSchema {
         if (data?.isHidden !== undefined) { this.isHidden = data.isHidden; }
         if (data?.isEncrypted !== undefined) { this.isEncrypted = data.isEncrypted; }
         if (data?.isUnknownLookupAllowed !== undefined) { this.isUnknownLookupAllowed = data.isUnknownLookupAllowed; }
-        if (data?.inputControl !== undefined) { this.inputControl = data.inputControl; }
-        if (data?.isIgnored !== undefined) { this.isIgnored = data.isIgnored; }
+    if (data?.inputControl !== undefined) { this.inputControl = data.inputControl; }
+    if (data?.isIgnored !== undefined) { this.isIgnored = data.isIgnored; }
+    const dataAny: any = data; // forward-compatible access for evolving schema
+    if (dataAny && Object.prototype.hasOwnProperty.call(dataAny, 'sourceObjectName')) { this.sourceObjectName = dataAny.sourceObjectName; }
+    if (dataAny && Object.prototype.hasOwnProperty.call(dataAny, 'sourcePropertyName')) { this.sourcePropertyName = dataAny.sourcePropertyName; }
     }
 
     /**
@@ -101,6 +107,8 @@ export class ObjectWorkflowParamModel implements ObjectWorkflowParamSchema {
         if (this.isUnknownLookupAllowed !== undefined) { json.isUnknownLookupAllowed = this.isUnknownLookupAllowed; }
         if (this.inputControl !== undefined) { json.inputControl = this.inputControl; }
         if (this.isIgnored !== undefined) { json.isIgnored = this.isIgnored; }
+        if (this.sourceObjectName !== undefined) { json.sourceObjectName = this.sourceObjectName; }
+        if (this.sourcePropertyName !== undefined) { json.sourcePropertyName = this.sourcePropertyName; }
         return json;
     }
 }

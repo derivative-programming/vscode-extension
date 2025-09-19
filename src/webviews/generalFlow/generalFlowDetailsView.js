@@ -68,8 +68,8 @@ function showGeneralFlowDetails(item, modelService, context) {
                     const isDynaFlowTaskOk = !wf.isDynaFlowTask || wf.isDynaFlowTask === "false";
                     const isPageOk = wf.isPage === "false";
                     const nn = (wf.name || '').toLowerCase();
-                    const notInitObjWf = !nn.endsWith('initobjwf');
-                    const notInitReport = !nn.endsWith('initreport');
+                    const notInitObjWf = !nn.toLowerCase().endsWith('initobjwf');
+                    const notInitReport = !nn.toLowerCase().endsWith('initreport');
                     console.log('[DEBUG] Workflow filters - isDynaFlowOk:', isDynaFlowOk, 'isDynaFlowTaskOk:', isDynaFlowTaskOk, 'isPageOk:', isPageOk, '(isPage value:', wf.isPage, ') notInitObjWf:', notInitObjWf, 'notInitReport:', notInitReport);
                     return isDynaFlowOk && isDynaFlowTaskOk && isPageOk && notInitObjWf && notInitReport;
                 }

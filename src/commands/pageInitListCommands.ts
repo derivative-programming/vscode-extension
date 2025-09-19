@@ -557,11 +557,11 @@ function loadPageInitData(panel: vscode.WebviewPanel, modelService: ModelService
                     if (workflow.name) {
                         const workflowName = workflow.name.toLowerCase();
                         // Check if name ends with 'initreport' or 'initobjwf'
-                        if (workflowName.endsWith('initreport') || workflowName.endsWith('initobjwf')) {
+                        if (workflowName.toLowerCase().endsWith('initreport') || workflowName.toLowerCase().endsWith('initobjwf')) {
                             pageInitItems.push({
                                 name: workflow.name || 'Unnamed Workflow',
                                 ownerObject: obj.name || 'Unknown',
-                                workflowType: workflowName.endsWith('initreport') ? 'Init Report' : 'Init Object Workflow'
+                                workflowType: workflowName.toLowerCase().endsWith('initreport') ? 'Init Report' : 'Init Object Workflow'
                             });
                         }
                     }
