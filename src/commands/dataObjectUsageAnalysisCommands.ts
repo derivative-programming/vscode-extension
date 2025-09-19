@@ -793,6 +793,21 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             background-color: var(--vscode-button-secondaryHoverBackground);
         }
         
+        /* View Details button styling to match filter button */
+        .view-details-btn {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 2px;
+            font-size: 13px;
+        }
+        
+        .view-details-btn:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+        
         /* Header actions */
         .header-actions {
             display: flex;
