@@ -14,6 +14,8 @@ let currentForecast = null;
 let currentTab = 'config';
 let configSortColumn = null;
 let configSortDirection = 'asc';
+let dataSortColumn = null; // For data table sorting
+let dataSortDirection = 'asc'; // For data table sorting
 let selectedPeriodMonths = 60; // Default to 5 years
 let forecastChart = null; // Chart.js instance
 
@@ -54,6 +56,8 @@ function switchTab(tabName) {
         loadConfig();
     } else if (tabName === 'forecast') {
         loadForecast();
+    } else if (tabName === 'data') {
+        loadData();
     }
 }
 
@@ -75,11 +79,20 @@ function setupEventListeners() {
 
 // Initialize filter functionality
 function initializeFilters() {
-    // Add event listeners for filter inputs
+    // Add event listeners for config tab filter inputs
     const filterInputs = document.querySelectorAll('#filterDataObjectName, #filterParentObject, #filterMinSize, #filterMaxSize');
     filterInputs.forEach(input => {
         if (input) {
             input.addEventListener('input', applyFilters);
+        }
+    });
+    
+    // Add event listeners for data tab filter inputs
+    const dataFilterInputs = document.querySelectorAll('#filterDataName, #dataTimeFilter, #dataDisplayMode');
+    dataFilterInputs.forEach(input => {
+        if (input) {
+            input.addEventListener('input', applyDataFilters);
+            input.addEventListener('change', applyDataFilters);
         }
     });
 }
@@ -109,13 +122,19 @@ function handleExtensionMessage(event) {
             currentForecast = message.data.forecast;
             if (currentTab === 'forecast') {
                 renderForecastChart();
+            } else if (currentTab === 'data') {
+                renderDataTable();
             }
             break;
             
         case 'forecastLoaded':
             console.log('Forecast data loaded:', message.data);
             currentForecast = message.data.forecast;
-            renderForecastChart();
+            if (currentTab === 'forecast') {
+                renderForecastChart();
+            } else if (currentTab === 'data') {
+                renderDataTable();
+            }
             break;
             
         case 'error':
@@ -172,6 +191,130 @@ function changeForecastPeriod() {
     }
 }
 
+// Load data for the data tab
+function loadData() {
+    vscode.postMessage({ command: 'loadForecast' });
+}
+
+// Render the data table
+function renderDataTable() {
+    console.log('renderDataTable called');
+    console.log('currentForecast:', currentForecast);
+    
+    const dataContent = document.getElementById('data-content');
+    if (!dataContent) {
+        console.error('Data content div not found');
+        return;
+    }
+    
+    if (!currentForecast || !currentForecast.months || currentForecast.months.length === 0) {
+        console.log('No forecast data available for data table');
+        dataContent.innerHTML = `
+            <div class="loading">
+                <p>No forecast data available. Please configure data objects and calculate forecast.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Get all unique data object names
+    const dataObjectNames = new Set();
+    currentForecast.months.forEach(month => {
+        Object.keys(month.dataObjects || {}).forEach(name => {
+            dataObjectNames.add(name);
+        });
+    });
+    
+    const sortedDataObjectNames = Array.from(dataObjectNames).sort();
+    
+    // Filter months based on time filter if applied
+    const timeFilter = document.getElementById('dataTimeFilter')?.value || 'all';
+    let filteredMonths = currentForecast.months;
+    if (timeFilter !== 'all') {
+        const maxMonths = parseInt(timeFilter);
+        filteredMonths = currentForecast.months.filter(m => m.month <= maxMonths);
+    }
+    
+    // Apply name filter if specified
+    const nameFilter = document.getElementById('filterDataName')?.value.toLowerCase() || '';
+    let displayedDataObjects = sortedDataObjectNames;
+    if (nameFilter) {
+        displayedDataObjects = sortedDataObjectNames.filter(name => 
+            name.toLowerCase().includes(nameFilter)
+        );
+    }
+    
+    // Apply sorting if a sort column is selected
+    if (dataSortColumn !== null) {
+        displayedDataObjects = sortDataTableData(displayedDataObjects, filteredMonths, dataSortColumn, dataSortDirection);
+    }
+    
+    // Create table HTML
+    let tableHtml = `
+        <div class="data-table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th onclick="sortDataTable(0)" style="cursor: pointer;">
+                            Data Object <span id="data-sort-icon-0" class="sort-icon"></span>
+                        </th>
+    `;
+    
+    // Add month header columns with sorting
+    filteredMonths.forEach((month, index) => {
+        const columnIndex = index + 1; // +1 because data object name is column 0
+        tableHtml += `<th onclick="sortDataTable(${columnIndex})" style="cursor: pointer;">
+            Month ${month.month} <span id="data-sort-icon-${columnIndex}" class="sort-icon"></span>
+        </th>`;
+    });
+    tableHtml += `</tr></thead><tbody>`;
+    
+    // Get display mode
+    const displayMode = document.getElementById('dataDisplayMode')?.value || 'size';
+    const isInstanceMode = displayMode === 'instances';
+    
+    // Add data object rows
+    displayedDataObjects.forEach(objectName => {
+        tableHtml += `<tr><td>${objectName}</td>`;
+        filteredMonths.forEach(month => {
+            const objectData = month.dataObjects[objectName];
+            if (isInstanceMode) {
+                const instances = objectData ? objectData.instances.toLocaleString() : '0';
+                tableHtml += `<td>${instances}</td>`;
+            } else {
+                const sizeBytes = objectData ? (objectData.sizeKb * 1024).toLocaleString() : '0';
+                tableHtml += `<td>${sizeBytes} bytes</td>`;
+            }
+        });
+        tableHtml += `</tr>`;
+    });
+    
+    // Add total row
+    tableHtml += `<tr class="total-row"><td>TOTAL</td>`;
+    filteredMonths.forEach(month => {
+        if (isInstanceMode) {
+            // Calculate total instances across all data objects for this month
+            let totalInstances = 0;
+            Object.values(month.dataObjects || {}).forEach(objData => {
+                totalInstances += objData.instances || 0;
+            });
+            tableHtml += `<td>${totalInstances.toLocaleString()}</td>`;
+        } else {
+            const totalBytes = (month.totalSize * 1024).toLocaleString();
+            tableHtml += `<td>${totalBytes} bytes</td>`;
+        }
+    });
+    tableHtml += `</tr>`;
+    
+    tableHtml += `</tbody></table></div>`;
+    
+    dataContent.innerHTML = tableHtml;
+    
+    // Update sort icons after rendering
+    const totalColumns = filteredMonths.length + 1; // +1 for data object name column
+    updateDataSortIcons(totalColumns);
+}
+
 // Render the configuration table
 function renderConfigTable() {
     const tbody = document.getElementById('config-tbody');
@@ -220,6 +363,13 @@ function renderConfigTable() {
             </td>
             <td>
                 <input type="number" 
+                       id="seedcount-${index}" 
+                       value="${dataObject.seedCount}" 
+                       step="1" 
+                       min="1" />
+            </td>
+            <td>
+                <input type="number" 
                        id="instances-${index}" 
                        value="${dataObject.expectedInstances}" 
                        step="1" 
@@ -253,15 +403,17 @@ function getConfigDataFromTable() {
     }
     
     sortedDataObjects.forEach((dataObject, index) => {
+        const seedCountInput = document.getElementById(`seedcount-${index}`);
         const instancesInput = document.getElementById(`instances-${index}`);
         const growthInput = document.getElementById(`growth-${index}`);
         
-        if (instancesInput && growthInput) {
+        if (seedCountInput && instancesInput && growthInput) {
             configData.push({
                 dataObjectName: dataObject.name,
                 dataSizeKb: dataObject.calculatedSizeKB, // Always use calculated value
                 parentDataObjectName: dataObject.parentObjectName || null,
-                expectedInstances: parseInt(instancesInput.value) || 10,
+                seedCount: parseInt(seedCountInput.value) || 1,
+                expectedInstances: parseInt(instancesInput.value) || 1,
                 growthPercentage: parseFloat(growthInput.value) || 0.0
             });
         }
@@ -544,11 +696,15 @@ function sortConfigData(data, columnIndex, direction) {
                 valueA = a.parentObjectName || '';
                 valueB = b.parentObjectName || '';
                 break;
-            case 3: // Expected Instances
+            case 3: // Seed Count
+                valueA = a.seedCount || 1;
+                valueB = b.seedCount || 1;
+                break;
+            case 4: // Expected Instances
                 valueA = a.expectedInstances || 0;
                 valueB = b.expectedInstances || 0;
                 break;
-            case 4: // Growth Percentage
+            case 5: // Growth Percentage
                 valueA = a.growthPercentage || 0;
                 valueB = b.growthPercentage || 0;
                 break;
@@ -575,7 +731,7 @@ function sortConfigData(data, columnIndex, direction) {
 // Update sort icons in table headers
 function updateSortIcons() {
     // Clear all sort icons
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
         const icon = document.getElementById(`sort-icon-${i}`);
         if (icon) {
             icon.className = 'sort-icon';
@@ -587,6 +743,73 @@ function updateSortIcons() {
         const activeIcon = document.getElementById(`sort-icon-${configSortColumn}`);
         if (activeIcon) {
             activeIcon.className = `sort-icon ${configSortDirection}`;
+        }
+    }
+}
+
+// Sort data table
+function sortDataTable(columnIndex) {
+    // Toggle sort direction if clicking the same column
+    if (dataSortColumn === columnIndex) {
+        dataSortDirection = dataSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        dataSortColumn = columnIndex;
+        dataSortDirection = 'asc';
+    }
+    
+    renderDataTable();
+}
+
+// Sort data table data based on column and direction
+function sortDataTableData(dataObjects, months, columnIndex, direction) {
+    if (columnIndex === 0) {
+        // Sort by data object name
+        return dataObjects.sort((a, b) => {
+            const valueA = String(a).toLowerCase();
+            const valueB = String(b).toLowerCase();
+            if (direction === 'asc') {
+                return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+            } else {
+                return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+            }
+        });
+    } else {
+        // Sort by month values (columnIndex - 1 to account for the first column being data object name)
+        const monthIndex = columnIndex - 1;
+        if (monthIndex < 0 || monthIndex >= months.length) {
+            return dataObjects; // Invalid month index, return unsorted
+        }
+        
+        const targetMonth = months[monthIndex];
+        const displayMode = document.getElementById('dataDisplayMode')?.value || 'size';
+        const isInstanceMode = displayMode === 'instances';
+        
+        return dataObjects.sort((a, b) => {
+            const objDataA = targetMonth.dataObjects[a] || {};
+            const objDataB = targetMonth.dataObjects[b] || {};
+            const valueA = isInstanceMode ? (objDataA.instances || 0) : (objDataA.sizeKb || 0);
+            const valueB = isInstanceMode ? (objDataB.instances || 0) : (objDataB.sizeKb || 0);
+            
+            return direction === 'asc' ? valueA - valueB : valueB - valueA;
+        });
+    }
+}
+
+// Update sort icons in data table headers
+function updateDataSortIcons(totalColumns) {
+    // Clear all sort icons
+    for (let i = 0; i < totalColumns; i++) {
+        const icon = document.getElementById(`data-sort-icon-${i}`);
+        if (icon) {
+            icon.className = 'sort-icon';
+        }
+    }
+    
+    // Set active sort icon
+    if (dataSortColumn !== null) {
+        const activeIcon = document.getElementById(`data-sort-icon-${dataSortColumn}`);
+        if (activeIcon) {
+            activeIcon.className = `sort-icon ${dataSortDirection}`;
         }
     }
 }
@@ -653,4 +876,45 @@ function clearFilters() {
     // Reset filtered data and re-render
     filteredDataObjects = [...currentDataObjects];
     renderConfigTable();
+}
+
+// Toggle data filter section visibility
+function toggleDataFilterSection() {
+    const filterContent = document.getElementById('dataFilterContent');
+    const chevron = document.getElementById('dataFilterChevron');
+    
+    if (filterContent && chevron) {
+        const isCollapsed = filterContent.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            filterContent.classList.remove('collapsed');
+            chevron.className = 'codicon codicon-chevron-down';
+        } else {
+            filterContent.classList.add('collapsed');
+            chevron.className = 'codicon codicon-chevron-right';
+        }
+    }
+}
+
+// Apply filters to the data table
+function applyDataFilters() {
+    // Re-render the data table with current filters
+    renderDataTable();
+}
+
+// Clear all data filters
+function clearDataFilters() {
+    const filterInputs = document.querySelectorAll('#filterDataName, #dataTimeFilter');
+    filterInputs.forEach(input => {
+        if (input) {
+            if (input.id === 'dataTimeFilter') {
+                input.value = 'all';
+            } else {
+                input.value = '';
+            }
+        }
+    });
+    
+    // Re-render the table with cleared filters
+    renderDataTable();
 }

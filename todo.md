@@ -6,7 +6,8 @@ data object size analysis...
 - able to show chart based on number of users how large db will be
 
 database size forecast...
-- caluclate size of each db using logic in data object size analysis view
+- seed count column?
+- calculate size of each db using logic in data object size analysis view
 - config tab
   - row for each data object.  
   - columns

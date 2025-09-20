@@ -175,7 +175,8 @@ function handleLoadConfig(panel: vscode.WebviewPanel) {
                     properties: obj.prop || [],
                     // Include existing config values if they exist
                     configuredSizeKB: existingConfig?.dataSizeKb || calculatedSize,
-                    expectedInstances: existingConfig?.expectedInstances || 10,
+                    seedCount: existingConfig?.seedCount || 1,
+                    expectedInstances: existingConfig?.expectedInstances || 1,
                     growthPercentage: existingConfig?.growthPercentage || 0.0
                 };
             });
@@ -331,6 +332,7 @@ function calculateForecastData(config: any[]) {
     if (config.length > 0) {
         console.log('First config item structure:', Object.keys(config[0]));
         console.log('First config item:', config[0]);
+        console.log('Using seedCount values for initial instance calculations');
     }
     
     const months = [];
@@ -346,15 +348,140 @@ function calculateForecastData(config: any[]) {
             dataObjects: {} as any
         };
         
+        // Process objects in dependency order: parents first, then children
+        // First, process objects with no parent (top-level objects)
+        const processedObjects = new Set();
+        
         config.forEach(item => {
             if (item.dataObjectName && item.dataSizeKb && item.expectedInstances && item.growthPercentage !== undefined) {
-                // Calculate growth multiplier (month 0 = base, so we use month as the power)
-                const growthMultiplier = Math.pow(1 + (item.growthPercentage / 100 / 12), month); // Convert annual percentage to monthly
+                // Only process top-level objects (no parent) in this pass
+                if (!item.parentDataObjectName) {
+                    // The growthPercentage is monthly growth rate for the object itself
+                    const monthlyGrowthRate = item.growthPercentage / 100;
+                    
+                    // Calculate growth multiplier for this month
+                    const growthMultiplier = Math.pow(1 + monthlyGrowthRate, month);
+                    
+                    // Use seedCount as the initial instance count for month 0
+                    const seedCount = item.seedCount || 1;
+                    const instances = Math.round(seedCount * growthMultiplier);
+                    
+                    if (month === 0) { // Log only for month 0 to show initial values
+                        console.log(`${item.dataObjectName}: seedCount=${seedCount}, monthlyGrowth=${item.growthPercentage}%, instances=${instances}`);
+                    }
+                    
+                    // Calculate total size for this data object
+                    const objectSize = instances * item.dataSizeKb;
+
+                    monthData.dataObjects[item.dataObjectName] = {
+                        instances: instances,
+                        sizeKb: objectSize,
+                        sizeMb: Math.round(objectSize / 1024 * 100) / 100,
+                        sizeGb: Math.round(objectSize / (1024 * 1024) * 100) / 100
+                    };
+
+                    monthData.totalSize += objectSize;
+                    processedObjects.add(item.dataObjectName);
+                }
+            }
+        });
+        
+        // Second pass: process child objects based on their parent's current instance count
+        let remainingObjects = config.filter(item => 
+            item.dataObjectName && item.dataSizeKb && item.expectedInstances && 
+            item.growthPercentage !== undefined && item.parentDataObjectName &&
+            !processedObjects.has(item.dataObjectName)
+        );
+        
+        // Keep processing until all child objects are calculated
+        while (remainingObjects.length > 0) {
+            const processedInThisPass = [];
+            
+            remainingObjects.forEach(item => {
+                // Check if parent has been processed
+                if (monthData.dataObjects[item.parentDataObjectName]) {
+                    const parentInstances = monthData.dataObjects[item.parentDataObjectName].instances;
+                    
+                    // For child objects, expectedInstances represents "instances per parent"
+                    // Child growth is applied to the "instances per parent" ratio, not to the total
+                    const monthlyGrowthRate = item.growthPercentage / 100;
+                    const growthMultiplier = Math.pow(1 + monthlyGrowthRate, month);
+                    
+                    // Calculate instances based on parent relationship
+                    const instancesPerParent = Math.round(item.expectedInstances * growthMultiplier);
+                    const calculatedInstances = Math.round(parentInstances * instancesPerParent);
+                    
+                    let instances = calculatedInstances;
+                    
+                    // At month 0, use seed count if it's greater than calculated instances
+                    if (month === 0) {
+                        const seedCount = item.seedCount || 1;
+                        instances = Math.max(calculatedInstances, seedCount);
+                        if (seedCount > calculatedInstances) {
+                            console.log(`${item.dataObjectName}: Using seedCount (${seedCount}) over calculated (${calculatedInstances}) for month 0`);
+                        }
+                    } else {
+                        // For months > 0, check if previous month's value with growth is higher
+                        const previousMonth = months[month - 1];
+                        if (previousMonth && previousMonth.dataObjects[item.dataObjectName]) {
+                            const previousInstances = previousMonth.dataObjects[item.dataObjectName].instances;
+                            const growthBasedInstances = Math.round(previousInstances * (1 + monthlyGrowthRate));
+                            
+                            if (growthBasedInstances > calculatedInstances) {
+                                instances = growthBasedInstances;
+                                if (month <= 2) { // Log for first few months to show the logic
+                                    console.log(`${item.dataObjectName} month ${month}: Using growth-based (${growthBasedInstances}) over parent-based (${calculatedInstances})`);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Calculate total size for this data object
+                    const objectSize = instances * item.dataSizeKb;
+
+                    monthData.dataObjects[item.dataObjectName] = {
+                        instances: instances,
+                        sizeKb: objectSize,
+                        sizeMb: Math.round(objectSize / 1024 * 100) / 100,
+                        sizeGb: Math.round(objectSize / (1024 * 1024) * 100) / 100
+                    };
+
+                    monthData.totalSize += objectSize;
+                    processedObjects.add(item.dataObjectName);
+                    processedInThisPass.push(item.dataObjectName);
+                }
+            });
+            
+            // Remove processed objects from remaining list
+            remainingObjects = remainingObjects.filter(item => 
+                !processedInThisPass.includes(item.dataObjectName)
+            );
+            
+            // If no objects were processed in this pass, break to avoid infinite loop
+            if (processedInThisPass.length === 0) {
+                console.warn('Circular dependency or missing parent detected for remaining objects:', 
+                    remainingObjects.map(item => `${item.dataObjectName} -> ${item.parentDataObjectName}`));
+                break;
+            }
+        }
+        
+        // Handle any remaining objects that couldn't be processed (missing parents, etc.)
+        config.forEach(item => {
+            if (item.dataObjectName && item.dataSizeKb && item.expectedInstances && 
+                item.growthPercentage !== undefined && !processedObjects.has(item.dataObjectName)) {
                 
-                // Calculate number of instances for this month
-                const instances = Math.round(item.expectedInstances * growthMultiplier);
+                if (month === 0) { // Only log once per item
+                    console.log('Processing orphaned object (missing parent):', {
+                        dataObjectName: item.dataObjectName,
+                        parentDataObjectName: item.parentDataObjectName
+                    });
+                }
                 
-                // Calculate total size for this data object
+                // Treat as top-level object
+                const monthlyGrowthRate = item.growthPercentage / 100;
+                const growthMultiplier = Math.pow(1 + monthlyGrowthRate, month);
+                const seedCount = item.seedCount || 1;
+                const instances = Math.round(seedCount * growthMultiplier);
                 const objectSize = instances * item.dataSizeKb;
 
                 monthData.dataObjects[item.dataObjectName] = {
@@ -365,17 +492,10 @@ function calculateForecastData(config: any[]) {
                 };
 
                 monthData.totalSize += objectSize;
-            } else {
-                if (month === 0) { // Only log once per item
-                    console.log('Skipping config item (missing fields):', {
-                        dataObjectName: item.dataObjectName,
-                        dataSizeKb: item.dataSizeKb,
-                        expectedInstances: item.expectedInstances,
-                        growthPercentage: item.growthPercentage
-                    });
-                }
             }
-        });        // Convert total size to different units
+        });
+        
+        // Convert total size to different units
         monthData.totalSize = Math.round(monthData.totalSize * 100) / 100; // Round to 2 decimal places
         
         months.push(monthData);
@@ -581,6 +701,29 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                 margin-bottom: 15px;
             }
             
+            .display-mode-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .display-mode-group label {
+                font-size: 12px;
+                color: var(--vscode-foreground);
+                margin: 0;
+                white-space: nowrap;
+            }
+            
+            .display-mode-group select {
+                background: var(--vscode-dropdown-background);
+                color: var(--vscode-dropdown-foreground);
+                border: 1px solid var(--vscode-dropdown-border);
+                border-radius: 2px;
+                padding: 4px 8px;
+                font-size: 12px;
+                min-width: 120px;
+            }
+            
             .icon-button {
                 background: none;
                 border: none;
@@ -760,6 +903,86 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                 opacity: 0.6;
                 pointer-events: none;
             }
+            
+            /* Data table specific styling */
+            .data-table-container {
+                overflow: auto;
+                max-height: 70vh;
+                border: 1px solid var(--vscode-panel-border);
+                border-radius: 3px;
+                margin-top: 15px;
+            }
+            
+            .data-table {
+                width: 100%;
+                border-collapse: collapse;
+                background-color: var(--vscode-editor-background);
+                min-width: max-content;
+            }
+            
+            .data-table th {
+                background-color: var(--vscode-list-hoverBackground);
+                font-weight: 600;
+                padding: 8px 10px;
+                text-align: center;
+                border-bottom: 1px solid var(--vscode-panel-border);
+                border-right: 1px solid var(--vscode-panel-border);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                white-space: nowrap;
+                min-width: 80px;
+            }
+            
+            .data-table th:first-child {
+                position: sticky;
+                left: 0;
+                z-index: 20;
+                background-color: var(--vscode-list-hoverBackground);
+                min-width: 180px;
+                text-align: left;
+            }
+            
+            .data-table td {
+                padding: 6px 10px;
+                text-align: center;
+                border-bottom: 1px solid var(--vscode-panel-border);
+                border-right: 1px solid var(--vscode-panel-border);
+                white-space: nowrap;
+                font-size: 12px;
+            }
+            
+            .data-table td:first-child {
+                position: sticky;
+                left: 0;
+                background-color: var(--vscode-editor-background);
+                z-index: 5;
+                text-align: left;
+                font-weight: 500;
+                min-width: 180px;
+            }
+            
+            .data-table tr:hover td {
+                background-color: var(--vscode-list-hoverBackground);
+            }
+            
+            .data-table tr:hover td:first-child {
+                background-color: var(--vscode-list-hoverBackground);
+            }
+            
+            .data-table .total-row {
+                font-weight: 600;
+                border-top: 2px solid var(--vscode-panel-border);
+            }
+            
+            .data-table .total-row td {
+                background-color: var(--vscode-list-activeSelectionBackground);
+                font-weight: 600;
+            }
+            
+            .data-table .total-row td:first-child {
+                background-color: var(--vscode-list-activeSelectionBackground);
+            }
         </style>
     </head>
     <body>
@@ -771,6 +994,7 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
         <div class="tabs">
             <button class="tab active" data-tab="config">Config</button>
             <button class="tab" data-tab="forecast">Forecast</button>
+            <button class="tab" data-tab="data">Data</button>
         </div>
 
         <div id="config-tab" class="tab-content active">
@@ -830,16 +1054,19 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                                 Parent Data Object <span id="sort-icon-2" class="sort-icon"></span>
                             </th>
                             <th onclick="sortConfigTable(3)" style="cursor: pointer;">
-                                Expected Instances per Parent <span id="sort-icon-3" class="sort-icon"></span>
+                                Seed Count <span id="sort-icon-3" class="sort-icon"></span>
                             </th>
                             <th onclick="sortConfigTable(4)" style="cursor: pointer;">
-                                Growth per Month (%) <span id="sort-icon-4" class="sort-icon"></span>
+                                Expected Instances per Parent <span id="sort-icon-4" class="sort-icon"></span>
+                            </th>
+                            <th onclick="sortConfigTable(5)" style="cursor: pointer;">
+                                Growth per Month (%) <span id="sort-icon-5" class="sort-icon"></span>
                             </th>
                         </tr>
                     </thead>
                     <tbody id="config-tbody">
                         <tr class="loading">
-                            <td colspan="5">Loading data objects...</td>
+                            <td colspan="6">Loading data objects...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -863,6 +1090,55 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
             </div>
             
             <div id="forecast-content">
+                <div class="loading">
+                    <p>No forecast data available. Please configure data objects and calculate forecast.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="data-tab" class="tab-content">
+            <div class="filter-section">
+                <div class="filter-header" onclick="toggleDataFilterSection()">
+                    <span class="codicon codicon-chevron-down" id="dataFilterChevron"></span>
+                    <span>Filters</span>
+                </div>
+                <div class="filter-content" id="dataFilterContent">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Data Object Name:</label>
+                            <input type="text" id="filterDataName" placeholder="Filter by data object name...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Time Period:</label>
+                            <select id="dataTimeFilter">
+                                <option value="all">All Months</option>
+                                <option value="6">Next 6 Months</option>
+                                <option value="12">Next Year</option>
+                                <option value="36">Next 3 Years</option>
+                                <option value="60">Next 5 Years</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-actions">
+                        <button onclick="clearDataFilters()" class="filter-button-secondary">Clear All</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="display-mode-group">
+                    <label for="dataDisplayMode">Display Mode:</label>
+                    <select id="dataDisplayMode">
+                        <option value="size">Size (bytes)</option>
+                        <option value="instances">Instance Count</option>
+                    </select>
+                </div>
+                <button class="secondary-button" onclick="refreshData()">
+                    <i class="codicon codicon-refresh"></i> Refresh
+                </button>
+            </div>
+            
+            <div id="data-content">
                 <div class="loading">
                     <p>No forecast data available. Please configure data objects and calculate forecast.</p>
                 </div>
