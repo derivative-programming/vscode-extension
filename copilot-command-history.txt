@@ -1,3 +1,63 @@
+## 2025-09-20
+
+## 2025-09-20
+
+## 2025-09-20
+
+### Add View Details Button to Data Object Size Analysis Summary Tab
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/webviews/dataObjectSizeAnalysisView.js` - Added View Details button, click handler, and viewDetails function
+- `src/commands/dataObjectSizeAnalysisCommands.ts` - Updated CSS styling for both buttons and expanded action cell width
+
+**Architecture Notes**:
+- Added "View Details" button next to the edit button in the actions column
+- View Details button switches to the details tab and filters by the selected data object name
+- Added viewDetails function that calls `switchTab('details')` and sets `detailsDataObjectFilter.value`
+- Updated event delegation to handle both edit and view details button clicks
+- Expanded action cell width from 80px to 140px to accommodate both buttons
+- Added margin-right: 8px to edit button for proper spacing between buttons
+- View Details button uses VS Code secondary button styling to match other views
+- Follows same pattern as data object usage analysis view for consistency
+
+**Implementation**: Successfully added View Details functionality matching the pattern from usage analysis view, providing consistent navigation experience between summary and detail tabs.
+
+### Add Edit Icon Button to Data Object Size Analysis Summary Tab
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/webviews/dataObjectSizeAnalysisView.js` - Added edit button HTML and click event handler
+- `src/commands/dataObjectSizeAnalysisCommands.ts` - Added Actions column header, CSS styling, and viewDetails command handler
+
+**Architecture Notes**:
+- Added Actions column header to summary table (6th column)
+- Added edit icon button (codicon-edit) in actions cell for each data object row
+- Edit button sends `viewDetails` message with `itemType: 'dataObject'` and `itemName: objectName` data
+- Added new `viewDetails` case handler in dataObjectSizeAnalysisCommands.ts that routes to `showObjectDetails` function
+- Added event delegation for edit button clicks in setupEventHandlers function
+- Updated action cell width to 80px with centered text alignment
+- Edit button uses transparent background with hover/active states matching VS Code design system
+- Follows same pattern as data object usage analysis view for consistency
+
+**Implementation**: Successfully integrated edit functionality matching the pattern from usage analysis view, providing consistent user experience across both analysis views.
+
+### Add Edit Icon Button to Data Object Usage Summary Tab
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/webviews/dataObjectUsageAnalysisView.js` - Added edit button HTML and click event handler
+- `src/commands/dataObjectUsageAnalysisCommands.ts` - Added CSS styling for edit button and expanded action cell width
+
+**Architecture Notes**:
+- Added edit icon button (codicon-edit) to the left of existing "View Details" button in summary tab actions column
+- Edit button sends `viewDetails` message with `itemType: 'dataObject'` and `itemName: objectName` data
+- Leverages existing viewDetails handler in dataObjectUsageAnalysisCommands.ts that routes to `showObjectDetails` function
+- Updated action cell width from 60px to 140px to accommodate both buttons
+- Edit button uses transparent background with hover/active states matching VS Code design system
+- Follows established pattern used in other views (dataObjectListView.js, pageListView.js) for opening data object details
+
+**Implementation**: Successfully integrated edit functionality using existing command infrastructure with proper VS Code styling and event handling patterns.
+
+====================================================================
+
 2024-12-21 - Data Object Size Analysis - Fixed Tooltip Removal Issue
 ====================================================================
 

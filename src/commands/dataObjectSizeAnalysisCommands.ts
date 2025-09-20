@@ -262,6 +262,27 @@ export function registerDataObjectSizeAnalysisCommands(context: vscode.Extension
                         });
                     }
                     break;
+                    
+                case 'viewDetails':
+                    // Handle opening detail view for the data object
+                    try {
+                        const { itemType, itemName } = message.data;
+                        
+                        if (itemType === 'dataObject') {
+                            // Open data object details
+                            const mockTreeItem = {
+                                label: itemName,
+                                contextValue: 'dataObjectItem',
+                                tooltip: `${itemName}`
+                            };
+                            const { showObjectDetails } = require('../webviews/objects/objectDetailsView');
+                            showObjectDetails(mockTreeItem, modelService, dataObjectSizeAnalysisPanel.context);
+                        }
+                    } catch (error) {
+                        console.error('[ERROR] Data Object Size Analysis - Failed to open details:', error);
+                        vscode.window.showErrorMessage(`Failed to open details: ${error.message}`);
+                    }
+                    break;
             }
         });
     });
@@ -677,56 +698,67 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
         .tabs {
             display: flex;
             border-bottom: 1px solid var(--vscode-panel-border);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .tab {
-            padding: 10px 20px;
+            padding: 8px 16px;
             cursor: pointer;
+            background-color: var(--vscode-tab-inactiveBackground);
             border: none;
-            background: none;
-            color: var(--vscode-foreground);
-            border-bottom: 2px solid transparent;
+            outline: none;
+            color: var(--vscode-tab-inactiveForeground);
+            margin-right: 4px;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+            user-select: none;
         }
         
         .tab.active {
-            border-bottom-color: var(--vscode-focusBorder);
             background-color: var(--vscode-tab-activeBackground);
+            color: var(--vscode-tab-activeForeground);
+            border-bottom: 2px solid var(--vscode-focusBorder);
         }
         
         .tab:hover:not(.active) {
             background-color: var(--vscode-tab-hoverBackground);
         }
         
+        /* Tab content */
         .tab-content {
             display: none;
+            padding: 15px;
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-top: none;
+            border-radius: 0 0 3px 3px;
         }
         
         .tab-content.active {
             display: block;
         }
         
-        /* Summary tab styles */
+        /* Filter section styling following user journey pattern */
         .filter-section {
-            margin-bottom: 20px;
             border: 1px solid var(--vscode-panel-border);
-            border-radius: 6px;
+            border-radius: 3px;
+            margin-bottom: 15px;
             background-color: var(--vscode-sideBar-background);
         }
         
         .filter-header {
-            padding: 12px 15px;
+            padding: 8px 12px;
             cursor: pointer;
+            user-select: none;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            user-select: none;
-            border-bottom: 1px solid var(--vscode-panel-border);
+            gap: 6px;
+            background-color: var(--vscode-list-hoverBackground);
+            border-radius: 3px 3px 0 0;
         }
         
         .filter-header:hover {
-            background-color: var(--vscode-list-hoverBackground);
+            background-color: var(--vscode-list-activeSelectionBackground);
         }
         
         .filter-content {
@@ -794,11 +826,6 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
         
         .filter-button-secondary:hover {
             background-color: var(--vscode-button-secondaryHoverBackground);
-            border: none;
-            padding: 6px 12px;
-            border-radius: 2px;
-            cursor: pointer;
-            font-size: 12px;
         }
         
         /* Header actions */
@@ -1047,6 +1074,51 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
             z-index: 1000;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
+        
+        /* Action buttons in table */
+        .action-cell {
+            text-align: center;
+            width: 140px;
+        }
+        
+        .edit-data-object-btn {
+            background: transparent;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 2px;
+            font-size: 13px;
+            margin-right: 8px;
+            transition: background 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .edit-data-object-btn:hover {
+            background: var(--vscode-toolbar-hoverBackground);
+        }
+        
+        .edit-data-object-btn:active {
+            background: var(--vscode-toolbar-activeBackground);
+            transform: scale(0.95);
+        }
+        
+        /* View Details button styling to match filter button */
+        .view-details-btn {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 2px;
+            font-size: 13px;
+        }
+        
+        .view-details-btn:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
     </style>
 </head>
 <body>
@@ -1055,7 +1127,7 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
         
         <div class="tabs">
             <button class="tab active" data-tab="summary">Summary</button>
-            <button class="tab" data-tab="details">Details</button>
+            <button class="tab" data-tab="details">Detail</button>
             <button class="tab" data-tab="treemap">Size Visualization</button>
         </div>
         
@@ -1097,6 +1169,7 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
                             <th data-sort-column="2" data-table="summary-table">Total Size (KB) <span class="sort-indicator">▼</span></th>
                             <th data-sort-column="3" data-table="summary-table">Total Size (MB) <span class="sort-indicator">▼</span></th>
                             <th data-sort-column="4" data-table="summary-table">Property Count <span class="sort-indicator">▼</span></th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="summaryTableBody">

@@ -162,7 +162,7 @@ function setupEventListeners() {
         });
     }
     
-    // Event delegation for view details buttons
+    // Event delegation for view details buttons and edit data object buttons
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('view-details-btn')) {
             const objectName = event.target.getAttribute('data-object-name');
@@ -171,22 +171,16 @@ function setupEventListeners() {
             }
         }
         
-        // Handle filter section toggles
-        if (event.target.closest('[data-action="toggle-filter"]')) {
-            toggleFilterSection();
-        }
-        
-        if (event.target.closest('[data-action="toggle-detail-filter"]')) {
-            toggleDetailFilterSection();
-        }
-        
-        // Handle clear filter buttons
-        if (event.target.closest('[data-action="clear-filters"]')) {
-            clearFilters();
-        }
-        
-        if (event.target.closest('[data-action="clear-detail-filters"]')) {
-            clearDetailFilters();
+        // Handle edit data object buttons in summary table
+        if (event.target.closest('.edit-data-object-btn')) {
+            const button = event.target.closest('.edit-data-object-btn');
+            const objectName = button.getAttribute('data-object-name');
+            if (objectName) {
+                vscode.postMessage({
+                    command: 'viewDetails',
+                    data: { itemType: 'dataObject', itemName: objectName }
+                });
+            }
         }
         
         // Handle edit buttons in detail table
@@ -246,6 +240,9 @@ function renderSummaryTable(data) {
             <td class="number-cell">${item.flowReferences}</td>
             <td class="number-cell">${item.userStoryReferences || 0}</td>
             <td class="action-cell">
+                <button class="edit-data-object-btn" data-object-name="${escapeHtml(item.dataObjectName)}" title="Edit data object">
+                    <i class="codicon codicon-edit"></i>
+                </button>
                 <button class="view-details-btn" data-object-name="${escapeHtml(item.dataObjectName)}">
                     View Details
                 </button>
@@ -261,6 +258,9 @@ function renderSummaryTable(data) {
         summarySort.direction = 'asc';
         updateSortIndicators(summaryTable, 0, 'asc');
     }
+    
+    // Update record info
+    renderSummaryRecordInfo();
 }
 
 // Render detail table
@@ -309,6 +309,9 @@ function renderDetailTable(data) {
     
     // Populate the reference type dropdown
     populateReferenceTypeDropdown(data);
+    
+    // Update record info
+    renderDetailRecordInfo();
 }
 
 // Populate reference type dropdown with unique values
@@ -331,6 +334,24 @@ function populateReferenceTypeDropdown(data) {
         option.textContent = type;
         dropdown.appendChild(option);
     });
+}
+
+// Render summary record information
+function renderSummaryRecordInfo() {
+    const recordInfo = document.getElementById('summary-record-info');
+    if (recordInfo) {
+        const totalRecords = currentSummaryData.length;
+        recordInfo.textContent = `${totalRecords} data object${totalRecords !== 1 ? 's' : ''}`;
+    }
+}
+
+// Render detail record information
+function renderDetailRecordInfo() {
+    const recordInfo = document.getElementById('detail-record-info');
+    if (recordInfo) {
+        const totalRecords = currentDetailData.length;
+        recordInfo.textContent = `${totalRecords} reference${totalRecords !== 1 ? 's' : ''}`;
+    }
 }
 
 // Filter summary table

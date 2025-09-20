@@ -1,24 +1,16 @@
 Agent todo items...
 
-data object usage filters section design seems differnt tha metrics analysis filters section (color of filters bar?)
-
-data object usage summary tab - far right column to open data object
-
-data object size summary tab - far right column to open data object
 
 data object size analysis 
 - count text as 20,000 bytes
 - detail tab export should not have description column
-
-
-
-data object size analysis...
-- differnt design thandata object usage analysis (colors, icon buttons)
-- generate png shoudl generate image immediately, not select a location for the file.
-- issue on sorting colummns in summary tab. its changing the rows displayed
+- refresh buttons should show animation while processing
+- different design than data object usage analysis (colors, icon buttons)
+- generate png should generate image immediately, not select a location for the file.
+- issue on sorting columns in summary tab. its changing the rows displayed
 - details tab as second tab
 - summary tab - add far right column to display 'view details' button that shows the details tab and filters to that data object
--
+
 
 analysis treeview item... 
 - data object sub item
@@ -28,7 +20,7 @@ analysis treeview item...
 png/svg button to icon button of screenshot icon? camera?
 
 data object db size report
-- text should count as large (10k? 100k?)
+- text should count as large (10k? 100k?) 
 
 no sourceobjectname in form param model or interface?
 

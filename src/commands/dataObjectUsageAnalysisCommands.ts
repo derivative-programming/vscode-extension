@@ -788,7 +788,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             font-size: 14px;
         }
         
-        /* Tab styling */
+        /* Tab styling following form details pattern */
         .tabs {
             display: flex;
             border-bottom: 1px solid var(--vscode-panel-border);
@@ -796,56 +796,59 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
         }
         
         .tab {
-            background: none;
-            border: none;
-            padding: 12px 24px;
+            padding: 8px 16px;
             cursor: pointer;
-            color: var(--vscode-foreground);
-            font-size: 14px;
-            font-weight: 500;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .tab:hover {
-            background-color: var(--vscode-toolbar-hoverBackground);
+            background-color: var(--vscode-tab-inactiveBackground);
+            border: none;
+            outline: none;
+            color: var(--vscode-tab-inactiveForeground);
+            margin-right: 4px;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+            user-select: none;
         }
         
         .tab.active {
-            border-bottom-color: var(--vscode-focusBorder);
-            color: var(--vscode-focusBorder);
+            background-color: var(--vscode-tab-activeBackground);
+            color: var(--vscode-tab-activeForeground);
+            border-bottom: 2px solid var(--vscode-focusBorder);
         }
         
         /* Tab content */
         .tab-content {
             display: none;
+            padding: 15px;
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-top: none;
+            border-radius: 0 0 3px 3px;
         }
         
         .tab-content.active {
             display: block;
         }
         
-        /* Filter section styling */
+        /* Filter section styling following user journey pattern */
         .filter-section {
-            margin-bottom: 20px;
             border: 1px solid var(--vscode-panel-border);
-            border-radius: 6px;
+            border-radius: 3px;
+            margin-bottom: 15px;
             background-color: var(--vscode-sideBar-background);
         }
         
         .filter-header {
-            padding: 12px 15px;
+            padding: 8px 12px;
             cursor: pointer;
+            user-select: none;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            user-select: none;
-            border-bottom: 1px solid var(--vscode-panel-border);
+            gap: 6px;
+            background-color: var(--vscode-list-hoverBackground);
+            border-radius: 3px 3px 0 0;
         }
         
         .filter-header:hover {
-            background-color: var(--vscode-list-hoverBackground);
+            background-color: var(--vscode-list-activeSelectionBackground);
         }
         
         .filter-content {
@@ -928,6 +931,31 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
         
         .view-details-btn:hover {
             background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+        
+        /* Edit Data Object button styling */
+        .edit-data-object-btn {
+            background: transparent;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 2px;
+            font-size: 13px;
+            margin-right: 8px;
+            transition: background 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .edit-data-object-btn:hover {
+            background: var(--vscode-toolbar-hoverBackground);
+        }
+        
+        .edit-data-object-btn:active {
+            background: var(--vscode-toolbar-activeBackground);
+            transform: scale(0.95);
         }
         
         /* Header actions */
@@ -1105,7 +1133,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
         
         .action-cell {
             text-align: center;
-            width: 60px;
+            width: 140px;
         }
         
         /* Treemap specific styles */
@@ -1404,7 +1432,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
     
     <div id="summary-tab" class="tab-content active">
         <div class="filter-section">
-            <div class="filter-header" data-action="toggle-filter">
+            <div class="filter-header" onclick="toggleFilterSection()">
                 <span class="codicon codicon-chevron-down" id="filterChevron"></span>
                 <span>Filters</span>
             </div>
@@ -1416,7 +1444,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                     </div>
                 </div>
                 <div class="filter-actions">
-                    <button data-action="clear-filters" class="filter-button-secondary">Clear All</button>
+                    <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
                 </div>
             </div>
         </div>
@@ -1459,7 +1487,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
     
     <div id="detail-tab" class="tab-content">
         <div class="filter-section">
-            <div class="filter-header" data-action="toggle-detail-filter">
+            <div class="filter-header" onclick="toggleDetailFilterSection()">
                 <span class="codicon codicon-chevron-down" id="detailFilterChevron"></span>
                 <span>Filters</span>
             </div>
@@ -1481,7 +1509,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                     </div>
                 </div>
                 <div class="filter-actions">
-                    <button data-action="clear-detail-filters" class="filter-button-secondary">Clear All</button>
+                    <button onclick="clearDetailFilters()" class="filter-button-secondary">Clear All</button>
                 </div>
             </div>
         </div>

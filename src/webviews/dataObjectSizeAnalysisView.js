@@ -112,6 +112,28 @@
                 sortTable(column, table);
             });
         });
+
+        // Event delegation for edit data object buttons and view details buttons
+        document.addEventListener('click', function(event) {
+            if (event.target.closest('.edit-data-object-btn')) {
+                const button = event.target.closest('.edit-data-object-btn');
+                const objectName = button.getAttribute('data-object-name');
+                if (objectName) {
+                    vscode.postMessage({
+                        command: 'viewDetails',
+                        data: { itemType: 'dataObject', itemName: objectName }
+                    });
+                }
+            }
+            
+            if (event.target.closest('.view-details-btn')) {
+                const button = event.target.closest('.view-details-btn');
+                const objectName = button.getAttribute('data-object-name');
+                if (objectName) {
+                    viewDetails(objectName);
+                }
+            }
+        });
     }
 
     function switchTab(tabName) {
@@ -251,6 +273,14 @@
                 <td>${totalSizeKB.toFixed(2)}</td>
                 <td>${totalSizeMB.toFixed(4)}</td>
                 <td>${propertyCount}</td>
+                <td class="action-cell">
+                    <button class="edit-data-object-btn" data-object-name="${escapeHtml(item.dataObjectName || '')}" title="Edit data object">
+                        <i class="codicon codicon-edit"></i>
+                    </button>
+                    <button class="view-details-btn" data-object-name="${escapeHtml(item.dataObjectName || '')}" title="View details">
+                        View Details
+                    </button>
+                </td>
             `;
             summaryTableBody.appendChild(row);
         });
@@ -561,6 +591,16 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // View details for specific data object
+    function viewDetails(dataObjectName) {
+        switchTab('details');
+        // Apply filter to show only this data object
+        if (detailsDataObjectFilter) {
+            detailsDataObjectFilter.value = dataObjectName;
+            filterDetailsData();
+        }
     }
 
     function loadDetailsData() {
