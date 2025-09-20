@@ -1,5 +1,98 @@
 ## 2025-09-20
 
+### Reposition Bubble Chart Tab Actions to Top Right
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/commands/dataObjectUsageAnalysisCommands.ts` - Restructured bubble-header layout and added CSS
+
+**Architecture Notes**:
+- Restructured bubble-header to match treemap-header layout pattern
+- Added `bubble-header-content` wrapper with flexbox layout
+- Added `bubble-title` container for title and description
+- Positioned `bubble-actions` (refresh and PNG buttons) to top right
+- Updated CSS selectors from `.bubble-header h3/p` to `.bubble-title h3/p`
+- Added flexbox CSS: `display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;`
+
+**Implementation**: Successfully repositioned the refresh and Generate PNG buttons to the top right of the bubble chart tab, creating consistent header layout across treemap and bubble chart tabs. Title and description remain on the left, actions on the right.
+
+### Add Refresh Button to Data Object Usage Analysis Bubble Chart Tab
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/commands/dataObjectUsageAnalysisCommands.ts` - Added refresh button HTML to bubble-actions section
+- `src/webviews/dataObjectUsageAnalysisView.js` - Added refresh button event listener and setup
+
+**Architecture Notes**:
+- Added refresh button with `id="refreshBubbleButton"` to bubble-actions div, positioned before the Generate PNG button
+- Uses same pattern as other tabs for consistency across all four tabs
+- Button triggers `loadBubbleData()` which requests fresh summary data via `getSummaryData` message
+- Includes spinner animation during refresh operation
+- Follows established icon button styling with codicon refresh icon
+
+**Implementation**: Successfully added refresh functionality to the bubble chart (complexity vs usage) tab, completing the consistent refresh button pattern across all four tabs: Summary, Detail, Proportional Usage (Treemap), and Complexity vs Usage (Bubble Chart).
+
+### Add Refresh Button to Data Object Usage Analysis Proportional Usage Tab
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/commands/dataObjectUsageAnalysisCommands.ts` - Added refresh button HTML to treemap-actions section
+- `src/webviews/dataObjectUsageAnalysisView.js` - Added refresh button event listener and setup
+
+**Architecture Notes**:
+- Added refresh button with `id="refreshTreemapButton"` to treemap-actions div, positioned before the Generate PNG button
+- Uses same pattern as summary and detail tabs for consistency
+- Button triggers `loadTreemapData()` which requests fresh summary data via `getSummaryData` message
+- Includes spinner animation during refresh operation
+- Follows established icon button styling with codicon refresh icon
+
+**Implementation**: Successfully added refresh functionality to the proportional usage (treemap) tab, matching the UI pattern from summary and detail tabs. The refresh button loads fresh data and updates the treemap visualization.
+
+### Add Refresh Button to Data Object Size Analysis Treemap Tab
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/commands/dataObjectSizeAnalysisCommands.ts` - Added refresh button HTML to treemap-actions section
+- `src/webviews/dataObjectSizeAnalysisView.js` - Added refresh button event listener
+
+**Architecture Notes**:
+- Added refresh button with `id="refreshTreemapButton"` to treemap-actions div, positioned before the Generate PNG button
+- Button uses existing `.icon-button` CSS class for consistent styling with other refresh buttons
+- Added event listener that calls `showSpinner()` followed by `loadData()` to refresh the underlying summary data
+- Treemap automatically re-renders when summary data is updated (existing logic in summaryDataResponse handler)
+- Spinner animation works consistently with other tabs through existing `hideSpinner()` call in summaryDataResponse
+- Button uses standard VS Code refresh icon (`codicon-refresh`) matching other refresh buttons
+
+**Implementation**: Successfully added refresh functionality to the treemap visualization tab, maintaining consistency with summary and details tabs. Users can now refresh the treemap data independently while staying on the visualization tab.
+
+### Add Processing Animation to Data Object Size Analysis Refresh Buttons
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/commands/dataObjectSizeAnalysisCommands.ts` - Added spinner CSS styles and HTML structure
+- `src/webviews/dataObjectSizeAnalysisView.js` - Added spinner control functions and updated event handlers
+
+**Architecture Notes**:
+- Added spinner overlay CSS and HTML structure following the data object usage analysis view pattern
+- Added `showSpinner()` and `hideSpinner()` functions with identical implementation to usage analysis view
+- Updated refresh button event listeners to call `showSpinner()` before data requests for both summary and details tabs
+- Added `hideSpinner()` calls to `summaryDataResponse` and `detailsDataResponse` message handlers
+- Spinner overlay uses consistent styling: 40px spinner, rgba(0,0,0,0.3) background, VS Code design tokens
+- Animation uses CSS keyframes with 1s linear infinite rotation matching other views
+- Spinner shows/hides using utility classes (.hidden, .show-flex) for consistent behavior
+
+**Implementation**: Successfully added processing animations to both summary and details refresh buttons, providing visual feedback during data loading operations. The implementation follows the established pattern from data object usage analysis view for consistency.
+
+### Remove Description Column from Data Object Size Analysis Detail Tab CSV Export
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/commands/dataObjectSizeAnalysisCommands.ts` - Updated CSV export functions to exclude description column
+
+**Architecture Notes**:
+- Updated `generateSizeDetailsCSV` function to remove 'Description' column from CSV header and data rows
+- Updated `exportDetailsDataToCSV` function to remove 'Description' column from CSV export
+- CSV export now includes only: Data Object Name, Property Name, Size (Bytes), Data Type, Data Type Size
+- Addresses todo item: "detail tab export should not have description column"
+- Both functions that generate CSV content for details tab were updated for consistency
+- Changes maintain existing CSV formatting and escaping logic for other columns
+
+**Implementation**: Successfully removed description column from both CSV generation functions, ensuring the details tab export matches requirements without including unnecessary description data.
+
 ## 2025-09-20
 
 ## 2025-09-20

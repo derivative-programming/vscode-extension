@@ -3,7 +3,6 @@ Agent todo items...
 
 data object size analysis 
 - count text as 20,000 bytes
-- detail tab export should not have description column
 - refresh buttons should show animation while processing
 - different design than data object usage analysis (colors, icon buttons)
 - generate png should generate image immediately, not select a location for the file.

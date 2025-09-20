@@ -522,10 +522,10 @@ function generateSizeDetailsCSV(items: any[]): string {
         throw new Error('No data to export');
     }
 
-    let csvContent = 'Data Object Name,Property Name,Size (Bytes),Data Type,Data Type Size,Description\n';
+    let csvContent = 'Data Object Name,Property Name,Size (Bytes),Data Type,Data Type Size\n';
     
     items.forEach((item: any) => {
-        csvContent += `"${item.dataObjectName}","${item.propName}",${item.sizeBytes},"${item.dataType}","${item.dataTypeSize || ''}","${(item.description || '').replace(/"/g, '""')}"\n`;
+        csvContent += `"${item.dataObjectName}","${item.propName}",${item.sizeBytes},"${item.dataType}","${item.dataTypeSize || ''}"\n`;
     });
 
     return csvContent;
@@ -584,10 +584,10 @@ async function exportDetailsDataToCSV(data: any, context: vscode.ExtensionContex
         }
 
         // Generate CSV content
-        let csvContent = 'Data Object Name,Property Name,Size (Bytes),Data Type,Data Type Size,Description\n';
+        let csvContent = 'Data Object Name,Property Name,Size (Bytes),Data Type,Data Type Size\n';
         
         items.forEach((item: any) => {
-            csvContent += `"${item.dataObjectName}","${item.propName}",${item.sizeBytes},"${item.dataType}","${item.dataTypeSize || ''}","${(item.description || '').replace(/"/g, '""')}"\n`;
+            csvContent += `"${item.dataObjectName}","${item.propName}",${item.sizeBytes},"${item.dataType}","${item.dataTypeSize || ''}"\n`;
         });
 
         // Get save location from user
@@ -1119,6 +1119,47 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
         .view-details-btn:hover {
             background-color: var(--vscode-button-secondaryHoverBackground);
         }
+        
+        /* Utility classes for show/hide */
+        .hidden {
+            display: none !important;
+        }
+        
+        .show-block {
+            display: block !important;
+        }
+        
+        .show-flex {
+            display: flex !important;
+        }
+        
+        /* Spinner overlay */
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--vscode-panel-border);
+            border-top: 4px solid var(--vscode-focusBorder);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -1255,6 +1296,9 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
                             <p>Size represents total storage requirement in bytes. Hover for details.</p>
                         </div>
                         <div class="treemap-actions">
+                            <button id="refreshTreemapButton" class="icon-button" title="Refresh Data">
+                                <i class="codicon codicon-refresh"></i>
+                            </button>
                             <button id="generateTreemapPngBtn" class="svg-export-btn">
                                 <span class="codicon codicon-device-camera"></span>
                                 Generate PNG
@@ -1284,6 +1328,10 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
                 </div>
             </div>
         </div>
+    </div>
+    
+    <div id="spinner-overlay" class="spinner-overlay hidden">
+        <div class="spinner"></div>
     </div>
     
     <script src="${webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'src', 'webviews', 'dataObjectSizeAnalysisView.js')))}"></script>

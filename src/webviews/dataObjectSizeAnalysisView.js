@@ -99,10 +99,20 @@
 
         // Action buttons
         document.getElementById('exportSummaryBtn')?.addEventListener('click', exportSummaryToCSV);
-        document.getElementById('refreshSummaryButton')?.addEventListener('click', loadData);
+        document.getElementById('refreshSummaryButton')?.addEventListener('click', function() {
+            showSpinner();
+            loadData();
+        });
         document.getElementById('exportDetailsBtn')?.addEventListener('click', exportDetailsToCSV);
-        document.getElementById('refreshDetailsButton')?.addEventListener('click', loadDetailsData);
+        document.getElementById('refreshDetailsButton')?.addEventListener('click', function() {
+            showSpinner();
+            loadDetailsData();
+        });
         document.getElementById('generateTreemapPngBtn')?.addEventListener('click', generateTreemapPNG);
+        document.getElementById('refreshTreemapButton')?.addEventListener('click', function() {
+            showSpinner();
+            loadData();
+        });
 
         // Table sorting
         document.querySelectorAll('th[data-sort-column]').forEach(header => {
@@ -693,6 +703,24 @@
         });
     }
 
+    // Show spinner
+    function showSpinner() {
+        const spinnerOverlay = document.getElementById("spinner-overlay");
+        if (spinnerOverlay) {
+            spinnerOverlay.classList.remove("hidden");
+            spinnerOverlay.classList.add("show-flex");
+        }
+    }
+
+    // Hide spinner
+    function hideSpinner() {
+        const spinnerOverlay = document.getElementById("spinner-overlay");
+        if (spinnerOverlay) {
+            spinnerOverlay.classList.add("hidden");
+            spinnerOverlay.classList.remove("show-flex");
+        }
+    }
+
     // Message handling from extension
     window.addEventListener('message', event => {
         const message = event.data;
@@ -715,6 +743,8 @@
                 if (treemapTab && treemapTab.classList.contains('active')) {
                     renderTreemap();
                 }
+                
+                hideSpinner();
                 break;
                 
             case 'detailsDataResponse':
@@ -727,6 +757,8 @@
                 
                 // Filter and render
                 filterDetailsData();
+                
+                hideSpinner();
                 break;
                 
             case 'csvExportReady':

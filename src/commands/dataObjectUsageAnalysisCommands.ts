@@ -1289,16 +1289,33 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             margin-bottom: 20px;
         }
         
-        .bubble-header h3 {
+        .bubble-title h3 {
             margin: 0 0 5px 0;
             color: var(--vscode-foreground);
             font-size: 16px;
         }
         
-        .bubble-header p {
+        .bubble-title p {
             margin: 0;
             color: var(--vscode-descriptionForeground);
             font-size: 12px;
+        }
+        
+        .bubble-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .bubble-title {
+            flex: 1;
+        }
+        
+        .bubble-actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
         }
         
         .bubble-viz {
@@ -1556,6 +1573,9 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                         <p>Size represents total reference count. Hover for details.</p>
                     </div>
                     <div class="treemap-actions">
+                        <button id="refreshTreemapButton" class="icon-button" title="Refresh Data">
+                            <i class="codicon codicon-refresh"></i>
+                        </button>
                         <button id="generateTreemapPngBtn" class="svg-export-btn">
                             <span class="codicon codicon-device-camera"></span>
                             Generate PNG
@@ -1593,13 +1613,20 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
     <div id="bubble-tab" class="tab-content">
         <div class="bubble-container">
             <div class="bubble-header">
-                <h3>Complexity vs. Usage Analysis</h3>
-                <p>X-axis: Property Count (Complexity) • Y-axis: Total References (Usage) • Bubble Size: User Story References</p>
-                <div class="bubble-actions">
-                    <button id="generateBubblePngBtn" class="svg-export-btn">
-                        <span class="codicon codicon-device-camera"></span>
-                        Generate PNG
-                    </button>
+                <div class="bubble-header-content">
+                    <div class="bubble-title">
+                        <h3>Complexity vs. Usage Analysis</h3>
+                        <p>X-axis: Property Count (Complexity) • Y-axis: Total References (Usage) • Bubble Size: User Story References</p>
+                    </div>
+                    <div class="bubble-actions">
+                        <button id="refreshBubbleButton" class="icon-button" title="Refresh Data">
+                            <i class="codicon codicon-refresh"></i>
+                        </button>
+                        <button id="generateBubblePngBtn" class="svg-export-btn">
+                            <span class="codicon codicon-device-camera"></span>
+                            Generate PNG
+                        </button>
+                    </div>
                 </div>
             </div>
             <div id="bubble-loading" class="loading">Loading bubble chart...</div>

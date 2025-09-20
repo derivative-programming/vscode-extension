@@ -89,6 +89,8 @@ function setupEventListeners() {
         const generateBubblePngBtn = document.getElementById('generateBubblePngBtn');
     const refreshSummaryBtn = document.getElementById('refreshSummaryButton');
     const refreshDetailBtn = document.getElementById('refreshDetailButton');
+    const refreshTreemapBtn = document.getElementById('refreshTreemapButton');
+    const refreshBubbleBtn = document.getElementById('refreshBubbleButton');
     
     if (exportSummaryBtn) {
         exportSummaryBtn.addEventListener('click', function() {
@@ -129,6 +131,20 @@ function setupEventListeners() {
         refreshDetailBtn.addEventListener('click', function() {
             showSpinner();
             loadDetailData();
+        });
+    }
+    
+    if (refreshTreemapBtn) {
+        refreshTreemapBtn.addEventListener('click', function() {
+            showSpinner();
+            loadTreemapData();
+        });
+    }
+    
+    if (refreshBubbleBtn) {
+        refreshBubbleBtn.addEventListener('click', function() {
+            showSpinner();
+            loadBubbleData();
         });
     }
     
