@@ -1,20 +1,32 @@
 Agent todo items...
 
- 
-
-
-png/svg button to icon button of screenshot icon? camera?
-
-data object db size report
-- text should count as large (10k? 100k?) 
-
-no sourceobjectname in form param model or interface?
-
-check sort arrow on all tables
 
 data object size analysis...
 - allow config of how many expected rows per parent row. 
 - able to show chart based on number of users how large db will be
+
+database size forecast...
+- caluclate size of each db using logic in data object size analysis view
+- config tab
+  - row for each data object.  
+  - columns
+    - data object name
+    - data size of each object instance (kb)
+    - parent data object name
+    - expected avg number of data object instances per parent data object instance
+    - forecasted growth per month (percentage)
+    - store data in new json file app-config-database-size-forecast-config.json
+    - using config data, calculate forecast data. save in app-config-database-size-forecast.json.  calc data by month for next 5 years.
+- forecast tab
+  - display graph of forecast
+
+data object usage complexity...
+- compare to data object size instead of property count?
+
+add role filter on data object usage?
+
+no sourceobjectname in form param model or interface?
+ 
 
 
 
@@ -88,7 +100,7 @@ analysis treeview item... ask ai for ideas
   - page: control count?, dependency (on data object props) count
   - role: user story count?, page count?
   - user story: journey count? dependency count of all pages used?
-
+  - user journey: user story journey page count?
 
 user story kanban board view?
 - drag and drop support
@@ -227,6 +239,10 @@ show a list of missing stories. allow user to add them individually
 *************************
 low priority
 *************************
+
+png/svg button to icon button of screenshot icon? camera?
+
+check sort arrow on all tables
 
 
 

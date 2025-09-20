@@ -51,6 +51,7 @@ import { registerUserStoriesJourneyCommands, getUserStoriesJourneyPanel, closeUs
 import { registerMetricsAnalysisCommands, getMetricsAnalysisPanel, closeMetricsAnalysisPanel } from './metricsAnalysisCommands';
 import { registerDataObjectUsageAnalysisCommands, getDataObjectUsageAnalysisPanel, closeDataObjectUsageAnalysisPanel } from './dataObjectUsageAnalysisCommands';
 import { registerDataObjectSizeAnalysisCommands, getDataObjectSizeAnalysisPanel, closeDataObjectSizeAnalysisPanel } from './dataObjectSizeAnalysisCommands';
+import { registerDatabaseSizeForecastCommands, getDatabaseSizeForecastPanel, closeDatabaseSizeForecastPanel } from './databaseSizeForecastCommands';
 import { registerFabricationBlueprintCatalogCommands, getFabricationBlueprintCatalogPanel, closeFabricationBlueprintCatalogPanel } from './fabricationBlueprintCatalogCommands';
 import { expandAllTopLevelCommand, collapseAllTopLevelCommand } from './expandCollapseCommands';
 import { showHierarchyDiagram, getHierarchyPanel, closeHierarchyView } from '../webviews/hierarchyView';
@@ -300,6 +301,11 @@ export function registerCommands(
             // Close data object size analysis panel if open
             if (typeof closeDataObjectSizeAnalysisPanel === "function") {
                 closeDataObjectSizeAnalysisPanel();
+            }
+            
+            // Close database size forecast panel if open
+            if (typeof closeDatabaseSizeForecastPanel === "function") {
+                closeDatabaseSizeForecastPanel();
             }
             
             // Close fabrication blueprint catalog panel if open
@@ -739,6 +745,7 @@ export function registerCommands(
                 closeDataObjectListPanel();
                 closeDataObjectUsageAnalysisPanel();
                 closeDataObjectSizeAnalysisPanel();
+                closeDatabaseSizeForecastPanel();
                 closeFabricationBlueprintCatalogPanel();
                 
                 await authService.logout();
@@ -796,6 +803,9 @@ export function registerCommands(
     
     // Register data object size analysis commands
     registerDataObjectSizeAnalysisCommands(context, modelService);
+    
+    // Register database size forecast commands
+    registerDatabaseSizeForecastCommands(context, modelService);
     
     // Register model AI processing commands
     registerModelAIProcessingCommands(context, appDNAFilePath, modelService);

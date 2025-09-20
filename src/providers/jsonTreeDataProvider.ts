@@ -668,6 +668,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     arguments: []
                 };
                 items.push(dataObjectSizeItem);
+
+                // Create Database Size Forecast item
+                const databaseSizeForecastItem = new JsonTreeItem(
+                    'Database Size Forecast',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisDatabaseSizeForecast'
+                );
+                databaseSizeForecastItem.tooltip = "Configure and forecast database growth based on data object sizes and usage patterns";
+                databaseSizeForecastItem.command = {
+                    command: 'appdna.databaseSizeForecast',
+                    title: 'Show Database Size Forecast',
+                    arguments: []
+                };
+                items.push(databaseSizeForecastItem);
                 
                 return Promise.resolve(items);
             } catch (error) {

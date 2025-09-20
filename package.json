@@ -429,6 +429,11 @@
         "icon": "$(references)"
       },
       {
+        "command": "appdna.databaseSizeForecast",
+        "title": "Show Database Size Forecast",
+        "icon": "$(graph-line)"
+      },
+      {
         "command": "appdna.userStoriesPageMapping",
         "title": "User Stories Page Mapping",
         "icon": "$(link)"
