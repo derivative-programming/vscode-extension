@@ -1,8 +1,13 @@
 Agent todo items...
-  
-generate svg button  on proportional usage tab
 
-generate svg button on complexity vs usage tab
+data object usage filters section design seems differnt tha metrics analysis filters section (color of filters bar?)
+
+data object size analysis...
+- differnt design thandata object usage analysis (colors, icon buttons)
+- generate png shoudl generate image immediately, not select a location for the file.
+- issue on sorting colummns in summary tab. its changing the rows displayed
+- details tab as second tab
+- summary tab - add far right column to display 'view details' button that shows the details tab and filters to that data object
 
 analysis treeview item... 
 - data object sub item

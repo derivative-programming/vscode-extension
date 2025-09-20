@@ -1,0 +1,639 @@
+// Description: Client-side webview interface for data object size analysis with 3-tab layout (summary + details + treemap)
+// Created: September 19, 2025
+// Updated: September 20, 2025 - Added details tab
+
+(function () {
+    const vscode = acquireVsCodeApi();
+
+    // Global state
+    let originalSummaryData = [];
+    let filteredSummaryData = [];
+    let originalDetailsData = [];
+    let filteredDetailsData = [];
+    let currentSortColumn = -1;
+    let currentSortDirection = 'desc';
+    let detailsCurrentSortColumn = -1;
+    let detailsCurrentSortDirection = 'asc';
+    let treemapData = [];
+
+    // DOM Elements
+    let summaryFilter, summaryTableBody, summaryRecordInfo, summaryTableContainer, summaryLoading;
+    let detailsDataObjectFilter, detailsPropertyFilter, detailsDataTypeFilter;
+    let detailsTableBody, detailsRecordInfo, detailsTableContainer, detailsLoading;
+    let treemapVisualization, treemapLoading;
+
+    // Initialize the interface
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Data Object Size Analysis View - DOM loaded');
+        initializeElements();
+        setupEventHandlers();
+        loadData();
+    });
+
+    function initializeElements() {
+        // Summary tab elements
+        summaryFilter = document.getElementById('summaryFilter');
+        summaryTableBody = document.getElementById('summaryTableBody');
+        summaryRecordInfo = document.getElementById('summary-record-info');
+        summaryTableContainer = document.getElementById('summary-table-container');
+        summaryLoading = document.getElementById('summary-loading');
+
+        // Details tab elements
+        detailsDataObjectFilter = document.getElementById('detailsDataObjectFilter');
+        detailsPropertyFilter = document.getElementById('detailsPropertyFilter');
+        detailsDataTypeFilter = document.getElementById('detailsDataTypeFilter');
+        detailsTableBody = document.getElementById('detailsTableBody');
+        detailsRecordInfo = document.getElementById('details-record-info');
+        detailsTableContainer = document.getElementById('details-table-container');
+        detailsLoading = document.getElementById('details-loading');
+
+        // Treemap tab elements
+        treemapVisualization = document.getElementById('treemap-visualization');
+        treemapLoading = document.getElementById('treemap-loading');
+    }
+
+    function setupEventHandlers() {
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                switchTab(tabName);
+            });
+        });
+
+        // Filter functionality
+        if (summaryFilter) {
+            summaryFilter.addEventListener('input', filterSummaryData);
+        }
+
+        // Details filter functionality
+        if (detailsDataObjectFilter) {
+            detailsDataObjectFilter.addEventListener('input', filterDetailsData);
+        }
+        if (detailsPropertyFilter) {
+            detailsPropertyFilter.addEventListener('input', filterDetailsData);
+        }
+        if (detailsDataTypeFilter) {
+            detailsDataTypeFilter.addEventListener('input', filterDetailsData);
+        }
+
+        // Filter actions
+        document.addEventListener('click', function(e) {
+            const action = e.target.getAttribute('data-action') || e.target.closest('[data-action]')?.getAttribute('data-action');
+            
+            switch (action) {
+                case 'toggle-filter':
+                    toggleFilterSection();
+                    break;
+                case 'clear-filters':
+                    clearAllFilters();
+                    break;
+                case 'toggle-details-filter':
+                    toggleDetailsFilterSection();
+                    break;
+                case 'clear-details-filters':
+                    clearAllDetailsFilters();
+                    break;
+            }
+        });
+
+        // Action buttons
+        document.getElementById('exportSummaryBtn')?.addEventListener('click', exportSummaryToCSV);
+        document.getElementById('refreshSummaryButton')?.addEventListener('click', loadData);
+        document.getElementById('exportDetailsBtn')?.addEventListener('click', exportDetailsToCSV);
+        document.getElementById('refreshDetailsButton')?.addEventListener('click', loadDetailsData);
+        document.getElementById('generateTreemapPngBtn')?.addEventListener('click', generateTreemapPNG);
+
+        // Table sorting
+        document.querySelectorAll('th[data-sort-column]').forEach(header => {
+            header.addEventListener('click', function() {
+                const column = parseInt(this.getAttribute('data-sort-column'));
+                const table = this.getAttribute('data-table');
+                sortTable(column, table);
+            });
+        });
+    }
+
+    function switchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+
+        // Load data for specific tabs
+        if (tabName === 'details' && originalDetailsData.length === 0) {
+            loadDetailsData();
+        } else if (tabName === 'details' && originalDetailsData.length > 0) {
+            // Refresh the details table if data is already loaded
+            filterDetailsData();
+        } else if (tabName === 'treemap' && treemapData.length > 0) {
+            renderTreemap();
+        }
+    }
+
+    function loadData() {
+        console.log('Loading size analysis data...');
+        vscode.postMessage({ command: 'getSummaryData' });
+    }
+
+    function toggleFilterSection() {
+        const filterContent = document.getElementById('filterContent');
+        const chevron = document.getElementById('filterChevron');
+        
+        filterContent.classList.toggle('collapsed');
+        chevron.classList.toggle('codicon-chevron-down');
+        chevron.classList.toggle('codicon-chevron-right');
+    }
+
+    function clearAllFilters() {
+        if (summaryFilter) {
+            summaryFilter.value = '';
+        }
+        filterSummaryData();
+    }
+
+    function filterSummaryData() {
+        const filterText = summaryFilter ? summaryFilter.value.toLowerCase() : '';
+        
+        filteredSummaryData = originalSummaryData.filter(item => {
+            return item.dataObjectName.toLowerCase().includes(filterText);
+        });
+        
+        renderSummaryTable();
+    }
+
+    function renderSummaryTable() {
+        if (!summaryTableBody) { return; }
+
+        summaryTableBody.innerHTML = '';
+        
+        filteredSummaryData.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${escapeHtml(item.dataObjectName)}</td>
+                <td>${item.totalSizeBytes.toLocaleString()}</td>
+                <td>${item.totalSizeKB.toFixed(2)}</td>
+                <td>${item.totalSizeMB.toFixed(4)}</td>
+                <td>${item.propertyCount}</td>
+            `;
+            summaryTableBody.appendChild(row);
+        });
+
+        // Update record count
+        if (summaryRecordInfo) {
+            const total = originalSummaryData.length;
+            const filtered = filteredSummaryData.length;
+            if (total === filtered) {
+                summaryRecordInfo.textContent = `${total} data objects`;
+            } else {
+                summaryRecordInfo.textContent = `${filtered} of ${total} data objects`;
+            }
+        }
+    }
+
+    function sortTable(column, tableName) {
+        if (tableName === 'summary-table') {
+            sortSummaryTable(column);
+        } else if (tableName === 'details-table') {
+            sortDetailsTable(column);
+        }
+    }
+
+    function sortSummaryTable(column) {
+        // Update sort direction
+        if (currentSortColumn === column) {
+            currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSortColumn = column;
+            currentSortDirection = 'desc'; // Default to descending for size columns
+        }
+
+        // Update sort indicators
+        document.querySelectorAll(`[data-table="summary-table"] .sort-indicator`).forEach(indicator => {
+            indicator.classList.remove('active');
+            indicator.textContent = '▼';
+        });
+
+        const activeHeader = document.querySelector(`[data-table="summary-table"][data-sort-column="${column}"] .sort-indicator`);
+        if (activeHeader) {
+            activeHeader.classList.add('active');
+            activeHeader.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+        }
+
+        // Sort the data
+        filteredSummaryData.sort((a, b) => {
+            let aVal, bVal;
+            
+            switch (column) {
+                case 0: // Data Object Name
+                    aVal = a.dataObjectName.toLowerCase();
+                    bVal = b.dataObjectName.toLowerCase();
+                    break;
+                case 1: // Total Size (Bytes)
+                    aVal = a.totalSizeBytes;
+                    bVal = b.totalSizeBytes;
+                    break;
+                case 2: // Total Size (KB)
+                    aVal = a.totalSizeKB;
+                    bVal = b.totalSizeKB;
+                    break;
+                case 3: // Total Size (MB)
+                    aVal = a.totalSizeMB;
+                    bVal = b.totalSizeMB;
+                    break;
+                case 4: // Property Count
+                    aVal = a.propertyCount;
+                    bVal = b.propertyCount;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (typeof aVal === 'string') {
+                return currentSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            } else {
+                return currentSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+            }
+        });
+
+        renderSummaryTable();
+    }
+
+    function sortDetailsTable(column) {
+        // Update sort direction
+        if (detailsCurrentSortColumn === column) {
+            detailsCurrentSortDirection = detailsCurrentSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            detailsCurrentSortColumn = column;
+            detailsCurrentSortDirection = 'asc'; // Default to ascending for details
+        }
+
+        // Update sort indicators
+        document.querySelectorAll(`[data-table="details-table"] .sort-indicator`).forEach(indicator => {
+            indicator.classList.remove('active');
+            indicator.textContent = '▼';
+        });
+
+        const activeHeader = document.querySelector(`[data-table="details-table"][data-sort-column="${column}"] .sort-indicator`);
+        if (activeHeader) {
+            activeHeader.classList.add('active');
+            activeHeader.textContent = detailsCurrentSortDirection === 'asc' ? '▲' : '▼';
+        }
+
+        // Sort the data
+        filteredDetailsData.sort((a, b) => {
+            let aVal, bVal;
+            
+            switch (column) {
+                case 0: // Data Object Name
+                    aVal = a.dataObjectName.toLowerCase();
+                    bVal = b.dataObjectName.toLowerCase();
+                    break;
+                case 1: // Property Name
+                    aVal = a.propName.toLowerCase();
+                    bVal = b.propName.toLowerCase();
+                    break;
+                case 2: // Size (Bytes)
+                    aVal = a.sizeBytes;
+                    bVal = b.sizeBytes;
+                    break;
+                case 3: // Data Type
+                    aVal = a.dataType.toLowerCase();
+                    bVal = b.dataType.toLowerCase();
+                    break;
+                case 4: // Data Type Size
+                    aVal = (a.dataTypeSize || '').toLowerCase();
+                    bVal = (b.dataTypeSize || '').toLowerCase();
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (typeof aVal === 'string') {
+                return detailsCurrentSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            } else {
+                return detailsCurrentSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+            }
+        });
+
+        renderDetailsTable();
+    }
+
+    function exportSummaryToCSV() {
+        if (filteredSummaryData.length === 0) {
+            vscode.postMessage({ 
+                command: 'showError', 
+                error: 'No data to export. Please load the size analysis first.' 
+            });
+            return;
+        }
+
+        vscode.postMessage({
+            command: 'exportToCSV',
+            data: {
+                items: filteredSummaryData
+            }
+        });
+    }
+
+    function renderTreemap() {
+        if (!treemapVisualization || treemapData.length === 0) { return; }
+
+        treemapLoading.classList.add('hidden');
+        treemapVisualization.classList.remove('hidden');
+
+        // Clear previous content
+        treemapVisualization.innerHTML = '';
+
+        // Set dimensions
+        const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+        const width = 800 - margin.left - margin.right;
+        const height = 600 - margin.top - margin.bottom;
+
+        // Create SVG
+        const svg = d3.select(treemapVisualization)
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+            .style('background', 'var(--vscode-editor-background)');
+
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+
+        // Prepare data for treemap
+        const root = d3.hierarchy({ children: treemapData })
+            .sum(d => d.totalSizeBytes)
+            .sort((a, b) => b.value - a.value);
+
+        // Create treemap
+        const treemap = d3.treemap()
+            .size([width, height])
+            .padding(2);
+
+        treemap(root);
+
+        // Color scale based on size
+        const colorScale = d3.scaleOrdinal()
+            .domain(['tiny', 'small', 'medium', 'large'])
+            .range(['#6c757d', '#28a745', '#f66a0a', '#d73a49']);
+
+        // Create tooltip
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'treemap-tooltip')
+            .style('opacity', 0);
+
+        // Draw rectangles
+        const cell = g.selectAll('.treemap-cell')
+            .data(root.leaves())
+            .enter().append('g')
+            .attr('class', 'treemap-cell')
+            .attr('transform', d => `translate(${d.x0},${d.y0})`);
+
+        cell.append('rect')
+            .attr('class', 'treemap-rect')
+            .attr('width', d => d.x1 - d.x0)
+            .attr('height', d => d.y1 - d.y0)
+            .attr('fill', d => {
+                const sizeMB = d.data.totalSizeMB;
+                if (sizeMB > 10) { return colorScale('large'); }
+                if (sizeMB > 1) { return colorScale('medium'); }
+                if (sizeMB > 0.1) { return colorScale('small'); }
+                return colorScale('tiny');
+            })
+            .on('mouseover', function(event, d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style('opacity', .9);
+                tooltip.html(`
+                    <strong>${d.data.dataObjectName}</strong><br/>
+                    Total Size: ${d.data.totalSizeBytes.toLocaleString()} bytes<br/>
+                    Size (MB): ${d.data.totalSizeMB.toFixed(4)} MB<br/>
+                    Properties: ${d.data.propertyCount}
+                `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+            })
+            .on('mouseout', function() {
+                tooltip.transition()
+                    .duration(500)
+                    .style('opacity', 0);
+            });
+
+        // Add text labels
+        cell.append('text')
+            .attr('class', 'treemap-text')
+            .attr('x', d => (d.x1 - d.x0) / 2)
+            .attr('y', d => (d.y1 - d.y0) / 2)
+            .text(d => {
+                const width = d.x1 - d.x0;
+                const height = d.y1 - d.y0;
+                // Only show text if rectangle is large enough
+                if (width > 80 && height > 20) {
+                    const name = d.data.dataObjectName;
+                    return name.length > 12 ? name.substring(0, 12) + '...' : name;
+                }
+                return '';
+            });
+
+        // Clean up tooltip on tab switch
+        setTimeout(() => {
+            if (tooltip) {
+                tooltip.remove();
+            }
+        }, 100);
+    }
+
+    function generateTreemapPNG() {
+        if (!treemapVisualization || treemapData.length === 0) {
+            vscode.postMessage({ 
+                command: 'showError', 
+                error: 'No treemap data available. Please load the size analysis first.' 
+            });
+            return;
+        }
+
+        const svg = treemapVisualization.querySelector('svg');
+        if (!svg) {
+            vscode.postMessage({ 
+                command: 'showError', 
+                error: 'Treemap not rendered yet. Please switch to the treemap tab first.' 
+            });
+            return;
+        }
+
+        // Convert SVG to canvas and then to PNG
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const svgData = new XMLSerializer().serializeToString(svg);
+        
+        canvas.width = svg.getAttribute('width') || 800;
+        canvas.height = svg.getAttribute('height') || 600;
+
+        const img = new Image();
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        img.onload = function() {
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--vscode-editor-background');
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            
+            const pngDataUrl = canvas.toDataURL('image/png');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            
+            vscode.postMessage({
+                command: 'generatePNG',
+                data: {
+                    pngDataUrl: pngDataUrl,
+                    filename: `data-object-size-treemap-${timestamp}.png`
+                }
+            });
+            
+            URL.revokeObjectURL(url);
+        };
+
+        img.src = url;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function loadDetailsData() {
+        console.log('Loading details data...');
+        vscode.postMessage({ command: 'getDetailsData' });
+    }
+
+    function toggleDetailsFilterSection() {
+        const filterContent = document.getElementById('detailsFilterContent');
+        const chevron = document.getElementById('detailsFilterChevron');
+        
+        filterContent.classList.toggle('collapsed');
+        chevron.classList.toggle('codicon-chevron-down');
+        chevron.classList.toggle('codicon-chevron-right');
+    }
+
+    function clearAllDetailsFilters() {
+        if (detailsDataObjectFilter) {
+            detailsDataObjectFilter.value = '';
+        }
+        if (detailsPropertyFilter) {
+            detailsPropertyFilter.value = '';
+        }
+        if (detailsDataTypeFilter) {
+            detailsDataTypeFilter.value = '';
+        }
+        filterDetailsData();
+    }
+
+    function filterDetailsData() {
+        const dataObjectText = detailsDataObjectFilter ? detailsDataObjectFilter.value.toLowerCase() : '';
+        const propertyText = detailsPropertyFilter ? detailsPropertyFilter.value.toLowerCase() : '';
+        const dataTypeText = detailsDataTypeFilter ? detailsDataTypeFilter.value.toLowerCase() : '';
+        
+        filteredDetailsData = originalDetailsData.filter(item => {
+            return item.dataObjectName.toLowerCase().includes(dataObjectText) &&
+                   item.propName.toLowerCase().includes(propertyText) &&
+                   item.dataType.toLowerCase().includes(dataTypeText);
+        });
+        
+        renderDetailsTable();
+    }
+
+    function renderDetailsTable() {
+        if (!detailsTableBody) { return; }
+
+        detailsTableBody.innerHTML = '';
+        
+        filteredDetailsData.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${escapeHtml(item.dataObjectName)}</td>
+                <td>${escapeHtml(item.propName)}</td>
+                <td>${item.sizeBytes.toLocaleString()}</td>
+                <td>${escapeHtml(item.dataType)}</td>
+                <td>${escapeHtml(item.dataTypeSize || '')}</td>
+            `;
+            detailsTableBody.appendChild(row);
+        });
+
+        // Update record count
+        if (detailsRecordInfo) {
+            const total = originalDetailsData.length;
+            const filtered = filteredDetailsData.length;
+            if (total === filtered) {
+                detailsRecordInfo.textContent = `${total} properties`;
+            } else {
+                detailsRecordInfo.textContent = `${filtered} of ${total} properties`;
+            }
+        }
+    }
+
+    function exportDetailsToCSV() {
+        if (filteredDetailsData.length === 0) {
+            vscode.postMessage({ 
+                command: 'showError', 
+                error: 'No data to export. Please load the details analysis first.' 
+            });
+            return;
+        }
+
+        vscode.postMessage({
+            command: 'exportDetailsToCSV',
+            data: {
+                items: filteredDetailsData
+            }
+        });
+    }
+
+    // Message handling from extension
+    window.addEventListener('message', event => {
+        const message = event.data;
+        
+        switch (message.command) {
+            case 'summaryDataResponse':
+                console.log('Received size summary data:', message.data.length, 'items');
+                originalSummaryData = message.data || [];
+                treemapData = [...originalSummaryData]; // Copy for treemap
+                
+                // Hide loading, show content
+                summaryLoading.classList.add('hidden');
+                summaryTableContainer.classList.remove('hidden');
+                
+                // Filter and render
+                filterSummaryData();
+                
+                // If treemap tab is active, render it
+                const treemapTab = document.querySelector('[data-tab="treemap"]');
+                if (treemapTab && treemapTab.classList.contains('active')) {
+                    renderTreemap();
+                }
+                break;
+                
+            case 'detailsDataResponse':
+                console.log('Received size details data:', message.data.length, 'items');
+                originalDetailsData = message.data || [];
+                
+                // Hide loading, show content
+                detailsLoading.classList.add('hidden');
+                detailsTableContainer.classList.remove('hidden');
+                
+                // Filter and render
+                filterDetailsData();
+                break;
+                
+            default:
+                console.log('Unknown message command:', message.command);
+        }
+    });
+
+})();

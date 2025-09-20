@@ -654,6 +654,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     arguments: []
                 };
                 items.push(dataObjectUsageItem);
+
+                // Create Data Object Size item
+                const dataObjectSizeItem = new JsonTreeItem(
+                    'Data Object Size',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisDataObjectSize'
+                );
+                dataObjectSizeItem.tooltip = "Analyze storage size requirements for each data object based on property types";
+                dataObjectSizeItem.command = {
+                    command: 'appdna.dataObjectSizeAnalysis',
+                    title: 'Show Data Object Size Analysis',
+                    arguments: []
+                };
+                items.push(dataObjectSizeItem);
                 
                 return Promise.resolve(items);
             } catch (error) {
