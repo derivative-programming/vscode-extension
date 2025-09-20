@@ -101,7 +101,7 @@ export function registerDataObjectSizeAnalysisCommands(context: vscode.Extension
         });
 
         // Handle messages from the webview
-        panel.webview.onDidReceiveMessage(message => {
+        panel.webview.onDidReceiveMessage(async message => {
             switch (message.command) {
                 case 'getSummaryData':
                     try {
@@ -130,22 +130,76 @@ export function registerDataObjectSizeAnalysisCommands(context: vscode.Extension
                     break;
                     
                 case 'exportToCSV':
+                    console.log("[Extension] Data Object Size CSV export requested");
                     try {
-                        const exportData = message.data;
-                        exportSizeDataToCSV(exportData, context);
+                        const csvContent = generateSizeSummaryCSV(message.data.items);
+                        const now = new Date();
+                        const pad = (n: number) => n.toString().padStart(2, '0');
+                        const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                        const filename = `data-object-size-analysis-${timestamp}.csv`;
+                        
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            csvContent: csvContent,
+                            filename: filename,
+                            success: true
+                        });
                     } catch (error) {
-                        console.error('[ERROR] Data Object Size Analysis - Failed to export CSV:', error);
-                        vscode.window.showErrorMessage(`Failed to export CSV: ${error.message}`);
+                        console.error('[Extension] Error exporting data object size CSV:', error);
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            success: false,
+                            error: error.message
+                        });
                     }
                     break;
                     
                 case 'exportDetailsToCSV':
+                    console.log("[Extension] Data Object Size Details CSV export requested");
                     try {
-                        const exportData = message.data;
-                        exportDetailsDataToCSV(exportData, context);
+                        const csvContent = generateSizeDetailsCSV(message.data.items);
+                        const now = new Date();
+                        const pad = (n: number) => n.toString().padStart(2, '0');
+                        const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                        const filename = `data-object-size-details-${timestamp}.csv`;
+                        
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            csvContent: csvContent,
+                            filename: filename,
+                            success: true
+                        });
                     } catch (error) {
-                        console.error('[ERROR] Data Object Size Analysis - Failed to export details CSV:', error);
-                        vscode.window.showErrorMessage(`Failed to export details CSV: ${error.message}`);
+                        console.error('[Extension] Error exporting data object size details CSV:', error);
+                        panel.webview.postMessage({
+                            command: 'csvExportReady',
+                            success: false,
+                            error: error.message
+                        });
+                    }
+                    break;
+                    
+                case 'saveCsvToWorkspace':
+                    try {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        
+                        if (!workspaceFolders || workspaceFolders.length === 0) {
+                            vscode.window.showErrorMessage('No workspace folder is open');
+                            return;
+                        }
+                        
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const filePath = path.join(workspaceRoot, message.data.filename);
+                        
+                        fs.writeFileSync(filePath, message.data.content, 'utf8');
+                        vscode.window.showInformationMessage(`CSV file saved to workspace: ${message.data.filename}`);
+                        
+                        // Open the file in VS Code
+                        const fileUri = vscode.Uri.file(filePath);
+                        vscode.window.showTextDocument(fileUri);
+                    } catch (error) {
+                        console.error('[Extension] Error saving CSV to workspace:', error);
+                        vscode.window.showErrorMessage(`Failed to save CSV: ${error.message}`);
                     }
                     break;
                     
@@ -170,6 +224,42 @@ export function registerDataObjectSizeAnalysisCommands(context: vscode.Extension
                     } catch (error) {
                         console.error('[ERROR] Data Object Size Analysis - Failed to save PNG:', error);
                         vscode.window.showErrorMessage(`Failed to save PNG: ${error.message}`);
+                    }
+                    break;
+                    
+                case 'savePngToWorkspace':
+                    try {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        if (!workspaceFolders || workspaceFolders.length === 0) {
+                            vscode.window.showErrorMessage('No workspace folder is open');
+                            panel.webview.postMessage({
+                                command: 'pngSaveComplete',
+                                success: false,
+                                error: 'No workspace folder is open'
+                            });
+                            return;
+                        }
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const filePath = path.join(workspaceRoot, message.data.filename);
+                        const buffer = Buffer.from(message.data.base64.replace(/^data:image\/png;base64,/, ''), 'base64');
+                        fs.writeFileSync(filePath, buffer);
+                        vscode.window.showInformationMessage(`PNG file saved to workspace: ${message.data.filename}`);
+                        panel.webview.postMessage({
+                            command: 'pngSaveComplete',
+                            success: true,
+                            filePath: message.data.filename,
+                            type: message.data.type
+                        });
+                        const fileUri = vscode.Uri.file(filePath);
+                        vscode.commands.executeCommand('vscode.open', fileUri);
+                    } catch (error) {
+                        console.error('[ERROR] Data Object Size Analysis - Error saving PNG to workspace:', error);
+                        vscode.window.showErrorMessage(`Failed to save PNG: ${error.message}`);
+                        panel.webview.postMessage({
+                            command: 'pngSaveComplete',
+                            success: false,
+                            error: error.message
+                        });
                     }
                     break;
             }
@@ -209,14 +299,19 @@ function getSizeSummaryData(modelService: ModelService): any[] {
             if (dataObject.prop && Array.isArray(dataObject.prop)) {
                 propertyCount = dataObject.prop.length;
                 
-                dataObject.prop.forEach((prop: any) => {
+                dataObject.prop.forEach((prop: any, index: number) => {
                     const propSize = calculatePropertySize(prop);
+                    if (isNaN(propSize)) {
+                        console.warn(`Object ${dataObject.name}, property ${index} (${prop.name}) returned NaN size. DataType: ${prop.sqlServerDBDataType}, Size: ${prop.sqlServerDBDataTypeSize}`);
+                    }
                     totalSizeBytes += propSize;
                     
                     // Track size by data type for breakdown
                     const dataType = prop.sqlServerDBDataType || 'unknown';
                     sizeBreakdown[dataType] = (sizeBreakdown[dataType] || 0) + propSize;
                 });
+            } else {
+                console.log(`Object ${dataObject.name} has no properties or prop is not an array`);
             }
             
             // Convert bytes to more readable format
@@ -225,18 +320,27 @@ function getSizeSummaryData(modelService: ModelService): any[] {
             
             console.log(`Object ${dataObject.name}: ${propertyCount} properties, ${totalSizeBytes} bytes (${sizeInKB.toFixed(2)} KB)`);
             
+            // Ensure all values are valid numbers
+            const safeTotalSizeBytes = isNaN(totalSizeBytes) ? 0 : totalSizeBytes;
+            const safeSizeInKB = isNaN(sizeInKB) ? 0 : sizeInKB;
+            const safeSizeInMB = isNaN(sizeInMB) ? 0 : sizeInMB;
+            const safePropertyCount = isNaN(propertyCount) ? 0 : propertyCount;
+            
+            if (safeTotalSizeBytes !== totalSizeBytes) {
+                console.warn(`Object ${dataObject.name} had invalid totalSizeBytes (${totalSizeBytes}), using 0`);
+            }
+            
             summaryData.push({
                 dataObjectName: dataObject.name,
-                totalSizeBytes: totalSizeBytes,
-                totalSizeKB: Math.round(sizeInKB * 100) / 100, // Round to 2 decimal places
-                totalSizeMB: Math.round(sizeInMB * 100) / 100,
-                propertyCount: propertyCount,
+                totalSizeBytes: safeTotalSizeBytes,
+                totalSizeKB: Math.round(safeSizeInKB * 100) / 100, // Round to 2 decimal places
+                totalSizeMB: Math.round(safeSizeInMB * 100) / 100,
+                propertyCount: safePropertyCount,
                 sizeBreakdown: sizeBreakdown
             });
         });
         
-        // Sort by total size (descending)
-        summaryData.sort((a, b) => b.totalSizeBytes - a.totalSizeBytes);
+        // Let frontend handle sorting - no default sort applied here
         
     } catch (error) {
         console.error('Error getting size summary data:', error);
@@ -273,10 +377,17 @@ function getSizeDetailsData(modelService: ModelService): any[] {
                     const propSize = calculatePropertySize(prop);
                     const dataType = prop.sqlServerDBDataType || 'unknown';
                     
+                    // Ensure all values are safe
+                    const safePropSize = isNaN(propSize) ? 0 : propSize;
+                    
+                    if (safePropSize !== propSize) {
+                        console.warn(`Object ${dataObject.name}, property ${prop.name} had invalid size (${propSize}), using 0`);
+                    }
+                    
                     detailsData.push({
                         dataObjectName: dataObject.name,
                         propName: prop.name || 'Unnamed Property',
-                        sizeBytes: propSize,
+                        sizeBytes: safePropSize,
                         dataType: dataType,
                         dataTypeSize: prop.sqlServerDBDataTypeSize || '',
                         description: prop.description || ''
@@ -363,6 +474,40 @@ function calculatePropertySize(prop: any): number {
             console.warn(`Unknown data type for size calculation: ${dataType}`);
             return 0;
     }
+}
+
+/**
+ * Generates CSV content for size summary data
+ */
+function generateSizeSummaryCSV(items: any[]): string {
+    if (!items || items.length === 0) {
+        throw new Error('No data to export');
+    }
+
+    let csvContent = 'Data Object Name,Total Size (Bytes),Total Size (KB),Total Size (MB),Property Count\n';
+    
+    items.forEach((item: any) => {
+        csvContent += `"${item.dataObjectName}",${item.totalSizeBytes},${item.totalSizeKB},${item.totalSizeMB},${item.propertyCount}\n`;
+    });
+
+    return csvContent;
+}
+
+/**
+ * Generates CSV content for size details data
+ */
+function generateSizeDetailsCSV(items: any[]): string {
+    if (!items || items.length === 0) {
+        throw new Error('No data to export');
+    }
+
+    let csvContent = 'Data Object Name,Property Name,Size (Bytes),Data Type,Data Type Size,Description\n';
+    
+    items.forEach((item: any) => {
+        csvContent += `"${item.dataObjectName}","${item.propName}",${item.sizeBytes},"${item.dataType}","${item.dataTypeSize || ''}","${(item.description || '').replace(/"/g, '""')}"\n`;
+    });
+
+    return csvContent;
 }
 
 /**
@@ -563,20 +708,25 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
         
         /* Summary tab styles */
         .filter-section {
-            background: var(--vscode-editor-background);
+            margin-bottom: 20px;
             border: 1px solid var(--vscode-panel-border);
-            border-radius: 4px;
-            margin-bottom: 15px;
-            overflow: hidden;
+            border-radius: 6px;
+            background-color: var(--vscode-sideBar-background);
         }
         
         .filter-header {
-            padding: 10px 15px;
-            background: var(--vscode-list-activeSelectionBackground);
+            padding: 12px 15px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
+            font-weight: 600;
+            user-select: none;
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+        
+        .filter-header:hover {
+            background-color: var(--vscode-list-hoverBackground);
         }
         
         .filter-content {
@@ -592,37 +742,58 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
             display: flex;
             gap: 15px;
             margin-bottom: 10px;
-            align-items: center;
+            flex-wrap: wrap;
         }
         
         .filter-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            min-width: 150px;
+            flex: 1;
         }
         
         .filter-group label {
+            font-weight: 600;
+            margin-bottom: 4px;
             font-size: 12px;
-            color: var(--vscode-descriptionForeground);
+            color: var(--vscode-foreground);
         }
         
         .filter-group input {
-            padding: 6px;
+            padding: 4px 8px;
             border: 1px solid var(--vscode-input-border);
-            background: var(--vscode-input-background);
+            background-color: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
-            border-radius: 2px;
-            min-width: 200px;
+            border-radius: 3px;
+            font-size: var(--vscode-font-size);
+            font-family: var(--vscode-font-family);
+        }
+        
+        .filter-group input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            border-color: var(--vscode-focusBorder);
         }
         
         .filter-actions {
             display: flex;
             gap: 10px;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid var(--vscode-panel-border);
         }
         
         .filter-button-secondary {
-            background: var(--vscode-button-secondaryBackground);
+            background-color: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 2px;
+            font-size: 13px;
+        }
+        
+        .filter-button-secondary:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
             border: none;
             padding: 6px 12px;
             border-radius: 2px;
@@ -630,27 +801,35 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
             font-size: 12px;
         }
         
+        /* Header actions */
         .header-actions {
             display: flex;
-            gap: 10px;
+            justify-content: flex-end;
+            gap: 8px;
             margin-bottom: 15px;
         }
         
         .icon-button {
-            background: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            border: 1px solid var(--vscode-button-border);
-            border-radius: 2px;
-            padding: 6px 12px;
+            background: none;
+            border: none;
+            color: var(--vscode-foreground);
+            padding: 5px;
+            border-radius: 3px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 13px;
+            justify-content: center;
+            font-size: 16px;
         }
         
         .icon-button:hover {
-            background: var(--vscode-button-hoverBackground);
+            background: var(--vscode-toolbar-hoverBackground);
+            color: var(--vscode-foreground);
+        }
+        
+        .icon-button:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: 2px;
         }
         
         .loading {
@@ -663,17 +842,17 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
             display: none !important;
         }
         
-        /* Table styles */
+        /* Table styling */
         .table-container {
+            overflow-x: auto;
             border: 1px solid var(--vscode-panel-border);
-            border-radius: 4px;
-            overflow: hidden;
+            border-radius: 3px;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--vscode-editor-background);
+            background-color: var(--vscode-editor-background);
         }
         
         th, td {
@@ -683,9 +862,10 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
         }
         
         th {
-            background: var(--vscode-list-activeSelectionBackground);
+            background-color: var(--vscode-list-hoverBackground);
             font-weight: 600;
             cursor: pointer;
+            user-select: none;
             position: sticky;
             top: 0;
             z-index: 10;
@@ -766,6 +946,10 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
         
         .svg-export-btn:hover {
             background: var(--vscode-button-hoverBackground);
+        }
+        
+        .svg-export-btn:active {
+            background: var(--vscode-button-activeBackground);
         }
         
         .svg-export-btn .codicon {
@@ -897,11 +1081,9 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
             <div class="header-actions">
                 <button id="exportSummaryBtn" class="icon-button" title="Export to CSV">
                     <i class="codicon codicon-cloud-download"></i>
-                    Export CSV
                 </button>
                 <button id="refreshSummaryButton" class="icon-button" title="Refresh Data">
                     <i class="codicon codicon-refresh"></i>
-                    Refresh
                 </button>
             </div>
             
@@ -960,11 +1142,9 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
             <div class="header-actions">
                 <button id="exportDetailsBtn" class="icon-button" title="Export to CSV">
                     <i class="codicon codicon-cloud-download"></i>
-                    Export CSV
                 </button>
                 <button id="refreshDetailsButton" class="icon-button" title="Refresh Data">
                     <i class="codicon codicon-refresh"></i>
-                    Refresh
                 </button>
             </div>
             
@@ -1014,19 +1194,19 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
                 <div class="treemap-legend">
                     <div class="legend-item">
                         <span class="legend-color large-size"></span>
-                        <span>Large Size (>10MB)</span>
+                        <span>Large Size (>100KB)</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-color medium-size"></span>
-                        <span>Medium Size (1MB-10MB)</span>
+                        <span>Medium Size (10KB-100KB)</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-color small-size"></span>
-                        <span>Small Size (100KB-1MB)</span>
+                        <span>Small Size (1KB-10KB)</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-color tiny-size"></span>
-                        <span>Tiny Size (<100KB)</span>
+                        <span>Tiny Size (<1KB)</span>
                     </div>
                 </div>
             </div>

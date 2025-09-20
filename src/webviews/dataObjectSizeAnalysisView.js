@@ -10,8 +10,8 @@
     let filteredSummaryData = [];
     let originalDetailsData = [];
     let filteredDetailsData = [];
-    let currentSortColumn = -1;
-    let currentSortDirection = 'desc';
+    let currentSortColumn = 0; // Default to data object name column
+    let currentSortDirection = 'asc'; // Default to ascending for name
     let detailsCurrentSortColumn = -1;
     let detailsCurrentSortDirection = 'asc';
     let treemapData = [];
@@ -166,22 +166,91 @@
             return item.dataObjectName.toLowerCase().includes(filterText);
         });
         
+        // Apply current sort after filtering
+        applySummarySort();
         renderSummaryTable();
     }
 
+    function applySummarySort() {
+        if (currentSortColumn === -1) {
+            return; // No sort applied yet
+        }
+        
+        filteredSummaryData.sort((a, b) => {
+            let aVal, bVal;
+            
+            switch (currentSortColumn) {
+                case 0: // Data Object Name
+                    aVal = (a.dataObjectName || '').toLowerCase();
+                    bVal = (b.dataObjectName || '').toLowerCase();
+                    break;
+                case 1: // Total Size (Bytes)
+                    aVal = a.totalSizeBytes || 0;
+                    bVal = b.totalSizeBytes || 0;
+                    break;
+                case 2: // Total Size (KB)
+                    aVal = a.totalSizeKB || 0;
+                    bVal = b.totalSizeKB || 0;
+                    break;
+                case 3: // Total Size (MB)
+                    aVal = a.totalSizeMB || 0;
+                    bVal = b.totalSizeMB || 0;
+                    break;
+                case 4: // Property Count
+                    aVal = a.propertyCount || 0;
+                    bVal = b.propertyCount || 0;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (typeof aVal === 'string') {
+                return currentSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            } else {
+                return currentSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+            }
+        });
+        
+        // Update sort indicators
+        updateSortIndicators();
+    }
+
+    function updateSortIndicators() {
+        // Clear all indicators
+        document.querySelectorAll(`[data-table="summary-table"] .sort-indicator`).forEach(indicator => {
+            indicator.classList.remove('active');
+            indicator.textContent = '▼';
+        });
+
+        // Set active indicator
+        const activeHeader = document.querySelector(`[data-table="summary-table"][data-sort-column="${currentSortColumn}"] .sort-indicator`);
+        if (activeHeader) {
+            activeHeader.classList.add('active');
+            activeHeader.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+        }
+    }
+
     function renderSummaryTable() {
-        if (!summaryTableBody) { return; }
+        if (!summaryTableBody) { 
+            return; 
+        }
 
         summaryTableBody.innerHTML = '';
         
-        filteredSummaryData.forEach(item => {
+        filteredSummaryData.forEach((item, index) => {
+            // Handle null/undefined values gracefully
+            const totalSizeBytes = item.totalSizeBytes || 0;
+            const totalSizeKB = item.totalSizeKB || 0;
+            const totalSizeMB = item.totalSizeMB || 0;
+            const propertyCount = item.propertyCount || 0;
+            
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${escapeHtml(item.dataObjectName)}</td>
-                <td>${item.totalSizeBytes.toLocaleString()}</td>
-                <td>${item.totalSizeKB.toFixed(2)}</td>
-                <td>${item.totalSizeMB.toFixed(4)}</td>
-                <td>${item.propertyCount}</td>
+                <td>${escapeHtml(item.dataObjectName || 'Unknown')}</td>
+                <td>${totalSizeBytes.toLocaleString()}</td>
+                <td>${totalSizeKB.toFixed(2)}</td>
+                <td>${totalSizeMB.toFixed(4)}</td>
+                <td>${propertyCount}</td>
             `;
             summaryTableBody.appendChild(row);
         });
@@ -212,56 +281,19 @@
             currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
         } else {
             currentSortColumn = column;
-            currentSortDirection = 'desc'; // Default to descending for size columns
+            // Default direction based on column type
+            if (column === 0) {
+                currentSortDirection = 'asc'; // Name column defaults to ascending
+            } else {
+                currentSortDirection = 'desc'; // Size columns default to descending
+            }
         }
 
         // Update sort indicators
-        document.querySelectorAll(`[data-table="summary-table"] .sort-indicator`).forEach(indicator => {
-            indicator.classList.remove('active');
-            indicator.textContent = '▼';
-        });
-
-        const activeHeader = document.querySelector(`[data-table="summary-table"][data-sort-column="${column}"] .sort-indicator`);
-        if (activeHeader) {
-            activeHeader.classList.add('active');
-            activeHeader.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
-        }
+        updateSortIndicators();
 
         // Sort the data
-        filteredSummaryData.sort((a, b) => {
-            let aVal, bVal;
-            
-            switch (column) {
-                case 0: // Data Object Name
-                    aVal = a.dataObjectName.toLowerCase();
-                    bVal = b.dataObjectName.toLowerCase();
-                    break;
-                case 1: // Total Size (Bytes)
-                    aVal = a.totalSizeBytes;
-                    bVal = b.totalSizeBytes;
-                    break;
-                case 2: // Total Size (KB)
-                    aVal = a.totalSizeKB;
-                    bVal = b.totalSizeKB;
-                    break;
-                case 3: // Total Size (MB)
-                    aVal = a.totalSizeMB;
-                    bVal = b.totalSizeMB;
-                    break;
-                case 4: // Property Count
-                    aVal = a.propertyCount;
-                    bVal = b.propertyCount;
-                    break;
-                default:
-                    return 0;
-            }
-
-            if (typeof aVal === 'string') {
-                return currentSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-            } else {
-                return currentSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
-            }
-        });
+        applySummarySort();
 
         renderSummaryTable();
     }
@@ -293,20 +325,20 @@
             
             switch (column) {
                 case 0: // Data Object Name
-                    aVal = a.dataObjectName.toLowerCase();
-                    bVal = b.dataObjectName.toLowerCase();
+                    aVal = (a.dataObjectName || '').toLowerCase();
+                    bVal = (b.dataObjectName || '').toLowerCase();
                     break;
                 case 1: // Property Name
-                    aVal = a.propName.toLowerCase();
-                    bVal = b.propName.toLowerCase();
+                    aVal = (a.propName || '').toLowerCase();
+                    bVal = (b.propName || '').toLowerCase();
                     break;
                 case 2: // Size (Bytes)
-                    aVal = a.sizeBytes;
-                    bVal = b.sizeBytes;
+                    aVal = a.sizeBytes || 0;
+                    bVal = b.sizeBytes || 0;
                     break;
                 case 3: // Data Type
-                    aVal = a.dataType.toLowerCase();
-                    bVal = b.dataType.toLowerCase();
+                    aVal = (a.dataType || '').toLowerCase();
+                    bVal = (b.dataType || '').toLowerCase();
                     break;
                 case 4: // Data Type Size
                     aVal = (a.dataTypeSize || '').toLowerCase();
@@ -384,9 +416,20 @@
             .domain(['tiny', 'small', 'medium', 'large'])
             .range(['#6c757d', '#28a745', '#f66a0a', '#d73a49']);
 
-        // Create tooltip
-        const tooltip = d3.select('body').append('div')
+        // Create tooltip with explicit styles
+        const tooltip = d3.select('body')
+            .append('div')
             .attr('class', 'treemap-tooltip')
+            .style('position', 'absolute')
+            .style('background', '#1e1e1e')
+            .style('border', '1px solid #454545')
+            .style('border-radius', '4px')
+            .style('padding', '8px')
+            .style('font-size', '12px')
+            .style('color', '#cccccc')
+            .style('pointer-events', 'none')
+            .style('z-index', '1000')
+            .style('box-shadow', '0 2px 8px rgba(0,0,0,0.3)')
             .style('opacity', 0);
 
         // Draw rectangles
@@ -402,15 +445,17 @@
             .attr('height', d => d.y1 - d.y0)
             .attr('fill', d => {
                 const sizeMB = d.data.totalSizeMB;
-                if (sizeMB > 10) { return colorScale('large'); }
-                if (sizeMB > 1) { return colorScale('medium'); }
-                if (sizeMB > 0.1) { return colorScale('small'); }
-                return colorScale('tiny');
+                if (sizeMB > 0.1) { return colorScale('large'); }     // >100KB
+                if (sizeMB > 0.01) { return colorScale('medium'); }   // 10KB-100KB  
+                if (sizeMB > 0.001) { return colorScale('small'); }   // 1KB-10KB
+                return colorScale('tiny');                            // <1KB
             })
             .on('mouseover', function(event, d) {
+                // Show tooltip
                 tooltip.transition()
                     .duration(200)
                     .style('opacity', .9);
+                
                 tooltip.html(`
                     <strong>${d.data.dataObjectName}</strong><br/>
                     Total Size: ${d.data.totalSizeBytes.toLocaleString()} bytes<br/>
@@ -418,7 +463,7 @@
                     Properties: ${d.data.propertyCount}
                 `)
                     .style('left', (event.pageX + 10) + 'px')
-                    .style('top', (event.pageY - 28) + 'px');
+                    .style('top', (event.pageY - 10) + 'px');
             })
             .on('mouseout', function() {
                 tooltip.transition()
@@ -442,64 +487,74 @@
                 return '';
             });
 
-        // Clean up tooltip on tab switch
-        setTimeout(() => {
-            if (tooltip) {
-                tooltip.remove();
-            }
-        }, 100);
     }
 
     function generateTreemapPNG() {
-        if (!treemapVisualization || treemapData.length === 0) {
-            vscode.postMessage({ 
-                command: 'showError', 
-                error: 'No treemap data available. Please load the size analysis first.' 
-            });
-            return;
+        try {
+            if (!treemapVisualization || treemapData.length === 0) {
+                vscode.postMessage({ 
+                    command: 'showError', 
+                    error: 'No treemap data available. Please load the size analysis first.' 
+                });
+                return;
+            }
+
+            const svg = treemapVisualization.querySelector('svg');
+            if (!svg) {
+                vscode.postMessage({ 
+                    command: 'showError', 
+                    error: 'Treemap not rendered yet. Please switch to the treemap tab first.' 
+                });
+                return;
+            }
+
+            // Get SVG dimensions
+            const width = parseInt(svg.getAttribute('width')) || 800;
+            const height = parseInt(svg.getAttribute('height')) || 600;
+            
+            // Serialize SVG
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                
+                // White background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                URL.revokeObjectURL(url);
+                
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        vscode.postMessage({ command: 'showError', error: 'Canvas conversion failed' });
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const base64 = reader.result;
+                        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                        const filename = `data-object-size-treemap-${timestamp}.png`;
+                        vscode.postMessage({
+                            command: 'savePngToWorkspace',
+                            data: { base64, filename, type: 'treemap' }
+                        });
+                    };
+                    reader.readAsDataURL(blob);
+                }, 'image/png');
+            };
+            img.onerror = function() {
+                vscode.postMessage({ command: 'showError', error: 'Failed to render SVG to image' });
+            };
+            img.src = url;
+        } catch (err) {
+            vscode.postMessage({ command: 'showError', error: 'Failed to generate PNG: ' + err.message });
         }
-
-        const svg = treemapVisualization.querySelector('svg');
-        if (!svg) {
-            vscode.postMessage({ 
-                command: 'showError', 
-                error: 'Treemap not rendered yet. Please switch to the treemap tab first.' 
-            });
-            return;
-        }
-
-        // Convert SVG to canvas and then to PNG
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const svgData = new XMLSerializer().serializeToString(svg);
-        
-        canvas.width = svg.getAttribute('width') || 800;
-        canvas.height = svg.getAttribute('height') || 600;
-
-        const img = new Image();
-        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(svgBlob);
-
-        img.onload = function() {
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--vscode-editor-background');
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-            
-            const pngDataUrl = canvas.toDataURL('image/png');
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            
-            vscode.postMessage({
-                command: 'generatePNG',
-                data: {
-                    pngDataUrl: pngDataUrl,
-                    filename: `data-object-size-treemap-${timestamp}.png`
-                }
-            });
-            
-            URL.revokeObjectURL(url);
-        };
-
-        img.src = url;
     }
 
     function escapeHtml(text) {
@@ -541,9 +596,9 @@
         const dataTypeText = detailsDataTypeFilter ? detailsDataTypeFilter.value.toLowerCase() : '';
         
         filteredDetailsData = originalDetailsData.filter(item => {
-            return item.dataObjectName.toLowerCase().includes(dataObjectText) &&
-                   item.propName.toLowerCase().includes(propertyText) &&
-                   item.dataType.toLowerCase().includes(dataTypeText);
+            return (item.dataObjectName || '').toLowerCase().includes(dataObjectText) &&
+                   (item.propName || '').toLowerCase().includes(propertyText) &&
+                   (item.dataType || '').toLowerCase().includes(dataTypeText);
         });
         
         renderDetailsTable();
@@ -555,12 +610,15 @@
         detailsTableBody.innerHTML = '';
         
         filteredDetailsData.forEach(item => {
+            // Handle null/undefined values gracefully
+            const sizeBytes = item.sizeBytes || 0;
+            
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${escapeHtml(item.dataObjectName)}</td>
-                <td>${escapeHtml(item.propName)}</td>
-                <td>${item.sizeBytes.toLocaleString()}</td>
-                <td>${escapeHtml(item.dataType)}</td>
+                <td>${escapeHtml(item.dataObjectName || 'Unknown')}</td>
+                <td>${escapeHtml(item.propName || 'Unknown')}</td>
+                <td>${sizeBytes.toLocaleString()}</td>
+                <td>${escapeHtml(item.dataType || 'Unknown')}</td>
                 <td>${escapeHtml(item.dataTypeSize || '')}</td>
             `;
             detailsTableBody.appendChild(row);
@@ -629,6 +687,23 @@
                 
                 // Filter and render
                 filterDetailsData();
+                break;
+                
+            case 'csvExportReady':
+                console.log('CSV export ready');
+                if (message.success !== false) {
+                    // Send CSV content to extension to save to workspace
+                    vscode.postMessage({
+                        command: 'saveCsvToWorkspace',
+                        data: {
+                            content: message.csvContent,
+                            filename: message.filename
+                        }
+                    });
+                } else {
+                    console.error('Error exporting CSV:', message.error);
+                    alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
+                }
                 break;
                 
             default:
