@@ -8,39 +8,44 @@ const vscode = acquireVsCodeApi();
 
 // State management
 let currentDataObjects = [];
+let filteredDataObjects = []; // For filtering
 let currentConfig = [];
 let currentForecast = null;
 let currentTab = 'config';
 let configSortColumn = null;
 let configSortDirection = 'asc';
+let selectedPeriodMonths = 60; // Default to 5 years
+let forecastChart = null; // Chart.js instance
 
 // Initialize the view
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Database Size Forecast View - DOM loaded');
+    initializeTabs();
     setupEventListeners();
     loadConfig();
 });
 
-// Tab switching functionality
-function showTab(tabName) {
-    // Update tab buttons
-    document.querySelectorAll('.tab').forEach(tab => {
-        if (tab.getAttribute('onclick') && tab.getAttribute('onclick').includes(tabName)) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
-    });
+// Initialize tab functionality
+function initializeTabs() {
+    const tabs = document.querySelectorAll('.tab');
     
-    // Update tab content
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchTab(tabName);
+        });
     });
+}
+
+// Switch between tabs
+function switchTab(tabName) {
+    // Remove active class from all tabs and content
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     
-    const targetTab = document.getElementById(tabName + '-tab');
-    if (targetTab) {
-        targetTab.classList.add('active');
-    }
+    // Add active class to selected tab and content
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(`${tabName}-tab`).classList.add('active');
     
     currentTab = tabName;
     
@@ -52,10 +57,31 @@ function showTab(tabName) {
     }
 }
 
+// Tab switching functionality (for compatibility with onclick)
+function showTab(tabName) {
+    switchTab(tabName);
+}
+
 // Setup event listeners
 function setupEventListeners() {
     // Message listener for extension communication
     window.addEventListener('message', handleExtensionMessage);
+    
+    // Initialize filter functionality when DOM is ready
+    setTimeout(() => {
+        initializeFilters();
+    }, 100);
+}
+
+// Initialize filter functionality
+function initializeFilters() {
+    // Add event listeners for filter inputs
+    const filterInputs = document.querySelectorAll('#filterDataObjectName, #filterParentObject, #filterMinSize, #filterMaxSize');
+    filterInputs.forEach(input => {
+        if (input) {
+            input.addEventListener('input', applyFilters);
+        }
+    });
 }
 
 // Handle messages from the extension
@@ -67,15 +93,18 @@ function handleExtensionMessage(event) {
         case 'configLoaded':
             console.log('Config data loaded:', message.data);
             currentDataObjects = message.data.dataObjects || [];
+            filteredDataObjects = [...currentDataObjects]; // Initialize filtered data
             currentConfig = message.data.config || [];
             renderConfigTable();
             break;
             
         case 'configSaved':
+            hideProcessing();
             showMessage(message.data.message, 'success');
             break;
             
         case 'forecastCalculated':
+            hideProcessing();
             showMessage(message.data.message, 'success');
             currentForecast = message.data.forecast;
             if (currentTab === 'forecast') {
@@ -90,6 +119,7 @@ function handleExtensionMessage(event) {
             break;
             
         case 'error':
+            hideProcessing();
             showMessage(message.data.message, 'error');
             break;
     }
@@ -102,6 +132,9 @@ function loadConfig() {
 
 // Save configuration data
 function saveConfig() {
+    const saveButton = document.querySelector('[onclick="saveConfig()"]');
+    showProcessing(saveButton, 'Saving...');
+    
     const configData = getConfigDataFromTable();
     vscode.postMessage({ 
         command: 'saveConfig', 
@@ -111,6 +144,9 @@ function saveConfig() {
 
 // Calculate forecast
 function calculateForecast() {
+    const calculateButton = document.querySelector('[onclick="calculateForecast()"]');
+    showProcessing(calculateButton, 'Calculating...');
+    
     vscode.postMessage({ command: 'calculateForecast' });
 }
 
@@ -124,6 +160,18 @@ function refreshData() {
     vscode.postMessage({ command: 'refreshData' });
 }
 
+// Change forecast period
+function changeForecastPeriod() {
+    const periodSelect = document.getElementById('period-select');
+    if (periodSelect) {
+        selectedPeriodMonths = parseInt(periodSelect.value);
+        // Re-render chart with new period if forecast data is available
+        if (currentForecast) {
+            renderForecastChart();
+        }
+    }
+}
+
 // Render the configuration table
 function renderConfigTable() {
     const tbody = document.getElementById('config-tbody');
@@ -134,13 +182,24 @@ function renderConfigTable() {
     
     tbody.innerHTML = '';
     
-    if (currentDataObjects.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="loading">No data objects found.</td></tr>';
+    // Use filtered data if available, otherwise use all data
+    const dataToRender = filteredDataObjects.length > 0 || 
+                         (document.getElementById('filterDataObjectName')?.value || 
+                          document.getElementById('filterParentObject')?.value ||
+                          document.getElementById('filterMinSize')?.value ||
+                          document.getElementById('filterMaxSize')?.value) 
+                         ? filteredDataObjects : currentDataObjects;
+    
+    if (dataToRender.length === 0) {
+        const message = filteredDataObjects.length === 0 && currentDataObjects.length > 0 
+            ? 'No data objects match the current filters.' 
+            : 'No data objects found.';
+        tbody.innerHTML = `<tr><td colspan="5" class="loading">${message}</td></tr>`;
         return;
     }
     
     // Sort the data objects if a sort is active
-    let sortedDataObjects = [...currentDataObjects];
+    let sortedDataObjects = [...dataToRender];
     if (configSortColumn !== null) {
         sortedDataObjects = sortConfigData(sortedDataObjects, configSortColumn, configSortDirection);
     }
@@ -213,6 +272,9 @@ function getConfigDataFromTable() {
 
 // Render the forecast chart
 function renderForecastChart() {
+    console.log('renderForecastChart called');
+    console.log('currentForecast:', currentForecast);
+    
     const forecastContent = document.getElementById('forecast-content');
     if (!forecastContent) {
         console.error('Forecast content div not found');
@@ -220,6 +282,7 @@ function renderForecastChart() {
     }
     
     if (!currentForecast) {
+        console.log('No forecast data available');
         forecastContent.innerHTML = `
             <div class="loading">
                 <p>No forecast data available. Please configure data objects and calculate forecast.</p>
@@ -230,21 +293,41 @@ function renderForecastChart() {
     
     // Create summary information
     const summary = currentForecast.summary || {};
+    const months = currentForecast.months || [];
+    
+    // Find the final month within selected period
+    const finalMonth = months.find(m => m.month === selectedPeriodMonths) || months[months.length - 1];
+    const finalSizeKb = finalMonth ? finalMonth.totalSize : summary.finalSizeKb;
+    
+    // Calculate period label
+    let periodLabel = '';
+    if (selectedPeriodMonths === 6) {
+        periodLabel = '6 months';
+    } else if (selectedPeriodMonths === 12) {
+        periodLabel = '1 year';
+    } else if (selectedPeriodMonths === 36) {
+        periodLabel = '3 years';
+    } else if (selectedPeriodMonths === 60) {
+        periodLabel = '5 years';
+    } else {
+        periodLabel = `${selectedPeriodMonths} months`;
+    }
+    
     const summaryHtml = `
         <div style="margin-bottom: 20px; padding: 15px; border: 1px solid var(--vscode-panel-border); border-radius: 2px;">
-            <h3>Forecast Summary</h3>
+            <h3>Forecast Summary (${periodLabel})</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                 <div>
                     <strong>Initial Size:</strong><br>
                     ${formatBytes(summary.initialSizeKb * 1024)}
                 </div>
                 <div>
-                    <strong>Final Size (5 years):</strong><br>
-                    ${formatBytes(summary.finalSizeKb * 1024)}
+                    <strong>Final Size (${periodLabel}):</strong><br>
+                    ${formatBytes(finalSizeKb * 1024)}
                 </div>
                 <div>
                     <strong>Growth Factor:</strong><br>
-                    ${(summary.growthFactor || 0).toFixed(2)}x
+                    ${(finalSizeKb / summary.initialSizeKb || 0).toFixed(2)}x
                 </div>
                 <div>
                     <strong>Generated:</strong><br>
@@ -269,27 +352,49 @@ function renderForecastChart() {
 
 // Draw the forecast chart using Chart.js
 function drawForecastChart() {
+    console.log('drawForecastChart called');
+    console.log('selectedPeriodMonths:', selectedPeriodMonths);
+    
     const canvas = document.getElementById('forecastChart');
     if (!canvas || !currentForecast) {
+        console.log('Canvas or currentForecast not available');
         return;
     }
     
     const ctx = canvas.getContext('2d');
     
+    // Destroy existing chart if it exists
+    if (forecastChart) {
+        forecastChart.destroy();
+        forecastChart = null;
+    }
+    
     // Prepare data for the chart
     const months = currentForecast.months || [];
-    const labels = months.map(m => m.month);
-    const totalSizes = months.map(m => m.totalSize / 1024); // Convert KB to MB
+    console.log('Total months available:', months.length);
+    console.log('First few months data:', months.slice(0, 3));
+    console.log('Month values:', months.slice(0, 5).map(m => m.month));
     
-    new Chart(ctx, {
+    // Filter data based on selected period
+    const filteredMonths = months.filter(m => m.month <= selectedPeriodMonths);
+    console.log('Filtered months:', filteredMonths.length);
+    console.log('selectedPeriodMonths:', selectedPeriodMonths, typeof selectedPeriodMonths);
+    
+    const labels = filteredMonths.map(m => `Month ${m.month}`);
+    const totalSizes = filteredMonths.map(m => m.totalSize / 1024); // Convert KB to MB
+    
+    console.log('Chart labels:', labels);
+    console.log('Chart data:', totalSizes);
+    
+    forecastChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
                 label: 'Total Database Size (MB)',
                 data: totalSizes,
-                borderColor: 'var(--vscode-charts-blue)',
-                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                borderColor: '#007ACC',
+                backgroundColor: 'rgba(0, 122, 204, 0.1)',
                 borderWidth: 2,
                 tension: 0.1
             }]
@@ -302,23 +407,41 @@ function drawForecastChart() {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Size (MB)'
+                        text: 'Size (MB)',
+                        color: '#cccccc'
+                    },
+                    ticks: {
+                        color: '#cccccc'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
                     }
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'Month'
+                        text: 'Time Period',
+                        color: '#cccccc'
+                    },
+                    ticks: {
+                        color: '#cccccc'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
                     }
                 }
             },
             plugins: {
                 title: {
                     display: true,
-                    text: 'Database Size Forecast (5 Years)'
+                    text: `Database Size Forecast (${selectedPeriodMonths} months)`,
+                    color: '#cccccc'
                 },
                 legend: {
-                    display: true
+                    display: true,
+                    labels: {
+                        color: '#cccccc'
+                    }
                 }
             }
         }
@@ -357,6 +480,37 @@ function showMessage(message, type = 'info') {
             messageElement.parentNode.removeChild(messageElement);
         }
     }, 5000);
+}
+
+// Show processing animation
+function showProcessing(button, text) {
+    if (button) {
+        // Store original content
+        button.setAttribute('data-original-content', button.innerHTML);
+        
+        // Add spinner and text
+        button.innerHTML = `<span class="spinner"></span>${text}`;
+        button.classList.add('button-processing');
+        button.disabled = true;
+    }
+}
+
+// Hide processing animation
+function hideProcessing() {
+    // Find all buttons with processing state
+    const processingButtons = document.querySelectorAll('.button-processing');
+    
+    processingButtons.forEach(button => {
+        // Restore original content
+        const originalContent = button.getAttribute('data-original-content');
+        if (originalContent) {
+            button.innerHTML = originalContent;
+            button.removeAttribute('data-original-content');
+        }
+        
+        button.classList.remove('button-processing');
+        button.disabled = false;
+    });
 }
 
 // Sort configuration table
@@ -435,4 +589,68 @@ function updateSortIcons() {
             activeIcon.className = `sort-icon ${configSortDirection}`;
         }
     }
+}
+
+// Toggle filter section visibility
+function toggleFilterSection() {
+    const filterContent = document.getElementById('filterContent');
+    const chevron = document.getElementById('filterChevron');
+    
+    if (filterContent && chevron) {
+        const isCollapsed = filterContent.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            filterContent.classList.remove('collapsed');
+            chevron.className = 'codicon codicon-chevron-down';
+        } else {
+            filterContent.classList.add('collapsed');
+            chevron.className = 'codicon codicon-chevron-right';
+        }
+    }
+}
+
+// Apply filters to the data objects
+function applyFilters() {
+    const nameFilter = document.getElementById('filterDataObjectName')?.value.toLowerCase() || '';
+    const parentFilter = document.getElementById('filterParentObject')?.value.toLowerCase() || '';
+    const minSize = parseFloat(document.getElementById('filterMinSize')?.value) || 0;
+    const maxSize = parseFloat(document.getElementById('filterMaxSize')?.value) || Infinity;
+    
+    filteredDataObjects = currentDataObjects.filter(dataObject => {
+        // Name filter
+        if (nameFilter && !dataObject.name.toLowerCase().includes(nameFilter)) {
+            return false;
+        }
+        
+        // Parent filter
+        const parentName = dataObject.parentObjectName || '';
+        if (parentFilter && !parentName.toLowerCase().includes(parentFilter)) {
+            return false;
+        }
+        
+        // Size range filter
+        const size = dataObject.calculatedSizeKB || 0;
+        if (size < minSize || size > maxSize) {
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // Re-render the table with filtered data
+    renderConfigTable();
+}
+
+// Clear all filters
+function clearFilters() {
+    const filterInputs = document.querySelectorAll('#filterDataObjectName, #filterParentObject, #filterMinSize, #filterMaxSize');
+    filterInputs.forEach(input => {
+        if (input) {
+            input.value = '';
+        }
+    });
+    
+    // Reset filtered data and re-render
+    filteredDataObjects = [...currentDataObjects];
+    renderConfigTable();
 }

@@ -252,10 +252,14 @@ function handleCalculateForecast(panel: vscode.WebviewPanel) {
         }
 
         const configContent = fs.readFileSync(configPath, 'utf8');
-        const config = JSON.parse(configContent);
+        const configData = JSON.parse(configContent);
 
+        // The config file contains an array of config items
+        // Each item should have: dataObjectName, dataSizeKb, expectedInstances, growthPercentage
+        console.log('Config data loaded:', configData.length, 'items');
+        
         // Calculate forecast for next 5 years (60 months)
-        const forecast = calculateForecastData(config);
+        const forecast = calculateForecastData(configData);
 
         // Save forecast
         const forecastPath = path.join(workspaceRoot, 'app-config-database-size-forecast.json');
@@ -323,6 +327,12 @@ function handleRefreshData(panel: vscode.WebviewPanel) {
  * Calculate forecast data based on configuration
  */
 function calculateForecastData(config: any[]) {
+    console.log('Calculating forecast data for config:', config.length, 'items');
+    if (config.length > 0) {
+        console.log('First config item structure:', Object.keys(config[0]));
+        console.log('First config item:', config[0]);
+    }
+    
     const months = [];
     const currentDate = new Date();
     
@@ -330,40 +340,52 @@ function calculateForecastData(config: any[]) {
     for (let month = 0; month < 60; month++) {
         const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + month, 1);
         const monthData = {
-            month: date.toISOString().substring(0, 7), // YYYY-MM format
+            month: month + 1, // Month number (1-60)
+            monthDate: date.toISOString().substring(0, 7), // YYYY-MM format
             totalSize: 0,
             dataObjects: {} as any
         };
         
         config.forEach(item => {
             if (item.dataObjectName && item.dataSizeKb && item.expectedInstances && item.growthPercentage !== undefined) {
-                // Calculate growth multiplier
-                const growthMultiplier = Math.pow(1 + (item.growthPercentage / 100), month);
+                // Calculate growth multiplier (month 0 = base, so we use month as the power)
+                const growthMultiplier = Math.pow(1 + (item.growthPercentage / 100 / 12), month); // Convert annual percentage to monthly
                 
                 // Calculate number of instances for this month
                 const instances = Math.round(item.expectedInstances * growthMultiplier);
                 
                 // Calculate total size for this data object
                 const objectSize = instances * item.dataSizeKb;
-                
+
                 monthData.dataObjects[item.dataObjectName] = {
                     instances: instances,
                     sizeKb: objectSize,
                     sizeMb: Math.round(objectSize / 1024 * 100) / 100,
                     sizeGb: Math.round(objectSize / (1024 * 1024) * 100) / 100
                 };
-                
+
                 monthData.totalSize += objectSize;
+            } else {
+                if (month === 0) { // Only log once per item
+                    console.log('Skipping config item (missing fields):', {
+                        dataObjectName: item.dataObjectName,
+                        dataSizeKb: item.dataSizeKb,
+                        expectedInstances: item.expectedInstances,
+                        growthPercentage: item.growthPercentage
+                    });
+                }
             }
-        });
-        
-        // Convert total size to different units
+        });        // Convert total size to different units
         monthData.totalSize = Math.round(monthData.totalSize * 100) / 100; // Round to 2 decimal places
         
         months.push(monthData);
     }
     
-    return {
+    console.log('Generated', months.length, 'months of data');
+    console.log('First month:', months[0]);
+    console.log('Last month:', months[59]);
+    
+    const result = {
         generatedAt: new Date().toISOString(),
         config: config,
         months: months,
@@ -374,6 +396,9 @@ function calculateForecastData(config: any[]) {
             growthFactor: months[0]?.totalSize > 0 ? (months[59]?.totalSize || 0) / months[0].totalSize : 0
         }
     };
+    
+    console.log('Forecast summary:', result.summary);
+    return result;
 }
 
 /**
@@ -391,94 +416,261 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Database Size Forecast</title>
+        <title>Analysis - Database Size Forecast</title>
         <link href="${codiconsUri}" rel="stylesheet" />
         <style>
             body {
-                font-family: var(--vscode-font-family);
-                font-size: var(--vscode-font-size);
-                color: var(--vscode-foreground);
-                background-color: var(--vscode-editor-background);
                 margin: 0;
                 padding: 20px;
-                line-height: 1.5;
-            }
-            .container {
-                max-width: 100%;
-                margin: 0 auto;
-            }
-            .header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 1px solid var(--vscode-panel-border);
-            }
-            .tabs {
-                display: flex;
-                margin-bottom: 20px;
-                border-bottom: 1px solid var(--vscode-panel-border);
-            }
-            .tab {
-                padding: 10px 20px;
-                cursor: pointer;
-                border: none;
-                background: none;
+                background-color: var(--vscode-editor-background);
                 color: var(--vscode-foreground);
-                border-bottom: 2px solid transparent;
+                font-family: var(--vscode-font-family);
                 font-size: var(--vscode-font-size);
             }
+            
+            .validation-header {
+                margin-bottom: 20px;
+            }
+            
+            .validation-header h2 {
+                margin: 0 0 10px 0;
+                color: var(--vscode-foreground);
+                font-size: 24px;
+            }
+            
+            .validation-header p {
+                margin: 0;
+                color: var(--vscode-descriptionForeground);
+                font-size: 14px;
+            }
+            
+            /* Tab styling following form details pattern */
+            .tabs {
+                display: flex;
+                border-bottom: 1px solid var(--vscode-panel-border);
+                margin-bottom: 20px;
+            }
+            
+            .tab {
+                padding: 8px 16px;
+                cursor: pointer;
+                background-color: var(--vscode-tab-inactiveBackground);
+                border: none;
+                outline: none;
+                color: var(--vscode-tab-inactiveForeground);
+                margin-right: 4px;
+                border-top-left-radius: 3px;
+                border-top-right-radius: 3px;
+                user-select: none;
+            }
+            
             .tab.active {
-                border-bottom-color: var(--vscode-focusBorder);
-                font-weight: bold;
+                background-color: var(--vscode-tab-activeBackground);
+                color: var(--vscode-tab-activeForeground);
+                border-bottom: 2px solid var(--vscode-focusBorder);
             }
-            .tab:hover {
-                background-color: var(--vscode-toolbar-hoverBackground);
-            }
+            
             .tab-content {
                 display: none;
+                padding: 15px;
+                background-color: var(--vscode-editor-background);
+                border: 1px solid var(--vscode-panel-border);
+                border-top: none;
+                border-radius: 0 0 3px 3px;
             }
+            
             .tab-content.active {
                 display: block;
             }
-            .button {
+            
+            /* Filter section styling */
+            .filter-section {
+                border: 1px solid var(--vscode-panel-border);
+                border-radius: 3px;
+                margin-bottom: 15px;
+                background-color: var(--vscode-sideBar-background);
+            }
+            
+            .filter-header {
+                padding: 8px 12px;
+                cursor: pointer;
+                user-select: none;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background-color: var(--vscode-list-hoverBackground);
+                border-radius: 3px 3px 0 0;
+            }
+            
+            .filter-header:hover {
+                background-color: var(--vscode-list-activeSelectionBackground);
+            }
+            
+            .filter-content {
+                padding: 15px;
+                border-top: 1px solid var(--vscode-panel-border);
+            }
+            
+            .filter-content.collapsed {
+                display: none;
+            }
+            
+            .filter-row {
+                display: flex;
+                gap: 15px;
+                margin-bottom: 10px;
+                flex-wrap: wrap;
+            }
+            
+            .filter-group {
+                display: flex;
+                flex-direction: column;
+                min-width: 150px;
+                flex: 1;
+            }
+            
+            .filter-group label {
+                font-weight: 600;
+                margin-bottom: 4px;
+                font-size: 12px;
+                color: var(--vscode-foreground);
+            }
+            
+            .filter-group input, .filter-group select {
+                padding: 4px 8px;
+                border: 1px solid var(--vscode-input-border);
+                background-color: var(--vscode-input-background);
+                color: var(--vscode-input-foreground);
+                border-radius: 2px;
+                font-size: 13px;
+            }
+            
+            .filter-group input:focus, .filter-group select:focus {
+                outline: 1px solid var(--vscode-focusBorder);
+                outline-offset: -1px;
+            }
+            
+            .filter-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: 15px;
+                padding-top: 10px;
+                border-top: 1px solid var(--vscode-panel-border);
+            }
+            
+            .filter-button-secondary {
+                background-color: var(--vscode-button-secondaryBackground);
+                color: var(--vscode-button-secondaryForeground);
+                border: none;
+                padding: 6px 14px;
+                border-radius: 2px;
+                cursor: pointer;
+                font-size: 13px;
+            }
+            
+            .filter-button-secondary:hover {
+                background-color: var(--vscode-button-secondaryHoverBackground);
+            }
+            
+            /* Header actions */
+            .header-actions {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+            
+            .icon-button {
+                background: none;
+                border: none;
+                color: var(--vscode-foreground);
+                padding: 5px;
+                border-radius: 3px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+            }
+            
+            .icon-button:hover {
+                background: var(--vscode-toolbar-hoverBackground);
+                color: var(--vscode-foreground);
+            }
+            
+            .icon-button:focus {
+                outline: 1px solid var(--vscode-focusBorder);
+                outline-offset: 2px;
+            }
+            
+            .primary-button {
                 background-color: var(--vscode-button-background);
                 color: var(--vscode-button-foreground);
                 border: none;
-                padding: 8px 16px;
-                cursor: pointer;
+                padding: 6px 14px;
                 border-radius: 2px;
-                font-size: var(--vscode-font-size);
-                margin-right: 10px;
-                margin-bottom: 10px;
+                cursor: pointer;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
             }
-            .button:hover {
+            
+            .primary-button:hover {
                 background-color: var(--vscode-button-hoverBackground);
             }
-            .button.secondary {
+            
+            .secondary-button {
                 background-color: var(--vscode-button-secondaryBackground);
                 color: var(--vscode-button-secondaryForeground);
+                border: none;
+                padding: 6px 14px;
+                border-radius: 2px;
+                cursor: pointer;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
             }
-            .button.secondary:hover {
+            
+            .secondary-button:hover {
                 background-color: var(--vscode-button-secondaryHoverBackground);
             }
+            
+            /* Table styling */
+            .table-container {
+                overflow-x: auto;
+                border: 1px solid var(--vscode-panel-border);
+                border-radius: 3px;
+            }
+            
             table {
                 width: 100%;
                 border-collapse: collapse;
-                margin: 20px 0;
                 background-color: var(--vscode-editor-background);
             }
+            
             th, td {
                 padding: 8px 12px;
                 text-align: left;
                 border-bottom: 1px solid var(--vscode-panel-border);
             }
+            
             th {
-                background-color: var(--vscode-editor-inactiveSelectionBackground);
-                font-weight: bold;
-                position: relative;
+                background-color: var(--vscode-list-hoverBackground);
+                font-weight: 600;
+                cursor: pointer;
+                user-select: none;
+                position: sticky;
+                top: 0;
+                z-index: 10;
             }
+            
+            th:hover {
+                background-color: var(--vscode-list-activeSelectionBackground);
+            }
+            
             .sort-icon {
                 display: inline-block;
                 margin-left: 5px;
@@ -494,9 +686,11 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
             .sort-icon.desc:after {
                 content: '↓';
             }
+            
             tr:hover {
                 background-color: var(--vscode-list-hoverBackground);
             }
+            
             input, select {
                 background-color: var(--vscode-input-background);
                 color: var(--vscode-input-foreground);
@@ -510,6 +704,7 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
             input:focus, select:focus {
                 outline: 1px solid var(--vscode-focusBorder);
             }
+            
             .error {
                 color: var(--vscode-errorForeground);
                 background-color: var(--vscode-inputValidation-errorBackground);
@@ -538,34 +733,90 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                 padding: 20px;
                 color: var(--vscode-descriptionForeground);
             }
+            
+            /* Processing animation */
+            .processing {
+                opacity: 0.6;
+                pointer-events: none;
+                position: relative;
+            }
+            
+            .spinner {
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                border: 2px solid var(--vscode-button-foreground);
+                border-radius: 50%;
+                border-top-color: transparent;
+                animation: spin 1s ease-in-out infinite;
+                margin-right: 6px;
+            }
+            
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            
+            .button-processing {
+                opacity: 0.6;
+                pointer-events: none;
+            }
         </style>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <h1><i class="codicon codicon-graph-line"></i> Database Size Forecast</h1>
-                <div>
-                    <button class="button secondary" onclick="refreshData()">
-                        <i class="codicon codicon-refresh"></i> Refresh
-                    </button>
+        <div class="validation-header">
+            <h2><i class="codicon codicon-graph-line"></i> Database Size Forecast</h2>
+            <p>Configure and forecast database growth based on data object sizes and usage patterns</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="config">Config</button>
+            <button class="tab" data-tab="forecast">Forecast</button>
+        </div>
+
+        <div id="config-tab" class="tab-content active">
+            <div class="filter-section">
+                <div class="filter-header" onclick="toggleFilterSection()">
+                    <span class="codicon codicon-chevron-down" id="filterChevron"></span>
+                    <span>Filters</span>
+                </div>
+                <div class="filter-content" id="filterContent">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Data Object Name:</label>
+                            <input type="text" id="filterDataObjectName" placeholder="Filter by data object name...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Parent Object:</label>
+                            <input type="text" id="filterParentObject" placeholder="Filter by parent object...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Size Range (KB):</label>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <input type="number" id="filterMinSize" placeholder="Min" style="width: 80px;">
+                                <span>-</span>
+                                <input type="number" id="filterMaxSize" placeholder="Max" style="width: 80px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-actions">
+                        <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
+                    </div>
                 </div>
             </div>
-
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('config')">Config</button>
-                <button class="tab" onclick="showTab('forecast')">Forecast</button>
+            
+            <div class="header-actions">
+                <button class="secondary-button" onclick="refreshData()">
+                    <i class="codicon codicon-refresh"></i> Refresh
+                </button>
+                <button class="primary-button" onclick="saveConfig()">
+                    <i class="codicon codicon-save"></i> Save Configuration
+                </button>
+                <button class="primary-button" onclick="calculateForecast()">
+                    <i class="codicon codicon-graph-line"></i> Calculate Forecast
+                </button>
             </div>
-
-            <div id="config-tab" class="tab-content active">
-                <div style="margin-bottom: 20px;">
-                    <button class="button" onclick="saveConfig()">
-                        <i class="codicon codicon-save"></i> Save Configuration
-                    </button>
-                    <button class="button" onclick="calculateForecast()">
-                        <i class="codicon codicon-graph-line"></i> Calculate Forecast
-                    </button>
-                </div>
-                
+            
+            <div class="table-container">
                 <table id="config-table">
                     <thead>
                         <tr>
@@ -593,17 +844,32 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                     </tbody>
                 </table>
             </div>
+        </div>
 
-            <div id="forecast-tab" class="tab-content">
-                <div id="forecast-content">
-                    <div class="loading">
-                        <p>No forecast data available. Please configure data objects and calculate forecast.</p>
-                    </div>
+        <div id="forecast-tab" class="tab-content">
+            <div class="header-actions">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label for="period-select" style="font-size: 13px; color: var(--vscode-foreground);">Display Period:</label>
+                    <select id="period-select" onchange="changeForecastPeriod()" style="width: auto; min-width: 150px;">
+                        <option value="6">Next 6 Months</option>
+                        <option value="12">Next Year</option>
+                        <option value="36">Next 3 Years</option>
+                        <option value="60" selected>Next 5 Years</option>
+                    </select>
+                </div>
+                <button class="secondary-button" onclick="refreshData()">
+                    <i class="codicon codicon-refresh"></i> Refresh
+                </button>
+            </div>
+            
+            <div id="forecast-content">
+                <div class="loading">
+                    <p>No forecast data available. Please configure data objects and calculate forecast.</p>
                 </div>
             </div>
-
-            <div id="messages"></div>
         </div>
+
+        <div id="messages"></div>
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="${scriptUri}"></script>

@@ -1,5 +1,83 @@
 ## 2025-09-20
 
+### Fix Database Size Forecast Tab Not Displaying Data
+**Status**: COMPLETED
+**Command**: "the forecast tab is not displaying data"
+**Files Modified**:
+- `src/commands/databaseSizeForecastCommands.ts`
+- `src/webviews/databaseSizeForecastView.js`
+
+**Issues Found and Fixed**:
+1. **Data Structure Mismatch**: The calculateForecastData() function was creating month data with string dates, but the frontend was expecting numeric month values for filtering
+2. **Growth Calculation Error**: Growth percentage was being applied annually instead of monthly
+3. **Chart.js Instance Management**: Missing proper chart destruction and recreation
+4. **CSS Variable Compatibility**: VS Code CSS variables not working properly in Chart.js context
+
+**Implementation**:
+- Updated calculateForecastData() to include both numeric month (1-60) and date string (monthDate)
+- Fixed growth calculation to use monthly compounding: `Math.pow(1 + (percentage / 100 / 12), month)`
+- Added forecastChart variable for proper Chart.js instance management with destroy/recreate
+- Replaced CSS variables with standard colors in Chart.js configuration
+- Added comprehensive debug logging to trace data flow and identify issues
+- Fixed data filtering logic to use numeric month values for period selection
+
+**Architecture**:
+- Maintains existing data structure while adding numeric month field for filtering
+- Proper Chart.js lifecycle management prevents memory leaks and display issues
+- Debug logging provides transparency for troubleshooting future issues
+
+## 2025-09-20
+
+### Add Filtering Section to Database Size Forecast Config Tab
+**Status**: COMPLETED
+**Command**: "on the config tab, show a filtering section above the table, similar in design to the metrics analysis view"
+**Files Modified**:
+- `src/commands/databaseSizeForecastCommands.ts`
+- `src/webviews/databaseSizeForecastView.js`
+
+**Implementation**:
+Added comprehensive filtering functionality to the Database Size Forecast config tab:
+- Added collapsible filter section with toggle chevron icon (matching metrics analysis design)
+- Three filter types: Data Object Name (text), Parent Object (text), Size Range (number range)
+- Clear All button to reset filters
+- Complete CSS styling matching VS Code theme variables and metrics analysis patterns
+- JavaScript filtering logic with real-time filtering as user types
+- Updated renderConfigTable() to use filtered data with proper empty state messages
+- Filter state management with filteredDataObjects array
+- Filter event listeners and initialization on DOM ready
+
+**Architecture**:
+- Follows exact same design pattern as metrics analysis view
+- Maintains existing sorting functionality while applying filters
+- Proper separation of concerns: HTML structure, CSS styling, JavaScript logic
+- Filter inputs trigger real-time table updates without extension communication
+
+## 2025-09-20
+
+### Implement Period Selection for Database Size Forecast
+**Status**: COMPLETED  
+**Command**: "Add a dropdown to the forecast tab to select the forecast period (6 months, 1 year, 3 years, 5 years) with 5 years as default"
+**Files Modified**:
+- `src/webviews/databaseSizeForecastView.js`
+
+**Implementation**:
+Added forecast period selection functionality with dynamic chart and summary updates:
+- Added dropdown HTML with period options (6 months, 1 year, 3 years, 5 years)
+- Updated CSS for header-actions layout using space-between
+- Added selectedPeriodMonths state variable (default 60 months) 
+- Implemented changeForecastPeriod() function to handle dropdown changes
+- Modified drawForecastChart() to filter data based on selected period
+- Updated forecast summary to show period-specific final size and growth factor
+- Enhanced chart title to display selected period
+- Added proper VS Code theme styling for chart scales and labels
+
+**Architecture**: 
+- Period selection updates both chart visualization and summary calculations
+- Maintains existing data structure while providing filtered views
+- Uses proper JavaScript state management for period tracking
+
+## 2025-09-20
+
 ### Update Text Field Size to 20,000 bytes in Data Object Size Analysis
 **Status**: COMPLETED
 **Command**: "increase to 20000"

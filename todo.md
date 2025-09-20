@@ -19,6 +19,13 @@ database size forecast...
     - using config data, calculate forecast data. save in app-config-database-size-forecast.json.  calc data by month for next 5 years.
 - forecast tab
   - display graph of forecast
+  - show a stacked line graph, each line is a data object
+- data tab
+  - forecast data in table
+  - columns
+    - data object name and final 'total' row
+    - [column for each month for next 5 years]
+  - filter section above the table
 
 data object usage complexity...
 - compare to data object size instead of property count?
