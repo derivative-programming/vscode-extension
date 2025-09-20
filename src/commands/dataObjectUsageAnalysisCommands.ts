@@ -1585,10 +1585,6 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             </div>
             <div id="treemap-loading" class="loading">Loading treemap...</div>
             <div id="treemap-visualization" class="treemap-viz hidden"></div>
-            <div id="treemap-inline-preview" class="treemap-inline-preview hidden">
-                <h4>Latest Export Preview</h4>
-                <div id="treemap-inline-preview-content"></div>
-            </div>
             <div class="treemap-legend">
                 <div class="legend-item">
                     <span class="legend-color high-usage"></span>
@@ -1631,10 +1627,6 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             </div>
             <div id="bubble-loading" class="loading">Loading bubble chart...</div>
             <div id="bubble-visualization" class="bubble-viz hidden"></div>
-            <div id="bubble-inline-preview" class="treemap-inline-preview hidden">
-                <h4>Latest Bubble Chart Export</h4>
-                <div id="bubble-inline-preview-content"></div>
-            </div>
             <div class="bubble-quadrants">
                 <div class="quadrant-legend">
                     <div class="quadrant-item">

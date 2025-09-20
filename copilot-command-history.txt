@@ -1,5 +1,17 @@
 ## 2025-09-20
 
+### Remove Inline PNG Preview Display from Data Object Usage Analysis
+**Status**: COMPLETED
+**Files Modified**: 
+- `src/commands/dataObjectUsageAnalysisCommands.ts` - Removed HTML elements for treemap and bubble inline previews
+- `src/webviews/dataObjectUsageAnalysisView.js` - Removed JavaScript code that creates and displays inline previews
+
+**Architecture Notes**:
+- Removed inline preview functionality that displayed last generated PNG at bottom of tabs
+- Cleaned up generateTreemapPng() and generateBubbleChartPng() functions to only save files, not show previews
+- Also removed inline preview code from generateTreemapSvg() function
+- PNG generation still works but no longer displays preview images in the UI
+
 ### Reposition Bubble Chart Tab Actions to Top Right
 **Status**: COMPLETED
 **Files Modified**: 

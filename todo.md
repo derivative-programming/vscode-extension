@@ -3,8 +3,6 @@ Agent todo items...
 
 data object size analysis 
 - count text as 20,000 bytes
-- refresh buttons should show animation while processing
-- different design than data object usage analysis (colors, icon buttons)
 - generate png should generate image immediately, not select a location for the file.
 - issue on sorting columns in summary tab. its changing the rows displayed
 - details tab as second tab

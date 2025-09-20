@@ -1164,22 +1164,6 @@ function generateTreemapSvg() {
             command: 'saveSvgToWorkspace',
             data: { content: svgString, filename, type: 'treemap' }
         });
-        // Inline SVG preview (vector)
-        const preview = document.getElementById('treemap-inline-preview');
-        const previewContent = document.getElementById('treemap-inline-preview-content');
-        if (preview && previewContent) {
-            preview.classList.remove('hidden');
-            const vectorWrapper = document.createElement('div');
-            vectorWrapper.style.border = '1px solid var(--vscode-editorWidget-border,#ccc)';
-            vectorWrapper.style.marginBottom = '8px';
-            // Remove XML decl and <style> block (CSP friendly) before injecting
-            let inlineSafe = svgString
-                .replace(/<\?xml[^>]*>/, '')
-                .replace(/<style[\s\S]*?<\/style>/gi, '');
-            vectorWrapper.innerHTML = inlineSafe;
-            previewContent.innerHTML = '';
-            previewContent.appendChild(vectorWrapper);
-        }
         console.log('SVG export initiated for treemap with enhanced styling');
         
     } catch (error) {
@@ -1222,20 +1206,6 @@ function generateTreemapSvg() {
                         command: 'savePngToWorkspace',
                         data: { base64, filename, type: 'treemap' }
                     });
-                    // Inline preview
-                    const preview = document.getElementById('treemap-inline-preview');
-                    const previewContent = document.getElementById('treemap-inline-preview-content');
-                    if (preview && previewContent) {
-                        preview.classList.remove('hidden');
-                        // Preserve existing SVG preview if present
-                        const imgEl = document.createElement('img');
-                        imgEl.src = base64;
-                        imgEl.alt = 'Treemap PNG Preview';
-                        imgEl.style.maxWidth = '100%';
-                        imgEl.style.border = '1px solid var(--vscode-editorWidget-border,#ccc)';
-                        // Append instead of replace to show both formats
-                        previewContent.appendChild(imgEl);
-                    }
                 };
                 reader.readAsDataURL(blob);
             }, 'image/png');
@@ -1326,18 +1296,6 @@ function generateTreemapSvg() {
                             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
                             const filename = `data-object-usage-bubble-${timestamp}.png`;
                             vscode.postMessage({ command: 'savePngToWorkspace', data: { base64, filename, type: 'bubble' } });
-                            const preview = document.getElementById('bubble-inline-preview');
-                            const previewContent = document.getElementById('bubble-inline-preview-content');
-                            if (preview && previewContent) {
-                                preview.classList.remove('hidden');
-                                const imgEl = document.createElement('img');
-                                imgEl.src = base64;
-                                imgEl.alt = 'Bubble Chart PNG Preview';
-                                imgEl.style.maxWidth = '100%';
-                                imgEl.style.border = '1px solid var(--vscode-editorWidget-border,#ccc)';
-                                previewContent.innerHTML = '';
-                                previewContent.appendChild(imgEl);
-                            }
                         };
                         reader.readAsDataURL(b);
                     }, 'image/png');
