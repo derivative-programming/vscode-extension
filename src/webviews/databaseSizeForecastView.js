@@ -179,6 +179,33 @@ function refreshData() {
     vscode.postMessage({ command: 'refreshData' });
 }
 
+// Reset configuration fields to default values
+function resetConfig() {
+    // Get the sorted data objects to match the current table order
+    let sortedDataObjects = [...currentDataObjects];
+    if (configSortColumn !== null) {
+        sortedDataObjects = sortConfigData(sortedDataObjects, configSortColumn, configSortDirection);
+    }
+    
+    sortedDataObjects.forEach((dataObject, index) => {
+        const seedCountInput = document.getElementById(`seedcount-${index}`);
+        const instancesInput = document.getElementById(`instances-${index}`);
+        const growthInput = document.getElementById(`growth-${index}`);
+        
+        if (seedCountInput) {
+            seedCountInput.value = '1'; // Default seed count
+        }
+        if (instancesInput) {
+            instancesInput.value = '1'; // Default instances
+        }
+        if (growthInput) {
+            growthInput.value = '0.0'; // Default growth percentage
+        }
+    });
+    
+    showMessage('Configuration fields reset to default values.', 'success');
+}
+
 // Change forecast period
 function changeForecastPeriod() {
     const periodSelect = document.getElementById('period-select');

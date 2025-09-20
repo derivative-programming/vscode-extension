@@ -701,6 +701,15 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                 margin-bottom: 15px;
             }
             
+            /* Header actions for config tab - right justified buttons */
+            .header-actions-right {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+            
             .display-mode-group {
                 display: flex;
                 align-items: center;
@@ -1028,9 +1037,12 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                 </div>
             </div>
             
-            <div class="header-actions">
+            <div class="header-actions-right">
                 <button class="secondary-button" onclick="refreshData()">
                     <i class="codicon codicon-refresh"></i> Refresh
+                </button>
+                <button class="secondary-button" onclick="resetConfig()">
+                    <i class="codicon codicon-discard"></i> Reset
                 </button>
                 <button class="primary-button" onclick="saveConfig()">
                     <i class="codicon codicon-save"></i> Save Configuration

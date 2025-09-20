@@ -1,32 +1,6 @@
 Agent todo items...
 
-
-data object size analysis...
-- allow config of how many expected rows per parent row. 
-- able to show chart based on number of users how large db will be
-
-database size forecast...
-- seed count column?
-- calculate size of each db using logic in data object size analysis view
-- config tab
-  - row for each data object.  
-  - columns
-    - data object name
-    - data size of each object instance (kb)
-    - parent data object name
-    - expected avg number of data object instances per parent data object instance
-    - forecasted growth per month (percentage)
-    - store data in new json file app-config-database-size-forecast-config.json
-    - using config data, calculate forecast data. save in app-config-database-size-forecast.json.  calc data by month for next 5 years.
-- forecast tab
-  - display graph of forecast
-  - show a stacked line graph, each line is a data object
-- data tab
-  - forecast data in table
-  - columns
-    - data object name and final 'total' row
-    - [column for each month for next 5 years]
-  - filter section above the table
+  
 
 data object usage complexity...
 - compare to data object size instead of property count?
