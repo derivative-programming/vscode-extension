@@ -1,18 +1,7 @@
 Agent todo items...
 
+ 
 
-data object size analysis 
-- count text as 20,000 bytes
-- generate png should generate image immediately, not select a location for the file.
-- issue on sorting columns in summary tab. its changing the rows displayed
-- details tab as second tab
-- summary tab - add far right column to display 'view details' button that shows the details tab and filters to that data object
-
-
-analysis treeview item... 
-- data object sub item
-  - proportional usage sub item (on click open data object usage view proportional usage tab)
-  - complexity vs usage sub item(on click open data object usage view complexity vs usage tab)
 
 png/svg button to icon button of screenshot icon? camera?
 

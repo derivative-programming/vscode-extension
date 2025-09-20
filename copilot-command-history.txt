@@ -1,5 +1,24 @@
 ## 2025-09-20
 
+### Update Text Field Size to 20,000 bytes in Data Object Size Analysis
+**Status**: COMPLETED
+**Command**: "increase to 20000"
+**Files Modified**: 
+- `src/commands/dataObjectSizeAnalysisCommands.ts`
+
+**Implementation**:
+Updated the `calculatePropertySize` function to set text field properties to 20,000 bytes instead of 10,000 bytes:
+
+```typescript
+case 'text':
+    return 20000; // As specified: text props count as 20,000 bytes
+```
+
+**Impact**:
+- Text fields now contribute 20KB instead of 10KB to data object size calculations
+- Affects summary totals, detail views, treemap visualization, and CSV exports
+- Provides more realistic storage estimates for text content
+
 ### Remove Inline PNG Preview Display from Data Object Usage Analysis
 **Status**: COMPLETED
 **Files Modified**: 

@@ -444,7 +444,7 @@ function calculatePropertySize(prop: any): number {
     
     switch (dataType) {
         case 'text':
-            return 10000; // As specified: text props count as 10,000 bytes
+            return 20000; // As specified: text props count as 20,000 bytes
             
         case 'nvarchar':
             // Unicode string - 2 bytes per character, default 100 characters
