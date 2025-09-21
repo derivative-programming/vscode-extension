@@ -1,5 +1,26 @@
 ## 2025-09-21
 
+### Add User Story Journey to ANALYSIS Tree View
+**Status**: ✅ COMPLETED SUCCESSFULLY  
+**Command**: "add sub item 'User Story Journey' under ANALYSIS in treeview to open it"
+
+**Implementation Summary:**
+- Added "User Story Journey" sub-item under ANALYSIS section in tree view
+- Connected to existing `appdna.userStoriesJourney` command that was already registered
+- Added descriptive tooltip explaining the functionality
+- Positioned alphabetically within analysis items for consistency
+
+**Files Modified:**
+- `src/providers/jsonTreeDataProvider.ts`: Added User Story Journey item to ANALYSIS section
+
+**Architecture Notes:**
+- Leveraged existing command registration and functionality
+- Followed established pattern for analysis items (tooltip, command, contextValue)
+- Maintains consistency with other analysis tools in the tree view
+- No additional command registration needed as command already existed
+
+**Status**: ✅ COMPLETED SUCCESSFULLY
+
 ### Add Tabbed Interface to User Stories Journey View
 **Status**: ✅ COMPLETED SUCCESSFULLY  
 **Command**: "we want to add tabs to this view. the current display should be in a 'User Stories' tab. use a similar tab design as the metric analysis view"

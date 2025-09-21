@@ -682,6 +682,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     arguments: []
                 };
                 items.push(databaseSizeForecastItem);
+
+                // Create User Story Journey item
+                const userStoryJourneyItem = new JsonTreeItem(
+                    'User Story Journey',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisUserStoryJourney'
+                );
+                userStoryJourneyItem.tooltip = "Analyze user story journeys, page distances, and navigation patterns across the application";
+                userStoryJourneyItem.command = {
+                    command: 'appdna.userStoriesJourney',
+                    title: 'Show User Story Journey Analysis',
+                    arguments: []
+                };
+                items.push(userStoryJourneyItem);
                 
                 return Promise.resolve(items);
             } catch (error) {
