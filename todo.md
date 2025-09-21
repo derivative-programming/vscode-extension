@@ -24,13 +24,6 @@ page complexity analysis view...
   - histogram of page complexity ranges (simple, medium, complex, very complex)
 
 user journey view... (exists)
-- add sub item 'User Story User Journey' under ANALYSIS in treeview to open it
-- tab: metrics...
-  - Average pages per story
-  - Median pages per story
-  - Standard deviation
-  - Min/Max complexity
-  - Complexity distribution (simple/medium/complex categories)
 Tab: User Journey Length Distribution
 const complexityRanges = {
     'Simple (1-2 pages)': stories.filter(s => s.pageCount <= 2).length,
@@ -75,6 +68,10 @@ new metrics?
 - Track progress on user story completion 
 - Foreign Key Relationships Count - Analyze object references
 - Index Count - Analyze index usage 
+  - Average page journey per story
+  - Median page journeys per story
+  - page journeys Standard deviation
+  - page journeys Min/Max complexity
 
 
 find data object circular references?

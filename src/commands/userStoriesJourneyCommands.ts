@@ -1700,6 +1700,166 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         .empty-state li {
                             margin: 8px 0;
                         }
+
+                        /* Treemap styles */
+                        .treemap-container {
+                            padding: 15px;
+                        }
+                        
+                        .treemap-header {
+                            margin-bottom: 20px;
+                        }
+                        
+                        .treemap-header-content {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-start;
+                            gap: 15px;
+                        }
+                        
+                        .treemap-title {
+                            flex: 1;
+                        }
+                        
+                        .treemap-actions {
+                            display: flex;
+                            gap: 10px;
+                            align-items: flex-start;
+                        }
+                        
+                        .svg-export-btn {
+                            background: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border: 1px solid var(--vscode-button-border);
+                            border-radius: 2px;
+                            padding: 6px 12px;
+                            font-size: 13px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            white-space: nowrap;
+                        }
+                        
+                        .svg-export-btn:hover {
+                            background: var(--vscode-button-hoverBackground);
+                        }
+                        
+                        .svg-export-btn:active {
+                            background: var(--vscode-button-activeBackground);
+                        }
+                        
+                        .svg-export-btn .codicon {
+                            font-size: 14px;
+                        }
+                        
+                        .treemap-header h3 {
+                            margin: 0 0 5px 0;
+                            color: var(--vscode-foreground);
+                            font-size: 16px;
+                        }
+                        
+                        .treemap-header p {
+                            margin: 0;
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 12px;
+                        }
+                        
+                        .treemap-viz {
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            margin-bottom: 15px;
+                            overflow: hidden;
+                        }
+                        
+                        .treemap-legend {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 15px;
+                            font-size: 12px;
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        .legend-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 5px;
+                        }
+                        
+                        .legend-color {
+                            width: 16px;
+                            height: 16px;
+                            border-radius: 2px;
+                            border: 1px solid var(--vscode-panel-border);
+                        }
+                        
+                        /* Treemap rectangle styles */
+                        .treemap-rect {
+                            stroke: var(--vscode-panel-border);
+                            stroke-width: 1px;
+                            cursor: pointer;
+                            transition: opacity 0.2s;
+                        }
+                        
+                        .treemap-rect:hover {
+                            opacity: 0.8;
+                            stroke-width: 2px;
+                        }
+                        
+                        .treemap-text {
+                            font-family: var(--vscode-font-family);
+                            font-size: 11px;
+                            fill: white;
+                            text-anchor: middle;
+                            dominant-baseline: middle;
+                            pointer-events: none;
+                            text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+                        }
+                        
+                        .treemap-tooltip {
+                            position: absolute;
+                            background: var(--vscode-editorHoverWidget-background);
+                            border: 1px solid var(--vscode-editorHoverWidget-border);
+                            border-radius: 4px;
+                            padding: 8px;
+                            font-size: 12px;
+                            color: var(--vscode-editorHoverWidget-foreground);
+                            pointer-events: none;
+                            z-index: 1000;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                        }
+
+                        /* Journey-specific legend colors - matching data object size analysis pattern */
+                        .legend-color.journey-simple {
+                            background-color: #6c757d;  /* Simple -> Gray (like Tiny Size) */
+                        }
+                        
+                        .legend-color.journey-medium {
+                            background-color: #28a745;  /* Medium -> Green (like Small Size) */
+                        }
+                        
+                        .legend-color.journey-complex {
+                            background-color: #f66a0a;  /* Complex -> Orange (like Medium Size) */
+                        }
+                        
+                        .legend-color.journey-very-complex {
+                            background-color: #d73a49;  /* Very Complex -> Red (like Large Size) */
+                        }
+                        
+                        .journey-treemap-tooltip {
+                            position: absolute;
+                            background: var(--vscode-editorHoverWidget-background);
+                            border: 1px solid var(--vscode-editorHoverWidget-border);
+                            border-radius: 4px;
+                            padding: 8px;
+                            font-size: 12px;
+                            color: var(--vscode-editorHoverWidget-foreground);
+                            pointer-events: none;
+                            z-index: 1000;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                            max-width: 300px;
+                            word-wrap: break-word;
+                        }
                     </style>
                 </head>
                 <body>
@@ -1710,7 +1870,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
 
                     <div class="tabs">
                         <button class="tab active" data-tab="user-stories">User Stories</button>
-                        <button class="tab" data-tab="analytics">Analytics</button>
+                        <button class="tab" data-tab="journey-visualization">Journey Visualization</button>
                     </div>
 
                     <div id="user-stories-tab" class="tab-content active">
@@ -1775,20 +1935,48 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                     </div>
                 </div>
 
-                <!-- Analytics Tab Content -->
-                <div id="analytics-tab" class="tab-content">
-                    <div class="analytics-placeholder">
-                        <div class="empty-state">
-                            <h3>Journey Analytics</h3>
-                            <p>Coming soon: Advanced analytics for user journeys including:</p>
-                            <ul style="text-align: left; display: inline-block; margin: 15px 0;">
-                                <li>Page usage frequency analysis</li>
-                                <li>Role-based journey patterns</li>
-                                <li>Journey complexity metrics</li>
-                                <li>Orphaned page detection</li>
-                                <li>Journey bottleneck identification</li>
-                            </ul>
+                <!-- Journey Visualization Tab Content -->
+                <div id="journey-visualization-tab" class="tab-content">
+                    <div class="treemap-container">
+                        <div class="treemap-header">
+                            <div class="treemap-header-content">
+                                <div class="treemap-title">
+                                    <h3>User Story Journey Length Visualization</h3>
+                                    <p>Rectangle size represents the number of pages in each user story journey. Hover for story details.</p>
+                                </div>
+                                <div class="treemap-actions">
+                                    <button id="refreshJourneyTreemapButton" class="icon-button" title="Refresh Data">
+                                        <i class="codicon codicon-refresh"></i>
+                                    </button>
+                                    <button id="generateJourneyTreemapPngBtn" class="svg-export-btn">
+                                        <span class="codicon codicon-device-camera"></span>
+                                        Generate PNG
+                                    </button>
+                                </div>
+                            </div>
                         </div>
+                        <div id="journey-treemap-loading" class="loading">Loading journey visualization...</div>
+                        <div id="journey-treemap-visualization" class="treemap-viz hidden"></div>
+                        <div class="treemap-legend">
+                            <div class="legend-item">
+                                <span class="legend-color journey-simple"></span>
+                                <span>Simple (1-2 pages)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color journey-medium"></span>
+                                <span>Medium (3-5 pages)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color journey-complex"></span>
+                                <span>Complex (6-10 pages)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color journey-very-complex"></span>
+                                <span>Very Complex (10+ pages)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                     </div>
                 </div>
 
@@ -1896,6 +2084,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         </div>
                     </div>
 
+                    <script src="https://d3js.org/d3.v7.min.js"></script>
                     <script src="${scriptUri}"></script>
                 </body>
                 </html>

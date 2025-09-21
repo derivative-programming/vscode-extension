@@ -92,38 +92,6 @@ function clearFilters() {
     renderRecordInfo();
 }
 
-// Initialize tab functionality
-function initializeTabs() {
-    const tabs = document.querySelectorAll('.tab');
-    
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const tabName = this.getAttribute('data-tab');
-            switchTab(tabName);
-        });
-    });
-}
-
-// Switch between tabs
-function switchTab(tabName) {
-    // Remove active class from all tabs and content
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
-    // Add active class to selected tab and content
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    document.getElementById(`${tabName}-tab`).classList.add('active');
-    
-    // Handle tab-specific logic
-    if (tabName === 'user-stories') {
-        // Refresh user stories data if needed
-        // (current functionality is already in user-stories tab)
-    } else if (tabName === 'analytics') {
-        // Analytics tab selected - could trigger analytics loading in the future
-        console.log('Analytics tab selected - placeholder for future analytics functionality');
-    }
-}
-
 // Refresh data (global function for onclick)
 function refresh() {
     showSpinner();
@@ -869,6 +837,39 @@ window.addEventListener('message', event => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('User Stories Journey webview loaded');
     
+    // Initialize tab functionality
+    function initializeTabs() {
+        const tabs = document.querySelectorAll('.tab');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                switchTab(tabName);
+            });
+        });
+    }
+
+    // Switch between tabs
+    function switchTab(tabName) {
+        // Remove active class from all tabs and content
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Add active class to selected tab and content
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        
+        // Handle tab-specific logic
+        if (tabName === 'user-stories') {
+            // Refresh user stories data if needed
+            // (current functionality is already in user-stories tab)
+        } else if (tabName === 'journey-visualization') {
+            // Journey visualization tab selected - render treemap
+            console.log('Journey visualization tab selected - rendering treemap');
+            renderJourneyTreemap();
+        }
+    }
+    
     // Initialize tabs
     initializeTabs();
     
@@ -887,6 +888,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const refreshButton = document.getElementById('refreshButton');
     const defineJourneyStartButton = document.getElementById('defineJourneyStartButton');
     const calculateDistanceButton = document.getElementById('calculateDistanceButton');
+    
+    // Journey treemap buttons
+    const refreshJourneyTreemapButton = document.getElementById('refreshJourneyTreemapButton');
+    const generateJourneyTreemapPngBtn = document.getElementById('generateJourneyTreemapPngBtn');
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
@@ -975,6 +980,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Setup journey treemap button event handlers
+    if (refreshJourneyTreemapButton) {
+        refreshJourneyTreemapButton.addEventListener('click', function() {
+            renderJourneyTreemap();
+        });
+    }
+    
+    if (generateJourneyTreemapPngBtn) {
+        generateJourneyTreemapPngBtn.addEventListener('click', function() {
+            generateJourneyTreemapPng();
+        });
+    }
+    
     // Notify extension that webview is ready
     vscode.postMessage({ command: 'UserStoriesJourneyWebviewReady' });
     
@@ -997,6 +1015,264 @@ document.addEventListener('DOMContentLoaded', () => {
             // closeProgressModal();
         }
     };
+
+    // Journey Treemap rendering function  
+    function renderJourneyTreemap() {
+        const journeyTreemapVisualization = document.getElementById('journey-treemap-visualization');
+        const journeyTreemapLoading = document.getElementById('journey-treemap-loading');
+        
+        if (!journeyTreemapVisualization || !journeyTreemapLoading || !allItems || allItems.length === 0) {
+            console.error('Journey treemap elements not found or no data available');
+            return;
+        }
+
+        // Hide loading and show visualization first (matching data object size analysis pattern)
+        journeyTreemapLoading.classList.add('hidden');
+        journeyTreemapVisualization.classList.remove('hidden');
+
+        // Clear previous content
+        journeyTreemapVisualization.innerHTML = '';
+        journeyTreemapVisualization.classList.add('hidden');
+
+        // Aggregate data by story number to get page counts
+        const storyData = new Map();
+        
+        allItems.forEach(item => {
+            const storyNumber = item.storyNumber || 'Unknown';
+            const storyText = item.storyText || '';
+            
+            if (!storyData.has(storyNumber)) {
+                storyData.set(storyNumber, {
+                    storyNumber: storyNumber,
+                    storyText: storyText,
+                    pages: new Set(),
+                    pageCount: 0
+                });
+            }
+            
+            // Add page to the story's page set
+            if (item.page && item.page.trim() !== '') {
+                storyData.get(storyNumber).pages.add(item.page);
+            }
+        });
+
+        // Convert to array and calculate page counts
+        const treemapData = Array.from(storyData.values()).map(story => ({
+            storyNumber: story.storyNumber,
+            storyText: story.storyText,
+            pageCount: story.pages.size,
+            value: Math.max(1, story.pages.size) // Ensure minimum size of 1 for visualization
+        }));
+
+        // Filter out stories with no pages or invalid data
+        const validTreemapData = treemapData.filter(story => 
+            story.storyNumber && story.storyNumber !== 'Unknown' && story.pageCount > 0
+        );
+
+        if (validTreemapData.length === 0) {
+            // Show empty state
+            journeyTreemapLoading.classList.add('hidden');
+            journeyTreemapVisualization.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--vscode-descriptionForeground);">No journey data available for visualization</div>';
+            journeyTreemapVisualization.classList.remove('hidden');
+            return;
+        }
+
+        // Clear previous content
+        journeyTreemapVisualization.innerHTML = '';
+
+        // Set dimensions
+        const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+        const width = 800 - margin.left - margin.right;
+        const height = 600 - margin.top - margin.bottom;
+
+        // Create SVG
+        const svg = d3.select(journeyTreemapVisualization)
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+            .style('background', 'var(--vscode-editor-background)');
+
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+
+        // Create root hierarchy with sorting for better grouping (matching data object size analysis)
+        const root = d3.hierarchy({ children: validTreemapData })
+            .sum(d => d.value)
+            .sort((a, b) => b.value - a.value); // Sort by value to group similar sizes together
+
+        // Create treemap layout
+        const treemap = d3.treemap()
+            .size([width, height])
+            .padding(2);
+
+        treemap(root);
+
+        // Color scale matching data object size analysis colors
+        const colorScale = d3.scaleOrdinal()
+            .domain(['tiny', 'small', 'medium', 'large'])
+            .range(['#6c757d', '#28a745', '#f66a0a', '#d73a49']); // Matches data object size colors
+
+        // Create tooltip with explicit styles to match data object size analysis
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'treemap-tooltip')
+            .style('position', 'absolute')
+            .style('background', 'var(--vscode-editorHoverWidget-background)')
+            .style('border', '1px solid var(--vscode-editorHoverWidget-border)')
+            .style('border-radius', '4px')
+            .style('padding', '8px')
+            .style('font-size', '12px')
+            .style('color', 'var(--vscode-editorHoverWidget-foreground)')
+            .style('pointer-events', 'none')
+            .style('z-index', '1000')
+            .style('box-shadow', '0 2px 8px rgba(0,0,0,0.3)')
+            .style('opacity', 0);
+
+        // Create rectangles with proper cell grouping
+        const cell = g.selectAll('.treemap-cell')
+            .data(root.leaves())
+            .enter()
+            .append('g')
+            .attr('class', 'treemap-cell')
+            .attr('transform', d => `translate(${d.x0},${d.y0})`);
+
+        // Add rectangles
+        cell.append('rect')
+            .attr('class', 'treemap-rect')
+            .attr('width', d => d.x1 - d.x0)
+            .attr('height', d => d.y1 - d.y0)
+            .attr('fill', d => {
+                const pageCount = d.data.pageCount;
+                // Map journey complexity to match data object size analysis pattern:
+                // Higher complexity = higher impact colors
+                if (pageCount >= 10) { return colorScale('large'); }       // Very Complex -> Red (like Large Size)
+                if (pageCount >= 6) { return colorScale('medium'); }       // Complex -> Orange (like Medium Size)  
+                if (pageCount >= 3) { return colorScale('small'); }        // Medium -> Green (like Small Size)
+                return colorScale('tiny');                                 // Simple -> Gray (like Tiny Size)
+            })
+            .on('mouseover', function(event, d) {
+                // Show tooltip
+                tooltip.transition()
+                    .duration(200)
+                    .style('opacity', .9);
+                
+                const complexityLabel = d.data.pageCount >= 10 ? 'Very Complex' :
+                                      d.data.pageCount >= 6 ? 'Complex' :
+                                      d.data.pageCount >= 3 ? 'Medium' : 'Simple';
+                
+                tooltip.html(`
+                    <strong>Story #${escapeHtml(d.data.storyNumber)}</strong><br/>
+                    <strong>Journey Length:</strong> ${d.data.pageCount} page${d.data.pageCount === 1 ? '' : 's'}<br/>
+                    <strong>Complexity:</strong> ${complexityLabel}<br/>
+                    <strong>Story Text:</strong><br/>
+                    <em>${escapeHtml(d.data.storyText || 'No description available')}</em>
+                `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+            })
+            .on('mouseout', function() {
+                tooltip.transition()
+                    .duration(500)
+                    .style('opacity', 0);
+            });
+
+        // Add text labels (story numbers) with matching sizing logic
+        cell.append('text')
+            .attr('class', 'treemap-text')
+            .attr('x', d => (d.x1 - d.x0) / 2)
+            .attr('y', d => (d.y1 - d.y0) / 2)
+            .text(d => {
+                const width = d.x1 - d.x0;
+                const height = d.y1 - d.y0;
+                // Only show text if rectangle is large enough (matching data object size analysis)
+                if (width > 80 && height > 20) {
+                    return `#${d.data.storyNumber}`;
+                }
+                return '';
+            });
+
+    }
+
+    // Generate PNG from journey treemap
+    function generateJourneyTreemapPng() {
+        const journeyTreemapVisualization = document.getElementById('journey-treemap-visualization');
+        const svg = journeyTreemapVisualization.querySelector('svg');
+        
+        if (!svg) {
+            console.error('No SVG found for PNG generation');
+            return;
+        }
+
+        // Clone the SVG for processing
+        const clonedSvg = svg.cloneNode(true);
+        
+        // Get dimensions
+        const width = parseInt(clonedSvg.getAttribute('width')) || 800;
+        const height = parseInt(clonedSvg.getAttribute('height')) || 600;
+        
+        // Set proper attributes for standalone SVG
+        clonedSvg.setAttribute('width', String(width));
+        clonedSvg.setAttribute('height', String(height));
+        clonedSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        clonedSvg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+        
+        // Add title and description for accessibility
+        const titleElement = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        titleElement.textContent = 'User Story Journey Length Visualization - Treemap';
+        clonedSvg.insertBefore(titleElement, clonedSvg.firstChild);
+        
+        const descElement = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
+        descElement.textContent = 'Generated on ' + new Date().toLocaleString() + '. Rectangle size represents journey length (page count). Colors indicate complexity levels.';
+        clonedSvg.insertBefore(descElement, titleElement.nextSibling);
+        
+        // Convert to string
+        const svgString = new XMLSerializer().serializeToString(clonedSvg);
+        
+        // Create canvas for PNG conversion
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Create image from SVG
+        const img = new Image();
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        
+        img.onload = function() {
+            // Fill white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw the SVG
+            ctx.drawImage(img, 0, 0);
+            
+            // Convert to PNG and download
+            canvas.toBlob(function(blob) {
+                const link = document.createElement('a');
+                link.download = `user-story-journey-visualization-${new Date().toISOString().slice(0, 10)}.png`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                
+                // Cleanup
+                URL.revokeObjectURL(url);
+                URL.revokeObjectURL(link.href);
+            }, 'image/png');
+        };
+        
+        img.onerror = function() {
+            console.error('Failed to load SVG for PNG conversion');
+            URL.revokeObjectURL(url);
+        };
+        
+        img.src = url;
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 });
 
 // Export functions for module (following QA view pattern)
