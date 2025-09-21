@@ -951,6 +951,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Page Usage tab selected - render page usage data
             console.log('Page Usage tab selected - rendering page usage data');
             renderPageUsageData();
+        } else if (tabName === 'page-usage-treemap') {
+            // Page Usage treemap tab selected - render treemap
+            console.log('Page Usage treemap tab selected - rendering treemap');
+            renderPageUsageTreemap();
+        } else if (tabName === 'page-usage-distribution') {
+            // Page Usage distribution tab selected - render histogram
+            console.log('Page Usage distribution tab selected - rendering histogram');
+            renderPageUsageHistogram();
         } else if (tabName === 'journey-visualization') {
             // Journey visualization tab selected - render treemap
             console.log('Journey visualization tab selected - rendering treemap');
@@ -994,6 +1002,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Journey treemap buttons
     const refreshJourneyTreemapButton = document.getElementById('refreshTreemapButton');
     const generateJourneyTreemapPngBtn = document.getElementById('generateTreemapPngBtn');
+    
+    // Page Usage visualization buttons
+    const refreshPageUsageTreemapButton = document.getElementById('refreshPageUsageTreemapButton');
+    const generatePageUsageTreemapPngBtn = document.getElementById('generatePageUsageTreemapPngBtn');
+    const refreshPageUsageHistogramButton = document.getElementById('refreshPageUsageHistogramButton');
+    const generatePageUsageHistogramPngBtn = document.getElementById('generatePageUsageHistogramPngBtn');
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
@@ -1084,6 +1098,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generateJourneyHistogramPngBtn) {
         generateJourneyHistogramPngBtn.addEventListener('click', function() {
             generateJourneyHistogramPNG(); // Fixed function name to match naming convention
+        });
+    }
+    
+    // Setup page usage visualization button event handlers
+    if (refreshPageUsageTreemapButton) {
+        refreshPageUsageTreemapButton.addEventListener('click', function() {
+            refreshPageUsageData();
+        });
+    }
+
+    if (generatePageUsageTreemapPngBtn) {
+        generatePageUsageTreemapPngBtn.addEventListener('click', function() {
+            generatePageUsageTreemapPNG();
+        });
+    }
+
+    if (refreshPageUsageHistogramButton) {
+        refreshPageUsageHistogramButton.addEventListener('click', function() {
+            refreshPageUsageData();
+        });
+    }    if (generatePageUsageHistogramPngBtn) {
+        generatePageUsageHistogramPngBtn.addEventListener('click', function() {
+            generatePageUsageHistogramPNG();
         });
     }
     
@@ -1915,6 +1952,417 @@ function updatePageUsageRecordInfo(count) {
     if (recordInfo) {
         recordInfo.innerHTML = `Showing ${count} page${count !== 1 ? 's' : ''}`;
     }
+}
+
+// Page Usage Treemap rendering function
+function renderPageUsageTreemap() {
+    const pageUsageTreemapVisualization = document.getElementById('page-usage-treemap-visualization');
+    const pageUsageTreemapLoading = document.getElementById('page-usage-treemap-loading');
+    
+    if (!pageUsageTreemapVisualization || !pageUsageTreemapLoading || !pageUsageData || pageUsageData.pages.length === 0) {
+        console.error('Page usage treemap elements not found or no data available');
+        return;
+    }
+
+    // Hide loading and show visualization
+    pageUsageTreemapLoading.classList.add('hidden');
+    pageUsageTreemapVisualization.classList.remove('hidden');
+
+    // Clear previous content
+    pageUsageTreemapVisualization.innerHTML = '';
+
+    // Prepare treemap data using page usage counts
+    const treemapData = pageUsageData.pages.map(page => ({
+        pageName: page.name,
+        pageType: page.type,
+        complexity: page.complexity,
+        totalElements: page.totalElements,
+        usageCount: page.usageCount,
+        value: Math.max(1, page.usageCount || 1) // Ensure minimum size of 1 for visualization
+    }));
+
+    // Filter out pages with no usage
+    const validTreemapData = treemapData.filter(page => 
+        page.pageName && page.usageCount > 0
+    );
+
+    if (validTreemapData.length === 0) {
+        // Show empty state
+        pageUsageTreemapLoading.classList.add('hidden');
+        pageUsageTreemapVisualization.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--vscode-descriptionForeground);">No page usage data available for visualization</div>';
+        pageUsageTreemapVisualization.classList.remove('hidden');
+        return;
+    }
+
+    // Set dimensions
+    const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+    const width = 800 - margin.left - margin.right;
+    const height = 600 - margin.top - margin.bottom;
+
+    // Create SVG
+    const svg = d3.select(pageUsageTreemapVisualization)
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .style('background', 'var(--vscode-editor-background)');
+
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    // Create root hierarchy
+    const root = d3.hierarchy({ children: validTreemapData })
+        .sum(d => d.value)
+        .sort((a, b) => b.value - a.value);
+
+    // Create treemap layout
+    const treemap = d3.treemap()
+        .size([width, height])
+        .padding(2);
+
+    treemap(root);
+
+    // Color scale based on page usage count
+    const getUsageColor = (usageCount) => {
+        if (usageCount >= 1 && usageCount <= 2) {
+            return '#6c757d'; // Low usage - gray
+        } else if (usageCount >= 3 && usageCount <= 5) {
+            return '#28a745'; // Medium usage - green
+        } else if (usageCount >= 6 && usageCount <= 10) {
+            return '#f66a0a'; // High usage - orange
+        } else if (usageCount > 10) {
+            return '#d73a49'; // Very high usage - red
+        } else {
+            return '#6c757d'; // Default - gray
+        }
+    };
+
+    // Create tooltip
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'page-usage-treemap-tooltip')
+        .style('opacity', 0)
+        .style('position', 'absolute')
+        .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+        .style('border', '1px solid var(--vscode-panel-border)')
+        .style('border-radius', '3px')
+        .style('padding', '8px')
+        .style('font-size', '12px')
+        .style('z-index', '1000')
+        .style('pointer-events', 'none');
+
+    // Add rectangles
+    const leaf = g.selectAll('g')
+        .data(root.leaves())
+        .enter().append('g')
+        .attr('transform', d => `translate(${d.x0},${d.y0})`);
+
+    leaf.append('rect')
+        .attr('width', d => d.x1 - d.x0)
+        .attr('height', d => d.y1 - d.y0)
+        .attr('fill', d => getUsageColor(d.data.usageCount))
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-width', 1)
+        .on('mouseover', function(event, d) {
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            tooltip.html(`
+                <strong>${d.data.pageName}</strong><br/>
+                Type: ${d.data.pageType}<br/>
+                Complexity: ${d.data.complexity}<br/>
+                Usage Count: ${d.data.usageCount}<br/>
+                Total Elements: ${d.data.totalElements}
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function(d) {
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+
+    // Add text labels
+    leaf.append('text')
+        .attr('x', 4)
+        .attr('y', 14)
+        .text(d => {
+            const width = d.x1 - d.x0;
+            const height = d.y1 - d.y0;
+            if (width > 80 && height > 30) {
+                return d.data.pageName.length > 12 ? d.data.pageName.substring(0, 12) + '...' : d.data.pageName;
+            } else if (width > 50 && height > 20) {
+                return d.data.pageName.length > 8 ? d.data.pageName.substring(0, 8) + '...' : d.data.pageName;
+            }
+            return '';
+        })
+        .attr('font-size', d => {
+            const width = d.x1 - d.x0;
+            const height = d.y1 - d.y0;
+            if (width > 100 && height > 40) {
+                return '12px';
+            } else if (width > 60 && height > 25) {
+                return '10px';
+            } else {
+                return '8px';
+            }
+        })
+        .attr('fill', 'white')
+        .attr('font-weight', 'bold');
+
+    // Add usage count as second line
+    leaf.append('text')
+        .attr('x', 4)
+        .attr('y', 28)
+        .text(d => {
+            const width = d.x1 - d.x0;
+            const height = d.y1 - d.y0;
+            if (width > 60 && height > 35) {
+                return `${d.data.usageCount} usage${d.data.usageCount !== 1 ? 's' : ''}`;
+            }
+            return '';
+        })
+        .attr('font-size', '9px')
+        .attr('fill', 'rgba(255, 255, 255, 0.8)');
+
+    console.log(`Page usage treemap rendered with ${validTreemapData.length} pages`);
+}
+
+// Page Usage Histogram rendering function
+function renderPageUsageHistogram() {
+    const pageUsageHistogramVisualization = document.getElementById('page-usage-histogram-visualization');
+    const pageUsageHistogramLoading = document.getElementById('page-usage-histogram-loading');
+    
+    if (!pageUsageHistogramVisualization || !pageUsageHistogramLoading || !pageUsageData || pageUsageData.pages.length === 0) {
+        console.error('Page usage histogram elements not found or no data available');
+        return;
+    }
+
+    // Hide loading and show visualization
+    pageUsageHistogramLoading.classList.add('hidden');
+    pageUsageHistogramVisualization.classList.remove('hidden');
+
+    // Clear previous content
+    pageUsageHistogramVisualization.innerHTML = '';
+
+    // Calculate usage distribution
+    const distribution = {
+        low: 0,      // 1-2 usages
+        medium: 0,   // 3-5 usages
+        high: 0,     // 6-10 usages
+        veryHigh: 0  // 10+ usages
+    };
+
+    pageUsageData.pages.forEach(page => {
+        const usage = page.usageCount || 0;
+        if (usage >= 1 && usage <= 2) {
+            distribution.low++;
+        } else if (usage >= 3 && usage <= 5) {
+            distribution.medium++;
+        } else if (usage >= 6 && usage <= 10) {
+            distribution.high++;
+        } else if (usage > 10) {
+            distribution.veryHigh++;
+        }
+    });
+
+    // Calculate total pages for percentage calculation
+    const totalPages = distribution.low + distribution.medium + distribution.high + distribution.veryHigh;
+    
+    console.log('Page usage distribution:', distribution, 'Total pages:', totalPages);
+    
+    // Setup dimensions
+    const margin = {top: 20, right: 20, bottom: 80, left: 60};
+    const width = 600 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+    
+    // Create SVG
+    const svg = d3.select(pageUsageHistogramVisualization)
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .style('background', 'var(--vscode-editor-background)');
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    // Setup data for histogram
+    const categories = ['Low Usage', 'Medium Usage', 'High Usage', 'Very High Usage'];
+    const values = [distribution.low, distribution.medium, distribution.high, distribution.veryHigh];
+    const colors = ['#6c757d', '#28a745', '#f66a0a', '#d73a49'];
+    
+    const xScale = d3.scaleBand()
+        .domain(categories)
+        .range([0, width])
+        .padding(0.1);
+    
+    const yScale = d3.scaleLinear()
+        .domain([0, Math.max(...values)])
+        .range([height, 0]);
+    
+    // Create tooltip
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'page-usage-histogram-tooltip')
+        .style('opacity', 0)
+        .style('position', 'absolute')
+        .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+        .style('border', '1px solid var(--vscode-panel-border)')
+        .style('border-radius', '3px')
+        .style('padding', '8px')
+        .style('font-size', '12px')
+        .style('z-index', '1000')
+        .style('pointer-events', 'none');
+    
+    // Add bars
+    g.selectAll('.histogram-bar')
+        .data(categories)
+        .enter()
+        .append('rect')
+        .attr('class', 'histogram-bar')
+        .attr('x', d => xScale(d))
+        .attr('y', d => yScale(values[categories.indexOf(d)]))
+        .attr('width', xScale.bandwidth())
+        .attr('height', d => height - yScale(values[categories.indexOf(d)]))
+        .attr('fill', (d, i) => colors[i])
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-width', 1)
+        .on('mouseover', function(event, d) {
+            const value = values[categories.indexOf(d)];
+            const percentage = totalPages > 0 ? ((value / totalPages) * 100).toFixed(1) : '0.0';
+            
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            tooltip.html(`
+                <strong>${d}</strong><br/>
+                Pages: ${value}<br/>
+                Percentage: ${percentage}%
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function(d) {
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+    
+    // Add value labels on top of bars
+    g.selectAll('.bar-label')
+        .data(categories)
+        .enter()
+        .append('text')
+        .attr('class', 'bar-label')
+        .attr('x', d => xScale(d) + xScale.bandwidth() / 2)
+        .attr('y', d => yScale(values[categories.indexOf(d)]) - 5)
+        .attr('text-anchor', 'middle')
+        .text(d => values[categories.indexOf(d)])
+        .attr('fill', 'var(--vscode-editor-foreground)')
+        .attr('font-size', '12px')
+        .attr('font-weight', 'bold');
+    
+    // Add X axis
+    g.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale))
+        .selectAll('text')
+        .style('text-anchor', 'end')
+        .attr('dx', '-.8em')
+        .attr('dy', '.15em')
+        .attr('transform', 'rotate(-45)')
+        .attr('fill', 'var(--vscode-editor-foreground)');
+    
+    // Add Y axis
+    g.append('g')
+        .call(d3.axisLeft(yScale))
+        .selectAll('text')
+        .attr('fill', 'var(--vscode-editor-foreground)');
+    
+    // Style axis lines
+    g.selectAll('.domain, .tick line')
+        .attr('stroke', 'var(--vscode-panel-border)');
+    
+    console.log(`Page usage histogram rendered with distribution:`, distribution);
+}
+
+// PNG export functions for page usage visualizations
+function generatePageUsageTreemapPNG() {
+    const svgElement = document.querySelector('#page-usage-treemap-visualization svg');
+    if (!svgElement) {
+        console.error('No page usage treemap SVG found for PNG export');
+        return;
+    }
+    
+    // Convert SVG to canvas and then to PNG
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const data = (new XMLSerializer()).serializeToString(svgElement);
+    const DOMURL = window.URL || window.webkitURL || window;
+    
+    const img = new Image();
+    const svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+    const url = DOMURL.createObjectURL(svgBlob);
+    
+    img.onload = function () {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        DOMURL.revokeObjectURL(url);
+        
+        const pngData = canvas.toDataURL('image/png');
+        
+        // Send to extension for saving
+        vscode.postMessage({
+            command: 'savePngToWorkspace',
+            data: {
+                base64: pngData.split(',')[1], // Remove data:image/png;base64, prefix
+                filename: `page-usage-treemap-${new Date().toISOString().split('T')[0]}.png`
+            }
+        });
+    };
+    
+    img.src = url;
+}
+
+function generatePageUsageHistogramPNG() {
+    const svgElement = document.querySelector('#page-usage-histogram-visualization svg');
+    if (!svgElement) {
+        console.error('No page usage histogram SVG found for PNG export');
+        return;
+    }
+    
+    // Convert SVG to canvas and then to PNG
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const data = (new XMLSerializer()).serializeToString(svgElement);
+    const DOMURL = window.URL || window.webkitURL || window;
+    
+    const img = new Image();
+    const svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+    const url = DOMURL.createObjectURL(svgBlob);
+    
+    img.onload = function () {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        DOMURL.revokeObjectURL(url);
+        
+        const pngData = canvas.toDataURL('image/png');
+        
+        // Send to extension for saving
+        vscode.postMessage({
+            command: 'savePngToWorkspace',
+            data: {
+                base64: pngData.split(',')[1], // Remove data:image/png;base64, prefix
+                filename: `page-usage-histogram-${new Date().toISOString().split('T')[0]}.png`
+            }
+        });
+    };
+    
+    img.src = url;
 }
 
 // Export functions for module (following QA view pattern)

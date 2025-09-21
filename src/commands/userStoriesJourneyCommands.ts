@@ -2307,6 +2307,40 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         .legend-color.journey-very-complex {
                             background-color: #d73a49;  /* Very Complex -> Red (like Large Size) */
                         }
+
+                        /* Page Usage visualization legend colors */
+                        .legend-color.page-simple {
+                            background-color: #6c757d;  /* Simple -> Gray */
+                        }
+                        
+                        .legend-color.page-moderate {
+                            background-color: #28a745;  /* Moderate -> Green */
+                        }
+                        
+                        .legend-color.page-complex {
+                            background-color: #f66a0a;  /* Complex -> Orange */
+                        }
+                        
+                        .legend-color.page-very-complex {
+                            background-color: #d73a49;  /* Very Complex -> Red */
+                        }
+
+                        /* Page Usage frequency legend colors */
+                        .legend-color.usage-low {
+                            background-color: #6c757d;  /* Low Usage -> Gray */
+                        }
+                        
+                        .legend-color.usage-medium {
+                            background-color: #28a745;  /* Medium Usage -> Green */
+                        }
+                        
+                        .legend-color.usage-high {
+                            background-color: #f66a0a;  /* High Usage -> Orange */
+                        }
+                        
+                        .legend-color.usage-very-high {
+                            background-color: #d73a49;  /* Very High Usage -> Red */
+                        }
                         
                         .journey-treemap-tooltip {
                             position: absolute;
@@ -2582,6 +2616,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                     <div class="tabs">
                         <button class="tab active" data-tab="user-stories">User Stories</button>
                         <button class="tab" data-tab="page-usage">Page Usage</button>
+                        <button class="tab" data-tab="page-usage-treemap">Page Usage Treemap</button>
+                        <button class="tab" data-tab="page-usage-distribution">Page Usage Distribution</button>
                         <button class="tab" data-tab="journey-visualization">Journey Visualization</button>
                         <button class="tab" data-tab="journey-distribution">Journey Distribution</button>
                     </div>
@@ -2645,6 +2681,92 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         </div>
                         <div class="table-footer-right">
                             <span id="record-info"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Usage Treemap Tab Content -->
+                <div id="page-usage-treemap-tab" class="tab-content">
+                    <div class="treemap-container">
+                        <div class="treemap-header">
+                            <div class="treemap-header-content">
+                                <div class="treemap-title">
+                                    <h3>Page Usage Proportional Visualization</h3>
+                                    <p>Rectangle size represents usage frequency, color represents usage category. Hover for page details.</p>
+                                </div>
+                                <div class="treemap-actions">
+                                    <button id="refreshPageUsageTreemapButton" class="icon-button treemap-refresh-button" title="Refresh Data">
+                                        <i class="codicon codicon-refresh"></i>
+                                    </button>
+                                    <button id="generatePageUsageTreemapPngBtn" class="svg-export-btn">
+                                        <span class="codicon codicon-device-camera"></span>
+                                        Generate PNG
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-usage-treemap-loading" class="loading">Loading page usage visualization...</div>
+                        <div id="page-usage-treemap-visualization" class="treemap-viz hidden"></div>
+                        <div class="treemap-legend">
+                            <div class="legend-item">
+                                <span class="legend-color usage-low"></span>
+                                <span>Low Usage (1-2 journeys)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color usage-medium"></span>
+                                <span>Medium Usage (3-5 journeys)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color usage-high"></span>
+                                <span>High Usage (6-10 journeys)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color usage-very-high"></span>
+                                <span>Very High Usage (10+ journeys)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Usage Distribution Tab Content -->
+                <div id="page-usage-distribution-tab" class="tab-content">
+                    <div class="histogram-container">
+                        <div class="histogram-header">
+                            <div class="histogram-header-content">
+                                <div class="histogram-title">
+                                    <h3>Page Usage Distribution</h3>
+                                    <p>Distribution of pages across usage frequency categories</p>
+                                </div>
+                                <div class="histogram-actions">
+                                    <button id="refreshPageUsageHistogramButton" class="icon-button histogram-refresh-button" title="Refresh Data">
+                                        <i class="codicon codicon-refresh"></i>
+                                    </button>
+                                    <button id="generatePageUsageHistogramPngBtn" class="svg-export-btn">
+                                        <span class="codicon codicon-device-camera"></span>
+                                        Generate PNG
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-usage-histogram-loading" class="loading">Loading page usage distribution...</div>
+                        <div id="page-usage-histogram-visualization" class="histogram-viz hidden"></div>
+                        <div class="histogram-legend">
+                            <div class="legend-item">
+                                <span class="legend-color usage-low"></span>
+                                <span>Low Usage (1-2 journeys)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color usage-medium"></span>
+                                <span>Medium Usage (3-5 journeys)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color usage-high"></span>
+                                <span>High Usage (6-10 journeys)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color usage-very-high"></span>
+                                <span>Very High Usage (10+ journeys)</span>
+                            </div>
                         </div>
                     </div>
                 </div>
