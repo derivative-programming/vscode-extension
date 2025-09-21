@@ -287,6 +287,32 @@ async function saveJourneyDataToCSV(items: any[], modelService: ModelService): P
 }
 
 /**
+ * Save page usage data to CSV format
+ */
+async function savePageUsageDataToCSV(pages: any[], modelService: ModelService): Promise<string> {
+    try {
+        // Create CSV content with page usage data
+        const csvHeader = 'Page Name,Type,Complexity,Total Elements,Usage Count\n';
+        const csvRows = pages.map(page => {
+            const name = (page.name || '').toString().replace(/"/g, '""');
+            const type = (page.type || '').toString().replace(/"/g, '""');
+            const complexity = (page.complexity || '').toString().replace(/"/g, '""');
+            const totalElements = (page.totalElements || 0).toString();
+            const usageCount = (page.usageCount || 0).toString();
+            
+            return `"${name}","${type}","${complexity}","${totalElements}","${usageCount}"`;
+        }).join('\n');
+
+        const csvContent = csvHeader + csvRows;
+
+        return csvContent;
+    } catch (error) {
+        console.error("[Extension] Error creating Page Usage CSV:", error);
+        throw error;
+    }
+}
+
+/**
  * Load journey start data including roles and existing journey start pages
  */
 async function loadJourneyStartData(modelService: ModelService): Promise<any> {
@@ -2400,7 +2426,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         <button id="exportButton" class="icon-button" title="Download CSV">
                             <i class="codicon codicon-cloud-download"></i>
                         </button>
-                        <button id="refreshButton" class="refresh-button" title="Refresh Table">
+                        <button id="refreshButton" class="icon-button" title="Refresh Table">
+                            <i class="codicon codicon-refresh"></i>
                         </button>
                     </div>
 
@@ -2552,7 +2579,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                     </div>
 
                     <div class="header-actions">
-                        <button id="refreshPageUsageButton" class="refresh-button" title="Refresh Page Usage Data">
+                        <button id="refreshPageUsageButton" class="icon-button" title="Refresh Page Usage Data">
+                            <i class="codicon codicon-refresh"></i>
                         </button>
                         <button id="exportPageUsageButton" class="icon-button" title="Download Page Usage CSV">
                             <i class="codicon codicon-cloud-download"></i>
@@ -2727,6 +2755,31 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     });
                                 } catch (error) {
                                     console.error('[Extension] Error exporting CSV:', error);
+                                    panel.webview.postMessage({
+                                        command: 'csvExportReady',
+                                        success: false,
+                                        error: error.message
+                                    });
+                                }
+                                break;
+
+                            case 'exportPageUsageToCSV':
+                                console.log("[Extension] Page Usage CSV export requested");
+                                try {
+                                    const csvContent = await savePageUsageDataToCSV(message.data.pages, modelService);
+                                    
+                                    // Generate timestamped filename
+                                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0] + '_' + 
+                                                     new Date().toTimeString().split(' ')[0].replace(/:/g, '-');
+                                    const filename = `page-usage-analysis-${timestamp}.csv`;
+
+                                    panel.webview.postMessage({
+                                        command: 'csvExportReady',
+                                        csvContent: csvContent,
+                                        filename: filename
+                                    });
+                                } catch (error) {
+                                    console.error('[Extension] Error exporting Page Usage CSV:', error);
                                     panel.webview.postMessage({
                                         command: 'csvExportReady',
                                         success: false,

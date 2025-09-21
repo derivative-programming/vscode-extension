@@ -2294,3 +2294,6 @@ S e p t e m b e r   2 0 ,   2 0 2 5   -   C o m m a n d :   A l l o w   s o r t 
  COMPLETED: Fix Page Usage Tab Filtering and Sorting Functionality
 COMPLETED: Fix Page Usage Total Items Calculation
 CORRECTED: Forms don't have columns, only inputs and outputs
+FIXED: Page Usage tab refresh button - added icon, removed border, and enabled click functionality
+FIXED: Export buttons - removed manual styling from User Stories tab, added Page Usage export functionality
+UPDATED: Page Usage CSV export - removed unnecessary columns (Buttons, Inputs/Columns, Outputs/Params), simplified to only include Page Name, Type, Complexity, Total Elements, Usage Count

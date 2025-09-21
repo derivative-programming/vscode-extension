@@ -166,6 +166,16 @@ function exportToCSV() {
     });
 }
 
+// Export Page Usage to CSV (global function for onclick)
+function exportPageUsageToCSV() {
+    vscode.postMessage({
+        command: 'exportPageUsageToCSV',
+        data: {
+            pages: pageUsageData.pages || []
+        }
+    });
+}
+
 // Journey Start Pages Management
 let allRoles = [];
 let allPages = [];
@@ -987,23 +997,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
-        // Apply same styling as refresh button
-        exportButton.style.background = "none";
-        exportButton.style.border = "none";
-        exportButton.style.color = "var(--vscode-editor-foreground)";
-        exportButton.style.padding = "4px 8px";
-        exportButton.style.cursor = "pointer";
-        exportButton.style.display = "flex";
-        exportButton.style.alignItems = "center";
-        exportButton.style.borderRadius = "4px";
-        exportButton.style.transition = "background 0.15s";
-        // Add hover effect
-        exportButton.addEventListener("mouseenter", function() {
-            exportButton.style.background = "var(--vscode-list-hoverBackground)";
-        });
-        exportButton.addEventListener("mouseleave", function() {
-            exportButton.style.background = "none";
-        });
+    }
+    
+    // Page Usage export button
+    const exportPageUsageButton = document.getElementById('exportPageUsageButton');
+    if (exportPageUsageButton) {
+        exportPageUsageButton.addEventListener('click', exportPageUsageToCSV);
     }
     
     if (defineJourneyStartButton) {
@@ -1050,26 +1049,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (refreshButton) {
         refreshButton.addEventListener('click', refresh);
-        // Setup refresh button icon (following QA view pattern exactly)
-        refreshButton.innerHTML = '<span class="codicon codicon-refresh" style="font-size:16px;"></span>';
-        refreshButton.title = "Refresh";
-        refreshButton.style.background = "none";
-        refreshButton.style.border = "none";
-        refreshButton.style.color = "var(--vscode-editor-foreground)";
-        refreshButton.style.padding = "4px 8px";
-        refreshButton.style.cursor = "pointer";
-        refreshButton.style.display = "flex";
-        refreshButton.style.alignItems = "center";
-        refreshButton.style.borderRadius = "4px";
-        refreshButton.style.transition = "background 0.15s";
-        
-        // Add hover effect
-        refreshButton.addEventListener("mouseenter", function() {
-            refreshButton.style.background = "var(--vscode-list-hoverBackground)";
-        });
-        refreshButton.addEventListener("mouseleave", function() {
-            refreshButton.style.background = "none";
-        });
+    }
+    
+    // Page Usage refresh button
+    const refreshPageUsageButton = document.getElementById('refreshPageUsageButton');
+    if (refreshPageUsageButton) {
+        refreshPageUsageButton.addEventListener('click', refreshPageUsageData);
     }
     
     // Setup journey treemap button event handlers
