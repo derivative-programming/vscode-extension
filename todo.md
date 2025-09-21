@@ -23,10 +23,6 @@ page complexity analysis view...
 - tab: distribution chart
   - histogram of page complexity ranges (simple, medium, complex, very complex)
 
-user journey view... (exists)
-- Tab: Page Usage vs Page Complexity Scatter Plot
-  - x-axis: page complexity (total control count)
-  - y-axis: page usage (how many user journeys the page appears in)
 
 
 
