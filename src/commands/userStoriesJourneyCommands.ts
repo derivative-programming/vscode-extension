@@ -1897,6 +1897,11 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             color: inherit !important;
                         }
                         
+                        .treemap-refresh-button:hover {
+                            background: transparent !important;
+                            color: inherit !important;
+                        }
+                        
                         .histogram-tooltip {
                             position: absolute;
                             background: var(--vscode-editorHoverWidget-background);
@@ -2027,7 +2032,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <p>Rectangle size represents the number of pages in each user story journey. Hover for story details.</p>
                                 </div>
                                 <div class="treemap-actions">
-                                    <button id="refreshTreemapButton" class="icon-button" title="Refresh Data">
+                                    <button id="refreshTreemapButton" class="icon-button treemap-refresh-button" title="Refresh Data">
                                         <i class="codicon codicon-refresh"></i>
                                     </button>
                                     <button id="generateTreemapPngBtn" class="svg-export-btn">

@@ -987,13 +987,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup journey treemap button event handlers
     if (refreshJourneyTreemapButton) {
         refreshJourneyTreemapButton.addEventListener('click', function() {
-            renderJourneyTreemap();
+            showSpinner();
+            refresh();
         });
     }
     
     if (generateJourneyTreemapPngBtn) {
         generateJourneyTreemapPngBtn.addEventListener('click', function() {
-            generateJourneyTreemapPng();
+            generateTreemapPNG();
         });
     }
     
@@ -1213,78 +1214,72 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Generate PNG from journey treemap
-    function generateJourneyTreemapPng() {
-        const journeyTreemapVisualization = document.getElementById('journey-treemap-visualization');
-        const svg = journeyTreemapVisualization.querySelector('svg');
-        
-        if (!svg) {
-            console.error('No SVG found for PNG generation');
-            return;
-        }
+    function generateTreemapPNG() {
+        try {
+            const journeyTreemapVisualization = document.getElementById('journey-treemap-visualization');
+            const svg = journeyTreemapVisualization?.querySelector('svg');
+            
+            if (!svg) {
+                vscode.postMessage({ 
+                    command: 'showError', 
+                    error: 'Treemap not rendered yet. Please switch to the treemap tab first.' 
+                });
+                return;
+            }
 
-        // Clone the SVG for processing
-        const clonedSvg = svg.cloneNode(true);
-        
-        // Get dimensions
-        const width = parseInt(clonedSvg.getAttribute('width')) || 800;
-        const height = parseInt(clonedSvg.getAttribute('height')) || 600;
-        
-        // Set proper attributes for standalone SVG
-        clonedSvg.setAttribute('width', String(width));
-        clonedSvg.setAttribute('height', String(height));
-        clonedSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-        clonedSvg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
-        
-        // Add title and description for accessibility
-        const titleElement = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-        titleElement.textContent = 'User Story Journey Length Visualization - Treemap';
-        clonedSvg.insertBefore(titleElement, clonedSvg.firstChild);
-        
-        const descElement = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
-        descElement.textContent = 'Generated on ' + new Date().toLocaleString() + '. Rectangle size represents journey length (page count). Colors indicate complexity levels.';
-        clonedSvg.insertBefore(descElement, titleElement.nextSibling);
-        
-        // Convert to string
-        const svgString = new XMLSerializer().serializeToString(clonedSvg);
-        
-        // Create canvas for PNG conversion
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = width;
-        canvas.height = height;
-        
-        // Create image from SVG
-        const img = new Image();
-        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(svgBlob);
-        
-        img.onload = function() {
-            // Fill white background
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, width, height);
+            // Get SVG dimensions
+            const width = parseInt(svg.getAttribute('width')) || 800;
+            const height = parseInt(svg.getAttribute('height')) || 600;
             
-            // Draw the SVG
-            ctx.drawImage(img, 0, 0);
+            // Serialize SVG
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
             
-            // Convert to PNG and download
-            canvas.toBlob(function(blob) {
-                const link = document.createElement('a');
-                link.download = `user-story-journey-visualization-${new Date().toISOString().slice(0, 10)}.png`;
-                link.href = URL.createObjectURL(blob);
-                link.click();
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
                 
-                // Cleanup
+                // White background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
                 URL.revokeObjectURL(url);
-                URL.revokeObjectURL(link.href);
-            }, 'image/png');
-        };
-        
-        img.onerror = function() {
-            console.error('Failed to load SVG for PNG conversion');
-            URL.revokeObjectURL(url);
-        };
-        
-        img.src = url;
+                
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        vscode.postMessage({ command: 'showError', error: 'Canvas conversion failed' });
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const base64 = reader.result;
+                        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                        const filename = `user-story-journey-treemap-${timestamp}.png`;
+                        vscode.postMessage({
+                            command: 'savePngToWorkspace',
+                            data: { base64, filename, type: 'treemap' }
+                        });
+                    };
+                    reader.readAsDataURL(blob);
+                }, 'image/png');
+            };
+            img.onerror = function() {
+                vscode.postMessage({ command: 'showError', error: 'SVG rendering failed' });
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+            
+        } catch (error) {
+            console.error('PNG generation error:', error);
+            vscode.postMessage({ 
+                command: 'showError', 
+                error: 'PNG generation failed: ' + error.message 
+            });
+        }
     }
 
     // Helper function to escape HTML
