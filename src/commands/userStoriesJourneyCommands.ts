@@ -1829,6 +1829,87 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                         }
 
+                        /* Histogram styles */
+                        .histogram-container {
+                            padding: 15px;
+                        }
+                        
+                        .histogram-header {
+                            margin-bottom: 20px;
+                        }
+                        
+                        .histogram-header-content {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-start;
+                            gap: 15px;
+                        }
+                        
+                        .histogram-title {
+                            flex: 1;
+                        }
+                        
+                        .histogram-actions {
+                            display: flex;
+                            gap: 10px;
+                            align-items: flex-start;
+                        }
+                        
+                        .histogram-header h3 {
+                            margin: 0 0 5px 0;
+                            color: var(--vscode-foreground);
+                            font-size: 16px;
+                        }
+                        
+                        .histogram-header p {
+                            margin: 0;
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 12px;
+                        }
+                        
+                        .histogram-viz {
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            margin-bottom: 15px;
+                            overflow: hidden;
+                        }
+                        
+                        .histogram-legend {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 15px;
+                            font-size: 12px;
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        /* Histogram bar styles */
+                        .histogram-bar {
+                            cursor: pointer;
+                            transition: opacity 0.2s;
+                        }
+                        
+                        .histogram-bar:hover {
+                            opacity: 0.8;
+                        }
+                        
+                        .histogram-refresh-button:hover {
+                            background: transparent !important;
+                            color: inherit !important;
+                        }
+                        
+                        .histogram-tooltip {
+                            position: absolute;
+                            background: var(--vscode-editorHoverWidget-background);
+                            border: 1px solid var(--vscode-editorHoverWidget-border);
+                            border-radius: 4px;
+                            padding: 8px;
+                            font-size: 12px;
+                            color: var(--vscode-editorHoverWidget-foreground);
+                            pointer-events: none;
+                            z-index: 1000;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                        }
+
                         /* Journey-specific legend colors - matching data object size analysis pattern */
                         .legend-color.journey-simple {
                             background-color: #6c757d;  /* Simple -> Gray (like Tiny Size) */
@@ -1871,6 +1952,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                     <div class="tabs">
                         <button class="tab active" data-tab="user-stories">User Stories</button>
                         <button class="tab" data-tab="journey-visualization">Journey Visualization</button>
+                        <button class="tab" data-tab="journey-distribution">Journey Distribution</button>
                     </div>
 
                     <div id="user-stories-tab" class="tab-content active">
@@ -1945,10 +2027,10 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <p>Rectangle size represents the number of pages in each user story journey. Hover for story details.</p>
                                 </div>
                                 <div class="treemap-actions">
-                                    <button id="refreshJourneyTreemapButton" class="icon-button" title="Refresh Data">
+                                    <button id="refreshTreemapButton" class="icon-button" title="Refresh Data">
                                         <i class="codicon codicon-refresh"></i>
                                     </button>
-                                    <button id="generateJourneyTreemapPngBtn" class="svg-export-btn">
+                                    <button id="generateTreemapPngBtn" class="svg-export-btn">
                                         <span class="codicon codicon-device-camera"></span>
                                         Generate PNG
                                     </button>
@@ -1958,6 +2040,49 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         <div id="journey-treemap-loading" class="loading">Loading journey visualization...</div>
                         <div id="journey-treemap-visualization" class="treemap-viz hidden"></div>
                         <div class="treemap-legend">
+                            <div class="legend-item">
+                                <span class="legend-color journey-simple"></span>
+                                <span>Simple (1-2 pages)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color journey-medium"></span>
+                                <span>Medium (3-5 pages)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color journey-complex"></span>
+                                <span>Complex (6-10 pages)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color journey-very-complex"></span>
+                                <span>Very Complex (10+ pages)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Journey Distribution Tab Content -->
+                <div id="journey-distribution-tab" class="tab-content">
+                    <div class="histogram-container">
+                        <div class="histogram-header">
+                            <div class="histogram-header-content">
+                                <div class="histogram-title">
+                                    <h3>Journey Complexity Distribution</h3>
+                                    <p>Distribution of user stories across journey complexity categories</p>
+                                </div>
+                                <div class="histogram-actions">
+                                    <button id="refreshHistogramButton" class="icon-button histogram-refresh-button" title="Refresh Data">
+                                        <i class="codicon codicon-refresh"></i>
+                                    </button>
+                                    <button id="generateHistogramPngBtn" class="svg-export-btn">
+                                        <span class="codicon codicon-device-camera"></span>
+                                        Generate PNG
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="journey-histogram-loading" class="loading">Loading journey distribution...</div>
+                        <div id="journey-histogram-visualization" class="histogram-viz hidden"></div>
+                        <div class="histogram-legend">
                             <div class="legend-item">
                                 <span class="legend-color journey-simple"></span>
                                 <span>Simple (1-2 pages)</span>
@@ -2273,6 +2398,43 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                 } catch (error) {
                                     console.error('[Extension] Error opening Page Preview:', error);
                                     vscode.window.showErrorMessage('Failed to open Page Preview: ' + error.message);
+                                }
+                                break;
+
+                            case 'savePngToWorkspace':
+                                try {
+                                    const workspaceFolders = vscode.workspace.workspaceFolders;
+                                    if (!workspaceFolders || workspaceFolders.length === 0) {
+                                        vscode.window.showErrorMessage('No workspace folder is open');
+                                        panel.webview.postMessage({
+                                            command: 'pngSaveComplete',
+                                            success: false,
+                                            error: 'No workspace folder is open'
+                                        });
+                                        return;
+                                    }
+                                    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                    const filePath = path.join(workspaceRoot, message.data.filename);
+                                    const buffer = Buffer.from(message.data.base64.replace(/^data:image\/png;base64,/, ''), 'base64');
+                                    fs.writeFileSync(filePath, buffer);
+                                    vscode.window.showInformationMessage(`PNG file saved to workspace: ${message.data.filename}`);
+                                    panel.webview.postMessage({
+                                        command: 'pngSaveComplete',
+                                        success: true,
+                                        filePath: message.data.filename,
+                                        type: message.data.type
+                                    });
+                                    // Open the PNG file immediately
+                                    const fileUri = vscode.Uri.file(filePath);
+                                    vscode.commands.executeCommand('vscode.open', fileUri);
+                                } catch (error) {
+                                    console.error('[ERROR] User Stories Journey - Failed to save PNG:', error);
+                                    vscode.window.showErrorMessage(`Failed to save PNG: ${error.message}`);
+                                    panel.webview.postMessage({
+                                        command: 'pngSaveComplete',
+                                        success: false,
+                                        error: error.message
+                                    });
                                 }
                                 break;
 

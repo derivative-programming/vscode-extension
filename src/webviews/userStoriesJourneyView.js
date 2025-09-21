@@ -867,6 +867,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Journey visualization tab selected - render treemap
             console.log('Journey visualization tab selected - rendering treemap');
             renderJourneyTreemap();
+        } else if (tabName === 'journey-distribution') {
+            // Journey distribution tab selected - render histogram
+            console.log('Journey distribution tab selected - rendering histogram');
+            renderJourneyHistogram();
         }
     }
     
@@ -890,8 +894,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const calculateDistanceButton = document.getElementById('calculateDistanceButton');
     
     // Journey treemap buttons
-    const refreshJourneyTreemapButton = document.getElementById('refreshJourneyTreemapButton');
-    const generateJourneyTreemapPngBtn = document.getElementById('generateJourneyTreemapPngBtn');
+    const refreshJourneyTreemapButton = document.getElementById('refreshTreemapButton');
+    const generateJourneyTreemapPngBtn = document.getElementById('generateTreemapPngBtn');
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
@@ -990,6 +994,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generateJourneyTreemapPngBtn) {
         generateJourneyTreemapPngBtn.addEventListener('click', function() {
             generateJourneyTreemapPng();
+        });
+    }
+    
+    // Setup journey histogram button event handlers
+    const refreshJourneyHistogramButton = document.getElementById('refreshHistogramButton');
+    const generateJourneyHistogramPngBtn = document.getElementById('generateHistogramPngBtn');
+    
+    if (refreshJourneyHistogramButton) {
+        refreshJourneyHistogramButton.addEventListener('click', function() {
+            refresh(); // Use the global refresh function to reload data
+        });
+    }
+    
+    if (generateJourneyHistogramPngBtn) {
+        generateJourneyHistogramPngBtn.addEventListener('click', function() {
+            generateJourneyHistogramPNG(); // Fixed function name to match naming convention
         });
     }
     
@@ -1272,6 +1292,281 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // Journey Histogram rendering function
+    function renderJourneyHistogram() {
+        const journeyHistogramVisualization = document.getElementById('journey-histogram-visualization');
+        const journeyHistogramLoading = document.getElementById('journey-histogram-loading');
+        
+        if (!journeyHistogramVisualization || !journeyHistogramLoading || !allItems || allItems.length === 0) {
+            console.error('Journey histogram elements not found or no data available');
+            return;
+        }
+
+        // Hide loading and show visualization
+        journeyHistogramLoading.classList.add('hidden');
+        journeyHistogramVisualization.classList.remove('hidden');
+
+        // Clear previous content
+        journeyHistogramVisualization.innerHTML = '';
+
+        // Calculate complexity distribution from allItems
+        const distribution = calculateJourneyComplexityDistribution(allItems);
+        
+        // Calculate total stories for percentage calculation
+        const totalStories = distribution.simple + distribution.medium + distribution.complex + distribution.veryComplex;
+        
+        console.log('Journey complexity distribution:', distribution, 'Total stories:', totalStories);
+        
+        // Setup dimensions
+        const margin = {top: 20, right: 20, bottom: 80, left: 60};
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+        
+        // Create SVG
+        const svg = d3.select(journeyHistogramVisualization)
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+            .style('background', 'var(--vscode-editor-background)');
+        
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+        
+        // Setup data for histogram
+        const categories = ['Simple', 'Medium', 'Complex', 'Very Complex'];
+        const values = [distribution.simple, distribution.medium, distribution.complex, distribution.veryComplex];
+        const colors = ['#6c757d', '#28a745', '#f66a0a', '#d73a49']; // Matching our color scheme
+        
+        const xScale = d3.scaleBand()
+            .domain(categories)
+            .range([0, width])
+            .padding(0.1);
+        
+        const yScale = d3.scaleLinear()
+            .domain([0, Math.max(...values)])
+            .range([height, 0]);
+        
+        // Create tooltip
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'histogram-tooltip')
+            .style('opacity', 0)
+            .style('position', 'absolute')
+            .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+            .style('border', '1px solid var(--vscode-panel-border)')
+            .style('border-radius', '3px')
+            .style('padding', '8px')
+            .style('font-size', '12px')
+            .style('z-index', '1000')
+            .style('pointer-events', 'none');
+        
+        // Add bars
+        g.selectAll('.histogram-bar')
+            .data(categories)
+            .enter()
+            .append('rect')
+            .attr('class', 'histogram-bar')
+            .attr('x', d => xScale(d))
+            .attr('y', d => yScale(values[categories.indexOf(d)]))
+            .attr('width', xScale.bandwidth())
+            .attr('height', d => height - yScale(values[categories.indexOf(d)]))
+            .attr('fill', (d, i) => colors[i])
+            .attr('stroke', 'var(--vscode-panel-border)')
+            .attr('stroke-width', 1)
+            .on('mouseover', function(event, d) {
+                const value = values[categories.indexOf(d)];
+                const percentage = totalStories > 0 ? ((value / totalStories) * 100).toFixed(1) : '0.0';
+                
+                // Map category to full description
+                const descriptions = {
+                    'Simple': 'Simple (1-2 pages)',
+                    'Medium': 'Medium (3-5 pages)', 
+                    'Complex': 'Complex (6-10 pages)',
+                    'Very Complex': 'Very Complex (10+ pages)'
+                };
+                
+                d3.select(this).attr('opacity', 0.8);
+                tooltip.transition()
+                    .duration(200)
+                    .style('opacity', .9);
+                
+                tooltip.html(`
+                    <strong>${descriptions[d]}</strong><br/>
+                    Count: ${value}<br/>
+                    Percentage: ${percentage}%
+                `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+            })
+            .on('mouseout', function() {
+                d3.select(this).attr('opacity', 1);
+                tooltip.transition()
+                    .duration(500)
+                    .style('opacity', 0);
+            });
+
+        // Add axes
+        g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(xScale))
+            .selectAll('text')
+            .style('fill', 'var(--vscode-foreground)')
+            .style('font-size', '12px');
+
+        g.append('g')
+            .call(d3.axisLeft(yScale))
+            .selectAll('text')
+            .style('fill', 'var(--vscode-foreground)')
+            .style('font-size', '12px');
+
+        // Add axis labels
+        g.append('text')
+            .attr('transform', 'rotate(-90)')
+            .attr('y', 0 - margin.left)
+            .attr('x', 0 - (height / 2))
+            .attr('dy', '1em')
+            .style('text-anchor', 'middle')
+            .style('fill', 'var(--vscode-foreground)')
+            .style('font-size', '14px')
+            .text('Number of Stories');
+
+        g.append('text')
+            .attr('transform', `translate(${width / 2}, ${height + margin.bottom - 10})`)
+            .style('text-anchor', 'middle')
+            .style('fill', 'var(--vscode-foreground)')
+            .style('font-size', '14px')
+            .text('Journey Complexity');
+    }
+
+    // Calculate journey complexity distribution
+    function calculateJourneyComplexityDistribution(items) {
+        const distribution = {
+            simple: 0,
+            medium: 0,
+            complex: 0,
+            veryComplex: 0
+        };
+
+        // Aggregate data by story number to get page counts (same as treemap logic)
+        const storyData = new Map();
+        
+        items.forEach(item => {
+            const storyNumber = item.storyNumber || 'Unknown';
+            
+            if (!storyData.has(storyNumber)) {
+                storyData.set(storyNumber, {
+                    storyNumber: storyNumber,
+                    pages: new Set()
+                });
+            }
+            
+            // Add page to the story's page set
+            if (item.page && item.page.trim() !== '') {
+                storyData.get(storyNumber).pages.add(item.page);
+            }
+        });
+
+        // Categorize each story by page count
+        storyData.forEach(story => {
+            const pageCount = story.pages.size;
+            if (pageCount >= 10) {
+                distribution.veryComplex++;
+            } else if (pageCount >= 6) {
+                distribution.complex++;
+            } else if (pageCount >= 3) {
+                distribution.medium++;
+            } else {
+                distribution.simple++;
+            }
+        });
+
+        return distribution;
+    }
+
+    // Generate PNG from journey histogram
+    function generateJourneyHistogramPNG() {
+        try {
+            const journeyHistogramVisualization = document.getElementById('journey-histogram-visualization');
+            if (!journeyHistogramVisualization || journeyHistogramVisualization.classList.contains('hidden')) {
+                alert('Load histogram before exporting PNG');
+                return;
+            }
+            
+            const svgElement = journeyHistogramVisualization.querySelector('svg');
+            if (!svgElement) {
+                alert('Histogram SVG not found');
+                return;
+            }
+            
+            // Clone and inline styles
+            const cloned = svgElement.cloneNode(true);
+            
+            // Inline rect styles
+            cloned.querySelectorAll('rect').forEach(rect => {
+                const cs = window.getComputedStyle(rect);
+                const fill = rect.getAttribute('fill') || cs.fill || '#4c78a8';
+                const stroke = rect.getAttribute('stroke') || cs.stroke || '#333333';
+                rect.setAttribute('fill', fill.startsWith('var(') ? '#4c78a8' : fill);
+                rect.setAttribute('stroke', stroke.startsWith('var(') ? '#333333' : stroke);
+                rect.setAttribute('stroke-width', rect.getAttribute('stroke-width') || '1');
+            });
+            
+            // Inline text styles
+            cloned.querySelectorAll('text').forEach(text => {
+                const cs = window.getComputedStyle(text);
+                const fill = text.getAttribute('fill') || cs.fill || '#333333';
+                text.setAttribute('fill', fill.startsWith('var(') ? '#333333' : fill);
+            });
+            
+            // Convert SVG to string
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(cloned);
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(svgBlob);
+            
+            // Convert to PNG
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = function() {
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                
+                // White background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                URL.revokeObjectURL(url);
+                
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        alert('Canvas conversion failed');
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const base64 = reader.result;
+                        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                        const filename = `journey-complexity-distribution-${timestamp}.png`;
+                        vscode.postMessage({
+                            command: 'savePngToWorkspace',
+                            data: { base64, filename, type: 'journey-histogram' }
+                        });
+                    };
+                    reader.readAsDataURL(blob);
+                }, 'image/png');
+            };
+            
+            img.onerror = function() {
+                alert('Failed to render SVG to image');
+            };
+            
+            img.src = url;
+        } catch (err) {
+            alert('Failed to generate PNG: ' + err.message);
+        }
     }
 });
 
