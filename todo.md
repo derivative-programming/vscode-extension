@@ -8,11 +8,8 @@ common types of graphs...
 
 
 data object usage analysis view...
-- tab: detail
-  - some rows we show the individual page item that uses it. should always do this
 - tab: distribution chart
   - histogram of data object usage ranges (low, medium, high, very high)
-- tab:  
 
 data object size analysis view...
 - tab: distribution chart

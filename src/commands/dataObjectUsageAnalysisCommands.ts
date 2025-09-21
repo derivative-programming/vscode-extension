@@ -1385,6 +1385,97 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         
+        /* Histogram specific styles */
+        .histogram-container {
+            padding: 15px;
+        }
+        
+        .histogram-header {
+            margin-bottom: 20px;
+        }
+        
+        .histogram-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .histogram-title {
+            flex: 1;
+        }
+        
+        .histogram-actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .histogram-header h3 {
+            margin: 0 0 5px 0;
+            color: var(--vscode-foreground);
+            font-size: 16px;
+        }
+        
+        .histogram-header p {
+            margin: 0;
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
+        }
+        
+        .histogram-viz {
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .histogram-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 12px;
+            color: var(--vscode-foreground);
+        }
+        
+        /* Histogram bar styles */
+        .histogram-bar {
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .histogram-bar:hover {
+            opacity: 0.8;
+        }
+        
+        .histogram-label {
+            font-family: var(--vscode-font-family);
+            font-size: 12px;
+            fill: var(--vscode-foreground);
+            text-anchor: middle;
+        }
+        
+        .histogram-value {
+            font-family: var(--vscode-font-family);
+            font-size: 11px;
+            fill: var(--vscode-foreground);
+            text-anchor: middle;
+            font-weight: bold;
+        }
+        
+        .histogram-tooltip {
+            position: absolute;
+            background: var(--vscode-editorHoverWidget-background);
+            border: 1px solid var(--vscode-editorHoverWidget-border);
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 12px;
+            color: var(--vscode-editorHoverWidget-foreground);
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
         /* Bubble chart specific styles */
         .bubble-container {
             padding: 15px;
@@ -1549,6 +1640,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
         <button class="tab active" data-tab="summary">Summary</button>
         <button class="tab" data-tab="detail">Detail</button>
         <button class="tab" data-tab="treemap">Proportional Usage</button>
+        <button class="tab" data-tab="histogram">Usage Distribution</button>
         <button class="tab" data-tab="bubble">Complexity vs. Usage</button>
     </div>
     
@@ -1691,6 +1783,48 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             <div id="treemap-loading" class="loading">Loading treemap...</div>
             <div id="treemap-visualization" class="treemap-viz hidden"></div>
             <div class="treemap-legend">
+                <div class="legend-item">
+                    <span class="legend-color high-usage"></span>
+                    <span>High Usage (20+ references)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color medium-usage"></span>
+                    <span>Medium Usage (5-19 references)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color low-usage"></span>
+                    <span>Low Usage (1-4 references)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color no-usage"></span>
+                    <span>No Usage (0 references)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="histogram-tab" class="tab-content">
+        <div class="histogram-container">
+            <div class="histogram-header">
+                <div class="histogram-header-content">
+                    <div class="histogram-title">
+                        <h3>Usage Distribution</h3>
+                        <p>Distribution of data objects across usage categories</p>
+                    </div>
+                    <div class="histogram-actions">
+                        <button id="refreshHistogramButton" class="icon-button" title="Refresh Data">
+                            <i class="codicon codicon-refresh"></i>
+                        </button>
+                        <button id="generateHistogramPngBtn" class="svg-export-btn">
+                            <span class="codicon codicon-device-camera"></span>
+                            Generate PNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="histogram-loading" class="loading">Loading histogram...</div>
+            <div id="histogram-visualization" class="histogram-viz hidden"></div>
+            <div class="histogram-legend">
                 <div class="legend-item">
                     <span class="legend-color high-usage"></span>
                     <span>High Usage (20+ references)</span>

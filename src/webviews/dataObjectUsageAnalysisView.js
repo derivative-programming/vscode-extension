@@ -65,6 +65,8 @@ function switchTab(tabName) {
         loadDetailData();
     } else if (tabName === 'treemap') {
         loadTreemapData();
+    } else if (tabName === 'histogram') {
+        loadHistogramData();
     } else if (tabName === 'bubble') {
         loadBubbleData();
     }
@@ -86,10 +88,12 @@ function setupEventListeners() {
     const exportSummaryBtn = document.getElementById('exportSummaryBtn');
     const exportDetailBtn = document.getElementById('exportDetailBtn');
         const generateTreemapPngBtn = document.getElementById('generateTreemapPngBtn');
+        const generateHistogramPngBtn = document.getElementById('generateHistogramPngBtn');
         const generateBubblePngBtn = document.getElementById('generateBubblePngBtn');
     const refreshSummaryBtn = document.getElementById('refreshSummaryButton');
     const refreshDetailBtn = document.getElementById('refreshDetailButton');
     const refreshTreemapBtn = document.getElementById('refreshTreemapButton');
+    const refreshHistogramBtn = document.getElementById('refreshHistogramButton');
     const refreshBubbleBtn = document.getElementById('refreshBubbleButton');
     
     if (exportSummaryBtn) {
@@ -111,6 +115,12 @@ function setupEventListeners() {
             generateTreemapPngBtn.addEventListener('click', function() {
                 console.log('Generate treemap PNG button clicked');
                 generateTreemapPng();
+            });
+        }
+        if (generateHistogramPngBtn) {
+            generateHistogramPngBtn.addEventListener('click', function() {
+                console.log('Generate histogram PNG button clicked');
+                generateHistogramPng();
             });
         }
         if (generateBubblePngBtn) {
@@ -138,6 +148,13 @@ function setupEventListeners() {
         refreshTreemapBtn.addEventListener('click', function() {
             showSpinner();
             loadTreemapData();
+        });
+    }
+    
+    if (refreshHistogramBtn) {
+        refreshHistogramBtn.addEventListener('click', function() {
+            showSpinner();
+            loadHistogramData();
         });
     }
     
@@ -559,6 +576,10 @@ window.addEventListener('message', event => {
             // Also render treemap if that's the current tab
             if (currentTab === 'treemap') {
                 renderTreemap(message.data);
+            }
+            // Also render histogram if that's the current tab
+            if (currentTab === 'histogram') {
+                renderHistogram(message.data);
             }
             // Also render bubble chart if that's the current tab
             if (currentTab === 'bubble') {
@@ -1093,6 +1114,277 @@ function getUsageColor(totalReferences) {
         return '#28a745';   // Low usage - green
     }
     return '#6c757d'; // No usage - gray (replaced CSS variable with actual color)
+}
+
+// Histogram functionality
+
+// Load histogram data
+function loadHistogramData() {
+    // Use the same summary data for histogram
+    vscode.postMessage({ command: 'getSummaryData' });
+}
+
+// Render histogram visualization
+function renderHistogram(data) {
+    const container = document.getElementById('histogram-visualization');
+    const loadingElement = document.getElementById('histogram-loading');
+    
+    if (!container || !loadingElement) {
+        console.error('Histogram container elements not found');
+        return;
+    }
+    
+    // Clear any existing content
+    container.innerHTML = '';
+    
+    // Calculate usage distribution
+    const distribution = calculateUsageDistribution(data);
+    
+    // Setup dimensions
+    const margin = {top: 20, right: 20, bottom: 80, left: 60};
+    const width = 600 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+    
+    // Create SVG
+    const svg = d3.select(container)
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    // Setup scales
+    const categories = ['No Usage', 'Low Usage', 'Medium Usage', 'High Usage'];
+    const values = [distribution.noUsage, distribution.lowUsage, distribution.mediumUsage, distribution.highUsage];
+    const colors = ['#6c757d', '#28a745', '#f66a0a', '#d73a49'];
+    
+    const xScale = d3.scaleBand()
+        .domain(categories)
+        .range([0, width])
+        .padding(0.1);
+    
+    const yScale = d3.scaleLinear()
+        .domain([0, Math.max(...values)])
+        .range([height, 0]);
+    
+    // Create tooltip
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'histogram-tooltip')
+        .style('opacity', 0)
+        .style('position', 'absolute')
+        .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+        .style('border', '1px solid var(--vscode-panel-border)')
+        .style('border-radius', '3px')
+        .style('padding', '8px')
+        .style('font-size', '12px')
+        .style('z-index', '1000')
+        .style('pointer-events', 'none');
+    
+    // Add bars
+    g.selectAll('.histogram-bar')
+        .data(categories)
+        .enter()
+        .append('rect')
+        .attr('class', 'histogram-bar')
+        .attr('x', d => xScale(d))
+        .attr('y', d => yScale(values[categories.indexOf(d)]))
+        .attr('width', xScale.bandwidth())
+        .attr('height', d => height - yScale(values[categories.indexOf(d)]))
+        .attr('fill', (d, i) => colors[i])
+        .attr('stroke', 'var(--vscode-foreground)')
+        .attr('stroke-width', 1)
+        .on('mouseover', function(event, d) {
+            const value = values[categories.indexOf(d)];
+            const percentage = data.length > 0 ? ((value / data.length) * 100).toFixed(1) : '0.0';
+            
+            // Map category to full description
+            const descriptions = {
+                'No Usage': 'No Usage (0 references)',
+                'Low Usage': 'Low Usage (1-4 references)', 
+                'Medium Usage': 'Medium Usage (5-19 references)',
+                'High Usage': 'High Usage (20+ references)'
+            };
+            
+            d3.select(this).attr('opacity', 0.8);
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            
+            tooltip.html(`
+                <strong>${descriptions[d]}</strong><br/>
+                Count: ${value}<br/>
+                Percentage: ${percentage}%
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function() {
+            d3.select(this).attr('opacity', 1);
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+    
+    // Add value labels on top of bars
+    g.selectAll('.histogram-value')
+        .data(categories)
+        .enter()
+        .append('text')
+        .attr('class', 'histogram-value')
+        .attr('x', d => xScale(d) + xScale.bandwidth() / 2)
+        .attr('y', d => yScale(values[categories.indexOf(d)]) - 5)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--vscode-foreground)')
+        .attr('font-size', '12px')
+        .attr('font-weight', 'bold')
+        .text(d => values[categories.indexOf(d)]);
+    
+    // Add axes
+    g.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale))
+        .selectAll('text')
+        .attr('fill', 'var(--vscode-foreground)')
+        .style('text-anchor', 'middle')
+        .style('font-size', '11px');
+    
+    g.append('g')
+        .call(d3.axisLeft(yScale))
+        .selectAll('text')
+        .attr('fill', 'var(--vscode-foreground)');
+    
+    // Add axis labels
+    g.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', -40)
+        .attr('x', -height / 2)
+        .attr('fill', 'var(--vscode-foreground)')
+        .style('text-anchor', 'middle')
+        .style('font-size', '12px')
+        .text('Number of Data Objects');
+    
+    g.append('text')
+        .attr('x', width / 2)
+        .attr('y', height + 60)
+        .attr('fill', 'var(--vscode-foreground)')
+        .style('text-anchor', 'middle')
+        .style('font-size', '12px')
+        .text('Usage Categories');
+    
+    // Hide loading and show visualization
+    loadingElement.classList.add('hidden');
+    container.classList.remove('hidden');
+}
+
+// Calculate usage distribution from data
+function calculateUsageDistribution(data) {
+    const distribution = {
+        noUsage: 0,
+        lowUsage: 0,
+        mediumUsage: 0,
+        highUsage: 0
+    };
+    
+    data.forEach(item => {
+        const totalRefs = item.totalReferences;
+        if (totalRefs === 0) {
+            distribution.noUsage++;
+        } else if (totalRefs >= 1 && totalRefs <= 4) {
+            distribution.lowUsage++;
+        } else if (totalRefs >= 5 && totalRefs <= 19) {
+            distribution.mediumUsage++;
+        } else if (totalRefs >= 20) {
+            distribution.highUsage++;
+        }
+    });
+    
+    return distribution;
+}
+
+// Generate histogram PNG export
+function generateHistogramPng() {
+    try {
+        const histogramContainer = document.getElementById('histogram-visualization');
+        if (!histogramContainer || histogramContainer.classList.contains('hidden')) {
+            vscode.postMessage({ command: 'showError', error: 'Load histogram before exporting PNG' });
+            return;
+        }
+        
+        const svgElement = histogramContainer.querySelector('svg');
+        if (!svgElement) {
+            vscode.postMessage({ command: 'showError', error: 'Histogram SVG not found' });
+            return;
+        }
+        
+        // Clone and inline styles
+        const cloned = svgElement.cloneNode(true);
+        
+        // Inline rect styles
+        cloned.querySelectorAll('rect').forEach(rect => {
+            const cs = window.getComputedStyle(rect);
+            const fill = rect.getAttribute('fill') || cs.fill || '#4c78a8';
+            const stroke = rect.getAttribute('stroke') || cs.stroke || '#333333';
+            rect.setAttribute('fill', fill.startsWith('var(') ? '#4c78a8' : fill);
+            rect.setAttribute('stroke', stroke.startsWith('var(') ? '#333333' : stroke);
+            rect.setAttribute('stroke-width', rect.getAttribute('stroke-width') || '1');
+        });
+        
+        // Inline text styles
+        cloned.querySelectorAll('text').forEach(text => {
+            const cs = window.getComputedStyle(text);
+            const fill = text.getAttribute('fill') || cs.fill || '#333333';
+            text.setAttribute('fill', fill.startsWith('var(') ? '#333333' : fill);
+        });
+        
+        // Convert SVG to string
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(cloned);
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(svgBlob);
+        
+        // Convert to PNG
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = function() {
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            
+            // White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+            
+            canvas.toBlob(function(blob) {
+                if (!blob) {
+                    vscode.postMessage({ command: 'showError', error: 'Canvas conversion failed' });
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64 = reader.result;
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                    const filename = `data-object-usage-histogram-${timestamp}.png`;
+                    vscode.postMessage({
+                        command: 'savePngToWorkspace',
+                        data: { base64, filename, type: 'histogram' }
+                    });
+                };
+                reader.readAsDataURL(blob);
+            }, 'image/png');
+        };
+        
+        img.onerror = function() {
+            vscode.postMessage({ command: 'showError', error: 'Failed to render SVG to image' });
+        };
+        
+        img.src = url;
+    } catch (err) {
+        vscode.postMessage({ command: 'showError', error: 'Failed to generate PNG: ' + err.message });
+    }
 }
 
 // Generate and download SVG from treemap visualization
