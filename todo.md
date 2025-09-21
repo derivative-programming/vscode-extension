@@ -7,10 +7,6 @@ common types of graphs...
 
 
 
-data object usage analysis view...
-- tab: distribution chart
-  - histogram of data object usage ranges (low, medium, high, very high)
-
 data object size analysis view...
 - tab: distribution chart
   - histogram of data object size ranges (small, medium, large, very large)
