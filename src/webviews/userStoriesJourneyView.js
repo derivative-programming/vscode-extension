@@ -101,27 +101,46 @@ function refresh() {
 }
 
 // Page usage global functions for onclick
-function applyPageUsageFilters() {
+
+// Helper function to get filtered page data based on current tab
+function getFilteredPageDataForTab() {
+    // Get the active tab to determine which checkbox to check
+    const activeTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
+    let hideStartPages = false;
+    
+    if (activeTab === 'page-usage-treemap') {
+        hideStartPages = document.getElementById('hideStartPagesTreemap')?.checked || false;
+    } else if (activeTab === 'page-usage-distribution') {
+        hideStartPages = document.getElementById('hideStartPagesHistogram')?.checked || false;
+    } else if (activeTab === 'page-usage-vs-complexity') {
+        hideStartPages = document.getElementById('hideStartPagesScatter')?.checked || false;
+    }
+    
+    return (pageUsageData.pages || []).filter(page => {
+        const matchesStartPageFilter = !hideStartPages || !page.isStartPage;
+        return matchesStartPageFilter;
+    });
+}
+
+// Helper function to get filtered page data for table (no start page filter on table)
+function getFilteredPageData() {
     const nameFilter = document.getElementById('filterPageName')?.value.toLowerCase() || '';
     const typeFilter = document.getElementById('filterPageType')?.value || '';
     const complexityFilter = document.getElementById('filterPageComplexity')?.value || '';
     
-    let filteredPages = (pageUsageData.pages || []).filter(page => {
+    return (pageUsageData.pages || []).filter(page => {
         const matchesName = !nameFilter || (page.name || '').toLowerCase().includes(nameFilter);
         const matchesType = !typeFilter || page.type === typeFilter;
         const matchesComplexity = !complexityFilter || page.complexity === complexityFilter;
         
         return matchesName && matchesType && matchesComplexity;
     });
-    
-    // Temporarily update data for filtering
-    const originalPages = pageUsageData.pages;
-    pageUsageData.pages = filteredPages;
-    
+}
+
+function applyPageUsageFilters() {
+    // Only re-render table and summary (not the visualizations)
     renderPageUsageTable();
-    
-    // Restore original data
-    pageUsageData.pages = originalPages;
+    renderPageUsageSummary();
 }
 
 function clearPageUsageFilters() {
@@ -129,7 +148,23 @@ function clearPageUsageFilters() {
     document.getElementById('filterPageType').value = '';
     document.getElementById('filterPageComplexity').value = '';
     
+    // Only re-render table and summary (not the visualizations)
     renderPageUsageTable();
+    renderPageUsageSummary();
+}
+
+// Functions to handle start page filters for visualization tabs
+function applyStartPageFilter() {
+    // Get the active tab to determine which visualization to refresh
+    const activeTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
+    
+    if (activeTab === 'page-usage-treemap') {
+        renderPageUsageTreemap();
+    } else if (activeTab === 'page-usage-distribution') {
+        renderPageUsageHistogram();
+    } else if (activeTab === 'page-usage-vs-complexity') {
+        renderPageUsageVsComplexityScatter();
+    }
 }
 
 function refreshPageUsageData() {
@@ -959,6 +994,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Page Usage distribution tab selected - render histogram
             console.log('Page Usage distribution tab selected - rendering histogram');
             renderPageUsageHistogram();
+        } else if (tabName === 'page-usage-vs-complexity') {
+            // Page Usage vs Complexity tab selected - render scatter plot
+            console.log('Page Usage vs Complexity tab selected - rendering scatter plot');
+            renderPageUsageVsComplexityScatter();
         } else if (tabName === 'journey-visualization') {
             // Journey visualization tab selected - render treemap
             console.log('Journey visualization tab selected - rendering treemap');
@@ -993,6 +1032,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Setup start page filter event listeners for visualization tabs
+    const startPageFilterInputs = ['hideStartPagesTreemap', 'hideStartPagesHistogram', 'hideStartPagesScatter'];
+    startPageFilterInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', applyStartPageFilter);
+        }
+    });
+    
     // Setup button event listeners
     const exportButton = document.getElementById('exportButton');
     const refreshButton = document.getElementById('refreshButton');
@@ -1008,6 +1056,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const generatePageUsageTreemapPngBtn = document.getElementById('generatePageUsageTreemapPngBtn');
     const refreshPageUsageHistogramButton = document.getElementById('refreshPageUsageHistogramButton');
     const generatePageUsageHistogramPngBtn = document.getElementById('generatePageUsageHistogramPngBtn');
+    const refreshPageUsageVsComplexityButton = document.getElementById('refreshPageUsageVsComplexityButton');
+    const generatePageUsageVsComplexityPngBtn = document.getElementById('generatePageUsageVsComplexityPngBtn');
     
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
@@ -1121,6 +1171,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }    if (generatePageUsageHistogramPngBtn) {
         generatePageUsageHistogramPngBtn.addEventListener('click', function() {
             generatePageUsageHistogramPNG();
+        });
+    }
+
+    if (refreshPageUsageVsComplexityButton) {
+        refreshPageUsageVsComplexityButton.addEventListener('click', function() {
+            refreshPageUsageData();
+        });
+    }
+
+    if (generatePageUsageVsComplexityPngBtn) {
+        generatePageUsageVsComplexityPngBtn.addEventListener('click', function() {
+            generatePageUsageVsComplexityPNG();
         });
     }
     
@@ -1729,9 +1791,10 @@ function renderPageUsageSummary() {
         return;
     }
     
-    const totalPages = pageUsageData.pages?.length || 0;
+    const filteredPages = getFilteredPageData();
+    const totalPages = filteredPages.length;
     const complexityBreakdown = pageUsageData.complexityBreakdown || {};
-    const totalUsage = pageUsageData.pages?.reduce((sum, page) => sum + (page.usageCount || 0), 0) || 0;
+    const totalUsage = filteredPages.reduce((sum, page) => sum + (page.usageCount || 0), 0);
     
     summaryContainer.innerHTML = `
         <div class="summary-stat">
@@ -1768,7 +1831,7 @@ function renderPageUsageTable() {
         return;
     }
     
-    const pages = pageUsageData.pages || [];
+    const pages = getFilteredPageData();
     
     if (pages.length === 0) {
         tableContainer.innerHTML = `
@@ -1959,7 +2022,9 @@ function renderPageUsageTreemap() {
     const pageUsageTreemapVisualization = document.getElementById('page-usage-treemap-visualization');
     const pageUsageTreemapLoading = document.getElementById('page-usage-treemap-loading');
     
-    if (!pageUsageTreemapVisualization || !pageUsageTreemapLoading || !pageUsageData || pageUsageData.pages.length === 0) {
+    const filteredPages = getFilteredPageDataForTab();
+    
+    if (!pageUsageTreemapVisualization || !pageUsageTreemapLoading || !pageUsageData || filteredPages.length === 0) {
         console.error('Page usage treemap elements not found or no data available');
         return;
     }
@@ -1972,7 +2037,7 @@ function renderPageUsageTreemap() {
     pageUsageTreemapVisualization.innerHTML = '';
 
     // Prepare treemap data using page usage counts
-    const treemapData = pageUsageData.pages.map(page => ({
+    const treemapData = filteredPages.map(page => ({
         pageName: page.name,
         pageType: page.type,
         complexity: page.complexity,
@@ -2132,7 +2197,9 @@ function renderPageUsageHistogram() {
     const pageUsageHistogramVisualization = document.getElementById('page-usage-histogram-visualization');
     const pageUsageHistogramLoading = document.getElementById('page-usage-histogram-loading');
     
-    if (!pageUsageHistogramVisualization || !pageUsageHistogramLoading || !pageUsageData || pageUsageData.pages.length === 0) {
+    const filteredPages = getFilteredPageDataForTab();
+    
+    if (!pageUsageHistogramVisualization || !pageUsageHistogramLoading || !pageUsageData || filteredPages.length === 0) {
         console.error('Page usage histogram elements not found or no data available');
         return;
     }
@@ -2152,7 +2219,7 @@ function renderPageUsageHistogram() {
         veryHigh: 0  // 10+ usages
     };
 
-    pageUsageData.pages.forEach(page => {
+    filteredPages.forEach(page => {
         const usage = page.usageCount || 0;
         if (usage >= 1 && usage <= 2) {
             distribution.low++;
@@ -2358,6 +2425,248 @@ function generatePageUsageHistogramPNG() {
             data: {
                 base64: pngData.split(',')[1], // Remove data:image/png;base64, prefix
                 filename: `page-usage-histogram-${new Date().toISOString().split('T')[0]}.png`
+            }
+        });
+    };
+    
+    img.src = url;
+}
+
+// Page Usage vs Complexity Scatter Plot rendering function
+function renderPageUsageVsComplexityScatter() {
+    const scatterVisualization = document.getElementById('page-usage-vs-complexity-visualization');
+    const scatterLoading = document.getElementById('page-usage-vs-complexity-loading');
+    
+    const filteredPages = getFilteredPageDataForTab();
+    
+    if (!scatterVisualization || !scatterLoading || !pageUsageData || filteredPages.length === 0) {
+        console.error('Page usage vs complexity elements not found or no data available');
+        return;
+    }
+
+    // Hide loading and show visualization
+    scatterLoading.classList.add('hidden');
+    scatterVisualization.classList.remove('hidden');
+
+    // Clear previous content
+    scatterVisualization.innerHTML = '';
+
+    // Prepare scatter plot data
+    const scatterData = filteredPages.map(page => ({
+        pageName: page.name,
+        pageType: page.type,
+        complexity: page.complexity,
+        totalElements: page.totalElements || 0,
+        usageCount: page.usageCount || 0,
+        x: page.totalElements || 0,  // X-axis: element count (complexity)
+        y: page.usageCount || 0      // Y-axis: usage count
+    }));
+
+    // Filter out pages with no data
+    const validScatterData = scatterData.filter(page => 
+        page.pageName && page.totalElements >= 0 && page.usageCount >= 0
+    );
+
+    if (validScatterData.length === 0) {
+        // Show empty state
+        scatterLoading.classList.add('hidden');
+        scatterVisualization.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--vscode-descriptionForeground);">No data available for scatter plot</div>';
+        scatterVisualization.classList.remove('hidden');
+        return;
+    }
+
+    // Set dimensions
+    const margin = { top: 20, right: 20, bottom: 60, left: 60 };
+    const width = 800 - margin.left - margin.right;
+    const height = 500 - margin.top - margin.bottom;
+
+    // Create SVG
+    const svg = d3.select(scatterVisualization)
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .style('background', 'var(--vscode-editor-background)');
+
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    // Set up scales
+    const xMax = d3.max(validScatterData, d => d.x) || 10;
+    const yMax = d3.max(validScatterData, d => d.y) || 10;
+    
+    const xScale = d3.scaleLinear()
+        .domain([0, xMax * 1.1])
+        .range([0, width]);
+
+    const yScale = d3.scaleLinear()
+        .domain([0, yMax * 1.1])
+        .range([height, 0]);
+
+    // Add quadrant lines
+    const xMidpoint = xScale(xMax / 2);
+    const yMidpoint = yScale(yMax / 2);
+    
+    // Vertical line (complexity divider)
+    g.append('line')
+        .attr('x1', xMidpoint)
+        .attr('x2', xMidpoint)
+        .attr('y1', 0)
+        .attr('y2', height)
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-dasharray', '5,5')
+        .attr('opacity', 0.5);
+    
+    // Horizontal line (usage divider)
+    g.append('line')
+        .attr('x1', 0)
+        .attr('x2', width)
+        .attr('y1', yMidpoint)
+        .attr('y2', yMidpoint)
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-dasharray', '5,5')
+        .attr('opacity', 0.5);
+
+    // Color scale based on quadrants
+    const getQuadrantColor = (elementCount, usageCount) => {
+        const isHighComplexity = elementCount > (xMax / 2);
+        const isHighUsage = usageCount > (yMax / 2);
+        
+        if (isHighUsage && !isHighComplexity) {
+            return '#28a745'; // Green - High usage, low complexity (well-designed)
+        } else if (isHighUsage && isHighComplexity) {
+            return '#dc3545'; // Red - High usage, high complexity (needs attention)
+        } else if (!isHighUsage && !isHighComplexity) {
+            return '#6f42c1'; // Purple - Low usage, low complexity (simple utility)
+        } else {
+            return '#fd7e14'; // Orange - Low usage, high complexity (over-engineered)
+        }
+    };
+
+    // Create tooltip
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'page-usage-complexity-tooltip')
+        .style('opacity', 0)
+        .style('position', 'absolute')
+        .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+        .style('border', '1px solid var(--vscode-panel-border)')
+        .style('border-radius', '3px')
+        .style('padding', '8px')
+        .style('font-size', '12px')
+        .style('z-index', '1000')
+        .style('pointer-events', 'none');
+
+    // Add dots
+    g.selectAll('.scatter-dot')
+        .data(validScatterData)
+        .enter()
+        .append('circle')
+        .attr('class', 'scatter-dot')
+        .attr('cx', d => xScale(d.x))
+        .attr('cy', d => yScale(d.y))
+        .attr('r', 6)
+        .attr('fill', d => getQuadrantColor(d.totalElements, d.usageCount))
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-width', 1)
+        .attr('opacity', 0.8)
+        .on('mouseover', function(event, d) {
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            tooltip.html(`
+                <strong>${d.pageName}</strong><br/>
+                Type: ${d.pageType}<br/>
+                Complexity: ${d.complexity}<br/>
+                Element Count: ${d.totalElements}<br/>
+                Usage Count: ${d.usageCount}
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+                
+            d3.select(this)
+                .attr('r', 8)
+                .attr('opacity', 1);
+        })
+        .on('mouseout', function(d) {
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+                
+            d3.select(this)
+                .attr('r', 6)
+                .attr('opacity', 0.8);
+        });
+
+    // Add X axis
+    g.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale))
+        .selectAll('text')
+        .attr('fill', 'var(--vscode-editor-foreground)');
+
+    // Add Y axis
+    g.append('g')
+        .call(d3.axisLeft(yScale))
+        .selectAll('text')
+        .attr('fill', 'var(--vscode-editor-foreground)');
+
+    // Add X axis label
+    g.append('text')
+        .attr('transform', `translate(${width / 2}, ${height + 45})`)
+        .style('text-anchor', 'middle')
+        .attr('fill', 'var(--vscode-editor-foreground)')
+        .text('Page Complexity (Element Count)');
+
+    // Add Y axis label
+    g.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', 0 - margin.left)
+        .attr('x', 0 - (height / 2))
+        .attr('dy', '1em')
+        .style('text-anchor', 'middle')
+        .attr('fill', 'var(--vscode-editor-foreground)')
+        .text('Usage Frequency (Journey Count)');
+
+    // Style axis lines
+    g.selectAll('.domain, .tick line')
+        .attr('stroke', 'var(--vscode-panel-border)');
+
+    console.log(`Page usage vs complexity scatter plot rendered with ${validScatterData.length} pages`);
+}
+
+// PNG export function for scatter plot
+function generatePageUsageVsComplexityPNG() {
+    const svgElement = document.querySelector('#page-usage-vs-complexity-visualization svg');
+    if (!svgElement) {
+        console.error('No page usage vs complexity scatter plot SVG found for PNG export');
+        return;
+    }
+    
+    // Convert SVG to canvas and then to PNG
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const data = (new XMLSerializer()).serializeToString(svgElement);
+    const DOMURL = window.URL || window.webkitURL || window;
+    
+    const img = new Image();
+    const svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+    const url = DOMURL.createObjectURL(svgBlob);
+    
+    img.onload = function () {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        DOMURL.revokeObjectURL(url);
+        
+        const pngData = canvas.toDataURL('image/png');
+        
+        // Send to extension for saving
+        vscode.postMessage({
+            command: 'savePngToWorkspace',
+            data: {
+                base64: pngData.split(',')[1], // Remove data:image/png;base64, prefix
+                filename: `page-usage-vs-complexity-${new Date().toISOString().split('T')[0]}.png`
             }
         });
     };

@@ -1142,9 +1142,14 @@ async function loadPageUsageData(modelService: ModelService): Promise<any> {
         console.log("[Extension] Final usage count data:", pageUsageCount);
         console.log("[Extension] Total pages with usage > 0:", Object.values(pageUsageCount).filter(count => count > 0).length);
 
-        // Apply usage counts to pages
+        // Apply usage counts to pages and mark start pages
+        const journeyStartData = await loadJourneyStartData(modelService);
+        const journeyStartPages = journeyStartData.journeyStartPages || {};
+        const startPageNames = new Set(Object.values(journeyStartPages).filter(name => typeof name === 'string'));
+        
         allPages.forEach(page => {
             page.usageCount = pageUsageCount[page.name] || 0;
+            page.isStartPage = startPageNames.has(page.name);
         });
 
         // Calculate complexity breakdown
@@ -2341,6 +2346,94 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         .legend-color.usage-very-high {
                             background-color: #d73a49;  /* Very High Usage -> Red */
                         }
+
+                        /* Scatter plot container styles */
+                        .scatter-container {
+                            margin-bottom: 20px;
+                            background: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            padding: 15px;
+                        }
+
+                        .scatter-header {
+                            margin-bottom: 15px;
+                        }
+
+                        .scatter-header-content {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-start;
+                        }
+
+                        .scatter-title h3 {
+                            margin: 0 0 5px 0;
+                            color: var(--vscode-editor-foreground);
+                            font-size: 16px;
+                        }
+
+                        .scatter-title p {
+                            margin: 0;
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 12px;
+                        }
+
+                        .scatter-actions {
+                            display: flex;
+                            gap: 8px;
+                            align-items: center;
+                        }
+
+                        .scatter-viz {
+                            background: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            min-height: 400px;
+                            margin-bottom: 15px;
+                        }
+
+                        .scatter-quadrants {
+                            margin-top: 15px;
+                        }
+
+                        .quadrant-legend {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 12px;
+                            background: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            padding: 15px;
+                        }
+
+                        .quadrant-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+
+                        .quadrant-color {
+                            width: 16px;
+                            height: 16px;
+                            border-radius: 50%;
+                            flex-shrink: 0;
+                        }
+
+                        .quadrant-color.high-usage-low-complexity {
+                            background-color: #28a745; /* Green - Well-designed */
+                        }
+
+                        .quadrant-color.high-usage-high-complexity {
+                            background-color: #dc3545; /* Red - Needs attention */
+                        }
+
+                        .quadrant-color.low-usage-low-complexity {
+                            background-color: #6f42c1; /* Purple - Simple utility */
+                        }
+
+                        .quadrant-color.low-usage-high-complexity {
+                            background-color: #fd7e14; /* Orange - Over-engineered */
+                        }
                         
                         .journey-treemap-tooltip {
                             position: absolute;
@@ -2577,6 +2670,33 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             color: var(--vscode-charts-red);
                         }
                         
+                        /* Page Usage Graph Filter Styles */
+                        .page-usage-graph-filter {
+                            background: var(--vscode-sideBar-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            padding: 8px 12px;
+                            margin-bottom: 10px;
+                        }
+                        
+                        .page-usage-graph-filter .filter-group {
+                            margin: 0;
+                        }
+                        
+                        .page-usage-graph-filter .filter-group label {
+                            font-size: 12px;
+                            font-weight: normal;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        .page-usage-graph-filter .filter-group input[type="checkbox"] {
+                            margin: 0;
+                            transform: scale(0.9);
+                        }
+                        
                         .page-usage-summary {
                             display: flex;
                             gap: 20px;
@@ -2618,6 +2738,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         <button class="tab" data-tab="page-usage">Page Usage</button>
                         <button class="tab" data-tab="page-usage-treemap">Page Usage Treemap</button>
                         <button class="tab" data-tab="page-usage-distribution">Page Usage Distribution</button>
+                        <button class="tab" data-tab="page-usage-vs-complexity">Page Usage vs Complexity</button>
                         <button class="tab" data-tab="journey-visualization">Journey Visualization</button>
                         <button class="tab" data-tab="journey-distribution">Journey Distribution</button>
                     </div>
@@ -2705,6 +2826,14 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                 </div>
                             </div>
                         </div>
+                        <div class="page-usage-graph-filter">
+                            <div class="filter-group">
+                                <label>
+                                    <input type="checkbox" id="hideStartPagesTreemap">
+                                    Hide Start Pages
+                                </label>
+                            </div>
+                        </div>
                         <div id="page-usage-treemap-loading" class="loading">Loading page usage visualization...</div>
                         <div id="page-usage-treemap-visualization" class="treemap-viz hidden"></div>
                         <div class="treemap-legend">
@@ -2748,6 +2877,14 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                 </div>
                             </div>
                         </div>
+                        <div class="page-usage-graph-filter">
+                            <div class="filter-group">
+                                <label>
+                                    <input type="checkbox" id="hideStartPagesHistogram">
+                                    Hide Start Pages
+                                </label>
+                            </div>
+                        </div>
                         <div id="page-usage-histogram-loading" class="loading">Loading page usage distribution...</div>
                         <div id="page-usage-histogram-visualization" class="histogram-viz hidden"></div>
                         <div class="histogram-legend">
@@ -2766,6 +2903,59 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             <div class="legend-item">
                                 <span class="legend-color usage-very-high"></span>
                                 <span>Very High Usage (10+ journeys)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Usage vs Complexity Tab Content -->
+                <div id="page-usage-vs-complexity-tab" class="tab-content">
+                    <div class="scatter-container">
+                        <div class="scatter-header">
+                            <div class="scatter-header-content">
+                                <div class="scatter-title">
+                                    <h3>Page Usage vs Complexity Scatter Plot</h3>
+                                    <p>Visualizes the relationship between page complexity (element count) and usage frequency. Each dot represents a page.</p>
+                                </div>
+                                <div class="scatter-actions">
+                                    <button id="refreshPageUsageVsComplexityButton" class="icon-button scatter-refresh-button" title="Refresh Data">
+                                        <i class="codicon codicon-refresh"></i>
+                                    </button>
+                                    <button id="generatePageUsageVsComplexityPngBtn" class="svg-export-btn">
+                                        <span class="codicon codicon-device-camera"></span>
+                                        Generate PNG
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="page-usage-graph-filter">
+                            <div class="filter-group">
+                                <label>
+                                    <input type="checkbox" id="hideStartPagesScatter">
+                                    Hide Start Pages
+                                </label>
+                            </div>
+                        </div>
+                        <div id="page-usage-vs-complexity-loading" class="loading">Loading scatter plot...</div>
+                        <div id="page-usage-vs-complexity-visualization" class="scatter-viz hidden"></div>
+                        <div class="scatter-quadrants">
+                            <div class="quadrant-legend">
+                                <div class="quadrant-item">
+                                    <span class="quadrant-color high-usage-low-complexity"></span>
+                                    <span><strong>High Usage, Low Complexity:</strong> Well-designed core pages</span>
+                                </div>
+                                <div class="quadrant-item">
+                                    <span class="quadrant-color high-usage-high-complexity"></span>
+                                    <span><strong>High Usage, High Complexity:</strong> Critical pages needing attention</span>
+                                </div>
+                                <div class="quadrant-item">
+                                    <span class="quadrant-color low-usage-low-complexity"></span>
+                                    <span><strong>Low Usage, Low Complexity:</strong> Simple utility pages</span>
+                                </div>
+                                <div class="quadrant-item">
+                                    <span class="quadrant-color low-usage-high-complexity"></span>
+                                    <span><strong>Low Usage, High Complexity:</strong> Potential over-engineering</span>
+                                </div>
                             </div>
                         </div>
                     </div>
