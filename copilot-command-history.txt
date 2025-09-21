@@ -2297,3 +2297,4 @@ CORRECTED: Forms don't have columns, only inputs and outputs
 FIXED: Page Usage tab refresh button - added icon, removed border, and enabled click functionality
 FIXED: Export buttons - removed manual styling from User Stories tab, added Page Usage export functionality
 UPDATED: Page Usage CSV export - removed unnecessary columns (Buttons, Inputs/Columns, Outputs/Params), simplified to only include Page Name, Type, Complexity, Total Elements, Usage Count
+FIXED: Page usage calculation logic - now correctly analyzes journey paths between start/end pages using pathfinding algorithm, counting usage for all pages on the journey path (+1 for start, intermediate, and end pages)

@@ -795,6 +795,69 @@ async function calculatePageDistances(panel: vscode.WebviewPanel, modelService: 
 }
 
 /**
+ * Extracts the role name from a user story text.
+ * @param text User story text
+ * @returns The extracted role name or null if not found
+ */
+function extractRoleFromUserStory(text: string): string | null {
+    if (!text || typeof text !== "string") { return null; }
+    
+    // Remove extra spaces
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract role from: A [Role] wants to...
+    const re1 = /^A\s+\[?(\w+(?:\s+\w+)*)\]?\s+wants to/i;
+    // Regex to extract role from: As a [Role], I want to...
+    const re2 = /^As a\s+\[?(\w+(?:\s+\w+)*)\]?\s*,?\s*I want to/i;
+    
+    const match1 = re1.exec(t);
+    const match2 = re2.exec(t);
+    
+    if (match1) {
+        return match1[1].trim();
+    } else if (match2) {
+        return match2[1].trim();
+    }
+    
+    return null;
+}
+
+/**
+ * Find shortest path between two pages using BFS and return the complete path
+ */
+function findShortestPath(startPageName: string, targetPageName: string, graph: { [key: string]: string[] }): string[] {
+    if (startPageName === targetPageName) {
+        return [startPageName];
+    }
+
+    const queue = [{ page: startPageName, path: [startPageName] }];
+    const visited = new Set<string>();
+    visited.add(startPageName);
+
+    while (queue.length > 0) {
+        const { page, path } = queue.shift()!;
+
+        if (page === targetPageName) {
+            return path;
+        }
+
+        if (graph[page]) {
+            graph[page].forEach(neighborPage => {
+                if (!visited.has(neighborPage)) {
+                    visited.add(neighborPage);
+                    queue.push({
+                        page: neighborPage,
+                        path: [...path, neighborPage]
+                    });
+                }
+            });
+        }
+    }
+
+    return []; // No path found
+}
+
+/**
  * Find shortest path distance between two pages using BFS
  */
 function findShortestPathDistance(startPageName: string, targetPageName: string, graph: { [key: string]: string[] }): number {
@@ -876,6 +939,7 @@ async function loadPageUsageData(modelService: ModelService): Promise<any> {
                             elements: elements,
                             totalElements: totalElements,
                             roleRequired: workflow.roleRequired || '',
+                            buttons: extractButtonsFromWorkflow(workflow),
                             usageCount: 0 // Will be calculated later
                         });
                     }
@@ -911,6 +975,7 @@ async function loadPageUsageData(modelService: ModelService): Promise<any> {
                             elements: elements,
                             totalElements: totalElements,
                             roleRequired: report.roleRequired || '',
+                            buttons: extractButtonsFromReport(report),
                             usageCount: 0 // Will be calculated later
                         });
                     }
@@ -918,7 +983,7 @@ async function loadPageUsageData(modelService: ModelService): Promise<any> {
             }
         });
 
-        // Load existing page mapping data to get usage statistics
+        // Load existing page mapping data to get user story journeys
         let existingPageMappingData: any = { pageMappings: {} };
         const modelFilePath = modelService.getCurrentFilePath();
         if (modelFilePath) {
@@ -934,16 +999,148 @@ async function loadPageUsageData(modelService: ModelService): Promise<any> {
             }
         }
 
-        // Calculate usage statistics from page mappings
+        // Build page graph for pathfinding (same logic as calculatePageDistances)
+        const graph: { [key: string]: string[] } = {};
+        const pageMap: { [key: string]: any } = {};
+
+        // Initialize graph with all pages
+        allPages.forEach(page => {
+            graph[page.name] = [];
+            pageMap[page.name] = page;
+        });
+
+        // Add button destinations from each page to build the graph
+        allPages.forEach(page => {
+            if (page.buttons && Array.isArray(page.buttons)) {
+                page.buttons.forEach((button: any) => {
+                    if (button.destinationTargetName && graph[page.name] && graph[button.destinationTargetName]) {
+                        // Avoid duplicate connections
+                        if (!graph[page.name].includes(button.destinationTargetName)) {
+                            graph[page.name].push(button.destinationTargetName);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Load user stories to get role information for start page matching
+        const userStories: any[] = [];
+        if (model.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
+            const namespace = model.namespace[0];
+            if (namespace.userStory && Array.isArray(namespace.userStory)) {
+                // Filter for processed stories only
+                const processedStories = namespace.userStory.filter(story => 
+                    story.isStoryProcessed === "true" && story.isIgnored !== "true"
+                );
+                userStories.push(...processedStories);
+            }
+        }
+
+        // Load journey start pages to count their usage
+        let journeyData: any = { journeyStartPages: {}, pageDistances: [] };
+        if (modelFilePath) {
+            const modelDir = path.dirname(modelFilePath);
+            const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
+            
+            try {
+                if (fs.existsSync(journeyFilePath)) {
+                    const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                    journeyData = JSON.parse(journeyContent);
+                }
+            } catch (error) {
+                console.warn("[Extension] Could not load journey data file:", error);
+            }
+        }
+
+        console.log("[Extension] Journey start pages loaded:", journeyData.journeyStartPages);
+
+        // Calculate usage statistics by analyzing journey paths
+        console.log("[Extension] Page mapping data loaded:", Object.keys(existingPageMappingData));
+        console.log("[Extension] Number of page mappings:", existingPageMappingData.pageMappings ? Object.keys(existingPageMappingData.pageMappings).length : 0);
+        
         if (existingPageMappingData.pageMappings) {
-            Object.values(existingPageMappingData.pageMappings).forEach((mapping: any) => {
-                if (mapping.pageMapping && Array.isArray(mapping.pageMapping)) {
-                    mapping.pageMapping.forEach((pageName: string) => {
+            console.log("[Extension] Analyzing journey paths for usage calculation...");
+            
+            Object.entries(existingPageMappingData.pageMappings).forEach(([storyNumber, mapping]: [string, any]) => {
+                if (mapping.pageMapping && Array.isArray(mapping.pageMapping) && mapping.pageMapping.length > 0) {
+                    const pages = mapping.pageMapping;
+                    console.log("[Extension] Processing user story", storyNumber, "journey:", pages);
+                    
+                    // Find the corresponding user story to get role information
+                    const userStory = userStories.find(story => story.storyNumber === storyNumber);
+                    
+                    // Count usage for journey start page based on extracted role from story text
+                    if (journeyData.journeyStartPages && Object.keys(journeyData.journeyStartPages).length > 0 && userStory) {
+                        // Extract role from the user story text
+                        const extractedRole = extractRoleFromUserStory(userStory.storyText || '');
+                        let startPageUsed = false;
+                        
+                        if (extractedRole && journeyData.journeyStartPages[extractedRole]) {
+                            const startPageName = journeyData.journeyStartPages[extractedRole];
+                            if (typeof startPageName === 'string' && startPageName.trim() !== '') {
+                                pageUsageCount[startPageName] = (pageUsageCount[startPageName] || 0) + 1;
+                                console.log("[Extension] Counting start page usage for extracted role", extractedRole, ":", startPageName);
+                                startPageUsed = true;
+                            }
+                        }
+                        
+                        // If no role-specific start page found, use the closest start page based on distance
+                        if (!startPageUsed && pages.length > 0) {
+                            const firstMappedPage = pages[0];
+                            let closestStartPage = '';
+                            let shortestDistance = -1;
+                            
+                            // Find the closest start page to the first mapped page
+                            Object.entries(journeyData.journeyStartPages).forEach(([roleName, startPageName]: [string, any]) => {
+                                if (typeof startPageName === 'string' && startPageName.trim() !== '') {
+                                    const distance = findShortestPathDistance(startPageName, firstMappedPage, graph);
+                                    if (distance >= 0 && (shortestDistance < 0 || distance < shortestDistance)) {
+                                        shortestDistance = distance;
+                                        closestStartPage = startPageName;
+                                    }
+                                }
+                            });
+                            
+                            if (closestStartPage) {
+                                pageUsageCount[closestStartPage] = (pageUsageCount[closestStartPage] || 0) + 1;
+                                console.log("[Extension] Counting closest start page usage:", closestStartPage, "for story", storyNumber);
+                            }
+                        }
+                    }
+                    
+                    if (pages.length === 1) {
+                        // Single page journey
+                        const pageName = pages[0];
                         pageUsageCount[pageName] = (pageUsageCount[pageName] || 0) + 1;
-                    });
+                        console.log("[Extension] Single page journey:", pageName);
+                    } else if (pages.length > 1) {
+                        // Multi-page journey: find path from start to end
+                        const startPage = pages[0];
+                        const endPage = pages[pages.length - 1];
+                        
+                        console.log("[Extension] Finding path from", startPage, "to", endPage);
+                        const journeyPath = findShortestPath(startPage, endPage, graph);
+                        
+                        if (journeyPath.length > 0) {
+                            console.log("[Extension] Journey path found:", journeyPath);
+                            // Count usage for all pages on the journey path
+                            journeyPath.forEach(pageName => {
+                                pageUsageCount[pageName] = (pageUsageCount[pageName] || 0) + 1;
+                            });
+                        } else {
+                            console.log("[Extension] No path found between", startPage, "and", endPage, "- counting direct pages");
+                            // If no path found, fall back to counting the mapped pages directly
+                            pages.forEach((pageName: string) => {
+                                pageUsageCount[pageName] = (pageUsageCount[pageName] || 0) + 1;
+                            });
+                        }
+                    }
                 }
             });
         }
+
+        console.log("[Extension] Final usage count data:", pageUsageCount);
+        console.log("[Extension] Total pages with usage > 0:", Object.values(pageUsageCount).filter(count => count > 0).length);
 
         // Apply usage counts to pages
         allPages.forEach(page => {
