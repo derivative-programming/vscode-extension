@@ -1,5 +1,31 @@
 ## 2025-09-21
 
+### Add Tabbed Interface to User Stories Journey View
+**Status**: ✅ COMPLETED SUCCESSFULLY  
+**Command**: "we want to add tabs to this view. the current display should be in a 'User Stories' tab. use a similar tab design as the metric analysis view"
+
+**Implementation Summary:**
+- Added tabbed interface following metrics analysis view pattern
+- Created "User Stories" tab containing existing functionality  
+- Added "Analytics" tab as placeholder for future features
+- Updated HTML structure with tab navigation and content containers
+- Added consistent CSS styling using VS Code design tokens
+- Implemented JavaScript tab switching functionality
+- Created architecture documentation
+
+**Files Modified:**
+- `src/commands/userStoriesJourneyCommands.ts`: Updated HTML template and CSS
+- `src/webviews/userStoriesJourneyView.js`: Added tab initialization and switching
+- `docs/architecture/user-stories-journey-tabbed-interface.md`: Created documentation
+
+**Architecture Notes:**
+- Maintained backward compatibility - all existing features work unchanged
+- Followed established UI patterns from metrics analysis view
+- Prepared extensible structure for future analytics features
+- Used proper VS Code theming and responsive design
+
+**Status**: ✅ COMPLETED SUCCESSFULLY
+
 ### Update Dot Plot Chart to Use Bytes Instead of MB
 **Status**: COMPLETED  
 **Command**: "in the graph use size of bytes"

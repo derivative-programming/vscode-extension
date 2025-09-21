@@ -868,18 +868,25 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                     <title>User Stories Journey</title>
                     <link href="${codiconsUri}" rel="stylesheet">
                     <style>
-                        body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
+                        body { 
+                            font-family: var(--vscode-font-family); 
+                            margin: 0; 
+                            padding: 20px; 
+                            background: var(--vscode-editor-background); 
+                            color: var(--vscode-editor-foreground); 
+                        }
                         .validation-header {
-                            padding: 10px 0;
-                            border-bottom: 1px solid var(--vscode-panel-border);
-                            margin-bottom: 15px;
+                            margin-bottom: 20px;
                         }
                         .validation-header h2 {
+                            margin: 0 0 10px 0;
+                            color: var(--vscode-foreground);
+                            font-size: 24px;
+                        }
+                        .validation-header p {
                             margin: 0;
-                            font-size: 1.3em;
-                            font-weight: normal;
-                            color: var(--vscode-editor-foreground);
-                            margin-bottom: 15px;
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 14px;
                         }
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; }
                         th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
@@ -1627,17 +1634,87 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             opacity: 0.4;
                             cursor: not-allowed;
                         }
+                        
+                        /* Tab styling following metrics analysis pattern */
+                        .tabs {
+                            display: flex;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            margin-bottom: 20px;
+                        }
+                        
+                        .tab {
+                            padding: 8px 16px;
+                            cursor: pointer;
+                            background-color: var(--vscode-tab-inactiveBackground);
+                            border: none;
+                            outline: none;
+                            color: var(--vscode-tab-inactiveForeground);
+                            margin-right: 4px;
+                            border-top-left-radius: 3px;
+                            border-top-right-radius: 3px;
+                            user-select: none;
+                        }
+                        
+                        .tab.active {
+                            background-color: var(--vscode-tab-activeBackground);
+                            color: var(--vscode-tab-activeForeground);
+                            border-bottom: 2px solid var(--vscode-focusBorder);
+                        }
+                        
+                        .tab-content {
+                            display: none;
+                            padding: 15px;
+                            background-color: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-top: none;
+                            border-radius: 0 0 3px 3px;
+                        }
+                        
+                        .tab-content.active {
+                            display: block;
+                        }
+                        
+                        /* Analytics placeholder styling */
+                        .analytics-placeholder {
+                            text-align: center;
+                            padding: 40px 20px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .empty-state {
+                            max-width: 500px;
+                            margin: 0 auto;
+                        }
+                        
+                        .empty-state h3 {
+                            margin: 0 0 15px 0;
+                            color: var(--vscode-foreground);
+                            font-size: 18px;
+                        }
+                        
+                        .empty-state ul {
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 14px;
+                        }
+                        
+                        .empty-state li {
+                            margin: 8px 0;
+                        }
                     </style>
                 </head>
                 <body>
                     <div class="validation-header">
                         <h2>User Stories - User Journey</h2>
-                        <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
-                            Shows each user story and the page that fulfils it. Only stories that have completed 'Model AI Processing' are listed.
-                        </p>
+                        <p>User story journey analysis with multiple views and perspectives</p>
                     </div>
 
-                    <div class="filter-section">
+                    <div class="tabs">
+                        <button class="tab active" data-tab="user-stories">User Stories</button>
+                        <button class="tab" data-tab="analytics">Analytics</button>
+                    </div>
+
+                    <div id="user-stories-tab" class="tab-content active">
+                        <div class="filter-section">
                         <div class="filter-header" onclick="toggleFilterSection()">
                             <span class="codicon codicon-chevron-down" id="filterChevron"></span>
                             <span>Filters</span>
@@ -1696,6 +1773,24 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             <span id="record-info"></span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Analytics Tab Content -->
+                <div id="analytics-tab" class="tab-content">
+                    <div class="analytics-placeholder">
+                        <div class="empty-state">
+                            <h3>Journey Analytics</h3>
+                            <p>Coming soon: Advanced analytics for user journeys including:</p>
+                            <ul style="text-align: left; display: inline-block; margin: 15px 0;">
+                                <li>Page usage frequency analysis</li>
+                                <li>Role-based journey patterns</li>
+                                <li>Journey complexity metrics</li>
+                                <li>Orphaned page detection</li>
+                                <li>Journey bottleneck identification</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
 
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
                         <div class="spinner"></div>

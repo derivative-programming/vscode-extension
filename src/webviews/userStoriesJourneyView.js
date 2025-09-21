@@ -92,6 +92,38 @@ function clearFilters() {
     renderRecordInfo();
 }
 
+// Initialize tab functionality
+function initializeTabs() {
+    const tabs = document.querySelectorAll('.tab');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchTab(tabName);
+        });
+    });
+}
+
+// Switch between tabs
+function switchTab(tabName) {
+    // Remove active class from all tabs and content
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab and content
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    
+    // Handle tab-specific logic
+    if (tabName === 'user-stories') {
+        // Refresh user stories data if needed
+        // (current functionality is already in user-stories tab)
+    } else if (tabName === 'analytics') {
+        // Analytics tab selected - could trigger analytics loading in the future
+        console.log('Analytics tab selected - placeholder for future analytics functionality');
+    }
+}
+
 // Refresh data (global function for onclick)
 function refresh() {
     showSpinner();
@@ -836,6 +868,9 @@ window.addEventListener('message', event => {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('User Stories Journey webview loaded');
+    
+    // Initialize tabs
+    initializeTabs();
     
     // Setup filter event listeners for auto-apply
     const filterInputs = ['filterStoryNumber', 'filterStoryText', 'filterPage'];

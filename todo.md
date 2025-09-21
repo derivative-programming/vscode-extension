@@ -7,11 +7,6 @@ common types of graphs...
 
 
 
-data object size analysis view...
-- tab: prop count vs size chart
-  - x-axis: property count
-    - y-axis: size in KB
-
 page complexity analysis view...
 - tab: page list
   - columns
