@@ -5,12 +5,16 @@ common types of graphs...
 - pie chart (each slice is a category, shows how many items are in each category)
 - proportional visualization - all items are boxes. size of box is proportional to value
 
+user journey view - page usage tab...
+- action column - edit icon button to open page details view
 
+database size forecast view - config tab
+- action column - edit icon button to open data object details view
 
 page complexity analysis view...
 - tab: page list
   - columns
-    - page name
+    - remove title text column
     - total element count
       - input control count
         - filters, forms

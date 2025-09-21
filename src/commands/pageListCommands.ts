@@ -124,6 +124,50 @@ export function registerPageListCommands(
                             color: var(--vscode-editor-foreground);
                             margin-bottom: 15px;
                         }
+                        .validation-header p {
+                            margin: 0;
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 14px;
+                        }
+                        
+                        /* Tab styling following metrics analysis pattern */
+                        .tabs {
+                            display: flex;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            margin-bottom: 20px;
+                        }
+                        
+                        .tab {
+                            padding: 8px 16px;
+                            cursor: pointer;
+                            background-color: var(--vscode-tab-inactiveBackground);
+                            border: none;
+                            outline: none;
+                            color: var(--vscode-tab-inactiveForeground);
+                            margin-right: 4px;
+                            border-top-left-radius: 3px;
+                            border-top-right-radius: 3px;
+                            user-select: none;
+                        }
+                        
+                        .tab.active {
+                            background-color: var(--vscode-tab-activeBackground);
+                            color: var(--vscode-tab-activeForeground);
+                            border-bottom: 2px solid var(--vscode-focusBorder);
+                        }
+                        
+                        .tab-content {
+                            display: none;
+                            padding: 15px;
+                            background-color: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-top: none;
+                            border-radius: 0 0 3px 3px;
+                        }
+                        
+                        .tab-content.active {
+                            display: block;
+                        }
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; min-width: 1200px; }
                         th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; white-space: nowrap; }
                         th { background: var(--vscode-sideBar-background); cursor: pointer; font-weight: bold; }
@@ -411,17 +455,93 @@ export function registerPageListCommands(
                             overflow-y: hidden;
                             background-color: var(--vscode-editor-background);
                         }
+                        
+                        /* Analytics tab styling */
+                        .analytics-container {
+                            padding: 10px 0;
+                        }
+                        
+                        .analytics-grid {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                            gap: 20px;
+                        }
+                        
+                        .analytics-card {
+                            background-color: var(--vscode-sideBar-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 6px;
+                            padding: 20px;
+                        }
+                        
+                        .analytics-card h3 {
+                            margin: 0 0 15px 0;
+                            font-size: 16px;
+                            font-weight: 600;
+                            color: var(--vscode-editor-foreground);
+                        }
+                        
+                        .stat-item {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 10px;
+                            padding: 8px 0;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                        }
+                        
+                        .stat-item:last-child {
+                            border-bottom: none;
+                            margin-bottom: 0;
+                        }
+                        
+                        .stat-label {
+                            font-size: 14px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .stat-value {
+                            font-size: 16px;
+                            font-weight: 600;
+                            color: var(--vscode-editor-foreground);
+                        }
+                        
+                        .chart-placeholder {
+                            height: 120px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            background-color: var(--vscode-editor-background);
+                            border: 1px dashed var(--vscode-panel-border);
+                            border-radius: 4px;
+                            color: var(--vscode-descriptionForeground);
+                            font-style: italic;
+                        }
+                        
+                        .loading {
+                            text-align: center;
+                            padding: 40px 20px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .hidden {
+                            display: none !important;
+                        }
                     </style>
                 </head>
                 <body>
                     <div class="validation-header">
                         <h2>Page List</h2>
-                        <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
-                            Browse all pages (forms and reports) in your model with filtering and sorting capabilities.
-                        </p>
+                        <p>Browse all pages (forms and reports) in your model with filtering and analysis capabilities.</p>
                     </div>
                     
-                    <div class="filter-section">
+                    <div class="tabs">
+                        <button class="tab active" data-tab="pages">Pages</button>
+                        <button class="tab" data-tab="analytics">Analytics</button>
+                    </div>
+                    
+                    <div id="pages-tab" class="tab-content active">
+                        <div class="filter-section">
                         <div class="filter-header" onclick="toggleFilterSection()">
                             <span class="codicon codicon-chevron-down" id="filterChevron"></span>
                             <span>Filters</span>
@@ -498,6 +618,52 @@ export function registerPageListCommands(
                             <span id="record-info"></span>
                         </div>
                     </div>
+                    
+                    <div id="analytics-tab" class="tab-content">
+                        <div id="analytics-loading" class="loading">Calculating page analytics...</div>
+                        
+                        <div class="analytics-container hidden" id="analytics-container">
+                            <div class="analytics-grid">
+                                <div class="analytics-card">
+                                    <h3>Summary Statistics</h3>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Total Pages:</span>
+                                        <span class="stat-value" id="total-pages">-</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Forms:</span>
+                                        <span class="stat-value" id="total-forms">-</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Reports:</span>
+                                        <span class="stat-value" id="total-reports">-</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="analytics-card">
+                                    <h3>Page Types Distribution</h3>
+                                    <div class="chart-placeholder">
+                                        <span>Chart visualization coming soon</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="analytics-card">
+                                    <h3>Role Requirements</h3>
+                                    <div class="chart-placeholder">
+                                        <span>Role analysis coming soon</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="analytics-card">
+                                    <h3>Owner Object Distribution</h3>
+                                    <div class="chart-placeholder">
+                                        <span>Object distribution coming soon</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
                         <div class="spinner"></div>
                     </div>
