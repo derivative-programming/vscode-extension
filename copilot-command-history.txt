@@ -1,3 +1,40 @@
+## 2025-09-21
+
+### Add Size (kb) Display Mode Option to Database Size Forecast Data Tab
+**Status**: COMPLETED
+**Command**: "review the database size forecast view data tab. we have display mode options. we want to add a option 'Size (kb)' option that should be shown by default"
+**Files Modified**:
+- `src/commands/databaseSizeForecastCommands.ts`
+- `src/webviews/databaseSizeForecastView.js`
+
+**Implementation**:
+Added a new 'Size (kb)' display mode option to the Database Size Forecast data tab:
+
+**HTML Structure Changes**:
+- Added new `<option value="size-kb" selected>Size (kb)</option>` to the dataDisplayMode dropdown
+- Made 'Size (kb)' the default selected option by adding the `selected` attribute
+- Reordered options: Size (kb), Size (bytes), Instance Count
+
+**JavaScript Logic Updates**:
+- Updated `renderDataTable()` function to handle three display modes instead of two
+- Changed default displayMode from 'size' to 'size-kb' 
+- Added conditional logic for 'size-kb' mode that displays `objectData.sizeKb` with 'kb' suffix
+- Updated total row calculation to show `month.totalSize` for 'size-kb' mode
+- Enhanced sorting logic in data table to handle all three display modes appropriately
+- For size modes (both KB and bytes), sorting is based on sizeKb value for consistency
+
+**User Experience**:
+- Size (kb) option is now the default when the data tab loads
+- Users can switch between Size (kb), Size (bytes), and Instance Count modes
+- Event listeners automatically re-render the table when display mode changes
+- Table sorting works correctly across all display modes
+
+**Architecture Notes**:
+- Maintains existing event listener infrastructure (applyDataFilters function)
+- Uses consistent data format (sizeKb field) for internal calculations
+- Preserves backwards compatibility with existing 'size' and 'instances' modes
+- Display formatting handled at UI layer while keeping data layer unchanged
+
 ## 2025-09-20
 
 ### Add Reset Button to Database Size Forecast Config Tab

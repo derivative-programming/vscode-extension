@@ -1141,6 +1141,7 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                 <div class="display-mode-group">
                     <label for="dataDisplayMode">Display Mode:</label>
                     <select id="dataDisplayMode">
+                        <option value="size-kb" selected>Size (kb)</option>
                         <option value="size">Size (bytes)</option>
                         <option value="instances">Instance Count</option>
                     </select>

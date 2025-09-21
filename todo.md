@@ -1,17 +1,128 @@
 Agent todo items...
 
-  
+common types of graphs...
+- distribution chart (histogram, each bar is a value range, shows how many items are in each range)
+- pie chart (each slice is a category, shows how many items are in each category)
+- proportional visualization - all items are boxes. size of box is proportional to value
 
-data object usage complexity...
-- compare to data object size instead of property count?
+
+database size forecast view
+- data tab...
+  - new Display Mode: option: Size (kb)
+
+data object usage view... 
+- tab: complexity vs usage
+  - option to compare to data object size instead of property count
+
+data object usage analysis view...
+- tab: detail
+  - some rows we show the individual page item that uses it. should always do this
+- tab: distribution chart
+  - histogram of data object usage ranges (low, medium, high, very high)
+- tab:  
+
+data object size analysis view...
+- tab: distribution chart
+  - histogram of data object size ranges (small, medium, large, very large)
+
+page complexity analysis view...
+- tab: page list
+  - columns
+    - page name
+    - total element count
+      - input control count
+        - filters, forms
+      - button count
+      - table column count
+      - table column button count
+      - breadcrumb link count
+- tab: proportional visualization chart
+  - complex page report - visualize which have most controls
+- tab: distribution chart
+  - histogram of page complexity ranges (simple, medium, complex, very complex)
+
+user journey view... (exists)
+- add sub item 'User Story User Journey' under ANALYSIS in treeview to open it
+- tab: metrics...
+  - Average pages per story
+  - Median pages per story
+  - Standard deviation
+  - Min/Max complexity
+  - Complexity distribution (simple/medium/complex categories)
+Tab: User Journey Length Distribution
+const complexityRanges = {
+    'Simple (1-2 pages)': stories.filter(s => s.pageCount <= 2).length,
+    'Medium (3-5 pages)': stories.filter(s => s.pageCount >= 3 && s.pageCount <= 5).length,
+    'Complex (6-10 pages)': stories.filter(s => s.pageCount >= 6 && s.pageCount <= 10).length,
+    'Very Complex (10+ pages)': stories.filter(s => s.pageCount > 10).length
+};
+- Tab: User Journey Length Proportional Visualization Chart
+  - visualize stories by journey page count (size of box is page count)
+- Tab: User Journey Page Usage Data
+  - list of all pages with count of how many user journeys they appear in
+- Tab: User Journey Page Usage Proportional Visualization Chart
+  - visualize pages by how many user journeys they appear in (size of box is count)
+- Tab: Page Usage vs Page Complexity Scatter Plot
+  - x-axis: page complexity (total control count)
+  - y-axis: page usage (how many user journeys the page appears in)
+
+
+
+metric analysis view...
+- new metrics
+  - total data object size
+  - avg data object size
+  - Authorization-Required Pages Count
+  - Public Pages Count
+  - role [role name] page count
+  - role [role name] user story count
+  - Report to Form Ratio - Balance between data display and data entry 
+  - avg page control count (all, report, form)
+  - user story with journey count
+  - user story with no journey count
+  - user story journey count avg
+
+
+data object prop usage analysis view...
+- copy of data object usage analysis view but at the data object property level
+
+
+--------------------------
+
+new metrics?
+- Track progress on user story completion 
+- Foreign Key Relationships Count - Analyze object references
+- Index Count - Analyze index usage 
+
+
+find data object circular references?
+ 
+
+breadcrumb report
+- pages that have breadcrumbs
+- pages that have no breadcrumbs
+
+
+Report Data Source Analysis View
+- including items with no data source
+
+form Data Source Analysis View
+- including items with no data source
+
+unused data object prop report
+- no references from anywhere
+
+data object user story coverage analysis:  
+- how many have user stories?
+- how many dont have user stories?
+
+
 
 add role filter on data object usage?
 
 no sourceobjectname in form param model or interface?
  
-
-
-
+ 
 page init flow...
 - page 'used by' tab
   - table of all pages using it with edit icon button and preview icon button
@@ -22,7 +133,7 @@ allow add of page init flow (plus sign on page detail view next to empty display
 
 
 report button - Destination Target Name lookup button can be a general flow too
-`
+
 wherever we show a lookup button we should also show an edit button to open its detail view
 
  
@@ -31,30 +142,6 @@ report column - need lookup on Button Object WF Name setting? are we displaying 
 
 
 
-data object reference list view (uses, used by) - show where it is used - with counts - new view ...
-- report header
-- report column
-- form control
-- form header
-- form output var
-- init page flow output var
-- general flow output var
-- workflow
-
-data object user story  reference count
-
-data object prop reference list view - show where prop is used - new view off - with counts -  data object reference list view ....
-- report header
-- report column
-- form control
-- form header
-- form output var
-- init page flow output var
-- general flow output var
-
-
-user stories - page coverage view?
-list all pages and show which have been mapped to a user story?
 
 
 data object user story action distribution...
@@ -64,15 +151,12 @@ page preview - report header - show source of data
 page preview - report column - show source of data 
 page preview - form header - show source of data 
 page preview - form control - show source of data 
-`
+
 report data source view... list columns and their source data object and prop
 
 form data source view... list controls and their source data object and prop
 
 workflow - show task flow diagram using mermaid
-
-page usage...
-in all user journeys we can get a count of pages that are used most
 
 page list - data object prop dependency count on each page?
 
@@ -82,7 +166,6 @@ analysis treeview item... ask ai for ideas
   - page: control count?, dependency (on data object props) count
   - role: user story count?, page count?
   - user story: journey count? dependency count of all pages used?
-  - user journey: user story journey page count?
 
 user story kanban board view?
 - drag and drop support

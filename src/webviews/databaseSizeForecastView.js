@@ -297,18 +297,20 @@ function renderDataTable() {
     tableHtml += `</tr></thead><tbody>`;
     
     // Get display mode
-    const displayMode = document.getElementById('dataDisplayMode')?.value || 'size';
-    const isInstanceMode = displayMode === 'instances';
+    const displayMode = document.getElementById('dataDisplayMode')?.value || 'size-kb';
     
     // Add data object rows
     displayedDataObjects.forEach(objectName => {
         tableHtml += `<tr><td>${objectName}</td>`;
         filteredMonths.forEach(month => {
             const objectData = month.dataObjects[objectName];
-            if (isInstanceMode) {
+            if (displayMode === 'instances') {
                 const instances = objectData ? objectData.instances.toLocaleString() : '0';
                 tableHtml += `<td>${instances}</td>`;
-            } else {
+            } else if (displayMode === 'size-kb') {
+                const sizeKb = objectData ? objectData.sizeKb.toLocaleString() : '0';
+                tableHtml += `<td>${sizeKb} kb</td>`;
+            } else if (displayMode === 'size') {
                 const sizeBytes = objectData ? (objectData.sizeKb * 1024).toLocaleString() : '0';
                 tableHtml += `<td>${sizeBytes} bytes</td>`;
             }
@@ -319,14 +321,17 @@ function renderDataTable() {
     // Add total row
     tableHtml += `<tr class="total-row"><td>TOTAL</td>`;
     filteredMonths.forEach(month => {
-        if (isInstanceMode) {
+        if (displayMode === 'instances') {
             // Calculate total instances across all data objects for this month
             let totalInstances = 0;
             Object.values(month.dataObjects || {}).forEach(objData => {
                 totalInstances += objData.instances || 0;
             });
             tableHtml += `<td>${totalInstances.toLocaleString()}</td>`;
-        } else {
+        } else if (displayMode === 'size-kb') {
+            const totalKb = month.totalSize.toLocaleString();
+            tableHtml += `<td>${totalKb} kb</td>`;
+        } else if (displayMode === 'size') {
             const totalBytes = (month.totalSize * 1024).toLocaleString();
             tableHtml += `<td>${totalBytes} bytes</td>`;
         }
@@ -808,14 +813,21 @@ function sortDataTableData(dataObjects, months, columnIndex, direction) {
         }
         
         const targetMonth = months[monthIndex];
-        const displayMode = document.getElementById('dataDisplayMode')?.value || 'size';
-        const isInstanceMode = displayMode === 'instances';
+        const displayMode = document.getElementById('dataDisplayMode')?.value || 'size-kb';
         
         return dataObjects.sort((a, b) => {
             const objDataA = targetMonth.dataObjects[a] || {};
             const objDataB = targetMonth.dataObjects[b] || {};
-            const valueA = isInstanceMode ? (objDataA.instances || 0) : (objDataA.sizeKb || 0);
-            const valueB = isInstanceMode ? (objDataB.instances || 0) : (objDataB.sizeKb || 0);
+            
+            let valueA, valueB;
+            if (displayMode === 'instances') {
+                valueA = objDataA.instances || 0;
+                valueB = objDataB.instances || 0;
+            } else {
+                // For both 'size-kb' and 'size' modes, sort by sizeKb
+                valueA = objDataA.sizeKb || 0;
+                valueB = objDataB.sizeKb || 0;
+            }
             
             return direction === 'asc' ? valueA - valueB : valueB - valueA;
         });
