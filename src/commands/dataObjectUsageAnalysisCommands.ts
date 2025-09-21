@@ -400,7 +400,10 @@ function getUsageSummaryData(modelService: ModelService): any[] {
                 propertyCount = dataObject.prop.length;
             }
             
-            console.log(`Object ${dataObject.name}: total=${totalReferences}, form=${formReferences}, report=${reportReferences}, flow=${flowReferences}, userStory=${userStoryReferences}, properties=${propertyCount}`);
+            // Calculate data object size in KB (alternative complexity measure)
+            const dataSizeKB = calculateDataObjectSizeInKB(dataObject);
+            
+            console.log(`Object ${dataObject.name}: total=${totalReferences}, form=${formReferences}, report=${reportReferences}, flow=${flowReferences}, userStory=${userStoryReferences}, properties=${propertyCount}, size=${dataSizeKB}KB`);
             
             summaryData.push({
                 dataObjectName: dataObject.name,
@@ -409,7 +412,8 @@ function getUsageSummaryData(modelService: ModelService): any[] {
                 reportReferences: reportReferences,
                 flowReferences: flowReferences,
                 userStoryReferences: userStoryReferences,
-                propertyCount: propertyCount
+                propertyCount: propertyCount,
+                dataSizeKB: dataSizeKB
             });
         });
         
@@ -421,6 +425,90 @@ function getUsageSummaryData(modelService: ModelService): any[] {
     }
     
     return summaryData;
+}
+
+/**
+ * Calculates the size of a data object in KB using the same logic as data object size analysis
+ */
+function calculateDataObjectSizeInKB(dataObject: any): number {
+    let totalSizeBytes = 0;
+    
+    if (dataObject.prop && Array.isArray(dataObject.prop)) {
+        dataObject.prop.forEach((prop: any) => {
+            const propSize = calculatePropertySizeForUsageAnalysis(prop);
+            totalSizeBytes += propSize;
+        });
+    }
+    
+    // Convert bytes to KB
+    const sizeInKB = totalSizeBytes / 1024;
+    return Math.round(sizeInKB * 100) / 100; // Round to 2 decimal places
+}
+
+/**
+ * Calculate the size of a single property in bytes using the same logic as data object size analysis
+ */
+function calculatePropertySizeForUsageAnalysis(prop: any): number {
+    const dataType = prop.sqlServerDBDataType?.toLowerCase();
+    const dataSize = prop.sqlServerDBDataTypeSize;
+    
+    if (!dataType) {
+        return 0; // Unknown type, assume no size
+    }
+    
+    switch (dataType) {
+        case 'text':
+            return 20000; // As specified: text props count as 20,000 bytes
+            
+        case 'nvarchar':
+            // Unicode string - 2 bytes per character, default 100 characters
+            const nvarcharSize = dataSize ? parseInt(dataSize) : 100;
+            return nvarcharSize * 2;
+            
+        case 'varchar':
+            // ASCII string - 1 byte per character, default 100 characters
+            const varcharSize = dataSize ? parseInt(dataSize) : 100;
+            return varcharSize;
+            
+        case 'bit':
+            return 1; // 1 bit, but minimum storage is 1 byte
+            
+        case 'datetime':
+            return 8; // 8 bytes for datetime
+            
+        case 'date':
+            return 3; // 3 bytes for date only
+            
+        case 'int':
+            return 4; // 4 bytes for integer
+            
+        case 'bigint':
+            return 8; // 8 bytes for big integer
+            
+        case 'uniqueidentifier':
+            return 16; // 16 bytes for GUID
+            
+        case 'money':
+            return 8; // 8 bytes for money
+            
+        case 'float':
+            return 8; // 8 bytes for float (double precision)
+            
+        case 'decimal':
+            // Decimal size varies by precision - approximate based on precision
+            if (dataSize) {
+                const precision = parseInt(dataSize.split(',')[0]) || 18;
+                if (precision <= 9) { return 5; }
+                if (precision <= 19) { return 9; }
+                if (precision <= 28) { return 13; }
+                return 17;
+            }
+            return 9; // Default for decimal(18,0)
+            
+        default:
+            console.warn(`Unknown data type for size calculation: ${dataType}`);
+            return 0;
+    }
 }
 
 /**
@@ -1612,7 +1700,7 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                 <div class="bubble-header-content">
                     <div class="bubble-title">
                         <h3>Complexity vs. Usage Analysis</h3>
-                        <p>X-axis: Property Count (Complexity) • Y-axis: Total References (Usage) • Bubble Size: User Story References</p>
+                        <p id="bubble-axis-description">X-axis: Property Count (Complexity) • Y-axis: Total References (Usage) • Bubble Size: User Story References</p>
                     </div>
                     <div class="bubble-actions">
                         <button id="refreshBubbleButton" class="icon-button" title="Refresh Data">
@@ -1625,6 +1713,26 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                     </div>
                 </div>
             </div>
+            
+            <!-- Complexity Metric Selection -->
+            <div class="filter-section">
+                <div class="filter-header" id="bubbleFilterHeader">
+                    <span class="codicon codicon-chevron-down" id="bubbleFilterChevron"></span>
+                    <span>Chart Configuration</span>
+                </div>
+                <div class="filter-content" id="bubbleFilterContent">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="complexityMetric">Complexity Metric:</label>
+                            <select id="complexityMetric">
+                                <option value="propertyCount">Property Count</option>
+                                <option value="dataSizeKB">Data Object Size (KB)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="bubble-loading" class="loading">Loading bubble chart...</div>
             <div id="bubble-visualization" class="bubble-viz hidden"></div>
             <div class="bubble-quadrants">

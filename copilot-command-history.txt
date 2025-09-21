@@ -1,3 +1,23 @@
+## 2025-01-27
+
+### Remove Redundant Render Chart Button from Data Object Usage Analysis View
+**Status**: COMPLETED
+**Command**: "remove the render chart button"
+**Files Modified**:
+- `src/webviews/dataObjectUsageAnalysisView.js`
+
+**Implementation**:
+- Removed filter-actions div containing render chart button from HTML template
+- Removed event listener setup for render chart button
+- Removed renderBubbleChartManually function (40+ lines)
+- Cleaned up global window function assignments
+- Kept automatic chart refresh on complexity metric dropdown change
+
+**Architecture Notes**:
+- Auto-refresh on dropdown change made manual render button redundant
+- Simplified UI improves user experience by removing confusing duplicate functionality
+- Chart now automatically updates when user selects different complexity metric (property count vs data object size)
+
 ## 2025-09-21
 
 ### Add Size (kb) Display Mode Option to Database Size Forecast Data Tab

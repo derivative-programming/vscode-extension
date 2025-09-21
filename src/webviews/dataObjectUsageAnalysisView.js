@@ -148,6 +148,32 @@ function setupEventListeners() {
         });
     }
     
+    // Complexity metric dropdown
+    const complexityMetricDropdown = document.getElementById('complexityMetric');
+    console.log('Setting up complexity metric dropdown event listener. Dropdown found:', !!complexityMetricDropdown);
+    if (complexityMetricDropdown) {
+        complexityMetricDropdown.addEventListener('change', function() {
+            console.log('Complexity metric changed to:', this.value);
+            onComplexityMetricChange();
+        });
+        console.log('Event listener added to complexity metric dropdown');
+    } else {
+        console.warn('Complexity metric dropdown not found during setup');
+    }
+    
+    // Bubble filter header toggle
+    const bubbleFilterHeader = document.getElementById('bubbleFilterHeader');
+    console.log('Setting up bubble filter header event listener. Header found:', !!bubbleFilterHeader);
+    if (bubbleFilterHeader) {
+        bubbleFilterHeader.addEventListener('click', function() {
+            console.log('Bubble filter header clicked');
+            toggleBubbleFilterSection();
+        });
+        console.log('Event listener added to bubble filter header');
+    } else {
+        console.warn('Bubble filter header not found during setup');
+    }
+    
     // Filter inputs
     const summaryFilter = document.getElementById('summaryFilter');
     const detailFilter = document.getElementById('detailFilter');
@@ -671,6 +697,59 @@ function hideSpinner() {
     }
 }
 
+// Toggle bubble filter section visibility
+function toggleBubbleFilterSection() {
+    const content = document.getElementById('bubbleFilterContent');
+    const chevron = document.getElementById('bubbleFilterChevron');
+    
+    if (content && chevron) {
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            chevron.classList.remove('codicon-chevron-right');
+            chevron.classList.add('codicon-chevron-down');
+        } else {
+            content.style.display = 'none';
+            chevron.classList.remove('codicon-chevron-down');
+            chevron.classList.add('codicon-chevron-right');
+        }
+    }
+}
+
+// Handle complexity metric change
+function onComplexityMetricChange() {
+    const dropdown = document.getElementById('complexityMetric');
+    if (!dropdown) {
+        return;
+    }
+    
+    const selectedMetric = dropdown.value;
+    
+    // Update the axis description
+    const descriptionElement = document.getElementById('bubble-axis-description');
+    if (descriptionElement) {
+        if (selectedMetric === 'propertyCount') {
+            descriptionElement.textContent = 'X-axis: Property Count (Complexity) • Y-axis: Total References (Usage) • Bubble Size: User Story References';
+        } else {
+            descriptionElement.textContent = 'X-axis: Data Object Size in KB (Complexity) • Y-axis: Total References (Usage) • Bubble Size: User Story References';
+        }
+    }
+    
+    // Re-render the bubble chart with the new metric
+    if (currentSummaryData && currentSummaryData.length > 0) {
+        renderBubbleChart(currentSummaryData);
+    }
+}
+
+// Get the currently selected complexity metric
+function getSelectedComplexityMetric() {
+    const dropdown = document.getElementById('complexityMetric');
+    return dropdown ? dropdown.value : 'propertyCount';
+}
+
+// Make the functions globally available for potential inline onclick usage
+window.toggleBubbleFilterSection = toggleBubbleFilterSection;
+window.onComplexityMetricChange = onComplexityMetricChange;
+
 // Treemap functionality
 
 // Load treemap data
@@ -859,8 +938,11 @@ function renderBubbleChart(data) {
     const g = svg.append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
     
-    // Setup scales
-    const xExtent = d3.extent(data, d => d.propertyCount);
+    // Get the selected complexity metric
+    const complexityMetric = getSelectedComplexityMetric();
+    
+    // Setup scales based on the selected complexity metric
+    const xExtent = d3.extent(data, d => complexityMetric === 'propertyCount' ? d.propertyCount : d.dataSizeKB);
     const yExtent = d3.extent(data, d => d.totalReferences);
     const sizeExtent = d3.extent(data, d => d.userStoryReferences);
     
@@ -909,7 +991,7 @@ function renderBubbleChart(data) {
         .attr('y', 40)
         .attr('fill', 'var(--vscode-foreground)')
         .style('text-anchor', 'middle')
-        .text('Property Count (Complexity)');
+        .text(complexityMetric === 'propertyCount' ? 'Property Count (Complexity)' : 'Data Object Size KB (Complexity)');
     
     g.append('g')
         .call(d3.axisLeft(yScale))
@@ -940,10 +1022,13 @@ function renderBubbleChart(data) {
         .enter()
         .append('circle')
         .attr('class', 'bubble')
-        .attr('cx', d => xScale(d.propertyCount))
+        .attr('cx', d => xScale(complexityMetric === 'propertyCount' ? d.propertyCount : d.dataSizeKB))
         .attr('cy', d => yScale(d.totalReferences))
         .attr('r', d => sizeScale(d.userStoryReferences))
-        .attr('fill', d => getBubbleColor(d.propertyCount, d.totalReferences, xExtent[1], yExtent[1]))
+        .attr('fill', d => {
+            const complexityValue = complexityMetric === 'propertyCount' ? d.propertyCount : d.dataSizeKB;
+            return getBubbleColor(complexityValue, d.totalReferences, xExtent[1], yExtent[1]);
+        })
         .attr('stroke', 'var(--vscode-foreground)')
         .attr('stroke-width', 1)
         .attr('opacity', 0.7)
@@ -952,9 +1037,13 @@ function renderBubbleChart(data) {
             tooltip.transition()
                 .duration(200)
                 .style('opacity', .9);
+            
+            const complexityLabel = complexityMetric === 'propertyCount' ? 'Properties' : 'Size (KB)';
+            const complexityValue = complexityMetric === 'propertyCount' ? d.propertyCount : d.dataSizeKB;
+            
             tooltip.html(`
                 <strong>${d.dataObjectName}</strong><br/>
-                Properties: ${d.propertyCount}<br/>
+                ${complexityLabel}: ${complexityValue}<br/>
                 Total References: ${d.totalReferences}<br/>
                 User Stories: ${d.userStoryReferences}<br/>
                 Forms: ${d.formReferences}<br/>

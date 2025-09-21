@@ -6,9 +6,6 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 
 
-database size forecast view
-- data tab...
-  - new Display Mode: option: Size (kb)
 
 data object usage view... 
 - tab: complexity vs usage
@@ -24,6 +21,9 @@ data object usage analysis view...
 data object size analysis view...
 - tab: distribution chart
   - histogram of data object size ranges (small, medium, large, very large)
+- tab: prop count vs size chart
+  - x-axis: property count
+    - y-axis: size in KB
 
 page complexity analysis view...
 - tab: page list
