@@ -1075,7 +1075,7 @@ function getBubbleColor(complexity, usage, maxComplexity, maxUsage) {
     } else if (isHighUsage && isHighComplexity) {
         return '#dc3545'; // Red - High usage, high complexity (needs attention)
     } else if (!isHighUsage && !isHighComplexity) {
-        return '#6c757d'; // Gray - Low usage, low complexity (simple utility)
+        return '#6f42c1'; // Purple - Low usage, low complexity (simple utility)
     } else {
         return '#fd7e14'; // Orange - Low usage, high complexity (potential over-engineering)
     }
