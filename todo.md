@@ -7,10 +7,6 @@ common types of graphs...
 
 
 
-data object usage view... 
-- tab: complexity vs usage
-  - option to compare to data object size instead of property count
-
 data object usage analysis view...
 - tab: detail
   - some rows we show the individual page item that uses it. should always do this

@@ -653,7 +653,7 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
                     if (column.sourceObjectName === dataObjectName) {
                         references.push({
                             type: 'Report Column Source Object',
-                            referencedBy: report.name || 'Unnamed Report',
+                            referencedBy: (report.name || 'Unnamed Report') + ' / ' + (column.name || 'Unnamed Column'),
                             itemType: 'report'
                         });
                     }
@@ -774,6 +774,23 @@ function findAllDataObjectReferences(dataObjectName: string, modelService: Model
         if (references.length > 0) {
             console.log('Sample references:', references.slice(0, 3));
         }
+        
+        //dont track fk usage
+        // Check Data Object Properties - find properties in other data objects that reference this one via foreign keys
+        // console.log('Checking data object properties (foreign key references)...');
+        // allObjects.forEach((dataObject) => {
+        //     if (dataObject.prop && Array.isArray(dataObject.prop)) {
+        //         dataObject.prop.forEach((prop: any) => {
+        //             if (prop.fKObjectName === dataObjectName) {
+        //                 references.push({
+        //                     type: 'Data Object Property FK Reference',
+        //                     referencedBy: (dataObject.name || 'Unnamed Object') + ' / ' + (prop.name || 'Unnamed Property'),
+        //                     itemType: 'dataObject'
+        //                 });
+        //             }
+        //         });
+        //     }
+        // });
         
     } catch (error) {
         console.error('Error finding data object references:', error);
