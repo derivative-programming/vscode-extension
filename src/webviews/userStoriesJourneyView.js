@@ -1055,37 +1055,40 @@ document.addEventListener('DOMContentLoaded', () => {
         journeyTreemapVisualization.innerHTML = '';
         journeyTreemapVisualization.classList.add('hidden');
 
-        // Aggregate data by story number to get page counts
+        // Aggregate data by story number using journey page distance
         const storyData = new Map();
         
         allItems.forEach(item => {
             const storyNumber = item.storyNumber || 'Unknown';
             const storyText = item.storyText || '';
+            const journeyDistance = item.journeyPageDistance;
             
             if (!storyData.has(storyNumber)) {
                 storyData.set(storyNumber, {
                     storyNumber: storyNumber,
                     storyText: storyText,
-                    pages: new Set(),
-                    pageCount: 0
+                    journeyPageDistance: journeyDistance,
+                    maxDistance: journeyDistance || 0
                 });
-            }
-            
-            // Add page to the story's page set
-            if (item.page && item.page.trim() !== '') {
-                storyData.get(storyNumber).pages.add(item.page);
+            } else {
+                // Keep the maximum journey page distance for this story
+                const existing = storyData.get(storyNumber);
+                if (journeyDistance > existing.maxDistance) {
+                    existing.maxDistance = journeyDistance;
+                    existing.journeyPageDistance = journeyDistance;
+                }
             }
         });
 
-        // Convert to array and calculate page counts
+        // Convert to array using journey page distance
         const treemapData = Array.from(storyData.values()).map(story => ({
             storyNumber: story.storyNumber,
             storyText: story.storyText,
-            pageCount: story.pages.size,
-            value: Math.max(1, story.pages.size) // Ensure minimum size of 1 for visualization
+            pageCount: story.maxDistance, // Use journey distance as the complexity metric
+            value: Math.max(1, story.maxDistance || 1) // Ensure minimum size of 1 for visualization
         }));
 
-        // Filter out stories with no pages or invalid data
+        // Filter out stories with no journey distance data or invalid data
         const validTreemapData = treemapData.filter(story => 
             story.storyNumber && story.storyNumber !== 'Unknown' && story.pageCount > 0
         );
@@ -1182,7 +1185,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 tooltip.html(`
                     <strong>Story #${escapeHtml(d.data.storyNumber)}</strong><br/>
-                    <strong>Journey Length:</strong> ${d.data.pageCount} page${d.data.pageCount === 1 ? '' : 's'}<br/>
+                    <strong>Journey Distance:</strong> ${d.data.pageCount} page${d.data.pageCount === 1 ? '' : 's'}<br/>
                     <strong>Complexity:</strong> ${complexityLabel}<br/>
                     <strong>Story Text:</strong><br/>
                     <em>${escapeHtml(d.data.storyText || 'No description available')}</em>
@@ -1443,33 +1446,35 @@ document.addEventListener('DOMContentLoaded', () => {
             veryComplex: 0
         };
 
-        // Aggregate data by story number to get page counts (same as treemap logic)
+        // Aggregate data by story number using journey page distance (same as treemap logic)
         const storyData = new Map();
         
         items.forEach(item => {
             const storyNumber = item.storyNumber || 'Unknown';
+            const journeyDistance = item.journeyPageDistance;
             
             if (!storyData.has(storyNumber)) {
                 storyData.set(storyNumber, {
                     storyNumber: storyNumber,
-                    pages: new Set()
+                    maxDistance: journeyDistance || 0
                 });
-            }
-            
-            // Add page to the story's page set
-            if (item.page && item.page.trim() !== '') {
-                storyData.get(storyNumber).pages.add(item.page);
+            } else {
+                // Keep the maximum journey page distance for this story
+                const existing = storyData.get(storyNumber);
+                if (journeyDistance > existing.maxDistance) {
+                    existing.maxDistance = journeyDistance;
+                }
             }
         });
 
-        // Categorize each story by page count
+        // Categorize each story by journey page distance
         storyData.forEach(story => {
-            const pageCount = story.pages.size;
-            if (pageCount >= 10) {
+            const journeyDistance = story.maxDistance;
+            if (journeyDistance >= 10) {
                 distribution.veryComplex++;
-            } else if (pageCount >= 6) {
+            } else if (journeyDistance >= 6) {
                 distribution.complex++;
-            } else if (pageCount >= 3) {
+            } else if (journeyDistance >= 3) {
                 distribution.medium++;
             } else {
                 distribution.simple++;

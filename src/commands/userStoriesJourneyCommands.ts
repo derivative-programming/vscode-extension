@@ -2028,8 +2028,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         <div class="treemap-header">
                             <div class="treemap-header-content">
                                 <div class="treemap-title">
-                                    <h3>User Story Journey Length Visualization</h3>
-                                    <p>Rectangle size represents the number of pages in each user story journey. Hover for story details.</p>
+                                    <h3>User Story Journey Distance Visualization</h3>
+                                    <p>Rectangle size represents the journey page distance for each user story. Hover for story details.</p>
                                 </div>
                                 <div class="treemap-actions">
                                     <button id="refreshTreemapButton" class="icon-button treemap-refresh-button" title="Refresh Data">
@@ -2071,8 +2071,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         <div class="histogram-header">
                             <div class="histogram-header-content">
                                 <div class="histogram-title">
-                                    <h3>Journey Complexity Distribution</h3>
-                                    <p>Distribution of user stories across journey complexity categories</p>
+                                    <h3>Journey Distance Distribution</h3>
+                                    <p>Distribution of user stories across journey distance complexity categories</p>
                                 </div>
                                 <div class="histogram-actions">
                                     <button id="refreshHistogramButton" class="icon-button histogram-refresh-button" title="Refresh Data">
