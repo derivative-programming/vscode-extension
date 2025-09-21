@@ -8,8 +8,6 @@ common types of graphs...
 
 
 data object size analysis view...
-- tab: distribution chart
-  - histogram of data object size ranges (small, medium, large, very large)
 - tab: prop count vs size chart
   - x-axis: property count
     - y-axis: size in KB

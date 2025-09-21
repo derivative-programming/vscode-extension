@@ -1,3 +1,57 @@
+## 2025-09-21
+
+### Update Dot Plot Chart to Use Bytes Instead of MB
+**Status**: COMPLETED  
+**Command**: "in the graph use size of bytes"
+**Files Modified**:
+- `src/webviews/dataObjectSizeAnalysisView.js` - Updated Y-axis scale, circle positioning, color coding, tooltip, and axis label
+- `src/commands/dataObjectSizeAnalysisCommands.ts` - Updated description text
+
+**Implementation**:
+Updated the dot plot visualization to use bytes for better granularity:
+- **Y-axis Scale**: Changed from `d.totalSizeMB` to `d.totalSizeBytes` for more precise positioning
+- **Color Coding**: Updated thresholds to use byte values (1024, 10240, 102400 bytes instead of 0.001, 0.01, 0.1 MB)
+- **Tooltip Display**: Now shows both bytes (with locale formatting) and KB for better readability
+- **Axis Label**: Changed from "Total Size (MB)" to "Total Size (Bytes)"
+- **Description**: Updated to specify "total size in bytes" for clarity
+
+**Benefits**:
+- More granular visualization for smaller data objects
+- Better differentiation between objects with small size differences  
+- Maintains color coding consistency while improving precision
+- Clearer representation of actual storage requirements
+
+### Add Dot Plot Chart Tab to Data Object Size Analysis View  
+**Status**: COMPLETED
+**Command**: "I would like to add a tab to show a dot plot chart to show data objects position looking at total size against property count"
+**Files Modified**:
+- `src/commands/dataObjectSizeAnalysisCommands.ts` - Added HTML structure and CSS styles for dot plot tab
+- `src/webviews/dataObjectSizeAnalysisView.js` - Added dot plot rendering function, tab switching logic, and PNG export
+
+**Implementation**:
+Added a new "Size vs Properties" tab featuring:
+- **Interactive Scatter Plot**: D3.js-powered dot plot showing total size (MB) vs property count
+- **Color Coding**: Consistent with other tabs - tiny/small/medium/large size categories
+- **Hover Interactions**: Tooltips displaying object name, total size, and property count
+- **Click to Detail**: Clicking dots opens object details view
+- **PNG Export**: Full export capability with proper styling
+- **Responsive Design**: Matches VS Code design tokens and existing tab styling
+
+**Key Features**:
+- X-axis: Property count (number of properties in data object)
+- Y-axis: Total size in MB (calculated from all properties)
+- Circle colors indicate size categories using same color scheme as other visualizations
+- Hover effects highlight selected data points
+- Export generates timestamped PNG files
+- Tab switching handles data loading and rendering appropriately
+
+**Architecture Notes**:
+- Follows established pattern of other visualization tabs
+- Uses consistent D3.js approach with proper cleanup
+- Maintains state through global `originalSummaryData` array
+- Implements proper error handling for edge cases
+- CSS classes follow naming conventions (`dotplot-*`)
+
 ## 2025-01-27
 
 ### Add Size Distribution Histogram Tab to Data Object Size Analysis View

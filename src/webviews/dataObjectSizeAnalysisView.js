@@ -21,6 +21,7 @@
     let detailsDataObjectFilter, detailsPropertyFilter, detailsDataTypeFilter;
     let detailsTableBody, detailsRecordInfo, detailsTableContainer, detailsLoading;
     let treemapVisualization, treemapLoading;
+    let dotplotVisualization, dotplotLoading;
 
     // Initialize the interface
     document.addEventListener('DOMContentLoaded', function() {
@@ -50,6 +51,10 @@
         // Treemap tab elements
         treemapVisualization = document.getElementById('treemap-visualization');
         treemapLoading = document.getElementById('treemap-loading');
+
+        // Dot plot tab elements
+        dotplotVisualization = document.getElementById('dotplot-visualization');
+        dotplotLoading = document.getElementById('dotplot-loading');
     }
 
     function setupEventHandlers() {
@@ -118,6 +123,11 @@
             showSpinner();
             loadData();
         });
+        document.getElementById('generateDotplotPngBtn')?.addEventListener('click', generateDotplotPNG);
+        document.getElementById('refreshDotplotButton')?.addEventListener('click', function() {
+            showSpinner();
+            loadData();
+        });
 
         // Table sorting
         document.querySelectorAll('th[data-sort-column]').forEach(header => {
@@ -174,6 +184,8 @@
             renderTreemap();
         } else if (tabName === 'histogram' && originalSummaryData.length > 0) {
             renderHistogram();
+        } else if (tabName === 'dotplot' && originalSummaryData.length > 0) {
+            renderDotplot();
         }
     }
 
@@ -1042,6 +1054,242 @@
                         vscode.postMessage({
                             command: 'savePngToWorkspace',
                             data: { base64, filename, type: 'histogram' }
+                        });
+                    };
+                    reader.readAsDataURL(blob);
+                }, 'image/png');
+            };
+            
+            img.onerror = function() {
+                alert('Failed to render SVG to image');
+            };
+            
+            img.src = url;
+        } catch (err) {
+            alert('Failed to generate PNG: ' + err.message);
+        }
+    }
+
+    // Dot plot functionality
+    function renderDotplot() {
+        const dotplotVisualization = document.getElementById('dotplot-visualization');
+        const dotplotLoading = document.getElementById('dotplot-loading');
+        
+        if (!dotplotVisualization || !dotplotLoading || originalSummaryData.length === 0) {
+            return;
+        }
+        
+        // Clear any existing content
+        dotplotVisualization.innerHTML = '';
+        
+        // Setup dimensions
+        const margin = {top: 20, right: 20, bottom: 80, left: 80};
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+        
+        // Create SVG
+        const svg = d3.select(dotplotVisualization)
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom);
+        
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+        
+        // Setup scales
+        const maxSize = d3.max(originalSummaryData, d => d.totalSizeBytes);
+        const maxProps = d3.max(originalSummaryData, d => d.propertyCount);
+        
+        const xScale = d3.scaleLinear()
+            .domain([0, maxProps])
+            .range([0, width]);
+        
+        const yScale = d3.scaleLinear()
+            .domain([0, maxSize])
+            .range([height, 0]);
+        
+        // Color scale based on size categories
+        const colorScale = d3.scaleOrdinal()
+            .domain(['tiny', 'small', 'medium', 'large'])
+            .range(['#6c757d', '#28a745', '#f66a0a', '#d73a49']);
+        
+        // Create tooltip
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'dotplot-tooltip')
+            .style('opacity', 0)
+            .style('position', 'absolute')
+            .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+            .style('border', '1px solid var(--vscode-panel-border)')
+            .style('border-radius', '3px')
+            .style('padding', '8px')
+            .style('font-size', '12px')
+            .style('z-index', '1000')
+            .style('pointer-events', 'none');
+        
+        // Add circles for each data object
+        g.selectAll('.dotplot-circle')
+            .data(originalSummaryData)
+            .enter()
+            .append('circle')
+            .attr('class', 'dotplot-circle')
+            .attr('cx', d => xScale(d.propertyCount))
+            .attr('cy', d => yScale(d.totalSizeBytes))
+            .attr('r', 6)
+            .attr('fill', d => {
+                const sizeBytes = d.totalSizeBytes;
+                if (sizeBytes > 102400) { return colorScale('large'); }     // >100KB
+                if (sizeBytes > 10240) { return colorScale('medium'); }     // 10KB-100KB  
+                if (sizeBytes > 1024) { return colorScale('small'); }       // 1KB-10KB
+                return colorScale('tiny');                                  // <1KB
+            })
+            .attr('fill-opacity', 0.7)
+            .attr('stroke', 'var(--vscode-foreground)')
+            .attr('stroke-width', 1)
+            .attr('stroke-opacity', 0.7)
+            .on('mouseover', function(event, d) {
+                // Highlight circle
+                d3.select(this)
+                    .attr('stroke-width', 2)
+                    .attr('stroke-opacity', 1);
+                
+                tooltip.transition()
+                    .duration(200)
+                    .style('opacity', .9);
+                
+                tooltip.html(`
+                    <strong>${escapeHtml(d.dataObjectName)}</strong><br/>
+                    Total Size: ${d.totalSizeBytes.toLocaleString()} bytes<br/>
+                    Size (KB): ${d.totalSizeKB.toFixed(2)} KB<br/>
+                    Properties: ${d.propertyCount}
+                `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+            })
+            .on('mouseout', function() {
+                // Reset circle
+                d3.select(this)
+                    .attr('stroke-width', 1)
+                    .attr('stroke-opacity', 0.7);
+                
+                tooltip.transition()
+                    .duration(500)
+                    .style('opacity', 0);
+            })
+            .on('click', function(event, d) {
+                // Allow clicking to view object details
+                vscode.postMessage({
+                    command: 'viewDetails',
+                    data: { itemType: 'dataObject', itemName: d.dataObjectName }
+                });
+            });
+        
+        // Add axes
+        g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(xScale))
+            .selectAll('text')
+            .attr('fill', 'var(--vscode-foreground)')
+            .style('text-anchor', 'middle')
+            .style('font-size', '11px');
+        
+        g.append('g')
+            .call(d3.axisLeft(yScale))
+            .selectAll('text')
+            .attr('fill', 'var(--vscode-foreground)');
+        
+        // Add axis labels
+        g.append('text')
+            .attr('class', 'dotplot-axis-label')
+            .attr('transform', 'rotate(-90)')
+            .attr('y', -50)
+            .attr('x', -height / 2)
+            .attr('fill', 'var(--vscode-foreground)')
+            .style('text-anchor', 'middle')
+            .style('font-size', '12px')
+            .text('Total Size (Bytes)');
+        
+        g.append('text')
+            .attr('class', 'dotplot-axis-label')
+            .attr('x', width / 2)
+            .attr('y', height + 50)
+            .attr('fill', 'var(--vscode-foreground)')
+            .style('text-anchor', 'middle')
+            .style('font-size', '12px')
+            .text('Property Count');
+        
+        // Hide loading and show visualization
+        dotplotLoading.classList.add('hidden');
+        dotplotVisualization.classList.remove('hidden');
+    }
+
+    // Generate dot plot PNG export
+    function generateDotplotPNG() {
+        try {
+            const dotplotContainer = document.getElementById('dotplot-visualization');
+            if (!dotplotContainer || dotplotContainer.classList.contains('hidden')) {
+                alert('Load dot plot before exporting PNG');
+                return;
+            }
+            
+            const svgElement = dotplotContainer.querySelector('svg');
+            if (!svgElement) {
+                alert('Dot plot SVG not found');
+                return;
+            }
+            
+            // Clone and inline styles
+            const cloned = svgElement.cloneNode(true);
+            
+            // Inline circle styles
+            cloned.querySelectorAll('circle').forEach(circle => {
+                const cs = window.getComputedStyle(circle);
+                const fill = circle.getAttribute('fill') || cs.fill || '#4c78a8';
+                const stroke = circle.getAttribute('stroke') || cs.stroke || '#333333';
+                circle.setAttribute('fill', fill.startsWith('var(') ? '#4c78a8' : fill);
+                circle.setAttribute('stroke', stroke.startsWith('var(') ? '#333333' : stroke);
+            });
+            
+            // Inline text styles
+            cloned.querySelectorAll('text').forEach(text => {
+                const cs = window.getComputedStyle(text);
+                const fill = text.getAttribute('fill') || cs.color || '#333333';
+                text.setAttribute('fill', fill.startsWith('var(') ? '#333333' : fill);
+            });
+            
+            // Inline path styles (for axes)
+            cloned.querySelectorAll('path').forEach(path => {
+                const cs = window.getComputedStyle(path);
+                const stroke = path.getAttribute('stroke') || cs.stroke || '#333333';
+                path.setAttribute('stroke', stroke.startsWith('var(') ? '#333333' : stroke);
+            });
+            
+            const svgString = new XMLSerializer().serializeToString(cloned);
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = cloned.getAttribute('width');
+                canvas.height = cloned.getAttribute('height');
+                const ctx = canvas.getContext('2d');
+                
+                // White background
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.drawImage(img, 0, 0);
+                URL.revokeObjectURL(url);
+                
+                canvas.toBlob(blob => {
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const base64 = reader.result;
+                        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                        const filename = `data-object-size-dotplot-${timestamp}.png`;
+                        vscode.postMessage({
+                            command: 'savePngToWorkspace',
+                            data: { base64, filename, type: 'dotplot' }
                         });
                     };
                     reader.readAsDataURL(blob);

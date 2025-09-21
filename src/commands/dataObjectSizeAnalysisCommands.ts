@@ -1251,6 +1251,93 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
             z-index: 1000;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
+        
+        /* Dot plot specific styles */
+        .dotplot-container {
+            padding: 15px;
+        }
+        
+        .dotplot-header {
+            margin-bottom: 20px;
+        }
+        
+        .dotplot-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .dotplot-title {
+            flex: 1;
+        }
+        
+        .dotplot-actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .dotplot-header h3 {
+            margin: 0 0 5px 0;
+            color: var(--vscode-foreground);
+            font-size: 16px;
+        }
+        
+        .dotplot-header p {
+            margin: 0;
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
+        }
+        
+        .dotplot-viz {
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .dotplot-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 12px;
+            color: var(--vscode-foreground);
+        }
+        
+        /* Dot plot circle styles */
+        .dotplot-circle {
+            cursor: pointer;
+            transition: all 0.2s;
+            stroke: var(--vscode-foreground);
+            stroke-width: 1;
+            stroke-opacity: 0.7;
+        }
+        
+        .dotplot-circle:hover {
+            stroke-width: 2;
+            stroke-opacity: 1;
+        }
+        
+        .dotplot-axis-label {
+            font-family: var(--vscode-font-family);
+            font-size: 12px;
+            fill: var(--vscode-foreground);
+            text-anchor: middle;
+        }
+        
+        .dotplot-tooltip {
+            position: absolute;
+            background: var(--vscode-editorHoverWidget-background);
+            border: 1px solid var(--vscode-editorHoverWidget-border);
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 12px;
+            color: var(--vscode-editorHoverWidget-foreground);
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -1262,6 +1349,7 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
             <button class="tab" data-tab="details">Detail</button>
             <button class="tab" data-tab="treemap">Size Visualization</button>
             <button class="tab" data-tab="histogram">Size Distribution</button>
+            <button class="tab" data-tab="dotplot">Size vs Properties</button>
         </div>
         
         <div id="summary-tab" class="tab-content active">
@@ -1443,6 +1531,48 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
                 <div id="histogram-loading" class="loading">Loading histogram...</div>
                 <div id="histogram-visualization" class="histogram-viz hidden"></div>
                 <div class="histogram-legend">
+                    <div class="legend-item">
+                        <span class="legend-color large-size"></span>
+                        <span>Large Size (>100KB)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color medium-size"></span>
+                        <span>Medium Size (10KB-100KB)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color small-size"></span>
+                        <span>Small Size (1KB-10KB)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color tiny-size"></span>
+                        <span>Tiny Size (<1KB)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="dotplot-tab" class="tab-content">
+            <div class="dotplot-container">
+                <div class="dotplot-header">
+                    <div class="dotplot-header-content">
+                        <div class="dotplot-title">
+                            <h3>Data Object Size vs Property Count</h3>
+                            <p>Each dot represents a data object positioned by total size in bytes and number of properties. Hover for details.</p>
+                        </div>
+                        <div class="dotplot-actions">
+                            <button id="refreshDotplotButton" class="icon-button" title="Refresh Data">
+                                <i class="codicon codicon-refresh"></i>
+                            </button>
+                            <button id="generateDotplotPngBtn" class="svg-export-btn">
+                                <span class="codicon codicon-device-camera"></span>
+                                Generate PNG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="dotplot-loading" class="loading">Loading dot plot...</div>
+                <div id="dotplot-visualization" class="dotplot-viz hidden"></div>
+                <div class="dotplot-legend">
                     <div class="legend-item">
                         <span class="legend-color large-size"></span>
                         <span>Large Size (>100KB)</span>
