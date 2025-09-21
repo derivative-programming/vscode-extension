@@ -24,19 +24,11 @@ page complexity analysis view...
   - histogram of page complexity ranges (simple, medium, complex, very complex)
 
 user journey view... (exists)
-Tab: User Journey Length Distribution
-const complexityRanges = {
-    'Simple (1-2 pages)': stories.filter(s => s.pageCount <= 2).length,
-    'Medium (3-5 pages)': stories.filter(s => s.pageCount >= 3 && s.pageCount <= 5).length,
-    'Complex (6-10 pages)': stories.filter(s => s.pageCount >= 6 && s.pageCount <= 10).length,
-    'Very Complex (10+ pages)': stories.filter(s => s.pageCount > 10).length
-};
-- Tab: User Journey Length Proportional Visualization Chart
-  - visualize stories by journey page count (size of box is page count)
 - Tab: User Journey Page Usage Data
   - list of all pages with count of how many user journeys they appear in
 - Tab: User Journey Page Usage Proportional Visualization Chart
   - visualize pages by how many user journeys they appear in (size of box is count)
+- Tab: Page Usage Distribution: histogram
 - Tab: Page Usage vs Page Complexity Scatter Plot
   - x-axis: page complexity (total control count)
   - y-axis: page usage (how many user journeys the page appears in)

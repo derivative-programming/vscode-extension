@@ -804,6 +804,159 @@ function findShortestPathDistance(startPageName: string, targetPageName: string,
 }
 
 /**
+ * Load page usage data including all pages with their complexity and usage statistics
+ */
+async function loadPageUsageData(modelService: ModelService): Promise<any> {
+    try {
+        const model = modelService.getCurrentModel();
+        if (!model) {
+            throw new Error('No model available');
+        }
+
+        console.log("[Extension] Loading page usage data");
+
+        // Extract all pages from objectWorkflow and report arrays
+        const allPages: any[] = [];
+        const pageUsageCount: { [key: string]: number } = {};
+
+        // Get all objects from model
+        const allObjects = modelService.getAllObjects();
+        allObjects.forEach((obj: any) => {
+            // Extract workflows with isPage=true (forms)
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === 'true' && workflow.name) {
+                        // Calculate complexity based on element counts
+                        const elements = {
+                            buttons: (workflow.objectWorkflowButton && Array.isArray(workflow.objectWorkflowButton)) ? workflow.objectWorkflowButton.length : 0,
+                            inputs: (workflow.objectWorkflowParam && Array.isArray(workflow.objectWorkflowParam)) ? workflow.objectWorkflowParam.length : 0,
+                            outputVars: (workflow.objectWorkflowOutputVar && Array.isArray(workflow.objectWorkflowOutputVar)) ? workflow.objectWorkflowOutputVar.length : 0
+                        };
+
+                        const totalElements = elements.buttons + elements.inputs + elements.outputVars;
+                        let complexity = 'simple';
+                        if (totalElements > 20) {
+                            complexity = 'very-complex';
+                        } else if (totalElements > 10) {
+                            complexity = 'complex';
+                        } else if (totalElements > 5) {
+                            complexity = 'moderate';
+                        }
+
+                        allPages.push({
+                            name: workflow.name,
+                            type: 'form',
+                            complexity: complexity,
+                            elements: elements,
+                            totalElements: totalElements,
+                            roleRequired: workflow.roleRequired || '',
+                            usageCount: 0 // Will be calculated later
+                        });
+                    }
+                });
+            }
+
+            // Extract reports with isPage=true or undefined (reports)
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if ((report.isPage === 'true' || report.isPage === undefined) && report.name) {
+                        // Calculate complexity based on element counts
+                        const elements = {
+                            buttons: (report.reportButton && Array.isArray(report.reportButton)) ? report.reportButton.length : 0,
+                            columns: (report.reportColumn && Array.isArray(report.reportColumn)) ? report.reportColumn.length : 0,
+                            params: (report.reportParam && Array.isArray(report.reportParam)) ? report.reportParam.length : 0,
+                            filters: 0 // Reports don't have a separate filter array in the schema
+                        };
+
+                        const totalElements = elements.buttons + elements.columns + elements.params;
+                        let complexity = 'simple';
+                        if (totalElements > 20) {
+                            complexity = 'very-complex';
+                        } else if (totalElements > 10) {
+                            complexity = 'complex';
+                        } else if (totalElements > 5) {
+                            complexity = 'moderate';
+                        }
+
+                        allPages.push({
+                            name: report.name,
+                            type: 'report',
+                            complexity: complexity,
+                            elements: elements,
+                            totalElements: totalElements,
+                            roleRequired: report.roleRequired || '',
+                            usageCount: 0 // Will be calculated later
+                        });
+                    }
+                });
+            }
+        });
+
+        // Load existing page mapping data to get usage statistics
+        let existingPageMappingData: any = { pageMappings: {} };
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (modelFilePath) {
+            const modelDir = path.dirname(modelFilePath);
+            const pageMappingFilePath = path.join(modelDir, 'app-dna-user-story-page-mapping.json');
+            try {
+                if (fs.existsSync(pageMappingFilePath)) {
+                    const mappingContent = fs.readFileSync(pageMappingFilePath, 'utf8');
+                    existingPageMappingData = JSON.parse(mappingContent);
+                }
+            } catch (error) {
+                console.warn("[Extension] Could not load existing page mapping file:", error);
+            }
+        }
+
+        // Calculate usage statistics from page mappings
+        if (existingPageMappingData.pageMappings) {
+            Object.values(existingPageMappingData.pageMappings).forEach((mapping: any) => {
+                if (mapping.pageMapping && Array.isArray(mapping.pageMapping)) {
+                    mapping.pageMapping.forEach((pageName: string) => {
+                        pageUsageCount[pageName] = (pageUsageCount[pageName] || 0) + 1;
+                    });
+                }
+            });
+        }
+
+        // Apply usage counts to pages
+        allPages.forEach(page => {
+            page.usageCount = pageUsageCount[page.name] || 0;
+        });
+
+        // Calculate complexity breakdown
+        const complexityBreakdown = {
+            'simple': 0,
+            'moderate': 0,
+            'complex': 0,
+            'very-complex': 0
+        };
+
+        allPages.forEach(page => {
+            if (complexityBreakdown.hasOwnProperty(page.complexity)) {
+                complexityBreakdown[page.complexity]++;
+            }
+        });
+
+        // Sort pages by name for consistent display
+        allPages.sort((a, b) => a.name.localeCompare(b.name));
+
+        console.log(`[Extension] Found ${allPages.length} pages with usage data`);
+
+        return {
+            pages: allPages,
+            totalPages: allPages.length,
+            complexityBreakdown: complexityBreakdown,
+            usageStats: pageUsageCount
+        };
+
+    } catch (error) {
+        console.error("[Extension] Error loading page usage data:", error);
+        throw error;
+    }
+}
+
+/**
  * Register user stories journey commands
  */
 export function registerUserStoriesJourneyCommands(context: vscode.ExtensionContext, modelService: ModelService): void {
@@ -1946,6 +2099,255 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             max-width: 300px;
                             word-wrap: break-word;
                         }
+                        
+                        /* Page Usage Tab Specific Styles */
+                        .page-usage-content {
+                            display: none;
+                        }
+                        
+                        .page-usage-content.active {
+                            display: block;
+                        }
+                        
+                        .page-type-column {
+                            width: 100px;
+                            text-align: center;
+                        }
+                        
+                        .page-type-badge {
+                            display: inline-block;
+                            padding: 2px 8px;
+                            border-radius: 12px;
+                            font-size: 11px;
+                            font-weight: 600;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                            white-space: nowrap;
+                        }
+                        
+                        .page-type-badge.form {
+                            background-color: var(--vscode-charts-blue);
+                            color: var(--vscode-editor-background);
+                        }
+                        
+                        .page-type-badge.report {
+                            background-color: var(--vscode-charts-green);
+                            color: var(--vscode-editor-background);
+                        }
+                        
+                        .page-complexity-column {
+                            width: 120px;
+                            text-align: center;
+                        }
+                        
+                        .page-total-elements-column {
+                            width: 80px;
+                            text-align: center;
+                        }
+                        
+                        .page-complexity-indicator {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 6px;
+                            padding: 2px 8px;
+                            border-radius: 4px;
+                            font-size: 11px;
+                            font-weight: 600;
+                        }
+                        
+                        .page-complexity-indicator.simple {
+                            background-color: rgba(40, 167, 69, 0.15);
+                            color: var(--vscode-charts-green);
+                            border: 1px solid rgba(40, 167, 69, 0.3);
+                        }
+                        
+                        .page-complexity-indicator.moderate {
+                            background-color: rgba(255, 193, 7, 0.15);
+                            color: var(--vscode-charts-yellow);
+                            border: 1px solid rgba(255, 193, 7, 0.3);
+                        }
+                        
+                        .page-complexity-indicator.complex {
+                            background-color: rgba(255, 152, 0, 0.15);
+                            color: var(--vscode-charts-orange);
+                            border: 1px solid rgba(255, 152, 0, 0.3);
+                        }
+                        
+                        .page-complexity-indicator.very-complex {
+                            background-color: rgba(220, 53, 69, 0.15);
+                            color: var(--vscode-charts-red);
+                            border: 1px solid rgba(220, 53, 69, 0.3);
+                        }
+                        
+                        .page-complexity-dot {
+                            width: 8px;
+                            height: 8px;
+                            border-radius: 50%;
+                            flex-shrink: 0;
+                        }
+                        
+                        .page-complexity-dot.simple {
+                            background-color: var(--vscode-charts-green);
+                        }
+                        
+                        .page-complexity-dot.moderate {
+                            background-color: var(--vscode-charts-yellow);
+                        }
+                        
+                        .page-complexity-dot.complex {
+                            background-color: var(--vscode-charts-orange);
+                        }
+                        
+                        .page-complexity-dot.very-complex {
+                            background-color: var(--vscode-charts-red);
+                        }
+                        
+                        .page-elements-column {
+                            width: 300px;
+                        }
+                        
+                        .page-elements-summary {
+                            display: flex;
+                            gap: 8px;
+                            flex-wrap: wrap;
+                        }
+                        
+                        .element-count {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 3px;
+                            padding: 1px 5px;
+                            background-color: var(--vscode-badge-background);
+                            color: var(--vscode-badge-foreground);
+                            border-radius: 3px;
+                            font-size: 10px;
+                            font-weight: 500;
+                        }
+                        
+                        .element-count .codicon {
+                            font-size: 10px;
+                        }
+                        
+                        .element-count.buttons {
+                            border-left: 3px solid var(--vscode-charts-blue);
+                        }
+                        
+                        .element-count.columns {
+                            border-left: 3px solid var(--vscode-charts-green);
+                        }
+                        
+                        .element-count.inputs {
+                            border-left: 3px solid var(--vscode-charts-yellow);
+                        }
+                        
+                        .element-count.filters {
+                            border-left: 3px solid var(--vscode-charts-orange);
+                        }
+                        
+                        .page-usage-column {
+                            width: 120px;
+                            text-align: center;
+                        }
+                        
+                        .usage-count-indicator {
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            min-width: 24px;
+                            height: 20px;
+                            padding: 0 6px;
+                            border-radius: 10px;
+                            font-size: 11px;
+                            font-weight: 600;
+                        }
+                        
+                        .usage-count-indicator.high {
+                            background-color: var(--vscode-charts-red);
+                            color: var(--vscode-editor-background);
+                        }
+                        
+                        .usage-count-indicator.medium {
+                            background-color: var(--vscode-charts-orange);
+                            color: var(--vscode-editor-background);
+                        }
+                        
+                        .usage-count-indicator.low {
+                            background-color: var(--vscode-charts-blue);
+                            color: var(--vscode-editor-background);
+                        }
+                        
+                        .usage-count-indicator.none {
+                            background-color: var(--vscode-input-border);
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .page-name-column {
+                            width: 250px;
+                            font-weight: 500;
+                        }
+                        
+                        .page-name-cell {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        
+                        .page-icon {
+                            font-size: 14px;
+                            color: var(--vscode-symbolIcon-colorForeground);
+                            flex-shrink: 0;
+                        }
+                        
+                        .page-name-text {
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+                        
+                        .page-usage-filter-section .filter-group select option[value="simple"] {
+                            color: var(--vscode-charts-green);
+                        }
+                        
+                        .page-usage-filter-section .filter-group select option[value="moderate"] {
+                            color: var(--vscode-charts-yellow);
+                        }
+                        
+                        .page-usage-filter-section .filter-group select option[value="complex"] {
+                            color: var(--vscode-charts-orange);
+                        }
+                        
+                        .page-usage-filter-section .filter-group select option[value="very-complex"] {
+                            color: var(--vscode-charts-red);
+                        }
+                        
+                        .page-usage-summary {
+                            display: flex;
+                            gap: 20px;
+                            margin-bottom: 15px;
+                            padding: 12px;
+                            background-color: var(--vscode-sideBar-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                        }
+                        
+                        .summary-stat {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            min-width: 80px;
+                        }
+                        
+                        .summary-stat-value {
+                            font-size: 18px;
+                            font-weight: 600;
+                            color: var(--vscode-editor-foreground);
+                        }
+                        
+                        .summary-stat-label {
+                            font-size: 11px;
+                            color: var(--vscode-descriptionForeground);
+                            text-align: center;
+                        }
                     </style>
                 </head>
                 <body>
@@ -1956,6 +2358,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
 
                     <div class="tabs">
                         <button class="tab active" data-tab="user-stories">User Stories</button>
+                        <button class="tab" data-tab="page-usage">Page Usage</button>
                         <button class="tab" data-tab="journey-visualization">Journey Visualization</button>
                         <button class="tab" data-tab="journey-distribution">Journey Distribution</button>
                     </div>
@@ -2107,6 +2510,73 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         </div>
                     </div>
                 </div>
+                    </div>
+                </div>
+
+                <!-- Page Usage Tab Content -->
+                <div id="page-usage-tab" class="tab-content">
+                    <div class="filter-section">
+                        <div class="filter-header" onclick="togglePageUsageFilterSection()">
+                            <span class="codicon codicon-chevron-down" id="pageUsageFilterChevron"></span>
+                            <span>Filters</span>
+                        </div>
+                        <div class="filter-content" id="pageUsageFilterContent">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Page Name:</label>
+                                    <input type="text" id="filterPageName" placeholder="Filter by page name...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Page Type:</label>
+                                    <select id="filterPageType">
+                                        <option value="">All Types</option>
+                                        <option value="form">Form</option>
+                                        <option value="report">Report</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Complexity:</label>
+                                    <select id="filterPageComplexity">
+                                        <option value="">All Complexity</option>
+                                        <option value="simple">Simple</option>
+                                        <option value="moderate">Moderate</option>
+                                        <option value="complex">Complex</option>
+                                        <option value="very-complex">Very Complex</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button onclick="clearPageUsageFilters()" class="filter-button-secondary">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="header-actions">
+                        <button id="refreshPageUsageButton" class="refresh-button" title="Refresh Page Usage Data">
+                        </button>
+                        <button id="exportPageUsageButton" class="icon-button" title="Download Page Usage CSV">
+                            <i class="codicon codicon-cloud-download"></i>
+                        </button>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="pageUsageTable">
+                            <thead id="pageUsageTableHead">
+                                <!-- Table headers will be dynamically generated -->
+                            </thead>
+                            <tbody id="pageUsageTableBody">
+                                <!-- Table rows will be dynamically generated -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <div class="table-footer-left">
+                            <!-- Left side content if needed -->
+                        </div>
+                        <div class="table-footer-right">
+                            <span id="page-usage-record-info"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -2437,6 +2907,24 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     vscode.window.showErrorMessage(`Failed to save PNG: ${error.message}`);
                                     panel.webview.postMessage({
                                         command: 'pngSaveComplete',
+                                        success: false,
+                                        error: error.message
+                                    });
+                                }
+                                break;
+
+                            case 'getPageUsageData':
+                                console.log("[Extension] Getting page usage data");
+                                try {
+                                    const pageUsageData = await loadPageUsageData(modelService);
+                                    panel.webview.postMessage({
+                                        command: 'pageUsageDataReady',
+                                        data: pageUsageData
+                                    });
+                                } catch (error) {
+                                    console.error('[Extension] Error getting page usage data:', error);
+                                    panel.webview.postMessage({
+                                        command: 'pageUsageDataReady',
                                         success: false,
                                         error: error.message
                                     });

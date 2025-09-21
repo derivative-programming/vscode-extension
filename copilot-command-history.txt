@@ -2291,4 +2291,6 @@ S e p t e m b e r   2 0 ,   2 0 2 5   -   C o m m a n d :   A l l o w   s o r t 
  -   s r c / c o m m a n d s / u s e r S t o r i e s J o u r n e y C o m m a n d s . t s :   U p d a t e d   t i t l e s   a n d   d e s c r i p t i o n s 
  
  * * R e s u l t * * :   N o w   s t o r i e s   w i t h   j o u r n e y P a g e D i s t a n c e   o f   7 - 8   w i l l   c o r r e c t l y   a p p e a r   a s   C o m p l e x   c a t e g o r y   i n   b o t h   t r e e m a p   a n d   h i s t o g r a m   v i s u a l i z a t i o n s .  
- 
+ COMPLETED: Fix Page Usage Tab Filtering and Sorting Functionality
+COMPLETED: Fix Page Usage Total Items Calculation
+CORRECTED: Forms don't have columns, only inputs and outputs

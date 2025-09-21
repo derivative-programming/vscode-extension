@@ -100,6 +100,62 @@ function refresh() {
     });
 }
 
+// Page usage global functions for onclick
+function applyPageUsageFilters() {
+    const nameFilter = document.getElementById('filterPageName')?.value.toLowerCase() || '';
+    const typeFilter = document.getElementById('filterPageType')?.value || '';
+    const complexityFilter = document.getElementById('filterPageComplexity')?.value || '';
+    
+    let filteredPages = (pageUsageData.pages || []).filter(page => {
+        const matchesName = !nameFilter || (page.name || '').toLowerCase().includes(nameFilter);
+        const matchesType = !typeFilter || page.type === typeFilter;
+        const matchesComplexity = !complexityFilter || page.complexity === complexityFilter;
+        
+        return matchesName && matchesType && matchesComplexity;
+    });
+    
+    // Temporarily update data for filtering
+    const originalPages = pageUsageData.pages;
+    pageUsageData.pages = filteredPages;
+    
+    renderPageUsageTable();
+    
+    // Restore original data
+    pageUsageData.pages = originalPages;
+}
+
+function clearPageUsageFilters() {
+    document.getElementById('filterPageName').value = '';
+    document.getElementById('filterPageType').value = '';
+    document.getElementById('filterPageComplexity').value = '';
+    
+    renderPageUsageTable();
+}
+
+function refreshPageUsageData() {
+    renderPageUsageData();
+}
+
+// Toggle page usage filter section (global function for onclick)
+function togglePageUsageFilterSection() {
+    const filterContent = document.getElementById('pageUsageFilterContent');
+    const chevron = document.getElementById('pageUsageFilterChevron');
+    
+    if (filterContent && chevron) {
+        const isCollapsed = filterContent.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            filterContent.classList.remove('collapsed');
+            chevron.classList.remove('codicon-chevron-right');
+            chevron.classList.add('codicon-chevron-down');
+        } else {
+            filterContent.classList.add('collapsed');
+            chevron.classList.remove('codicon-chevron-down');
+            chevron.classList.add('codicon-chevron-right');
+        }
+    }
+}
+
 // Export to CSV (global function for onclick)
 function exportToCSV() {
     vscode.postMessage({
@@ -827,6 +883,24 @@ window.addEventListener('message', event => {
             }
             break;
             
+        case 'pageUsageDataReady':
+            console.log('Page usage data received:', message.data);
+            if (message.success !== false) {
+                handlePageUsageDataResponse(message.data || {});
+            } else {
+                console.error('Error getting page usage data:', message.error);
+                // Show error state in page usage tab
+                const tableContainer = document.querySelector('#page-usage-tab .table-container');
+                if (tableContainer) {
+                    tableContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--vscode-errorForeground);">
+                            <div>Error loading page usage data: ${message.error || 'Unknown error'}</div>
+                        </div>
+                    `;
+                }
+            }
+            break;
+            
         default:
             console.log('Unknown message:', message);
             break;
@@ -863,6 +937,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tabName === 'user-stories') {
             // Refresh user stories data if needed
             // (current functionality is already in user-stories tab)
+        } else if (tabName === 'page-usage') {
+            // Page Usage tab selected - render page usage data
+            console.log('Page Usage tab selected - rendering page usage data');
+            renderPageUsageData();
         } else if (tabName === 'journey-visualization') {
             // Journey visualization tab selected - render treemap
             console.log('Journey visualization tab selected - rendering treemap');
@@ -884,6 +962,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (element) {
             element.addEventListener('input', applyFilters);
             element.addEventListener('change', applyFilters);
+        }
+    });
+    
+    // Setup page usage filter event listeners for auto-apply
+    const pageUsageFilterInputs = ['filterPageName', 'filterPageType', 'filterPageComplexity'];
+    pageUsageFilterInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', applyPageUsageFilters);
+            element.addEventListener('change', applyPageUsageFilters);
         }
     });
     
@@ -1569,6 +1657,280 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// Page Usage tab data and functions
+let pageUsageData = {
+    pages: [],
+    totalPages: 0,
+    complexityBreakdown: {},
+    usageStats: {},
+    sortColumn: 'name',
+    sortDescending: false
+};
+
+// Render page usage data when tab is activated
+function renderPageUsageData() {
+    // Request page usage data from extension
+    showPageUsageSpinner();
+    vscode.postMessage({
+        command: 'getPageUsageData'
+    });
+}
+
+// Show page usage spinner
+function showPageUsageSpinner() {
+    const pageUsageContent = document.getElementById('page-usage-tab');
+    if (pageUsageContent) {
+        const tableContainer = pageUsageContent.querySelector('.table-container');
+        if (tableContainer) {
+            tableContainer.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--vscode-descriptionForeground);">
+                    <div class="spinner" style="margin: 0 auto 10px auto;"></div>
+                    <div>Loading page usage data...</div>
+                </div>
+            `;
+        }
+    }
+}
+
+// Handle page usage data response from extension
+function handlePageUsageDataResponse(data) {
+    pageUsageData = data;
+    renderPageUsageTable();
+    renderPageUsageSummary();
+}
+
+// Render page usage summary statistics
+function renderPageUsageSummary() {
+    const summaryContainer = document.querySelector('#page-usage-tab .page-usage-summary');
+    if (!summaryContainer) {
+        return;
+    }
+    
+    const totalPages = pageUsageData.pages?.length || 0;
+    const complexityBreakdown = pageUsageData.complexityBreakdown || {};
+    const totalUsage = pageUsageData.pages?.reduce((sum, page) => sum + (page.usageCount || 0), 0) || 0;
+    
+    summaryContainer.innerHTML = `
+        <div class="summary-stat">
+            <div class="summary-stat-value">${totalPages}</div>
+            <div class="summary-stat-label">Total Pages</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value">${complexityBreakdown.simple || 0}</div>
+            <div class="summary-stat-label">Simple</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value">${complexityBreakdown.moderate || 0}</div>
+            <div class="summary-stat-label">Moderate</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value">${complexityBreakdown.complex || 0}</div>
+            <div class="summary-stat-label">Complex</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value">${complexityBreakdown['very-complex'] || 0}</div>
+            <div class="summary-stat-label">Very Complex</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value">${totalUsage}</div>
+            <div class="summary-stat-label">Total Usage</div>
+        </div>
+    `;
+}
+
+// Render page usage table
+function renderPageUsageTable() {
+    const tableContainer = document.querySelector('#page-usage-tab .table-container');
+    if (!tableContainer) {
+        return;
+    }
+    
+    const pages = pageUsageData.pages || [];
+    
+    if (pages.length === 0) {
+        tableContainer.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--vscode-descriptionForeground);">
+                <div>No page data available</div>
+            </div>
+        `;
+        return;
+    }
+    
+    // Helper function to generate sort indicator
+    const getSortIndicator = (column) => {
+        if (pageUsageData.sortColumn === column) {
+            return pageUsageData.sortDescending ? ' ▼' : ' ▲';
+        }
+        return '';
+    };
+    
+    // Build table HTML
+    const tableHtml = `
+        <table>
+            <thead>
+                <tr>
+                    <th class="page-name-column sortable" data-column="name">
+                        Page Name${getSortIndicator('name')}
+                    </th>
+                    <th class="page-type-column sortable" data-column="type">
+                        Type${getSortIndicator('type')}
+                    </th>
+                    <th class="page-complexity-column sortable" data-column="complexity">
+                        Complexity${getSortIndicator('complexity')}
+                    </th>
+                    <th class="page-total-elements-column sortable" data-column="totalElements">
+                        Total Items${getSortIndicator('totalElements')}
+                    </th>
+                    <th class="page-elements-column">
+                        Elements
+                    </th>
+                    <th class="page-usage-column sortable" data-column="usageCount">
+                        Usage${getSortIndicator('usageCount')}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                ${pages.map(page => createPageUsageRow(page)).join('')}
+            </tbody>
+        </table>
+    `;
+    
+    tableContainer.innerHTML = tableHtml;
+    
+    // Add click handlers for sorting
+    tableContainer.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+            const column = th.getAttribute('data-column');
+            sortPageUsageData(column);
+        });
+    });
+    
+    // Update record info
+    updatePageUsageRecordInfo(pages.length);
+}
+
+// Create a table row for page usage data
+function createPageUsageRow(page) {
+    const pageType = page.type || 'unknown';
+    const complexity = page.complexity || 'simple';
+    const usageCount = page.usageCount || 0;
+    const elements = page.elements || {};
+    
+    // Determine usage level for styling
+    let usageLevel = 'none';
+    if (usageCount > 10) {
+        usageLevel = 'high';
+    } else if (usageCount > 5) {
+        usageLevel = 'medium';
+    } else if (usageCount > 0) {
+        usageLevel = 'low';
+    }
+    
+    // Build elements summary based on page type
+    let elementCounts = [];
+    if (pageType === 'form') {
+        // For forms: objectWorkflowButton, objectWorkflowParam (inputs), objectWorkflowOutputVar
+        if (elements.buttons > 0) { elementCounts.push(`<span>${elements.buttons} buttons</span>`); }
+        if (elements.inputs > 0) { elementCounts.push(`<span>${elements.inputs} inputs</span>`); }
+        if (elements.outputVars > 0) { elementCounts.push(`<span>${elements.outputVars} outputs</span>`); }
+    } else if (pageType === 'report') {
+        // For reports: reportButton, reportColumn, reportParam
+        if (elements.buttons > 0) { elementCounts.push(`<span>${elements.buttons} buttons</span>`); }
+        if (elements.columns > 0) { elementCounts.push(`<span>${elements.columns} columns</span>`); }
+        if (elements.params > 0) { elementCounts.push(`<span>${elements.params} params</span>`); }
+    } else {
+        // Fallback for unknown types
+        if (elements.buttons > 0) { elementCounts.push(`<span>${elements.buttons} buttons</span>`); }
+        if (elements.columns > 0) { elementCounts.push(`<span>${elements.columns} columns</span>`); }
+        if (elements.inputs > 0) { elementCounts.push(`<span>${elements.inputs} inputs</span>`); }
+        if (elements.filters > 0) { elementCounts.push(`<span>${elements.filters} filters</span>`); }
+        if (elements.outputVars > 0) { elementCounts.push(`<span>${elements.outputVars} outputs</span>`); }
+        if (elements.params > 0) { elementCounts.push(`<span>${elements.params} params</span>`); }
+    }
+    
+    const elementCountsText = elementCounts.join(', ');
+    
+    return `
+        <tr>
+            <td class="page-name-column">
+                <div class="page-name-cell">
+                    <span class="page-name-text" title="${page.name}">${page.name}</span>
+                </div>
+            </td>
+            <td class="page-type-column">
+                <span>${pageType}</span>
+            </td>
+            <td class="page-complexity-column">
+                <span>${complexity.charAt(0).toUpperCase() + complexity.slice(1).replace('-', ' ')}</span>
+            </td>
+            <td class="page-total-elements-column">
+                <span>${page.totalElements || 0}</span>
+            </td>
+            <td class="page-elements-column">
+                <div class="page-elements-summary">
+                    ${elementCountsText || 'No elements'}
+                </div>
+            </td>
+            <td class="page-usage-column">
+                <span>${usageCount}</span>
+            </td>
+        </tr>
+    `;
+}
+
+// Sort page usage data
+function sortPageUsageData(column) {
+    const pages = pageUsageData.pages || [];
+    
+    // Toggle sort direction if same column, otherwise default to ascending
+    if (pageUsageData.sortColumn === column) {
+        pageUsageData.sortDescending = !pageUsageData.sortDescending;
+    } else {
+        pageUsageData.sortColumn = column;
+        pageUsageData.sortDescending = false;
+    }
+    
+    pages.sort((a, b) => {
+        let aVal = a[column] || '';
+        let bVal = b[column] || '';
+        
+        // Handle numeric comparison for usage count and total elements
+        if (column === 'usageCount' || column === 'totalElements') {
+            const aNum = typeof aVal === 'number' ? aVal : 0;
+            const bNum = typeof bVal === 'number' ? bVal : 0;
+            return pageUsageData.sortDescending ? aNum - bNum : bNum - aNum;
+        }
+        
+        // String comparison for other columns
+        if (typeof aVal === 'string') {
+            aVal = aVal.toLowerCase();
+        }
+        if (typeof bVal === 'string') {
+            bVal = bVal.toLowerCase();
+        }
+        
+        let result = 0;
+        if (aVal < bVal) {
+            result = -1;
+        } else if (aVal > bVal) {
+            result = 1;
+        }
+        
+        return pageUsageData.sortDescending ? -result : result;
+    });
+    
+    pageUsageData.pages = pages;
+    renderPageUsageTable();
+}
+
+// Update page usage record info
+function updatePageUsageRecordInfo(count) {
+    const recordInfo = document.querySelector('#page-usage-tab .table-footer-right');
+    if (recordInfo) {
+        recordInfo.innerHTML = `Showing ${count} page${count !== 1 ? 's' : ''}`;
+    }
+}
 
 // Export functions for module (following QA view pattern)
 if (typeof module !== 'undefined' && module.exports) {
