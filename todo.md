@@ -7,10 +7,12 @@ common types of graphs...
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
 
-
+user journey - user stories tab...
+- export needs the journey page distance column value
 
 user journey view - page usage tab...
-- action column - edit icon button to open page details view
+- add an actions column with edit icon button to open page details view
+- add a note what usage means (that the page exists in a user journey of a user story)
 
 database size forecast view - config tab
 - action column - edit icon button to open data object details view
@@ -26,7 +28,8 @@ page list view...
 - add 'total items' to the page list pages tab export
 
 
-
+metrics view history tab...
+- in legend show number of data points available
 
 data object prop usage analysis view...
 - copy of data object usage analysis view but at the data object property level
@@ -38,10 +41,6 @@ new metrics?
 - Track progress on user story completion 
 - Foreign Key Relationships Count - Analyze object references
 - Index Count - Analyze index usage 
-  - Average page journey per story
-  - Median page journeys per story
-  - page journeys Standard deviation
-  - page journeys Min/Max complexity
 
 
 find data object circular references?

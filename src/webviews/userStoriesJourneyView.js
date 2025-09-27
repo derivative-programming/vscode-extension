@@ -171,6 +171,18 @@ function refreshPageUsageData() {
     renderPageUsageData();
 }
 
+// Open page details view (global function for onclick)
+function openPageDetails(pageName, pageType) {
+    console.log('Opening page details for:', pageName, 'type:', pageType);
+    
+    // Send command to extension to open the appropriate details view
+    vscode.postMessage({
+        command: 'openPageDetails',
+        pageName: pageName,
+        pageType: pageType
+    });
+}
+
 // Toggle page usage filter section (global function for onclick)
 function togglePageUsageFilterSection() {
     const filterContent = document.getElementById('pageUsageFilterContent');
@@ -1873,6 +1885,9 @@ function renderPageUsageTable() {
                     <th class="page-usage-column sortable" data-column="usageCount">
                         Usage${getSortIndicator('usageCount')}
                     </th>
+                    <th class="page-actions-column">
+                        Actions
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -1959,6 +1974,11 @@ function createPageUsageRow(page) {
             </td>
             <td class="page-usage-column">
                 <span>${usageCount}</span>
+            </td>
+            <td class="page-actions-column">
+                <button class="action-edit-button" title="View Page Details" onclick="openPageDetails('${page.name}', '${pageType}')">
+                    <span class="codicon codicon-edit"></span>
+                </button>
             </td>
         </tr>
     `;

@@ -2599,6 +2599,32 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             text-align: center;
                         }
                         
+                        .page-actions-column {
+                            width: 80px;
+                            text-align: center;
+                        }
+                        
+                        .action-edit-button {
+                            background: none;
+                            border: none;
+                            color: var(--vscode-editor-foreground);
+                            cursor: pointer;
+                            padding: 4px 6px;
+                            border-radius: 4px;
+                            transition: background 0.15s;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        
+                        .action-edit-button:hover {
+                            background-color: var(--vscode-list-hoverBackground);
+                        }
+                        
+                        .action-edit-button .codicon {
+                            font-size: 16px;
+                        }
+                        
                         .usage-count-indicator {
                             display: inline-flex;
                             align-items: center;
@@ -3435,6 +3461,72 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                 } catch (error) {
                                     console.error('[Extension] Error opening Page Preview:', error);
                                     vscode.window.showErrorMessage('Failed to open Page Preview: ' + error.message);
+                                }
+                                break;
+
+                            case 'openPageDetails':
+                                console.log("[Extension] Opening Page Details for:", message.pageName, "type:", message.pageType);
+                                try {
+                                    if (message.pageType === 'form') {
+                                        // Open form details view
+                                        const mockTreeItem = {
+                                            label: message.pageName,
+                                            contextValue: 'form',
+                                            tooltip: `${message.pageName}`
+                                        };
+                                        const { showFormDetails } = require('../webviews/formDetailsView');
+                                        showFormDetails(mockTreeItem, modelService, context);
+                                    } else if (message.pageType === 'report') {
+                                        // Open report details view
+                                        const mockTreeItem = {
+                                            label: message.pageName,
+                                            contextValue: 'report',
+                                            tooltip: `${message.pageName}`
+                                        };
+                                        const { showReportDetails } = require('../webviews/reports/reportDetailsView');
+                                        showReportDetails(mockTreeItem, modelService, context);
+                                    } else {
+                                        // For unknown page types, try to determine the type from the model
+                                        const model = modelService.getCurrentModel();
+                                        if (model && model.namespace && Array.isArray(model.namespace) && model.namespace.length > 0) {
+                                            const namespace = model.namespace[0] as any;
+                                            
+                                            // Check if it's a form
+                                            if (namespace.form && Array.isArray(namespace.form)) {
+                                                const foundForm = namespace.form.find((f: any) => f.name === message.pageName);
+                                                if (foundForm) {
+                                                    const mockTreeItem = {
+                                                        label: message.pageName,
+                                                        contextValue: 'form',
+                                                        tooltip: `${message.pageName}`
+                                                    };
+                                                    const { showFormDetails } = require('../webviews/formDetailsView');
+                                                    showFormDetails(mockTreeItem, modelService, context);
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            // Check if it's a report
+                                            if (namespace.report && Array.isArray(namespace.report)) {
+                                                const foundReport = namespace.report.find((r: any) => r.name === message.pageName);
+                                                if (foundReport) {
+                                                    const mockTreeItem = {
+                                                        label: message.pageName,
+                                                        contextValue: 'report',
+                                                        tooltip: `${message.pageName}`
+                                                    };
+                                                    const { showReportDetails } = require('../webviews/reports/reportDetailsView');
+                                                    showReportDetails(mockTreeItem, modelService, context);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        
+                                        vscode.window.showWarningMessage(`Unable to determine page type for "${message.pageName}". Please use the tree view to open page details.`);
+                                    }
+                                } catch (error) {
+                                    console.error('[Extension] Error opening page details:', error);
+                                    vscode.window.showErrorMessage(`Failed to open page details: ${error.message}`);
                                 }
                                 break;
 
