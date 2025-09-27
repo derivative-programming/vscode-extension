@@ -1275,52 +1275,147 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
         #messageContainer {
             margin: 10px 0;
         }
+        
+        /* Tab styling following metrics analysis pattern */
+        .validation-header {
+            margin-bottom: 20px;
+        }
+        
+        .validation-header h2 {
+            margin: 0 0 10px 0;
+            color: var(--vscode-foreground);
+            font-size: 24px;
+        }
+        
+        .validation-header p {
+            margin: 0;
+            color: var(--vscode-descriptionForeground);
+            font-size: 14px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            background-color: var(--vscode-tab-inactiveBackground);
+            border: none;
+            outline: none;
+            color: var(--vscode-tab-inactiveForeground);
+            margin-right: 4px;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+            user-select: none;
+        }
+        
+        .tab.active {
+            background-color: var(--vscode-tab-activeBackground);
+            color: var(--vscode-tab-activeForeground);
+            border-bottom: 2px solid var(--vscode-focusBorder);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 15px;
+            background-color: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-top: none;
+            border-radius: 0 0 3px 3px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Empty state styling for analytics tab */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--vscode-descriptionForeground);
+        }
+        
+        .empty-state h3 {
+            color: var(--vscode-foreground);
+            margin-bottom: 10px;
+        }
+        
+        .empty-state ul {
+            color: var(--vscode-foreground);
+        }
+        
     </style>
 </head>
 <body>
-    <div class="header-container">
-        <h1>User Stories</h1>
-        <p class="subtitle">Create and manage user stories that describe features and requirements. After you add a user story, request Model AI Processing to update the model automatically.</p>
-        <hr>
+    <div class="validation-header">
+        <h2>User Stories</h2>
+        <p>Create and manage user stories that describe features and requirements with multiple views</p>
     </div>
     
-    ${errorMessage ? '<div class="error-message">' + errorMessage + '</div>' : ''}
-    <div id="messageContainer"></div>
+    <div class="tabs">
+        <button class="tab active" data-tab="stories">Stories</button>
+        <button class="tab" data-tab="analytics">Analytics</button>
+    </div>
     
-    <div class="container">
-        <div class="btn-container">
-            <div class="search-container">
-                <span class="search-label">Search:</span>
-                <input type="text" id="searchInput" placeholder="Filter user stories...">
+    <div id="stories-tab" class="tab-content active">
+        ${errorMessage ? '<div class="error-message">' + errorMessage + '</div>' : ''}
+        <div id="messageContainer"></div>
+        
+        <div class="container">
+            <div class="btn-container">
+                <div class="search-container">
+                    <span class="search-label">Search:</span>
+                    <input type="text" id="searchInput" placeholder="Filter user stories...">
+                </div>
+                <div>
+                    <button id="btnAddStory" class="icon-button" title="Add User Story"><i class="codicon codicon-add"></i></button>
+                    <input type="file" id="csvFileInput" class="csv-input" accept=".csv">
+                    <button id="btnUploadCsv" class="icon-button" title="Upload CSV"><i class="codicon codicon-cloud-upload"></i></button>
+                    <button id="btnDownloadCsv" class="icon-button" title="Download CSV"><i class="codicon codicon-cloud-download"></i></button>
+                </div>
             </div>
-            <div>
-                <button id="btnAddStory" class="icon-button" title="Add User Story"><i class="codicon codicon-add"></i></button>
-                <input type="file" id="csvFileInput" class="csv-input" accept=".csv">
-                <button id="btnUploadCsv" class="icon-button" title="Upload CSV"><i class="codicon codicon-cloud-upload"></i></button>
-                <button id="btnDownloadCsv" class="icon-button" title="Download CSV"><i class="codicon codicon-cloud-download"></i></button>
+            
+            <div class="table-container">
+                <table id="userStoriesTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="storyNumber">Story Number</th>
+                            <th data-sort="storyText">Story Text</th>
+                            <th data-sort="isIgnored">Ignored</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${userStoryItems.map((item, index) => 
+                            '<tr data-index="' + index + '">' +
+                            '<td>' + (item.storyNumber || '') + '</td>' +
+                            '<td>' + (item.storyText || '') + '</td>' +
+                            '<td><input type="checkbox" class="isIgnoredCheckbox" data-index="' + index + '"' + 
+                            (item.isIgnored === "true" ? ' checked' : '') + '></td>' +
+                            '</tr>'
+                        ).join('')}
+                    </tbody>
+                </table>
             </div>
         </div>
-        
-        <div class="table-container">
-            <table id="userStoriesTable">
-                <thead>
-                    <tr>
-                        <th data-sort="storyNumber">Story Number</th>
-                        <th data-sort="storyText">Story Text</th>
-                        <th data-sort="isIgnored">Ignored</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${userStoryItems.map((item, index) => 
-                        '<tr data-index="' + index + '">' +
-                        '<td>' + (item.storyNumber || '') + '</td>' +
-                        '<td>' + (item.storyText || '') + '</td>' +
-                        '<td><input type="checkbox" class="isIgnoredCheckbox" data-index="' + index + '"' + 
-                        (item.isIgnored === "true" ? ' checked' : '') + '></td>' +
-                        '</tr>'
-                    ).join('')}
-                </tbody>
-            </table>
+    </div>
+    
+    <div id="analytics-tab" class="tab-content">
+        <div class="empty-state">
+            <h3>Analytics Coming Soon</h3>
+            <p>Advanced user story analytics and insights will be available in this section.</p>
+            <p><strong>Planned Features:</strong></p>
+            <ul style="text-align: left; max-width: 500px; margin: 20px auto;">
+                <li>Story completion metrics and progress tracking</li>
+                <li>Role-based story distribution analysis</li>
+                <li>Data object coverage by user stories</li>
+                <li>Story complexity and effort estimation</li>
+                <li>Action type distribution (view, add, update, delete)</li>
+                <li>Story dependency mapping and relationships</li>
+                <li>Quality assurance status and validation metrics</li>
+            </ul>
         </div>
     </div>
     
@@ -1353,6 +1448,9 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
         (function() {
             const vscode = acquireVsCodeApi();
             
+            // Initialize tabs
+            initializeTabs();
+            
             // Cache DOM elements with null checks
             const table = document.getElementById('userStoriesTable');
             const searchInput = document.getElementById('searchInput');
@@ -1367,6 +1465,29 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
             const addStoryError = document.getElementById('addStoryError');
             const messageContainer = document.getElementById('messageContainer');
             const closeModalBtn = document.querySelector('.close');
+            
+            // Initialize tab functionality
+            function initializeTabs() {
+                const tabs = document.querySelectorAll('.tab');
+                
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        const tabName = this.getAttribute('data-tab');
+                        switchTab(tabName);
+                    });
+                });
+            }
+            
+            // Switch between tabs
+            function switchTab(tabName) {
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // Add active class to selected tab and content
+                document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
+                document.getElementById(tabName + '-tab').classList.add('active');
+            }
             
             // Ensure required elements exist before proceeding
             if (!btnAddStory || !addStoryModal || !storyTextInput) {
