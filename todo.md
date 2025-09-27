@@ -26,13 +26,6 @@ page list view...
 - add 'total items' to the page list pages tab export
 
 
-metric analysis view...
-- new metrics
-  - Report to Form Ratio - Balance between data display and data entry 
-  - avg page control count (all, report, form)
-  - user story with journey count
-  - user story with no journey count
-  - user story journey count avg
 
 
 data object prop usage analysis view...

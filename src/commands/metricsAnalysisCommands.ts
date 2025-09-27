@@ -1181,6 +1181,360 @@ function calculateMinDataObjectSize(modelService: ModelService): number {
 }
 
 /**
+ * Calculate average page control count metric (all pages: forms + reports)
+ */
+function calculateAveragePageControlCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let totalControls = 0;
+        let pageCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            // Process forms (object workflows with isPage=true)
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === "true") {
+                        const buttons = (workflow.objectWorkflowButton && Array.isArray(workflow.objectWorkflowButton)) ? workflow.objectWorkflowButton.length : 0;
+                        const inputs = (workflow.objectWorkflowParam && Array.isArray(workflow.objectWorkflowParam)) ? workflow.objectWorkflowParam.length : 0;
+                        const outputVars = (workflow.objectWorkflowOutputVar && Array.isArray(workflow.objectWorkflowOutputVar)) ? workflow.objectWorkflowOutputVar.length : 0;
+                        
+                        totalControls += buttons + inputs + outputVars;
+                        pageCount++;
+                    }
+                });
+            }
+            
+            // Process reports (with isPage=true or undefined)
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if (report.isPage === "true" || report.isPage === undefined) {
+                        const buttons = (report.reportButton && Array.isArray(report.reportButton)) ? report.reportButton.length : 0;
+                        const columns = (report.reportColumn && Array.isArray(report.reportColumn)) ? report.reportColumn.length : 0;
+                        const params = (report.reportParam && Array.isArray(report.reportParam)) ? report.reportParam.length : 0;
+                        
+                        totalControls += buttons + columns + params;
+                        pageCount++;
+                    }
+                });
+            }
+        });
+        
+        if (pageCount === 0) {
+            return 0;
+        }
+        
+        const average = totalControls / pageCount;
+        return Math.round(average * 100) / 100; // Round to 2 decimal places
+    } catch (error) {
+        console.error('Error calculating average page control count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate average form page control count metric (forms only)
+ */
+function calculateAverageFormPageControlCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let totalControls = 0;
+        let formPageCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            // Process forms (object workflows with isPage=true)
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === "true") {
+                        const buttons = (workflow.objectWorkflowButton && Array.isArray(workflow.objectWorkflowButton)) ? workflow.objectWorkflowButton.length : 0;
+                        const inputs = (workflow.objectWorkflowParam && Array.isArray(workflow.objectWorkflowParam)) ? workflow.objectWorkflowParam.length : 0;
+                        const outputVars = (workflow.objectWorkflowOutputVar && Array.isArray(workflow.objectWorkflowOutputVar)) ? workflow.objectWorkflowOutputVar.length : 0;
+                        
+                        totalControls += buttons + inputs + outputVars;
+                        formPageCount++;
+                    }
+                });
+            }
+        });
+        
+        if (formPageCount === 0) {
+            return 0;
+        }
+        
+        const average = totalControls / formPageCount;
+        return Math.round(average * 100) / 100; // Round to 2 decimal places
+    } catch (error) {
+        console.error('Error calculating average form page control count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate average report page control count metric (reports only)
+ */
+function calculateAverageReportPageControlCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let totalControls = 0;
+        let reportPageCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            // Process reports (with isPage=true or undefined)
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if (report.isPage === "true" || report.isPage === undefined) {
+                        const buttons = (report.reportButton && Array.isArray(report.reportButton)) ? report.reportButton.length : 0;
+                        const columns = (report.reportColumn && Array.isArray(report.reportColumn)) ? report.reportColumn.length : 0;
+                        const params = (report.reportParam && Array.isArray(report.reportParam)) ? report.reportParam.length : 0;
+                        
+                        totalControls += buttons + columns + params;
+                        reportPageCount++;
+                    }
+                });
+            }
+        });
+        
+        if (reportPageCount === 0) {
+            return 0;
+        }
+        
+        const average = totalControls / reportPageCount;
+        return Math.round(average * 100) / 100; // Round to 2 decimal places
+    } catch (error) {
+        console.error('Error calculating average report page control count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate user story with journey count metric (user stories that have calculated journey distances)
+ */
+function calculateUserStoryWithJourneyCount(modelService: ModelService): number {
+    try {
+        const currentModel = modelService.getCurrentModel();
+        if (!currentModel?.namespace?.[0]?.userStory) {
+            return 0;
+        }
+
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            return 0;
+        }
+
+        const modelDir = path.dirname(modelFilePath);
+        const pageMappingFilePath = path.join(modelDir, 'app-dna-user-story-page-mapping.json');
+        const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
+        
+        // Load page mappings
+        let existingPageMappingData = { pageMappings: {} };
+        if (fs.existsSync(pageMappingFilePath)) {
+            try {
+                const pageMappingContent = fs.readFileSync(pageMappingFilePath, 'utf8');
+                existingPageMappingData = JSON.parse(pageMappingContent);
+            } catch (error) {
+                console.warn('Error reading page mapping file:', error);
+            }
+        }
+
+        // Load journey distance data
+        let journeyData: any = { pageDistances: [] };
+        if (fs.existsSync(journeyFilePath)) {
+            try {
+                const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                journeyData = JSON.parse(journeyContent);
+            } catch (error) {
+                console.warn('Error reading journey data file:', error);
+            }
+        }
+
+        const userStories = currentModel.namespace[0].userStory.filter(story => 
+            story.isStoryProcessed === "true" && story.isIgnored !== "true"
+        );
+
+        let storiesWithJourneyCount = 0;
+        userStories.forEach(story => {
+            const storyNumber = story.storyNumber;
+            const existingMapping = existingPageMappingData.pageMappings[storyNumber];
+            const pages = existingMapping?.pageMapping || [];
+            
+            // Check if any page in this story has a calculated distance (not -1)
+            let hasCalculatedJourney = false;
+            pages.forEach((page: string) => {
+                const pageDistanceData = journeyData.pageDistances?.find((pd: any) => pd.destinationPage === page);
+                const journeyPageDistance = pageDistanceData ? pageDistanceData.distance : -1;
+                if (journeyPageDistance >= 0) {
+                    hasCalculatedJourney = true;
+                }
+            });
+            
+            if (hasCalculatedJourney) {
+                storiesWithJourneyCount++;
+            }
+        });
+
+        return storiesWithJourneyCount;
+    } catch (error) {
+        console.error('Error calculating user story with journey count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate user story with no journey count metric (user stories without calculated journey distances)
+ */
+function calculateUserStoryWithNoJourneyCount(modelService: ModelService): number {
+    try {
+        const currentModel = modelService.getCurrentModel();
+        if (!currentModel?.namespace?.[0]?.userStory) {
+            return 0;
+        }
+
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            return 0;
+        }
+
+        const modelDir = path.dirname(modelFilePath);
+        const pageMappingFilePath = path.join(modelDir, 'app-dna-user-story-page-mapping.json');
+        const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
+        
+        // Load page mappings
+        let existingPageMappingData = { pageMappings: {} };
+        if (fs.existsSync(pageMappingFilePath)) {
+            try {
+                const pageMappingContent = fs.readFileSync(pageMappingFilePath, 'utf8');
+                existingPageMappingData = JSON.parse(pageMappingContent);
+            } catch (error) {
+                console.warn('Error reading page mapping file:', error);
+            }
+        }
+
+        // Load journey distance data
+        let journeyData: any = { pageDistances: [] };
+        if (fs.existsSync(journeyFilePath)) {
+            try {
+                const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                journeyData = JSON.parse(journeyContent);
+            } catch (error) {
+                console.warn('Error reading journey data file:', error);
+            }
+        }
+
+        const userStories = currentModel.namespace[0].userStory.filter(story => 
+            story.isStoryProcessed === "true" && story.isIgnored !== "true"
+        );
+
+        let storiesWithNoJourneyCount = 0;
+        userStories.forEach(story => {
+            const storyNumber = story.storyNumber;
+            const existingMapping = existingPageMappingData.pageMappings[storyNumber];
+            const pages = existingMapping?.pageMapping || [];
+            
+            // Check if story has no pages OR all pages have no calculated distance (-1)
+            let hasCalculatedJourney = false;
+            if (pages.length > 0) {
+                pages.forEach((page: string) => {
+                    const pageDistanceData = journeyData.pageDistances?.find((pd: any) => pd.destinationPage === page);
+                    const journeyPageDistance = pageDistanceData ? pageDistanceData.distance : -1;
+                    if (journeyPageDistance >= 0) {
+                        hasCalculatedJourney = true;
+                    }
+                });
+            }
+            
+            if (!hasCalculatedJourney) {
+                storiesWithNoJourneyCount++;
+            }
+        });
+
+        return storiesWithNoJourneyCount;
+    } catch (error) {
+        console.error('Error calculating user story with no journey count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate user story journey count average metric (average journey distance for stories with calculated journeys)
+ */
+function calculateUserStoryJourneyCountAverage(modelService: ModelService): number {
+    try {
+        const currentModel = modelService.getCurrentModel();
+        if (!currentModel?.namespace?.[0]?.userStory) {
+            return 0;
+        }
+
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            return 0;
+        }
+
+        const modelDir = path.dirname(modelFilePath);
+        const pageMappingFilePath = path.join(modelDir, 'app-dna-user-story-page-mapping.json');
+        const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
+        
+        // Load page mappings
+        let existingPageMappingData = { pageMappings: {} };
+        if (fs.existsSync(pageMappingFilePath)) {
+            try {
+                const pageMappingContent = fs.readFileSync(pageMappingFilePath, 'utf8');
+                existingPageMappingData = JSON.parse(pageMappingContent);
+            } catch (error) {
+                console.warn('Error reading page mapping file:', error);
+            }
+        }
+
+        // Load journey distance data
+        let journeyData: any = { pageDistances: [] };
+        if (fs.existsSync(journeyFilePath)) {
+            try {
+                const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                journeyData = JSON.parse(journeyContent);
+            } catch (error) {
+                console.warn('Error reading journey data file:', error);
+            }
+        }
+
+        const userStories = currentModel.namespace[0].userStory.filter(story => 
+            story.isStoryProcessed === "true" && story.isIgnored !== "true"
+        );
+
+        let totalDistance = 0;
+        let storiesWithJourney = 0;
+
+        userStories.forEach(story => {
+            const storyNumber = story.storyNumber;
+            const existingMapping = existingPageMappingData.pageMappings[storyNumber];
+            const pages = existingMapping?.pageMapping || [];
+            
+            // Find the maximum journey distance for this story (like the treemap logic)
+            let maxDistance = -1;
+            pages.forEach((page: string) => {
+                const pageDistanceData = journeyData.pageDistances?.find((pd: any) => pd.destinationPage === page);
+                const journeyPageDistance = pageDistanceData ? pageDistanceData.distance : -1;
+                if (journeyPageDistance >= 0 && journeyPageDistance > maxDistance) {
+                    maxDistance = journeyPageDistance;
+                }
+            });
+            
+            if (maxDistance >= 0) {
+                totalDistance += maxDistance;
+                storiesWithJourney++;
+            }
+        });
+
+        if (storiesWithJourney === 0) {
+            return 0;
+        }
+
+        const average = totalDistance / storiesWithJourney;
+        return Math.round(average * 100) / 100; // Round to 2 decimal places
+    } catch (error) {
+        console.error('Error calculating user story journey count average:', error);
+        return 0;
+    }
+}
+
+/**
  * Gets current metrics data from the model
  */
 function getCurrentMetricsData(modelService: ModelService): any[] {
@@ -1259,6 +1613,24 @@ function getCurrentMetricsData(modelService: ModelService): any[] {
         value: userStoryCount.toString()
     });
     
+    const userStoryJourneyCountAvg = calculateUserStoryJourneyCountAverage(modelService);
+    metrics.push({
+        name: 'User Story Journey Count Avg',
+        value: userStoryJourneyCountAvg.toString()
+    });
+    
+    const userStoryWithJourneyCount = calculateUserStoryWithJourneyCount(modelService);
+    metrics.push({
+        name: 'User Story With Journey Count',
+        value: userStoryWithJourneyCount.toString()
+    });
+    
+    const userStoryWithNoJourneyCount = calculateUserStoryWithNoJourneyCount(modelService);
+    metrics.push({
+        name: 'User Story With No Journey Count',
+        value: userStoryWithNoJourneyCount.toString()
+    });
+    
     const roleRequirements = calculateUserStoryRoleRequirements(modelService);
     metrics.push({
         name: 'User Story Role Requirement Assignment Count',
@@ -1298,6 +1670,24 @@ function getCurrentMetricsData(modelService: ModelService): any[] {
     metrics.push({
         name: 'Avg Data Object Size (KB)',
         value: avgDataObjectSize.toString()
+    });
+    
+    const avgFormPageControlCount = calculateAverageFormPageControlCount(modelService);
+    metrics.push({
+        name: 'Avg Form Page Control Count',
+        value: avgFormPageControlCount.toString()
+    });
+    
+    const avgPageControlCount = calculateAveragePageControlCount(modelService);
+    metrics.push({
+        name: 'Avg Page Control Count',
+        value: avgPageControlCount.toString()
+    });
+    
+    const avgReportPageControlCount = calculateAverageReportPageControlCount(modelService);
+    metrics.push({
+        name: 'Avg Report Page Control Count',
+        value: avgReportPageControlCount.toString()
     });
     
     const maxDataObjectSize = calculateMaxDataObjectSize(modelService);
