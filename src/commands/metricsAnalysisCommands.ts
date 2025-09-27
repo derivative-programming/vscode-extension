@@ -426,6 +426,83 @@ function calculateFormCount(modelService: ModelService): number {
 }
 
 /**
+ * Calculate form page count metric (object workflows with isPage=true)
+ */
+function calculateFormPageCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let formPageCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            // Count forms (object workflows with isPage=true)
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === "true") {
+                        formPageCount++;
+                    }
+                });
+            }
+        });
+        
+        return formPageCount;
+    } catch (error) {
+        console.error('Error calculating form page count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate report page count metric (reports with isPage=true or undefined)
+ */
+function calculateReportPageCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let reportPageCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            // Count reports (with isPage=true or undefined)
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if (report.isPage === "true" || report.isPage === undefined) {
+                        reportPageCount++;
+                    }
+                });
+            }
+        });
+        
+        return reportPageCount;
+    } catch (error) {
+        console.error('Error calculating report page count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate report to form ratio metric (balance between data display and entry)
+ */
+function calculateReportToFormRatio(modelService: ModelService): string {
+    try {
+        const formPageCount = calculateFormPageCount(modelService);
+        const reportPageCount = calculateReportPageCount(modelService);
+        
+        if (formPageCount === 0) {
+            return reportPageCount > 0 ? 'All Reports' : '0:0';
+        }
+        
+        if (reportPageCount === 0) {
+            return 'All Forms';
+        }
+        
+        // Calculate ratio and format to 2 decimal places
+        const ratio = reportPageCount / formPageCount;
+        return `${ratio.toFixed(2)}:1`;
+    } catch (error) {
+        console.error('Error calculating report to form ratio:', error);
+        return '0:0';
+    }
+}
+
+/**
  * Calculate page init count metric (workflows ending with 'initreport' or 'initobjwf')
  */
 function calculatePageInitCount(modelService: ModelService): number {
@@ -674,6 +751,38 @@ function calculateUserStoryCount(modelService: ModelService): number {
     } catch (error) {
         console.error('Error calculating user story count:', error);
         return 0;
+    }
+}
+
+/**
+ * Calculate user story count by role metrics
+ */
+function calculateUserStoryCountsByRole(modelService: ModelService): Map<string, number> {
+    try {
+        const currentModel = modelService.getCurrentModel();
+        const roleUserStoryCounts = new Map<string, number>();
+        
+        if (currentModel?.namespace && Array.isArray(currentModel.namespace) && currentModel.namespace.length > 0) {
+            const namespace = currentModel.namespace[0];
+            
+            if (namespace.userStory && Array.isArray(namespace.userStory)) {
+                namespace.userStory.forEach((story: any) => {
+                    if (story.storyText) {
+                        // Extract role from user story text
+                        const role = extractRoleFromUserStory(story.storyText);
+                        if (role && role.trim() !== "") {
+                            const roleKey = role.trim();
+                            roleUserStoryCounts.set(roleKey, (roleUserStoryCounts.get(roleKey) || 0) + 1);
+                        }
+                    }
+                });
+            }
+        }
+        
+        return roleUserStoryCounts;
+    } catch (error) {
+        console.error('Error calculating user story counts by role:', error);
+        return new Map();
     }
 }
 
@@ -1102,6 +1211,24 @@ function getCurrentMetricsData(modelService: ModelService): any[] {
         value: formCount.toString()
     });
     
+    const formPageCount = calculateFormPageCount(modelService);
+    metrics.push({
+        name: 'Form Page Count',
+        value: formPageCount.toString()
+    });
+    
+    const reportPageCount = calculateReportPageCount(modelService);
+    metrics.push({
+        name: 'Report Page Count',
+        value: reportPageCount.toString()
+    });
+    
+    const reportToFormRatio = calculateReportToFormRatio(modelService);
+    metrics.push({
+        name: 'Report to Form Ratio',
+        value: reportToFormRatio
+    });
+    
     const pageInitCount = calculatePageInitCount(modelService);
     metrics.push({
         name: 'Page Init Count',
@@ -1203,6 +1330,15 @@ function getCurrentMetricsData(modelService: ModelService): any[] {
     Array.from(rolePageCounts.entries()).sort(([a], [b]) => a.localeCompare(b)).forEach(([role, count]) => {
         metrics.push({
             name: `Role ${role} Page Count`,
+            value: count.toString()
+        });
+    });
+    
+    // Add role-specific user story counts
+    const roleUserStoryCounts = calculateUserStoryCountsByRole(modelService);
+    Array.from(roleUserStoryCounts.entries()).sort(([a], [b]) => a.localeCompare(b)).forEach(([role, count]) => {
+        metrics.push({
+            name: `Role ${role} User Story Count`,
             value: count.toString()
         });
     });
