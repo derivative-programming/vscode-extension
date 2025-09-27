@@ -195,6 +195,7 @@ function renderTable() {
         { key: "ownerObject", label: "Owner Object", sortable: true },
         { key: "targetChildObject", label: "Target Child Object", sortable: true },
         { key: "roleRequired", label: "Role Required", sortable: true },
+        { key: "totalElements", label: "Total Items", sortable: true },
         { key: "actions", label: "Actions", sortable: false }
     ];
     
@@ -302,7 +303,7 @@ function renderTable() {
         // No items
         const row = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 8; // Number of columns
+        td.colSpan = 9; // Number of columns (updated for Total Items column)
         td.style.textAlign = "center";
         td.style.padding = "20px";
         td.style.color = "var(--vscode-descriptionForeground)";

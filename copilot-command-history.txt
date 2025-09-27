@@ -30,3 +30,74 @@
 - Tab content divs must be siblings, not nested within other tab content
 - Metrics analysis view confirmed proper tab structure pattern
 - Each tab needs its own top-level `<div id="[name]-tab" class="tab-content">` element
+
+---
+
+## September 27, 2025 - Total Items Column Addition to Page List
+
+**Command**: Review user story journey view page usage tab 'total items' calculation and add this column to page list view pages tab (right of role required column)
+
+**Status**: COMPLETED
+
+**Analysis of User Story Journey View**:
+- Found totalElements calculation in `userStoriesJourneyCommands.ts` lines 925 & 961
+- **For Forms**: `totalElements = buttons + inputs + outputVars`
+  - buttons: `workflow.objectWorkflowButton.length`
+  - inputs: `workflow.objectWorkflowParam.length`
+  - outputVars: `workflow.objectWorkflowOutputVar.length`
+- **For Reports**: `totalElements = buttons + columns + params`
+  - buttons: `report.reportButton.length` 
+  - columns: `report.reportColumn.length`
+  - params: `report.reportParam.length`
+
+**Changes Made**:
+1. **pageListCommands.ts**: Added totalElements calculation in `loadPageData()` function
+   - Forms: Calculate buttons + inputs + outputVars from workflow arrays
+   - Reports: Calculate buttons + columns + params from report arrays
+   - Added `totalElements` property to pageItems objects
+2. **pageListView.js**: Added Total Items column to table
+   - Added `{ key: "totalElements", label: "Total Items", sortable: true }` to columns array
+   - Updated colspan from 8 to 9 for "no items" message
+3. **pageListCommands.ts**: Updated CSS column widths
+   - Added nth-child(8) styling for Total Items column (80-100px width)
+   - Shifted Actions column from nth-child(8) to nth-child(9)
+
+**Architecture Notes**:
+- Page list uses same totalElements calculation pattern as user journey view
+- Dynamic table rendering automatically includes new column via `item[col.key]` pattern
+- Column positioning: Name, Title, Type, Report Type, Owner Object, Target Child Object, Role Required, **Total Items**, Actions
+
+**Build**: Successfully compiled with webpack
+
+---
+
+## September 27, 2025 - Page List Column Width Reduction
+
+**Command**: Reduce the width of the title column and target child obj columns by 40%
+
+**Status**: COMPLETED
+
+**Changes Made**:
+- **Title Text column (nth-child(2))**: 
+  - min-width: 150px → 90px (40% reduction)
+  - max-width: 250px → 150px (40% reduction)
+- **Target Child Object column (nth-child(6))**:
+  - min-width: 150px → 90px (40% reduction) 
+  - max-width: 200px → 120px (40% reduction)
+
+**Build**: Successfully compiled with webpack
+
+---
+
+## September 27, 2025 - Role Required Column Width Reduction
+
+**Command**: Reduce the width of the role required column by 20%
+
+**Status**: COMPLETED
+
+**Changes Made**:
+- **Role Required column (nth-child(7))**: 
+  - min-width: 120px → 96px (20% reduction)
+  - max-width: 160px → 128px (20% reduction)
+
+**Build**: Successfully compiled with webpack

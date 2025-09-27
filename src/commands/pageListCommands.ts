@@ -178,13 +178,14 @@ export function registerPageListCommands(
                         tbody tr { cursor: pointer; }
                         /* Column-specific widths for better table layout */
                         th:nth-child(1), td:nth-child(1) { min-width: 120px; max-width: 180px; } /* Name */
-                        th:nth-child(2), td:nth-child(2) { min-width: 150px; max-width: 250px; } /* Title Text */
+                        th:nth-child(2), td:nth-child(2) { min-width: 90px; max-width: 150px; } /* Title Text */
                         th:nth-child(3), td:nth-child(3) { min-width: 80px; max-width: 100px; } /* Type */
                         th:nth-child(4), td:nth-child(4) { min-width: 100px; max-width: 140px; } /* Report Type */
                         th:nth-child(5), td:nth-child(5) { min-width: 120px; max-width: 180px; } /* Owner Object */
-                        th:nth-child(6), td:nth-child(6) { min-width: 150px; max-width: 200px; } /* Target Child Object */
-                        th:nth-child(7), td:nth-child(7) { min-width: 120px; max-width: 160px; } /* Role Required */
-                        th:nth-child(8), td:nth-child(8) { min-width: 100px; max-width: 100px; } /* Actions */
+                        th:nth-child(6), td:nth-child(6) { min-width: 90px; max-width: 120px; } /* Target Child Object */
+                        th:nth-child(7), td:nth-child(7) { min-width: 96px; max-width: 128px; } /* Role Required */
+                        th:nth-child(8), td:nth-child(8) { min-width: 80px; max-width: 100px; } /* Total Items */
+                        th:nth-child(9), td:nth-child(9) { min-width: 100px; max-width: 100px; } /* Actions */
                         #paging { margin: 1em 0; padding: 10px 0; text-align: center; }
                         button { 
                             margin: 0 4px; 
@@ -733,6 +734,12 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
             if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
                 obj.objectWorkflow.forEach((form: any) => {
                     if (form.isPage === 'true') {
+                        // Calculate total elements for forms
+                        const buttons = (form.objectWorkflowButton && Array.isArray(form.objectWorkflowButton)) ? form.objectWorkflowButton.length : 0;
+                        const inputs = (form.objectWorkflowParam && Array.isArray(form.objectWorkflowParam)) ? form.objectWorkflowParam.length : 0;
+                        const outputVars = (form.objectWorkflowOutputVar && Array.isArray(form.objectWorkflowOutputVar)) ? form.objectWorkflowOutputVar.length : 0;
+                        const totalElements = buttons + inputs + outputVars;
+
                         pageItems.push({
                             name: form.name || 'Unnamed Form',
                             titleText: form.titleText || form.name || 'Unnamed Form',
@@ -741,6 +748,7 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
                             ownerObject: obj.name || 'Unknown',
                             targetChildObject: form.targetChildObject || '',
                             roleRequired: form.roleRequired || 'Public',
+                            totalElements: totalElements,
                             isPage: form.isPage
                         });
                     }
@@ -765,6 +773,12 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
                             }
                         }
 
+                        // Calculate total elements for reports
+                        const buttons = (report.reportButton && Array.isArray(report.reportButton)) ? report.reportButton.length : 0;
+                        const columns = (report.reportColumn && Array.isArray(report.reportColumn)) ? report.reportColumn.length : 0;
+                        const params = (report.reportParam && Array.isArray(report.reportParam)) ? report.reportParam.length : 0;
+                        const totalElements = buttons + columns + params;
+
                         pageItems.push({
                             name: report.name || 'Unnamed Report',
                             titleText: report.titleText || report.name || 'Unnamed Report',
@@ -773,6 +787,7 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
                             ownerObject: obj.name || 'Unknown',
                             targetChildObject: report.targetChildObject || '',
                             roleRequired: report.roleRequired || 'Public',
+                            totalElements: totalElements,
                             isPage: report.isPage
                         });
                     }
