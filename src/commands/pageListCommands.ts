@@ -466,6 +466,7 @@ export function registerPageListCommands(
                     
                     <div class="tabs">
                         <button class="tab active" data-tab="pages">Pages</button>
+                        <button class="tab" data-tab="test">Test</button>
                     </div>
                     
                     <div id="pages-tab" class="tab-content active">
@@ -546,8 +547,12 @@ export function registerPageListCommands(
                             <span id="record-info"></span>
                         </div>
                     </div>
+                    </div>
                     
-
+                    <div id="test-tab" class="tab-content">
+                        <h3>Test Tab</h3>
+                        <p>hello</p>
+                    </div>
                     
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
                         <div class="spinner"></div>
