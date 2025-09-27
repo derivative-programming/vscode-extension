@@ -119,6 +119,9 @@ export function registerDatabaseSizeForecastCommands(context: vscode.ExtensionCo
                     case 'refreshData':
                         handleRefreshData(panel);
                         break;
+                    case 'openDataObjectDetails':
+                        handleOpenDataObjectDetails(message.data.dataObjectName);
+                        break;
                 }
             },
             undefined,
@@ -322,6 +325,16 @@ function handleLoadForecast(panel: vscode.WebviewPanel) {
 function handleRefreshData(panel: vscode.WebviewPanel) {
     handleLoadConfig(panel);
     handleLoadForecast(panel);
+}
+
+/**
+ * Handles opening data object details view
+ */
+function handleOpenDataObjectDetails(dataObjectName: string) {
+    vscode.commands.executeCommand('appdna.showDetails', {
+        label: dataObjectName,
+        objectType: 'object'
+    });
 }
 
 /**
@@ -996,7 +1009,7 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
     </head>
     <body>
         <div class="validation-header">
-            <h2><i class="codicon codicon-graph-line"></i> Database Size Forecast</h2>
+            <h2>Database Size Forecast</h2>
             <p>Configure and forecast database growth based on data object sizes and usage patterns</p>
         </div>
 
@@ -1074,11 +1087,14 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                             <th onclick="sortConfigTable(5)" style="cursor: pointer;">
                                 Growth per Month (%) <span id="sort-icon-5" class="sort-icon"></span>
                             </th>
+                            <th style="width: 80px; text-align: center;">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="config-tbody">
                         <tr class="loading">
-                            <td colspan="6">Loading data objects...</td>
+                            <td colspan="7">Loading data objects...</td>
                         </tr>
                     </tbody>
                 </table>

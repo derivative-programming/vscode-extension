@@ -218,6 +218,14 @@ function changeForecastPeriod() {
     }
 }
 
+// Open data object details view
+function openDataObjectDetails(dataObjectName) {
+    vscode.postMessage({ 
+        command: 'openDataObjectDetails', 
+        data: { dataObjectName: dataObjectName } 
+    });
+}
+
 // Load data for the data tab
 function loadData() {
     vscode.postMessage({ command: 'loadForecast' });
@@ -369,7 +377,7 @@ function renderConfigTable() {
         const message = filteredDataObjects.length === 0 && currentDataObjects.length > 0 
             ? 'No data objects match the current filters.' 
             : 'No data objects found.';
-        tbody.innerHTML = `<tr><td colspan="5" class="loading">${message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="loading">${message}</td></tr>`;
         return;
     }
     
@@ -414,6 +422,12 @@ function renderConfigTable() {
                        step="0.1" 
                        min="0" 
                        max="100" />
+            </td>
+            <td style="text-align: center;">
+                <button class="icon-button" onclick="openDataObjectDetails('${dataObject.name}')" 
+                        title="View data object details">
+                    <i class="codicon codicon-edit"></i>
+                </button>
             </td>
         `;
         

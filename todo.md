@@ -6,11 +6,7 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
  
- 
-
-database size forecast view - config tab
-- action column - edit icon button to open data object details view
-
+  
 
 user stories list...
 - role distribution chart

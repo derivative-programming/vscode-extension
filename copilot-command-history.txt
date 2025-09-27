@@ -1,3 +1,39 @@
+## September 27, 2025 - Database Size Forecast Config Tab - Actions Column
+
+**Command**: Add an 'Actions' column to the far right. It should contain an edit icon button that opens the data object details view
+
+**Status**: COMPLETED (Fixed command reference)
+
+**Architecture Changes**:
+
+Files Modified:
+- src/commands/databaseSizeForecastCommands.ts: Added Actions column to HTML table header, updated colspan from 6 to 7, added handleOpenDataObjectDetails function, added message handler
+- src/webviews/databaseSizeForecastView.js: Added Actions column to table rows with edit icon button, updated empty state colspan to 7, added openDataObjectDetails function
+
+Implementation Details:
+- New 7th column with 80px width, center-aligned "Actions" header (not sortable)
+- Each row contains icon-button with codicon-edit icon and tooltip "View data object details"
+- Button calls openDataObjectDetails(dataObjectName) which sends message to extension
+- Extension handler calls existing 'appdna.showDetails' command with object node {label: dataObjectName, objectType: 'object'}
+- Maintains consistent styling with existing icon-button CSS class
+
+Integration: Uses existing data object details view command infrastructure, follows established webview message passing pattern
+
+**Issue Resolution**: Fixed command reference from non-existent 'appdna.showDataObjectDetails' to correct 'appdna.showDetails' with proper JsonTreeItem object format {label: dataObjectName, objectType: 'object'}
+
+## September 27, 2025 - Database Size Forecast View - Remove Title Icon
+
+**Command**: Remove icon to the left of the title of the view
+
+**Status**: COMPLETED
+
+**Changes Made**:
+- File: src/commands/databaseSizeForecastCommands.ts
+- Removed `<i class="codicon codicon-graph-line"></i>` from the h2 title element
+- Title now displays as plain text "Database Size Forecast" without the graph icon
+
+**UI Impact**: Cleaner, more minimalist header appearance without the codicon-graph-line icon
+
 ## September 27, 2025 - Data Object Size Analysis Review
 
 **Command**: Review data object size analysis view and how size calculation works
@@ -344,21 +380,38 @@ Performance: Separate original/filtered datasets, responsive SVG dimensions, dyn
   - max-width: 160px → 128px (20% reduction)
 
 **Build**: Successfully compiled with webpack
-C O M M A N D :   R e v i e w   u s e r   s t o r i e s   l i s t   v i e w   a n d   r o l e   e x t r a c t i o n  
-  
- C O M M A N D :   A d d   r o l e   [ r o l e   n a m e ]   u s e r   s t o r y   c o u n t   m e t r i c s   t o   m e t r i c s   a n a l y s i s   v i e w  
- S T A T U S :   C O M P L E T E D  
-  
- C O M M A N D :   A d d   F o r m   t o   R e p o r t   R a t i o   m e t r i c   f o r   d a t a   e n t r y   v s   d i s p l a y   b a l a n c e   a n a l y s i s  
- S T A T U S :   C O M P L E T E D  
-  
- C O M M A N D :   R e v e r s e   F o r m   t o   R e p o r t   R a t i o   t o   R e p o r t   t o   F o r m   R a t i o   f o r   b e t t e r   r e a d a b i l i t y  
- S T A T U S :   C O M P L E T E D  
-  
- C O M M A N D :   R e v i e w   p a g e   l i s t   v i e w   p a g e s   t a b   T o t a l   I t e m s   c o l u m n   c a l c u l a t i o n  
- S T A T U S :   C O M P L E T E D  
- A R C H I T E C T U R E :   P a g e L i s t   T o t a l   I t e m s   =   F o r m s ( b u t t o n s + i n p u t s + o u t p u t V a r s )   +   R e p o r t s ( b u t t o n s + c o l u m n s + p a r a m s )   -   c a l c u l a t e d   i n   p a g e L i s t C o m m a n d s . l o a d P a g e D a t a ( )   l i n e s   1 0 9 6 - 1 1 5 0 ,   d i s p l a y e d   d i r e c t l y   v i a   t a b l e   r e n d e r i n g   i n   p a g e L i s t V i e w . j s  
- # #   S e p t e m b e r   2 7 ,   2 0 2 5   -   A v e r a g e   P a g e   C o n t r o l   C o u n t   M e t r i c s   I m p l e m e n t a t i o n  
- * * C o m m a n d * * :   I m p l e m e n t   a v e r a g e   p a g e   c o n t r o l   c o u n t   m e t r i c s   i n   m e t r i c s   a n a l y s i s   v i e w  
- * * S t a t u s * * :   C O M P L E T E D  
+C O M M A N D :   R e v i e w   u s e r   s t o r i e s   l i s t   v i e w   a n d   r o l e   e x t r a c t i o n 
+ 
+ 
+ 
+ C O M M A N D :   A d d   r o l e   [ r o l e   n a m e ]   u s e r   s t o r y   c o u n t   m e t r i c s   t o   m e t r i c s   a n a l y s i s   v i e w 
+ 
+ S T A T U S :   C O M P L E T E D 
+ 
+ 
+ 
+ C O M M A N D :   A d d   F o r m   t o   R e p o r t   R a t i o   m e t r i c   f o r   d a t a   e n t r y   v s   d i s p l a y   b a l a n c e   a n a l y s i s 
+ 
+ S T A T U S :   C O M P L E T E D 
+ 
+ 
+ 
+ C O M M A N D :   R e v e r s e   F o r m   t o   R e p o r t   R a t i o   t o   R e p o r t   t o   F o r m   R a t i o   f o r   b e t t e r   r e a d a b i l i t y 
+ 
+ S T A T U S :   C O M P L E T E D 
+ 
+ 
+ 
+ C O M M A N D :   R e v i e w   p a g e   l i s t   v i e w   p a g e s   t a b   T o t a l   I t e m s   c o l u m n   c a l c u l a t i o n 
+ 
+ S T A T U S :   C O M P L E T E D 
+ 
+ A R C H I T E C T U R E :   P a g e L i s t   T o t a l   I t e m s   =   F o r m s ( b u t t o n s + i n p u t s + o u t p u t V a r s )   +   R e p o r t s ( b u t t o n s + c o l u m n s + p a r a m s )   -   c a l c u l a t e d   i n   p a g e L i s t C o m m a n d s . l o a d P a g e D a t a ( )   l i n e s   1 0 9 6 - 1 1 5 0 ,   d i s p l a y e d   d i r e c t l y   v i a   t a b l e   r e n d e r i n g   i n   p a g e L i s t V i e w . j s 
+ 
+ # #   S e p t e m b e r   2 7 ,   2 0 2 5   -   A v e r a g e   P a g e   C o n t r o l   C o u n t   M e t r i c s   I m p l e m e n t a t i o n 
+ 
+ * * C o m m a n d * * :   I m p l e m e n t   a v e r a g e   p a g e   c o n t r o l   c o u n t   m e t r i c s   i n   m e t r i c s   a n a l y s i s   v i e w 
+ 
+ * * S t a t u s * * :   C O M P L E T E D 
+ 
  
