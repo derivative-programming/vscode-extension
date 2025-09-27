@@ -908,6 +908,10 @@ export function registerPageListCommands(
                                 
                                 vscode.window.showInformationMessage(`PNG file saved to workspace: ${message.data.filename}`);
                                 
+                                // Open the PNG file immediately
+                                const fileUri = vscode.Uri.file(filePath);
+                                vscode.commands.executeCommand('vscode.open', fileUri);
+                                
                             } catch (error) {
                                 console.error('[Extension] Error saving PNG to workspace:', error);
                                 panel.webview.postMessage({

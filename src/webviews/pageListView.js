@@ -457,10 +457,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup treemap PNG export button
     const generatePngBtn = document.getElementById("generatePageTreemapPngBtn");
     if (generatePngBtn) {
+        console.log('[PageList] Setting up PNG export button event listener');
         generatePngBtn.addEventListener('click', () => {
-            console.log('[PageList] Generate PNG button clicked');
+            console.log('[PageList] *** GENERATE PNG BUTTON CLICKED ***');
             generatePageTreemapPNG();
         });
+    } else {
+        console.log('[PageList] PNG export button not found during setup');
     }
     
     // Setup filter event listeners
@@ -667,18 +670,29 @@ function renderPageTreemap() {
 
 // Generate PNG from page treemap
 function generatePageTreemapPNG() {
+    console.log('[PageList] *** GENERATE PNG FUNCTION CALLED ***');
     try {
         const treemapContainer = document.getElementById('page-treemap-visualization');
+        console.log('[PageList] Treemap container found:', treemapContainer);
+        console.log('[PageList] Container classes:', treemapContainer ? treemapContainer.className : 'N/A');
+        console.log('[PageList] Container hidden?', treemapContainer ? treemapContainer.classList.contains('hidden') : 'N/A');
+        
         if (!treemapContainer || treemapContainer.classList.contains('hidden')) {
+            console.log('[PageList] Container not found or hidden, showing alert');
             alert('Load page complexity visualization before exporting PNG');
             return;
         }
         
         const svgElement = treemapContainer.querySelector('svg');
+        console.log('[PageList] SVG element found:', svgElement);
+        
         if (!svgElement) {
+            console.log('[PageList] SVG not found, showing alert');
             alert('Page treemap SVG not found');
             return;
         }
+        
+        console.log('[PageList] SVG dimensions:', svgElement.getAttribute('width'), 'x', svgElement.getAttribute('height'));
         
         // Clone and inline styles
         const cloned = svgElement.cloneNode(true);
