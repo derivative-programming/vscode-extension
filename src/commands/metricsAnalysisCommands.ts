@@ -838,6 +838,240 @@ function calculateUserStoryRoleRequirements(modelService: ModelService): { assig
 }
 
 /**
+ * Calculates the storage size in bytes for a single property based on its SQL Server data type
+ * (Reused from data object size analysis logic)
+ */
+function calculatePropertySizeForMetrics(prop: any): number {
+    const dataType = prop.sqlServerDBDataType?.toLowerCase();
+    const dataSize = prop.sqlServerDBDataTypeSize;
+    
+    if (!dataType) {
+        return 0; // Unknown type, assume no size
+    }
+    
+    switch (dataType) {
+        case 'text':
+            return 20000; // As specified: text props count as 20,000 bytes
+            
+        case 'nvarchar':
+            // Unicode string - 2 bytes per character, default 100 characters
+            const nvarcharSize = dataSize ? parseInt(dataSize) : 100;
+            const safeNvarcharSize = isNaN(nvarcharSize) ? 100 : nvarcharSize;
+            return safeNvarcharSize * 2;
+            
+        case 'varchar':
+            // ASCII string - 1 byte per character, default 100 characters
+            const varcharSize = dataSize ? parseInt(dataSize) : 100;
+            const safeVarcharSize = isNaN(varcharSize) ? 100 : varcharSize;
+            return safeVarcharSize;
+            
+        case 'bit':
+            return 1; // 1 bit, but minimum storage is 1 byte
+            
+        case 'datetime':
+            return 8; // 8 bytes for datetime
+            
+        case 'date':
+            return 3; // 3 bytes for date only
+            
+        case 'int':
+            return 4; // 4 bytes for integer
+            
+        case 'bigint':
+            return 8; // 8 bytes for big integer
+            
+        case 'uniqueidentifier':
+            return 16; // 16 bytes for GUID
+            
+        case 'money':
+            return 8; // 8 bytes for money
+            
+        case 'float':
+            return 8; // 8 bytes for float (double precision)
+            
+        case 'decimal':
+            // Decimal size varies by precision - approximate based on precision
+            if (dataSize && typeof dataSize === 'string') {
+                try {
+                    const precision = parseInt(dataSize.split(',')[0]) || 18;
+                    if (isNaN(precision)) { return 9; }
+                    if (precision <= 9) { return 5; }
+                    if (precision <= 19) { return 9; }
+                    if (precision <= 28) { return 13; }
+                    return 17;
+                } catch (e) {
+                    console.warn(`Error parsing decimal precision from '${dataSize}':`, e);
+                    return 9;
+                }
+            }
+            return 9; // Default for decimal(18,0)
+            
+        default:
+            console.warn(`Unknown data type for size calculation: ${dataType}`);
+            return 0;
+    }
+}
+
+/**
+ * Calculate total data object size metric (sum of all data object sizes in KB)
+ */
+function calculateTotalDataObjectSize(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let totalSizeBytes = 0;
+        
+        console.log(`[calculateTotalDataObjectSize] Processing ${allObjects.length} objects`);
+        
+        allObjects.forEach(dataObject => {
+            if (dataObject.prop && Array.isArray(dataObject.prop)) {
+                dataObject.prop.forEach((prop: any) => {
+                    const propSize = calculatePropertySizeForMetrics(prop);
+                    if (isNaN(propSize)) {
+                        console.warn(`[calculateTotalDataObjectSize] NaN propSize for object ${dataObject.name}, prop ${prop.name}, type ${prop.sqlServerDBDataType}, size ${prop.sqlServerDBDataTypeSize}`);
+                    } else {
+                        totalSizeBytes += propSize;
+                    }
+                });
+            }
+        });
+        
+        console.log(`[calculateTotalDataObjectSize] Total size bytes: ${totalSizeBytes}`);
+        
+        // Convert bytes to KB and round to 2 decimal places
+        const sizeInKB = totalSizeBytes / 1024;
+        const result = Math.round(sizeInKB * 100) / 100;
+        
+        console.log(`[calculateTotalDataObjectSize] Result: ${result} KB`);
+        
+        if (isNaN(result)) {
+            console.error(`[calculateTotalDataObjectSize] Result is NaN! totalSizeBytes=${totalSizeBytes}, sizeInKB=${sizeInKB}`);
+            return 0;
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('Error calculating total data object size:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate average data object size metric (average size in KB)
+ */
+function calculateAverageDataObjectSize(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        if (allObjects.length === 0) {
+            return 0;
+        }
+        
+        let totalSizeBytes = 0;
+        
+        console.log(`[calculateAverageDataObjectSize] Processing ${allObjects.length} objects`);
+        
+        allObjects.forEach(dataObject => {
+            if (dataObject.prop && Array.isArray(dataObject.prop)) {
+                dataObject.prop.forEach((prop: any) => {
+                    const propSize = calculatePropertySizeForMetrics(prop);
+                    if (isNaN(propSize)) {
+                        console.warn(`[calculateAverageDataObjectSize] NaN propSize for object ${dataObject.name}, prop ${prop.name}, type ${prop.sqlServerDBDataType}, size ${prop.sqlServerDBDataTypeSize}`);
+                    } else {
+                        totalSizeBytes += propSize;
+                    }
+                });
+            }
+        });
+        
+        console.log(`[calculateAverageDataObjectSize] Total size bytes: ${totalSizeBytes}`);
+        
+        // Convert to KB and calculate average
+        const totalSizeKB = totalSizeBytes / 1024;
+        const averageSize = totalSizeKB / allObjects.length;
+        const result = Math.round(averageSize * 100) / 100;
+        
+        console.log(`[calculateAverageDataObjectSize] Result: ${result} KB (total: ${totalSizeKB} KB, objects: ${allObjects.length})`);
+        
+        if (isNaN(result)) {
+            console.error(`[calculateAverageDataObjectSize] Result is NaN! totalSizeBytes=${totalSizeBytes}, totalSizeKB=${totalSizeKB}, averageSize=${averageSize}`);
+            return 0;
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('Error calculating average data object size:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate maximum data object size metric (largest single object size in KB)
+ */
+function calculateMaxDataObjectSize(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let maxSizeBytes = 0;
+        
+        allObjects.forEach(dataObject => {
+            let objectSizeBytes = 0;
+            
+            if (dataObject.prop && Array.isArray(dataObject.prop)) {
+                dataObject.prop.forEach((prop: any) => {
+                    const propSize = calculatePropertySizeForMetrics(prop);
+                    objectSizeBytes += propSize;
+                });
+            }
+            
+            if (objectSizeBytes > maxSizeBytes) {
+                maxSizeBytes = objectSizeBytes;
+            }
+        });
+        
+        // Convert bytes to KB and round to 2 decimal places
+        const sizeInKB = maxSizeBytes / 1024;
+        return Math.round(sizeInKB * 100) / 100;
+    } catch (error) {
+        console.error('Error calculating max data object size:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate minimum data object size metric (smallest single object size in KB)
+ */
+function calculateMinDataObjectSize(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        if (allObjects.length === 0) {
+            return 0;
+        }
+        
+        let minSizeBytes = Number.MAX_SAFE_INTEGER;
+        
+        allObjects.forEach(dataObject => {
+            let objectSizeBytes = 0;
+            
+            if (dataObject.prop && Array.isArray(dataObject.prop)) {
+                dataObject.prop.forEach((prop: any) => {
+                    const propSize = calculatePropertySizeForMetrics(prop);
+                    objectSizeBytes += propSize;
+                });
+            }
+            
+            if (objectSizeBytes < minSizeBytes) {
+                minSizeBytes = objectSizeBytes;
+            }
+        });
+        
+        // Convert bytes to KB and round to 2 decimal places
+        const sizeInKB = minSizeBytes / 1024;
+        return Math.round(sizeInKB * 100) / 100;
+    } catch (error) {
+        console.error('Error calculating min data object size:', error);
+        return 0;
+    }
+}
+
+/**
  * Gets current metrics data from the model
  */
 function getCurrentMetricsData(modelService: ModelService): any[] {
@@ -924,6 +1158,31 @@ function getCurrentMetricsData(modelService: ModelService): any[] {
     metrics.push({
         name: 'Non-Lookup Data Object Count',
         value: dataObjectCounts.nonLookup.toString()
+    });
+    
+    // Add data object size metrics
+    const totalDataObjectSize = calculateTotalDataObjectSize(modelService);
+    metrics.push({
+        name: 'Total Data Object Size (KB)',
+        value: totalDataObjectSize.toString()
+    });
+    
+    const avgDataObjectSize = calculateAverageDataObjectSize(modelService);
+    metrics.push({
+        name: 'Avg Data Object Size (KB)',
+        value: avgDataObjectSize.toString()
+    });
+    
+    const maxDataObjectSize = calculateMaxDataObjectSize(modelService);
+    metrics.push({
+        name: 'Max Data Object Size (KB)',
+        value: maxDataObjectSize.toString()
+    });
+    
+    const minDataObjectSize = calculateMinDataObjectSize(modelService);
+    metrics.push({
+        name: 'Min Data Object Size (KB)',
+        value: minDataObjectSize.toString()
     });
     
     // Add authorization metrics

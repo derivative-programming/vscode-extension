@@ -21,8 +21,10 @@ page list view...
 
 metric analysis view...
 - new metrics
-  - total data object size
-  - avg data object size 
+  - ✅ total data object size
+  - ✅ avg data object size 
+  - ✅ max data object size
+  - ✅ min data object size
   - role [role name] user story count
   - Report to Form Ratio - Balance between data display and data entry 
   - avg page control count (all, report, form)
