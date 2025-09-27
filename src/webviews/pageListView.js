@@ -42,143 +42,16 @@ function switchTab(tabName) {
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(`${tabName}-tab`).classList.add('active');
     
-    // Load analytics data if needed
-    if (tabName === 'analytics' && !document.getElementById('analytics-container').classList.contains('loaded')) {
-        loadAnalyticsData();
-    }
+
 }
 
-// Load analytics data
-function loadAnalyticsData() {
-    const analyticsContainer = document.getElementById('analytics-container');
-    const loadingEl = document.getElementById('analytics-loading');
-    
-    // Calculate analytics from current page data
-    calculatePageAnalytics();
-    
-    // Show analytics and hide loading
-    if (loadingEl) {
-        loadingEl.classList.add('hidden');
-    }
-    if (analyticsContainer) {
-        analyticsContainer.classList.remove('hidden');
-        analyticsContainer.classList.add('loaded');
-    }
-}
 
-// Calculate and display page analytics
-function calculatePageAnalytics() {
-    const totalPages = allItems.length;
-    const totalForms = allItems.filter(item => item.type === 'Form').length;
-    const totalReports = allItems.filter(item => item.type === 'Report').length;
-    
-    // Update statistics
-    const totalPagesEl = document.getElementById('total-pages');
-    const totalFormsEl = document.getElementById('total-forms');
-    const totalReportsEl = document.getElementById('total-reports');
-    
-    if (totalPagesEl) {
-        totalPagesEl.textContent = totalPages;
-    }
-    if (totalFormsEl) {
-        totalFormsEl.textContent = totalForms;
-    }
-    if (totalReportsEl) {
-        totalReportsEl.textContent = totalReports;
-    }
-    
-    // Update chart placeholders with actual data insights
-    updateChartPlaceholders();
-}
 
-// Update chart placeholders with data insights
-function updateChartPlaceholders() {
-    // Calculate role distribution
-    const roleDistribution = {};
-    allItems.forEach(item => {
-        const role = item.roleRequired || 'Public';
-        roleDistribution[role] = (roleDistribution[role] || 0) + 1;
-    });
-    
-    // Calculate owner object distribution
-    const ownerDistribution = {};
-    allItems.forEach(item => {
-        const owner = item.ownerObject || 'Unknown';
-        ownerDistribution[owner] = (ownerDistribution[owner] || 0) + 1;
-    });
-    
-    // Update placeholders with insights
-    const chartPlaceholders = document.querySelectorAll('.chart-placeholder');
-    if (chartPlaceholders.length >= 3) {
-        // Page types chart
-        chartPlaceholders[0].innerHTML = getPageTypesInfo();
-        
-        // Role requirements chart  
-        chartPlaceholders[1].innerHTML = getRoleRequirementsInfo(roleDistribution);
-        
-        // Owner distribution chart
-        chartPlaceholders[2].innerHTML = getOwnerDistributionInfo(ownerDistribution);
-    }
-}
 
-// Get page types information
-function getPageTypesInfo() {
-    const totalForms = allItems.filter(item => item.type === 'Form').length;
-    const totalReports = allItems.filter(item => item.type === 'Report').length;
-    const formsPercentage = allItems.length > 0 ? Math.round((totalForms / allItems.length) * 100) : 0;
-    const reportsPercentage = allItems.length > 0 ? Math.round((totalReports / allItems.length) * 100) : 0;
-    
-    return `
-        <div style="text-align: left;">
-            <div style="margin-bottom: 8px;">Forms: ${totalForms} (${formsPercentage}%)</div>
-            <div>Reports: ${totalReports} (${reportsPercentage}%)</div>
-        </div>
-    `;
-}
 
-// Get role requirements information
-function getRoleRequirementsInfo(roleDistribution) {
-    const roles = Object.keys(roleDistribution).sort();
-    if (roles.length === 0) {
-        return '<span>No role data available</span>';
-    }
-    
-    let html = '<div style="text-align: left;">';
-    roles.slice(0, 3).forEach(role => {
-        const count = roleDistribution[role];
-        const percentage = Math.round((count / allItems.length) * 100);
-        html += `<div style="margin-bottom: 4px;">${role}: ${count} (${percentage}%)</div>`;
-    });
-    
-    if (roles.length > 3) {
-        html += `<div style="font-style: italic; color: var(--vscode-descriptionForeground);">+${roles.length - 3} more roles...</div>`;
-    }
-    html += '</div>';
-    
-    return html;
-}
 
-// Get owner distribution information
-function getOwnerDistributionInfo(ownerDistribution) {
-    const owners = Object.keys(ownerDistribution).sort((a, b) => ownerDistribution[b] - ownerDistribution[a]);
-    if (owners.length === 0) {
-        return '<span>No owner data available</span>';
-    }
-    
-    let html = '<div style="text-align: left;">';
-    owners.slice(0, 3).forEach(owner => {
-        const count = ownerDistribution[owner];
-        const percentage = Math.round((count / allItems.length) * 100);
-        html += `<div style="margin-bottom: 4px;">${owner}: ${count} (${percentage}%)</div>`;
-    });
-    
-    if (owners.length > 3) {
-        html += `<div style="font-style: italic; color: var(--vscode-descriptionForeground);">+${owners.length - 3} more objects...</div>`;
-    }
-    html += '</div>';
-    
-    return html;
-}
+
+
 
 // Helper function to show spinner
 function showSpinner() {
@@ -583,11 +456,7 @@ window.addEventListener("message", function(event) {
         renderTable();
         renderRecordInfo();
         
-        // Update analytics if analytics tab is loaded
-        const analyticsContainer = document.getElementById('analytics-container');
-        if (analyticsContainer && analyticsContainer.classList.contains('loaded')) {
-            calculatePageAnalytics();
-        }
+
         
         // Hide spinner when data is loaded
         hideSpinner();

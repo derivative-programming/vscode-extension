@@ -455,78 +455,7 @@ export function registerPageListCommands(
                             overflow-y: hidden;
                             background-color: var(--vscode-editor-background);
                         }
-                        
-                        /* Analytics tab styling */
-                        .analytics-container {
-                            padding: 10px 0;
-                        }
-                        
-                        .analytics-grid {
-                            display: grid;
-                            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                            gap: 20px;
-                        }
-                        
-                        .analytics-card {
-                            background-color: var(--vscode-sideBar-background);
-                            border: 1px solid var(--vscode-panel-border);
-                            border-radius: 6px;
-                            padding: 20px;
-                        }
-                        
-                        .analytics-card h3 {
-                            margin: 0 0 15px 0;
-                            font-size: 16px;
-                            font-weight: 600;
-                            color: var(--vscode-editor-foreground);
-                        }
-                        
-                        .stat-item {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            margin-bottom: 10px;
-                            padding: 8px 0;
-                            border-bottom: 1px solid var(--vscode-panel-border);
-                        }
-                        
-                        .stat-item:last-child {
-                            border-bottom: none;
-                            margin-bottom: 0;
-                        }
-                        
-                        .stat-label {
-                            font-size: 14px;
-                            color: var(--vscode-descriptionForeground);
-                        }
-                        
-                        .stat-value {
-                            font-size: 16px;
-                            font-weight: 600;
-                            color: var(--vscode-editor-foreground);
-                        }
-                        
-                        .chart-placeholder {
-                            height: 120px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            background-color: var(--vscode-editor-background);
-                            border: 1px dashed var(--vscode-panel-border);
-                            border-radius: 4px;
-                            color: var(--vscode-descriptionForeground);
-                            font-style: italic;
-                        }
-                        
-                        .loading {
-                            text-align: center;
-                            padding: 40px 20px;
-                            color: var(--vscode-descriptionForeground);
-                        }
-                        
-                        .hidden {
-                            display: none !important;
-                        }
+
                     </style>
                 </head>
                 <body>
@@ -537,7 +466,6 @@ export function registerPageListCommands(
                     
                     <div class="tabs">
                         <button class="tab active" data-tab="pages">Pages</button>
-                        <button class="tab" data-tab="analytics">Analytics</button>
                     </div>
                     
                     <div id="pages-tab" class="tab-content active">
@@ -619,50 +547,7 @@ export function registerPageListCommands(
                         </div>
                     </div>
                     
-                    <div id="analytics-tab" class="tab-content">
-                        <div id="analytics-loading" class="loading">Calculating page analytics...</div>
-                        
-                        <div class="analytics-container hidden" id="analytics-container">
-                            <div class="analytics-grid">
-                                <div class="analytics-card">
-                                    <h3>Summary Statistics</h3>
-                                    <div class="stat-item">
-                                        <span class="stat-label">Total Pages:</span>
-                                        <span class="stat-value" id="total-pages">-</span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span class="stat-label">Forms:</span>
-                                        <span class="stat-value" id="total-forms">-</span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span class="stat-label">Reports:</span>
-                                        <span class="stat-value" id="total-reports">-</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="analytics-card">
-                                    <h3>Page Types Distribution</h3>
-                                    <div class="chart-placeholder">
-                                        <span>Chart visualization coming soon</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="analytics-card">
-                                    <h3>Role Requirements</h3>
-                                    <div class="chart-placeholder">
-                                        <span>Role analysis coming soon</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="analytics-card">
-                                    <h3>Owner Object Distribution</h3>
-                                    <div class="chart-placeholder">
-                                        <span>Object distribution coming soon</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                     
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
                         <div class="spinner"></div>
