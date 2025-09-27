@@ -550,6 +550,113 @@ function calculateWorkflowTaskCount(modelService: ModelService): number {
 }
 
 /**
+ * Calculate authorization-required pages count metric
+ */
+function calculateAuthorizationRequiredPagesCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let authRequiredPagesCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            // Count forms (object workflows with isPage=true and isAuthorizationRequired=true)
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === "true" && workflow.isAuthorizationRequired === "true") {
+                        authRequiredPagesCount++;
+                    }
+                });
+            }
+            
+            // Count reports (with isPage=true or undefined, and isAuthorizationRequired=true)
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if ((report.isPage === "true" || report.isPage === undefined) && report.isAuthorizationRequired === "true") {
+                        authRequiredPagesCount++;
+                    }
+                });
+            }
+        });
+        
+        return authRequiredPagesCount;
+    } catch (error) {
+        console.error('Error calculating authorization-required pages count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate public pages count metric (pages with no authorization required)
+ */
+function calculatePublicPagesCount(modelService: ModelService): number {
+    try {
+        const allObjects = modelService.getAllObjects();
+        let publicPagesCount = 0;
+        
+        allObjects.forEach((obj: any) => {
+            // Count forms (object workflows with isPage=true and isAuthorizationRequired is not "true")
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === "true" && workflow.isAuthorizationRequired !== "true") {
+                        publicPagesCount++;
+                    }
+                });
+            }
+            
+            // Count reports (with isPage=true or undefined, and isAuthorizationRequired is not "true")
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if ((report.isPage === "true" || report.isPage === undefined) && report.isAuthorizationRequired !== "true") {
+                        publicPagesCount++;
+                    }
+                });
+            }
+        });
+        
+        return publicPagesCount;
+    } catch (error) {
+        console.error('Error calculating public pages count:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate page count by role metrics
+ */
+function calculatePageCountsByRole(modelService: ModelService): Map<string, number> {
+    try {
+        const allObjects = modelService.getAllObjects();
+        const rolePageCounts = new Map<string, number>();
+        
+        allObjects.forEach((obj: any) => {
+            // Count forms (object workflows with isPage=true and specific roleRequired)
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === "true" && workflow.roleRequired && workflow.roleRequired.trim() !== "") {
+                        const role = workflow.roleRequired.trim();
+                        rolePageCounts.set(role, (rolePageCounts.get(role) || 0) + 1);
+                    }
+                });
+            }
+            
+            // Count reports (with isPage=true or undefined, and specific roleRequired)
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if ((report.isPage === "true" || report.isPage === undefined) && report.roleRequired && report.roleRequired.trim() !== "") {
+                        const role = report.roleRequired.trim();
+                        rolePageCounts.set(role, (rolePageCounts.get(role) || 0) + 1);
+                    }
+                });
+            }
+        });
+        
+        return rolePageCounts;
+    } catch (error) {
+        console.error('Error calculating page counts by role:', error);
+        return new Map();
+    }
+}
+
+/**
  * Calculate user story count metric
  */
 function calculateUserStoryCount(modelService: ModelService): number {
@@ -817,6 +924,28 @@ function getCurrentMetricsData(modelService: ModelService): any[] {
     metrics.push({
         name: 'Non-Lookup Data Object Count',
         value: dataObjectCounts.nonLookup.toString()
+    });
+    
+    // Add authorization metrics
+    const authRequiredPagesCount = calculateAuthorizationRequiredPagesCount(modelService);
+    metrics.push({
+        name: 'Authorization-Required Pages Count',
+        value: authRequiredPagesCount.toString()
+    });
+    
+    const publicPagesCount = calculatePublicPagesCount(modelService);
+    metrics.push({
+        name: 'Public Pages Count',
+        value: publicPagesCount.toString()
+    });
+    
+    // Add role-specific page counts
+    const rolePageCounts = calculatePageCountsByRole(modelService);
+    Array.from(rolePageCounts.entries()).sort(([a], [b]) => a.localeCompare(b)).forEach(([role, count]) => {
+        metrics.push({
+            name: `Role ${role} Page Count`,
+            value: count.toString()
+        });
     });
     
     return metrics;

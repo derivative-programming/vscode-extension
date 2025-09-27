@@ -1,3 +1,28 @@
+## September 27, 2025 - Metrics Analytics View - New Authorization & Role Metrics
+
+**Command**: Add new metrics to the metrics analytics view:
+- Authorization-Required Pages Count (pages with isAuthorizationRequired="true")
+- Public Pages Count (pages with no roleRequired or empty roleRequired) 
+- Role [role name] Page Count (pages grouped by specific roleRequired values)
+
+**Status**: COMPLETED
+
+**Architecture Notes**: 
+- Added 3 new metric calculation functions to `metricsAnalysisCommands.ts`
+- Functions analyze both `objectWorkflow` (forms) and `report` arrays for page metrics
+- Page identification: forms use `isPage="true"`, reports use `isPage="true"` or undefined
+- Authorization logic: checks `isAuthorizationRequired="true"` property
+- Public page logic: checks for missing or empty `roleRequired` property
+- Role-specific counts: groups pages by `roleRequired` value with alphabetical sorting
+- Integrated seamlessly with existing metric calculation and history tracking system
+
+**Changes Made**:
+1. Added `calculateAuthorizationRequiredPagesCount()` function
+2. Added `calculatePublicPagesCount()` function  
+3. Added `calculatePageCountsByRole()` function returning Map<string, number>
+4. Modified `getCurrentMetricsData()` to include new metrics in alphabetical order
+5. Role-specific metrics use dynamic naming: "Role [RoleName] Page Count"
+
 ## September 27, 2025 - Page List View Test Tab Addition
 
 **Command**: Review the page list view and add a 'test' tab that displays the text 'hello'

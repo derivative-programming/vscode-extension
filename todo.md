@@ -4,12 +4,14 @@ common types of graphs...
 - distribution chart (histogram, each bar is a value range, shows how many items are in each range)
 - pie chart (each slice is a category, shows how many items are in each category)
 - proportional visualization - all items are boxes. size of box is proportional to value
+- scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
 user journey view - page usage tab...
 - action column - edit icon button to open page details view
 
 database size forecast view - config tab
 - action column - edit icon button to open data object details view
+
 
 
 page list view...
@@ -20,10 +22,7 @@ page list view...
 metric analysis view...
 - new metrics
   - total data object size
-  - avg data object size
-  - Authorization-Required Pages Count
-  - Public Pages Count
-  - role [role name] page count
+  - avg data object size 
   - role [role name] user story count
   - Report to Form Ratio - Balance between data display and data entry 
   - avg page control count (all, report, form)
