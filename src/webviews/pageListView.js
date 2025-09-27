@@ -42,7 +42,10 @@ function switchTab(tabName) {
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(`${tabName}-tab`).classList.add('active');
     
-
+    // Load visualization data when switching to visualization tab
+    if (tabName === 'visualization' && allItems.length > 0) {
+        renderPageTreemap();
+    }
 }
 
 
@@ -55,17 +58,25 @@ function switchTab(tabName) {
 
 // Helper function to show spinner
 function showSpinner() {
+    console.log('[PageList] showSpinner called');
     const spinnerOverlay = document.getElementById("spinner-overlay");
     if (spinnerOverlay) {
+        console.log('[PageList] Found spinner overlay element, showing it');
         spinnerOverlay.style.display = "flex";
+    } else {
+        console.log('[PageList] Spinner overlay element not found!');
     }
 }
 
 // Helper function to hide spinner
 function hideSpinner() {
+    console.log('[PageList] hideSpinner called');
     const spinnerOverlay = document.getElementById("spinner-overlay");
     if (spinnerOverlay) {
+        console.log('[PageList] Found spinner overlay element, hiding it');
         spinnerOverlay.style.display = "none";
+    } else {
+        console.log('[PageList] Spinner overlay element not found!');
     }
 }
 
@@ -417,6 +428,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Setup treemap refresh button
+    const refreshTreemapBtn = document.getElementById("refreshPageTreemapButton");
+    if (refreshTreemapBtn) {
+        console.log('[PageList] Setting up treemap refresh button event listener');
+        refreshTreemapBtn.addEventListener('click', () => {
+            console.log('[PageList] *** TREEMAP REFRESH BUTTON CLICKED ***');
+            console.log('[PageList] allItems.length:', allItems.length);
+            console.log('[PageList] About to call showSpinner()');
+            // Use the same spinner overlay pattern as the main refresh button
+            showSpinner();
+            
+            // Add a small delay to make the spinner visible, then render
+            setTimeout(() => {
+                if (allItems.length > 0) {
+                    console.log('[PageList] Calling renderPageTreemap() after delay');
+                    renderPageTreemap();
+                } else {
+                    console.log('[PageList] No items, hiding spinner');
+                    hideSpinner();
+                }
+            }, 100); // 100ms delay to make spinner visible
+        });
+    } else {
+        console.log('[PageList] Treemap refresh button not found during setup');
+    }
+    
+    // Setup treemap PNG export button
+    const generatePngBtn = document.getElementById("generatePageTreemapPngBtn");
+    if (generatePngBtn) {
+        generatePngBtn.addEventListener('click', () => {
+            console.log('[PageList] Generate PNG button clicked');
+            generatePageTreemapPNG();
+        });
+    }
+    
     // Setup filter event listeners
     setupFilterEventListeners();
     
@@ -476,5 +522,242 @@ window.addEventListener("message", function(event) {
             console.error('Error exporting CSV:', message.error);
             alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
         }
+    } else if (message.command === 'pngSaveResult') {
+        if (message.success) {
+            // Show success message briefly
+            console.log('[PageList] PNG saved successfully:', message.filename);
+        } else {
+            console.error('Error saving PNG:', message.error);
+            alert('Error saving PNG: ' + (message.error || 'Unknown error'));
+        }
     }
 });
+
+// Page treemap visualization functionality
+function renderPageTreemap() {
+    const treemapVisualization = document.getElementById('page-treemap-visualization');
+    const treemapLoading = document.getElementById('page-treemap-loading');
+    
+    if (!treemapVisualization || !treemapLoading || allItems.length === 0) {
+        setTimeout(() => hideSpinner(), 500);
+        return;
+    }
+    
+    // Clear any existing content
+    treemapVisualization.innerHTML = '';
+    
+    // Prepare data for treemap - filter out items with 0 elements
+    const treemapData = allItems.filter(item => item.totalElements > 0);
+    
+    if (treemapData.length === 0) {
+        treemapLoading.textContent = 'No pages with elements found';
+        setTimeout(() => hideSpinner(), 500);
+        return;
+    }
+    
+    // Hide loading and show visualization
+    treemapLoading.classList.add('hidden');
+    treemapVisualization.classList.remove('hidden');
+    
+    // Set dimensions
+    const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+    const width = 800 - margin.left - margin.right;
+    const height = 600 - margin.top - margin.bottom;
+    
+    // Create SVG
+    const svg = d3.select(treemapVisualization)
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .style('background', 'var(--vscode-editor-background)');
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    // Prepare data for treemap
+    const root = d3.hierarchy({ children: treemapData })
+        .sum(d => d.totalElements)
+        .sort((a, b) => b.value - a.value);
+    
+    // Create treemap
+    const treemap = d3.treemap()
+        .size([width, height])
+        .padding(2);
+    
+    treemap(root);
+    
+    // Color scale based on complexity
+    const colorScale = d3.scaleOrdinal()
+        .domain(['tiny', 'small', 'medium', 'large'])
+        .range(['#6c757d', '#28a745', '#f66a0a', '#d73a49']);
+    
+    // Create tooltip
+    const tooltip = d3.select('body')
+        .append('div')
+        .attr('class', 'treemap-tooltip')
+        .style('opacity', 0);
+    
+    // Draw rectangles
+    const cell = g.selectAll('.treemap-cell')
+        .data(root.leaves())
+        .enter().append('g')
+        .attr('class', 'treemap-cell')
+        .attr('transform', d => `translate(${d.x0},${d.y0})`);
+    
+    cell.append('rect')
+        .attr('class', 'treemap-rect')
+        .attr('width', d => d.x1 - d.x0)
+        .attr('height', d => d.y1 - d.y0)
+        .attr('fill', d => {
+            const elements = d.data.totalElements;
+            if (elements > 20) { return colorScale('large'); }     // High complexity
+            if (elements > 10) { return colorScale('medium'); }   // Medium complexity  
+            if (elements > 5) { return colorScale('small'); }     // Low complexity
+            return colorScale('tiny');                            // Very low complexity
+        })
+        .on('mouseover', function(event, d) {
+            // Show tooltip
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            
+            tooltip.html(`
+                <strong>${escapeHtml(d.data.name)}</strong><br/>
+                Type: ${escapeHtml(d.data.type)}<br/>
+                Total Elements: ${d.data.totalElements}<br/>
+                Owner Object: ${escapeHtml(d.data.ownerObject || 'Unknown')}
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() {
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        })
+        .on('click', function(event, d) {
+            // Allow clicking to preview page
+            vscode.postMessage({
+                command: 'previewPage',
+                pageName: d.data.name
+            });
+        });
+    
+    // Add text labels
+    cell.append('text')
+        .attr('class', 'treemap-text')
+        .attr('x', d => (d.x1 - d.x0) / 2)
+        .attr('y', d => (d.y1 - d.y0) / 2)
+        .text(d => {
+            const width = d.x1 - d.x0;
+            const height = d.y1 - d.y0;
+            // Only show text if rectangle is large enough
+            if (width > 80 && height > 20) {
+                const name = d.data.name;
+                return name.length > 12 ? name.substring(0, 12) + '...' : name;
+            }
+            return '';
+        });
+    
+    // Hide spinner after minimum duration to make it visible  
+    setTimeout(() => {
+        hideSpinner();
+    }, 800); // Minimum 800ms spinner duration
+}
+
+// Generate PNG from page treemap
+function generatePageTreemapPNG() {
+    try {
+        const treemapContainer = document.getElementById('page-treemap-visualization');
+        if (!treemapContainer || treemapContainer.classList.contains('hidden')) {
+            alert('Load page complexity visualization before exporting PNG');
+            return;
+        }
+        
+        const svgElement = treemapContainer.querySelector('svg');
+        if (!svgElement) {
+            alert('Page treemap SVG not found');
+            return;
+        }
+        
+        // Clone and inline styles
+        const cloned = svgElement.cloneNode(true);
+        
+        // Inline rect styles
+        cloned.querySelectorAll('rect').forEach(rect => {
+            const cs = window.getComputedStyle(rect);
+            const fill = rect.getAttribute('fill') || cs.fill || '#4c78a8';
+            const stroke = rect.getAttribute('stroke') || cs.stroke || '#333333';
+            rect.setAttribute('fill', fill.startsWith('var(') ? '#4c78a8' : fill);
+            rect.setAttribute('stroke', stroke.startsWith('var(') ? '#333333' : stroke);
+            rect.setAttribute('stroke-width', rect.getAttribute('stroke-width') || '1');
+        });
+        
+        // Inline text styles
+        cloned.querySelectorAll('text').forEach(text => {
+            const cs = window.getComputedStyle(text);
+            const fill = text.getAttribute('fill') || cs.fill || 'white';
+            text.setAttribute('fill', fill.startsWith('var(') ? 'white' : fill);
+        });
+        
+        // Convert SVG to string
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(cloned);
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(svgBlob);
+        
+        // Convert to PNG
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = function() {
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            
+            // White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+            
+            canvas.toBlob(function(blob) {
+                if (!blob) {
+                    alert('Canvas conversion failed');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64 = reader.result;
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                    const filename = `page-complexity-treemap-${timestamp}.png`;
+                    vscode.postMessage({
+                        command: 'savePngToWorkspace',
+                        data: { base64, filename, type: 'page-treemap' }
+                    });
+                };
+                reader.readAsDataURL(blob);
+            }, 'image/png');
+        };
+        
+        img.onerror = function() {
+            alert('Failed to render SVG to image');
+        };
+        
+        img.src = url;
+    } catch (err) {
+        alert('Failed to generate PNG: ' + err.message);
+    }
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    if (!text) {
+        return '';
+    }
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+

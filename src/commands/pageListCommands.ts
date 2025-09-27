@@ -2,6 +2,7 @@
 // Created: August 3, 2025
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { ModelService } from '../services/modelService';
 
 // Track active panels to avoid duplicates
@@ -110,6 +111,7 @@ export function registerPageListCommands(
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Page List</title>
                     <link href="${codiconsUri}" rel="stylesheet" />
+                    <script src="https://d3js.org/d3.v7.min.js"></script>
                     <style>
                         body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
                         .validation-header {
@@ -457,6 +459,146 @@ export function registerPageListCommands(
                             background-color: var(--vscode-editor-background);
                         }
 
+                        /* Treemap visualization styles */
+                        .treemap-container {
+                            padding: 15px;
+                        }
+                        
+                        .treemap-header {
+                            margin-bottom: 20px;
+                        }
+                        
+                        .treemap-header-content {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-start;
+                            gap: 15px;
+                        }
+                        
+                        .treemap-title {
+                            flex: 1;
+                        }
+                        
+                        .treemap-actions {
+                            display: flex;
+                            gap: 10px;
+                            align-items: flex-start;
+                        }
+                        
+                        .treemap-header h3 {
+                            margin: 0 0 5px 0;
+                            color: var(--vscode-foreground);
+                            font-size: 16px;
+                        }
+                        
+                        .treemap-header p {
+                            margin: 0;
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 12px;
+                        }
+                        
+                        .treemap-viz {
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            margin-bottom: 15px;
+                            overflow: hidden;
+                        }
+                        
+                        .treemap-legend {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 15px;
+                            font-size: 12px;
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        .legend-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 5px;
+                        }
+                        
+                        .legend-color {
+                            width: 16px;
+                            height: 16px;
+                            border-radius: 2px;
+                            border: 1px solid var(--vscode-panel-border);
+                        }
+                        
+                        .legend-color.large-complexity {
+                            background-color: #d73a49;
+                        }
+                        
+                        .legend-color.medium-complexity {
+                            background-color: #f66a0a;
+                        }
+                        
+                        .legend-color.small-complexity {
+                            background-color: #28a745;
+                        }
+                        
+                        .legend-color.tiny-complexity {
+                            background-color: #6c757d;
+                        }
+                        
+                        .treemap-rect {
+                            stroke: var(--vscode-panel-border);
+                            stroke-width: 1px;
+                            cursor: pointer;
+                            transition: opacity 0.2s;
+                        }
+                        
+                        .treemap-rect:hover {
+                            opacity: 0.8;
+                            stroke-width: 2px;
+                        }
+                        
+                        .treemap-text {
+                            font-family: var(--vscode-font-family);
+                            font-size: 11px;
+                            fill: white;
+                            text-anchor: middle;
+                            dominant-baseline: middle;
+                            pointer-events: none;
+                            text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+                        }
+                        
+                        .treemap-tooltip {
+                            position: absolute;
+                            background: var(--vscode-editorHoverWidget-background);
+                            border: 1px solid var(--vscode-editorHoverWidget-border);
+                            border-radius: 4px;
+                            padding: 8px;
+                            font-size: 12px;
+                            color: var(--vscode-editorHoverWidget-foreground);
+                            pointer-events: none;
+                            z-index: 1000;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                        }
+                        
+                        .loading {
+                            text-align: center;
+                            padding: 40px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .hidden {
+                            display: none;
+                        }
+                        
+                        /* Refresh button spin animation */
+                        .codicon.refresh-spinning,
+                        .refresh-spinning {
+                            animation: refresh-spin 1s linear infinite !important;
+                            display: inline-block !important;
+                            transform-origin: center center !important;
+                        }
+                        
+                        @keyframes refresh-spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+
                     </style>
                 </head>
                 <body>
@@ -467,7 +609,7 @@ export function registerPageListCommands(
                     
                     <div class="tabs">
                         <button class="tab active" data-tab="pages">Pages</button>
-                        <button class="tab" data-tab="test">Test</button>
+                        <button class="tab" data-tab="visualization">Page Size Visualization</button>
                     </div>
                     
                     <div id="pages-tab" class="tab-content active">
@@ -550,9 +692,46 @@ export function registerPageListCommands(
                     </div>
                     </div>
                     
-                    <div id="test-tab" class="tab-content">
-                        <h3>Test Tab</h3>
-                        <p>hello</p>
+                    <div id="visualization-tab" class="tab-content">
+                        <div class="treemap-container">
+                            <div class="treemap-header">
+                                <div class="treemap-header-content">
+                                    <div class="treemap-title">
+                                        <h3>Page Complexity Proportions</h3>
+                                        <p>Size represents total element count (buttons + inputs/columns + outputs/params). Hover for details.</p>
+                                    </div>
+                                    <div class="treemap-actions">
+                                        <button id="refreshPageTreemapButton" class="icon-button" title="Refresh Data">
+                                            <i class="codicon codicon-refresh"></i>
+                                        </button>
+                                        <button id="generatePageTreemapPngBtn" class="svg-export-btn">
+                                            <span class="codicon codicon-device-camera"></span>
+                                            Generate PNG
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="page-treemap-loading" class="loading">Loading page complexity visualization...</div>
+                            <div id="page-treemap-visualization" class="treemap-viz hidden"></div>
+                            <div class="treemap-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color large-complexity"></span>
+                                    <span>High Complexity (>20 elements)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color medium-complexity"></span>
+                                    <span>Medium Complexity (10-20 elements)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color small-complexity"></span>
+                                    <span>Low Complexity (5-10 elements)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color tiny-complexity"></span>
+                                    <span>Very Low Complexity (<5 elements)</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
@@ -694,6 +873,49 @@ export function registerPageListCommands(
                             } catch (error) {
                                 console.error('[Extension] Error saving CSV to workspace:', error);
                                 vscode.window.showErrorMessage(`Failed to save CSV: ${error.message}`);
+                            }
+                            break;
+
+                        case 'savePngToWorkspace':
+                            try {
+                                const fs = require('fs');
+                                const path = require('path');
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    panel.webview.postMessage({
+                                        command: 'pngSaveResult',
+                                        success: false,
+                                        error: 'No workspace folder is open'
+                                    });
+                                    return;
+                                }
+                                
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const filePath = path.join(workspaceRoot, message.data.filename);
+                                
+                                // Convert base64 to buffer and save
+                                const base64Data = message.data.base64.replace(/^data:image\/png;base64,/, '');
+                                const buffer = Buffer.from(base64Data, 'base64');
+                                
+                                fs.writeFileSync(filePath, buffer);
+                                
+                                panel.webview.postMessage({
+                                    command: 'pngSaveResult',
+                                    success: true,
+                                    filename: message.data.filename
+                                });
+                                
+                                vscode.window.showInformationMessage(`PNG file saved to workspace: ${message.data.filename}`);
+                                
+                            } catch (error) {
+                                console.error('[Extension] Error saving PNG to workspace:', error);
+                                panel.webview.postMessage({
+                                    command: 'pngSaveResult',
+                                    success: false,
+                                    error: error.message
+                                });
+                                vscode.window.showErrorMessage(`Failed to save PNG: ${error.message}`);
                             }
                             break;
                     }
