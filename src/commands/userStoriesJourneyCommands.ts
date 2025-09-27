@@ -2754,6 +2754,34 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             color: var(--vscode-descriptionForeground);
                             text-align: center;
                         }
+                        
+                        .page-usage-info-note {
+                            margin-bottom: 15px;
+                            padding: 8px 12px;
+                            background-color: var(--vscode-textCodeBlock-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            border-left: 3px solid var(--vscode-charts-blue);
+                        }
+                        
+                        .info-note-content {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            font-size: 13px;
+                            color: var(--vscode-editor-foreground);
+                        }
+                        
+                        .info-note-content .codicon {
+                            color: var(--vscode-charts-blue);
+                            font-size: 16px;
+                            flex-shrink: 0;
+                        }
+                        
+                        .info-note-content strong {
+                            font-weight: 600;
+                            color: var(--vscode-editor-foreground);
+                        }
                     </style>
                 </head>
                 <body>
@@ -3123,6 +3151,13 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         <button id="exportPageUsageButton" class="icon-button" title="Download Page Usage CSV">
                             <i class="codicon codicon-cloud-download"></i>
                         </button>
+                    </div>
+
+                    <div class="page-usage-info-note">
+                        <div class="info-note-content">
+                            <span class="codicon codicon-info"></span>
+                            <span>The <strong>Usage</strong> column shows how many user story journeys include each page. Higher values indicate pages that are frequently used across multiple user scenarios.</span>
+                        </div>
                     </div>
 
                     <div class="table-container">
