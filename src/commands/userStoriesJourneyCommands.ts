@@ -269,12 +269,15 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
 async function saveJourneyDataToCSV(items: any[], modelService: ModelService): Promise<string> {
     try {
         // Create CSV content
-        const csvHeader = 'Story Number,Story Text,Page\n';
+        const csvHeader = 'Story Number,Story Text,Page,Journey Page Distance\n';
         const csvRows = items.map(item => {
             const storyNumber = (item.storyNumber || '').toString().replace(/"/g, '""');
             const storyText = (item.storyText || '').toString().replace(/"/g, '""');
             const page = (item.page || '').toString().replace(/"/g, '""');
-            return `"${storyNumber}","${storyText}","${page}"`;
+            const journeyPageDistance = (item.journeyPageDistance !== undefined && item.journeyPageDistance !== -1) 
+                ? item.journeyPageDistance.toString() 
+                : '';
+            return `"${storyNumber}","${storyText}","${page}","${journeyPageDistance}"`;
         }).join('\n');
 
         const csvContent = csvHeader + csvRows;

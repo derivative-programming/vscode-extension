@@ -11,7 +11,6 @@ user journey - user stories tab...
 - export needs the journey page distance column value
 
 user journey view - page usage tab...
-- add an actions column with edit icon button to open page details view
 - add a note what usage means (that the page exists in a user journey of a user story)
 
 database size forecast view - config tab
