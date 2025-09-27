@@ -45,6 +45,8 @@ function switchTab(tabName) {
     // Load visualization data when switching to visualization tab
     if (tabName === 'visualization' && allItems.length > 0) {
         renderPageTreemap();
+    } else if (tabName === 'distribution' && allItems.length > 0) {
+        renderPageHistogram();
     }
 }
 
@@ -466,6 +468,37 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[PageList] PNG export button not found during setup');
     }
     
+    // Setup histogram refresh button
+    const refreshHistogramBtn = document.getElementById("refreshPageHistogramButton");
+    if (refreshHistogramBtn) {
+        console.log('[PageList] Setting up histogram refresh button event listener');
+        refreshHistogramBtn.addEventListener('click', () => {
+            console.log('[PageList] *** HISTOGRAM REFRESH BUTTON CLICKED ***');
+            showSpinner();
+            setTimeout(() => {
+                if (allItems.length > 0) {
+                    renderPageHistogram();
+                } else {
+                    hideSpinner();
+                }
+            }, 100);
+        });
+    } else {
+        console.log('[PageList] Histogram refresh button not found during setup');
+    }
+    
+    // Setup histogram PNG export button
+    const generateHistogramPngBtn = document.getElementById("generatePageHistogramPngBtn");
+    if (generateHistogramPngBtn) {
+        console.log('[PageList] Setting up histogram PNG export button event listener');
+        generateHistogramPngBtn.addEventListener('click', () => {
+            console.log('[PageList] *** GENERATE HISTOGRAM PNG BUTTON CLICKED ***');
+            generatePageHistogramPNG();
+        });
+    } else {
+        console.log('[PageList] Histogram PNG export button not found during setup');
+    }
+    
     // Setup filter event listeners
     setupFilterEventListeners();
     
@@ -748,6 +781,284 @@ function generatePageTreemapPNG() {
                     vscode.postMessage({
                         command: 'savePngToWorkspace',
                         data: { base64, filename, type: 'page-treemap' }
+                    });
+                };
+                reader.readAsDataURL(blob);
+            }, 'image/png');
+        };
+        
+        img.onerror = function() {
+            alert('Failed to render SVG to image');
+        };
+        
+        img.src = url;
+    } catch (err) {
+        alert('Failed to generate PNG: ' + err.message);
+    }
+}
+
+// Page histogram visualization functionality
+function renderPageHistogram() {
+    console.log('[PageList] Starting histogram rendering');
+    const histogramVisualization = document.getElementById('page-histogram-visualization');
+    const histogramLoading = document.getElementById('page-histogram-loading');
+    
+    if (!histogramVisualization || !histogramLoading || allItems.length === 0) {
+        hideSpinner();
+        return;
+    }
+    
+    // Clear any existing content
+    histogramVisualization.innerHTML = '';
+    
+    // Calculate element distribution
+    const distribution = calculateElementDistribution(allItems);
+    console.log('[PageList] Element distribution:', distribution);
+    
+    // Setup dimensions
+    const margin = {top: 20, right: 20, bottom: 80, left: 60};
+    const width = 600 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+    
+    // Create SVG
+    const svg = d3.select(histogramVisualization)
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .style('background', 'var(--vscode-editor-background)');
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    // Setup scales
+    const categories = ['Very Low Complexity', 'Low Complexity', 'Medium Complexity', 'High Complexity'];
+    const values = [distribution.tinyComplexity, distribution.smallComplexity, distribution.mediumComplexity, distribution.largeComplexity];
+    const colors = ['#6c757d', '#28a745', '#f66a0a', '#d73a49'];
+    
+    const xScale = d3.scaleBand()
+        .domain(categories)
+        .range([0, width])
+        .padding(0.1);
+    
+    const yScale = d3.scaleLinear()
+        .domain([0, Math.max(...values)])
+        .range([height, 0]);
+    
+    // Create tooltip
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'histogram-tooltip')
+        .style('opacity', 0)
+        .style('position', 'absolute')
+        .style('background', 'var(--vscode-editorHoverWidget-background)')
+        .style('border', '1px solid var(--vscode-editorHoverWidget-border)')
+        .style('border-radius', '4px')
+        .style('padding', '8px')
+        .style('font-size', '12px')
+        .style('color', 'var(--vscode-editorHoverWidget-foreground)')
+        .style('pointer-events', 'none')
+        .style('z-index', '1000');
+    
+    // Draw bars
+    g.selectAll('.histogram-bar')
+        .data(categories)
+        .enter().append('rect')
+        .attr('class', 'histogram-bar')
+        .attr('x', d => xScale(d))
+        .attr('width', xScale.bandwidth())
+        .attr('y', d => yScale(values[categories.indexOf(d)]))
+        .attr('height', d => height - yScale(values[categories.indexOf(d)]))
+        .attr('fill', (d, i) => colors[i])
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-width', 1)
+        .on('mouseover', function(event, d) {
+            const value = values[categories.indexOf(d)];
+            const percentage = allItems.length > 0 ? ((value / allItems.length) * 100).toFixed(1) : '0.0';
+            
+            // Map category to full description
+            const descriptions = {
+                'Very Low Complexity': 'Very Low Complexity (<5 elements)',
+                'Low Complexity': 'Low Complexity (5-10 elements)', 
+                'Medium Complexity': 'Medium Complexity (10-20 elements)',
+                'High Complexity': 'High Complexity (>20 elements)'
+            };
+            
+            d3.select(this).attr('opacity', 0.8);
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            
+            tooltip.html(`
+                <strong>${descriptions[d]}</strong><br/>
+                Count: ${value}<br/>
+                Percentage: ${percentage}%
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() {
+            d3.select(this).attr('opacity', 1);
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+    
+    // Add value labels on bars
+    g.selectAll('.histogram-value')
+        .data(categories)
+        .enter().append('text')
+        .attr('class', 'histogram-value')
+        .attr('x', d => xScale(d) + xScale.bandwidth() / 2)
+        .attr('y', d => yScale(values[categories.indexOf(d)]) - 5)
+        .text(d => values[categories.indexOf(d)])
+        .attr('fill', 'var(--vscode-foreground)')
+        .style('text-anchor', 'middle')
+        .style('font-size', '11px')
+        .style('font-weight', 'bold');
+    
+    // Add axes
+    g.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale))
+        .selectAll('text')
+        .attr('fill', 'var(--vscode-foreground)')
+        .style('text-anchor', 'middle')
+        .style('font-size', '11px');
+    
+    g.append('g')
+        .call(d3.axisLeft(yScale))
+        .selectAll('text')
+        .attr('fill', 'var(--vscode-foreground)');
+    
+    // Add axis labels
+    g.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', -40)
+        .attr('x', -height / 2)
+        .attr('fill', 'var(--vscode-foreground)')
+        .style('text-anchor', 'middle')
+        .style('font-size', '12px')
+        .text('Number of Pages');
+    
+    g.append('text')
+        .attr('x', width / 2)
+        .attr('y', height + 60)
+        .attr('fill', 'var(--vscode-foreground)')
+        .style('text-anchor', 'middle')
+        .style('font-size', '12px')
+        .text('Element Count Categories');
+    
+    // Hide loading and show visualization
+    histogramLoading.classList.add('hidden');
+    histogramVisualization.classList.remove('hidden');
+    
+    // Hide spinner after rendering
+    setTimeout(() => {
+        hideSpinner();
+    }, 800);
+}
+
+// Calculate element distribution from data
+function calculateElementDistribution(data) {
+    console.log('[PageList] Calculating element distribution for', data.length, 'pages');
+    const distribution = {
+        tinyComplexity: 0,
+        smallComplexity: 0,
+        mediumComplexity: 0,
+        largeComplexity: 0
+    };
+    
+    data.forEach(item => {
+        const elementCount = item.totalElements || 0;
+        if (elementCount > 20) {          // >20 elements
+            distribution.largeComplexity++;
+        } else if (elementCount > 10) {   // 10-20 elements
+            distribution.mediumComplexity++;
+        } else if (elementCount > 5) {    // 5-10 elements
+            distribution.smallComplexity++;
+        } else {                          // <5 elements
+            distribution.tinyComplexity++;
+        }
+    });
+    
+    return distribution;
+}
+
+// Generate PNG from page histogram
+function generatePageHistogramPNG() {
+    console.log('[PageList] *** GENERATE HISTOGRAM PNG FUNCTION CALLED ***');
+    try {
+        const histogramContainer = document.getElementById('page-histogram-visualization');
+        console.log('[PageList] Histogram container found:', histogramContainer);
+        
+        if (!histogramContainer || histogramContainer.classList.contains('hidden')) {
+            console.log('[PageList] Container not found or hidden, showing alert');
+            alert('Load element distribution visualization before exporting PNG');
+            return;
+        }
+        
+        const svgElement = histogramContainer.querySelector('svg');
+        console.log('[PageList] SVG element found:', svgElement);
+        
+        if (!svgElement) {
+            console.log('[PageList] SVG not found, showing alert');
+            alert('Page histogram SVG not found');
+            return;
+        }
+        
+        // Clone and inline styles
+        const cloned = svgElement.cloneNode(true);
+        
+        // Inline rect styles
+        cloned.querySelectorAll('rect').forEach(rect => {
+            const cs = window.getComputedStyle(rect);
+            const fill = rect.getAttribute('fill') || cs.fill || '#4c78a8';
+            const stroke = rect.getAttribute('stroke') || cs.stroke || '#333333';
+            rect.setAttribute('fill', fill.startsWith('var(') ? '#4c78a8' : fill);
+            rect.setAttribute('stroke', stroke.startsWith('var(') ? '#333333' : stroke);
+            rect.setAttribute('stroke-width', rect.getAttribute('stroke-width') || '1');
+        });
+        
+        // Inline text styles
+        cloned.querySelectorAll('text').forEach(text => {
+            const cs = window.getComputedStyle(text);
+            const fill = text.getAttribute('fill') || cs.fill || '#333333';
+            text.setAttribute('fill', fill.startsWith('var(') ? '#333333' : fill);
+        });
+        
+        // Convert SVG to string
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(cloned);
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(svgBlob);
+        
+        // Convert to PNG
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = function() {
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            
+            // White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+            
+            canvas.toBlob(function(blob) {
+                if (!blob) {
+                    alert('Canvas conversion failed');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64 = reader.result;
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                    const filename = `page-element-distribution-${timestamp}.png`;
+                    vscode.postMessage({
+                        command: 'savePngToWorkspace',
+                        data: { base64, filename, type: 'page-histogram' }
                     });
                 };
                 reader.readAsDataURL(blob);
