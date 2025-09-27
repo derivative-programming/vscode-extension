@@ -683,6 +683,21 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 };
                 items.push(databaseSizeForecastItem);
 
+
+                // Create Page Complexity item
+                const pageComplexityItem = new JsonTreeItem(
+                    'Page Complexity',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisPageComplexity'
+                );
+                pageComplexityItem.tooltip = "Analyze page complexity distribution and view detailed page metrics including element counts and treemap visualizations";
+                pageComplexityItem.command = {
+                    command: 'appdna.pageList',
+                    title: 'Show Page Complexity Analysis',
+                    arguments: []
+                };
+                items.push(pageComplexityItem);
+                
                 // Create User Story Journey item
                 const userStoryJourneyItem = new JsonTreeItem(
                     'User Story Journey',
@@ -696,7 +711,6 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     arguments: []
                 };
                 items.push(userStoryJourneyItem);
-                
                 return Promise.resolve(items);
             } catch (error) {
                 console.error('Error reading analysis items:', error);
@@ -1467,6 +1481,15 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 'MODEL SERVICES',
                 vscode.TreeItemCollapsibleState.Collapsed,
                 'modelServices'
+            ));
+        }
+        
+        if (element.contextValue?.startsWith('analysis')) {
+            // If this is an analysis-related item, its parent is the ANALYSIS item
+            return Promise.resolve(new JsonTreeItem(
+                'ANALYSIS',
+                vscode.TreeItemCollapsibleState.Collapsed,
+                'analysis'
             ));
         }
         

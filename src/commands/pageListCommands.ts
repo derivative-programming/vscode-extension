@@ -700,8 +700,8 @@ export function registerPageListCommands(
                     
                     <div class="tabs">
                         <button class="tab active" data-tab="pages">Pages</button>
-                        <button class="tab" data-tab="visualization">Page Size Visualization</button>
-                        <button class="tab" data-tab="distribution">Element Distribution</button>
+                        <button class="tab" data-tab="visualization">Complexity Visualization</button>
+                        <button class="tab" data-tab="distribution">Complexity Distribution</button>
                     </div>
                     
                     <div id="pages-tab" class="tab-content active">
@@ -831,7 +831,7 @@ export function registerPageListCommands(
                             <div class="histogram-header">
                                 <div class="histogram-header-content">
                                     <div class="histogram-title">
-                                        <h3>Element Distribution</h3>
+                                        <h3>Complexity Distribution</h3>
                                         <p>Distribution of pages across element count categories</p>
                                     </div>
                                     <div class="histogram-actions">

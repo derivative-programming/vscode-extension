@@ -11,23 +11,10 @@ user journey view - page usage tab...
 database size forecast view - config tab
 - action column - edit icon button to open data object details view
 
-page complexity analysis view...
-- tab: page list
-  - columns
-    - remove title text column
-    - total element count
-      - input control count
-        - filters, forms
-      - button count
-      - table column count
-      - table column button count
-      - breadcrumb link count
-- tab: proportional visualization chart
-  - complex page report - visualize which have most controls
-- tab: distribution chart
-  - histogram of page complexity ranges (simple, medium, complex, very complex)
 
-
+page list view...
+- convert role filter dropdown to checkbox list
+- copy fitlers section from firlst tab to all tabs
 
 
 metric analysis view...
