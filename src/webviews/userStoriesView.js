@@ -145,6 +145,59 @@ function extractDataObjectsFromUserStory(text) {
 }
 
 /**
+ * Extracts the action from a user story text using sophisticated pattern matching.
+ * Based on the proven extraction logic from the page mapping view.
+ * @param {string} text User story text
+ * @returns {string} The extracted action or 'unknown' if not found
+ */
+function extractActionFromUserStory(text) {
+    if (!text || typeof text !== "string") { return "unknown"; }
+    
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract action from: ...wants to [action]... (case insensitive)
+    // Updated to handle "view all" properly without requiring additional "a|an|all" after it
+    const re1 = /wants to\s+(view all|view|add|create|update|edit|delete|remove)(?:\s+(?:a|an|all))?\s+/i;
+    const match1 = t.match(re1);
+    if (match1) { 
+        const action = match1[1].toLowerCase();
+        // Normalize action variants
+        if (action === 'create') { return "add"; }
+        if (action === 'edit') { return "update"; }
+        if (action === 'remove') { return "delete"; }
+        return action;
+    }
+    
+    // Regex to extract action from: ...I want to [action]... (case insensitive)
+    const re2 = /I want to\s+(view all|view|add|create|update|edit|delete|remove)(?:\s+(?:a|an|all))?\s+/i;
+    const match2 = t.match(re2);
+    if (match2) { 
+        const action = match2[1].toLowerCase();
+        // Normalize action variants
+        if (action === 'create') { return "add"; }
+        if (action === 'edit') { return "update"; }
+        if (action === 'remove') { return "delete"; }
+        return action;
+    }
+    
+    // Fallback: Simple word matching for edge cases
+    const lowerText = text.toLowerCase();
+    if (lowerText.includes('view all')) {
+        return "view all";
+    }
+    
+    const actions = ['view', 'add', 'update', 'delete'];
+    for (const action of actions) {
+        const actionRegex = new RegExp(`\\b${action}\\b`, 'i');
+        if (actionRegex.test(lowerText)) {
+            return action;
+        }
+    }
+    
+    return "unknown";
+}
+
+/**
  * Helper function to add singular/plural variants of an object name
  * @param {string} objectName The object name to add variants for
  * @param {string[]} dataObjects The array to add variants to
@@ -1357,6 +1410,7 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
     
     <div class="tabs">
         <button class="tab active" data-tab="stories">Stories</button>
+        <button class="tab" data-tab="details">Details</button>
         <button class="tab" data-tab="analytics">Analytics</button>
     </div>
     
@@ -1396,6 +1450,42 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
                             (item.isIgnored === "true" ? ' checked' : '') + '></td>' +
                             '</tr>'
                         ).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div id="details-tab" class="tab-content">
+        <div class="container">
+            <div class="btn-container">
+                <div class="search-container">
+                    <span class="search-label">Search:</span>
+                    <input type="text" id="detailsSearchInput" placeholder="Filter user story details...">
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table id="userStoriesDetailsTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="storyNumber">Story Number</th>
+                            <th data-sort="storyText">Story Text</th>
+                            <th data-sort="role">Role</th>
+                            <th data-sort="action">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${userStoryItems.map((item, index) => {
+                            const role = extractRoleFromUserStory(item.storyText) || 'Unknown';
+                            const action = extractActionFromUserStory(item.storyText);
+                            return '<tr data-index="' + index + '">' +
+                                '<td>' + (item.storyNumber || '') + '</td>' +
+                                '<td>' + (item.storyText || '') + '</td>' +
+                                '<td>' + role + '</td>' +
+                                '<td>' + action + '</td>' +
+                                '</tr>';
+                        }).join('')}
                     </tbody>
                 </table>
             </div>
@@ -1453,7 +1543,9 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
             
             // Cache DOM elements with null checks
             const table = document.getElementById('userStoriesTable');
+            const detailsTable = document.getElementById('userStoriesDetailsTable');
             const searchInput = document.getElementById('searchInput');
+            const detailsSearchInput = document.getElementById('detailsSearchInput');
             const btnAddStory = document.getElementById('btnAddStory');
             const btnDownloadCsv = document.getElementById('btnDownloadCsv');
             const btnUploadCsv = document.getElementById('btnUploadCsv');
@@ -1595,6 +1687,86 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
             });
             } // End search input safety check
             
+            // Details table sorting functionality
+            if (detailsTable) {
+                // Initialize sort direction for details table
+                let detailsSortDirection = {
+                    storyNumber: 'asc',
+                    storyText: 'asc',
+                    role: 'asc',
+                    action: 'asc'
+                };
+                
+                detailsTable.querySelectorAll('th').forEach(th => {
+                    th.addEventListener('click', () => {
+                        const sortBy = th.dataset.sort;
+                        const direction = detailsSortDirection[sortBy];
+                        
+                        // Get all rows
+                        const tbody = detailsTable.querySelector('tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+                        
+                        // Sort rows
+                        rows.sort((a, b) => {
+                            let valueA, valueB;
+                            
+                            if (sortBy === 'storyNumber') {
+                                // For story number column, compare numerically
+                                const textA = a.querySelectorAll('td')[0].textContent.trim();
+                                const textB = b.querySelectorAll('td')[0].textContent.trim();
+                                
+                                valueA = isNaN(parseInt(textA)) ? 0 : parseInt(textA);
+                                valueB = isNaN(parseInt(textB)) ? 0 : parseInt(textB);
+                                
+                                return direction === 'asc' ? valueA - valueB : valueB - valueA;
+                            } else {
+                                // For text columns, compare text content
+                                const cellIndexMap = { storyNumber: 0, storyText: 1, role: 2, action: 3 };
+                                valueA = a.querySelectorAll('td')[cellIndexMap[sortBy]].textContent.trim().toLowerCase();
+                                valueB = b.querySelectorAll('td')[cellIndexMap[sortBy]].textContent.trim().toLowerCase();
+                                
+                                if (direction === 'asc') {
+                                    return valueA > valueB ? 1 : -1;
+                                } else {
+                                    return valueA < valueB ? 1 : -1;
+                                }
+                            }
+                        });
+                        
+                        // Update sort direction for next click
+                        detailsSortDirection[sortBy] = direction === 'asc' ? 'desc' : 'asc';
+                        
+                        // Re-append rows in sorted order
+                        rows.forEach(row => tbody.appendChild(row));
+                    });
+                });
+            }
+            
+            // Details table search functionality
+            if (detailsSearchInput && detailsTable) {
+                detailsSearchInput.addEventListener('input', () => {
+                    const searchTerm = detailsSearchInput.value.toLowerCase();
+                    
+                    // Filter the rows
+                    const rows = detailsTable.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const storyNumber = row.querySelectorAll('td')[0].textContent.toLowerCase();
+                        const storyText = row.querySelectorAll('td')[1].textContent.toLowerCase();
+                        const role = row.querySelectorAll('td')[2].textContent.toLowerCase();
+                        const action = row.querySelectorAll('td')[3].textContent.toLowerCase();
+                        
+                        if (storyNumber.includes(searchTerm) || 
+                            storyText.includes(searchTerm) || 
+                            role.includes(searchTerm) || 
+                            action.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+            
             // Handle Add User Story button
             if (btnAddStory) {
                 btnAddStory.addEventListener('click', () => {
@@ -1711,7 +1883,7 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                         // Close the modal
                         addStoryModal.style.display = 'none';
                         
-                        // Add the story to the table
+                        // Add the story to the main table
                         const tbody = table.querySelector('tbody');
                         const newRow = document.createElement('tr');
                         newRow.dataset.index = message.data.index;
@@ -1721,6 +1893,23 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                             '<td><input type="checkbox" class="isIgnoredCheckbox" data-index="' + message.data.index + '"' + 
                             (message.data.story.isIgnored === "true" ? ' checked' : '') + '></td>';
                         tbody.appendChild(newRow);
+                        
+                        // Add the story to the details table
+                        if (detailsTable) {
+                            const detailsTbody = detailsTable.querySelector('tbody');
+                            const newDetailsRow = document.createElement('tr');
+                            newDetailsRow.dataset.index = message.data.index;
+                            
+                            const role = message.data.story.storyText ? (extractRoleFromUserStory(message.data.story.storyText) || 'Unknown') : 'Unknown';
+                            const action = message.data.story.storyText ? extractActionFromUserStory(message.data.story.storyText) : 'unknown';
+                            
+                            newDetailsRow.innerHTML = 
+                                '<td>' + (message.data.story.storyNumber || '') + '</td>' +
+                                '<td>' + (message.data.story.storyText || '') + '</td>' +
+                                '<td>' + role + '</td>' +
+                                '<td>' + action + '</td>';
+                            detailsTbody.appendChild(newDetailsRow);
+                        }
                         
                         // Show success message
                         messageContainer.innerHTML = '<div class="success-message">User story added successfully. Remember to save the model to persist changes.</div>';
@@ -1738,6 +1927,7 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                         const results = message.data.results;
                         
                         message.data.stories.forEach(storyData => {
+                            // Add to main table
                             const newRow = document.createElement('tr');
                             newRow.dataset.index = storyData.index;
                             newRow.innerHTML = 
@@ -1746,6 +1936,23 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                                 '<td><input type="checkbox" class="isIgnoredCheckbox" data-index="' + storyData.index + '"' + 
                                 (storyData.story.isIgnored === "true" ? ' checked' : '') + '></td>';
                             tableBody.appendChild(newRow);
+                            
+                            // Add to details table
+                            if (detailsTable) {
+                                const detailsTbody = detailsTable.querySelector('tbody');
+                                const newDetailsRow = document.createElement('tr');
+                                newDetailsRow.dataset.index = storyData.index;
+                                
+                                const role = storyData.story.storyText ? (extractRoleFromUserStory(storyData.story.storyText) || 'Unknown') : 'Unknown';
+                                const action = storyData.story.storyText ? extractActionFromUserStory(storyData.story.storyText) : 'unknown';
+                                
+                                newDetailsRow.innerHTML = 
+                                    '<td>' + (storyData.story.storyNumber || '') + '</td>' +
+                                    '<td>' + (storyData.story.storyText || '') + '</td>' +
+                                    '<td>' + role + '</td>' +
+                                    '<td>' + action + '</td>';
+                                detailsTbody.appendChild(newDetailsRow);
+                            }
                         });
                         
                         // Show results message
@@ -1811,7 +2018,7 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                         // Update local array
                         userStoryItems = allStories;
                         
-                        // Rebuild table
+                        // Rebuild main table
                         const tableBody = table.querySelector('tbody');
                         tableBody.innerHTML = '';
                         
@@ -1825,6 +2032,27 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                                 (item.isIgnored === "true" ? ' checked' : '') + '></td>';
                             tableBody.appendChild(row);
                         });
+                        
+                        // Rebuild details table
+                        if (detailsTable) {
+                            const detailsTableBody = detailsTable.querySelector('tbody');
+                            detailsTableBody.innerHTML = '';
+                            
+                            allStories.forEach((item, index) => {
+                                const detailsRow = document.createElement('tr');
+                                detailsRow.dataset.index = index;
+                                
+                                const role = item.storyText ? (extractRoleFromUserStory(item.storyText) || 'Unknown') : 'Unknown';
+                                const action = item.storyText ? extractActionFromUserStory(item.storyText) : 'unknown';
+                                
+                                detailsRow.innerHTML = 
+                                    '<td>' + (item.storyNumber || '') + '</td>' +
+                                    '<td>' + (item.storyText || '') + '</td>' +
+                                    '<td>' + role + '</td>' +
+                                    '<td>' + action + '</td>';
+                                detailsTableBody.appendChild(detailsRow);
+                            });
+                        }
                         
                         // Show results message
                         let resultMessage = '<div class="success-message">CSV upload complete: ' + results.added + ' stories added';
