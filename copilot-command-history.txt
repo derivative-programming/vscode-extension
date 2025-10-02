@@ -1,3 +1,34 @@
+## October 2, 2025 - Page List View - Add Total Items to CSV Export
+
+**Command**: add 'total items' to the page list pages tab export
+
+**Status**: ✅ COMPLETED SUCCESSFULLY
+
+**Implementation Details**:
+- Added 'Total Items' column to CSV export headers
+- Added item.totalElements data to CSV export rows
+- Properly converts numeric value to string for CSV format
+- Matches the table display which already shows Total Items column
+- Total Items calculation: Forms (buttons + inputs + outputVars), Reports (buttons + columns + params)
+
+**Files Modified**:
+- src/commands/pageListCommands.ts (lines 1216-1248): Updated savePagesToCSV() function
+  - Added 'Total Items' to headers array
+  - Added String(item.totalElements || 0) to row data array
+- todo.md: Removed completed task from page list view section
+
+**Testing Notes**:
+- Export now includes all 7 columns: Name, Type, Owner Object, Target Child Object, Report Type, Role Required, Total Items
+- Values match what's displayed in the table
+- Numeric values properly escaped for CSV format
+
+**Architecture Notes**:
+- CSV export now matches table display columns
+- Maintains consistency between UI and exported data
+- Completed review documented in docs/reviews/page-list-pages-tab-review.md
+
+---
+
 ## September 27, 2025 - User Stories View - Tabbed Interface Implementation
 
 **Command**: I would like to implement a tab design on this view. see the metrics analysis view for an example of this tab design

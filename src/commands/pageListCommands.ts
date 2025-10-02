@@ -1215,7 +1215,7 @@ function loadPageData(panel: vscode.WebviewPanel, modelService: ModelService, so
  */
 async function savePagesToCSV(items: any[], modelService: ModelService): Promise<string> {
     // Define CSV headers
-    const headers = ['Name', 'Type', 'Owner Object', 'Target Child Object', 'Report Type', 'Role Required'];
+    const headers = ['Name', 'Type', 'Owner Object', 'Target Child Object', 'Report Type', 'Role Required', 'Total Items'];
     
     // Create CSV content
     let csvContent = headers.join(',') + '\n';
@@ -1228,7 +1228,8 @@ async function savePagesToCSV(items: any[], modelService: ModelService): Promise
             item.ownerObject || '',
             item.targetChildObject || '',
             item.reportType || '',
-            item.roleRequired || ''
+            item.roleRequired || '',
+            String(item.totalElements || 0)
         ];
         
         // Escape and quote values that contain commas, quotes, or newlines

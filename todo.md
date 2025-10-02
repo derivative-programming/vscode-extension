@@ -6,21 +6,12 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
  
-  
-
-user stories list...
-- user story list
-  - refresh button processing overlay
-- user story details
-  - refresh button processing overlay
-- role distribution chart
-  - refresh button processing overlay
+   
 
 
 page list view...
 - convert role filter dropdown to checkbox list
 - copy fitlers section from firlst tab to all tabs
-- add 'total items' to the page list pages tab export
 
 
 metrics view history tab...
