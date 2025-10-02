@@ -1037,6 +1037,41 @@ function showUserStoriesView(context, modelService) {
             case 'showError':
                 vscode.window.showErrorMessage(message.data.message);
                 break;
+                
+            case 'refresh':
+                // Reload the user stories from the model
+                try {
+                    const rootModel = modelService.getCurrentModel();
+                    if (!rootModel || !rootModel.namespace || !Array.isArray(rootModel.namespace) || rootModel.namespace.length === 0) {
+                        panel.webview.postMessage({
+                            command: 'refreshError',
+                            data: { error: 'No namespaces found in the model.' }
+                        });
+                        return;
+                    }
+
+                    const firstNamespace = rootModel.namespace[0];
+                    const userStoryItems = (firstNamespace.userStory || []).map(item => ({
+                        name: item.name || "",
+                        storyNumber: item.storyNumber || "",
+                        storyText: item.storyText || "",
+                        isIgnored: item.isIgnored || "false",
+                        isStoryProcessed: item.isStoryProcessed || "false"
+                    }));
+
+                    // Send refreshed data back to webview
+                    panel.webview.postMessage({
+                        command: 'refreshComplete',
+                        data: { userStoryItems: userStoryItems }
+                    });
+                } catch (error) {
+                    console.error('[UserStoriesView] Error refreshing stories:', error);
+                    panel.webview.postMessage({
+                        command: 'refreshError',
+                        data: { error: 'Error refreshing stories: ' + error.message }
+                    });
+                }
+                break;
         }
     });
 }
@@ -1548,6 +1583,34 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
             line-height: 1.5;
         }
         
+        /* Spinner overlay */
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            border: 4px solid var(--vscode-progressBar-background);
+            border-top: 4px solid var(--vscode-progressBar-foreground);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
     </style>
 </head>
 <body>
@@ -1573,6 +1636,7 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
                     <input type="text" id="searchInput" placeholder="Filter user stories...">
                 </div>
                 <div>
+                    <button id="refreshStoriesButton" class="icon-button" title="Refresh Stories"><i class="codicon codicon-refresh"></i></button>
                     <button id="btnAddStory" class="icon-button" title="Add User Story"><i class="codicon codicon-add"></i></button>
                     <input type="file" id="csvFileInput" class="csv-input" accept=".csv">
                     <button id="btnUploadCsv" class="icon-button" title="Upload CSV"><i class="codicon codicon-cloud-upload"></i></button>
@@ -1610,6 +1674,9 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
                 <div class="search-container">
                     <span class="search-label">Search:</span>
                     <input type="text" id="detailsSearchInput" placeholder="Filter user story details...">
+                </div>
+                <div>
+                    <button id="refreshDetailsButton" class="icon-button" title="Refresh Details"><i class="codicon codicon-refresh"></i></button>
                 </div>
             </div>
             
@@ -1729,6 +1796,78 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
             
             // Track user story items for updates
             let userStoryItems = [];
+            
+            // Helper functions for spinner overlay
+            function showSpinner() {
+                const spinnerOverlay = document.getElementById("spinner-overlay");
+                if (spinnerOverlay) {
+                    spinnerOverlay.style.display = "flex";
+                }
+            }
+            
+            function hideSpinner() {
+                const spinnerOverlay = document.getElementById("spinner-overlay");
+                if (spinnerOverlay) {
+                    spinnerOverlay.style.display = "none";
+                }
+            }
+            
+            // Helper function to extract role from user story
+            function extractRoleFromUserStory(text) {
+                if (!text || typeof text !== "string") { return null; }
+                
+                // Remove extra spaces
+                const t = text.trim().replace(/\s+/g, " ");
+                
+                // Regex to extract role from: A [Role] wants to...
+                const re1 = /^A\s+\[?(\w+(?:\s+\w+)*)\]?\s+wants to/i;
+                // Regex to extract role from: As a [Role], I want to...
+                const re2 = /^As a\s+\[?(\w+(?:\s+\w+)*)\]?\s*,?\s*I want to/i;
+                
+                const match1 = re1.exec(t);
+                const match2 = re2.exec(t);
+                
+                if (match1) {
+                    return match1[1].trim();
+                } else if (match2) {
+                    return match2[1].trim();
+                }
+                
+                return null;
+            }
+            
+            // Helper function to extract action from user story
+            function extractActionFromUserStory(text) {
+                if (!text || typeof text !== "string") { return "unknown"; }
+                
+                const t = text.trim().replace(/\s+/g, " ");
+                
+                // Regex to extract action from: ...wants to [action]... (case insensitive)
+                const re1 = /wants to\s+(view all|view|add|create|update|edit|delete|remove)(?:\s+(?:a|an|all))?\s+/i;
+                const match1 = t.match(re1);
+                if (match1) { 
+                    const action = match1[1].toLowerCase();
+                    // Normalize action variants
+                    if (action === 'create') { return "add"; }
+                    if (action === 'edit') { return "update"; }
+                    if (action === 'remove') { return "delete"; }
+                    return action;
+                }
+                
+                // Regex to extract action from: ...I want to [action]... (case insensitive)
+                const re2 = /I want to\s+(view all|view|add|create|update|edit|delete|remove)(?:\s+(?:a|an|all))?\s+/i;
+                const match2 = t.match(re2);
+                if (match2) { 
+                    const action = match2[1].toLowerCase();
+                    // Normalize action variants
+                    if (action === 'create') { return "add"; }
+                    if (action === 'edit') { return "update"; }
+                    if (action === 'remove') { return "delete"; }
+                    return action;
+                }
+                
+                return "unknown";
+            }
             
             // Initialize tabs
             initializeTabs();
@@ -2305,40 +2444,75 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                 csvFileInput.click();
             });
             
+            // Handle refresh stories button
+            const refreshStoriesButton = document.getElementById('refreshStoriesButton');
+            if (refreshStoriesButton) {
+                refreshStoriesButton.addEventListener('click', () => {
+                    console.log('[UserStoriesView] Refreshing stories tab');
+                    showSpinner();
+                    vscode.postMessage({
+                        command: 'refresh'
+                    });
+                });
+            }
+            
+            // Handle refresh details button
+            const refreshDetailsButton = document.getElementById('refreshDetailsButton');
+            if (refreshDetailsButton) {
+                refreshDetailsButton.addEventListener('click', () => {
+                    console.log('[UserStoriesView] Refreshing details tab');
+                    showSpinner();
+                    vscode.postMessage({
+                        command: 'refresh'
+                    });
+                });
+            }
+            
             // Handle refresh role distribution button
             const refreshRoleDistributionButton = document.getElementById('refreshRoleDistributionButton');
             if (refreshRoleDistributionButton) {
                 refreshRoleDistributionButton.addEventListener('click', () => {
                     console.log('[UserStoriesView] Refreshing role distribution histogram');
                     
-                    // Recalculate distribution from current table state
-                    const currentUserStoryItems = [];
-                    if (table && table.querySelector('tbody')) {
-                        const rows = table.querySelectorAll('tbody tr');
-                        rows.forEach(row => {
-                            const cells = row.querySelectorAll('td');
-                            if (cells.length >= 2) {
-                                currentUserStoryItems.push({
-                                    storyNumber: cells[0].textContent.trim(),
-                                    storyText: cells[1].textContent.trim(),
-                                    isIgnored: cells[2] && cells[2].querySelector('input') ? 
-                                        cells[2].querySelector('input').checked ? "true" : "false" : "false"
+                    // Show spinner overlay
+                    showSpinner();
+                    
+                    // Use setTimeout to allow spinner to display before heavy calculation
+                    setTimeout(() => {
+                        try {
+                            // Recalculate distribution from current table state
+                            const currentUserStoryItems = [];
+                            if (table && table.querySelector('tbody')) {
+                                const rows = table.querySelectorAll('tbody tr');
+                                rows.forEach(row => {
+                                    const cells = row.querySelectorAll('td');
+                                    if (cells.length >= 2) {
+                                        currentUserStoryItems.push({
+                                            storyNumber: cells[0].textContent.trim(),
+                                            storyText: cells[1].textContent.trim(),
+                                            isIgnored: cells[2] && cells[2].querySelector('input') ? 
+                                                cells[2].querySelector('input').checked ? "true" : "false" : "false"
+                                        });
+                                    }
                                 });
                             }
-                        });
-                    }
-                    
-                    // Calculate new distribution
-                    const newDistribution = calculateRoleDistribution(currentUserStoryItems);
-                    
-                    // Update data attribute
-                    const analyticsTab = document.getElementById('analytics-tab');
-                    if (analyticsTab) {
-                        analyticsTab.setAttribute('data-role-distribution', JSON.stringify(newDistribution));
-                    }
-                    
-                    // Re-render histogram
-                    renderRoleDistributionHistogram();
+                            
+                            // Calculate new distribution
+                            const newDistribution = calculateRoleDistribution(currentUserStoryItems);
+                            
+                            // Update data attribute
+                            const analyticsTab = document.getElementById('analytics-tab');
+                            if (analyticsTab) {
+                                analyticsTab.setAttribute('data-role-distribution', JSON.stringify(newDistribution));
+                            }
+                            
+                            // Re-render histogram
+                            renderRoleDistributionHistogram();
+                        } finally {
+                            // Hide spinner after processing
+                            hideSpinner();
+                        }
+                    }, 50); // Small delay to ensure spinner shows
                 });
             }
             
@@ -2524,6 +2698,89 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                         }
                         break;
                         
+                    case 'refreshComplete': {
+                        // Hide spinner
+                        hideSpinner();
+                        
+                        // Update the table with refreshed data
+                        const allStories = message.data.userStoryItems;
+                        
+                        // Update local array
+                        userStoryItems = allStories;
+                        
+                        // Rebuild main table
+                        const tableBody = table.querySelector('tbody');
+                        tableBody.innerHTML = '';
+                        
+                        allStories.forEach((item, index) => {
+                            const row = document.createElement('tr');
+                            row.dataset.index = index;
+                            row.innerHTML = 
+                                '<td>' + (item.storyNumber || '') + '</td>' +
+                                '<td>' + (item.storyText || '') + '</td>' +
+                                '<td><input type="checkbox" class="isIgnoredCheckbox" data-index="' + index + '"' + 
+                                (item.isIgnored === "true" ? ' checked' : '') + '></td>';
+                            tableBody.appendChild(row);
+                        });
+                        
+                        // Rebuild details table
+                        if (detailsTable) {
+                            const detailsTableBody = detailsTable.querySelector('tbody');
+                            detailsTableBody.innerHTML = '';
+                            
+                            allStories.forEach((item, index) => {
+                                const detailsRow = document.createElement('tr');
+                                detailsRow.dataset.index = index;
+                                
+                                const role = item.storyText ? (extractRoleFromUserStory(item.storyText) || 'Unknown') : 'Unknown';
+                                const action = item.storyText ? extractActionFromUserStory(item.storyText) : 'unknown';
+                                
+                                detailsRow.innerHTML = 
+                                    '<td>' + (item.storyNumber || '') + '</td>' +
+                                    '<td>' + (item.storyText || '') + '</td>' +
+                                    '<td>' + role + '</td>' +
+                                    '<td>' + action + '</td>';
+                                detailsTableBody.appendChild(detailsRow);
+                            });
+                        }
+                        
+                        // Update role distribution data attribute
+                        const analyticsTab = document.getElementById('analytics-tab');
+                        if (analyticsTab) {
+                            const roleCount = new Map();
+                            allStories.forEach(item => {
+                                if (item.isIgnored === "true") return;
+                                const role = extractRoleFromUserStory(item.storyText);
+                                if (role && role !== 'Unknown') {
+                                    roleCount.set(role, (roleCount.get(role) || 0) + 1);
+                                }
+                            });
+                            const newDistribution = Array.from(roleCount.entries())
+                                .map(([role, count]) => ({ role, count }))
+                                .sort((a, b) => b.count - a.count);
+                            analyticsTab.setAttribute('data-role-distribution', JSON.stringify(newDistribution));
+                        }
+                        
+                        // Show success message
+                        messageContainer.innerHTML = '<div class="success-message">User stories refreshed successfully.</div>';
+                        setTimeout(() => {
+                            messageContainer.innerHTML = '';
+                        }, 3000);
+                        break;
+                    }
+                    
+                    case 'refreshError': {
+                        // Hide spinner
+                        hideSpinner();
+                        
+                        // Show error message
+                        messageContainer.innerHTML = '<div class="error-message">Failed to refresh: ' + message.data.error + '</div>';
+                        setTimeout(() => {
+                            messageContainer.innerHTML = '';
+                        }, 5000);
+                        break;
+                    }
+                        
                     case 'csvUploadResults': {
                         // Update the table with new data
                         const results = message.data.results;
@@ -2603,6 +2860,11 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
             });
         })();
     </script>
+    
+    <!-- Spinner overlay -->
+    <div id="spinner-overlay" class="spinner-overlay">
+        <div class="spinner"></div>
+    </div>
 </body>
 </html>`;
 }

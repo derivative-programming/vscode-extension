@@ -99,6 +99,34 @@ Implementation Details:
 - Tab button display text: "Role Distribution" (user-facing)
 - Tab data attribute: data-tab="analytics" (internal code reference)
 - No breaking changes to JavaScript code (still references 'analytics' tab internally)
+
+---
+
+**2025-10-02** - ✅ COMPLETED - **Feature**: "Review the user stories user journey view user stories tab refresh button. It shows a processing overlay on click. We want the same processing overlay on the role distribution tab refresh button" - Implemented spinner overlay for Role Distribution tab refresh button matching User Stories Journey view pattern. Added spinner-overlay CSS (position fixed, rgba background, flexbox center), spinner animation CSS (@keyframes spin), HTML overlay element with spinner div, showSpinner()/hideSpinner() helper functions, and wrapped refresh handler with spinner display using setTimeout for smooth UI updates.
+
+**Architecture Notes**:
+- Pattern copied from userStoriesJourneyView.js (lines 21-34)
+- CSS: spinner-overlay (fixed position, z-index 1000), spinner (40px, progressBar colors, 1s linear infinite rotation)
+- HTML: <div id="spinner-overlay"> before </body>
+- JavaScript: showSpinner() sets display="flex", hideSpinner() sets display="none"
+- Refresh handler: showSpinner() → setTimeout(50ms) → calculate/render → finally hideSpinner()
+- setTimeout ensures spinner displays before heavy calculation blocks UI thread
+- Try-finally pattern ensures spinner always hides even if errors occur
+
+---
+
+**2025-10-02** - ✅ COMPLETED - **Feature**: "Let's add a refresh button on the stories tab and details tab too" - Added refresh buttons to Stories and Details tabs with full server-side refresh implementation. Created new 'refresh' command that reloads user stories from ModelService, refreshes all three tab tables (Stories, Details, Role Distribution), and updates role distribution data attribute. Added refreshStoriesButton and refreshDetailsButton HTML elements, event handlers with spinner overlay, extension-side 'refresh' command handler (lines 1042-1074), and webview message handlers for 'refreshComplete' and 'refreshError' (lines 2647-2717).
+
+**Architecture Notes**:
+- Stories tab: Added refresh button before Add button in btn-container
+- Details tab: Added refresh button in new div within btn-container
+- Both buttons use codicon-refresh icon, consistent styling
+- Click handler: showSpinner() → postMessage('refresh') → waits for response
+- Extension handler: Reloads from ModelService.getCurrentModel() → sends refreshComplete with userStoryItems
+- Webview handler: Updates all 3 tables (Stories, Details, Role Distribution), recalculates distribution, hides spinner, shows success message
+- Error handling: refreshError case displays error message and hides spinner
+- Full page refresh pattern: All tabs get fresh data from model, not just DOM manipulation
+- Role distribution recalculated client-side using same logic as server-side generation
 - CSV functionality includes proper escaping and timestamped filenames
 - Real-time search filtering on both story number and text
 - Checkbox-based ignore functionality with immediate model updates
