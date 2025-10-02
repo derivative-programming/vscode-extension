@@ -10,7 +10,6 @@ common types of graphs...
 
 
 page list view...
-- convert role filter dropdown to checkbox list
 - copy fitlers section from firlst tab to all tabs
 
 

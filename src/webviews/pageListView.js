@@ -20,6 +20,9 @@ let filterOptions = {
     rolesRequired: []
 };
 
+// Keep track of selected roles for filtering (Set for efficient lookup)
+let selectedRoles = new Set();
+
 // Initialize tab functionality
 function initializeTabs() {
     const tabs = document.querySelectorAll('.tab');
@@ -110,7 +113,6 @@ function applyFilters() {
     const reportTypeFilter = document.getElementById('filterReportType')?.value || '';
     const ownerObjectFilter = document.getElementById('filterOwnerObject')?.value.toLowerCase() || '';
     const targetChildObjectFilter = document.getElementById('filterTargetChildObject')?.value.toLowerCase() || '';
-    const roleRequiredFilter = document.getElementById('filterRoleRequired')?.value || '';
     
     let filteredItems = allItems.filter(item => {
         const matchesName = !nameFilter || (item.name || '').toLowerCase().includes(nameFilter);
@@ -119,7 +121,9 @@ function applyFilters() {
         const matchesReportType = !reportTypeFilter || item.reportType === reportTypeFilter;
         const matchesOwnerObject = !ownerObjectFilter || (item.ownerObject || '').toLowerCase().includes(ownerObjectFilter);
         const matchesTargetChildObject = !targetChildObjectFilter || (item.targetChildObject || '').toLowerCase().includes(targetChildObjectFilter);
-        const matchesRoleRequired = !roleRequiredFilter || item.roleRequired === roleRequiredFilter;
+        
+        // Check if item's role is in the selected roles set (if no roles selected, show all)
+        const matchesRoleRequired = selectedRoles.size === 0 || selectedRoles.has(item.roleRequired);
         
         return matchesName && matchesTitle && matchesType && matchesReportType && matchesOwnerObject && matchesTargetChildObject && matchesRoleRequired;
     });
@@ -141,7 +145,13 @@ function clearFilters() {
     document.getElementById('filterReportType').value = '';
     document.getElementById('filterOwnerObject').value = '';
     document.getElementById('filterTargetChildObject').value = '';
-    document.getElementById('filterRoleRequired').value = '';
+    
+    // Clear role checkboxes and reset selected roles
+    selectedRoles.clear();
+    const roleCheckboxes = document.querySelectorAll('.role-checkbox-item input[type="checkbox"]');
+    roleCheckboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
     
     // Reset to show all items
     pageData.items = allItems.slice();
@@ -167,19 +177,53 @@ function extractFilterOptions() {
 
 // Populate filter dropdown options
 function populateFilterDropdowns() {
-    // Populate role required dropdown
-    const roleRequiredSelect = document.getElementById('filterRoleRequired');
-    if (roleRequiredSelect) {
-        // Clear existing options except "All Roles"
-        roleRequiredSelect.innerHTML = '<option value="">All Roles</option>';
+    // Populate role required checkboxes
+    const roleRequiredContainer = document.getElementById('filterRoleRequired');
+    if (roleRequiredContainer) {
+        // Clear existing checkboxes
+        roleRequiredContainer.innerHTML = '';
+        
+        // Reset selected roles (start with all roles selected)
+        selectedRoles.clear();
         
         filterOptions.rolesRequired.forEach(role => {
-            const option = document.createElement('option');
-            option.value = role;
-            option.textContent = role;
-            roleRequiredSelect.appendChild(option);
+            const roleItem = document.createElement('div');
+            roleItem.className = 'role-checkbox-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = 'role-' + role;
+            checkbox.value = role;
+            checkbox.checked = true; // Check all by default
+            checkbox.addEventListener('change', handleRoleFilterChange);
+            
+            const label = document.createElement('label');
+            label.htmlFor = 'role-' + role;
+            label.textContent = role;
+            
+            roleItem.appendChild(checkbox);
+            roleItem.appendChild(label);
+            roleRequiredContainer.appendChild(roleItem);
+            
+            // Add to selected roles (all selected by default)
+            selectedRoles.add(role);
         });
     }
+}
+
+// Handle role filter checkbox change
+function handleRoleFilterChange(event) {
+    const checkbox = event.target;
+    const role = checkbox.value;
+    
+    if (checkbox.checked) {
+        selectedRoles.add(role);
+    } else {
+        selectedRoles.delete(role);
+    }
+    
+    // Apply filters with new role selection
+    applyFilters();
 }
 
 // Render the table
@@ -343,8 +387,8 @@ function renderRecordInfo() {
 
 // Setup filter event listeners
 function setupFilterEventListeners() {
-    // Add event listeners for filter inputs
-    const filterInputs = ['filterName', 'filterTitle', 'filterType', 'filterReportType', 'filterOwnerObject', 'filterTargetChildObject', 'filterRoleRequired'];
+    // Add event listeners for filter inputs (removed filterRoleRequired as it's now checkboxes)
+    const filterInputs = ['filterName', 'filterTitle', 'filterType', 'filterReportType', 'filterOwnerObject', 'filterTargetChildObject'];
     
     filterInputs.forEach(id => {
         const element = document.getElementById(id);

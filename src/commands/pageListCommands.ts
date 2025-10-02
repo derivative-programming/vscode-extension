@@ -422,6 +422,33 @@ export function registerPageListCommands(
                             outline: 1px solid var(--vscode-focusBorder);
                             outline-offset: -1px;
                         }
+                        .filter-group-roles {
+                            flex: 1 1 100%;
+                            max-width: 100%;
+                        }
+                        .role-filter-checkboxes {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 12px;
+                            padding: 8px 0;
+                        }
+                        .role-checkbox-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            font-size: 12px;
+                            cursor: pointer;
+                            min-width: 120px;
+                        }
+                        .role-checkbox-item input[type="checkbox"] {
+                            margin: 0;
+                            cursor: pointer;
+                        }
+                        .role-checkbox-item label {
+                            cursor: pointer;
+                            color: var(--vscode-editor-foreground);
+                            user-select: none;
+                        }
                         .filter-actions {
                             display: flex;
                             gap: 10px;
@@ -749,11 +776,9 @@ export function registerPageListCommands(
                                 </div>
                             </div>
                             <div class="filter-row">
-                                <div class="filter-group">
+                                <div class="filter-group filter-group-roles">
                                     <label>Role Required:</label>
-                                    <select id="filterRoleRequired">
-                                        <option value="">All Roles</option>
-                                    </select>
+                                    <div id="filterRoleRequired" class="role-filter-checkboxes"></div>
                                 </div>
                             </div>
                             <div class="filter-actions">
