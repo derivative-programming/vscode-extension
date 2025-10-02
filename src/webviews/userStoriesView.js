@@ -1004,6 +1004,39 @@ function showUserStoriesView(context, modelService) {
                     vscode.window.showErrorMessage('Failed to save CSV to workspace: ' + error.message);
                 }
                 break;
+                
+            case 'saveRoleDistributionPng':
+                try {
+                    const fs = require('fs');
+                    const path = require('path');
+                    // Use the actual workspace root, not extensionPath
+                    const workspaceFolders = vscode.workspace.workspaceFolders;
+                    if (!workspaceFolders || workspaceFolders.length === 0) {
+                        throw new Error('No workspace folder is open');
+                    }
+                    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                    const reportDir = path.join(workspaceRoot, 'user_story_reports');
+                    if (!fs.existsSync(reportDir)) {
+                        fs.mkdirSync(reportDir, { recursive: true });
+                    }
+                    const filePath = path.join(reportDir, message.data.filename);
+                    
+                    // Convert base64 to buffer and save
+                    const base64Data = message.data.pngData.replace(/^data:image\/png;base64,/, '');
+                    const buffer = Buffer.from(base64Data, 'base64');
+                    fs.writeFileSync(filePath, buffer);
+                    
+                    vscode.window.showInformationMessage('PNG file saved to workspace: ' + filePath);
+                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+                } catch (error) {
+                    console.error('Error saving PNG to workspace:', error);
+                    vscode.window.showErrorMessage('Failed to save PNG to workspace: ' + error.message);
+                }
+                break;
+                
+            case 'showError':
+                vscode.window.showErrorMessage(message.data.message);
+                break;
         }
     });
 }
@@ -1400,6 +1433,121 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
             color: var(--vscode-foreground);
         }
         
+        /* Role Distribution Histogram Styles */
+        .histogram-container {
+            padding: 20px;
+            background: var(--vscode-editor-background);
+        }
+
+        .histogram-header {
+            margin-bottom: 20px;
+        }
+
+        .histogram-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .histogram-title {
+            flex: 1;
+        }
+
+        .histogram-title h3 {
+            margin: 0 0 5px 0;
+            color: var(--vscode-foreground);
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .histogram-title p {
+            margin: 0;
+            color: var(--vscode-descriptionForeground);
+            font-size: 13px;
+        }
+
+        .histogram-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .histogram-refresh-button {
+            background: none !important;
+        }
+
+        .histogram-viz {
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: var(--vscode-editor-background);
+        }
+
+        .histogram-viz.hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+        }
+
+        .loading.hidden {
+            display: none;
+        }
+
+        /* Role Distribution Summary Stats */
+        .role-distribution-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--vscode-editor-inactiveSelectionBackground);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            color: var(--vscode-foreground);
+            font-weight: 600;
+        }
+
+        /* Histogram tooltip */
+        .role-distribution-tooltip {
+            position: absolute;
+            background: var(--vscode-editorHoverWidget-background);
+            border: 1px solid var(--vscode-editorHoverWidget-border);
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 12px;
+            color: var(--vscode-editorHoverWidget-foreground);
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            line-height: 1.5;
+        }
+        
     </style>
 </head>
 <body>
@@ -1411,7 +1559,7 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
     <div class="tabs">
         <button class="tab active" data-tab="stories">Stories</button>
         <button class="tab" data-tab="details">Details</button>
-        <button class="tab" data-tab="analytics">Analytics</button>
+        <button class="tab" data-tab="analytics">Role Distribution</button>
     </div>
     
     <div id="stories-tab" class="tab-content active">
@@ -1492,20 +1640,60 @@ function createHtmlContent(userStoryItems, errorMessage = null) {
         </div>
     </div>
     
-    <div id="analytics-tab" class="tab-content">
-        <div class="empty-state">
-            <h3>Analytics Coming Soon</h3>
-            <p>Advanced user story analytics and insights will be available in this section.</p>
-            <p><strong>Planned Features:</strong></p>
-            <ul style="text-align: left; max-width: 500px; margin: 20px auto;">
-                <li>Story completion metrics and progress tracking</li>
-                <li>Role-based story distribution analysis</li>
-                <li>Data object coverage by user stories</li>
-                <li>Story complexity and effort estimation</li>
-                <li>Action type distribution (view, add, update, delete)</li>
-                <li>Story dependency mapping and relationships</li>
-                <li>Quality assurance status and validation metrics</li>
-            </ul>
+    <div id="analytics-tab" class="tab-content" data-role-distribution='${JSON.stringify((() => {
+        // Calculate role distribution during HTML generation (server-side)
+        const roleCount = new Map();
+        userStoryItems.forEach(item => {
+            // Skip ignored stories
+            if (item.isIgnored === "true") {
+                return;
+            }
+            const role = extractRoleFromUserStory(item.storyText);
+            if (role && role !== 'Unknown') {
+                const currentCount = roleCount.get(role) || 0;
+                roleCount.set(role, currentCount + 1);
+            }
+        });
+        // Convert to array and sort by count (descending)
+        return Array.from(roleCount.entries())
+            .map(([role, count]) => ({ role, count }))
+            .sort((a, b) => b.count - a.count);
+    })())}'>
+        <div class="histogram-container">
+            <div class="histogram-header">
+                <div class="histogram-header-content">
+                    <div class="histogram-title">
+                        <h3>Role Distribution</h3>
+                        <p>Distribution of user stories across roles</p>
+                    </div>
+                    <div class="histogram-actions">
+                        <button id="refreshRoleDistributionButton" class="icon-button histogram-refresh-button" title="Refresh Histogram">
+                            <i class="codicon codicon-refresh"></i>
+                        </button>
+                        <button id="generateRoleDistributionPngBtn" class="icon-button" title="Export as PNG">
+                            <i class="codicon codicon-device-camera"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="role-distribution-loading" class="loading">Loading role distribution...</div>
+            <div id="role-distribution-visualization" class="histogram-viz hidden"></div>
+            <div class="role-distribution-summary">
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Roles:</span>
+                        <span class="stat-value" id="totalRolesCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Stories:</span>
+                        <span class="stat-value" id="totalStoriesCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Avg Stories/Role:</span>
+                        <span class="stat-value" id="avgStoriesPerRole">0.0</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -1534,9 +1722,13 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
         </div>
     </div>
     
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
         (function() {
             const vscode = acquireVsCodeApi();
+            
+            // Track user story items for updates
+            let userStoryItems = [];
             
             // Initialize tabs
             initializeTabs();
@@ -1579,6 +1771,275 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                 // Add active class to selected tab and content
                 document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
                 document.getElementById(tabName + '-tab').classList.add('active');
+                
+                // Render role distribution histogram when Analytics tab is selected
+                if (tabName === 'analytics') {
+                    renderRoleDistributionHistogram();
+                }
+            }
+            
+            // Calculate role distribution from user story items
+            function calculateRoleDistribution(userStoryItems) {
+                const roleCount = new Map();
+                
+                // Count stories per role
+                userStoryItems.forEach(item => {
+                    // Skip ignored stories
+                    if (item.isIgnored === "true") {
+                        return;
+                    }
+                    const role = extractRoleFromUserStory(item.storyText);
+                    if (role && role !== 'Unknown') {
+                        const currentCount = roleCount.get(role) || 0;
+                        roleCount.set(role, currentCount + 1);
+                    }
+                });
+                
+                // Convert to array and sort by count (descending)
+                const distribution = Array.from(roleCount.entries())
+                    .map(([role, count]) => ({ role, count }))
+                    .sort((a, b) => b.count - a.count);
+                
+                return distribution;
+            }
+            
+            // Get bar color based on percentage of max count
+            function getBarColor(count, maxCount) {
+                const percentage = (count / maxCount) * 100;
+                if (percentage >= 50) return '#d73a49';  // Red - Very High
+                if (percentage >= 30) return '#f66a0a';  // Orange - High
+                if (percentage >= 15) return '#28a745';  // Green - Medium
+                return '#6c757d';  // Gray - Low
+            }
+            
+            // Update summary statistics
+            function updateSummaryStats(distribution) {
+                const totalRolesCount = document.getElementById('totalRolesCount');
+                const totalStoriesCount = document.getElementById('totalStoriesCount');
+                const avgStoriesPerRole = document.getElementById('avgStoriesPerRole');
+                
+                if (totalRolesCount && totalStoriesCount && avgStoriesPerRole) {
+                    const totalRoles = distribution.length;
+                    const totalStories = distribution.reduce((sum, d) => sum + d.count, 0);
+                    const avgStories = totalRoles > 0 ? (totalStories / totalRoles).toFixed(1) : '0.0';
+                    
+                    totalRolesCount.textContent = totalRoles;
+                    totalStoriesCount.textContent = totalStories;
+                    avgStoriesPerRole.textContent = avgStories;
+                }
+            }
+            
+            // Render role distribution histogram using D3.js
+            function renderRoleDistributionHistogram() {
+                console.log('[UserStoriesView] Rendering role distribution histogram');
+                
+                const visualization = document.getElementById('role-distribution-visualization');
+                const loading = document.getElementById('role-distribution-loading');
+                const analyticsTab = document.getElementById('analytics-tab');
+                
+                if (!visualization || !loading || !analyticsTab) {
+                    console.error('[UserStoriesView] Histogram elements not found');
+                    return;
+                }
+                
+                // Get pre-calculated distribution from data attribute (server-side generated)
+                let distribution = [];
+                try {
+                    const distributionData = analyticsTab.getAttribute('data-role-distribution');
+                    if (distributionData) {
+                        distribution = JSON.parse(distributionData);
+                    }
+                } catch (error) {
+                    console.error('[UserStoriesView] Error parsing role distribution data:', error);
+                    loading.innerHTML = 'Error loading role distribution data';
+                    return;
+                }
+                
+                if (distribution.length === 0) {
+                    loading.innerHTML = 'No user story data available';
+                    return;
+                }
+                
+                // Hide loading, show visualization
+                loading.classList.add('hidden');
+                visualization.classList.remove('hidden');
+                
+                // Clear previous content
+                visualization.innerHTML = '';
+                
+                // Update summary stats
+                updateSummaryStats(distribution);
+                
+                // Setup dimensions
+                const margin = {top: 20, right: 20, bottom: 80, left: 60};
+                const width = 700 - margin.left - margin.right;
+                const height = 400 - margin.top - margin.bottom;
+                
+                // Create SVG
+                const svg = d3.select(visualization)
+                    .append('svg')
+                    .attr('width', width + margin.left + margin.right)
+                    .attr('height', height + margin.top + margin.bottom)
+                    .style('background', 'var(--vscode-editor-background)');
+                
+                const g = svg.append('g')
+                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                
+                // Extract data
+                const roles = distribution.map(d => d.role);
+                const counts = distribution.map(d => d.count);
+                const maxCount = Math.max(...counts);
+                const totalStories = counts.reduce((sum, count) => sum + count, 0);
+                
+                // Setup scales
+                const xScale = d3.scaleBand()
+                    .domain(roles)
+                    .range([0, width])
+                    .padding(0.2);
+                
+                const yScale = d3.scaleLinear()
+                    .domain([0, Math.max(...counts)])
+                    .range([height, 0])
+                    .nice();
+                
+                // Create tooltip
+                const tooltip = d3.select('body').append('div')
+                    .attr('class', 'role-distribution-tooltip')
+                    .style('opacity', 0);
+                
+                // Add bars
+                g.selectAll('.role-bar')
+                    .data(distribution)
+                    .enter()
+                    .append('rect')
+                    .attr('class', 'role-bar')
+                    .attr('x', d => xScale(d.role))
+                    .attr('y', d => yScale(d.count))
+                    .attr('width', xScale.bandwidth())
+                    .attr('height', d => height - yScale(d.count))
+                    .attr('fill', d => getBarColor(d.count, maxCount))
+                    .attr('stroke', 'var(--vscode-panel-border)')
+                    .attr('stroke-width', 1)
+                    .style('cursor', 'pointer')
+                    .on('mouseover', function(event, d) {
+                        const percentage = ((d.count / totalStories) * 100).toFixed(1);
+                        
+                        d3.select(this)
+                            .attr('opacity', 0.8);
+                        
+                        tooltip.transition()
+                            .duration(200)
+                            .style('opacity', 0.95);
+                        tooltip.html(
+                            '<strong>' + d.role + '</strong><br/>' +
+                            'Stories: <strong>' + d.count + '</strong><br/>' +
+                            'Percentage: <strong>' + percentage + '%</strong>'
+                        )
+                            .style('left', (event.pageX + 10) + 'px')
+                            .style('top', (event.pageY - 28) + 'px');
+                    })
+                    .on('mouseout', function(d) {
+                        d3.select(this)
+                            .attr('opacity', 1);
+                        
+                        tooltip.transition()
+                            .duration(500)
+                            .style('opacity', 0);
+                    });
+                
+                // Add value labels on top of bars
+                g.selectAll('.bar-label')
+                    .data(distribution)
+                    .enter()
+                    .append('text')
+                    .attr('class', 'bar-label')
+                    .attr('x', d => xScale(d.role) + xScale.bandwidth() / 2)
+                    .attr('y', d => yScale(d.count) - 5)
+                    .attr('text-anchor', 'middle')
+                    .text(d => d.count)
+                    .attr('fill', 'var(--vscode-editor-foreground)')
+                    .attr('font-size', '12px')
+                    .attr('font-weight', 'bold');
+                
+                // Add X axis
+                g.append('g')
+                    .attr('transform', 'translate(0,' + height + ')')
+                    .call(d3.axisBottom(xScale))
+                    .selectAll('text')
+                    .style('text-anchor', 'end')
+                    .attr('dx', '-.8em')
+                    .attr('dy', '.15em')
+                    .attr('transform', 'rotate(-45)')
+                    .attr('fill', 'var(--vscode-editor-foreground)')
+                    .style('font-size', '11px');
+                
+                // Add Y axis
+                g.append('g')
+                    .call(d3.axisLeft(yScale).ticks(5))
+                    .selectAll('text')
+                    .attr('fill', 'var(--vscode-editor-foreground)');
+                
+                // Add Y axis label
+                g.append('text')
+                    .attr('transform', 'rotate(-90)')
+                    .attr('y', 0 - margin.left)
+                    .attr('x', 0 - (height / 2))
+                    .attr('dy', '1em')
+                    .style('text-anchor', 'middle')
+                    .style('fill', 'var(--vscode-editor-foreground)')
+                    .style('font-size', '12px')
+                    .text('Number of User Stories');
+                
+                // Style axis lines
+                g.selectAll('.domain, .tick line')
+                    .attr('stroke', 'var(--vscode-panel-border)');
+                
+                console.log('[UserStoriesView] Role distribution histogram rendered with ' + distribution.length + ' roles');
+            }
+            
+            // Generate PNG export of role distribution histogram
+            function generateRoleDistributionPNG() {
+                const svgElement = document.querySelector('#role-distribution-visualization svg');
+                if (!svgElement) {
+                    console.error('No SVG found for PNG export');
+                    vscode.postMessage({
+                        command: 'showError',
+                        data: { message: 'No histogram visualization found to export' }
+                    });
+                    return;
+                }
+                
+                // Convert SVG to canvas and then to PNG
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const data = (new XMLSerializer()).serializeToString(svgElement);
+                const DOMURL = window.URL || window.webkitURL || window;
+                
+                const img = new Image();
+                const svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+                const url = DOMURL.createObjectURL(svgBlob);
+                
+                img.onload = function () {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    DOMURL.revokeObjectURL(url);
+                    
+                    const pngData = canvas.toDataURL('image/png');
+                    
+                    // Send PNG data to extension for saving
+                    vscode.postMessage({
+                        command: 'saveRoleDistributionPng',
+                        data: { 
+                            pngData: pngData,
+                            filename: 'user-stories-role-distribution.png'
+                        }
+                    });
+                };
+                
+                img.src = url;
             }
             
             // Ensure required elements exist before proceeding
@@ -1610,6 +2071,13 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                     }
                     return null;
                 }).filter(item => item !== null);
+                
+                // Also populate userStoryItems for role distribution
+                userStoryItems = tableData.map(item => ({
+                    storyNumber: item.storyNumber,
+                    storyText: item.storyText,
+                    isIgnored: item.isIgnored
+                }));
             }
             
             // Table sorting functionality
@@ -1836,6 +2304,52 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
             btnUploadCsv.addEventListener('click', () => {
                 csvFileInput.click();
             });
+            
+            // Handle refresh role distribution button
+            const refreshRoleDistributionButton = document.getElementById('refreshRoleDistributionButton');
+            if (refreshRoleDistributionButton) {
+                refreshRoleDistributionButton.addEventListener('click', () => {
+                    console.log('[UserStoriesView] Refreshing role distribution histogram');
+                    
+                    // Recalculate distribution from current table state
+                    const currentUserStoryItems = [];
+                    if (table && table.querySelector('tbody')) {
+                        const rows = table.querySelectorAll('tbody tr');
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            if (cells.length >= 2) {
+                                currentUserStoryItems.push({
+                                    storyNumber: cells[0].textContent.trim(),
+                                    storyText: cells[1].textContent.trim(),
+                                    isIgnored: cells[2] && cells[2].querySelector('input') ? 
+                                        cells[2].querySelector('input').checked ? "true" : "false" : "false"
+                                });
+                            }
+                        });
+                    }
+                    
+                    // Calculate new distribution
+                    const newDistribution = calculateRoleDistribution(currentUserStoryItems);
+                    
+                    // Update data attribute
+                    const analyticsTab = document.getElementById('analytics-tab');
+                    if (analyticsTab) {
+                        analyticsTab.setAttribute('data-role-distribution', JSON.stringify(newDistribution));
+                    }
+                    
+                    // Re-render histogram
+                    renderRoleDistributionHistogram();
+                });
+            }
+            
+            // Handle PNG export button for role distribution
+            const generateRoleDistributionPngBtn = document.getElementById('generateRoleDistributionPngBtn');
+            if (generateRoleDistributionPngBtn) {
+                generateRoleDistributionPngBtn.addEventListener('click', () => {
+                    console.log('[UserStoriesView] Generating role distribution PNG');
+                    generateRoleDistributionPNG();
+                });
+            }
             
             // Handle CSV file selection
             csvFileInput.addEventListener('change', (event) => {

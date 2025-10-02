@@ -9,7 +9,12 @@ common types of graphs...
   
 
 user stories list...
+- user story list
+  - refresh button processing overlay
+- user story details
+  - refresh button processing overlay
 - role distribution chart
+  - refresh button processing overlay
 
 
 page list view...
