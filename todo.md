@@ -5,12 +5,11 @@ common types of graphs...
 - pie chart (each slice is a category, shows how many items are in each category)
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
- 
-   
 
+Analysis treeview item...
+- stories
+- pages
 
-page list view...
-- copy fitlers section from firlst tab to all tabs
 
 
 metrics view history tab...

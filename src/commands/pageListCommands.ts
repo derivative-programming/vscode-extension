@@ -810,6 +810,61 @@ export function registerPageListCommands(
                     </div>
                     
                     <div id="visualization-tab" class="tab-content">
+                        <div class="filter-section">
+                        <div class="filter-header" onclick="toggleFilterSection()">
+                            <span class="codicon codicon-chevron-down" id="filterChevronVisualization"></span>
+                            <span>Filters</span>
+                        </div>
+                        <div class="filter-content" id="filterContentVisualization">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Name:</label>
+                                    <input type="text" id="filterNameVisualization" placeholder="Filter by name...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Title:</label>
+                                    <input type="text" id="filterTitleVisualization" placeholder="Filter by title...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Type:</label>
+                                    <select id="filterTypeVisualization">
+                                        <option value="">All Types</option>
+                                        <option value="Form">Form</option>
+                                        <option value="Report">Report</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Report Type:</label>
+                                    <select id="filterReportTypeVisualization">
+                                        <option value="">All Report Types</option>
+                                        <option value="Grid">Grid</option>
+                                        <option value="Three Column">Three Column</option>
+                                        <option value="Navigation">Navigation</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Owner Object:</label>
+                                    <input type="text" id="filterOwnerObjectVisualization" placeholder="Filter by owner object...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Target Child Object:</label>
+                                    <input type="text" id="filterTargetChildObjectVisualization" placeholder="Filter by target child object...">
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group filter-group-roles">
+                                    <label>Role Required:</label>
+                                    <div id="filterRoleRequiredVisualization" class="role-filter-checkboxes"></div>
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+                    
                         <div class="treemap-container">
                             <div class="treemap-header">
                                 <div class="treemap-header-content">
@@ -852,6 +907,61 @@ export function registerPageListCommands(
                     </div>
                     
                     <div id="distribution-tab" class="tab-content">
+                        <div class="filter-section">
+                        <div class="filter-header" onclick="toggleFilterSection()">
+                            <span class="codicon codicon-chevron-down" id="filterChevronDistribution"></span>
+                            <span>Filters</span>
+                        </div>
+                        <div class="filter-content" id="filterContentDistribution">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Name:</label>
+                                    <input type="text" id="filterNameDistribution" placeholder="Filter by name...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Title:</label>
+                                    <input type="text" id="filterTitleDistribution" placeholder="Filter by title...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Type:</label>
+                                    <select id="filterTypeDistribution">
+                                        <option value="">All Types</option>
+                                        <option value="Form">Form</option>
+                                        <option value="Report">Report</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Report Type:</label>
+                                    <select id="filterReportTypeDistribution">
+                                        <option value="">All Report Types</option>
+                                        <option value="Grid">Grid</option>
+                                        <option value="Three Column">Three Column</option>
+                                        <option value="Navigation">Navigation</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Owner Object:</label>
+                                    <input type="text" id="filterOwnerObjectDistribution" placeholder="Filter by owner object...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Target Child Object:</label>
+                                    <input type="text" id="filterTargetChildObjectDistribution" placeholder="Filter by target child object...">
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group filter-group-roles">
+                                    <label>Role Required:</label>
+                                    <div id="filterRoleRequiredDistribution" class="role-filter-checkboxes"></div>
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+                    
                         <div class="histogram-container">
                             <div class="histogram-header">
                                 <div class="histogram-header-content">

@@ -35,8 +35,54 @@ function initializeTabs() {
     });
 }
 
+// Sync filter values across all tabs
+function syncFilterValues() {
+    // Get values from the pages tab (base filters)
+    const baseValues = {
+        name: document.getElementById('filterName')?.value || '',
+        title: document.getElementById('filterTitle')?.value || '',
+        type: document.getElementById('filterType')?.value || '',
+        reportType: document.getElementById('filterReportType')?.value || '',
+        ownerObject: document.getElementById('filterOwnerObject')?.value || '',
+        targetChildObject: document.getElementById('filterTargetChildObject')?.value || ''
+    };
+    
+    // Sync to visualization tab
+    const nameViz = document.getElementById('filterNameVisualization');
+    const titleViz = document.getElementById('filterTitleVisualization');
+    const typeViz = document.getElementById('filterTypeVisualization');
+    const reportTypeViz = document.getElementById('filterReportTypeVisualization');
+    const ownerObjectViz = document.getElementById('filterOwnerObjectVisualization');
+    const targetChildObjectViz = document.getElementById('filterTargetChildObjectVisualization');
+    
+    if (nameViz) { nameViz.value = baseValues.name; }
+    if (titleViz) { titleViz.value = baseValues.title; }
+    if (typeViz) { typeViz.value = baseValues.type; }
+    if (reportTypeViz) { reportTypeViz.value = baseValues.reportType; }
+    if (ownerObjectViz) { ownerObjectViz.value = baseValues.ownerObject; }
+    if (targetChildObjectViz) { targetChildObjectViz.value = baseValues.targetChildObject; }
+    
+    // Sync to distribution tab
+    const nameDist = document.getElementById('filterNameDistribution');
+    const titleDist = document.getElementById('filterTitleDistribution');
+    const typeDist = document.getElementById('filterTypeDistribution');
+    const reportTypeDist = document.getElementById('filterReportTypeDistribution');
+    const ownerObjectDist = document.getElementById('filterOwnerObjectDistribution');
+    const targetChildObjectDist = document.getElementById('filterTargetChildObjectDistribution');
+    
+    if (nameDist) { nameDist.value = baseValues.name; }
+    if (titleDist) { titleDist.value = baseValues.title; }
+    if (typeDist) { typeDist.value = baseValues.type; }
+    if (reportTypeDist) { reportTypeDist.value = baseValues.reportType; }
+    if (ownerObjectDist) { ownerObjectDist.value = baseValues.ownerObject; }
+    if (targetChildObjectDist) { targetChildObjectDist.value = baseValues.targetChildObject; }
+}
+
 // Switch between tabs
 function switchTab(tabName) {
+    // Sync filter values before switching
+    syncFilterValues();
+    
     // Remove active class from all tabs and content
     document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -45,11 +91,11 @@ function switchTab(tabName) {
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(`${tabName}-tab`).classList.add('active');
     
-    // Load visualization data when switching to visualization tab
+    // Apply filters and load visualization data when switching to visualization tab
     if (tabName === 'visualization' && allItems.length > 0) {
-        renderPageTreemap();
+        applyFilters(); // This will render treemap with filtered data
     } else if (tabName === 'distribution' && allItems.length > 0) {
-        renderPageHistogram();
+        applyFilters(); // This will render histogram with filtered data
     }
 }
 
@@ -86,9 +132,17 @@ function hideSpinner() {
 }
 
 // Toggle filter section visibility (global function for onclick)
-function toggleFilterSection() {
-    const filterContent = document.getElementById('filterContent');
-    const chevron = document.getElementById('filterChevron');
+function toggleFilterSection(event) {
+    // Get the clicked filter header element
+    const filterHeader = event?.target?.closest?.('.filter-header') || event?.currentTarget || document.querySelector('.filter-header');
+    if (!filterHeader) {
+        return;
+    }
+    
+    // Find the corresponding filter content and chevron within the same parent
+    const filterSection = filterHeader.parentElement;
+    const filterContent = filterSection.querySelector('.filter-content');
+    const chevron = filterHeader.querySelector('[id^="filterChevron"]');
     
     if (filterContent && chevron) {
         const isCollapsed = filterContent.classList.contains('collapsed');
@@ -105,22 +159,40 @@ function toggleFilterSection() {
     }
 }
 
+// Get filter values based on current active tab
+function getActiveFilters() {
+    // Determine which tab is active
+    const activeTab = document.querySelector('.tab-content.active');
+    const tabId = activeTab?.id || 'pages-tab';
+    
+    let suffix = '';
+    if (tabId === 'visualization-tab') {
+        suffix = 'Visualization';
+    } else if (tabId === 'distribution-tab') {
+        suffix = 'Distribution';
+    }
+    
+    return {
+        name: document.getElementById('filterName' + suffix)?.value.toLowerCase() || '',
+        title: document.getElementById('filterTitle' + suffix)?.value.toLowerCase() || '',
+        type: document.getElementById('filterType' + suffix)?.value || '',
+        reportType: document.getElementById('filterReportType' + suffix)?.value || '',
+        ownerObject: document.getElementById('filterOwnerObject' + suffix)?.value.toLowerCase() || '',
+        targetChildObject: document.getElementById('filterTargetChildObject' + suffix)?.value.toLowerCase() || ''
+    };
+}
+
 // Apply filters to the data (global function for onclick)
 function applyFilters() {
-    const nameFilter = document.getElementById('filterName')?.value.toLowerCase() || '';
-    const titleFilter = document.getElementById('filterTitle')?.value.toLowerCase() || '';
-    const typeFilter = document.getElementById('filterType')?.value || '';
-    const reportTypeFilter = document.getElementById('filterReportType')?.value || '';
-    const ownerObjectFilter = document.getElementById('filterOwnerObject')?.value.toLowerCase() || '';
-    const targetChildObjectFilter = document.getElementById('filterTargetChildObject')?.value.toLowerCase() || '';
+    const filters = getActiveFilters();
     
     let filteredItems = allItems.filter(item => {
-        const matchesName = !nameFilter || (item.name || '').toLowerCase().includes(nameFilter);
-        const matchesTitle = !titleFilter || (item.titleText || '').toLowerCase().includes(titleFilter);
-        const matchesType = !typeFilter || item.type === typeFilter;
-        const matchesReportType = !reportTypeFilter || item.reportType === reportTypeFilter;
-        const matchesOwnerObject = !ownerObjectFilter || (item.ownerObject || '').toLowerCase().includes(ownerObjectFilter);
-        const matchesTargetChildObject = !targetChildObjectFilter || (item.targetChildObject || '').toLowerCase().includes(targetChildObjectFilter);
+        const matchesName = !filters.name || (item.name || '').toLowerCase().includes(filters.name);
+        const matchesTitle = !filters.title || (item.titleText || '').toLowerCase().includes(filters.title);
+        const matchesType = !filters.type || item.type === filters.type;
+        const matchesReportType = !filters.reportType || item.reportType === filters.reportType;
+        const matchesOwnerObject = !filters.ownerObject || (item.ownerObject || '').toLowerCase().includes(filters.ownerObject);
+        const matchesTargetChildObject = !filters.targetChildObject || (item.targetChildObject || '').toLowerCase().includes(filters.targetChildObject);
         
         // Check if item's role is in the selected roles set (if no roles selected, show all)
         const matchesRoleRequired = selectedRoles.size === 0 || selectedRoles.has(item.roleRequired);
@@ -132,19 +204,55 @@ function applyFilters() {
     pageData.items = filteredItems;
     pageData.totalRecords = filteredItems.length;
     
-    // Re-render the table
-    renderTable();
-    renderRecordInfo();
+    // Determine which view to re-render
+    const activeTab = document.querySelector('.tab-content.active');
+    const tabId = activeTab?.id || 'pages-tab';
+    
+    if (tabId === 'pages-tab') {
+        // Re-render the table
+        renderTable();
+        renderRecordInfo();
+    } else if (tabId === 'visualization-tab') {
+        // Re-render treemap with filtered data
+        renderPageTreemap();
+    } else if (tabId === 'distribution-tab') {
+        // Re-render histogram with filtered data
+        renderPageHistogram();
+    }
 }
 
 // Clear all filters (global function for onclick)
 function clearFilters() {
-    document.getElementById('filterName').value = '';
-    document.getElementById('filterTitle').value = '';
-    document.getElementById('filterType').value = '';
-    document.getElementById('filterReportType').value = '';
-    document.getElementById('filterOwnerObject').value = '';
-    document.getElementById('filterTargetChildObject').value = '';
+    // Clear filters for all tabs
+    const suffixes = ['', 'Visualization', 'Distribution'];
+    
+    suffixes.forEach(suffix => {
+        const nameInput = document.getElementById('filterName' + suffix);
+        const titleInput = document.getElementById('filterTitle' + suffix);
+        const typeSelect = document.getElementById('filterType' + suffix);
+        const reportTypeSelect = document.getElementById('filterReportType' + suffix);
+        const ownerObjectInput = document.getElementById('filterOwnerObject' + suffix);
+        const targetChildObjectInput = document.getElementById('filterTargetChildObject' + suffix);
+        
+        if (nameInput) {
+            nameInput.value = '';
+        }
+        if (titleInput) {
+            titleInput.value = '';
+        }
+        if (typeSelect) {
+            typeSelect.value = '';
+        }
+        if (reportTypeSelect) {
+            reportTypeSelect.value = '';
+        }
+        if (ownerObjectInput) {
+            ownerObjectInput.value = '';
+        }
+        if (targetChildObjectInput) {
+            targetChildObjectInput.value = '';
+        }
+    });
     
     // Clear role checkboxes and reset selected roles
     selectedRoles.clear();
@@ -157,9 +265,21 @@ function clearFilters() {
     pageData.items = allItems.slice();
     pageData.totalRecords = allItems.length;
     
-    // Re-render the table
-    renderTable();
-    renderRecordInfo();
+    // Determine which view to re-render
+    const activeTab = document.querySelector('.tab-content.active');
+    const tabId = activeTab?.id || 'pages-tab';
+    
+    if (tabId === 'pages-tab') {
+        // Re-render the table
+        renderTable();
+        renderRecordInfo();
+    } else if (tabId === 'visualization-tab') {
+        // Re-render treemap with all data
+        renderPageTreemap();
+    } else if (tabId === 'distribution-tab') {
+        // Re-render histogram with all data
+        renderPageHistogram();
+    }
 }
 
 // Extract unique values for filter dropdowns
@@ -177,38 +297,44 @@ function extractFilterOptions() {
 
 // Populate filter dropdown options
 function populateFilterDropdowns() {
-    // Populate role required checkboxes
-    const roleRequiredContainer = document.getElementById('filterRoleRequired');
-    if (roleRequiredContainer) {
-        // Clear existing checkboxes
-        roleRequiredContainer.innerHTML = '';
-        
-        // Reset selected roles (start with all roles selected)
-        selectedRoles.clear();
-        
-        filterOptions.rolesRequired.forEach(role => {
-            const roleItem = document.createElement('div');
-            roleItem.className = 'role-checkbox-item';
+    // Reset selected roles (start with all roles selected)
+    selectedRoles.clear();
+    
+    // Populate role required checkboxes for all tabs
+    const suffixes = ['', 'Visualization', 'Distribution'];
+    
+    suffixes.forEach(suffix => {
+        const roleRequiredContainer = document.getElementById('filterRoleRequired' + suffix);
+        if (roleRequiredContainer) {
+            // Clear existing checkboxes
+            roleRequiredContainer.innerHTML = '';
             
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id = 'role-' + role;
-            checkbox.value = role;
-            checkbox.checked = true; // Check all by default
-            checkbox.addEventListener('change', handleRoleFilterChange);
-            
-            const label = document.createElement('label');
-            label.htmlFor = 'role-' + role;
-            label.textContent = role;
-            
-            roleItem.appendChild(checkbox);
-            roleItem.appendChild(label);
-            roleRequiredContainer.appendChild(roleItem);
-            
-            // Add to selected roles (all selected by default)
-            selectedRoles.add(role);
-        });
-    }
+            filterOptions.rolesRequired.forEach(role => {
+                const roleItem = document.createElement('div');
+                roleItem.className = 'role-checkbox-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = 'role-' + role + '-' + suffix;
+                checkbox.value = role;
+                checkbox.checked = true; // Check all by default
+                checkbox.addEventListener('change', handleRoleFilterChange);
+                
+                const label = document.createElement('label');
+                label.htmlFor = 'role-' + role + '-' + suffix;
+                label.textContent = role;
+                
+                roleItem.appendChild(checkbox);
+                roleItem.appendChild(label);
+                roleRequiredContainer.appendChild(roleItem);
+            });
+        }
+    });
+    
+    // Add all roles to selected roles (all selected by default)
+    filterOptions.rolesRequired.forEach(role => {
+        selectedRoles.add(role);
+    });
 }
 
 // Handle role filter checkbox change
@@ -387,15 +513,18 @@ function renderRecordInfo() {
 
 // Setup filter event listeners
 function setupFilterEventListeners() {
-    // Add event listeners for filter inputs (removed filterRoleRequired as it's now checkboxes)
+    // Add event listeners for filter inputs in all tabs
     const filterInputs = ['filterName', 'filterTitle', 'filterType', 'filterReportType', 'filterOwnerObject', 'filterTargetChildObject'];
+    const suffixes = ['', 'Visualization', 'Distribution'];
     
-    filterInputs.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('input', debounce(applyFilters, 300));
-            element.addEventListener('change', applyFilters);
-        }
+    suffixes.forEach(suffix => {
+        filterInputs.forEach(id => {
+            const element = document.getElementById(id + suffix);
+            if (element) {
+                element.addEventListener('input', debounce(applyFilters, 300));
+                element.addEventListener('change', applyFilters);
+            }
+        });
     });
 }
 
@@ -618,7 +747,10 @@ function renderPageTreemap() {
     const treemapVisualization = document.getElementById('page-treemap-visualization');
     const treemapLoading = document.getElementById('page-treemap-loading');
     
-    if (!treemapVisualization || !treemapLoading || allItems.length === 0) {
+    // Use pageData.items (filtered data) instead of allItems
+    const itemsToVisualize = pageData.items.length > 0 ? pageData.items : allItems;
+    
+    if (!treemapVisualization || !treemapLoading || itemsToVisualize.length === 0) {
         setTimeout(() => hideSpinner(), 500);
         return;
     }
@@ -627,7 +759,7 @@ function renderPageTreemap() {
     treemapVisualization.innerHTML = '';
     
     // Prepare data for treemap - filter out items with 0 elements
-    const treemapData = allItems.filter(item => item.totalElements > 0);
+    const treemapData = itemsToVisualize.filter(item => item.totalElements > 0);
     
     if (treemapData.length === 0) {
         treemapLoading.textContent = 'No pages with elements found';
@@ -847,7 +979,10 @@ function renderPageHistogram() {
     const histogramVisualization = document.getElementById('page-histogram-visualization');
     const histogramLoading = document.getElementById('page-histogram-loading');
     
-    if (!histogramVisualization || !histogramLoading || allItems.length === 0) {
+    // Use pageData.items (filtered data) instead of allItems
+    const itemsToVisualize = pageData.items.length > 0 ? pageData.items : allItems;
+    
+    if (!histogramVisualization || !histogramLoading || itemsToVisualize.length === 0) {
         hideSpinner();
         return;
     }
@@ -856,7 +991,7 @@ function renderPageHistogram() {
     histogramVisualization.innerHTML = '';
     
     // Calculate element distribution
-    const distribution = calculateElementDistribution(allItems);
+    const distribution = calculateElementDistribution(itemsToVisualize);
     console.log('[PageList] Element distribution:', distribution);
     
     // Setup dimensions
