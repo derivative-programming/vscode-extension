@@ -152,10 +152,20 @@ export function registerPageListCommands(
                             user-select: none;
                         }
                         
+                        .tab:hover {
+                            background-color: var(--vscode-tab-inactiveBackground);
+                            color: var(--vscode-tab-inactiveForeground);
+                        }
+                        
                         .tab.active {
                             background-color: var(--vscode-tab-activeBackground);
                             color: var(--vscode-tab-activeForeground);
                             border-bottom: 2px solid var(--vscode-focusBorder);
+                        }
+                        
+                        .tab.active:hover {
+                            background-color: var(--vscode-tab-activeBackground);
+                            color: var(--vscode-tab-activeForeground);
                         }
                         
                         .tab-content {
@@ -202,7 +212,7 @@ export function registerPageListCommands(
                             opacity: 0.6;
                             cursor: not-allowed;
                         }
-                        button:hover:not(:disabled):not(.filter-button-secondary) {
+                        button:hover:not(:disabled):not(.filter-button-secondary):not(.tab) {
                             background-color: var(--vscode-button-hoverBackground);
                         }
                         .action-button {

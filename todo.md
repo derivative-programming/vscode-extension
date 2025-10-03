@@ -11,7 +11,6 @@ common types of graphs...
 
 
 user stories list view
-- hover on tab has dark background color
 - sort direction indicators missing
 
 
@@ -19,11 +18,9 @@ user stories page mapping view
 - sort direction indicators missing
 
 page list view
-- hover on tab has dark background color
 
 
 user story user journey view
-- hover on tab has dark background color
 - add role filter on all tabs
 - fix refresh buttons
   - dark background color on hover

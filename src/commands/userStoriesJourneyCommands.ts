@@ -1292,7 +1292,7 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             opacity: 0.6;
                             cursor: not-allowed;
                         }
-                        button:hover:not(:disabled):not(.filter-button-secondary):not(.page-lookup-close):not(.page-lookup-cancel-button):not(.page-lookup-select-button):not(.journey-start-close):not(.journey-start-cancel-button) {
+                        button:hover:not(:disabled):not(.filter-button-secondary):not(.page-lookup-close):not(.page-lookup-cancel-button):not(.page-lookup-select-button):not(.journey-start-close):not(.journey-start-cancel-button):not(.tab) {
                             background-color: var(--vscode-button-hoverBackground);
                         }
                         
@@ -2039,10 +2039,20 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             user-select: none;
                         }
                         
+                        .tab:hover {
+                            background-color: var(--vscode-tab-inactiveBackground);
+                            color: var(--vscode-tab-inactiveForeground);
+                        }
+                        
                         .tab.active {
                             background-color: var(--vscode-tab-activeBackground);
                             color: var(--vscode-tab-activeForeground);
                             border-bottom: 2px solid var(--vscode-focusBorder);
+                        }
+                        
+                        .tab.active:hover {
+                            background-color: var(--vscode-tab-activeBackground);
+                            color: var(--vscode-tab-activeForeground);
                         }
                         
                         .tab-content {
