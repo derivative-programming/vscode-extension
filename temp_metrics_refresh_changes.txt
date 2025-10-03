@@ -1,0 +1,69 @@
+﻿# Metrics View - History Tab Refresh Button Implementation
+**Date:** October 3, 2025
+**Status:**  Completed
+
+## Changes Made
+
+### 1. HTML Structure (metricsAnalysisCommands.ts)
+Added a header-actions section to the History tab matching the Current tab pattern:
+
+`html
+<div class="header-actions">
+    <button id="historyRefreshButton" class="icon-button" title="Refresh Data">
+        <i class="codicon codicon-refresh"></i>
+    </button>
+</div>
+`
+
+**Location:** Line ~2417-2421 in History tab section
+
+### 2. Event Listener (metricsAnalysisView.js)
+Added event listener initialization in initializeButtons() function:
+
+`javascript
+const historyRefreshButton = document.getElementById('historyRefreshButton');
+if (historyRefreshButton) {
+    historyRefreshButton.addEventListener('click', refreshHistory);
+}
+`
+
+**Location:** Line ~104-107
+
+### 3. Refresh Function (metricsAnalysisView.js)
+Added new efreshHistory() function:
+
+`javascript
+// Refresh history data
+function refreshHistory() {
+    showSpinner();
+    loadHistoryMetrics();
+}
+`
+
+**Location:** Line ~185-189
+
+## Behavior
+
+- **Icon:** Uses codicon-refresh (circular arrow icon)
+- **Tooltip:** Shows "Refresh Data" on hover
+- **Action:** Reloads historical metrics data from the backend
+- **Feedback:** Shows spinner overlay during refresh
+- **Consistency:** Matches the Current tab's refresh button styling and behavior
+
+## Files Modified
+
+1. src/commands/metricsAnalysisCommands.ts (+4 lines)
+2. src/webviews/metricsAnalysisView.js (+9 lines)
+3. 	odo.md (marked task as complete)
+
+## Testing Checklist
+
+- [ ] Button appears in History tab
+- [ ] Button has proper icon (circular arrow)
+- [ ] Tooltip shows on hover
+- [ ] Click triggers data refresh
+- [ ] Spinner overlay displays during refresh
+- [ ] Chart updates with refreshed data
+- [ ] Button styling matches Current tab's refresh button
+- [ ] Works in both light and dark themes
+

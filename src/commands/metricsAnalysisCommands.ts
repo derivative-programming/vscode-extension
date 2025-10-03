@@ -2008,6 +2008,17 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
             margin-bottom: 15px;
         }
         
+        .history-header-actions {
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-actions-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
         .icon-button {
             background: none;
             border: none;
@@ -2261,7 +2272,6 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
         
         /* Date range selector styling */
         .date-range-container {
-            margin: 20px 0 10px 0;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -2270,16 +2280,16 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
         .date-range-container label {
             color: var(--vscode-foreground);
             font-weight: 500;
-            margin-right: 5px;
+            font-size: 13px;
         }
         
         .date-range-select {
-            padding: 6px 12px;
+            padding: 4px 8px;
             background-color: var(--vscode-dropdown-background);
             color: var(--vscode-dropdown-foreground);
             border: 1px solid var(--vscode-dropdown-border);
             border-radius: 3px;
-            font-size: var(--vscode-font-size);
+            font-size: 13px;
             font-family: var(--vscode-font-family);
             min-width: 120px;
             cursor: pointer;
@@ -2415,27 +2425,33 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
     </div>
     
     <div id="history-tab" class="tab-content">
-        <div id="history-loading" class="loading">Loading historical metrics...</div>
-        
-        <div class="date-range-container hidden" id="date-range-container">
-            <label for="date-range-select">Time Range:</label>
-            <select id="date-range-select" class="date-range-select">
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-                <option value="60">Last 60 days</option>
-                <option value="90">Last 90 days</option>
-                <option value="365">Last year</option>
-                <option value="all" selected>All</option>
-            </select>
+        <div class="header-actions history-header-actions">
+            <div class="date-range-container" id="date-range-container">
+                <label for="date-range-select">Time Range:</label>
+                <select id="date-range-select" class="date-range-select">
+                    <option value="7">Last 7 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="60">Last 60 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="365">Last year</option>
+                    <option value="all" selected>All</option>
+                </select>
+            </div>
+            <div class="header-actions-right">
+                <button id="generateChartPngBtn" class="icon-button" title="Generate PNG">
+                    <i class="codicon codicon-device-camera"></i>
+                </button>
+                <button id="historyRefreshButton" class="icon-button" title="Refresh Data">
+                    <i class="codicon codicon-refresh"></i>
+                </button>
+            </div>
         </div>
+        
+        <div id="history-loading" class="loading">Loading historical metrics...</div>
         
         <div class="chart-container hidden" id="chart-container">
             <div class="chart-header">
                 <div class="chart-title">Metrics History Over Time</div>
-                <button id="generateChartPngBtn" class="chart-export-btn">
-                    <span class="codicon codicon-device-camera"></span>
-                    Generate PNG
-                </button>
             </div>
             <canvas id="metricsChart" width="800" height="400"></canvas>
         </div>

@@ -102,6 +102,11 @@ function initializeButtons() {
         refreshButton.addEventListener('click', refresh);
     }
     
+    const historyRefreshButton = document.getElementById('historyRefreshButton');
+    if (historyRefreshButton) {
+        historyRefreshButton.addEventListener('click', refreshHistory);
+    }
+    
     const exportButton = document.getElementById('exportButton');
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
@@ -176,6 +181,12 @@ function refresh() {
     if (document.getElementById('history-tab').classList.contains('active')) {
         loadHistoryMetrics();
     }
+}
+
+// Refresh history data
+function refreshHistory() {
+    showSpinner();
+    loadHistoryMetrics();
 }
 
 // Export to CSV (global function for onclick)

@@ -7,10 +7,40 @@ common types of graphs...
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
  
 
+metrics view...
+- hsitory tab
+  - ~~add refresh button~~ ✅ DONE (Oct 3, 2025)
+
+- database size forecast view
+  - all tabs
+    - refresh button should be icon only button
+
+
+
+user stories list view
+- hover on tab has dark background color
+- sort direction indicators missing
+
+
+user stories page mapping view
+- sort direction indicators missing
+
+page list view
+- hover on tab has dark background color
+
+
+user story user journey view
+- hover on tab has dark background color
+- add role filter on all tabs
+- fix refresh buttons
+  - dark background color on hover
+  - display processing animation overlay on click
 
 data object prop usage analysis view...
 - copy of data object usage analysis view but at the data object property level
-
+- add role filter, item type (flow, page) on pages on data object usage
+- unused data object prop info as well
+  - no references from anywhere
 
 --------------------------
 
@@ -33,17 +63,13 @@ Report Data Source Analysis View
 
 form Data Source Analysis View
 - including items with no data source
-
-unused data object prop report
-- no references from anywhere
+ 
 
 data object user story coverage analysis:  
 - how many have user stories?
 - how many dont have user stories?
 
-
-
-add role filter on data object usage?
+ 
 
 no sourceobjectname in form param model or interface?
  
