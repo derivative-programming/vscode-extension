@@ -6,15 +6,8 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
  
-
-metrics view...
-- hsitory tab
-  - ~~add refresh button~~ ✅ DONE (Oct 3, 2025)
-
-- database size forecast view
-  - all tabs
-    - refresh button should be icon only button
-
+ 
+ 
 
 
 user stories list view

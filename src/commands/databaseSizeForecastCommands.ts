@@ -1005,6 +1005,38 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
             .data-table .total-row td:first-child {
                 background-color: var(--vscode-list-activeSelectionBackground);
             }
+            
+            /* Spinner overlay */
+            .spinner-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.3);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+            
+            .spinner-overlay .spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid var(--vscode-panel-border);
+                border-top: 4px solid var(--vscode-focusBorder);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-right: 0;
+            }
+            
+            .hidden {
+                display: none !important;
+            }
+            
+            .show-flex {
+                display: flex !important;
+            }
         </style>
     </head>
     <body>
@@ -1051,8 +1083,8 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
             </div>
             
             <div class="header-actions-right">
-                <button class="secondary-button" onclick="refreshData()">
-                    <i class="codicon codicon-refresh"></i> Refresh
+                <button class="icon-button" onclick="refreshData()" title="Refresh Data">
+                    <i class="codicon codicon-refresh"></i>
                 </button>
                 <button class="secondary-button" onclick="resetConfig()">
                     <i class="codicon codicon-discard"></i> Reset
@@ -1112,8 +1144,8 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                         <option value="60" selected>Next 5 Years</option>
                     </select>
                 </div>
-                <button class="secondary-button" onclick="refreshData()">
-                    <i class="codicon codicon-refresh"></i> Refresh
+                <button class="icon-button" onclick="refreshData()" title="Refresh Data">
+                    <i class="codicon codicon-refresh"></i>
                 </button>
             </div>
             
@@ -1162,8 +1194,8 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
                         <option value="instances">Instance Count</option>
                     </select>
                 </div>
-                <button class="secondary-button" onclick="refreshData()">
-                    <i class="codicon codicon-refresh"></i> Refresh
+                <button class="icon-button" onclick="refreshData()" title="Refresh Data">
+                    <i class="codicon codicon-refresh"></i>
                 </button>
             </div>
             
@@ -1175,6 +1207,10 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
         </div>
 
         <div id="messages"></div>
+
+        <div id="spinner-overlay" class="spinner-overlay hidden">
+            <div class="spinner"></div>
+        </div>
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="${scriptUri}"></script>

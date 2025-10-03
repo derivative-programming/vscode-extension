@@ -1,3 +1,76 @@
+## October 3, 2025 - Database Size Forecast View - Refresh Button Processing Animation
+
+**Command**: They should show a processing animation overlay on click (for the refresh buttons).
+
+**Status**: ✅ Complete
+
+**Changes Made**:
+- Added full-screen spinner overlay animation for all three refresh buttons
+- Shows semi-transparent overlay with centered rotating spinner during data refresh
+- Prevents interaction while data is loading
+- Automatically hides spinner when data finishes loading or error occurs
+- Matches the spinner overlay pattern used in Data Object Usage Analysis view
+
+**Files Modified**:
+- src/commands/databaseSizeForecastCommands.ts:
+  - Added spinner-overlay CSS styles (lines ~1008-1037)
+  - Added hidden and show-flex utility classes
+  - Added spinner-overlay HTML element before closing body tag
+  
+- src/webviews/databaseSizeForecastView.js:
+  - Updated refreshData() to call showSpinner()
+  - Updated handleExtensionMessage() to call hideSpinner() in configLoaded, forecastLoaded, and error cases
+  - Added showSpinner() function
+  - Added hideSpinner() function
+
+**Architecture Notes**:
+- Two types of processing animations now in view:
+  1. Button-level processing (existing): for Save Config and Calculate Forecast
+  2. Overlay processing (new): for Refresh Data operations
+- Overlay spinner blocks entire interface to prevent duplicate actions
+- Spinner automatically removed on success or error
+- Implementation identical to Data Object Usage Analysis view for consistency
+
+**User Experience**:
+- Click refresh → Immediate overlay appears → Spinner rotates → Data loads → Overlay disappears
+- Professional visual feedback during data loading
+- Clear indication that refresh is in progress
+- Prevents accidental duplicate refresh clicks
+
+**Documentation**:
+- Created: docs/architecture/database-size-forecast-refresh-spinner-animation.md
+- Updated: docs/architecture/database-size-forecast-refresh-button-visual-comparison.md (implied)
+
+---
+
+## October 3, 2025 - Database Size Forecast View - Refresh Button Style Update
+
+**Command**: Review the data object usage view summary tab refresh button. We like this refresh icon button. We would like all refresh buttons on the database size forecast view in all three tabs to use this icon button.
+
+**Status**: ✅ Complete
+
+**Changes Made**:
+- Updated all three refresh buttons in Database Size Forecast view to use icon-button style
+- Config tab: Changed from secondary-button to icon-button with tooltip
+- Forecast tab: Changed from secondary-button to icon-button with tooltip  
+- Data tab: Changed from secondary-button to icon-button with tooltip
+- All buttons now display icon only with "Refresh Data" tooltip
+- Matches the pattern used in Data Object Usage Analysis view
+
+**Files Modified**:
+- src/commands/databaseSizeForecastCommands.ts: Updated 3 refresh button HTML elements (lines ~1054, ~1115, ~1166)
+
+**Architecture Notes**:
+- Icon-button class already existed in Database Size Forecast view CSS
+- Pattern now consistent across Data Object Usage Analysis and Database Size Forecast views
+- Icon-only buttons with tooltips reduce visual clutter and save space
+- No functional changes, purely visual enhancement for consistency
+
+**Documentation**:
+- Created: docs/architecture/database-size-forecast-refresh-button-update.md
+
+---
+
 ## October 3, 2025 - Analysis Tree View - Add Data Object Hierarchy Item
 
 **Command**: between Metrics and 'Data object size' create a 'Data Object Hierarchy' treeview item. on click it should open the data object hierarchy view

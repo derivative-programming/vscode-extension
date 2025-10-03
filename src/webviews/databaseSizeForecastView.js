@@ -109,6 +109,7 @@ function handleExtensionMessage(event) {
             filteredDataObjects = [...currentDataObjects]; // Initialize filtered data
             currentConfig = message.data.config || [];
             renderConfigTable();
+            hideSpinner();
             break;
             
         case 'configSaved':
@@ -135,10 +136,12 @@ function handleExtensionMessage(event) {
             } else if (currentTab === 'data') {
                 renderDataTable();
             }
+            hideSpinner();
             break;
             
         case 'error':
             hideProcessing();
+            hideSpinner();
             showMessage(message.data.message, 'error');
             break;
     }
@@ -176,6 +179,7 @@ function loadForecast() {
 
 // Refresh all data
 function refreshData() {
+    showSpinner();
     vscode.postMessage({ command: 'refreshData' });
 }
 
@@ -709,6 +713,24 @@ function hideProcessing() {
         button.classList.remove('button-processing');
         button.disabled = false;
     });
+}
+
+// Show spinner overlay
+function showSpinner() {
+    const spinnerOverlay = document.getElementById('spinner-overlay');
+    if (spinnerOverlay) {
+        spinnerOverlay.classList.remove('hidden');
+        spinnerOverlay.classList.add('show-flex');
+    }
+}
+
+// Hide spinner overlay
+function hideSpinner() {
+    const spinnerOverlay = document.getElementById('spinner-overlay');
+    if (spinnerOverlay) {
+        spinnerOverlay.classList.add('hidden');
+        spinnerOverlay.classList.remove('show-flex');
+    }
 }
 
 // Sort configuration table
