@@ -7,23 +7,15 @@ common types of graphs...
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
  
  
+
+
+
+
  
-
-
-user stories list view
-- sort direction indicators missing
-
-
-user stories page mapping view
-- sort direction indicators missing
-
-page list view
-
 
 user story user journey view
 - add role filter on all tabs
 - fix refresh buttons
-  - dark background color on hover
   - display processing animation overlay on click
 
 data object prop usage analysis view...

@@ -2294,6 +2294,23 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                     // Update sort direction for next click
                     sortDirection[sortBy] = direction === 'asc' ? 'desc' : 'asc';
                     
+                    // Update sort indicators in table headers
+                    table.querySelectorAll('th').forEach(header => {
+                        const headerSortBy = header.dataset.sort;
+                        if (headerSortBy) {
+                            // Remove existing indicators
+                            const headerText = header.textContent.replace(/ ▼| ▲/g, '');
+                            
+                            if (headerSortBy === sortBy) {
+                                // Add indicator for the active sort column
+                                header.textContent = headerText + (sortDirection[sortBy] === 'asc' ? ' ▲' : ' ▼');
+                            } else {
+                                // Just show the column name without indicator
+                                header.textContent = headerText;
+                            }
+                        }
+                    });
+                    
                     // Re-append rows in sorted order
                     rows.forEach(row => tbody.appendChild(row));
                 });
@@ -2368,6 +2385,23 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                         
                         // Update sort direction for next click
                         detailsSortDirection[sortBy] = direction === 'asc' ? 'desc' : 'asc';
+                        
+                        // Update sort indicators in table headers
+                        detailsTable.querySelectorAll('th').forEach(header => {
+                            const headerSortBy = header.dataset.sort;
+                            if (headerSortBy) {
+                                // Remove existing indicators
+                                const headerText = header.textContent.replace(/ ▼| ▲/g, '');
+                                
+                                if (headerSortBy === sortBy) {
+                                    // Add indicator for the active sort column
+                                    header.textContent = headerText + (detailsSortDirection[sortBy] === 'asc' ? ' ▲' : ' ▼');
+                                } else {
+                                    // Just show the column name without indicator
+                                    header.textContent = headerText;
+                                }
+                            }
+                        });
                         
                         // Re-append rows in sorted order
                         rows.forEach(row => tbody.appendChild(row));

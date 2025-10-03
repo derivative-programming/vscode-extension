@@ -1,3 +1,49 @@
+## October 3, 2025 - Sort Direction Indicators - User Stories Views
+
+**Command**: Add sort direction indicators to user stories list view (stories tab and details tab) and user stories page mapping view to match the data object list view implementation.
+
+**Status**: ✅ Complete
+
+**Changes Made**:
+- Added visual sort direction indicators (▲ for ascending, ▼ for descending) to sortable column headers
+- Indicators update dynamically when columns are clicked
+- Only the active sort column displays an indicator
+- Implementation matches the working pattern from data object list view
+
+**Files Modified**:
+1. src/webviews/userStoriesView.js:
+   - Stories tab: Added sort indicator update logic after sorting (lines ~2295-2306)
+   - Details tab: Added sort indicator update logic after sorting (lines ~2372-2383)
+   - Both tabs now display ▲ when sorted ascending, ▼ when sorted descending
+   - Header text cleaned before adding new indicator to prevent duplication
+
+2. src/webviews/userStoriesPageMappingView.js:
+   - Added sort indicator logic to Story Number and Story Text headers (lines ~165-176)
+   - Checks userStoriesPageMappingData.sortColumn and sortDescending to display correct indicator
+   - Uses textContent instead of innerHTML for proper indicator display
+
+3. todo.md:
+   - Removed completed items from todo list
+
+**Architecture Notes**:
+- User stories views use client-side DOM sorting (different from data object list view's server-side sorting)
+- Sort indicators update after DOM manipulation, not via server message
+- Pattern: textContent.replace(/ ▼| ▲/g, '') to remove old indicators before adding new
+- Indicators show current state AFTER toggle (when asc, shows ▲ meaning "next click sorts desc")
+
+**Visual Consistency**:
+- ▲ = Ascending sort (A→Z, 0→9, false→true)
+- ▼ = Descending sort (Z→A, 9→0, true→false)
+- Matches indicators in: pageListView, pageInitListView, dataObjectListView, userStoriesQAView, etc.
+
+**User Experience**:
+- Click column header → Table sorts → Indicator appears/updates
+- Clear visual feedback showing which column is sorted and in which direction
+- Only one column shows indicator at a time
+- Consistent behavior across all list views in extension
+
+---
+
 ## October 3, 2025 - Database Size Forecast View - Refresh Button Processing Animation
 
 **Command**: They should show a processing animation overlay on click (for the refresh buttons).

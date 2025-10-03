@@ -162,15 +162,25 @@ function renderTable() {
     // Story Number column
     const storyNumberHeader = document.createElement('th');
     storyNumberHeader.className = 'story-number-column sortable';
-    storyNumberHeader.innerHTML = 'Story Number';
     storyNumberHeader.onclick = () => sortTable('storyNumber');
+    // Add sort indicator if this is the active sort column
+    if (userStoriesPageMappingData.sortColumn === 'storyNumber') {
+        storyNumberHeader.textContent = 'Story Number' + (userStoriesPageMappingData.sortDescending ? ' ▼' : ' ▲');
+    } else {
+        storyNumberHeader.textContent = 'Story Number';
+    }
     headerRow.appendChild(storyNumberHeader);
     
     // Story Text column  
     const storyTextHeader = document.createElement('th');
     storyTextHeader.className = 'story-text-column sortable';
-    storyTextHeader.innerHTML = 'Story Text';
     storyTextHeader.onclick = () => sortTable('storyText');
+    // Add sort indicator if this is the active sort column
+    if (userStoriesPageMappingData.sortColumn === 'storyText') {
+        storyTextHeader.textContent = 'Story Text' + (userStoriesPageMappingData.sortDescending ? ' ▼' : ' ▲');
+    } else {
+        storyTextHeader.textContent = 'Story Text';
+    }
     headerRow.appendChild(storyTextHeader);
     
     // Page Mapping column
