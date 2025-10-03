@@ -191,6 +191,41 @@ export function registerMetricsAnalysisCommands(context: vscode.ExtensionContext
                         vscode.window.showErrorMessage(`Failed to save CSV: ${error.message}`);
                     }
                     break;
+                
+                case 'savePngToWorkspace':
+                    try {
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        if (!workspaceFolders || workspaceFolders.length === 0) {
+                            vscode.window.showErrorMessage('No workspace folder is open');
+                            panel.webview.postMessage({
+                                command: 'pngSaveComplete',
+                                success: false,
+                                error: 'No workspace folder is open'
+                            });
+                            return;
+                        }
+                        const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                        const filePath = path.join(workspaceRoot, message.data.filename);
+                        const buffer = Buffer.from(message.data.base64.replace(/^data:image\/png;base64,/, ''), 'base64');
+                        fs.writeFileSync(filePath, buffer);
+                        vscode.window.showInformationMessage(`PNG file saved to workspace: ${message.data.filename}`);
+                        panel.webview.postMessage({
+                            command: 'pngSaveComplete',
+                            success: true,
+                            filePath: message.data.filename
+                        });
+                        const fileUri = vscode.Uri.file(filePath);
+                        vscode.commands.executeCommand('vscode.open', fileUri);
+                    } catch (error) {
+                        console.error('[Extension] Error saving PNG to workspace:', error);
+                        vscode.window.showErrorMessage(`Failed to save PNG: ${error.message}`);
+                        panel.webview.postMessage({
+                            command: 'pngSaveComplete',
+                            success: false,
+                            error: error.message
+                        });
+                    }
+                    break;
             }
         });
     });
@@ -2171,6 +2206,50 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
             background-color: var(--vscode-sideBar-background);
             border-radius: 6px;
             border: 1px solid var(--vscode-panel-border);
+            position: relative;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--vscode-foreground);
+        }
+        
+        .chart-export-btn {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .chart-export-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .chart-export-btn:focus {
+            outline: none;
+        }
+        
+        .chart-export-btn:focus-visible {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: 2px;
+        }
+        
+        .chart-export-btn .codicon {
+            font-size: 16px;
         }
         
         #metricsChart {
@@ -2351,6 +2430,13 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
         </div>
         
         <div class="chart-container hidden" id="chart-container">
+            <div class="chart-header">
+                <div class="chart-title">Metrics History Over Time</div>
+                <button id="generateChartPngBtn" class="chart-export-btn">
+                    <span class="codicon codicon-device-camera"></span>
+                    Generate PNG
+                </button>
+            </div>
             <canvas id="metricsChart" width="800" height="400"></canvas>
         </div>
         

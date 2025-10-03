@@ -5,11 +5,7 @@ common types of graphs...
 - pie chart (each slice is a category, shows how many items are in each category)
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
-
-metrics view...
-- history tab
-  - add 'generate png' button to export chart as png image
-
+ 
 
 
 data object prop usage analysis view...

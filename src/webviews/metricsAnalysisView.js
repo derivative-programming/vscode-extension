@@ -106,6 +106,11 @@ function initializeButtons() {
     if (exportButton) {
         exportButton.addEventListener('click', exportToCSV);
     }
+    
+    const generateChartPngBtn = document.getElementById('generateChartPngBtn');
+    if (generateChartPngBtn) {
+        generateChartPngBtn.addEventListener('click', generateChartPNG);
+    }
 }
 
 // Toggle filter section visibility (global function for onclick)
@@ -882,5 +887,64 @@ function selectSingleMetric(metricName) {
         updateChart();
     } else {
         console.warn(`Metric "${metricName}" not found in available metrics:`, availableMetrics);
+    }
+}
+
+// Generate PNG from the metrics chart
+function generateChartPNG() {
+    try {
+        if (!metricsChart) {
+            alert('No chart available. Please select metrics to display first.');
+            return;
+        }
+        
+        if (selectedMetrics.size === 0) {
+            alert('No metrics selected. Please select at least one metric to generate the chart image.');
+            return;
+        }
+        
+        const originalCanvas = document.getElementById('metricsChart');
+        if (!originalCanvas) {
+            alert('Chart canvas not found.');
+            return;
+        }
+        
+        // Create a new canvas with white background
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = originalCanvas.width;
+        exportCanvas.height = originalCanvas.height;
+        const ctx = exportCanvas.getContext('2d');
+        
+        // Fill with white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+        
+        // Draw the chart on top
+        ctx.drawImage(originalCanvas, 0, 0);
+        
+        // Convert canvas to blob
+        exportCanvas.toBlob(function(blob) {
+            if (!blob) {
+                alert('Failed to generate image from chart.');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                const base64 = reader.result;
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                const filename = `metrics-history-chart-${timestamp}.png`;
+                
+                vscode.postMessage({
+                    command: 'savePngToWorkspace',
+                    data: { base64, filename }
+                });
+            };
+            reader.readAsDataURL(blob);
+        }, 'image/png');
+        
+    } catch (err) {
+        console.error('Error generating chart PNG:', err);
+        alert('Failed to generate PNG: ' + err.message);
     }
 }
