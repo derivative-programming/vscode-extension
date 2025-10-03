@@ -1,3 +1,48 @@
+## October 3, 2025 - User Stories Journey View - Refresh Button Fixes
+
+**Command**: Review the user story user journey view. The refresh buttons should be displaying a processing animation overlay. They should also not have a dark blue background on hover.
+
+**Status**: ✅ COMPLETED
+
+**Implementation Summary**:
+Fixed refresh button hover styling and added processing overlay spinners to all refresh buttons in the User Stories Journey view. All refresh buttons now show a full-page spinner overlay during data refresh operations and have consistent transparent hover styling.
+
+**Changes Made**:
+
+1. **CSS Hover Style Fixes** (src/commands/userStoriesJourneyCommands.ts):
+   - Added `.scatter-refresh-button:hover` style override (transparent background)
+   - Added `#refreshButton:hover` and `#refreshPageUsageButton:hover` overrides
+   - All refresh buttons now prevent the default `.icon-button:hover` dark blue background
+
+2. **Processing Overlay - Event Handlers** (src/webviews/userStoriesJourneyView.js):
+   - Added `showSpinner()` call to `refreshJourneyHistogramButton` event handler
+   - Added `showSpinner()` call to `refreshPageUsageTreemapButton` event handler
+   - Added `showSpinner()` call to `refreshPageUsageHistogramButton` event handler
+   - Added `showSpinner()` call to `refreshPageUsageVsComplexityButton` event handler
+
+3. **Processing Overlay - Response Handlers** (src/webviews/userStoriesJourneyView.js):
+   - Added `hideSpinner()` call to `handlePageUsageDataResponse()` function
+   - Added `hideSpinner()` call to error handling in `pageUsageDataReady` message case
+
+**Buttons Fixed**:
+- ✅ `#refreshButton` (main table) - Hover styling fixed (overlay already working)
+- ✅ `#refreshPageUsageButton` (page usage) - Hover styling + overlay added
+- ✅ `#refreshTreemapButton` (journey treemap) - Hover already fixed, overlay already working
+- ✅ `#refreshHistogramButton` (journey histogram) - Hover already fixed, overlay added
+- ✅ `#refreshPageUsageTreemapButton` - Hover already fixed, overlay added
+- ✅ `#refreshPageUsageHistogramButton` - Hover already fixed, overlay added
+- ✅ `#refreshPageUsageVsComplexityButton` - Hover styling + overlay added
+
+**Architecture Notes**:
+- Full-page overlay spinner (`showSpinner()/hideSpinner()`) works alongside inline loading messages
+- Overlay provides immediate user feedback while inline spinner shows specific area loading
+- Consistent error handling ensures overlay is cleared even on error conditions
+- Used `!important` in CSS to override VS Code's default button hover styles
+
+**Documentation**: See `docs/architecture/user-journey-refresh-button-fixes.md` for detailed changes and testing recommendations.
+
+---
+
 ## October 3, 2025 - User Stories Journey View - Role Required Filter Addition
 
 **Command**: Review the page list view pages tab role required checkbox list filter. We want to add the same filter to the user stories user journey view user stories tab and page usage tab.

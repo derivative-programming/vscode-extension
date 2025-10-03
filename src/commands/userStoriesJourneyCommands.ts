@@ -2325,6 +2325,18 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             color: inherit !important;
                         }
                         
+                        .scatter-refresh-button:hover {
+                            background: transparent !important;
+                            color: inherit !important;
+                        }
+                        
+                        /* Override icon-button hover for main refresh buttons */
+                        #refreshButton:hover,
+                        #refreshPageUsageButton:hover {
+                            background: transparent !important;
+                            color: inherit !important;
+                        }
+                        
                         .histogram-tooltip {
                             position: absolute;
                             background: var(--vscode-editorHoverWidget-background);

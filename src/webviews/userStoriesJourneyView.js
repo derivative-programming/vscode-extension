@@ -1352,6 +1352,8 @@ window.addEventListener('message', event => {
                         </div>
                     `;
                 }
+                // Hide spinner overlay on error
+                hideSpinner();
             }
             break;
             
@@ -1580,6 +1582,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (refreshJourneyHistogramButton) {
         refreshJourneyHistogramButton.addEventListener('click', function() {
+            showSpinner();
             refresh(); // Use the global refresh function to reload data
         });
     }
@@ -1593,6 +1596,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup page usage visualization button event handlers
     if (refreshPageUsageTreemapButton) {
         refreshPageUsageTreemapButton.addEventListener('click', function() {
+            showSpinner();
             refreshPageUsageData();
         });
     }
@@ -1605,6 +1609,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (refreshPageUsageHistogramButton) {
         refreshPageUsageHistogramButton.addEventListener('click', function() {
+            showSpinner();
             refreshPageUsageData();
         });
     }    if (generatePageUsageHistogramPngBtn) {
@@ -1615,6 +1620,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (refreshPageUsageVsComplexityButton) {
         refreshPageUsageVsComplexityButton.addEventListener('click', function() {
+            showSpinner();
             refreshPageUsageData();
         });
     }
@@ -2227,6 +2233,9 @@ function handlePageUsageDataResponse(data) {
     
     renderPageUsageTable();
     renderPageUsageSummary();
+    
+    // Hide spinner overlay
+    hideSpinner();
 }
 
 // Render page usage summary statistics
