@@ -745,7 +745,7 @@ function updateChart() {
     let colorIndex = 0;
     
     selectedMetrics.forEach(metricName => {
-        // Get data points for this metric
+        // Get data points for this metric from history
         const metricData = historyMetricsData
             .filter(item => item.metric_name === metricName)
             .map(item => ({
@@ -753,6 +753,39 @@ function updateChart() {
                 y: parseFloat(item.value) || 0
             }))
             .sort((a, b) => a.x - b.x);
+        
+        // Find the current value for this metric
+        const currentMetric = allCurrentItems.find(item => item.name === metricName);
+        
+        if (currentMetric) {
+            const currentValue = parseFloat(currentMetric.value) || 0;
+            const currentDate = new Date();
+            
+            // Check if the last history point is already today
+            let shouldAddCurrentValue = true;
+            if (metricData.length > 0) {
+                const lastDataPoint = metricData[metricData.length - 1];
+                const lastDate = lastDataPoint.x;
+                const isSameDay = lastDate.getFullYear() === currentDate.getFullYear() &&
+                                  lastDate.getMonth() === currentDate.getMonth() &&
+                                  lastDate.getDate() === currentDate.getDate();
+                
+                if (isSameDay) {
+                    // Update the last point with current value instead of adding new one
+                    lastDataPoint.y = currentValue;
+                    lastDataPoint.x = currentDate;
+                    shouldAddCurrentValue = false;
+                }
+            }
+            
+            // Add current value as the latest data point
+            if (shouldAddCurrentValue) {
+                metricData.push({
+                    x: currentDate,
+                    y: currentValue
+                });
+            }
+        }
         
         if (metricData.length > 0) {
             metricsChart.data.datasets.push({

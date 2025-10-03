@@ -9,7 +9,6 @@ common types of graphs...
 metrics view...
 - history tab
   - add 'generate png' button to export chart as png image
-  - last value of the chart should be the current value of the metric on the current date/time
 
 
 
