@@ -876,9 +876,8 @@ export function registerPageListCommands(
                                         <button id="refreshPageTreemapButton" class="icon-button" title="Refresh Data">
                                             <i class="codicon codicon-refresh"></i>
                                         </button>
-                                        <button id="generatePageTreemapPngBtn" class="svg-export-btn">
-                                            <span class="codicon codicon-device-camera"></span>
-                                            Generate PNG
+                                        <button id="generatePageTreemapPngBtn" class="icon-button" title="Generate PNG">
+                                            <i class="codicon codicon-device-camera"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -973,9 +972,8 @@ export function registerPageListCommands(
                                         <button id="refreshPageHistogramButton" class="icon-button" title="Refresh Data">
                                             <i class="codicon codicon-refresh"></i>
                                         </button>
-                                        <button id="generatePageHistogramPngBtn" class="svg-export-btn">
-                                            <span class="codicon codicon-device-camera"></span>
-                                            Generate PNG
+                                        <button id="generatePageHistogramPngBtn" class="icon-button" title="Generate PNG">
+                                            <i class="codicon codicon-device-camera"></i>
                                         </button>
                                     </div>
                                 </div>

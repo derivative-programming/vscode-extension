@@ -2876,9 +2876,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <button id="refreshPageUsageTreemapButton" class="icon-button treemap-refresh-button" title="Refresh Data">
                                         <i class="codicon codicon-refresh"></i>
                                     </button>
-                                    <button id="generatePageUsageTreemapPngBtn" class="svg-export-btn">
-                                        <span class="codicon codicon-device-camera"></span>
-                                        Generate PNG
+                                    <button id="generatePageUsageTreemapPngBtn" class="icon-button" title="Generate PNG">
+                                        <i class="codicon codicon-device-camera"></i>
                                     </button>
                                 </div>
                             </div>
@@ -2927,9 +2926,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <button id="refreshPageUsageHistogramButton" class="icon-button histogram-refresh-button" title="Refresh Data">
                                         <i class="codicon codicon-refresh"></i>
                                     </button>
-                                    <button id="generatePageUsageHistogramPngBtn" class="svg-export-btn">
-                                        <span class="codicon codicon-device-camera"></span>
-                                        Generate PNG
+                                    <button id="generatePageUsageHistogramPngBtn" class="icon-button" title="Generate PNG">
+                                        <i class="codicon codicon-device-camera"></i>
                                     </button>
                                 </div>
                             </div>
@@ -2978,9 +2976,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <button id="refreshPageUsageVsComplexityButton" class="icon-button scatter-refresh-button" title="Refresh Data">
                                         <i class="codicon codicon-refresh"></i>
                                     </button>
-                                    <button id="generatePageUsageVsComplexityPngBtn" class="svg-export-btn">
-                                        <span class="codicon codicon-device-camera"></span>
-                                        Generate PNG
+                                    <button id="generatePageUsageVsComplexityPngBtn" class="icon-button" title="Generate PNG">
+                                        <i class="codicon codicon-device-camera"></i>
                                     </button>
                                 </div>
                             </div>
@@ -3031,9 +3028,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <button id="refreshTreemapButton" class="icon-button treemap-refresh-button" title="Refresh Data">
                                         <i class="codicon codicon-refresh"></i>
                                     </button>
-                                    <button id="generateTreemapPngBtn" class="svg-export-btn">
-                                        <span class="codicon codicon-device-camera"></span>
-                                        Generate PNG
+                                    <button id="generateTreemapPngBtn" class="icon-button" title="Generate PNG">
+                                        <i class="codicon codicon-device-camera"></i>
                                     </button>
                                 </div>
                             </div>
@@ -3074,9 +3070,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <button id="refreshHistogramButton" class="icon-button histogram-refresh-button" title="Refresh Data">
                                         <i class="codicon codicon-refresh"></i>
                                     </button>
-                                    <button id="generateHistogramPngBtn" class="svg-export-btn">
-                                        <span class="codicon codicon-device-camera"></span>
-                                        Generate PNG
+                                    <button id="generateHistogramPngBtn" class="icon-button" title="Generate PNG">
+                                        <i class="codicon codicon-device-camera"></i>
                                     </button>
                                 </div>
                             </div>

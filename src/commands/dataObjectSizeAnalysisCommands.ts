@@ -1479,9 +1479,8 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
                             <button id="refreshTreemapButton" class="icon-button" title="Refresh Data">
                                 <i class="codicon codicon-refresh"></i>
                             </button>
-                            <button id="generateTreemapPngBtn" class="svg-export-btn">
-                                <span class="codicon codicon-device-camera"></span>
-                                Generate PNG
+                            <button id="generateTreemapPngBtn" class="icon-button" title="Generate PNG">
+                                <i class="codicon codicon-device-camera"></i>
                             </button>
                         </div>
                     </div>
@@ -1521,9 +1520,8 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
                             <button id="refreshHistogramButton" class="icon-button" title="Refresh Data">
                                 <i class="codicon codicon-refresh"></i>
                             </button>
-                            <button id="generateHistogramPngBtn" class="svg-export-btn">
-                                <span class="codicon codicon-device-camera"></span>
-                                Generate PNG
+                            <button id="generateHistogramPngBtn" class="icon-button" title="Generate PNG">
+                                <i class="codicon codicon-device-camera"></i>
                             </button>
                         </div>
                     </div>
@@ -1563,9 +1561,8 @@ function getDataObjectSizeAnalysisWebviewContent(webview: vscode.Webview, extens
                             <button id="refreshDotplotButton" class="icon-button" title="Refresh Data">
                                 <i class="codicon codicon-refresh"></i>
                             </button>
-                            <button id="generateDotplotPngBtn" class="svg-export-btn">
-                                <span class="codicon codicon-device-camera"></span>
-                                Generate PNG
+                            <button id="generateDotplotPngBtn" class="icon-button" title="Generate PNG">
+                                <i class="codicon codicon-device-camera"></i>
                             </button>
                         </div>
                     </div>

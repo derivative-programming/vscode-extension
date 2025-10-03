@@ -1773,9 +1773,8 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                         <button id="refreshTreemapButton" class="icon-button" title="Refresh Data">
                             <i class="codicon codicon-refresh"></i>
                         </button>
-                        <button id="generateTreemapPngBtn" class="svg-export-btn">
-                            <span class="codicon codicon-device-camera"></span>
-                            Generate PNG
+                        <button id="generateTreemapPngBtn" class="icon-button" title="Generate PNG">
+                            <i class="codicon codicon-device-camera"></i>
                         </button>
                     </div>
                 </div>
@@ -1815,9 +1814,8 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                         <button id="refreshHistogramButton" class="icon-button" title="Refresh Data">
                             <i class="codicon codicon-refresh"></i>
                         </button>
-                        <button id="generateHistogramPngBtn" class="svg-export-btn">
-                            <span class="codicon codicon-device-camera"></span>
-                            Generate PNG
+                        <button id="generateHistogramPngBtn" class="icon-button" title="Generate PNG">
+                            <i class="codicon codicon-device-camera"></i>
                         </button>
                     </div>
                 </div>
@@ -1857,9 +1855,8 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                         <button id="refreshBubbleButton" class="icon-button" title="Refresh Data">
                             <i class="codicon codicon-refresh"></i>
                         </button>
-                        <button id="generateBubblePngBtn" class="svg-export-btn">
-                            <span class="codicon codicon-device-camera"></span>
-                            Generate PNG
+                        <button id="generateBubblePngBtn" class="icon-button" title="Generate PNG">
+                            <i class="codicon codicon-device-camera"></i>
                         </button>
                     </div>
                 </div>
