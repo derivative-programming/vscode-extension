@@ -42,7 +42,7 @@ function initializeTabs() {
 }
 
 // Switch between tabs
-function switchTab(tabName) {
+function switchTab(tabName, metricToSelect) {
     // Remove active class from all tabs and content
     document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -53,8 +53,16 @@ function switchTab(tabName) {
     
     // Load data if needed
     if (tabName === 'history' && historyMetricsData.length === 0) {
-        loadHistoryMetrics();
+        loadHistoryMetrics(metricToSelect);
+    } else if (tabName === 'history' && metricToSelect) {
+        // If history is already loaded, just select the metric
+        selectSingleMetric(metricToSelect);
     }
+}
+
+// View a specific metric's history (called from action button)
+function viewMetricHistory(metricName) {
+    switchTab('history', metricName);
 }
 
 // Initialize table sorting
@@ -81,7 +89,7 @@ function initializeTableSorting() {
 // Initialize filter functionality
 function initializeFilters() {
     // Add event listeners for filter inputs
-    const filterInputs = document.querySelectorAll('#filterMetricName, #filterMetricValue');
+    const filterInputs = document.querySelectorAll('#filterMetricName, #filterMetricValue, #filterHistoryCount');
     filterInputs.forEach(input => {
         input.addEventListener('input', applyFilters);
     });
@@ -124,12 +132,14 @@ function toggleFilterSection() {
 function applyFilters() {
     const metricNameFilter = document.getElementById('filterMetricName')?.value.toLowerCase() || '';
     const metricValueFilter = document.getElementById('filterMetricValue')?.value.toLowerCase() || '';
+    const historyCountFilter = document.getElementById('filterHistoryCount')?.value.toLowerCase() || '';
     
     let filteredItems = allCurrentItems.filter(item => {
         const matchesName = !metricNameFilter || (item.name || '').toLowerCase().includes(metricNameFilter);
         const matchesValue = !metricValueFilter || (item.value || '').toLowerCase().includes(metricValueFilter);
+        const matchesHistoryCount = !historyCountFilter || (item.historyCount?.toString() || '0').toLowerCase().includes(historyCountFilter);
         
-        return matchesName && matchesValue;
+        return matchesName && matchesValue && matchesHistoryCount;
     });
     
     // Update currentMetricsData with filtered results
@@ -144,6 +154,7 @@ function applyFilters() {
 function clearFilters() {
     document.getElementById('filterMetricName').value = '';
     document.getElementById('filterMetricValue').value = '';
+    document.getElementById('filterHistoryCount').value = '';
     
     // Reset to show all items
     currentMetricsData = allCurrentItems.slice();
@@ -207,7 +218,28 @@ function sortCurrentMetrics(column) {
         let aVal = a[column] || '';
         let bVal = b[column] || '';
         
-        // Convert to string for comparison
+        // Special handling for numeric columns
+        if (column === 'value' || column === 'historyCount') {
+            // For historyCount, use the value directly as it's already a number
+            if (column === 'historyCount') {
+                const aNum = typeof aVal === 'number' ? aVal : (parseInt(aVal) || 0);
+                const bNum = typeof bVal === 'number' ? bVal : (parseInt(bVal) || 0);
+                const comparison = aNum - bNum;
+                return currentSortDescending ? -comparison : comparison;
+            }
+            
+            // For value column, extract numeric value from strings like "42", "2.50:1", "All Reports"
+            const aNum = parseFloat(aVal.toString().replace(/[^0-9.-]/g, ''));
+            const bNum = parseFloat(bVal.toString().replace(/[^0-9.-]/g, ''));
+            
+            // If both are valid numbers, do numeric comparison
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                const comparison = aNum - bNum;
+                return currentSortDescending ? -comparison : comparison;
+            }
+        }
+        
+        // Default string comparison for non-numeric values or name column
         aVal = aVal.toString().toLowerCase();
         bVal = bVal.toString().toLowerCase();
         
@@ -284,8 +316,14 @@ function loadCurrentMetrics() {
 }
 
 // Load history metrics
-function loadHistoryMetrics() {
-    console.log('Loading history metrics...');
+function loadHistoryMetrics(metricToSelect) {
+    console.log('Loading history metrics...', metricToSelect ? `Will select: ${metricToSelect}` : '');
+    
+    // Store the metric to select after data loads
+    if (metricToSelect) {
+        window.pendingMetricSelection = metricToSelect;
+    }
+    
     const loadingEl = document.getElementById('history-loading');
     const containerEl = document.getElementById('history-table-container');
     
@@ -310,10 +348,31 @@ function renderCurrentMetrics() {
     
     currentMetricsData.forEach(metric => {
         const row = document.createElement('tr');
+        const historyCount = metric.historyCount !== undefined ? metric.historyCount : 0;
+        const hasHistory = historyCount > 0;
+        
         row.innerHTML = `
             <td>${escapeHtml(metric.name)}</td>
             <td>${escapeHtml(metric.value)}</td>
+            <td>${historyCount}</td>
+            <td class="actions-column">
+                <button class="action-button" 
+                        data-metric-name="${escapeHtml(metric.name)}"
+                        title="View metric history" 
+                        ${!hasHistory ? 'disabled' : ''}>
+                    <i class="codicon codicon-graph-line"></i>
+                </button>
+            </td>
         `;
+        
+        // Add event listener to the action button
+        const actionButton = row.querySelector('.action-button');
+        if (actionButton && hasHistory) {
+            actionButton.addEventListener('click', function() {
+                viewMetricHistory(metric.name);
+            });
+        }
+        
         tbody.appendChild(row);
     });
     
@@ -444,7 +503,14 @@ window.addEventListener('message', event => {
             // Initialize chart and checkboxes
             initializeMetricsChart();
             createMetricsCheckboxes();
-            updateChart();
+            
+            // Check if there's a pending metric selection
+            if (window.pendingMetricSelection) {
+                selectSingleMetric(window.pendingMetricSelection);
+                window.pendingMetricSelection = null;
+            } else {
+                updateChart();
+            }
             
             hideSpinner();
             break;
@@ -639,8 +705,9 @@ function createMetricsCheckboxes() {
         checkboxDiv.appendChild(label);
         
         // Add click handler to the div to toggle checkbox
+        // But exclude checkbox and label clicks (label already toggles checkbox naturally)
         checkboxDiv.addEventListener('click', (e) => {
-            if (e.target !== checkbox) {
+            if (e.target !== checkbox && e.target !== label) {
                 checkbox.checked = !checkbox.checked;
                 handleMetricCheckboxChange({ target: checkbox });
             }
@@ -759,4 +826,28 @@ function handleDateRangeChange(event) {
     
     // Update chart with filtered data
     updateChart();
+}
+
+// Select a single metric and update the chart
+function selectSingleMetric(metricName) {
+    console.log('Selecting single metric:', metricName);
+    
+    // Clear all selections
+    selectedMetrics.clear();
+    
+    // Add only the requested metric if it exists
+    if (availableMetrics.includes(metricName)) {
+        selectedMetrics.add(metricName);
+        
+        // Update all checkboxes to reflect the selection
+        const checkboxes = document.querySelectorAll('#metrics-checkboxes input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = checkbox.value === metricName;
+        });
+        
+        // Update the chart
+        updateChart();
+    } else {
+        console.warn(`Metric "${metricName}" not found in available metrics:`, availableMetrics);
+    }
 }

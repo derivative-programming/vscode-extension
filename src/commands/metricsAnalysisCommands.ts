@@ -112,6 +112,22 @@ export function registerMetricsAnalysisCommands(context: vscode.ExtensionContext
                     // Update metric history with current values
                     updateMetricHistory(currentMetrics, modelService);
                     
+                    // Load history to get data point counts
+                    const historyData = loadMetricHistory(modelService);
+                    const historyCountMap = new Map<string, number>();
+                    
+                    // Build a map of metric name to history count
+                    historyData.metrics.forEach((metric: any) => {
+                        if (metric.value_history && Array.isArray(metric.value_history)) {
+                            historyCountMap.set(metric.display_text, metric.value_history.length);
+                        }
+                    });
+                    
+                    // Add history count to each metric
+                    currentMetrics.forEach((metric: any) => {
+                        metric.historyCount = historyCountMap.get(metric.name) || 0;
+                    });
+                    
                     panel.webview.postMessage({
                         command: 'currentMetricsData',
                         data: currentMetrics
@@ -308,11 +324,12 @@ function updateMetricHistory(currentMetrics: any[], modelService: ModelService):
 async function saveMetricsToCSV(items: any[], modelService: ModelService): Promise<string> {
     try {
         // Create CSV content
-        const csvHeader = 'Metric Name,Value\n';
+        const csvHeader = 'Metric Name,Value,Historical Data Points Count\n';
         const csvRows = items.map(item => {
             const name = (item.name || '').replace(/"/g, '""');
             const value = (item.value || '').replace(/"/g, '""');
-            return `"${name}","${value}"`;
+            const historyCount = item.historyCount !== undefined ? item.historyCount : 0;
+            return `"${name}","${value}","${historyCount}"`;
         }).join('\n');
         
         const csvContent = csvHeader + csvRows;
@@ -1975,6 +1992,10 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
         }
         
         .icon-button:focus {
+            outline: none;
+        }
+        
+        .icon-button:focus-visible {
             outline: 1px solid var(--vscode-focusBorder);
             outline-offset: 2px;
         }
@@ -2014,6 +2035,54 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
         
         tr:hover {
             background-color: var(--vscode-list-hoverBackground);
+        }
+        
+        /* Actions column styling */
+        .actions-column {
+            width: 80px;
+            text-align: center;
+            cursor: default !important;
+        }
+        
+        .actions-column:hover {
+            background-color: var(--vscode-list-hoverBackground) !important;
+        }
+        
+        .action-button {
+            background: none;
+            border: none;
+            color: var(--vscode-foreground);
+            padding: 4px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .action-button:hover {
+            background: var(--vscode-toolbar-hoverBackground);
+            color: var(--vscode-focusBorder);
+        }
+        
+        .action-button:focus {
+            outline: none;
+        }
+        
+        .action-button:focus-visible {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: 2px;
+        }
+        
+        .action-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .action-button:disabled:hover {
+            background: none;
+            color: var(--vscode-foreground);
         }
         
         .sort-indicator {
@@ -2222,6 +2291,10 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
                         <label>Value:</label>
                         <input type="text" id="filterMetricValue" placeholder="Filter by value...">
                     </div>
+                    <div class="filter-group">
+                        <label>History Count:</label>
+                        <input type="text" id="filterHistoryCount" placeholder="Filter by history count...">
+                    </div>
                 </div>
                 <div class="filter-actions">
                     <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
@@ -2245,6 +2318,8 @@ function getMetricsAnalysisWebviewContent(webview: vscode.Webview, extensionPath
                     <tr>
                         <th data-column="name">Metric Name <span class="sort-indicator">▼</span></th>
                         <th data-column="value">Value <span class="sort-indicator">▼</span></th>
+                        <th data-column="historyCount">Historical Data Points Count <span class="sort-indicator">▼</span></th>
+                        <th class="actions-column">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="current-metrics-body">

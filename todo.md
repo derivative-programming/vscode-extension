@@ -6,12 +6,12 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
-Analysis treeview item...
-- ✅ User Stories Role Distribution - between Database size forecast and Page complexity - on click open user story list role distribution tab
+metrics view...
+- history tab
+  - add 'generate png' button to export chart as png image
+  - last value of the chart should be the current value of the metric on the current date/time
 
 
-metrics view history tab...
-- in legend show number of data points available
 
 data object prop usage analysis view...
 - copy of data object usage analysis view but at the data object property level
