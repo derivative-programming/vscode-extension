@@ -2910,6 +2910,56 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
 
                 <!-- Page Usage Treemap Tab Content -->
                 <div id="page-usage-treemap-tab" class="tab-content">
+                    <div class="filter-section">
+                        <div class="filter-header" onclick="togglePageUsageTreemapFilterSection()">
+                            <span class="codicon codicon-chevron-down" id="pageUsageTreemapFilterChevron"></span>
+                            <span>Filters</span>
+                        </div>
+                        <div class="filter-content" id="pageUsageTreemapFilterContent">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Page Name:</label>
+                                    <input type="text" id="filterPageNameTreemap" placeholder="Filter by page name...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Page Type:</label>
+                                    <select id="filterPageTypeTreemap">
+                                        <option value="">All Types</option>
+                                        <option value="form">Form</option>
+                                        <option value="report">Report</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Complexity:</label>
+                                    <select id="filterPageComplexityTreemap">
+                                        <option value="">All Complexity</option>
+                                        <option value="simple">Simple</option>
+                                        <option value="moderate">Moderate</option>
+                                        <option value="complex">Complex</option>
+                                        <option value="very-complex">Very Complex</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group filter-group-roles">
+                                    <label>Role Required:</label>
+                                    <div id="filterRoleRequiredPageUsageTreemap" class="role-filter-checkboxes"></div>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>
+                                        <input type="checkbox" id="hideStartPagesTreemap">
+                                        Hide Start Pages
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button onclick="clearPageUsageTreemapFilters()" class="filter-button-secondary">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="treemap-container">
                         <div class="treemap-header">
                             <div class="treemap-header-content">
@@ -2925,14 +2975,6 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                         <i class="codicon codicon-device-camera"></i>
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="page-usage-graph-filter">
-                            <div class="filter-group">
-                                <label>
-                                    <input type="checkbox" id="hideStartPagesTreemap">
-                                    Hide Start Pages
-                                </label>
                             </div>
                         </div>
                         <div id="page-usage-treemap-loading" class="loading">Loading page usage visualization...</div>
@@ -2960,6 +3002,56 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
 
                 <!-- Page Usage Distribution Tab Content -->
                 <div id="page-usage-distribution-tab" class="tab-content">
+                    <div class="filter-section">
+                        <div class="filter-header" onclick="togglePageUsageDistributionFilterSection()">
+                            <span class="codicon codicon-chevron-down" id="pageUsageDistributionFilterChevron"></span>
+                            <span>Filters</span>
+                        </div>
+                        <div class="filter-content" id="pageUsageDistributionFilterContent">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Page Name:</label>
+                                    <input type="text" id="filterPageNameDistribution" placeholder="Filter by page name...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Page Type:</label>
+                                    <select id="filterPageTypeDistribution">
+                                        <option value="">All Types</option>
+                                        <option value="form">Form</option>
+                                        <option value="report">Report</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Complexity:</label>
+                                    <select id="filterPageComplexityDistribution">
+                                        <option value="">All Complexity</option>
+                                        <option value="simple">Simple</option>
+                                        <option value="moderate">Moderate</option>
+                                        <option value="complex">Complex</option>
+                                        <option value="very-complex">Very Complex</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group filter-group-roles">
+                                    <label>Role Required:</label>
+                                    <div id="filterRoleRequiredPageUsageDistribution" class="role-filter-checkboxes"></div>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>
+                                        <input type="checkbox" id="hideStartPagesHistogram">
+                                        Hide Start Pages
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button onclick="clearPageUsageDistributionFilters()" class="filter-button-secondary">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="histogram-container">
                         <div class="histogram-header">
                             <div class="histogram-header-content">
@@ -2975,14 +3067,6 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                         <i class="codicon codicon-device-camera"></i>
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="page-usage-graph-filter">
-                            <div class="filter-group">
-                                <label>
-                                    <input type="checkbox" id="hideStartPagesHistogram">
-                                    Hide Start Pages
-                                </label>
                             </div>
                         </div>
                         <div id="page-usage-histogram-loading" class="loading">Loading page usage distribution...</div>
@@ -3010,6 +3094,56 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
 
                 <!-- Page Usage vs Complexity Tab Content -->
                 <div id="page-usage-vs-complexity-tab" class="tab-content">
+                    <div class="filter-section">
+                        <div class="filter-header" onclick="togglePageUsageVsComplexityFilterSection()">
+                            <span class="codicon codicon-chevron-down" id="pageUsageVsComplexityFilterChevron"></span>
+                            <span>Filters</span>
+                        </div>
+                        <div class="filter-content" id="pageUsageVsComplexityFilterContent">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Page Name:</label>
+                                    <input type="text" id="filterPageNameScatter" placeholder="Filter by page name...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>Page Type:</label>
+                                    <select id="filterPageTypeScatter">
+                                        <option value="">All Types</option>
+                                        <option value="form">Form</option>
+                                        <option value="report">Report</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Complexity:</label>
+                                    <select id="filterPageComplexityScatter">
+                                        <option value="">All Complexity</option>
+                                        <option value="simple">Simple</option>
+                                        <option value="moderate">Moderate</option>
+                                        <option value="complex">Complex</option>
+                                        <option value="very-complex">Very Complex</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group filter-group-roles">
+                                    <label>Role Required:</label>
+                                    <div id="filterRoleRequiredPageUsageScatter" class="role-filter-checkboxes"></div>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>
+                                        <input type="checkbox" id="hideStartPagesScatter">
+                                        Hide Start Pages
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button onclick="clearPageUsageVsComplexityFilters()" class="filter-button-secondary">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="scatter-container">
                         <div class="scatter-header">
                             <div class="scatter-header-content">
@@ -3025,14 +3159,6 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                         <i class="codicon codicon-device-camera"></i>
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="page-usage-graph-filter">
-                            <div class="filter-group">
-                                <label>
-                                    <input type="checkbox" id="hideStartPagesScatter">
-                                    Hide Start Pages
-                                </label>
                             </div>
                         </div>
                         <div id="page-usage-vs-complexity-loading" class="loading">Loading scatter plot...</div>

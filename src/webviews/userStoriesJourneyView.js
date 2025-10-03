@@ -197,21 +197,51 @@ function refresh() {
 
 // Helper function to get filtered page data based on current tab
 function getFilteredPageDataForTab() {
-    // Get the active tab to determine which checkbox to check
+    // Get the active tab to determine which filters to use
     const activeTab = document.querySelector('.tab.active')?.getAttribute('data-tab');
     let hideStartPages = false;
+    let nameFilter = '';
+    let typeFilter = '';
+    let complexityFilter = '';
+    let roleCheckboxes = [];
+    let selectedRolesForTab = new Set();
     
     if (activeTab === 'page-usage-treemap') {
         hideStartPages = document.getElementById('hideStartPagesTreemap')?.checked || false;
+        nameFilter = document.getElementById('filterPageNameTreemap')?.value.toLowerCase() || '';
+        typeFilter = document.getElementById('filterPageTypeTreemap')?.value || '';
+        complexityFilter = document.getElementById('filterPageComplexityTreemap')?.value || '';
+        roleCheckboxes = document.querySelectorAll('#page-usage-treemap-tab .role-checkbox-item input[type="checkbox"]:checked');
     } else if (activeTab === 'page-usage-distribution') {
         hideStartPages = document.getElementById('hideStartPagesHistogram')?.checked || false;
+        nameFilter = document.getElementById('filterPageNameDistribution')?.value.toLowerCase() || '';
+        typeFilter = document.getElementById('filterPageTypeDistribution')?.value || '';
+        complexityFilter = document.getElementById('filterPageComplexityDistribution')?.value || '';
+        roleCheckboxes = document.querySelectorAll('#page-usage-distribution-tab .role-checkbox-item input[type="checkbox"]:checked');
     } else if (activeTab === 'page-usage-vs-complexity') {
         hideStartPages = document.getElementById('hideStartPagesScatter')?.checked || false;
+        nameFilter = document.getElementById('filterPageNameScatter')?.value.toLowerCase() || '';
+        typeFilter = document.getElementById('filterPageTypeScatter')?.value || '';
+        complexityFilter = document.getElementById('filterPageComplexityScatter')?.value || '';
+        roleCheckboxes = document.querySelectorAll('#page-usage-vs-complexity-tab .role-checkbox-item input[type="checkbox"]:checked');
     }
+    
+    // Build set of selected roles from checked checkboxes
+    roleCheckboxes.forEach(checkbox => {
+        selectedRolesForTab.add(checkbox.value);
+    });
     
     return (pageUsageData.pages || []).filter(page => {
         const matchesStartPageFilter = !hideStartPages || !page.isStartPage;
-        return matchesStartPageFilter;
+        const matchesName = !nameFilter || (page.name || '').toLowerCase().includes(nameFilter);
+        const matchesType = !typeFilter || page.type === typeFilter;
+        const matchesComplexity = !complexityFilter || page.complexity === complexityFilter;
+        
+        // Check if page's role is in the selected roles set (if no roles selected, show all)
+        const pageRole = page.roleRequired || 'Public';
+        const matchesRoleRequired = selectedRolesForTab.size === 0 || selectedRolesForTab.has(pageRole);
+        
+        return matchesStartPageFilter && matchesName && matchesType && matchesComplexity && matchesRoleRequired;
     });
 }
 
@@ -255,6 +285,57 @@ function clearPageUsageFilters() {
     // Only re-render table and summary (not the visualizations)
     renderPageUsageTable();
     renderPageUsageSummary();
+}
+
+// Clear filters for Page Usage Treemap tab (global function for onclick)
+function clearPageUsageTreemapFilters() {
+    document.getElementById('filterPageNameTreemap').value = '';
+    document.getElementById('filterPageTypeTreemap').value = '';
+    document.getElementById('filterPageComplexityTreemap').value = '';
+    document.getElementById('hideStartPagesTreemap').checked = false;
+    
+    // Clear role checkboxes
+    const roleCheckboxes = document.querySelectorAll('#page-usage-treemap-tab .role-checkbox-item input[type="checkbox"]');
+    roleCheckboxes.forEach(checkbox => {
+        checkbox.checked = true; // Check all to show all data
+    });
+    
+    // Re-render treemap
+    renderPageUsageTreemap();
+}
+
+// Clear filters for Page Usage Distribution tab (global function for onclick)
+function clearPageUsageDistributionFilters() {
+    document.getElementById('filterPageNameDistribution').value = '';
+    document.getElementById('filterPageTypeDistribution').value = '';
+    document.getElementById('filterPageComplexityDistribution').value = '';
+    document.getElementById('hideStartPagesHistogram').checked = false;
+    
+    // Clear role checkboxes
+    const roleCheckboxes = document.querySelectorAll('#page-usage-distribution-tab .role-checkbox-item input[type="checkbox"]');
+    roleCheckboxes.forEach(checkbox => {
+        checkbox.checked = true; // Check all to show all data
+    });
+    
+    // Re-render histogram
+    renderPageUsageHistogram();
+}
+
+// Clear filters for Page Usage vs Complexity tab (global function for onclick)
+function clearPageUsageVsComplexityFilters() {
+    document.getElementById('filterPageNameScatter').value = '';
+    document.getElementById('filterPageTypeScatter').value = '';
+    document.getElementById('filterPageComplexityScatter').value = '';
+    document.getElementById('hideStartPagesScatter').checked = false;
+    
+    // Clear role checkboxes
+    const roleCheckboxes = document.querySelectorAll('#page-usage-vs-complexity-tab .role-checkbox-item input[type="checkbox"]');
+    roleCheckboxes.forEach(checkbox => {
+        checkbox.checked = true; // Check all to show all data
+    });
+    
+    // Re-render scatter plot
+    renderPageUsageVsComplexityScatter();
 }
 
 // Extract unique roles from page usage data for filter checkboxes
@@ -320,6 +401,84 @@ function handlePageUsageRoleFilterChange(event) {
     renderPageUsageSummary();
 }
 
+// Populate role filter checkboxes for visualization tabs
+function populateVisualizationRoleFilterCheckboxes() {
+    // Populate for Treemap tab
+    const treemapContainer = document.getElementById('filterRoleRequiredPageUsageTreemap');
+    if (treemapContainer) {
+        treemapContainer.innerHTML = '';
+        pageUsageFilterOptions.rolesRequired.forEach(role => {
+            const roleItem = document.createElement('div');
+            roleItem.className = 'role-checkbox-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = 'role-treemap-' + role;
+            checkbox.value = role;
+            checkbox.checked = true;
+            checkbox.addEventListener('change', () => renderPageUsageTreemap());
+            
+            const label = document.createElement('label');
+            label.htmlFor = 'role-treemap-' + role;
+            label.textContent = role;
+            
+            roleItem.appendChild(checkbox);
+            roleItem.appendChild(label);
+            treemapContainer.appendChild(roleItem);
+        });
+    }
+    
+    // Populate for Distribution tab
+    const distributionContainer = document.getElementById('filterRoleRequiredPageUsageDistribution');
+    if (distributionContainer) {
+        distributionContainer.innerHTML = '';
+        pageUsageFilterOptions.rolesRequired.forEach(role => {
+            const roleItem = document.createElement('div');
+            roleItem.className = 'role-checkbox-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = 'role-distribution-' + role;
+            checkbox.value = role;
+            checkbox.checked = true;
+            checkbox.addEventListener('change', () => renderPageUsageHistogram());
+            
+            const label = document.createElement('label');
+            label.htmlFor = 'role-distribution-' + role;
+            label.textContent = role;
+            
+            roleItem.appendChild(checkbox);
+            roleItem.appendChild(label);
+            distributionContainer.appendChild(roleItem);
+        });
+    }
+    
+    // Populate for Scatter tab
+    const scatterContainer = document.getElementById('filterRoleRequiredPageUsageScatter');
+    if (scatterContainer) {
+        scatterContainer.innerHTML = '';
+        pageUsageFilterOptions.rolesRequired.forEach(role => {
+            const roleItem = document.createElement('div');
+            roleItem.className = 'role-checkbox-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = 'role-scatter-' + role;
+            checkbox.value = role;
+            checkbox.checked = true;
+            checkbox.addEventListener('change', () => renderPageUsageVsComplexityScatter());
+            
+            const label = document.createElement('label');
+            label.htmlFor = 'role-scatter-' + role;
+            label.textContent = role;
+            
+            roleItem.appendChild(checkbox);
+            roleItem.appendChild(label);
+            scatterContainer.appendChild(roleItem);
+        });
+    }
+}
+
 // Functions to handle start page filters for visualization tabs
 function applyStartPageFilter() {
     // Get the active tab to determine which visualization to refresh
@@ -354,6 +513,66 @@ function openPageDetails(pageName, pageType) {
 function togglePageUsageFilterSection() {
     const filterContent = document.getElementById('pageUsageFilterContent');
     const chevron = document.getElementById('pageUsageFilterChevron');
+    
+    if (filterContent && chevron) {
+        const isCollapsed = filterContent.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            filterContent.classList.remove('collapsed');
+            chevron.classList.remove('codicon-chevron-right');
+            chevron.classList.add('codicon-chevron-down');
+        } else {
+            filterContent.classList.add('collapsed');
+            chevron.classList.remove('codicon-chevron-down');
+            chevron.classList.add('codicon-chevron-right');
+        }
+    }
+}
+
+// Toggle filter section for Page Usage Treemap tab (global function for onclick)
+function togglePageUsageTreemapFilterSection() {
+    const filterContent = document.getElementById('pageUsageTreemapFilterContent');
+    const chevron = document.getElementById('pageUsageTreemapFilterChevron');
+    
+    if (filterContent && chevron) {
+        const isCollapsed = filterContent.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            filterContent.classList.remove('collapsed');
+            chevron.classList.remove('codicon-chevron-right');
+            chevron.classList.add('codicon-chevron-down');
+        } else {
+            filterContent.classList.add('collapsed');
+            chevron.classList.remove('codicon-chevron-down');
+            chevron.classList.add('codicon-chevron-right');
+        }
+    }
+}
+
+// Toggle filter section for Page Usage Distribution tab (global function for onclick)
+function togglePageUsageDistributionFilterSection() {
+    const filterContent = document.getElementById('pageUsageDistributionFilterContent');
+    const chevron = document.getElementById('pageUsageDistributionFilterChevron');
+    
+    if (filterContent && chevron) {
+        const isCollapsed = filterContent.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            filterContent.classList.remove('collapsed');
+            chevron.classList.remove('codicon-chevron-right');
+            chevron.classList.add('codicon-chevron-down');
+        } else {
+            filterContent.classList.add('collapsed');
+            chevron.classList.remove('codicon-chevron-down');
+            chevron.classList.add('codicon-chevron-right');
+        }
+    }
+}
+
+// Toggle filter section for Page Usage vs Complexity tab (global function for onclick)
+function togglePageUsageVsComplexityFilterSection() {
+    const filterContent = document.getElementById('pageUsageVsComplexityFilterContent');
+    const chevron = document.getElementById('pageUsageVsComplexityFilterChevron');
     
     if (filterContent && chevron) {
         const isCollapsed = filterContent.classList.contains('collapsed');
@@ -1231,6 +1450,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Setup filter event listeners for Page Usage Treemap tab
+    const treemapFilterInputs = ['filterPageNameTreemap', 'filterPageTypeTreemap', 'filterPageComplexityTreemap'];
+    treemapFilterInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', () => renderPageUsageTreemap());
+            element.addEventListener('change', () => renderPageUsageTreemap());
+        }
+    });
+    
+    // Setup filter event listeners for Page Usage Distribution tab
+    const distributionFilterInputs = ['filterPageNameDistribution', 'filterPageTypeDistribution', 'filterPageComplexityDistribution'];
+    distributionFilterInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', () => renderPageUsageHistogram());
+            element.addEventListener('change', () => renderPageUsageHistogram());
+        }
+    });
+    
+    // Setup filter event listeners for Page Usage vs Complexity tab
+    const scatterFilterInputs = ['filterPageNameScatter', 'filterPageTypeScatter', 'filterPageComplexityScatter'];
+    scatterFilterInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', () => renderPageUsageVsComplexityScatter());
+            element.addEventListener('change', () => renderPageUsageVsComplexityScatter());
+        }
+    });
+    
     // Setup button event listeners
     const exportButton = document.getElementById('exportButton');
     const refreshButton = document.getElementById('refreshButton');
@@ -1971,9 +2220,10 @@ function showPageUsageSpinner() {
 function handlePageUsageDataResponse(data) {
     pageUsageData = data;
     
-    // Extract and populate role filters for Page Usage tab
+    // Extract and populate role filters for Page Usage tab and visualization tabs
     extractPageUsageFilterOptions();
     populatePageUsageRoleFilterCheckboxes();
+    populateVisualizationRoleFilterCheckboxes();
     
     renderPageUsageTable();
     renderPageUsageSummary();
