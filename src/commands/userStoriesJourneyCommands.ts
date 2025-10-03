@@ -269,15 +269,16 @@ async function loadUserStoriesJourneyData(panel: vscode.WebviewPanel, modelServi
 async function saveJourneyDataToCSV(items: any[], modelService: ModelService): Promise<string> {
     try {
         // Create CSV content
-        const csvHeader = 'Story Number,Story Text,Page,Journey Page Distance\n';
+        const csvHeader = 'Story Number,Story Text,Page,Role Required,Journey Page Distance\n';
         const csvRows = items.map(item => {
             const storyNumber = (item.storyNumber || '').toString().replace(/"/g, '""');
             const storyText = (item.storyText || '').toString().replace(/"/g, '""');
             const page = (item.page || '').toString().replace(/"/g, '""');
+            const pageRole = (item.pageRole || 'Public').toString().replace(/"/g, '""');
             const journeyPageDistance = (item.journeyPageDistance !== undefined && item.journeyPageDistance !== -1) 
                 ? item.journeyPageDistance.toString() 
                 : '';
-            return `"${storyNumber}","${storyText}","${page}","${journeyPageDistance}"`;
+            return `"${storyNumber}","${storyText}","${page}","${pageRole}","${journeyPageDistance}"`;
         }).join('\n');
 
         const csvContent = csvHeader + csvRows;
@@ -295,15 +296,16 @@ async function saveJourneyDataToCSV(items: any[], modelService: ModelService): P
 async function savePageUsageDataToCSV(pages: any[], modelService: ModelService): Promise<string> {
     try {
         // Create CSV content with page usage data
-        const csvHeader = 'Page Name,Type,Complexity,Total Elements,Usage Count\n';
+        const csvHeader = 'Page Name,Type,Role Required,Complexity,Total Elements,Usage Count\n';
         const csvRows = pages.map(page => {
             const name = (page.name || '').toString().replace(/"/g, '""');
             const type = (page.type || '').toString().replace(/"/g, '""');
+            const roleRequired = (page.roleRequired || 'Public').toString().replace(/"/g, '""');
             const complexity = (page.complexity || '').toString().replace(/"/g, '""');
             const totalElements = (page.totalElements || 0).toString();
             const usageCount = (page.usageCount || 0).toString();
             
-            return `"${name}","${type}","${complexity}","${totalElements}","${usageCount}"`;
+            return `"${name}","${type}","${roleRequired}","${complexity}","${totalElements}","${usageCount}"`;
         }).join('\n');
 
         const csvContent = csvHeader + csvRows;
@@ -1377,6 +1379,33 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                         .filter-group input:focus, .filter-group select:focus {
                             outline: 1px solid var(--vscode-focusBorder);
                             outline-offset: -1px;
+                        }
+                        .filter-group-roles {
+                            flex: 1 1 100%;
+                            max-width: 100%;
+                        }
+                        .role-filter-checkboxes {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 12px;
+                            padding: 8px 0;
+                        }
+                        .role-checkbox-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            font-size: 12px;
+                            cursor: pointer;
+                            min-width: 120px;
+                        }
+                        .role-checkbox-item input[type="checkbox"] {
+                            margin: 0;
+                            cursor: pointer;
+                        }
+                        .role-checkbox-item label {
+                            cursor: pointer;
+                            color: var(--vscode-editor-foreground);
+                            user-select: none;
                         }
                         .filter-actions {
                             display: flex;
@@ -2831,6 +2860,12 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <input type="text" id="filterPage" placeholder="Filter by page...">
                                 </div>
                             </div>
+                            <div class="filter-row">
+                                <div class="filter-group filter-group-roles">
+                                    <label>Role Required:</label>
+                                    <div id="filterRoleRequired" class="role-filter-checkboxes"></div>
+                                </div>
+                            </div>
                             <div class="filter-actions">
                                 <button onclick="clearFilters()" class="filter-button-secondary">Clear All</button>
                             </div>
@@ -3141,6 +3176,12 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                         <option value="complex">Complex</option>
                                         <option value="very-complex">Very Complex</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="filter-row">
+                                <div class="filter-group filter-group-roles">
+                                    <label>Role Required:</label>
+                                    <div id="filterRoleRequiredPageUsage" class="role-filter-checkboxes"></div>
                                 </div>
                             </div>
                             <div class="filter-actions">

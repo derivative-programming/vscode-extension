@@ -18,6 +18,21 @@ let allItems = [];
 // Keep track of selected items
 let selectedItems = new Set();
 
+// Keep track of unique values for filter dropdowns
+let filterOptions = {
+    rolesRequired: []
+};
+
+// Keep track of selected roles for filtering (Set for efficient lookup)
+let selectedRoles = new Set();
+
+// Page Usage tab filtering
+let pageUsageFilterOptions = {
+    rolesRequired: []
+};
+
+let pageUsageSelectedRoles = new Set();
+
 // Helper function to show spinner
 function showSpinner() {
     const spinnerOverlay = document.getElementById("spinner-overlay");
@@ -65,7 +80,11 @@ function applyFilters() {
         const matchesStoryText = !storyTextFilter || (item.storyText || '').toLowerCase().includes(storyTextFilter);
         const matchesPage = !pageFilter || (item.page || '').toLowerCase().includes(pageFilter);
         
-        return matchesStoryNumber && matchesStoryText && matchesPage;
+        // Check if item's role is in the selected roles set
+        const itemRole = item.pageRole || 'Public';
+        const matchesRoleRequired = selectedRoles.size === 0 || selectedRoles.has(itemRole);
+        
+        return matchesStoryNumber && matchesStoryText && matchesPage && matchesRoleRequired;
     });
     
     // Update userStoriesJourneyData with filtered results
@@ -83,6 +102,13 @@ function clearFilters() {
     document.getElementById('filterStoryText').value = '';
     document.getElementById('filterPage').value = '';
     
+    // Clear role checkboxes and reset selected roles
+    selectedRoles.clear();
+    const roleCheckboxes = document.querySelectorAll('.role-checkbox-item input[type="checkbox"]');
+    roleCheckboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
     // Reset to show all items
     userStoriesJourneyData.items = allItems.slice();
     userStoriesJourneyData.totalRecords = allItems.length;
@@ -90,6 +116,73 @@ function clearFilters() {
     // Re-render the table
     renderTable();
     renderRecordInfo();
+}
+
+// Extract unique roles from data for filter checkboxes
+function extractFilterOptions() {
+    const rolesRequired = new Set();
+    
+    // Add "Public" for items without roles
+    rolesRequired.add('Public');
+    
+    allItems.forEach(item => {
+        const role = item.pageRole || 'Public';
+        rolesRequired.add(role);
+    });
+    
+    filterOptions.rolesRequired = Array.from(rolesRequired).sort();
+}
+
+// Populate role filter checkboxes
+function populateRoleFilterCheckboxes() {
+    const roleRequiredContainer = document.getElementById('filterRoleRequired');
+    if (!roleRequiredContainer) {
+        return;
+    }
+    
+    // Clear existing checkboxes
+    roleRequiredContainer.innerHTML = '';
+    
+    // Start with all roles selected
+    selectedRoles.clear();
+    
+    filterOptions.rolesRequired.forEach(role => {
+        const roleItem = document.createElement('div');
+        roleItem.className = 'role-checkbox-item';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'role-' + role;
+        checkbox.value = role;
+        checkbox.checked = true; // Check all by default
+        checkbox.addEventListener('change', handleRoleFilterChange);
+        
+        const label = document.createElement('label');
+        label.htmlFor = 'role-' + role;
+        label.textContent = role;
+        
+        roleItem.appendChild(checkbox);
+        roleItem.appendChild(label);
+        roleRequiredContainer.appendChild(roleItem);
+        
+        // Add to selected roles
+        selectedRoles.add(role);
+    });
+}
+
+// Handle role filter checkbox change
+function handleRoleFilterChange(event) {
+    const checkbox = event.target;
+    const role = checkbox.value;
+    
+    if (checkbox.checked) {
+        selectedRoles.add(role);
+    } else {
+        selectedRoles.delete(role);
+    }
+    
+    // Apply filters with new role selection
+    applyFilters();
 }
 
 // Refresh data (global function for onclick)
@@ -133,7 +226,11 @@ function getFilteredPageData() {
         const matchesType = !typeFilter || page.type === typeFilter;
         const matchesComplexity = !complexityFilter || page.complexity === complexityFilter;
         
-        return matchesName && matchesType && matchesComplexity;
+        // Check if page's role is in the selected roles set
+        const pageRole = page.roleRequired || 'Public';
+        const matchesRoleRequired = pageUsageSelectedRoles.size === 0 || pageUsageSelectedRoles.has(pageRole);
+        
+        return matchesName && matchesType && matchesComplexity && matchesRoleRequired;
     });
 }
 
@@ -148,7 +245,77 @@ function clearPageUsageFilters() {
     document.getElementById('filterPageType').value = '';
     document.getElementById('filterPageComplexity').value = '';
     
+    // Clear role checkboxes and reset selected roles
+    pageUsageSelectedRoles.clear();
+    const roleCheckboxes = document.querySelectorAll('#page-usage-tab .role-checkbox-item input[type="checkbox"]');
+    roleCheckboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
     // Only re-render table and summary (not the visualizations)
+    renderPageUsageTable();
+    renderPageUsageSummary();
+}
+
+// Extract unique roles from page usage data for filter checkboxes
+function extractPageUsageFilterOptions() {
+    const rolesRequired = new Set();
+    
+    // Add "Public" for pages without roles
+    rolesRequired.add('Public');
+    
+    (pageUsageData.pages || []).forEach(page => {
+        const role = page.roleRequired || 'Public';
+        rolesRequired.add(role);
+    });
+    
+    pageUsageFilterOptions.rolesRequired = Array.from(rolesRequired).sort();
+}
+
+// Populate Page Usage role filter checkboxes
+function populatePageUsageRoleFilterCheckboxes() {
+    const roleRequiredContainer = document.getElementById('filterRoleRequiredPageUsage');
+    if (!roleRequiredContainer) {
+        return;
+    }
+    
+    roleRequiredContainer.innerHTML = '';
+    pageUsageSelectedRoles.clear();
+    
+    pageUsageFilterOptions.rolesRequired.forEach(role => {
+        const roleItem = document.createElement('div');
+        roleItem.className = 'role-checkbox-item';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'role-page-usage-' + role;
+        checkbox.value = role;
+        checkbox.checked = true;
+        checkbox.addEventListener('change', handlePageUsageRoleFilterChange);
+        
+        const label = document.createElement('label');
+        label.htmlFor = 'role-page-usage-' + role;
+        label.textContent = role;
+        
+        roleItem.appendChild(checkbox);
+        roleItem.appendChild(label);
+        roleRequiredContainer.appendChild(roleItem);
+        
+        pageUsageSelectedRoles.add(role);
+    });
+}
+
+// Handle Page Usage role filter changes
+function handlePageUsageRoleFilterChange(event) {
+    const checkbox = event.target;
+    const role = checkbox.value;
+    
+    if (checkbox.checked) {
+        pageUsageSelectedRoles.add(role);
+    } else {
+        pageUsageSelectedRoles.delete(role);
+    }
+    
     renderPageUsageTable();
     renderPageUsageSummary();
 }
@@ -658,6 +825,7 @@ function renderTable() {
         { key: 'storyNumber', label: 'Story Number', sortable: true, className: 'story-number-column' },
         { key: 'storyText', label: 'Story Text', sortable: true, className: 'story-text-column' },
         { key: 'page', label: 'Page', sortable: true, className: 'page-column' },
+        { key: 'pageRole', label: 'Role Required', sortable: true, className: 'role-required-column' },
         { key: 'journeyPageDistance', label: 'Journey Page Distance', sortable: true, className: 'journey-page-distance-column' }
     ];
     
@@ -723,6 +891,12 @@ function renderTable() {
             pageCell.className = "page-column";
             pageCell.textContent = item.page || '';
             row.appendChild(pageCell);
+            
+            // Role Required
+            const roleCell = document.createElement("td");
+            roleCell.className = "role-required-column";
+            roleCell.textContent = item.pageRole || 'Public';
+            row.appendChild(roleCell);
             
             // Journey Page Distance
             const journeyPageDistanceCell = document.createElement("td");
@@ -855,6 +1029,10 @@ window.addEventListener('message', event => {
                 userStoriesJourneyData = message.data;
                 allItems = message.data.items.slice(); // Create a copy for filtering
                 selectedItems.clear(); // Clear selection when new data is loaded
+                
+                // Extract and populate role filters
+                extractFilterOptions();
+                populateRoleFilterCheckboxes();
             }
             
             renderTable();
@@ -1792,6 +1970,11 @@ function showPageUsageSpinner() {
 // Handle page usage data response from extension
 function handlePageUsageDataResponse(data) {
     pageUsageData = data;
+    
+    // Extract and populate role filters for Page Usage tab
+    extractPageUsageFilterOptions();
+    populatePageUsageRoleFilterCheckboxes();
+    
     renderPageUsageTable();
     renderPageUsageSummary();
 }
@@ -1872,6 +2055,9 @@ function renderPageUsageTable() {
                     </th>
                     <th class="page-type-column sortable" data-column="type">
                         Type${getSortIndicator('type')}
+                    </th>
+                    <th class="page-role-column sortable" data-column="roleRequired">
+                        Role Required${getSortIndicator('roleRequired')}
                     </th>
                     <th class="page-complexity-column sortable" data-column="complexity">
                         Complexity${getSortIndicator('complexity')}
@@ -1960,6 +2146,9 @@ function createPageUsageRow(page) {
             </td>
             <td class="page-type-column">
                 <span>${pageType}</span>
+            </td>
+            <td class="page-role-column">
+                <span>${page.roleRequired || 'Public'}</span>
             </td>
             <td class="page-complexity-column">
                 <span>${complexity.charAt(0).toUpperCase() + complexity.slice(1).replace('-', ' ')}</span>
