@@ -836,14 +836,14 @@ export function registerCommands(
     
     // Register show user stories command
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.showUserStories', async () => {
+        vscode.commands.registerCommand('appdna.showUserStories', async (initialTab?: string) => {
             if (!modelService.isFileLoaded()) {
                 vscode.window.showWarningMessage('No App DNA file is currently loaded.');
                 return;
             }
             
-            // Show the user stories view
-            showUserStoriesView(context, modelService);
+            // Show the user stories view with optional initial tab
+            showUserStoriesView(context, modelService, initialTab);
         })
     );
 

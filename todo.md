@@ -7,9 +7,7 @@ common types of graphs...
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
 Analysis treeview item...
-- stories
-- pages
-
+- ✅ User Stories Role Distribution - between Database size forecast and Page complexity - on click open user story list role distribution tab
 
 
 metrics view history tab...

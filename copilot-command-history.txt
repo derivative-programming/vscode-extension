@@ -1,3 +1,112 @@
+## October 3, 2025 - Analysis Tree View - Add Data Object Hierarchy Item
+
+**Command**: between Metrics and 'Data object size' create a 'Data Object Hierarchy' treeview item. on click it should open the data object hierarchy view
+
+**Status**: ✅ COMPLETED SUCCESSFULLY
+
+**Implementation Details**:
+- Added new tree item "Data Object Hierarchy" to ANALYSIS section
+- Positioned between "Metrics" and "Data Object Size"
+- Clicking item opens the existing Data Object Hierarchy diagram view
+- Uses existing command `appdna.showHierarchyDiagram` (already implemented)
+
+**Files Modified**:
+1. **src/providers/jsonTreeDataProvider.ts**:
+   - Added `dataObjectHierarchyItem` in ANALYSIS section's `getChildren()` method
+   - Set command to `appdna.showHierarchyDiagram` (existing command)
+   - Context value: `analysisDataObjectHierarchy`
+   - Tooltip: "View data object relationships and hierarchy diagram"
+
+**Tree View Hierarchy**:
+```
+ANALYSIS
+├── Metrics
+├── Data Object Hierarchy  ← NEW
+├── Data Object Size
+├── Data Object Usage
+├── Database Size Forecast
+├── User Stories Role Distribution
+├── Page Complexity
+└── User Story Journey
+```
+
+**Notes**:
+- Leverages existing hierarchy view implementation from `src/webviews/hierarchyView.ts`
+- The hierarchy diagram was already accessible via DATA OBJECTS section context menu
+- This provides easier discoverability in the ANALYSIS section
+- No new view implementation needed - simply adds a shortcut to existing functionality
+
+---
+
+## October 2, 2025 - Analysis Tree View - Add User Stories Role Distribution Item
+
+**Command**: in the Analysis section add a 'User Stories Role Distribution' - between Database size forecast and Page complexity - on click open user story list role distribution tab
+
+**Status**: ✅ COMPLETED SUCCESSFULLY
+
+**Implementation Details**:
+- Added new tree item "User Stories Role Distribution" to ANALYSIS section
+- Positioned between "Database Size Forecast" and "Page Complexity"
+- Clicking item opens User Stories view with Role Distribution (analytics) tab pre-selected
+- Supports both new panel creation and switching tabs in existing panel
+- Implemented via command parameter passing: `appdna.showUserStories` accepts optional `initialTab` parameter
+
+**Architecture Pattern**:
+- Tree item passes 'analytics' as command argument
+- Command invokes `showUserStoriesView(context, modelService, 'analytics')`
+- View function either:
+  - Creates new panel with initial tab in HTML (using template literal injection)
+  - Sends `switchToTab` message to existing panel webview
+- Webview script calls `switchTab()` function to activate analytics tab
+- Role distribution histogram automatically renders when analytics tab is shown
+
+**Files Modified**:
+1. **src/providers/jsonTreeDataProvider.ts**:
+   - Added `userStoriesRoleDistributionItem` in ANALYSIS section's `getChildren()` method
+   - Set command to `appdna.showUserStories` with `['analytics']` argument
+   - Context value: `analysisUserStoriesRoleDistribution`
+   - Tooltip: "Analyze the distribution of roles across user stories"
+
+2. **src/commands/registerCommands.ts**:
+   - Updated `appdna.showUserStories` command signature to accept `initialTab?: string`
+   - Passes initialTab parameter to `showUserStoriesView()`
+
+3. **src/webviews/userStoriesView.ts**:
+   - Updated TypeScript wrapper function signature: `initialTab?: string`
+   - Passes parameter through to JavaScript implementation
+   - Added JSDoc comment for initialTab parameter
+
+4. **src/webviews/userStoriesView.js**:
+   - Updated `showUserStoriesView()` signature to accept `initialTab` parameter
+   - For existing panels: sends `switchToTab` message via `postMessage()`
+   - For new panels: passes initialTab to `createHtmlContent()`
+   - Updated `createHtmlContent()` to inject initial tab via template literal
+   - Added `switchToTab` message handler in `window.addEventListener('message')`
+   - Initial tab selection logic after `initializeTabs()` call
+
+5. **todo.md**:
+   - Marked task as complete with ✅
+
+**Documentation Created**:
+- `docs/architecture/user-stories-role-distribution-tree-item.md` - Complete implementation guide
+
+**Message Passing Flow**:
+1. Tree item clicked → Command with 'analytics' argument
+2. Command handler → `showUserStoriesView(context, modelService, 'analytics')`
+3. View function → Creates panel with initial tab OR sends switchToTab message
+4. Webview script → Receives parameter/message and calls `switchTab('analytics')`
+5. switchTab() → Activates analytics tab and renders role distribution histogram
+
+**Testing Status**: ✅ No compilation errors, ready for manual testing
+
+**Notes**:
+- Tab name 'analytics' matches existing HTML: `<button class="tab" data-tab="analytics">Role Distribution</button>`
+- Follows existing patterns for tab switching in User Stories view
+- Gracefully handles both new and existing panel scenarios
+- Maintains separation between TypeScript (commands) and JavaScript (webviews)
+
+---
+
 ## October 2, 2025 - Page List View - Convert Role Filter to Checkbox List
 
 **Command**: lets convert the role dropdown in fitlers to a checkbox list with an item for each role

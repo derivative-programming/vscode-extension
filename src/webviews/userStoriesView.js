@@ -543,14 +543,14 @@ function closeUserStoriesPanel() {
  * @param {Object} context The extension context
  * @param {Object} modelService The model service instance
  */
-function showUserStoriesView(context, modelService) {
+function showUserStoriesView(context, modelService, initialTab) {
     if (!modelService || !modelService.isFileLoaded()) {
         // Use VS Code API from the imported context, not from a global vscode variable
         vscode.window.showErrorMessage("No project is currently loaded.");
         return;
     }    // Create a consistent panel ID
     const panelId = 'userStoriesView';
-    console.log(`showUserStoriesView called (panelId: ${panelId})`);
+    console.log(`showUserStoriesView called (panelId: ${panelId}, initialTab: ${initialTab})`);
     
     // Store reference to context and modelService
     userStoryPanel.context = context;
@@ -560,7 +560,16 @@ function showUserStoriesView(context, modelService) {
     if (activePanels.has(panelId)) {
         console.log(`Panel already exists for user stories view, revealing existing panel`);
         // Panel exists, reveal it instead of creating a new one
-        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        const existingPanel = activePanels.get(panelId);
+        existingPanel.reveal(vscode.ViewColumn.One);
+        
+        // If initialTab is specified, send message to switch to that tab
+        if (initialTab) {
+            existingPanel.webview.postMessage({
+                command: 'switchToTab',
+                data: { tabName: initialTab }
+            });
+        }
         return;
     }
     
@@ -610,8 +619,8 @@ function showUserStoriesView(context, modelService) {
         isStoryProcessed: item.isStoryProcessed || "false"
     }));
 
-    // Set the webview HTML content
-    panel.webview.html = createHtmlContent(userStoryItems);
+    // Set the webview HTML content with optional initial tab
+    panel.webview.html = createHtmlContent(userStoryItems, null, initialTab);
 
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(async (message) => {
@@ -1146,7 +1155,7 @@ function parseCSV(csvText) {
  * @param {string} errorMessage Optional error message to display
  * @returns {string} The HTML content
  */
-function createHtmlContent(userStoryItems, errorMessage = null) {
+function createHtmlContent(userStoryItems, errorMessage = null, initialTab = null) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1872,6 +1881,13 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
             // Initialize tabs
             initializeTabs();
             
+            // Handle initial tab selection if provided
+            const initialTab = ${initialTab ? `'${initialTab}'` : 'null'};
+            if (initialTab) {
+                console.log('[UserStoriesView] Switching to initial tab:', initialTab);
+                switchTab(initialTab);
+            }
+            
             // Cache DOM elements with null checks
             const table = document.getElementById('userStoriesTable');
             const detailsTable = document.getElementById('userStoriesDetailsTable');
@@ -2562,6 +2578,14 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                 const message = event.data;
                 
                 switch (message.command) {
+                    case 'switchToTab':
+                        // Switch to the specified tab
+                        if (message.data && message.data.tabName) {
+                            console.log('[UserStoriesView] Received switchToTab command:', message.data.tabName);
+                            switchTab(message.data.tabName);
+                        }
+                        break;
+                        
                     case 'addUserStoryError':
                         addStoryError.textContent = message.data.error;
                         addStoryError.style.display = 'block';

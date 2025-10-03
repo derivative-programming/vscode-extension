@@ -641,6 +641,34 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 };
                 items.push(metricsItem);
 
+                // Create Data Object Hierarchy item
+                const dataObjectHierarchyItem = new JsonTreeItem(
+                    'Data Object Hierarchy',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisDataObjectHierarchy'
+                );
+                dataObjectHierarchyItem.tooltip = "View data object relationships and hierarchy diagram";
+                dataObjectHierarchyItem.command = {
+                    command: 'appdna.showHierarchyDiagram',
+                    title: 'Show Data Object Hierarchy',
+                    arguments: []
+                };
+                items.push(dataObjectHierarchyItem);
+                
+                // Create Data Object Size item
+                const dataObjectSizeItem = new JsonTreeItem(
+                    'Data Object Size',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisDataObjectSize'
+                );
+                dataObjectSizeItem.tooltip = "Analyze storage size requirements for each data object based on property types";
+                dataObjectSizeItem.command = {
+                    command: 'appdna.dataObjectSizeAnalysis',
+                    title: 'Show Data Object Size Analysis',
+                    arguments: []
+                };
+                items.push(dataObjectSizeItem);
+
                 // Create Data Object Usage item
                 const dataObjectUsageItem = new JsonTreeItem(
                     'Data Object Usage',
@@ -655,19 +683,6 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 };
                 items.push(dataObjectUsageItem);
 
-                // Create Data Object Size item
-                const dataObjectSizeItem = new JsonTreeItem(
-                    'Data Object Size',
-                    vscode.TreeItemCollapsibleState.None,
-                    'analysisDataObjectSize'
-                );
-                dataObjectSizeItem.tooltip = "Analyze storage size requirements for each data object based on property types";
-                dataObjectSizeItem.command = {
-                    command: 'appdna.dataObjectSizeAnalysis',
-                    title: 'Show Data Object Size Analysis',
-                    arguments: []
-                };
-                items.push(dataObjectSizeItem);
 
                 // Create Database Size Forecast item
                 const databaseSizeForecastItem = new JsonTreeItem(
@@ -683,6 +698,19 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 };
                 items.push(databaseSizeForecastItem);
 
+                // Create User Stories Role Distribution item
+                const userStoriesRoleDistributionItem = new JsonTreeItem(
+                    'User Stories Role Distribution',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisUserStoriesRoleDistribution'
+                );
+                userStoriesRoleDistributionItem.tooltip = "Analyze the distribution of roles across user stories";
+                userStoriesRoleDistributionItem.command = {
+                    command: 'appdna.showUserStories',
+                    title: 'Show User Stories Role Distribution',
+                    arguments: ['analytics']
+                };
+                items.push(userStoriesRoleDistributionItem);
 
                 // Create Page Complexity item
                 const pageComplexityItem = new JsonTreeItem(
