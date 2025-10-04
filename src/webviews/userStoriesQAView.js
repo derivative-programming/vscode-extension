@@ -642,6 +642,11 @@ function switchTab(tabName) {
         // Render Kanban board
         console.log('[userStoriesQAView] Board tab selected - rendering kanban board');
         renderKanbanBoard();
+    } else if (tabName === 'details') {
+        // Refresh details tab to show latest data
+        console.log('[userStoriesQAView] Details tab selected - refreshing table');
+        renderTable();
+        renderRecordInfo();
     }
 }
 
