@@ -1,3 +1,131 @@
+## October 4, 2025 - User Story QA View - Rename Analysis Tab and Set Default Tab
+
+**Command**: on user story qa view change 'analysis' tab title to 'Status Distribution'. display this tab when 'user story implementation qa' treeview item is clicked
+
+**Status**: ✅ COMPLETED
+
+**Implementation Summary**:
+Renamed the "Analysis" tab to "Status Distribution" in the User Story QA view and configured the treeview to open this tab by default when clicking the "User Story Implementation QA" item. This improves clarity and provides direct access to the status distribution histogram.
+
+**Changes Made**:
+
+1. **Updated Tab Title** (src/commands/userStoriesQACommands.ts):
+   - Changed tab button text: "Analysis" → "Status Distribution"
+   - Line ~884: `<button class="tab" data-tab="analysis">Status Distribution</button>`
+
+2. **Added initialTab Parameter Support** (src/commands/userStoriesQACommands.ts, +10 lines):
+   - Modified command signature: `async (initialTab?: string)`
+   - Added logging: `console.log(\`userStoriesQA command called (panelId: \${panelId}, initialTab: \${initialTab})\`)`
+   - For existing panels, send switchToTab message if initialTab specified
+   - Pass initialTab to HTML template strings for active class logic
+
+3. **Updated HTML Template Active Classes** (src/commands/userStoriesQACommands.ts):
+   - Details tab: `class="tab ${initialTab === 'analysis' ? '' : 'active'}"`
+   - Status Distribution tab: `class="tab ${initialTab === 'analysis' ? 'active' : ''}"`
+   - Details content: `class="tab-content ${initialTab === 'analysis' ? '' : 'active'}"`
+   - Analysis content: `class="tab-content ${initialTab === 'analysis' ? 'active' : ''}"`
+
+4. **Added Initial Render Logic** (src/webviews/userStoriesQAView.js, +7 lines):
+   - Check if analysis tab is active on DOMContentLoaded
+   - Automatically render histogram if Status Distribution tab is initially active
+   - Prevents blank tab display when opened from treeview
+
+5. **Updated TreeView Command Arguments** (src/providers/jsonTreeDataProvider.ts):
+   - Changed: `arguments: []` → `arguments: ['analysis']`
+   - Passes 'analysis' as initialTab when User Story Implementation QA is clicked
+
+**Tab Behavior**:
+- **From TreeView**: Opens with Status Distribution tab active, histogram rendered
+- **From Command Palette**: Opens with Details tab active (default behavior)
+- **Existing Panel**: Switches to specified tab if initialTab provided
+
+**Implementation Pattern**:
+Follows the same pattern as User Stories view (`showUserStoriesView`):
+- Command accepts optional `initialTab?: string` parameter
+- Existing panel receives `switchToTab` message via postMessage
+- New panel uses template literals to set active classes
+- Webview checks initial state and renders accordingly
+
+**User Experience**:
+- Clicking "User Story Implementation QA" in Analytics opens directly to Status Distribution
+- Tab name "Status Distribution" is clearer than "Analysis"
+- Histogram loads automatically without requiring tab click
+- Consistent with other multi-tab views in the extension
+
+**Testing**:
+- ✅ TypeScript compilation successful
+- ⏳ Manual testing: Click treeview item, verify Status Distribution tab opens
+- ⏳ Manual testing: Verify histogram renders on initial load
+- ⏳ Manual testing: Verify existing panel switches tabs correctly
+- ⏳ Manual testing: Verify command palette still works with Details as default
+
+---
+
+## October 4, 2025 - Main TreeView - Add User Story Implementation QA to Analytics Section
+
+**Command**: add 'User Story implementation QA' to main treeview under Analytics - on click it should open the user story qa view
+
+**Status**: ✅ COMPLETED
+
+**Implementation Summary**:
+Added 'User Story Implementation QA' as a new tree item under the Analytics section in the main treeview. When clicked, it opens the User Story QA view where users can track and manage quality assurance testing for implemented user stories.
+
+**Changes Made**:
+
+1. **Added Tree Item to Analytics Section** (src/providers/jsonTreeDataProvider.ts, +13 lines):
+   - Created `userStoryQAItem` with label "User Story Implementation QA"
+   - Set contextValue: `analysisUserStoryQA`
+   - Added tooltip: "Track and manage quality assurance testing for implemented user stories"
+   - Configured command to open QA view: `appdna.userStoriesQA`
+   - Positioned after "User Story Journey" item
+
+**Tree Item Properties**:
+```typescript
+const userStoryQAItem = new JsonTreeItem(
+    'User Story Implementation QA',
+    vscode.TreeItemCollapsibleState.None,
+    'analysisUserStoryQA'
+);
+userStoryQAItem.command = {
+    command: 'appdna.userStoriesQA',
+    title: 'Show User Story Implementation QA',
+    arguments: []
+};
+```
+
+**User Experience**:
+- Item appears in Analytics section (expandable parent in main treeview)
+- Click opens User Story QA view with Details and Analysis tabs
+- Consistent with other Analytics items (Metrics, Data Object Usage, etc.)
+- Provides quick access to QA tracking functionality
+
+**Analytics Section Order** (after change):
+1. Metrics
+2. Data Object Hierarchy
+3. Data Object Size
+4. Data Object Usage
+5. Database Size Forecast
+6. User Stories Role Distribution
+7. Page Complexity
+8. User Story Journey
+9. **User Story Implementation QA** ← NEW
+
+**Testing**:
+- ✅ Compilation successful
+- ✅ Tree item properly configured
+- ✅ Command references existing `appdna.userStoriesQA` command
+- ⏳ Manual testing pending (verify item appears and opens QA view)
+
+**Files Modified**:
+- src/providers/jsonTreeDataProvider.ts (+13 lines)
+
+**Related Features**:
+- Complements the QA metrics just added to Metrics Analysis view
+- Provides easy navigation to QA management from Analytics section
+- Part of quality assurance workflow enhancement
+
+---
+
 ## October 4, 2025 - Metrics Analysis - Add User Story QA Metrics
 
 **Command**: Review the user story qa view. We would like to add metrics on the count of each user story qa item status and another metric for overall user story qa success%

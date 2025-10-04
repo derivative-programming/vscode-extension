@@ -198,20 +198,29 @@ async function saveQAData(qaDataArray: any[], filePath: string): Promise<void> {
 export function registerUserStoriesQACommands(context: vscode.ExtensionContext, modelService: ModelService): void {
     // Register user stories QA command
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.userStoriesQA', async () => {
+        vscode.commands.registerCommand('appdna.userStoriesQA', async (initialTab?: string) => {
             // Store references to context and modelService
             userStoriesQAPanel.context = context;
             userStoriesQAPanel.modelService = modelService;
 
             // Create a consistent panel ID
             const panelId = 'userStoriesQA';
-            console.log(`userStoriesQA command called (panelId: ${panelId})`);
+            console.log(`userStoriesQA command called (panelId: ${panelId}, initialTab: ${initialTab})`);
 
             // Check if panel already exists
             if (activePanels.has(panelId)) {
                 console.log(`Panel already exists for user stories QA, revealing existing panel`);
                 // Panel exists, reveal it instead of creating a new one
-                activePanels.get(panelId)?.reveal(vscode.ViewColumn.One);
+                const existingPanel = activePanels.get(panelId);
+                existingPanel?.reveal(vscode.ViewColumn.One);
+                
+                // If initialTab is specified, send message to switch to that tab
+                if (initialTab && existingPanel) {
+                    existingPanel.webview.postMessage({
+                        command: 'switchToTab',
+                        data: { tabName: initialTab }
+                    });
+                }
                 return;
             }
 
@@ -871,11 +880,11 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     </div>
 
                     <div class="tabs">
-                        <button class="tab active" data-tab="details">Details</button>
-                        <button class="tab" data-tab="analysis">Analysis</button>
+                        <button class="tab ${initialTab === 'analysis' ? '' : 'active'}" data-tab="details">Details</button>
+                        <button class="tab ${initialTab === 'analysis' ? 'active' : ''}" data-tab="analysis">Status Distribution</button>
                     </div>
 
-                    <div id="details-tab" class="tab-content active">
+                    <div id="details-tab" class="tab-content ${initialTab === 'analysis' ? '' : 'active'}">
                         <div class="filter-section">
                         <div class="filter-header" onclick="toggleFilterSection()">
                             <span class="codicon codicon-chevron-down" id="filterChevron"></span>
@@ -951,7 +960,7 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     </div>
                     </div>
 
-                    <div id="analysis-tab" class="tab-content">
+                    <div id="analysis-tab" class="tab-content ${initialTab === 'analysis' ? 'active' : ''}">
                         <div class="histogram-container" style="position: relative;">
                             <div class="histogram-header">
                                 <div class="histogram-header-content">

@@ -9,7 +9,6 @@ common types of graphs...
 for all histogram\distribution tabs, give an option to show as pie chart instead
 
 verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
- 
 
 data object usage analysis view...
 - proportional usage tab

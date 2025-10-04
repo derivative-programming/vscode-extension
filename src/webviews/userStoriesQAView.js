@@ -1055,6 +1055,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Check if analysis tab is active on initial load and render histogram
+    const analysisTab = document.getElementById('analysis-tab');
+    if (analysisTab && analysisTab.classList.contains('active')) {
+        console.log('[userStoriesQAView] Analysis tab is active on initial load - rendering histogram');
+        setTimeout(function() {
+            renderQAStatusDistributionHistogram();
+        }, 100);
+    }
+    
     // Send ready message to extension
     vscode.postMessage({
         command: 'UserStoriesQAWebviewReady'
