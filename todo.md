@@ -6,14 +6,6 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
-for all histogram\distribution tabs, give an option to show as pie chart instead
-- ✅ DONE: User Story QA Status Distribution tab now has bar/pie chart toggle
-- ✅ DONE: User Story View Role Distribution tab now has bar/pie chart toggle
-- ✅ DONE: User Story Journey View page usage Distribution tab now has bar/pie chart toggle
-- ✅ DONE: User Story Journey View journey distance Distribution tab now has bar/pie chart toggle
-- ✅ DONE: Page List View Complexity Distribution tab now has bar/pie chart toggle
-- ✅ DONE: Data Object Size view size Distribution tab now has bar/pie chart toggle
-- ✅ DONE: Data Object Usage view usage distribution tab now has bar/pie chart toggle
 
 
 verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
@@ -44,7 +36,7 @@ data object prop usage analysis view...
   - no references from anywhere
 
  
- 
+
 
 page data source Analysis report...
 - Details tab
@@ -54,6 +46,8 @@ page data source Analysis report...
 
 --------------------------
 
+allow 'a' or 'an' in user story before role name
+
 data data object coverage in user stories. this is not a filter in data object usage. you cant just add a filter
 
 Page review view. QA of each page?
@@ -62,7 +56,10 @@ Page review view. QA of each page?
 
 new metrics?
 - Foreign Key Relationships Count - Analyze object references
-- Index Count - Analyze index usage 
+
+Analyze index usage 
+- list all indexes across all data objects with data size forecast
+  - chart growth as row counts increase
 
 
 find data object circular references?
@@ -77,6 +74,7 @@ breadcrumb report?
 
 no sourceobjectname in form param model or interface?
  
+
  
 page init flow...
 - page 'used by' tab
@@ -91,12 +89,7 @@ report button - Destination Target Name lookup button can be a general flow too
 
 wherever we show a lookup button we should also show an edit button to open its detail view
 
- 
-
 report column - need lookup on Button Object WF Name setting? are we displaying this property? are we showing a page lookup now?
-
-
-
 
 
 data object user story action distribution...
@@ -106,6 +99,7 @@ page preview - report header - show source of data
 page preview - report column - show source of data 
 page preview - form header - show source of data 
 page preview - form control - show source of data 
+show in table under the page preview? edit button to open data object?
 
 report data source view... list columns and their source data object and prop
 
@@ -122,7 +116,7 @@ analysis treeview item... ask ai for ideas
   - role: user story count?, page count?
   - user story: journey count? dependency count of all pages used?
 
-user story kanban board view?
+user story qa kanban board view?
 - drag and drop support
 - swimlanes for different stages
 - card details view
@@ -150,15 +144,6 @@ report details view...
 - import breadcrumb buttons from another report 
 
 
-any large files left?
-- split up large files into smaller ones
-modelFabricationView.js - 1,524 lines
-changeRequestsListView.ts - 1,436 lines
-formDetailsView.js - 1,298 lines
-modelAIProcessingView.js - 1,275 lines
-userStoriesView.js - 1,220 lines
-modelValidationView.js - 1,217 lines
-hierarchyView.js - 1,176 lines
 
 stop validating a\bulk change request on approval?
 

@@ -638,6 +638,10 @@ function switchTab(tabName) {
         // Render QA status distribution (bar or pie chart based on current selection)
         console.log('[userStoriesQAView] Analysis tab selected - rendering distribution');
         renderQAStatusDistribution();
+    } else if (tabName === 'board') {
+        // Render Kanban board
+        console.log('[userStoriesQAView] Board tab selected - rendering kanban board');
+        renderKanbanBoard();
     }
 }
 
@@ -647,6 +651,260 @@ function refresh() {
     vscode.postMessage({
         command: 'refresh'
     });
+}
+
+// Toggle board filter section visibility (global function for onclick)
+function toggleBoardFilterSection() {
+    const filterContent = document.getElementById('boardFilterContent');
+    const chevron = document.getElementById('boardFilterChevron');
+    
+    if (filterContent && chevron) {
+        const isCollapsed = filterContent.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            filterContent.classList.remove('collapsed');
+            chevron.classList.remove('codicon-chevron-right');
+            chevron.classList.add('codicon-chevron-down');
+        } else {
+            filterContent.classList.add('collapsed');
+            chevron.classList.remove('codicon-chevron-down');
+            chevron.classList.add('codicon-chevron-right');
+        }
+    }
+}
+
+// Apply board filters (global function for input events)
+function applyBoardFilters() {
+    const storyNumberFilter = document.getElementById('boardFilterStoryNumber')?.value.toLowerCase() || '';
+    const storyTextFilter = document.getElementById('boardFilterStoryText')?.value.toLowerCase() || '';
+    
+    // Filter is applied during render, so just re-render
+    renderKanbanBoard();
+}
+
+// Clear board filters (global function for onclick)
+function clearBoardFilters() {
+    document.getElementById('boardFilterStoryNumber').value = '';
+    document.getElementById('boardFilterStoryText').value = '';
+    
+    // Re-render the board
+    renderKanbanBoard();
+}
+
+// Render Kanban board
+function renderKanbanBoard() {
+    console.log('[userStoriesQAView] Rendering Kanban board');
+    
+    // Apply filters
+    const storyNumberFilter = document.getElementById('boardFilterStoryNumber')?.value.toLowerCase() || '';
+    const storyTextFilter = document.getElementById('boardFilterStoryText')?.value.toLowerCase() || '';
+    
+    let filteredItems = allItems.filter(item => {
+        const matchesStoryNumber = !storyNumberFilter || (item.storyNumber || '').toLowerCase().includes(storyNumberFilter);
+        const matchesStoryText = !storyTextFilter || (item.storyText || '').toLowerCase().includes(storyTextFilter);
+        
+        return matchesStoryNumber && matchesStoryText;
+    });
+    
+    // Group items by status
+    const statusGroups = {
+        'pending': [],
+        'ready-to-test': [],
+        'started': [],
+        'success': [],
+        'failure': []
+    };
+    
+    filteredItems.forEach(item => {
+        const status = item.qaStatus || 'pending';
+        if (statusGroups[status]) {
+            statusGroups[status].push(item);
+        }
+    });
+    
+    // Render each column
+    Object.keys(statusGroups).forEach(status => {
+        const column = document.getElementById('column-' + status);
+        const countElement = document.getElementById('count-' + status);
+        
+        if (!column || !countElement) {
+            return;
+        }
+        
+        const items = statusGroups[status];
+        countElement.textContent = items.length;
+        
+        // Clear column
+        column.innerHTML = '';
+        
+        // Add cards
+        items.forEach(item => {
+            const card = createKanbanCard(item);
+            column.appendChild(card);
+        });
+    });
+    
+    console.log('[userStoriesQAView] Kanban board rendered');
+}
+
+// Create a Kanban card element
+function createKanbanCard(item) {
+    const card = document.createElement('div');
+    card.className = 'kanban-card';
+    card.draggable = true;
+    card.setAttribute('data-story-id', item.storyId);
+    card.setAttribute('data-current-status', item.qaStatus || 'pending');
+    
+    // Card number
+    const cardNumber = document.createElement('div');
+    cardNumber.className = 'kanban-card-number';
+    cardNumber.textContent = item.storyNumber || '';
+    card.appendChild(cardNumber);
+    
+    // Card text
+    const cardText = document.createElement('div');
+    cardText.className = 'kanban-card-text';
+    cardText.textContent = item.storyText || '';
+    cardText.title = item.storyText || ''; // Full text on hover
+    card.appendChild(cardText);
+    
+    // Card footer (optional info)
+    const hasNotes = item.qaNotes && item.qaNotes.trim() !== '';
+    const hasDate = item.dateVerified && item.dateVerified.trim() !== '';
+    
+    if (hasNotes || hasDate) {
+        const cardFooter = document.createElement('div');
+        cardFooter.className = 'kanban-card-footer';
+        
+        if (hasNotes) {
+            const notesIndicator = document.createElement('span');
+            notesIndicator.className = 'kanban-card-has-notes';
+            notesIndicator.innerHTML = '<i class="codicon codicon-note"></i> Notes';
+            notesIndicator.title = item.qaNotes;
+            cardFooter.appendChild(notesIndicator);
+        }
+        
+        if (hasDate) {
+            const dateIndicator = document.createElement('span');
+            dateIndicator.className = 'kanban-card-date';
+            dateIndicator.innerHTML = '<i class="codicon codicon-calendar"></i> ' + item.dateVerified;
+            cardFooter.appendChild(dateIndicator);
+        }
+        
+        card.appendChild(cardFooter);
+    }
+    
+    // Drag event listeners
+    card.addEventListener('dragstart', handleDragStart);
+    card.addEventListener('dragend', handleDragEnd);
+    
+    return card;
+}
+
+// Handle drag start
+function handleDragStart(e) {
+    const card = e.target;
+    card.classList.add('dragging');
+    
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', card.getAttribute('data-story-id'));
+    
+    console.log('[userStoriesQAView] Drag started for story:', card.getAttribute('data-story-id'));
+}
+
+// Handle drag end
+function handleDragEnd(e) {
+    const card = e.target;
+    card.classList.remove('dragging');
+    
+    // Remove drag-over class from all columns
+    document.querySelectorAll('.kanban-column-content').forEach(column => {
+        column.classList.remove('drag-over');
+    });
+}
+
+// Handle drag over (allow drop)
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    const column = e.currentTarget;
+    column.classList.add('drag-over');
+}
+
+// Handle drag leave
+function handleDragLeave(e) {
+    const column = e.currentTarget;
+    
+    // Only remove if we're actually leaving the column (not entering a child element)
+    if (!column.contains(e.relatedTarget)) {
+        column.classList.remove('drag-over');
+    }
+}
+
+// Handle drop
+function handleDrop(e) {
+    e.preventDefault();
+    
+    const column = e.currentTarget;
+    column.classList.remove('drag-over');
+    
+    const storyId = e.dataTransfer.getData('text/plain');
+    const newStatus = column.getAttribute('data-status');
+    
+    if (!storyId || !newStatus) {
+        console.error('[userStoriesQAView] Invalid drop: missing storyId or status');
+        return;
+    }
+    
+    console.log('[userStoriesQAView] Card dropped - Story:', storyId, 'New Status:', newStatus);
+    
+    // Find the item and update locally
+    const item = allItems.find(i => i.storyId === storyId);
+    if (item) {
+        const oldStatus = item.qaStatus;
+        
+        // Don't do anything if status hasn't changed
+        if (oldStatus === newStatus) {
+            console.log('[userStoriesQAView] Status unchanged, no update needed');
+            return;
+        }
+        
+        item.qaStatus = newStatus;
+        
+        // Set date verified if status is success or failure
+        if (newStatus === 'success' || newStatus === 'failure') {
+            item.dateVerified = new Date().toISOString().split('T')[0];
+        }
+        
+        // Update in userStoriesQAData as well
+        const dataItem = userStoriesQAData.items.find(i => i.storyId === storyId);
+        if (dataItem) {
+            dataItem.qaStatus = newStatus;
+            if (newStatus === 'success' || newStatus === 'failure') {
+                dataItem.dateVerified = new Date().toISOString().split('T')[0];
+            }
+        }
+        
+        // Re-render the board
+        renderKanbanBoard();
+        
+        // Save the change
+        vscode.postMessage({
+            command: 'saveQAChange',
+            data: {
+                storyId: storyId,
+                qaStatus: newStatus,
+                qaNotes: item.qaNotes || '',
+                dateVerified: item.dateVerified || '',
+                qaFilePath: item.qaFilePath
+            }
+        });
+        
+        console.log('[userStoriesQAView] Card status updated and saved');
+    } else {
+        console.error('[userStoriesQAView] Item not found:', storyId);
+    }
 }
 
 // Toggle select all checkboxes (global function for onclick)
@@ -1103,6 +1361,12 @@ window.addEventListener('message', event => {
             renderTable();
             renderRecordInfo();
             updateApplyButtonState();
+            
+            // Also update kanban board if it's visible
+            const boardTab = document.getElementById('board-tab');
+            if (boardTab && boardTab.classList.contains('active')) {
+                renderKanbanBoard();
+            }
             break;
         
         case 'switchToTab':
@@ -1283,12 +1547,83 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Setup board filter event listeners
+    const boardFilterInputs = ['boardFilterStoryNumber', 'boardFilterStoryText'];
+    boardFilterInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', applyBoardFilters);
+            element.addEventListener('change', applyBoardFilters);
+        }
+    });
+    
+    // Setup board action buttons
+    const boardExportButton = document.getElementById('boardExportButton');
+    const boardRefreshButton = document.getElementById('boardRefreshButton');
+    
+    if (boardExportButton) {
+        boardExportButton.addEventListener('click', exportToCSV);
+        // Apply icon button styling
+        boardExportButton.style.background = "none";
+        boardExportButton.style.border = "none";
+        boardExportButton.style.color = "var(--vscode-editor-foreground)";
+        boardExportButton.style.padding = "4px 8px";
+        boardExportButton.style.cursor = "pointer";
+        boardExportButton.style.display = "flex";
+        boardExportButton.style.alignItems = "center";
+        boardExportButton.style.borderRadius = "4px";
+        boardExportButton.style.transition = "background 0.15s";
+        boardExportButton.addEventListener("mouseenter", function() {
+            boardExportButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        boardExportButton.addEventListener("mouseleave", function() {
+            boardExportButton.style.background = "none";
+        });
+    }
+    
+    if (boardRefreshButton) {
+        boardRefreshButton.addEventListener('click', refresh);
+        // Apply icon button styling
+        boardRefreshButton.style.background = "none";
+        boardRefreshButton.style.border = "none";
+        boardRefreshButton.style.color = "var(--vscode-editor-foreground)";
+        boardRefreshButton.style.padding = "4px 8px";
+        boardRefreshButton.style.cursor = "pointer";
+        boardRefreshButton.style.display = "flex";
+        boardRefreshButton.style.alignItems = "center";
+        boardRefreshButton.style.borderRadius = "4px";
+        boardRefreshButton.style.transition = "background 0.15s";
+        boardRefreshButton.addEventListener("mouseenter", function() {
+            boardRefreshButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        boardRefreshButton.addEventListener("mouseleave", function() {
+            boardRefreshButton.style.background = "none";
+        });
+    }
+    
+    // Setup drag and drop for kanban columns
+    const kanbanColumns = document.querySelectorAll('.kanban-column-content');
+    kanbanColumns.forEach(column => {
+        column.addEventListener('dragover', handleDragOver);
+        column.addEventListener('dragleave', handleDragLeave);
+        column.addEventListener('drop', handleDrop);
+    });
+    
     // Check if analysis tab is active on initial load and render distribution
     const analysisTab = document.getElementById('analysis-tab');
     if (analysisTab && analysisTab.classList.contains('active')) {
         console.log('[userStoriesQAView] Analysis tab is active on initial load - rendering distribution');
         setTimeout(function() {
             renderQAStatusDistribution();
+        }, 100);
+    }
+    
+    // Check if board tab is active on initial load and render kanban
+    const boardTab = document.getElementById('board-tab');
+    if (boardTab && boardTab.classList.contains('active')) {
+        console.log('[userStoriesQAView] Board tab is active on initial load - rendering kanban board');
+        setTimeout(function() {
+            renderKanbanBoard();
         }, 100);
     }
     

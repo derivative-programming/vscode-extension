@@ -905,6 +905,163 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             0% { transform: rotate(0deg); }
                             100% { transform: rotate(360deg); }
                         }
+                        
+                        /* Board Header Actions */
+                        .board-header-actions {
+                            display: flex;
+                            justify-content: flex-end;
+                            gap: 8px;
+                            margin-bottom: 10px;
+                        }
+                        
+                        /* Kanban Board Styles */
+                        .kanban-board {
+                            display: flex;
+                            gap: 15px;
+                            overflow-x: auto;
+                            padding: 10px 0;
+                            min-height: 500px;
+                        }
+                        
+                        .kanban-column {
+                            flex: 1;
+                            min-width: 250px;
+                            background: var(--vscode-sideBar-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            display: flex;
+                            flex-direction: column;
+                        }
+                        
+                        .kanban-column-header {
+                            padding: 12px;
+                            background: var(--vscode-list-hoverBackground);
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            font-weight: 600;
+                            position: sticky;
+                            top: 0;
+                            z-index: 1;
+                        }
+                        
+                        .kanban-column-title {
+                            font-size: 14px;
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        .kanban-column-count {
+                            background: var(--vscode-badge-background);
+                            color: var(--vscode-badge-foreground);
+                            padding: 2px 8px;
+                            border-radius: 10px;
+                            font-size: 12px;
+                            font-weight: 600;
+                        }
+                        
+                        .kanban-column-content {
+                            flex: 1;
+                            padding: 10px;
+                            overflow-y: auto;
+                            min-height: 100px;
+                        }
+                        
+                        .kanban-column-content.drag-over {
+                            background: var(--vscode-list-dropBackground);
+                            border: 2px dashed var(--vscode-focusBorder);
+                        }
+                        
+                        .kanban-card {
+                            background: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            padding: 10px;
+                            margin-bottom: 8px;
+                            cursor: move;
+                            transition: all 0.2s ease;
+                        }
+                        
+                        .kanban-card:hover {
+                            border-color: var(--vscode-focusBorder);
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                            transform: translateY(-2px);
+                        }
+                        
+                        .kanban-card.dragging {
+                            opacity: 0.5;
+                            transform: rotate(2deg);
+                        }
+                        
+                        .kanban-card-number {
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: var(--vscode-textLink-foreground);
+                            margin-bottom: 6px;
+                        }
+                        
+                        .kanban-card-text {
+                            font-size: 13px;
+                            color: var(--vscode-foreground);
+                            line-height: 1.4;
+                            word-wrap: break-word;
+                            max-height: 4.2em;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            display: -webkit-box;
+                            -webkit-line-clamp: 3;
+                            -webkit-box-orient: vertical;
+                        }
+                        
+                        .kanban-card-footer {
+                            margin-top: 8px;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            font-size: 11px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .kanban-card-has-notes {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 3px;
+                        }
+                        
+                        .kanban-card-has-notes .codicon {
+                            font-size: 12px;
+                        }
+                        
+                        .kanban-card-date {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 3px;
+                        }
+                        
+                        .kanban-card-date .codicon {
+                            font-size: 12px;
+                        }
+                        
+                        /* Status-specific column colors */
+                        .kanban-column[data-status="pending"] .kanban-column-header {
+                            border-left: 3px solid #858585;
+                        }
+                        
+                        .kanban-column[data-status="ready-to-test"] .kanban-column-header {
+                            border-left: 3px solid #0078d4;
+                        }
+                        
+                        .kanban-column[data-status="started"] .kanban-column-header {
+                            border-left: 3px solid #f39c12;
+                        }
+                        
+                        .kanban-column[data-status="success"] .kanban-column-header {
+                            border-left: 3px solid #28a745;
+                        }
+                        
+                        .kanban-column[data-status="failure"] .kanban-column-header {
+                            border-left: 3px solid #d73a49;
+                        }
                     </style>
                 </head>
                 <body>
@@ -914,7 +1071,8 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     </div>
 
                     <div class="tabs">
-                        <button class="tab ${initialTab === 'analysis' ? '' : 'active'}" data-tab="details">Details</button>
+                        <button class="tab ${initialTab === 'analysis' ? '' : (initialTab === 'board' ? '' : 'active')}" data-tab="details">Details</button>
+                        <button class="tab ${initialTab === 'board' ? 'active' : ''}" data-tab="board">Board</button>
                         <button class="tab ${initialTab === 'analysis' ? 'active' : ''}" data-tab="analysis">Status Distribution</button>
                     </div>
 
@@ -992,6 +1150,91 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             <span id="record-info"></span>
                         </div>
                     </div>
+                    </div>
+
+                    <div id="board-tab" class="tab-content ${initialTab === 'board' ? 'active' : ''}">
+                        <div class="filter-section">
+                            <div class="filter-header" onclick="toggleBoardFilterSection()">
+                                <span class="codicon codicon-chevron-down" id="boardFilterChevron"></span>
+                                <span>Filters</span>
+                            </div>
+                            <div class="filter-content" id="boardFilterContent">
+                                <div class="filter-row">
+                                    <div class="filter-group">
+                                        <label>Story Number:</label>
+                                        <input type="text" id="boardFilterStoryNumber" placeholder="Filter by story number...">
+                                    </div>
+                                    <div class="filter-group">
+                                        <label>Story Text:</label>
+                                        <input type="text" id="boardFilterStoryText" placeholder="Filter by story text...">
+                                    </div>
+                                </div>
+                                <div class="filter-actions">
+                                    <button onclick="clearBoardFilters()" class="filter-button-secondary">Clear All</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="board-header-actions">
+                            <button id="boardExportButton" class="icon-button" title="Download CSV">
+                                <i class="codicon codicon-cloud-download"></i>
+                            </button>
+                            <button id="boardRefreshButton" class="icon-button" title="Refresh Board">
+                                <i class="codicon codicon-refresh"></i>
+                            </button>
+                        </div>
+
+                        <div class="kanban-board" id="kanbanBoard">
+                            <div class="kanban-column" data-status="pending">
+                                <div class="kanban-column-header">
+                                    <span class="kanban-column-title">Pending</span>
+                                    <span class="kanban-column-count" id="count-pending">0</span>
+                                </div>
+                                <div class="kanban-column-content" id="column-pending" data-status="pending">
+                                    <!-- Cards will be dynamically generated -->
+                                </div>
+                            </div>
+                            
+                            <div class="kanban-column" data-status="ready-to-test">
+                                <div class="kanban-column-header">
+                                    <span class="kanban-column-title">Ready to Test</span>
+                                    <span class="kanban-column-count" id="count-ready-to-test">0</span>
+                                </div>
+                                <div class="kanban-column-content" id="column-ready-to-test" data-status="ready-to-test">
+                                    <!-- Cards will be dynamically generated -->
+                                </div>
+                            </div>
+                            
+                            <div class="kanban-column" data-status="started">
+                                <div class="kanban-column-header">
+                                    <span class="kanban-column-title">Started</span>
+                                    <span class="kanban-column-count" id="count-started">0</span>
+                                </div>
+                                <div class="kanban-column-content" id="column-started" data-status="started">
+                                    <!-- Cards will be dynamically generated -->
+                                </div>
+                            </div>
+                            
+                            <div class="kanban-column" data-status="success">
+                                <div class="kanban-column-header">
+                                    <span class="kanban-column-title">Success</span>
+                                    <span class="kanban-column-count" id="count-success">0</span>
+                                </div>
+                                <div class="kanban-column-content" id="column-success" data-status="success">
+                                    <!-- Cards will be dynamically generated -->
+                                </div>
+                            </div>
+                            
+                            <div class="kanban-column" data-status="failure">
+                                <div class="kanban-column-header">
+                                    <span class="kanban-column-title">Failure</span>
+                                    <span class="kanban-column-count" id="count-failure">0</span>
+                                </div>
+                                <div class="kanban-column-content" id="column-failure" data-status="failure">
+                                    <!-- Cards will be dynamically generated -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="analysis-tab" class="tab-content ${initialTab === 'analysis' ? 'active' : ''}">
