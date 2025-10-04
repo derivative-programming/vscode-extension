@@ -326,9 +326,39 @@ function generateQADistributionPNG() {
         return;
     }
     
-    // Serialize SVG to string
+    // Clone the SVG and resolve CSS variables
+    const svgClone = svgElement.cloneNode(true);
+    const computedStyle = getComputedStyle(document.body);
+    
+    // Get computed colors
+    const foregroundColor = computedStyle.getPropertyValue('--vscode-editor-foreground').trim() || '#cccccc';
+    const borderColor = computedStyle.getPropertyValue('--vscode-panel-border').trim() || '#666666';
+    
+    // Replace CSS variables with computed values in all elements
+    const elementsWithFill = svgClone.querySelectorAll('[fill*="var(--vscode"]');
+    elementsWithFill.forEach(el => {
+        el.setAttribute('fill', foregroundColor);
+    });
+    
+    const elementsWithStroke = svgClone.querySelectorAll('[stroke*="var(--vscode"]');
+    elementsWithStroke.forEach(el => {
+        el.setAttribute('stroke', borderColor);
+    });
+    
+    // Also handle style attributes that might contain CSS variables
+    const elementsWithStyle = svgClone.querySelectorAll('[style*="var(--vscode"]');
+    elementsWithStyle.forEach(el => {
+        let style = el.getAttribute('style');
+        if (style) {
+            style = style.replace(/var\(--vscode-editor-foreground\)/g, foregroundColor);
+            style = style.replace(/var\(--vscode-panel-border\)/g, borderColor);
+            el.setAttribute('style', style);
+        }
+    });
+    
+    // Serialize the modified SVG
     const serializer = new XMLSerializer();
-    let svgString = serializer.serializeToString(svgElement);
+    let svgString = serializer.serializeToString(svgClone);
     
     // Add XML declaration if not present
     if (!svgString.startsWith('<?xml')) {
