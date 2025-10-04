@@ -40,6 +40,15 @@
 - **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
 - **Colors**: Semantic (Gray, Green, Orange, Red for Simple/Medium/Complex/VeryComplex)
 
+### 5. Page List - Complexity Distribution
+- **Location**: `src/webviews/pageListView.js`
+- **Function**: `renderPageHistogram()` / `renderPageComplexityPieChart()`
+- **Command File**: `src/commands/pageListCommands.ts`
+- **Tab Name**: "Complexity Distribution"
+- **Categories**: 4 complexity levels (Very Low <5, Low 5-10, Medium 10-20, High >20 elements)
+- **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
+- **Colors**: Semantic (Gray, Green, Orange, Red for VeryLow/Low/Medium/High)
+
 ## Candidate Views for Pie Chart Toggle
 
 ### 2. User Stories - Role Distribution ✅ COMPLETED
@@ -92,23 +101,24 @@
   - Zero-value categories filtered out
   - Percentage labels shown on slices >5%
 
-### 5. Page List - Element Distribution (Page Complexity) 🔶 MEDIUM PRIORITY
+### 5. Page List - Complexity Distribution
 - **Location**: `src/webviews/pageListView.js`
-- **Function**: `renderPageHistogram()`
+- **Function**: `renderPageHistogram()` / `renderPageComplexityPieChart()`
 - **Command File**: `src/commands/pageListCommands.ts`
-- **Tab Name**: "Distribution" (Element Distribution)
+- **Tab Name**: "Complexity Distribution"
 - **Categories**: 4 complexity levels (Very Low <5, Low 5-10, Medium 10-20, High >20 elements)
-- **Why Good Candidate**:
-  - Shows page complexity distribution
-  - Proportional view could be useful
-  - Follows same pattern as other distributions
-- **Why Lower Priority**:
-  - Less commonly used view
-  - Page complexity might be better suited to bar chart for comparison
+- **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
 - **Implementation Notes**:
-  - Line ~977 in pageListView.js
-  - Uses filtered page data
-  - Colors: Gray, Green, Orange, Red
+  - Line ~977 in pageListView.js (bar), pie chart function added after
+  - Unified `renderComplexityDistribution()` function routes to appropriate renderer
+  - Reuses existing `calculateElementDistribution()` for data calculation
+  - Uses filtered page data (pageData.items) when filters are active
+  - Toggle buttons added at line ~1007 in pageListCommands.ts
+  - New CSS styling added at lines ~659-693
+  - State variable: `complexityChartType` at line ~19
+  - Colors: Semantic (Gray, Green, Orange, Red for VeryLow/Low/Medium/High)
+  - Zero-value categories filtered out
+  - Percentage labels shown on slices >5%
 
 ### 6. Data Object Size Analysis - Size Distribution 🔶 MEDIUM PRIORITY
 - **Location**: `src/webviews/dataObjectSizeAnalysisView.js`

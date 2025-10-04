@@ -15,6 +15,9 @@ let pageData = {
 // Keep track of all items for filtering
 let allItems = [];
 
+// Keep track of current chart type for complexity distribution (bar or pie)
+let complexityChartType = 'bar';
+
 // Keep track of unique values for filter dropdowns
 let filterOptions = {
     rolesRequired: []
@@ -217,7 +220,7 @@ function applyFilters() {
         renderPageTreemap();
     } else if (tabId === 'distribution-tab') {
         // Re-render histogram with filtered data
-        renderPageHistogram();
+        renderComplexityDistribution();
     }
 }
 
@@ -278,7 +281,7 @@ function clearFilters() {
         renderPageTreemap();
     } else if (tabId === 'distribution-tab') {
         // Re-render histogram with all data
-        renderPageHistogram();
+        renderComplexityDistribution();
     }
 }
 
@@ -641,6 +644,44 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[PageList] PNG export button not found during setup');
     }
     
+    // Setup complexity chart type toggle buttons
+    const complexityChartTypeBarBtn = document.getElementById('complexityChartTypeBar');
+    const complexityChartTypePieBtn = document.getElementById('complexityChartTypePie');
+    
+    if (complexityChartTypeBarBtn) {
+        complexityChartTypeBarBtn.addEventListener('click', function() {
+            if (complexityChartType === 'bar') {
+                return; // Already in bar mode
+            }
+            
+            complexityChartType = 'bar';
+            
+            // Update button states
+            complexityChartTypeBarBtn.classList.add('active');
+            complexityChartTypePieBtn.classList.remove('active');
+            
+            // Re-render the distribution
+            renderComplexityDistribution();
+        });
+    }
+    
+    if (complexityChartTypePieBtn) {
+        complexityChartTypePieBtn.addEventListener('click', function() {
+            if (complexityChartType === 'pie') {
+                return; // Already in pie mode
+            }
+            
+            complexityChartType = 'pie';
+            
+            // Update button states
+            complexityChartTypePieBtn.classList.add('active');
+            complexityChartTypeBarBtn.classList.remove('active');
+            
+            // Re-render the distribution
+            renderComplexityDistribution();
+        });
+    }
+    
     // Setup histogram refresh button
     const refreshHistogramBtn = document.getElementById("refreshPageHistogramButton");
     if (refreshHistogramBtn) {
@@ -650,7 +691,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showSpinner();
             setTimeout(() => {
                 if (allItems.length > 0) {
-                    renderPageHistogram();
+                    renderComplexityDistribution();
                 } else {
                     hideSpinner();
                 }
@@ -1134,6 +1175,201 @@ function renderPageHistogram() {
     setTimeout(() => {
         hideSpinner();
     }, 800);
+}
+
+// Render page complexity distribution as a pie chart
+function renderPageComplexityPieChart() {
+    console.log('[PageList] Starting pie chart rendering');
+    const histogramVisualization = document.getElementById('page-histogram-visualization');
+    const histogramLoading = document.getElementById('page-histogram-loading');
+    
+    // Use pageData.items (filtered data) instead of allItems
+    const itemsToVisualize = pageData.items.length > 0 ? pageData.items : allItems;
+    
+    if (!histogramVisualization || !histogramLoading || itemsToVisualize.length === 0) {
+        hideSpinner();
+        return;
+    }
+    
+    // Clear any existing content
+    histogramVisualization.innerHTML = '';
+    
+    // Calculate element distribution
+    const distribution = calculateElementDistribution(itemsToVisualize);
+    console.log('[PageList] Element distribution:', distribution);
+    
+    // Prepare data for pie chart
+    const pieData = [
+        { category: 'Very Low', count: distribution.tinyComplexity, color: '#6c757d', description: 'Very Low Complexity (<5 elements)' },
+        { category: 'Low', count: distribution.smallComplexity, color: '#28a745', description: 'Low Complexity (5-10 elements)' },
+        { category: 'Medium', count: distribution.mediumComplexity, color: '#f66a0a', description: 'Medium Complexity (10-20 elements)' },
+        { category: 'High', count: distribution.largeComplexity, color: '#d73a49', description: 'High Complexity (>20 elements)' }
+    ];
+    
+    // Filter out categories with zero count
+    const filteredData = pieData.filter(d => d.count > 0);
+    
+    if (filteredData.length === 0) {
+        histogramVisualization.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--vscode-descriptionForeground);">No data available</div>';
+        hideSpinner();
+        return;
+    }
+    
+    // Calculate total for percentages
+    const totalPages = filteredData.reduce((sum, d) => sum + d.count, 0);
+    
+    // Setup dimensions
+    const width = 600;
+    const height = 400;
+    const radius = Math.min(width, height) / 2 - 40;
+    
+    // Create SVG
+    const svg = d3.select(histogramVisualization)
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .style('background', 'var(--vscode-editor-background)');
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${width / 2 - 100},${height / 2})`);
+    
+    // Create pie layout
+    const pie = d3.pie()
+        .value(d => d.count)
+        .sort(null);
+    
+    // Create arc generator
+    const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius);
+    
+    // Create tooltip
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'histogram-tooltip')
+        .style('opacity', 0)
+        .style('position', 'absolute')
+        .style('background', 'var(--vscode-editorHoverWidget-background)')
+        .style('border', '1px solid var(--vscode-editorHoverWidget-border)')
+        .style('border-radius', '4px')
+        .style('padding', '8px')
+        .style('font-size', '12px')
+        .style('color', 'var(--vscode-editorHoverWidget-foreground)')
+        .style('pointer-events', 'none')
+        .style('z-index', '1000');
+    
+    // Create pie slices
+    const slices = g.selectAll('.pie-slice')
+        .data(pie(filteredData))
+        .enter()
+        .append('g')
+        .attr('class', 'pie-slice');
+    
+    // Add paths for slices
+    slices.append('path')
+        .attr('d', arc)
+        .attr('fill', d => d.data.color)
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-width', 2)
+        .style('opacity', 1)
+        .on('mouseover', function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .style('opacity', 0.9);
+            
+            const percentage = ((d.data.count / totalPages) * 100).toFixed(1);
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            
+            tooltip.html(`
+                <strong>${d.data.description}</strong><br/>
+                Pages: ${d.data.count}<br/>
+                Percentage: ${percentage}%
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .style('opacity', 1);
+            
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+    
+    // Add percentage labels on slices (only for slices > 5%)
+    slices.append('text')
+        .attr('transform', d => `translate(${arc.centroid(d)})`)
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .style('fill', 'white')
+        .style('font-size', '14px')
+        .style('font-weight', 'bold')
+        .style('pointer-events', 'none')
+        .text(d => {
+            const percentage = (d.data.count / totalPages) * 100;
+            return percentage > 5 ? `${Math.round(percentage)}%` : '';
+        });
+    
+    // Add legend
+    const legend = svg.append('g')
+        .attr('transform', `translate(${width - 160}, 20)`);
+    
+    const legendItems = legend.selectAll('.legend-item')
+        .data(filteredData)
+        .enter()
+        .append('g')
+        .attr('class', 'legend-item')
+        .attr('transform', (d, i) => `translate(0, ${i * 25})`);
+    
+    legendItems.append('rect')
+        .attr('width', 18)
+        .attr('height', 18)
+        .attr('fill', d => d.color)
+        .attr('stroke', 'var(--vscode-panel-border)')
+        .attr('stroke-width', 1);
+    
+    legendItems.append('text')
+        .attr('x', 24)
+        .attr('y', 9)
+        .attr('dy', '0.35em')
+        .style('fill', 'var(--vscode-foreground)')
+        .style('font-size', '12px')
+        .text(d => `${d.category} Complexity`);
+    
+    legendItems.append('text')
+        .attr('x', 24)
+        .attr('y', 9)
+        .attr('dy', '0.35em')
+        .attr('dx', '110px')
+        .style('fill', 'var(--vscode-descriptionForeground)')
+        .style('font-size', '11px')
+        .text(d => {
+            const percentage = ((d.count / totalPages) * 100).toFixed(1);
+            return `(${d.count}, ${percentage}%)`;
+        });
+    
+    // Hide loading and show visualization
+    histogramLoading.classList.add('hidden');
+    histogramVisualization.classList.remove('hidden');
+    
+    // Hide spinner after rendering
+    setTimeout(() => {
+        hideSpinner();
+    }, 800);
+}
+
+// Unified function to render complexity distribution (bar or pie)
+function renderComplexityDistribution() {
+    if (complexityChartType === 'pie') {
+        renderPageComplexityPieChart();
+    } else {
+        renderPageHistogram();
+    }
 }
 
 // Calculate element distribution from data
