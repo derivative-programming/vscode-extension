@@ -1250,6 +1250,34 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             overflow-y: auto;
                         }
                         
+                        /* Forecast processing overlay */
+                        .forecast-processing-overlay {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: rgba(0, 0, 0, 0.3);
+                            display: none;
+                            align-items: center;
+                            justify-content: center;
+                            z-index: 1000;
+                            border-radius: 4px;
+                        }
+                        
+                        .forecast-processing-overlay.active {
+                            display: flex;
+                        }
+                        
+                        .forecast-processing-spinner {
+                            width: 40px;
+                            height: 40px;
+                            border: 4px solid rgba(255, 255, 255, 0.3);
+                            border-top: 4px solid var(--vscode-progressBar-background);
+                            border-radius: 50%;
+                            animation: spin 1s linear infinite;
+                        }
+                        
                         .gantt-tooltip {
                             position: absolute;
                             background: var(--vscode-editorHoverWidget-background);
@@ -1350,7 +1378,7 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         <button class="tab ${initialTab === 'forecast' ? 'active' : ''}" data-tab="forecast">Forecast</button>
                     </div>
 
-                    <div id="details-tab" class="tab-content ${initialTab === 'analysis' ? '' : 'active'}">
+                    <div id="details-tab" class="tab-content ${initialTab === 'analysis' || initialTab === 'board' || initialTab === 'forecast' ? '' : 'active'}">
                         <div class="filter-section">
                         <div class="filter-header" onclick="toggleFilterSection()">
                             <span class="codicon codicon-chevron-down" id="filterChevron"></span>
@@ -1603,6 +1631,9 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         </div>
 
                         <div class="gantt-container">
+                            <div id="forecast-processing" class="forecast-processing-overlay">
+                                <div class="forecast-processing-spinner"></div>
+                            </div>
                             <div id="gantt-loading" class="loading">Loading forecast...</div>
                             <div id="forecast-gantt" class="gantt-viz"></div>
                             <div id="forecast-empty-state" class="empty-state" style="display: none;">

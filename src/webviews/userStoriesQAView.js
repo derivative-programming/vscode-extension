@@ -713,7 +713,7 @@ function saveQAConfigModal() {
 
 // Populate working hours table
 function populateWorkingHoursTable(config) {
-    const tbody = document.querySelector("#workingHoursTable tbody");
+    const tbody = document.getElementById("workingHoursTable");
     if (!tbody) return;
     
     const days = [
@@ -731,13 +731,21 @@ function populateWorkingHoursTable(config) {
     days.forEach(day => {
         const dayConfig = config.workingHours[day.key] || { enabled: false, startTime: "09:00", endTime: "17:00" };
         
+        // Calculate hours
+        const startParts = dayConfig.startTime.split(":");
+        const endParts = dayConfig.endTime.split(":");
+        const startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+        const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+        const hours = ((endMinutes - startMinutes) / 60).toFixed(1);
+        
         const row = document.createElement("tr");
-        row.innerHTML = "<td>" + day.label + "</td>" +
-            "<td style=\"text-align: center;\">" +
+        row.innerHTML = "<td style=\"text-align: center;\">" +
             "<input type=\"checkbox\" id=\"" + day.key + "Enabled\" " + (dayConfig.enabled ? "checked" : "") + ">" +
             "</td>" +
+            "<td>" + day.label + "</td>" +
             "<td><input type=\"time\" id=\"" + day.key + "Start\" value=\"" + dayConfig.startTime + "\"></td>" +
-            "<td><input type=\"time\" id=\"" + day.key + "End\" value=\"" + dayConfig.endTime + "\"></td>";
+            "<td><input type=\"time\" id=\"" + day.key + "End\" value=\"" + dayConfig.endTime + "\"></td>" +
+            "<td class=\"hours-cell\">" + hours + "</td>";
         tbody.appendChild(row);
         
         // Add event listener to checkbox and time inputs to update summary
@@ -1016,45 +1024,56 @@ function addWorkingHours(startDate, hoursToAdd, workingHours) {
 function calculateAndRenderForecast() {
     console.log("[calculateAndRenderForecast] Starting render");
     
+    const processingOverlay = document.getElementById("forecast-processing");
     const loadingDiv = document.getElementById("gantt-loading");
     const vizDiv = document.getElementById("forecast-gantt");
     const emptyDiv = document.getElementById("forecast-empty-state");
     
-    console.log("[calculateAndRenderForecast] Found elements:", { loading: !!loadingDiv, viz: !!vizDiv, empty: !!emptyDiv });
+    console.log("[calculateAndRenderForecast] Found elements:", { processing: !!processingOverlay, loading: !!loadingDiv, viz: !!vizDiv, empty: !!emptyDiv });
     
     if (!loadingDiv || !vizDiv || !emptyDiv) {
         console.log("[calculateAndRenderForecast] Missing required elements");
         return;
     }
     
-    // Show loading
-    loadingDiv.style.display = "block";
+    // Show processing overlay
+    if (processingOverlay) {
+        processingOverlay.classList.add("active");
+    }
+    
+    // Hide other states
+    loadingDiv.style.display = "none";
     vizDiv.style.display = "none";
     emptyDiv.style.display = "none";
     
-    // Calculate forecast
-    const forecastData = calculateQAForecast();
-    
-    console.log("[calculateAndRenderForecast] Forecast data calculated:", forecastData ? forecastData.length : 0, "items");
-    
-    // Hide loading
-    loadingDiv.style.display = "none";
-    
-    if (!forecastData || forecastData.length === 0) {
-        console.log("[calculateAndRenderForecast] No forecast data, showing empty state");
-        emptyDiv.style.display = "block";
-        return;
-    }
-    
-    vizDiv.style.display = "block";
-    
-    console.log("[calculateAndRenderForecast] Updating summary and rendering Gantt");
-    
-    // Update summary stats
-    updateForecastSummary(forecastData);
-    
-    // Render Gantt chart
-    renderForecastGantt(forecastData);
+    // Use setTimeout to allow the processing overlay to render before calculation
+    setTimeout(() => {
+        // Calculate forecast
+        const forecastData = calculateQAForecast();
+        
+        console.log("[calculateAndRenderForecast] Forecast data calculated:", forecastData ? forecastData.length : 0, "items");
+        
+        // Hide processing overlay
+        if (processingOverlay) {
+            processingOverlay.classList.remove("active");
+        }
+        
+        if (!forecastData || forecastData.length === 0) {
+            console.log("[calculateAndRenderForecast] No forecast data, showing empty state");
+            emptyDiv.style.display = "block";
+            return;
+        }
+        
+        vizDiv.style.display = "block";
+        
+        console.log("[calculateAndRenderForecast] Updating summary and rendering Gantt");
+        
+        // Update summary stats
+        updateForecastSummary(forecastData);
+        
+        // Render Gantt chart
+        renderForecastGantt(forecastData);
+    }, 50);
 }
 
 // Update forecast summary stats
@@ -2266,6 +2285,19 @@ window.addEventListener('message', event => {
             const boardTab = document.getElementById('board-tab');
             if (boardTab && boardTab.classList.contains('active')) {
                 renderKanbanBoard();
+            }
+            
+            // Also update forecast if it's visible and config is loaded
+            const forecastTabElement = document.getElementById('forecast-tab');
+            if (forecastTabElement && forecastTabElement.classList.contains('active')) {
+                if (qaConfig) {
+                    calculateAndRenderForecast();
+                } else {
+                    // Request config if not loaded yet
+                    vscode.postMessage({
+                        command: 'loadQAConfig'
+                    });
+                }
             }
             break;
         

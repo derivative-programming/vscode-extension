@@ -740,17 +740,17 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 };
                 items.push(userStoryJourneyItem);
                 
-                // Create User Story Implementation QA item
+                // Create QA Forecast item
                 const userStoryQAItem = new JsonTreeItem(
-                    'User Story Implementation QA',
+                    'QA Forecast',
                     vscode.TreeItemCollapsibleState.None,
                     'analysisUserStoryQA'
                 );
-                userStoryQAItem.tooltip = "Track and manage quality assurance testing for implemented user stories";
+                userStoryQAItem.tooltip = "View QA testing forecast and schedule";
                 userStoryQAItem.command = {
                     command: 'appdna.userStoriesQA',
-                    title: 'Show User Story Implementation QA',
-                    arguments: ['analysis']
+                    title: 'Show QA Forecast',
+                    arguments: ['forecast']
                 };
                 items.push(userStoryQAItem);
                 
