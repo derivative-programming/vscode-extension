@@ -1,3 +1,81 @@
+## October 4, 2025 - Metrics Analysis - Add User Story QA Metrics
+
+**Command**: Review the user story qa view. We would like to add metrics on the count of each user story qa item status and another metric for overall user story qa success%
+
+**Status**: ✅ COMPLETED
+
+**Implementation Summary**:
+Added 7 new QA metrics to the Metrics Analysis view to track User Story QA status distribution and success rate. These metrics read from `app-dna-user-story-qa.json` and integrate with the existing metrics tracking and historical visualization system.
+
+**Changes Made**:
+
+1. **Added 8 Calculation Functions** (src/commands/metricsAnalysisCommands.ts, +138 lines):
+   - `calculateQAStoriesTotal()` - Total QA stories count
+   - `calculateQAStoriesByStatus()` - Helper to count by specific status
+   - `calculateQAStoriesPending()` - Pending status count
+   - `calculateQAStoriesReadyToTest()` - Ready to Test status count
+   - `calculateQAStoriesStarted()` - Started status count
+   - `calculateQAStoriesSuccess()` - Success status count
+   - `calculateQAStoriesFailure()` - Failure status count
+   - `calculateQASuccessRate()` - Success percentage with 1 decimal
+
+2. **Updated getCurrentMetricsData()** (src/commands/metricsAnalysisCommands.ts, +43 lines):
+   - Added 7 new metrics to the metrics array
+   - Metrics appear alphabetically: QA Stories - Failure, Pending, Ready to Test, Started, Success, Total
+   - QA Success Rate (%) appears with other percentage metrics
+
+**New Metrics Available**:
+1. QA Stories - Total
+2. QA Stories - Pending
+3. QA Stories - Ready to Test
+4. QA Stories - Started
+5. QA Stories - Success
+6. QA Stories - Failure
+7. QA Success Rate (%)
+
+**Features**:
+- ✅ Historical tracking (automatic when values change)
+- ✅ Chart visualization (select metrics in History tab)
+- ✅ CSV export
+- ✅ Filtering by metric name
+- ✅ Sortable columns
+- ✅ Manual refresh to update after QA changes
+- ✅ Safe handling of missing/invalid QA file (returns 0)
+
+**How to Use**:
+1. Open Metrics Analysis view
+2. View Current tab for current QA metrics snapshot
+3. Click Refresh after making QA status changes
+4. Switch to History tab to see trends over time
+5. Select multiple QA metrics to compare on chart
+6. Export to CSV for external analysis
+
+**Example Use Cases**:
+- Track QA success rate improvement over sprints
+- Identify QA bottlenecks (too many "Started")
+- Monitor QA coverage (Total vs Success + Failure)
+- Compare QA metrics across time periods
+- Generate QA status reports for stakeholders
+
+**Testing**:
+- ✅ Compilation successful
+- ✅ All functions follow established patterns
+- ✅ Error handling for missing QA file
+- ✅ Returns 0 for all metrics when no QA data exists
+- ⏳ Manual testing pending (see testing checklist in plan)
+
+**Documentation**:
+- Created: docs/reviews/user-story-qa-metrics-implementation-plan.md (full implementation plan with testing checklist)
+
+**Files Modified**:
+- src/commands/metricsAnalysisCommands.ts (+181 lines)
+
+**Pattern Source**: Existing User Journey metrics (also read from external JSON file)
+
+**Note**: Users must manually click Refresh button to see updated metrics after making QA status changes. This is consistent with other external file-based metrics.
+
+---
+
 ## October 4, 2025 - User Stories QA View - Tab Hover Fixed to Match User Stories List View
 
 **Command**: The tab hover is still blue. Review the user stories list view tabbed design. It is correct

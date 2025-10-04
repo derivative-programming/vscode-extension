@@ -8,20 +8,8 @@ common types of graphs...
 
 for all histogram\distribution tabs, give an option to show as pie chart instead
 
-add 'ready to test' status to user story qa item?
-
-user stories - qa...
-- use tabbed design
-  - existing user stories qa view to 'Details' tab
-    - list view of existing user stories
-  - pie chart of user stories by qa status
-    - number of user stories in each qa status (pending, started, success, failure)
-    - show percentages of each status
-
-metrics view...
-- new metrics...
-  - number of user stories in each qa status (pending, started, success, failure)
-  - percentage of user stories with qa status of success
+verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
+ 
 
 data object usage analysis view...
 - proportional usage tab

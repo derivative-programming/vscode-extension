@@ -999,6 +999,123 @@ function calculateUserStoryRoleRequirements(modelService: ModelService): { assig
 }
 
 /**
+ * Calculate total QA stories metric
+ */
+function calculateQAStoriesTotal(modelService: ModelService): number {
+    try {
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            return 0;
+        }
+        
+        const qaFilePath = path.join(path.dirname(modelFilePath), 'app-dna-user-story-qa.json');
+        
+        if (!fs.existsSync(qaFilePath)) {
+            return 0;
+        }
+        
+        const qaContent = fs.readFileSync(qaFilePath, 'utf8');
+        const qaData = JSON.parse(qaContent);
+        
+        if (!qaData.qaData || !Array.isArray(qaData.qaData)) {
+            return 0;
+        }
+        
+        return qaData.qaData.length;
+    } catch (error) {
+        console.error('Error calculating QA stories total:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate QA stories by status
+ */
+function calculateQAStoriesByStatus(modelService: ModelService, status: string): number {
+    try {
+        const modelFilePath = modelService.getCurrentFilePath();
+        if (!modelFilePath) {
+            return 0;
+        }
+        
+        const qaFilePath = path.join(path.dirname(modelFilePath), 'app-dna-user-story-qa.json');
+        
+        if (!fs.existsSync(qaFilePath)) {
+            return 0;
+        }
+        
+        const qaContent = fs.readFileSync(qaFilePath, 'utf8');
+        const qaData = JSON.parse(qaContent);
+        
+        if (!qaData.qaData || !Array.isArray(qaData.qaData)) {
+            return 0;
+        }
+        
+        return qaData.qaData.filter((item: any) => 
+            (item.qaStatus || 'pending') === status
+        ).length;
+    } catch (error) {
+        console.error(`Error calculating QA stories ${status}:`, error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate QA stories pending metric
+ */
+function calculateQAStoriesPending(modelService: ModelService): number {
+    return calculateQAStoriesByStatus(modelService, 'pending');
+}
+
+/**
+ * Calculate QA stories ready to test metric
+ */
+function calculateQAStoriesReadyToTest(modelService: ModelService): number {
+    return calculateQAStoriesByStatus(modelService, 'ready-to-test');
+}
+
+/**
+ * Calculate QA stories started metric
+ */
+function calculateQAStoriesStarted(modelService: ModelService): number {
+    return calculateQAStoriesByStatus(modelService, 'started');
+}
+
+/**
+ * Calculate QA stories success metric
+ */
+function calculateQAStoriesSuccess(modelService: ModelService): number {
+    return calculateQAStoriesByStatus(modelService, 'success');
+}
+
+/**
+ * Calculate QA stories failure metric
+ */
+function calculateQAStoriesFailure(modelService: ModelService): number {
+    return calculateQAStoriesByStatus(modelService, 'failure');
+}
+
+/**
+ * Calculate QA success rate metric (percentage)
+ */
+function calculateQASuccessRate(modelService: ModelService): string {
+    try {
+        const total = calculateQAStoriesTotal(modelService);
+        if (total === 0) {
+            return '0.0';
+        }
+        
+        const successCount = calculateQAStoriesSuccess(modelService);
+        const successRate = (successCount / total) * 100;
+        
+        return successRate.toFixed(1);
+    } catch (error) {
+        console.error('Error calculating QA success rate:', error);
+        return '0.0';
+    }
+}
+
+/**
  * Calculates the storage size in bytes for a single property based on its SQL Server data type
  * (Reused from data object size analysis logic)
  */
@@ -1783,6 +1900,49 @@ function getCurrentMetricsData(modelService: ModelService): any[] {
             name: `Role ${role} User Story Count`,
             value: count.toString()
         });
+    });
+    
+    // Add QA metrics
+    const qaStoriesTotal = calculateQAStoriesTotal(modelService);
+    metrics.push({
+        name: 'QA Stories - Total',
+        value: qaStoriesTotal.toString()
+    });
+    
+    const qaStoriesPending = calculateQAStoriesPending(modelService);
+    metrics.push({
+        name: 'QA Stories - Pending',
+        value: qaStoriesPending.toString()
+    });
+    
+    const qaStoriesReadyToTest = calculateQAStoriesReadyToTest(modelService);
+    metrics.push({
+        name: 'QA Stories - Ready to Test',
+        value: qaStoriesReadyToTest.toString()
+    });
+    
+    const qaStoriesStarted = calculateQAStoriesStarted(modelService);
+    metrics.push({
+        name: 'QA Stories - Started',
+        value: qaStoriesStarted.toString()
+    });
+    
+    const qaStoriesSuccess = calculateQAStoriesSuccess(modelService);
+    metrics.push({
+        name: 'QA Stories - Success',
+        value: qaStoriesSuccess.toString()
+    });
+    
+    const qaStoriesFailure = calculateQAStoriesFailure(modelService);
+    metrics.push({
+        name: 'QA Stories - Failure',
+        value: qaStoriesFailure.toString()
+    });
+    
+    const qaSuccessRate = calculateQASuccessRate(modelService);
+    metrics.push({
+        name: 'QA Success Rate (%)',
+        value: qaSuccessRate
     });
     
     return metrics;
