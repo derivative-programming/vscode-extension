@@ -1413,6 +1413,39 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
             align-items: flex-start;
         }
         
+        .chart-type-toggle {
+            display: flex;
+            gap: 2px;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .chart-type-button {
+            background: transparent;
+            border: none;
+            color: var(--vscode-foreground);
+            cursor: pointer;
+            padding: 6px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+        
+        .chart-type-button:hover {
+            background: var(--vscode-button-hoverBackground);
+        }
+        
+        .chart-type-button.active {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        
+        .chart-type-button .codicon {
+            font-size: 16px;
+        }
+        
         .histogram-header h3 {
             margin: 0 0 5px 0;
             color: var(--vscode-foreground);
@@ -1813,6 +1846,14 @@ function getDataObjectUsageAnalysisWebviewContent(webview: vscode.Webview, exten
                         <p>Distribution of data objects across usage categories</p>
                     </div>
                     <div class="histogram-actions">
+                        <div class="chart-type-toggle">
+                            <button id="usageChartTypeBar" class="chart-type-button active" title="Bar Chart">
+                                <span class="codicon codicon-graph-line"></span>
+                            </button>
+                            <button id="usageChartTypePie" class="chart-type-button" title="Pie Chart">
+                                <span class="codicon codicon-pie-chart"></span>
+                            </button>
+                        </div>
                         <button id="refreshHistogramButton" class="icon-button" title="Refresh Data">
                             <i class="codicon codicon-refresh"></i>
                         </button>

@@ -13,6 +13,7 @@ let treemapData = [];
 let summarySort = { column: null, direction: 'asc' };
 let detailSort = { column: null, direction: 'asc' };
 let currentTab = 'summary';
+let usageChartType = 'bar'; // Keep track of current chart type for usage distribution
 
 // Initialize the view
 document.addEventListener('DOMContentLoaded', function() {
@@ -95,6 +96,8 @@ function setupEventListeners() {
     const refreshTreemapBtn = document.getElementById('refreshTreemapButton');
     const refreshHistogramBtn = document.getElementById('refreshHistogramButton');
     const refreshBubbleBtn = document.getElementById('refreshBubbleButton');
+    const usageChartTypeBarBtn = document.getElementById('usageChartTypeBar');
+    const usageChartTypePieBtn = document.getElementById('usageChartTypePie');
     
     if (exportSummaryBtn) {
         exportSummaryBtn.addEventListener('click', function() {
@@ -155,6 +158,29 @@ function setupEventListeners() {
         refreshHistogramBtn.addEventListener('click', function() {
             showSpinner();
             loadHistogramData();
+        });
+    }
+    
+    // Usage chart type toggle event listeners
+    if (usageChartTypeBarBtn) {
+        usageChartTypeBarBtn.addEventListener('click', function() {
+            usageChartType = 'bar';
+            usageChartTypeBarBtn.classList.add('active');
+            usageChartTypePieBtn.classList.remove('active');
+            if (currentSummaryData.length > 0) {
+                renderUsageDistribution(currentSummaryData);
+            }
+        });
+    }
+    
+    if (usageChartTypePieBtn) {
+        usageChartTypePieBtn.addEventListener('click', function() {
+            usageChartType = 'pie';
+            usageChartTypePieBtn.classList.add('active');
+            usageChartTypeBarBtn.classList.remove('active');
+            if (currentSummaryData.length > 0) {
+                renderUsageDistribution(currentSummaryData);
+            }
         });
     }
     
@@ -579,7 +605,7 @@ window.addEventListener('message', event => {
             }
             // Also render histogram if that's the current tab
             if (currentTab === 'histogram') {
-                renderHistogram(message.data);
+                renderUsageDistribution(message.data);
             }
             // Also render bubble chart if that's the current tab
             if (currentTab === 'bubble') {
@@ -1277,6 +1303,181 @@ function renderHistogram(data) {
     container.classList.remove('hidden');
 }
 
+// Render usage distribution as a pie chart
+function renderUsagePieChart(data) {
+    const container = document.getElementById('histogram-visualization');
+    const loadingElement = document.getElementById('histogram-loading');
+    
+    if (!container || !loadingElement) {
+        console.error('Histogram container elements not found');
+        return;
+    }
+    
+    // Clear any existing content
+    container.innerHTML = '';
+    
+    // Calculate usage distribution
+    const distribution = calculateUsageDistribution(data);
+    
+    // Prepare data for pie chart
+    const pieData = [
+        { category: 'No Usage', count: distribution.noUsage, color: '#6c757d', description: 'No Usage (0 references)' },
+        { category: 'Low Usage', count: distribution.lowUsage, color: '#28a745', description: 'Low Usage (1-4 references)' },
+        { category: 'Medium Usage', count: distribution.mediumUsage, color: '#f66a0a', description: 'Medium Usage (5-19 references)' },
+        { category: 'High Usage', count: distribution.highUsage, color: '#d73a49', description: 'High Usage (20+ references)' }
+    ];
+    
+    // Filter out categories with zero count
+    const filteredData = pieData.filter(d => d.count > 0);
+    
+    if (filteredData.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--vscode-descriptionForeground);">No data available</div>';
+        loadingElement.classList.add('hidden');
+        container.classList.remove('hidden');
+        return;
+    }
+    
+    // Calculate total for percentages
+    const totalObjects = filteredData.reduce((sum, d) => sum + d.count, 0);
+    
+    // Setup dimensions
+    const width = 600;
+    const height = 400;
+    const radius = Math.min(width, height) / 2 - 40;
+    
+    // Create SVG
+    const svg = d3.select(container)
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${width / 2 - 100},${height / 2})`);
+    
+    // Create pie layout
+    const pie = d3.pie()
+        .value(d => d.count)
+        .sort(null);
+    
+    // Create arc generator
+    const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius);
+    
+    // Create tooltip
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'histogram-tooltip')
+        .style('opacity', 0)
+        .style('position', 'absolute')
+        .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+        .style('border', '1px solid var(--vscode-panel-border)')
+        .style('border-radius', '3px')
+        .style('padding', '8px')
+        .style('font-size', '12px')
+        .style('z-index', '1000')
+        .style('pointer-events', 'none');
+    
+    // Create pie slices
+    const slices = g.selectAll('.pie-slice')
+        .data(pie(filteredData))
+        .enter()
+        .append('g')
+        .attr('class', 'pie-slice');
+    
+    // Add paths for slices
+    slices.append('path')
+        .attr('d', arc)
+        .attr('fill', d => d.data.color)
+        .attr('stroke', 'var(--vscode-foreground)')
+        .attr('stroke-width', 2)
+        .style('opacity', 1)
+        .on('mouseover', function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .style('opacity', 0.9);
+            
+            const percentage = ((d.data.count / totalObjects) * 100).toFixed(1);
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            
+            tooltip.html(`
+                <strong>${d.data.description}</strong><br/>
+                Objects: ${d.data.count}<br/>
+                Percentage: ${percentage}%
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .style('opacity', 1);
+            
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+    
+    // Add percentage labels on slices (only for slices > 5%)
+    slices.append('text')
+        .attr('transform', d => `translate(${arc.centroid(d)})`)
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .style('fill', 'white')
+        .style('font-size', '14px')
+        .style('font-weight', 'bold')
+        .style('pointer-events', 'none')
+        .text(d => {
+            const percentage = (d.data.count / totalObjects) * 100;
+            return percentage > 5 ? `${Math.round(percentage)}%` : '';
+        });
+    
+    // Add legend
+    const legend = svg.append('g')
+        .attr('transform', `translate(${width - 160}, 20)`);
+    
+    const legendItems = legend.selectAll('.legend-item')
+        .data(filteredData)
+        .enter()
+        .append('g')
+        .attr('class', 'legend-item')
+        .attr('transform', (d, i) => `translate(0, ${i * 25})`);
+    
+    legendItems.append('rect')
+        .attr('width', 18)
+        .attr('height', 18)
+        .attr('fill', d => d.color)
+        .attr('stroke', 'var(--vscode-foreground)')
+        .attr('stroke-width', 1);
+    
+    legendItems.append('text')
+        .attr('x', 24)
+        .attr('y', 9)
+        .attr('dy', '0.35em')
+        .style('fill', 'var(--vscode-foreground)')
+        .style('font-size', '12px')
+        .text(d => d.category);
+    
+    legendItems.append('text')
+        .attr('x', 24)
+        .attr('y', 9)
+        .attr('dy', '0.35em')
+        .attr('dx', '85px')
+        .style('fill', 'var(--vscode-descriptionForeground)')
+        .style('font-size', '11px')
+        .text(d => {
+            const percentage = ((d.count / totalObjects) * 100).toFixed(1);
+            return `(${d.count}, ${percentage}%)`;
+        });
+    
+    // Hide loading and show visualization
+    loadingElement.classList.add('hidden');
+    container.classList.remove('hidden');
+}
+
 // Calculate usage distribution from data
 function calculateUsageDistribution(data) {
     const distribution = {
@@ -1300,6 +1501,15 @@ function calculateUsageDistribution(data) {
     });
     
     return distribution;
+}
+
+// Unified function to render usage distribution (bar or pie)
+function renderUsageDistribution(data) {
+    if (usageChartType === 'pie') {
+        renderUsagePieChart(data);
+    } else {
+        renderHistogram(data);
+    }
 }
 
 // Generate histogram PNG export

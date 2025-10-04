@@ -13,7 +13,7 @@ for all histogram\distribution tabs, give an option to show as pie chart instead
 - ✅ DONE: User Story Journey View journey distance Distribution tab now has bar/pie chart toggle
 - ✅ DONE: Page List View Complexity Distribution tab now has bar/pie chart toggle
 - ✅ DONE: Data Object Size view size Distribution tab now has bar/pie chart toggle
-- data object usage view usage distribution tab
+- ✅ DONE: Data Object Usage view usage distribution tab now has bar/pie chart toggle
 
 
 verify all pngs generated are readable with corect axis labels visible on either dark or light theme used

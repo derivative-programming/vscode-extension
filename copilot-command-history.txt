@@ -1,8 +1,97 @@
+## January 4, 2025 - Data Object Usage Analysis - Usage Distribution Bar/Pie Chart Toggle
+
+**Command**: next is data object usage view usage distribution tab
+
+**Status**: ✅ COMPLETED - IMPLEMENTATION (7/7)
+
+**Implementation Summary**:
+Added chart type toggle to the Usage Distribution tab in the Data Object Usage Analysis view, allowing users to switch between bar chart (histogram) and pie chart visualizations of data object usage distribution. This is the **SEVENTH** distribution view requiring this enhancement, extending the bar/pie chart toggle feature to usage-related analytics.
+
+**Files Modified**:
+
+1. **src/commands/dataObjectUsageAnalysisCommands.ts**:
+   - Added CSS styles for `.chart-type-toggle` and `.chart-type-button` (~lines 1410-1444)
+   - Styled with VS Code theme variables for light/dark mode support
+   - Added chart type toggle buttons HTML (~lines 1849-1862 in histogram-actions)
+   - Toggle buttons use codicon icons: `codicon-graph-line` (bar) and `codicon-pie-chart` (pie)
+
+2. **src/webviews/dataObjectUsageAnalysisView.js**:
+   - Added `usageChartType` state variable at module level (line ~16)
+   - Created new `renderUsagePieChart(data)` function (~185 lines):
+     - Usage categories: No Usage (0), Low Usage (1-4), Medium Usage (5-19), High Usage (20+)
+     - Fixed semantic colors: gray/green/orange/red for No/Low/Medium/High usage
+     - Reuses existing `calculateUsageDistribution()` for data calculation
+     - Uses currentSummaryData (same as histogram)
+     - Filters zero-value categories for cleaner visualization
+     - D3.js pie layout with interactive hover effects
+     - Percentage labels on slices >5%
+     - Vertical legend with color swatches, usage names, counts, percentages
+     - Tooltip showing category description, object count, and percentage
+   - Created unified `renderUsageDistribution(data)` function:
+     - Routes to bar or pie renderer based on state
+   - Added event listeners for toggle buttons (~lines 157-181):
+     - Update state variable
+     - Toggle `.active` class
+     - Call unified render function
+   - Updated render call (1 location):
+     - Line 608: Message handler for summary data
+
+**Key Features**:
+- **Usage Categories**: Semantic grouping (No/Low/Medium/High) based on reference count
+- **Color Scheme**: Fixed semantic colors communicate usage implications for maintenance
+- **Data Source**: Uses currentSummaryData (same as histogram and summary tab)
+- **Data Reuse**: Leverages existing `calculateUsageDistribution()` for consistency
+- **Zero Filtering**: Excludes empty categories for clean visualization
+- **Theme Support**: Full light/dark mode compatibility
+- **State Persistence**: Chart type persists during tab switching and refresh
+- **Usage Insights**: Colors help identify maintenance opportunities:
+  - Gray (No Usage 0): Unused objects, candidates for removal
+  - Green (Low Usage 1-4): Specialized objects, limited scenarios
+  - Orange (Medium Usage 5-19): Core objects across features
+  - Red (High Usage 20+): Critical infrastructure objects
+
+**Usage Analysis Context**:
+Data object usage tracks references across:
+- User Stories (actions referencing objects)
+- Pages (forms, reports using objects)
+- Flows (workflows referencing objects)
+- APIs (endpoints using objects)
+
+**Pattern Consistency**:
+Follows established pattern from previous 6 implementations:
+1. Add CSS styles for toggle buttons
+2. Add HTML toggle buttons with codicon icons
+3. Add state variable (module-level scope)
+4. Create pie chart rendering function
+5. Create unified router function
+6. Add event listeners for buttons
+7. Update all direct render calls to use router
+8. Verify compilation and functionality
+
+**Compilation**: ✅ webpack 5.99.9 compiled successfully in 6478 ms
+
+**Documentation**: ✅ Created docs/architecture/data-object-usage-distribution-chart-toggle.md
+
+**Todo Tracking**: ✅ Marked complete in todo.md
+
+**Distribution View Count**: This is the **7th implementation** of the bar/pie chart toggle feature:
+1. ✅ User Story QA Status Distribution
+2. ✅ User Story Role Distribution
+3. ✅ User Story Journey - Page Usage Distribution
+4. ✅ User Story Journey - Journey Distance Distribution
+5. ✅ Page List View - Complexity Distribution
+6. ✅ Data Object Size View - Size Distribution
+7. ✅ Data Object Usage View - Usage Distribution
+
+**Feature Status**: 🎉 Implementation #7 complete - Feature continues expanding to additional views
+
+---
+
 ## January 4, 2025 - Data Object Size Analysis - Size Distribution Bar/Pie Chart Toggle
 
 **Command**: next is Data Object Size view size Distribution tab
 
-**Status**: ✅ COMPLETED - FINAL IMPLEMENTATION (6/6)
+**Status**: ✅ COMPLETED - IMPLEMENTATION (6/7)
 
 **Implementation Summary**:
 Added chart type toggle to the Size Distribution tab in the Data Object Size Analysis view, allowing users to switch between bar chart (histogram) and pie chart visualizations of data object size distribution. This is the **SIXTH AND FINAL** distribution view requiring this enhancement, completing the bar/pie chart toggle feature across all identified histogram views.
