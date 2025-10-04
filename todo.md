@@ -7,17 +7,9 @@ common types of graphs...
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
 for all histogram\distribution tabs, give an option to show as pie chart instead
+- ✅ DONE: User Story QA Status Distribution tab now has bar/pie chart toggle
 
 verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
-
-data object usage analysis view...
-- proportional usage tab
-  - add filter by reference type (should use that reference type in count)
-- usage distribution tab
-  - add filter by reference type (should use that reference type in count)
-- complexity vs usage tab
-  - add filter by reference type (should use that reference type in count)
-
 
 data object size analysis view...
 - all objects have maybe audit columns
@@ -36,7 +28,6 @@ api endpoint list view...
   - filter
     - api name
     - version
-   
 
 data object prop usage analysis view...
 - data object usage looks at 'Source Object Name:'. data object prop usage would look at Source Object Name: and  'Source Property Name:'
@@ -55,6 +46,8 @@ page data source Analysis report...
   
 
 --------------------------
+
+data data object coverage in user stories. this is not a filter in data object usage. you cant just add a filter
 
 Page review view. QA of each page?
 - similar to user story qa view but for all non config pages?

@@ -18,6 +18,9 @@ let allItems = [];
 // Keep track of selected items
 let selectedItems = new Set();
 
+// Keep track of current chart type (bar or pie)
+let currentChartType = 'bar';
+
 // Helper function to show spinner
 function showSpinner() {
     const spinnerOverlay = document.getElementById("spinner-overlay");
@@ -315,6 +318,205 @@ function renderQAStatusDistributionHistogram() {
     console.log('[userStoriesQAView] QA status distribution histogram rendered successfully');
 }
 
+// Render QA status distribution as pie chart
+function renderQAStatusDistributionPieChart() {
+    console.log('[userStoriesQAView] Rendering QA status distribution pie chart');
+    
+    const vizDiv = document.getElementById('qa-distribution-visualization');
+    const loadingDiv = document.getElementById('qa-distribution-loading');
+    
+    if (!vizDiv) {
+        console.warn('[userStoriesQAView] qa-distribution-visualization div not found');
+        return;
+    }
+    
+    // Show loading, hide visualization
+    if (loadingDiv) {
+        loadingDiv.classList.remove('hidden');
+    }
+    vizDiv.classList.add('hidden');
+    
+    // Clear previous SVG
+    vizDiv.innerHTML = '';
+    
+    // Calculate distribution
+    const distribution = calculateQAStatusDistribution();
+    updateQASummaryStats(distribution);
+    
+    // Fixed status order (workflow-based)
+    const statusOrder = ['pending', 'ready-to-test', 'started', 'success', 'failure'];
+    const statusLabels = {
+        'pending': 'Pending',
+        'ready-to-test': 'Ready to Test',
+        'started': 'Started',
+        'success': 'Success',
+        'failure': 'Failure'
+    };
+    
+    // Prepare data array - filter out zero values for pie chart
+    const data = statusOrder
+        .map(status => ({
+            status: status,
+            label: statusLabels[status],
+            count: distribution[status] || 0,
+            color: getQAStatusColor(status)
+        }))
+        .filter(d => d.count > 0); // Only include non-zero slices
+    
+    if (data.length === 0) {
+        vizDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--vscode-descriptionForeground);">No data to display</div>';
+        if (loadingDiv) {
+            loadingDiv.classList.add('hidden');
+        }
+        vizDiv.classList.remove('hidden');
+        return;
+    }
+    
+    // D3.js pie chart rendering
+    const width = Math.max(600, vizDiv.clientWidth - 40);
+    const height = 400;
+    const radius = Math.min(width, height) / 2 - 40;
+    
+    const svg = d3.select('#qa-distribution-visualization')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .append('g')
+        .attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')');
+    
+    // Create pie layout
+    const pie = d3.pie()
+        .value(d => d.count)
+        .sort(null); // Maintain original order
+    
+    // Create arc generator
+    const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius);
+    
+    // Create arc for hover effect (slightly larger)
+    const arcHover = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius + 10);
+    
+    // Create tooltip div if it doesn't exist
+    let tooltip = d3.select('.qa-distribution-tooltip');
+    if (tooltip.empty()) {
+        tooltip = d3.select('body')
+            .append('div')
+            .attr('class', 'qa-distribution-tooltip')
+            .style('opacity', 0);
+    }
+    
+    // Calculate total for percentages
+    const totalStories = data.reduce((sum, item) => sum + item.count, 0);
+    
+    // Create pie slices
+    const slices = svg.selectAll('.slice')
+        .data(pie(data))
+        .enter()
+        .append('g')
+        .attr('class', 'slice');
+    
+    // Add paths for each slice
+    slices.append('path')
+        .attr('d', arc)
+        .attr('fill', d => d.data.color)
+        .attr('stroke', 'var(--vscode-editor-background)')
+        .attr('stroke-width', 2)
+        .style('cursor', 'pointer')
+        .on('mouseover', function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .attr('d', arcHover)
+                .style('opacity', 0.8);
+            
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', 1);
+            
+            const percentage = ((d.data.count / totalStories) * 100).toFixed(1);
+            
+            tooltip.html('<strong>' + d.data.label + '</strong><br/>Count: ' + d.data.count + '<br/>Percentage: ' + percentage + '%')
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function() {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .attr('d', arc)
+                .style('opacity', 1);
+            
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+    
+    // Add percentage labels on slices
+    slices.append('text')
+        .attr('transform', d => {
+            const pos = arc.centroid(d);
+            return 'translate(' + pos[0] + ',' + pos[1] + ')';
+        })
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#FFFFFF')
+        .attr('font-size', '14px')
+        .attr('font-weight', 'bold')
+        .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.8)')
+        .style('pointer-events', 'none')
+        .each(function(d) {
+            const percentage = ((d.data.count / totalStories) * 100).toFixed(1);
+            // Only show label if slice is large enough (> 5%)
+            if (parseFloat(percentage) > 5) {
+                d3.select(this).text(percentage + '%');
+            }
+        });
+    
+    // Add legend
+    const legend = svg.append('g')
+        .attr('class', 'legend')
+        .attr('transform', 'translate(' + (radius + 20) + ',' + (-radius + 20) + ')');
+    
+    const legendItems = legend.selectAll('.legend-item')
+        .data(data)
+        .enter()
+        .append('g')
+        .attr('class', 'legend-item')
+        .attr('transform', (d, i) => 'translate(0,' + (i * 25) + ')');
+    
+    legendItems.append('rect')
+        .attr('width', 18)
+        .attr('height', 18)
+        .attr('fill', d => d.color);
+    
+    legendItems.append('text')
+        .attr('x', 24)
+        .attr('y', 9)
+        .attr('dy', '.35em')
+        .attr('fill', 'var(--vscode-editor-foreground)')
+        .style('font-size', '12px')
+        .text(d => d.label + ' (' + d.count + ')');
+    
+    // Hide loading, show visualization
+    if (loadingDiv) {
+        loadingDiv.classList.add('hidden');
+    }
+    vizDiv.classList.remove('hidden');
+    
+    console.log('[userStoriesQAView] QA status distribution pie chart rendered successfully');
+}
+
+// Render QA status distribution based on current chart type
+function renderQAStatusDistribution() {
+    if (currentChartType === 'pie') {
+        renderQAStatusDistributionPieChart();
+    } else {
+        renderQAStatusDistributionHistogram();
+    }
+}
+
 // Generate PNG from QA distribution histogram
 function generateQADistributionPNG() {
     console.log('[userStoriesQAView] Generating QA distribution PNG');
@@ -433,9 +635,9 @@ function switchTab(tabName) {
     
     // Handle tab-specific logic
     if (tabName === 'analysis') {
-        // Render QA status distribution histogram
-        console.log('[userStoriesQAView] Analysis tab selected - rendering histogram');
-        renderQAStatusDistributionHistogram();
+        // Render QA status distribution (bar or pie chart based on current selection)
+        console.log('[userStoriesQAView] Analysis tab selected - rendering distribution');
+        renderQAStatusDistribution();
     }
 }
 
@@ -1022,11 +1224,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Setup chart type toggle buttons
+    const chartTypeBarBtn = document.getElementById('chartTypeBar');
+    const chartTypePieBtn = document.getElementById('chartTypePie');
+    
+    if (chartTypeBarBtn && chartTypePieBtn) {
+        chartTypeBarBtn.addEventListener('click', function() {
+            if (currentChartType !== 'bar') {
+                console.log('[userStoriesQAView] Switching to bar chart');
+                currentChartType = 'bar';
+                chartTypeBarBtn.classList.add('active');
+                chartTypePieBtn.classList.remove('active');
+                renderQAStatusDistribution();
+            }
+        });
+        
+        chartTypePieBtn.addEventListener('click', function() {
+            if (currentChartType !== 'pie') {
+                console.log('[userStoriesQAView] Switching to pie chart');
+                currentChartType = 'pie';
+                chartTypePieBtn.classList.add('active');
+                chartTypeBarBtn.classList.remove('active');
+                renderQAStatusDistribution();
+            }
+        });
+    }
+    
     // Setup histogram refresh button
     const refreshQADistributionButton = document.getElementById('refreshQADistributionButton');
     if (refreshQADistributionButton) {
         refreshQADistributionButton.addEventListener('click', function() {
-            console.log('[userStoriesQAView] Refreshing QA distribution histogram');
+            console.log('[userStoriesQAView] Refreshing QA distribution');
             
             // Show processing overlay
             const processingOverlay = document.getElementById('qa-distribution-processing');
@@ -1036,7 +1264,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Use setTimeout to allow overlay to show before rendering
             setTimeout(function() {
-                renderQAStatusDistributionHistogram();
+                renderQAStatusDistribution();
                 
                 // Hide processing overlay after render
                 if (processingOverlay) {
@@ -1055,12 +1283,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Check if analysis tab is active on initial load and render histogram
+    // Check if analysis tab is active on initial load and render distribution
     const analysisTab = document.getElementById('analysis-tab');
     if (analysisTab && analysisTab.classList.contains('active')) {
-        console.log('[userStoriesQAView] Analysis tab is active on initial load - rendering histogram');
+        console.log('[userStoriesQAView] Analysis tab is active on initial load - rendering distribution');
         setTimeout(function() {
-            renderQAStatusDistributionHistogram();
+            renderQAStatusDistribution();
         }, 100);
     }
     

@@ -1,3 +1,62 @@
+## October 4, 2025 - User Story QA View - Add Bar/Pie Chart Toggle
+
+**Command**: review the user story qa view status distribution tab. Can we have a toggle to display the data in the current bar chart to a pie chart?
+
+**Status**: ✅ COMPLETED
+
+**Implementation Summary**:
+Added a chart type toggle to the Status Distribution tab in the User Story QA view, allowing users to switch between bar chart and pie chart visualizations of the QA status data. The toggle is positioned in the histogram actions area with intuitive icon buttons.
+
+**Files Modified**:
+
+1. **src/commands/userStoriesQACommands.ts** (HTML & CSS):
+   - Added chart type toggle buttons in histogram-actions section with bar graph and pie chart icons
+   - Added CSS styles for `.chart-type-toggle` and `.chart-type-button` with active state styling
+   - Toggle buttons use VS Code theme variables for consistent appearance
+   - Positioned between title and refresh/export buttons for easy access
+
+2. **src/webviews/userStoriesQAView.js** (JavaScript):
+   - Added `currentChartType` variable to track selected chart type ('bar' or 'pie')
+   - Created new `renderQAStatusDistributionPieChart()` function with D3.js pie chart implementation
+   - Created unified `renderQAStatusDistribution()` function that routes to bar or pie rendering
+   - Added event listeners for chart type toggle buttons with state management
+   - Updated all references from direct histogram calls to unified distribution call
+   - Pie chart features:
+     - D3.js pie layout with arc generators
+     - Color-coded slices matching bar chart colors
+     - Interactive hover effects with larger arc
+     - Percentage labels on slices (only shown if > 5%)
+     - Legend with status labels and counts
+     - Tooltip showing status, count, and percentage
+     - Filters out zero-count statuses for cleaner visualization
+
+**Technical Implementation**:
+- **Bar Chart**: Existing implementation with D3 bar chart, maintained unchanged
+- **Pie Chart**: New D3 pie/arc implementation with:
+  - `d3.pie()` for data layout
+  - `d3.arc()` for slice rendering
+  - `d3.arc()` with larger radius for hover effect
+  - Legend positioned to the right of the chart
+  - Same color scheme as bar chart for consistency
+  - Smart label display (only shows percentages > 5% to avoid clutter)
+
+**User Experience**:
+- Toggle buttons show bar graph (codicon-graph) and pie chart (codicon-pie-chart) icons
+- Active button highlighted with different background color
+- Clicking toggle instantly re-renders the visualization
+- Current chart type persists during refresh operations
+- Works seamlessly with existing filters and data updates
+
+**Architecture Notes**:
+- Follows existing pattern from other distribution views in the codebase
+- Reuses existing tooltip styles (`.qa-distribution-tooltip`)
+- Maintains same data calculation (`calculateQAStatusDistribution()`)
+- Maintains same color mapping (`getQAStatusColor()`)
+- PNG export functionality works with both chart types
+- Chart type preference maintained in session (could be enhanced to persist in workspace state)
+
+---
+
 ## October 4, 2025 - Data Object Size Calculation - Include Implicit ID and Code Fields
 
 **Command**: every data object has an ID field (int) and a Code field (varchar (50)) that is not listed in their prop array. The calculation should include these

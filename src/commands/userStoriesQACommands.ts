@@ -387,6 +387,40 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             align-items: center;
                         }
                         
+                        .chart-type-toggle {
+                            display: flex;
+                            gap: 2px;
+                            border: 1px solid var(--vscode-button-border);
+                            border-radius: 4px;
+                            overflow: hidden;
+                            background: var(--vscode-button-secondaryBackground);
+                        }
+                        
+                        .chart-type-button {
+                            padding: 6px 10px;
+                            background: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: none;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: all 0.2s;
+                        }
+                        
+                        .chart-type-button:hover {
+                            background: var(--vscode-button-secondaryHoverBackground);
+                        }
+                        
+                        .chart-type-button.active {
+                            background: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                        }
+                        
+                        .chart-type-button i {
+                            font-size: 16px;
+                        }
+                        
                         .histogram-refresh-button {
                             background: none !important;
                         }
@@ -969,6 +1003,14 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                                         <p>Distribution of user stories across QA testing statuses</p>
                                     </div>
                                     <div class="histogram-actions">
+                                        <div class="chart-type-toggle">
+                                            <button id="chartTypeBar" class="chart-type-button active" title="Bar Chart">
+                                                <i class="codicon codicon-graph"></i>
+                                            </button>
+                                            <button id="chartTypePie" class="chart-type-button" title="Pie Chart">
+                                                <i class="codicon codicon-pie-chart"></i>
+                                            </button>
+                                        </div>
                                         <button id="refreshQADistributionButton" class="icon-button histogram-refresh-button" title="Refresh Distribution">
                                             <i class="codicon codicon-refresh"></i>
                                         </button>
