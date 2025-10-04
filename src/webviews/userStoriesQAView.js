@@ -1355,9 +1355,14 @@ function renderForecastGantt(forecastData) {
             const duration = ((d.endDate - d.startDate) / (1000 * 60 * 60)).toFixed(1);
             const startTime = d3.timeFormat("%b %d, %I:%M %p")(d.startDate);
             const endTime = d3.timeFormat("%b %d, %I:%M %p")(d.endDate);
+            
+            // Find the full story item to get the story text
+            const storyItem = allItems.find(item => item.storyNumber === d.storyNumber);
+            const storyText = storyItem ? storyItem.storyText : "No description";
+            
             tooltip.style("display", "block")
                 .html("<strong>Story " + d.storyNumber + "</strong><br/>" +
-                    (d.storyName || "No name") + "<br/>" +
+                    storyText + "<br/>" +
                     "<strong>Start:</strong> " + startTime + "<br/>" +
                     "<strong>End:</strong> " + endTime + "<br/>" +
                     "<strong>Duration:</strong> " + duration + " hrs<br/>" +
@@ -1373,7 +1378,8 @@ function renderForecastGantt(forecastData) {
             // Find the full story item and open detail modal
             const storyItem = allItems.find(item => item.storyNumber === d.storyNumber);
             if (storyItem) {
-                openCardModal(storyItem);
+                tooltip.style("display", "none");
+                openCardModal(storyItem.storyId);
             }
         });
     
@@ -2232,6 +2238,12 @@ function saveCardModal() {
     const boardTab = document.getElementById('board-tab');
     if (boardTab && boardTab.classList.contains('active')) {
         renderKanbanBoard();
+    }
+    
+    // Re-render the forecast (will update based on status changes)
+    const forecastTabElem = document.getElementById('forecast-tab');
+    if (forecastTabElem && forecastTabElem.classList.contains('active') && qaConfig) {
+        calculateAndRenderForecast();
     }
     
     // Save the change
