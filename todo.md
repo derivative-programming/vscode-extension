@@ -8,6 +8,14 @@ common types of graphs...
 
 for all histogram\distribution tabs, give an option to show as pie chart instead
 - ✅ DONE: User Story QA Status Distribution tab now has bar/pie chart toggle
+- ✅ DONE: User Story View Role Distribution tab now has bar/pie chart toggle
+- ⭐ User Story Journey View page usage Distribution tab
+- ⭐ User Story Journey View journey distance Distribution tab
+- ⭐ Page List View Complexity Distribution tab
+- ⭐ Data Object Size view size Distribution tab 
+- data object usage view usage distribution tab
+
+
 
 verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
 

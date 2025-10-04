@@ -1527,6 +1527,40 @@ function createHtmlContent(userStoryItems, errorMessage = null, initialTab = nul
             align-items: center;
         }
 
+        .chart-type-toggle {
+            display: flex;
+            gap: 2px;
+            border: 1px solid var(--vscode-button-border);
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--vscode-button-secondaryBackground);
+        }
+        
+        .chart-type-button {
+            padding: 6px 10px;
+            background: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .chart-type-button:hover {
+            background: var(--vscode-button-secondaryHoverBackground);
+        }
+        
+        .chart-type-button.active {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        
+        .chart-type-button i {
+            font-size: 16px;
+        }
+
         .histogram-refresh-button {
             background: none !important;
         }
@@ -1753,6 +1787,14 @@ function createHtmlContent(userStoryItems, errorMessage = null, initialTab = nul
                         <p>Distribution of user stories across roles</p>
                     </div>
                     <div class="histogram-actions">
+                        <div class="chart-type-toggle">
+                            <button id="roleChartTypeBar" class="chart-type-button active" title="Bar Chart">
+                                <i class="codicon codicon-graph"></i>
+                            </button>
+                            <button id="roleChartTypePie" class="chart-type-button" title="Pie Chart">
+                                <i class="codicon codicon-pie-chart"></i>
+                            </button>
+                        </div>
                         <button id="refreshRoleDistributionButton" class="icon-button histogram-refresh-button" title="Refresh Histogram">
                             <i class="codicon codicon-refresh"></i>
                         </button>
@@ -1815,6 +1857,9 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
             
             // Track user story items for updates
             let userStoryItems = [];
+            
+            // Keep track of current chart type for role distribution (bar or pie)
+            let roleChartType = 'bar';
             
             // Helper functions for spinner overlay
             function showSpinner() {
@@ -1937,9 +1982,9 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                 document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
                 document.getElementById(tabName + '-tab').classList.add('active');
                 
-                // Render role distribution histogram when Analytics tab is selected
+                // Render role distribution (bar or pie chart) when Analytics tab is selected
                 if (tabName === 'analytics') {
-                    renderRoleDistributionHistogram();
+                    renderRoleDistribution();
                 }
             }
             
@@ -2160,6 +2205,209 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                     .attr('stroke', 'var(--vscode-panel-border)');
                 
                 console.log('[UserStoriesView] Role distribution histogram rendered with ' + distribution.length + ' roles');
+            }
+            
+            // Render role distribution as pie chart
+            function renderRoleDistributionPieChart() {
+                console.log('[UserStoriesView] Rendering role distribution pie chart');
+                
+                const visualization = document.getElementById('role-distribution-visualization');
+                const loading = document.getElementById('role-distribution-loading');
+                const analyticsTab = document.getElementById('analytics-tab');
+                
+                if (!visualization || !loading || !analyticsTab) {
+                    console.error('[UserStoriesView] Pie chart elements not found');
+                    return;
+                }
+                
+                // Get pre-calculated distribution from data attribute (server-side generated)
+                let distribution = [];
+                try {
+                    const distributionData = analyticsTab.getAttribute('data-role-distribution');
+                    if (distributionData) {
+                        distribution = JSON.parse(distributionData);
+                    }
+                } catch (error) {
+                    console.error('[UserStoriesView] Error parsing role distribution data:', error);
+                    loading.innerHTML = 'Error loading role distribution data';
+                    return;
+                }
+                
+                if (distribution.length === 0) {
+                    loading.innerHTML = 'No user story data available';
+                    return;
+                }
+                
+                // Filter out zero-count roles
+                const filteredDistribution = distribution.filter(d => d.count > 0);
+                
+                if (filteredDistribution.length === 0) {
+                    visualization.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--vscode-descriptionForeground);">No data to display</div>';
+                    loading.classList.add('hidden');
+                    visualization.classList.remove('hidden');
+                    return;
+                }
+                
+                // Hide loading, show visualization
+                loading.classList.add('hidden');
+                visualization.classList.remove('hidden');
+                
+                // Clear previous content
+                visualization.innerHTML = '';
+                
+                // Update summary stats
+                updateSummaryStats(filteredDistribution);
+                
+                // D3.js pie chart rendering
+                const width = Math.max(700, visualization.clientWidth - 40);
+                const height = 500;
+                const radius = Math.min(width, height) / 2 - 60;
+                
+                const svg = d3.select(visualization)
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height)
+                    .style('background', 'var(--vscode-editor-background)');
+                
+                const g = svg.append('g')
+                    .attr('transform', 'translate(' + (width / 2 - 100) + ',' + (height / 2) + ')');
+                
+                // Create pie layout
+                const pie = d3.pie()
+                    .value(d => d.count)
+                    .sort(null); // Maintain original order (sorted by count from server)
+                
+                // Create arc generator
+                const arc = d3.arc()
+                    .innerRadius(0)
+                    .outerRadius(radius);
+                
+                // Create arc for hover effect (slightly larger)
+                const arcHover = d3.arc()
+                    .innerRadius(0)
+                    .outerRadius(radius + 10);
+                
+                // Create tooltip
+                const tooltip = d3.select('body').select('.role-distribution-tooltip');
+                let tooltipElement;
+                if (tooltip.empty()) {
+                    tooltipElement = d3.select('body')
+                        .append('div')
+                        .attr('class', 'role-distribution-tooltip')
+                        .style('opacity', 0);
+                } else {
+                    tooltipElement = tooltip;
+                }
+                
+                // Calculate total for percentages
+                const totalStories = filteredDistribution.reduce((sum, item) => sum + item.count, 0);
+                const maxCount = Math.max(...filteredDistribution.map(d => d.count));
+                
+                // Create pie slices
+                const slices = g.selectAll('.slice')
+                    .data(pie(filteredDistribution))
+                    .enter()
+                    .append('g')
+                    .attr('class', 'slice');
+                
+                // Add paths for each slice
+                slices.append('path')
+                    .attr('d', arc)
+                    .attr('fill', d => getBarColor(d.data.count, maxCount))
+                    .attr('stroke', 'var(--vscode-editor-background)')
+                    .attr('stroke-width', 2)
+                    .style('cursor', 'pointer')
+                    .on('mouseover', function(event, d) {
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .attr('d', arcHover)
+                            .style('opacity', 0.8);
+                        
+                        tooltipElement.transition()
+                            .duration(200)
+                            .style('opacity', 0.95);
+                        
+                        const percentage = ((d.data.count / totalStories) * 100).toFixed(1);
+                        
+                        tooltipElement.html(
+                            '<strong>' + d.data.role + '</strong><br/>' +
+                            'Stories: <strong>' + d.data.count + '</strong><br/>' +
+                            'Percentage: <strong>' + percentage + '%</strong>'
+                        )
+                            .style('left', (event.pageX + 10) + 'px')
+                            .style('top', (event.pageY - 28) + 'px');
+                    })
+                    .on('mouseout', function() {
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .attr('d', arc)
+                            .style('opacity', 1);
+                        
+                        tooltipElement.transition()
+                            .duration(500)
+                            .style('opacity', 0);
+                    });
+                
+                // Add percentage labels on slices
+                slices.append('text')
+                    .attr('transform', d => {
+                        const pos = arc.centroid(d);
+                        return 'translate(' + pos[0] + ',' + pos[1] + ')';
+                    })
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#FFFFFF')
+                    .attr('font-size', '14px')
+                    .attr('font-weight', 'bold')
+                    .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.8)')
+                    .style('pointer-events', 'none')
+                    .each(function(d) {
+                        const percentage = ((d.data.count / totalStories) * 100).toFixed(1);
+                        // Only show label if slice is large enough (> 5%)
+                        if (parseFloat(percentage) > 5) {
+                            d3.select(this).text(percentage + '%');
+                        }
+                    });
+                
+                // Add legend
+                const legend = svg.append('g')
+                    .attr('class', 'legend')
+                    .attr('transform', 'translate(' + (width - 180) + ',20)');
+                
+                const legendItems = legend.selectAll('.legend-item')
+                    .data(filteredDistribution)
+                    .enter()
+                    .append('g')
+                    .attr('class', 'legend-item')
+                    .attr('transform', (d, i) => 'translate(0,' + (i * 25) + ')');
+                
+                legendItems.append('rect')
+                    .attr('width', 18)
+                    .attr('height', 18)
+                    .attr('fill', d => getBarColor(d.count, maxCount));
+                
+                legendItems.append('text')
+                    .attr('x', 24)
+                    .attr('y', 9)
+                    .attr('dy', '.35em')
+                    .attr('fill', 'var(--vscode-editor-foreground)')
+                    .style('font-size', '12px')
+                    .text(d => {
+                        const roleText = d.role.length > 15 ? d.role.substring(0, 15) + '...' : d.role;
+                        return roleText + ' (' + d.count + ')';
+                    });
+                
+                console.log('[UserStoriesView] Role distribution pie chart rendered with ' + filteredDistribution.length + ' roles');
+            }
+            
+            // Render role distribution based on current chart type
+            function renderRoleDistribution() {
+                if (roleChartType === 'pie') {
+                    renderRoleDistributionPieChart();
+                } else {
+                    renderRoleDistributionHistogram();
+                }
             }
             
             // Generate PNG export of role distribution histogram
@@ -2528,6 +2776,32 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                 });
             }
             
+            // Setup chart type toggle buttons
+            const roleChartTypeBarBtn = document.getElementById('roleChartTypeBar');
+            const roleChartTypePieBtn = document.getElementById('roleChartTypePie');
+            
+            if (roleChartTypeBarBtn && roleChartTypePieBtn) {
+                roleChartTypeBarBtn.addEventListener('click', function() {
+                    if (roleChartType !== 'bar') {
+                        console.log('[UserStoriesView] Switching to bar chart');
+                        roleChartType = 'bar';
+                        roleChartTypeBarBtn.classList.add('active');
+                        roleChartTypePieBtn.classList.remove('active');
+                        renderRoleDistribution();
+                    }
+                });
+                
+                roleChartTypePieBtn.addEventListener('click', function() {
+                    if (roleChartType !== 'pie') {
+                        console.log('[UserStoriesView] Switching to pie chart');
+                        roleChartType = 'pie';
+                        roleChartTypePieBtn.classList.add('active');
+                        roleChartTypeBarBtn.classList.remove('active');
+                        renderRoleDistribution();
+                    }
+                });
+            }
+            
             // Handle refresh role distribution button
             const refreshRoleDistributionButton = document.getElementById('refreshRoleDistributionButton');
             if (refreshRoleDistributionButton) {
@@ -2566,8 +2840,8 @@ Alternate View All: "As a [Role name], I want to view all [objects] in a [contai
                                 analyticsTab.setAttribute('data-role-distribution', JSON.stringify(newDistribution));
                             }
                             
-                            // Re-render histogram
-                            renderRoleDistributionHistogram();
+                            // Re-render distribution (bar or pie chart based on current selection)
+                            renderRoleDistribution();
                         } finally {
                             // Hide spinner after processing
                             hideSpinner();

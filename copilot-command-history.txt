@@ -1,3 +1,75 @@
+## October 4, 2025 - User Stories View - Role Distribution Bar/Pie Chart Toggle
+
+**Command**: next update User Story View Role Distribution tab
+
+**Status**: ✅ COMPLETED (Bug Fix Applied)
+
+**Implementation Summary**:
+Added chart type toggle to the Role Distribution tab in the User Stories view, allowing users to switch between bar chart and pie chart visualizations of user story distribution across roles. Uses the same pattern as the QA Status Distribution implementation.
+
+**Files Modified**:
+
+1. **src/webviews/userStoriesView.js** (HTML, CSS & JavaScript):
+   - Added chart type toggle buttons in histogram-actions section with bar graph and pie chart icons
+   - Added CSS styles for `.chart-type-toggle` and `.chart-type-button` with active state styling
+   - Added `roleChartType` state variable to track selected chart type ('bar' or 'pie')
+   - Created new `renderRoleDistributionPieChart()` function with D3.js pie chart implementation
+   - Created unified `renderRoleDistribution()` function that routes to bar or pie rendering
+   - Added event listeners for chart type toggle buttons with state management
+   - Updated `switchTab()` function to use unified render function
+   - Updated refresh button to use unified render function
+   - Pie chart features:
+     - D3.js pie layout with arc generators
+     - Color-coded slices using same getBarColor() function as bar chart
+     - Interactive hover effects with larger arc
+     - Percentage labels on slices (only shown if > 5%)
+     - Legend with role names and counts (truncated to 15 chars if needed)
+     - Tooltip showing role, count, and percentage
+     - Filters out zero-count roles for cleaner visualization
+     - Reuses existing `.role-distribution-tooltip` CSS
+
+**Technical Implementation**:
+- **Bar Chart**: Existing implementation maintained unchanged
+- **Pie Chart**: New D3 pie/arc implementation with:
+  - Smart legend positioning (right side, offset by 100px from center)
+  - Same color gradient based on percentage of max (Red/Orange/Green/Gray)
+  - Width: 700px (matches bar chart)
+  - Height: 500px (larger than bar for legend space)
+  - Radius: calculated to fit within dimensions
+  - Server-side data from `data-role-distribution` attribute
+
+**User Experience**:
+- Toggle buttons show bar graph (codicon-graph) and pie chart (codicon-pie-chart) icons
+- Active button highlighted with different background color
+- Clicking toggle instantly re-renders the visualization
+- Current chart type persists during refresh operations
+- Works seamlessly with existing role distribution calculation
+- Summary statistics (Total Roles, Total Stories, Avg Stories/Role) work with both charts
+
+**Architecture Notes**:
+- Follows identical pattern to QA Status Distribution implementation
+- Reuses existing color scheme function `getBarColor(count, maxCount)`
+- Reuses existing tooltip styles
+- Maintains same data calculation from `data-role-distribution` attribute
+- PNG export functionality works with both chart types
+- Chart type preference maintained in session (could be enhanced to persist in workspace state)
+- Role names truncated in legend if longer than 15 characters
+
+**Bug Fix**:
+- Initial implementation had `roleChartType` variable declared inside nested function scope (line ~2013)
+- This caused "roleChartType is not defined" error when `switchTab()` called `renderRoleDistribution()`
+- Root cause: Variable was declared outside the `<script>` section which generates the webview HTML
+- Fixed by moving `roleChartType` declaration to the beginning of the IIFE script section (line ~1864)
+- Variable declared right after `userStoryItems` in the `(function() { ... })()` block
+- Variable must be accessible to all functions including `switchTab()`, `renderRoleDistribution()`, and event handlers
+
+**Related Files**:
+- Previous implementation: QA Status Distribution (`src/webviews/userStoriesQAView.js`)
+- Architecture doc: `docs/architecture/qa-status-distribution-chart-toggle.md`
+- Candidate review: `docs/reviews/bar-chart-pie-chart-candidates.md`
+
+---
+
 ## October 4, 2025 - User Story QA View - Add Bar/Pie Chart Toggle
 
 **Command**: review the user story qa view status distribution tab. Can we have a toggle to display the data in the current bar chart to a pie chart?
