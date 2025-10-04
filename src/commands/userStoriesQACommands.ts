@@ -105,20 +105,81 @@ async function loadUserStoriesQAData(panel: vscode.WebviewPanel, modelService: M
 
         console.log(`[Extension] Found ${userStories.length} user stories`);
 
+        // Load page mapping data
+        let pageMappingData: any = { pageMappings: {} };
+        if (modelFilePath) {
+            const modelDir = path.dirname(modelFilePath);
+            const pageMappingFilePath = path.join(modelDir, 'app-dna-user-story-page-mapping.json');
+            try {
+                if (fs.existsSync(pageMappingFilePath)) {
+                    const mappingContent = fs.readFileSync(pageMappingFilePath, 'utf8');
+                    pageMappingData = JSON.parse(mappingContent);
+                }
+            } catch (error) {
+                console.warn("[Extension] Could not load page mapping file:", error);
+            }
+        }
+
+        // Get all pages from model to find start page and role information
+        const allPages: any[] = [];
+        const allObjects = modelService.getAllObjects();
+        allObjects.forEach((obj: any) => {
+            // Extract workflows with isPage=true
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((workflow: any) => {
+                    if (workflow.isPage === 'true') {
+                        allPages.push({
+                            name: workflow.name,
+                            roleRequired: workflow.roleRequired,
+                            isStartPage: workflow.isStartPage === 'true'
+                        });
+                    }
+                });
+            }
+            // Extract reports with isPage=true
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if (report.isPage === 'true' || report.isPage === undefined) {
+                        allPages.push({
+                            name: report.name,
+                            roleRequired: report.roleRequired,
+                            isStartPage: report.isStartPage === 'true'
+                        });
+                    }
+                });
+            }
+        });
+
         // Build combined data array
         const combinedData: any[] = [];
         userStories.forEach(story => {
             const storyId = story.name || '';
+            const storyNumber = story.storyNumber || '';
             const existingQA = qaLookup.get(storyId);
+
+            // Get pages from mapping
+            const mapping = pageMappingData.pageMappings[storyNumber];
+            const mappedPages = mapping?.pageMapping || [];
+            
+            // Enrich page data with role and start page info
+            const pageDetails = mappedPages.map((pageName: string) => {
+                const pageInfo = allPages.find(p => p.name === pageName);
+                return {
+                    name: pageName,
+                    roleRequired: pageInfo?.roleRequired || '',
+                    isStartPage: pageInfo?.isStartPage || false
+                };
+            });
 
             combinedData.push({
                 storyId: storyId,
-                storyNumber: story.storyNumber || '',
+                storyNumber: storyNumber,
                 storyText: story.storyText || '',
                 qaStatus: existingQA?.qaStatus || 'pending',
                 qaNotes: existingQA?.qaNotes || '',
                 dateVerified: existingQA?.dateVerified || '',
                 qaFilePath: qaFilePath,
+                mappedPages: pageDetails, // Array of page objects with name, role, isStartPage
                 selected: false // For checkbox functionality
             });
         });
@@ -1185,6 +1246,63 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             outline-offset: -1px;
                         }
                         
+                        /* Page list styles */
+                        .page-list-container {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 6px;
+                        }
+                        
+                        .page-list-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            padding: 6px 10px;
+                            background: var(--vscode-list-hoverBackground);
+                            border-radius: 3px;
+                            font-size: 12px;
+                        }
+                        
+                        .page-list-item .page-name {
+                            flex: 1;
+                            font-weight: 500;
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        .page-list-item .page-action-button {
+                            background: none;
+                            border: none;
+                            color: var(--vscode-editor-foreground);
+                            padding: 4px 6px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            border-radius: 3px;
+                            transition: background 0.15s;
+                        }
+                        
+                        .page-list-item .page-action-button:hover {
+                            background: var(--vscode-button-secondaryHoverBackground);
+                        }
+                        
+                        .page-list-item .page-badge {
+                            padding: 2px 6px;
+                            border-radius: 3px;
+                            font-size: 10px;
+                            font-weight: 600;
+                            text-transform: uppercase;
+                        }
+                        
+                        .page-list-item .start-page-badge {
+                            background: var(--vscode-charts-green);
+                            color: #000;
+                        }
+                        
+                        .page-list-item .role-badge {
+                            background: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                        }
+                        
                         .modal-footer {
                             padding: 15px 20px;
                             background: var(--vscode-sideBar-background);
@@ -1663,6 +1781,15 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                                     <div class="modal-field-value" id="modalStoryText"></div>
                                 </div>
                                 <div class="modal-field">
+                                    <label>Page Mapping:</label>
+                                    <div class="modal-field-value" id="modalPageMapping">
+                                        <div id="modalPageList" class="page-list-container"></div>
+                                        <div id="modalNoPages" class="no-pages-message" style="display:none; color: var(--vscode-descriptionForeground); font-style: italic;">
+                                            No pages mapped to this story
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-field">
                                     <label>QA Status:</label>
                                     <select id="modalQAStatus">
                                         <option value="pending">Pending</option>
@@ -2085,6 +2212,38 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             } catch (error) {
                                 console.error("[Extension] Error exporting forecast CSV:", error);
                                 vscode.window.showErrorMessage('Failed to export forecast CSV: ' + error.message);
+                            }
+                            break;
+
+                        case 'openUserJourneyForPage':
+                            console.log("[Extension] Opening User Journey for page:", message.targetPage, "with role:", message.pageRole);
+                            try {
+                                // Load journey start data to find the start page for this role
+                                let startPage = null;
+                                if (message.pageRole) {
+                                    const modelFilePath = modelService.getCurrentFilePath();
+                                    if (modelFilePath) {
+                                        const modelDir = path.dirname(modelFilePath);
+                                        const journeyFilePath = path.join(modelDir, 'app-dna-user-story-user-journey.json');
+                                        
+                                        if (fs.existsSync(journeyFilePath)) {
+                                            const journeyContent = fs.readFileSync(journeyFilePath, 'utf8');
+                                            const journeyData = JSON.parse(journeyContent);
+                                            const journeyStartPages = journeyData.journeyStartPages || {};
+                                            startPage = journeyStartPages[message.pageRole];
+                                            console.log("[Extension] Found start page for role", message.pageRole, ":", startPage);
+                                        }
+                                    }
+                                }
+                                
+                                // Import the page flow view function
+                                const { showPageFlowWithUserJourney } = require('../webviews/pageflow/pageFlowDiagramView');
+                                
+                                // Open Page Flow with User Journey tab, target page, and start page
+                                await showPageFlowWithUserJourney(context, modelService, message.targetPage, startPage);
+                            } catch (error) {
+                                console.error('[Extension] Error opening User Journey:', error);
+                                vscode.window.showErrorMessage('Failed to open User Journey: ' + error.message);
                             }
                             break;
 

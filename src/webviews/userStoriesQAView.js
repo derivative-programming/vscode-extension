@@ -821,6 +821,18 @@ function refreshForecast() {
     calculateAndRenderForecast();
 }
 
+// Open User Journey for a specific page (global function)
+function openUserJourneyForPage(targetPage, pageRole) {
+    console.log('[userStoriesQAView] Opening User Journey for page:', targetPage, 'with role:', pageRole);
+    
+    // Send command to extension to open Page Flow with User Journey tab
+    vscode.postMessage({
+        command: 'openUserJourneyForPage',
+        targetPage: targetPage,
+        pageRole: pageRole
+    });
+}
+
 // Export forecast data to CSV
 function exportForecastData() {
     // Get forecast data
@@ -2175,6 +2187,60 @@ function openCardModal(storyId) {
     document.getElementById('modalQAStatus').value = item.qaStatus || 'pending';
     document.getElementById('modalQANotes').value = item.qaNotes || '';
     document.getElementById('modalDateVerified').textContent = item.dateVerified || 'Not yet verified';
+    
+    // Populate page mapping list
+    const pageListContainer = document.getElementById('modalPageList');
+    const noPagesMessage = document.getElementById('modalNoPages');
+    
+    if (item.mappedPages && item.mappedPages.length > 0) {
+        pageListContainer.innerHTML = '';
+        pageListContainer.style.display = 'flex';
+        noPagesMessage.style.display = 'none';
+        
+        item.mappedPages.forEach(page => {
+            const pageItem = document.createElement('div');
+            pageItem.className = 'page-list-item';
+            
+            const pageName = document.createElement('span');
+            pageName.className = 'page-name';
+            pageName.textContent = page.name;
+            pageItem.appendChild(pageName);
+            
+            // Add start page badge if applicable
+            if (page.isStartPage) {
+                const startBadge = document.createElement('span');
+                startBadge.className = 'page-badge start-page-badge';
+                startBadge.textContent = 'START';
+                startBadge.title = 'This is a start page';
+                pageItem.appendChild(startBadge);
+            }
+            
+            // Add role badge if applicable
+            if (page.roleRequired) {
+                const roleBadge = document.createElement('span');
+                roleBadge.className = 'page-badge role-badge';
+                roleBadge.textContent = page.roleRequired;
+                roleBadge.title = 'Role required: ' + page.roleRequired;
+                pageItem.appendChild(roleBadge);
+            }
+            
+            // Add journey button to open page flow diagram
+            const journeyButton = document.createElement('button');
+            journeyButton.className = 'page-action-button';
+            journeyButton.title = 'Show User Journey Page Flow Diagram';
+            journeyButton.innerHTML = '<span class="codicon codicon-map" style="font-size:14px;"></span>';
+            journeyButton.onclick = function(e) {
+                e.stopPropagation();
+                openUserJourneyForPage(page.name, page.roleRequired);
+            };
+            pageItem.appendChild(journeyButton);
+            
+            pageListContainer.appendChild(pageItem);
+        });
+    } else {
+        pageListContainer.style.display = 'none';
+        noPagesMessage.style.display = 'block';
+    }
     
     // Show modal
     const modal = document.getElementById('cardDetailModal');
