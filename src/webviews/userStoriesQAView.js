@@ -794,6 +794,15 @@ function createKanbanCard(item) {
         card.appendChild(cardFooter);
     }
     
+    // Click event to open modal
+    card.addEventListener('click', function(e) {
+        // Don't open modal if we're dragging
+        if (e.defaultPrevented) {
+            return;
+        }
+        openCardModal(item.storyId);
+    });
+    
     // Drag event listeners
     card.addEventListener('dragstart', handleDragStart);
     card.addEventListener('dragend', handleDragEnd);
@@ -1333,6 +1342,108 @@ function renderRecordInfo() {
     }
 }
 
+// Keep track of currently opened card in modal
+let currentModalStoryId = null;
+
+// Open card detail modal (global function for onclick)
+function openCardModal(storyId) {
+    const item = allItems.find(i => i.storyId === storyId);
+    if (!item) {
+        console.error('[userStoriesQAView] Item not found:', storyId);
+        return;
+    }
+    
+    currentModalStoryId = storyId;
+    
+    // Populate modal fields
+    document.getElementById('modalStoryNumber').textContent = item.storyNumber || 'N/A';
+    document.getElementById('modalStoryText').textContent = item.storyText || 'N/A';
+    document.getElementById('modalQAStatus').value = item.qaStatus || 'pending';
+    document.getElementById('modalQANotes').value = item.qaNotes || '';
+    document.getElementById('modalDateVerified').textContent = item.dateVerified || 'Not yet verified';
+    
+    // Show modal
+    const modal = document.getElementById('cardDetailModal');
+    modal.classList.add('active');
+    
+    // Focus on notes field
+    setTimeout(() => {
+        document.getElementById('modalQANotes').focus();
+    }, 100);
+    
+    console.log('[userStoriesQAView] Opened modal for story:', storyId);
+}
+
+// Close card detail modal (global function for onclick)
+function closeCardModal() {
+    const modal = document.getElementById('cardDetailModal');
+    modal.classList.remove('active');
+    currentModalStoryId = null;
+    
+    console.log('[userStoriesQAView] Closed modal');
+}
+
+// Save card detail modal (global function for onclick)
+function saveCardModal() {
+    if (!currentModalStoryId) {
+        console.error('[userStoriesQAView] No story ID for modal save');
+        return;
+    }
+    
+    const item = allItems.find(i => i.storyId === currentModalStoryId);
+    if (!item) {
+        console.error('[userStoriesQAView] Item not found for save:', currentModalStoryId);
+        return;
+    }
+    
+    // Get values from modal
+    const newStatus = document.getElementById('modalQAStatus').value;
+    const newNotes = document.getElementById('modalQANotes').value;
+    const oldStatus = item.qaStatus;
+    
+    // Update item in allItems
+    item.qaStatus = newStatus;
+    item.qaNotes = newNotes;
+    
+    // Set date verified if status is success or failure
+    if (newStatus === 'success' || newStatus === 'failure') {
+        item.dateVerified = new Date().toISOString().split('T')[0];
+    }
+    
+    // Update in userStoriesQAData as well
+    const dataItem = userStoriesQAData.items.find(i => i.storyId === currentModalStoryId);
+    if (dataItem) {
+        dataItem.qaStatus = newStatus;
+        dataItem.qaNotes = newNotes;
+        if (newStatus === 'success' || newStatus === 'failure') {
+            dataItem.dateVerified = new Date().toISOString().split('T')[0];
+        }
+    }
+    
+    // Re-render the board (will move card to new column if status changed)
+    const boardTab = document.getElementById('board-tab');
+    if (boardTab && boardTab.classList.contains('active')) {
+        renderKanbanBoard();
+    }
+    
+    // Save the change
+    vscode.postMessage({
+        command: 'saveQAChange',
+        data: {
+            storyId: currentModalStoryId,
+            qaStatus: newStatus,
+            qaNotes: newNotes,
+            dateVerified: item.dateVerified || '',
+            qaFilePath: item.qaFilePath
+        }
+    });
+    
+    console.log('[userStoriesQAView] Saved modal changes for story:', currentModalStoryId);
+    
+    // Close modal
+    closeCardModal();
+}
+
 // Listen for messages from the extension
 window.addEventListener('message', event => {
     const message = event.data;
@@ -1625,6 +1736,27 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(function() {
             renderKanbanBoard();
         }, 100);
+    }
+    
+    // Setup modal close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('cardDetailModal');
+            if (modal && modal.classList.contains('active')) {
+                closeCardModal();
+            }
+        }
+    });
+    
+    // Setup modal close on overlay click
+    const modalOverlay = document.getElementById('cardDetailModal');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function(e) {
+            // Only close if clicking the overlay itself, not the modal content
+            if (e.target === modalOverlay) {
+                closeCardModal();
+            }
+        });
     }
     
     // Send ready message to extension

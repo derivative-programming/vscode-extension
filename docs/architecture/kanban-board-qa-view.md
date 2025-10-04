@@ -57,6 +57,32 @@ Each Kanban card displays:
 
 ## User Interactions
 
+### Card Click - Detail Modal
+
+**Opening the Modal:**
+1. User clicks on a card (not during drag)
+2. Modal overlay appears with card details
+3. Modal shows:
+   - Story Number (read-only)
+   - Story Text (read-only)
+   - QA Status (editable dropdown)
+   - QA Notes (editable textarea)
+   - Date Verified (read-only, auto-updated)
+
+**Editing in Modal:**
+1. User changes QA Status dropdown
+2. User adds/edits notes in textarea
+3. Clicks "Save" button
+4. Changes saved to QA file
+5. Card updates in board (moves to new column if status changed)
+6. Modal closes automatically
+
+**Closing the Modal:**
+- Click "Cancel" button
+- Click "X" button in header
+- Press Escape key
+- Click outside modal (on overlay)
+
 ### Drag and Drop
 
 **Starting a Drag:**

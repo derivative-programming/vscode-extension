@@ -1062,6 +1062,163 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         .kanban-column[data-status="failure"] .kanban-column-header {
                             border-left: 3px solid #d73a49;
                         }
+                        
+                        /* Modal Styles */
+                        .modal-overlay {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: rgba(0, 0, 0, 0.6);
+                            display: none;
+                            align-items: center;
+                            justify-content: center;
+                            z-index: 2000;
+                        }
+                        
+                        .modal-overlay.active {
+                            display: flex;
+                        }
+                        
+                        .modal-content {
+                            background: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            width: 90%;
+                            max-width: 600px;
+                            max-height: 80vh;
+                            overflow-y: auto;
+                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+                        }
+                        
+                        .modal-header {
+                            padding: 15px 20px;
+                            background: var(--vscode-sideBar-background);
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        }
+                        
+                        .modal-title {
+                            font-size: 16px;
+                            font-weight: 600;
+                            color: var(--vscode-foreground);
+                            margin: 0;
+                        }
+                        
+                        .modal-close {
+                            background: none;
+                            border: none;
+                            color: var(--vscode-foreground);
+                            cursor: pointer;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 16px;
+                        }
+                        
+                        .modal-close:hover {
+                            background: var(--vscode-toolbar-hoverBackground);
+                        }
+                        
+                        .modal-body {
+                            padding: 20px;
+                        }
+                        
+                        .modal-field {
+                            margin-bottom: 20px;
+                        }
+                        
+                        .modal-field label {
+                            display: block;
+                            font-weight: 600;
+                            margin-bottom: 8px;
+                            font-size: 13px;
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        .modal-field-value {
+                            padding: 8px 12px;
+                            background: var(--vscode-input-background);
+                            border: 1px solid var(--vscode-input-border);
+                            border-radius: 3px;
+                            color: var(--vscode-input-foreground);
+                            font-size: 13px;
+                            line-height: 1.5;
+                        }
+                        
+                        .modal-field select {
+                            width: 100%;
+                            padding: 6px 8px;
+                            background: var(--vscode-input-background);
+                            border: 1px solid var(--vscode-input-border);
+                            border-radius: 3px;
+                            color: var(--vscode-input-foreground);
+                            font-size: 13px;
+                        }
+                        
+                        .modal-field select:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
+                        
+                        .modal-field textarea {
+                            width: 100%;
+                            min-height: 100px;
+                            padding: 8px 12px;
+                            background: var(--vscode-input-background);
+                            border: 1px solid var(--vscode-input-border);
+                            border-radius: 3px;
+                            color: var(--vscode-input-foreground);
+                            font-size: 13px;
+                            font-family: var(--vscode-font-family);
+                            resize: vertical;
+                            box-sizing: border-box;
+                        }
+                        
+                        .modal-field textarea:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
+                        
+                        .modal-footer {
+                            padding: 15px 20px;
+                            background: var(--vscode-sideBar-background);
+                            border-top: 1px solid var(--vscode-panel-border);
+                            display: flex;
+                            justify-content: flex-end;
+                            gap: 10px;
+                        }
+                        
+                        .modal-button {
+                            padding: 6px 14px;
+                            border-radius: 3px;
+                            font-size: 13px;
+                            cursor: pointer;
+                            border: none;
+                        }
+                        
+                        .modal-button-primary {
+                            background: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                        }
+                        
+                        .modal-button-primary:hover {
+                            background: var(--vscode-button-hoverBackground);
+                        }
+                        
+                        .modal-button-secondary {
+                            background: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                        }
+                        
+                        .modal-button-secondary:hover {
+                            background: var(--vscode-button-secondaryHoverBackground);
+                        }
                     </style>
                 </head>
                 <body>
@@ -1292,6 +1449,50 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
 
                     <div id="spinner-overlay" class="spinner-overlay" style="display: none;">
                         <div class="spinner"></div>
+                    </div>
+
+                    <!-- Card Detail Modal -->
+                    <div id="cardDetailModal" class="modal-overlay">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="modal-title" id="modalTitle">Story Details</h3>
+                                <button class="modal-close" onclick="closeCardModal()">
+                                    <i class="codicon codicon-close"></i>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="modal-field">
+                                    <label>Story Number:</label>
+                                    <div class="modal-field-value" id="modalStoryNumber"></div>
+                                </div>
+                                <div class="modal-field">
+                                    <label>Story Text:</label>
+                                    <div class="modal-field-value" id="modalStoryText"></div>
+                                </div>
+                                <div class="modal-field">
+                                    <label>QA Status:</label>
+                                    <select id="modalQAStatus">
+                                        <option value="pending">Pending</option>
+                                        <option value="ready-to-test">Ready to Test</option>
+                                        <option value="started">Started</option>
+                                        <option value="success">Success</option>
+                                        <option value="failure">Failure</option>
+                                    </select>
+                                </div>
+                                <div class="modal-field">
+                                    <label>QA Notes:</label>
+                                    <textarea id="modalQANotes" placeholder="Enter QA notes..."></textarea>
+                                </div>
+                                <div class="modal-field">
+                                    <label>Date Verified:</label>
+                                    <div class="modal-field-value" id="modalDateVerified">Not yet verified</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-button modal-button-secondary" onclick="closeCardModal()">Cancel</button>
+                                <button class="modal-button modal-button-primary" onclick="saveCardModal()">Save</button>
+                            </div>
+                        </div>
                     </div>
 
                     <script src="https://d3js.org/d3.v7.min.js"></script>

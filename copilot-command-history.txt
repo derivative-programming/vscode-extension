@@ -83,9 +83,30 @@ Added a third "Board" tab to the User Stories QA View featuring a Kanban-style b
 - Consistent with modern project management tools (Trello, Jira, etc.)
 - Fast status changes without opening detail forms
 
+**Additional Enhancements**:
+1. **Refresh & Export Buttons** (same commands as Details tab):
+   - Export button exports filtered data to CSV
+   - Refresh button reloads data from model/QA file
+   - Positioned below filter section, right-aligned
+
+2. **Card Detail Modal** (click to edit):
+   - Click any card to open detail modal
+   - Modal displays:
+     - Story Number (read-only display)
+     - Story Text (read-only, full text visible)
+     - QA Status (editable dropdown)
+     - QA Notes (editable textarea)
+     - Date Verified (read-only, auto-calculated)
+   - Save/Cancel buttons
+   - Keyboard shortcuts: Escape to close
+   - Click overlay to close
+   - Auto-focus on notes field
+   - Changes saved immediately
+   - Card moves to new column if status changed
+   - Prevents accidental opens during drag operations
+
 **Future Enhancements Documented**:
 - Keyboard navigation for accessibility
-- Click card to edit notes inline
 - Multi-select drag
 - Card sorting within columns
 - Export board as PNG snapshot
