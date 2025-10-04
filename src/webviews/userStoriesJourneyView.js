@@ -18,6 +18,9 @@ let allItems = [];
 // Keep track of selected items
 let selectedItems = new Set();
 
+// Keep track of current chart type for page usage histogram (bar or pie)
+let pageUsageChartType = 'bar';
+
 // Keep track of unique values for filter dropdowns
 let filterOptions = {
     rolesRequired: []
@@ -318,7 +321,7 @@ function clearPageUsageDistributionFilters() {
     });
     
     // Re-render histogram
-    renderPageUsageHistogram();
+    renderPageUsageDistribution();
 }
 
 // Clear filters for Page Usage vs Complexity tab (global function for onclick)
@@ -487,7 +490,7 @@ function applyStartPageFilter() {
     if (activeTab === 'page-usage-treemap') {
         renderPageUsageTreemap();
     } else if (activeTab === 'page-usage-distribution') {
-        renderPageUsageHistogram();
+        renderPageUsageDistribution();
     } else if (activeTab === 'page-usage-vs-complexity') {
         renderPageUsageVsComplexityScatter();
     }
@@ -1404,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (tabName === 'page-usage-distribution') {
             // Page Usage distribution tab selected - render histogram
             console.log('Page Usage distribution tab selected - rendering histogram');
-            renderPageUsageHistogram();
+            renderPageUsageDistribution();
         } else if (tabName === 'page-usage-vs-complexity') {
             // Page Usage vs Complexity tab selected - render scatter plot
             console.log('Page Usage vs Complexity tab selected - rendering scatter plot');
@@ -1604,6 +1607,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generatePageUsageTreemapPngBtn) {
         generatePageUsageTreemapPngBtn.addEventListener('click', function() {
             generatePageUsageTreemapPNG();
+        });
+    }
+
+    // Setup chart type toggle buttons for page usage histogram
+    const pageUsageChartTypeBarBtn = document.getElementById('pageUsageChartTypeBar');
+    const pageUsageChartTypePieBtn = document.getElementById('pageUsageChartTypePie');
+    
+    if (pageUsageChartTypeBarBtn && pageUsageChartTypePieBtn) {
+        pageUsageChartTypeBarBtn.addEventListener('click', function() {
+            if (pageUsageChartType !== 'bar') {
+                console.log('[UserStoriesJourney] Switching page usage to bar chart');
+                pageUsageChartType = 'bar';
+                pageUsageChartTypeBarBtn.classList.add('active');
+                pageUsageChartTypePieBtn.classList.remove('active');
+                renderPageUsageDistribution();
+            }
+        });
+        
+        pageUsageChartTypePieBtn.addEventListener('click', function() {
+            if (pageUsageChartType !== 'pie') {
+                console.log('[UserStoriesJourney] Switching page usage to pie chart');
+                pageUsageChartType = 'pie';
+                pageUsageChartTypePieBtn.classList.add('active');
+                pageUsageChartTypeBarBtn.classList.remove('active');
+                renderPageUsageDistribution();
+            }
         });
     }
 
@@ -2817,6 +2846,225 @@ function renderPageUsageHistogram() {
         .attr('stroke', 'var(--vscode-panel-border)');
     
     console.log(`Page usage histogram rendered with distribution:`, distribution);
+}
+
+// Render page usage distribution as pie chart
+function renderPageUsagePieChart() {
+    const pageUsageHistogramVisualization = document.getElementById('page-usage-histogram-visualization');
+    const pageUsageHistogramLoading = document.getElementById('page-usage-histogram-loading');
+    
+    const filteredPages = getFilteredPageDataForTab();
+    
+    if (!pageUsageHistogramVisualization || !pageUsageHistogramLoading || !pageUsageData || filteredPages.length === 0) {
+        console.error('Page usage pie chart elements not found or no data available');
+        return;
+    }
+
+    // Hide loading and show visualization
+    pageUsageHistogramLoading.classList.add('hidden');
+    pageUsageHistogramVisualization.classList.remove('hidden');
+
+    // Clear previous content
+    pageUsageHistogramVisualization.innerHTML = '';
+
+    // Calculate usage distribution
+    const distribution = {
+        low: 0,      // 1-2 usages
+        medium: 0,   // 3-5 usages
+        high: 0,     // 6-10 usages
+        veryHigh: 0  // 10+ usages
+    };
+
+    filteredPages.forEach(page => {
+        const usage = page.usageCount || 0;
+        if (usage >= 1 && usage <= 2) {
+            distribution.low++;
+        } else if (usage >= 3 && usage <= 5) {
+            distribution.medium++;
+        } else if (usage >= 6 && usage <= 10) {
+            distribution.high++;
+        } else if (usage > 10) {
+            distribution.veryHigh++;
+        }
+    });
+    
+    // Prepare data array - filter out zero values for pie chart
+    const categories = ['Low Usage', 'Medium Usage', 'High Usage', 'Very High Usage'];
+    const values = [distribution.low, distribution.medium, distribution.high, distribution.veryHigh];
+    const colors = ['#6c757d', '#28a745', '#f66a0a', '#d73a49'];
+    
+    const data = categories
+        .map((category, i) => ({
+            category: category,
+            value: values[i],
+            color: colors[i]
+        }))
+        .filter(d => d.value > 0); // Only include non-zero slices
+    
+    if (data.length === 0) {
+        pageUsageHistogramVisualization.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--vscode-descriptionForeground);">No data to display</div>';
+        return;
+    }
+    
+    // D3.js pie chart rendering
+    const width = 600;
+    const height = 400;
+    const radius = Math.min(width, height) / 2 - 40;
+    
+    const svg = d3.select(pageUsageHistogramVisualization)
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .style('background', 'var(--vscode-editor-background)');
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${width / 2 - 80},${height / 2})`);
+    
+    // Create pie layout
+    const pie = d3.pie()
+        .value(d => d.value)
+        .sort(null);
+    
+    // Create arc generator
+    const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius);
+    
+    // Create arc for hover effect
+    const arcHover = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius + 10);
+    
+    // Create tooltip
+    let tooltip = d3.select('body').select('.page-usage-histogram-tooltip');
+    if (tooltip.empty()) {
+        tooltip = d3.select('body')
+            .append('div')
+            .attr('class', 'page-usage-histogram-tooltip')
+            .style('opacity', 0)
+            .style('position', 'absolute')
+            .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+            .style('border', '1px solid var(--vscode-panel-border)')
+            .style('border-radius', '3px')
+            .style('padding', '8px')
+            .style('font-size', '12px')
+            .style('z-index', '1000')
+            .style('pointer-events', 'none');
+    }
+    
+    // Calculate total for percentages
+    const totalPages = data.reduce((sum, item) => sum + item.value, 0);
+    
+    // Create pie slices
+    const slices = g.selectAll('.slice')
+        .data(pie(data))
+        .enter()
+        .append('g')
+        .attr('class', 'slice');
+    
+    // Add paths for each slice
+    slices.append('path')
+        .attr('d', arc)
+        .attr('fill', d => d.data.color)
+        .attr('stroke', 'var(--vscode-editor-background)')
+        .attr('stroke-width', 2)
+        .style('cursor', 'pointer')
+        .on('mouseover', function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .attr('d', arcHover)
+                .style('opacity', 0.8);
+            
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', 1);
+            
+            const percentage = ((d.data.value / totalPages) * 100).toFixed(1);
+            
+            // Map category to full description
+            const descriptions = {
+                'Low Usage': 'Low Usage (1-2 journeys)',
+                'Medium Usage': 'Medium Usage (3-5 journeys)',
+                'High Usage': 'High Usage (6-10 journeys)',
+                'Very High Usage': 'Very High Usage (10+ journeys)'
+            };
+            
+            tooltip.html(`
+                <strong>${descriptions[d.data.category]}</strong><br/>
+                Count: ${d.data.value}<br/>
+                Percentage: ${percentage}%
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .attr('d', arc)
+                .style('opacity', 1);
+            
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+    
+    // Add percentage labels on slices
+    slices.append('text')
+        .attr('transform', d => {
+            const pos = arc.centroid(d);
+            return `translate(${pos[0]},${pos[1]})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#FFFFFF')
+        .attr('font-size', '14px')
+        .attr('font-weight', 'bold')
+        .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.8)')
+        .style('pointer-events', 'none')
+        .each(function(d) {
+            const percentage = ((d.data.value / totalPages) * 100).toFixed(1);
+            // Only show label if slice is large enough (> 5%)
+            if (parseFloat(percentage) > 5) {
+                d3.select(this).text(percentage + '%');
+            }
+        });
+    
+    // Add legend
+    const legend = svg.append('g')
+        .attr('class', 'legend')
+        .attr('transform', `translate(${width - 180}, 20)`);
+    
+    const legendItems = legend.selectAll('.legend-item')
+        .data(data)
+        .enter()
+        .append('g')
+        .attr('class', 'legend-item')
+        .attr('transform', (d, i) => `translate(0,${i * 25})`);
+    
+    legendItems.append('rect')
+        .attr('width', 18)
+        .attr('height', 18)
+        .attr('fill', d => d.color);
+    
+    legendItems.append('text')
+        .attr('x', 24)
+        .attr('y', 9)
+        .attr('dy', '.35em')
+        .attr('fill', 'var(--vscode-editor-foreground)')
+        .style('font-size', '12px')
+        .text(d => `${d.category} (${d.value})`);
+    
+    console.log('Page usage pie chart rendered with distribution:', distribution);
+}
+
+// Render page usage distribution based on current chart type
+function renderPageUsageDistribution() {
+    if (pageUsageChartType === 'pie') {
+        renderPageUsagePieChart();
+    } else {
+        renderPageUsageHistogram();
+    }
 }
 
 // PNG export functions for page usage visualizations

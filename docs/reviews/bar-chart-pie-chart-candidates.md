@@ -22,6 +22,15 @@
 - **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
 - **Colors**: Dynamic gradient (Red/Orange/Green/Gray based on % of max)
 
+### 3. User Stories Journey - Page Usage Distribution
+- **Location**: `src/webviews/userStoriesJourneyView.js`
+- **Function**: `renderPageUsageHistogram()` / `renderPageUsagePieChart()`
+- **Command File**: `src/commands/userStoriesJourneyCommands.ts`
+- **Tab Name**: "Page Usage Distribution"
+- **Categories**: 4 usage levels (Low 1, Medium 2-3, High 4-6, Very High 7+)
+- **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
+- **Colors**: Semantic (Green, Blue, Amber, Red for Low/Medium/High/VeryHigh)
+
 ## Candidate Views for Pie Chart Toggle
 
 ### 2. User Stories - Role Distribution ✅ COMPLETED
@@ -38,22 +47,23 @@
   - Colors based on percentage of max count (Red/Orange/Green/Gray)
   - Legend truncates role names longer than 15 characters
 
-### 3. User Stories Journey - Page Usage Distribution ⭐ HIGH PRIORITY
+### 3. User Stories Journey - Page Usage Distribution
 - **Location**: `src/webviews/userStoriesJourneyView.js`
-- **Function**: `renderPageUsageHistogram()`
+- **Function**: `renderPageUsageHistogram()` / `renderPageUsagePieChart()`
 - **Command File**: `src/commands/userStoriesJourneyCommands.ts`
-- **Tab Name**: "Page Usage Histogram"
-- **Categories**: 4 usage levels (Low 1-2, Medium 3-5, High 6-10, Very High 10+)
-- **Why Good Candidate**:
-  - Clear categorical distribution
-  - Shows how pages are used across user stories
-  - Percentages make sense (% of pages in each usage category)
-  - Similar pattern to implemented QA Status Distribution
+- **Tab Name**: "Page Usage Distribution"
+- **Categories**: 4 usage levels (Low 1, Medium 2-3, High 4-6, Very High 7+)
+- **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
 - **Implementation Notes**:
-  - Line ~2664 in userStoriesJourneyView.js
-  - Uses filtered page data
-  - Has tooltip with descriptions and percentages
-  - Colors: Gray, Green, Orange, Red
+  - Line ~2664 in userStoriesJourneyView.js (bar), pie chart function added after
+  - Unified `renderPageUsageDistribution()` function routes to appropriate renderer
+  - Uses filtered page data from `getFilteredPageDataForTab()`
+  - Toggle buttons added at line ~3076 in userStoriesJourneyCommands.ts
+  - CSS styling at lines ~2281-2313
+  - State variable: `pageUsageChartType` at line ~22
+  - Colors: Semantic (Green, Blue, Amber, Red for Low/Medium/High/VeryHigh)
+  - Zero-value categories filtered out
+  - Percentage labels shown on slices >5%
 
 ### 4. User Stories Journey - Journey Complexity Distribution ⭐ HIGH PRIORITY
 - **Location**: `src/webviews/userStoriesJourneyView.js`

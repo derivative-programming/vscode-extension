@@ -2278,6 +2278,40 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                             align-items: flex-start;
                         }
                         
+                        .chart-type-toggle {
+                            display: flex;
+                            gap: 2px;
+                            border: 1px solid var(--vscode-button-border);
+                            border-radius: 4px;
+                            overflow: hidden;
+                            background: var(--vscode-button-secondaryBackground);
+                        }
+                        
+                        .chart-type-button {
+                            padding: 6px 10px;
+                            background: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: none;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: all 0.2s;
+                        }
+                        
+                        .chart-type-button:hover {
+                            background: var(--vscode-button-secondaryHoverBackground);
+                        }
+                        
+                        .chart-type-button.active {
+                            background: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                        }
+                        
+                        .chart-type-button i {
+                            font-size: 16px;
+                        }
+                        
                         .histogram-header h3 {
                             margin: 0 0 5px 0;
                             color: var(--vscode-foreground);
@@ -3072,6 +3106,14 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <p>Distribution of pages across usage frequency categories</p>
                                 </div>
                                 <div class="histogram-actions">
+                                    <div class="chart-type-toggle">
+                                        <button id="pageUsageChartTypeBar" class="chart-type-button active" title="Bar Chart">
+                                            <i class="codicon codicon-graph"></i>
+                                        </button>
+                                        <button id="pageUsageChartTypePie" class="chart-type-button" title="Pie Chart">
+                                            <i class="codicon codicon-pie-chart"></i>
+                                        </button>
+                                    </div>
                                     <button id="refreshPageUsageHistogramButton" class="icon-button histogram-refresh-button" title="Refresh Data">
                                         <i class="codicon codicon-refresh"></i>
                                     </button>
