@@ -1,3 +1,53 @@
+## October 4, 2025 - User Stories QA View - Add "Ready to Test" Status
+
+**Command**: Let's add a qa status of 'Ready to Test' after pending and before 'Started'
+
+**Status**: ✅ COMPLETED
+
+**Implementation Summary**:
+Added a new QA status option "Ready to Test" to the User Stories QA view, positioned between "Pending" and "Started" in all dropdowns and filters.
+
+**Changes Made**:
+
+1. **Table Row Status Dropdown** (src/webviews/userStoriesQAView.js):
+   - Added `{ value: 'ready-to-test', text: 'Ready to Test' }` to statusOptions array
+   - Positioned after 'pending' and before 'started'
+
+2. **Filter Status Dropdown** (src/commands/userStoriesQACommands.ts):
+   - Added `<option value="ready-to-test">Ready to Test</option>` to filterQAStatus dropdown
+   - Maintains alphabetical-like ordering (Pending → Ready to Test → Started → Success → Failure)
+
+3. **Bulk Actions Status Dropdown** (src/commands/userStoriesQACommands.ts):
+   - Added `<option value="ready-to-test">Ready to Test</option>` to bulkStatusDropdown
+   - Allows bulk updating multiple stories to "Ready to Test" status
+
+4. **Analysis Tab Placeholder** (src/commands/userStoriesQACommands.ts):
+   - Updated metrics description to include all five statuses
+   - Text now reads: "QA status distribution metrics (Pending, Ready to Test, Started, Success, Failure)"
+
+**Status Flow**:
+The new status creates a logical workflow:
+1. **Pending** - Story needs QA review
+2. **Ready to Test** - Story is prepared and ready for QA testing (NEW)
+3. **Started** - QA testing is in progress
+4. **Success** - QA testing passed
+5. **Failure** - QA testing failed
+
+**Testing**:
+- ✅ Compilation successful
+- ✅ Status appears in all three dropdowns (table rows, filter, bulk actions)
+- ✅ Value is 'ready-to-test' (kebab-case for consistency)
+- ✅ Display text is 'Ready to Test' (proper capitalization)
+- ✅ Positioned correctly in dropdown order
+
+**Architecture Notes**:
+- Status value uses kebab-case ('ready-to-test') for consistency with HTML attributes
+- No database migration needed - QA data stored in separate JSON file
+- Existing QA records with other statuses remain unchanged
+- Filter and bulk operations work seamlessly with new status
+
+---
+
 ## October 4, 2025 - User Stories QA View - Tabbed Design Implementation
 
 **Command**: Review the user stories list view tabbed design. We would like to implement a tabbed design on the user stories qa view. The existing qa view display of filters everything below the filters section should be displayed on a 'Details' tab.

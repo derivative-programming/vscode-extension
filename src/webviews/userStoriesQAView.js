@@ -465,6 +465,7 @@ function renderTable() {
             
             const statusOptions = [
                 { value: 'pending', text: 'Pending' },
+                { value: 'ready-to-test', text: 'Ready to Test' },
                 { value: 'started', text: 'Started' },
                 { value: 'success', text: 'Success' },
                 { value: 'failure', text: 'Failure' }

@@ -734,6 +734,7 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                                     <select id="filterQAStatus">
                                         <option value="">All Statuses</option>
                                         <option value="pending">Pending</option>
+                                        <option value="ready-to-test">Ready to Test</option>
                                         <option value="started">Started</option>
                                         <option value="success">Success</option>
                                         <option value="failure">Failure</option>
@@ -751,6 +752,7 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             <select id="bulkStatusDropdown" class="bulk-status-dropdown">
                                 <option value="">Select Status</option>
                                 <option value="pending">Pending</option>
+                                <option value="ready-to-test">Ready to Test</option>
                                 <option value="started">Started</option>
                                 <option value="success">Success</option>
                                 <option value="failure">Failure</option>
@@ -792,7 +794,7 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             <h3>Analysis Coming Soon</h3>
                             <p>This tab will display:</p>
                             <ul>
-                                <li>QA status distribution metrics</li>
+                                <li>QA status distribution metrics (Pending, Ready to Test, Started, Success, Failure)</li>
                                 <li>Success rate percentage</li>
                                 <li>Pie chart visualization by status</li>
                                 <li>Trend analysis over time</li>
