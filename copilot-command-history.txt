@@ -1,3 +1,76 @@
+## October 4, 2025 - User Stories QA View - Tabbed Design Implementation
+
+**Command**: Review the user stories list view tabbed design. We would like to implement a tabbed design on the user stories qa view. The existing qa view display of filters everything below the filters section should be displayed on a 'Details' tab.
+
+**Status**: ✅ COMPLETED
+
+**Implementation Summary**:
+Successfully implemented a tabbed interface for the User Stories QA view following the established pattern from User Stories List View, Metrics Analysis View, and Page List View. All existing functionality moved to "Details" tab with a placeholder "Analysis" tab for future features.
+
+**Changes Made**:
+
+1. **HTML Structure** (src/commands/userStoriesQACommands.ts):
+   - Added tab navigation structure: `.tabs` with two `.tab` buttons (Details, Analysis)
+   - Wrapped all existing content in `<div id="details-tab" class="tab-content active">`
+   - Added `<div id="analysis-tab" class="tab-content">` with empty state placeholder
+   - Updated header subtitle from "Only stories that have completed 'Model AI Processing' are listed." to "Track and manage quality assurance testing for user stories with multiple views"
+
+2. **CSS Styling** (src/commands/userStoriesQACommands.ts):
+   - Added complete tab styling matching User Stories List View pattern
+   - Added `.validation-header` with proper h2 and p styling
+   - Added `.tabs`, `.tab`, `.tab.active`, `.tab:hover` styles using VS Code design tokens
+   - Added `.tab-content` and `.tab-content.active` display logic
+   - Added `.empty-state` styling for Analysis tab placeholder
+   - Changed body padding from 10px to 20px for consistency
+
+3. **JavaScript Tab Functionality** (src/webviews/userStoriesQAView.js):
+   - Added `initializeTabs()` function to set up tab click event listeners
+   - Added `switchTab(tabName)` function to handle tab switching with proper class management
+   - Added call to `initializeTabs()` in DOMContentLoaded event handler
+   - Added message handler case 'switchToTab' for external tab control
+
+**Tab Structure**:
+- **Details Tab** (active by default):
+  - Filter section (collapsible)
+  - Bulk actions bar (status dropdown, apply button, export/refresh buttons)
+  - QA table with sortable columns (Story Number, Story Text, Status, Notes, Date Verified)
+  - Table footer with record info
+  - All existing functionality preserved
+
+- **Analysis Tab** (placeholder):
+  - Empty state message: "Analysis Coming Soon"
+  - List of planned features:
+    - QA status distribution metrics
+    - Success rate percentage
+    - Pie chart visualization by status
+    - Trend analysis over time
+
+**Pattern Consistency**:
+- Exact CSS match to User Stories List View tab styling
+- Same JavaScript tab switching pattern used across extension
+- Follows VS Code design language with proper color variables
+- Consistent with established UX patterns in other views
+
+**Testing**:
+- ✅ Compilation successful (no TypeScript errors)
+- ✅ Details tab displays all existing functionality
+- ✅ Tab switching implemented correctly
+- ✅ Analysis tab shows professional placeholder
+- ✅ All existing features preserved (filters, sorting, bulk actions, export, refresh)
+
+**Architecture Notes**:
+- Tab content uses `display: none` / `display: block` pattern
+- Active state managed with `.active` class on both tab buttons and content divs
+- Tab IDs follow pattern: `{tabName}-tab` (details-tab, analysis-tab)
+- Button `data-tab` attributes match content div IDs (without `-tab` suffix)
+- Future analysis features can be implemented without changing structure
+
+**Documentation**: Created `docs/architecture/user-stories-qa-tabbed-design-plan.md` with complete implementation plan and future roadmap.
+
+**Related TODO Items**: Addresses requirements from `todo.md` lines 9-17 (tabbed design for user stories QA view).
+
+---
+
 ## October 3, 2025 - User Stories Journey View - Refresh Button Fixes
 
 **Command**: Review the user story user journey view. The refresh buttons should be displaying a processing animation overlay. They should also not have a dark blue background on hover.

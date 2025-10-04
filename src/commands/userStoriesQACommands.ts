@@ -254,18 +254,88 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     <title>User Stories QA</title>
                     <link href="${codiconsUri}" rel="stylesheet">
                     <style>
-                        body { font-family: var(--vscode-font-family); margin: 0; padding: 10px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
+                        body { font-family: var(--vscode-font-family); margin: 0; padding: 20px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }
+                        
+                        /* Tab styling following metrics analysis pattern */
                         .validation-header {
-                            padding: 10px 0;
-                            border-bottom: 1px solid var(--vscode-panel-border);
-                            margin-bottom: 15px;
+                            margin-bottom: 20px;
                         }
                         .validation-header h2 {
+                            margin: 0 0 10px 0;
+                            color: var(--vscode-foreground);
+                            font-size: 24px;
+                        }
+                        .validation-header p {
                             margin: 0;
-                            font-size: 1.3em;
-                            font-weight: normal;
-                            color: var(--vscode-editor-foreground);
-                            margin-bottom: 15px;
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 14px;
+                        }
+                        
+                        .tabs {
+                            display: flex;
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            margin-bottom: 20px;
+                        }
+                        
+                        .tab {
+                            padding: 8px 16px;
+                            cursor: pointer;
+                            background-color: var(--vscode-tab-inactiveBackground);
+                            border: none;
+                            outline: none;
+                            color: var(--vscode-tab-inactiveForeground);
+                            margin-right: 4px;
+                            border-top-left-radius: 3px;
+                            border-top-right-radius: 3px;
+                            user-select: none;
+                        }
+                        
+                        .tab:hover {
+                            background-color: var(--vscode-tab-inactiveBackground);
+                            color: var(--vscode-tab-inactiveForeground);
+                        }
+                        
+                        .tab.active {
+                            background-color: var(--vscode-tab-activeBackground);
+                            color: var(--vscode-tab-activeForeground);
+                            border-bottom: 2px solid var(--vscode-focusBorder);
+                        }
+                        
+                        .tab.active:hover {
+                            background-color: var(--vscode-tab-activeBackground);
+                            color: var(--vscode-tab-activeForeground);
+                        }
+                        
+                        .tab-content {
+                            display: none;
+                            padding: 15px;
+                            background-color: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-top: none;
+                            border-radius: 0 0 3px 3px;
+                        }
+                        
+                        .tab-content.active {
+                            display: block;
+                        }
+                        
+                        /* Empty state styling for analysis tab */
+                        .empty-state {
+                            text-align: center;
+                            padding: 40px 20px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .empty-state h3 {
+                            color: var(--vscode-foreground);
+                            margin-bottom: 10px;
+                        }
+                        
+                        .empty-state ul {
+                            list-style-position: inside;
+                            color: var(--vscode-foreground);
+                            text-align: left;
+                            display: inline-block;
                         }
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; }
                         th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
@@ -635,12 +705,16 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                 <body>
                     <div class="validation-header">
                         <h2>User Stories - QA</h2>
-                        <p style="margin-top: -5px; margin-bottom: 15px; color: var(--vscode-descriptionForeground);">
-                            Only stories that have completed 'Model AI Processing' are listed.
-                        </p>
+                        <p>Track and manage quality assurance testing for user stories with multiple views</p>
                     </div>
 
-                    <div class="filter-section">
+                    <div class="tabs">
+                        <button class="tab active" data-tab="details">Details</button>
+                        <button class="tab" data-tab="analysis">Analysis</button>
+                    </div>
+
+                    <div id="details-tab" class="tab-content active">
+                        <div class="filter-section">
                         <div class="filter-header" onclick="toggleFilterSection()">
                             <span class="codicon codicon-chevron-down" id="filterChevron"></span>
                             <span>Filters</span>
@@ -709,6 +783,20 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         </div>
                         <div class="table-footer-right">
                             <span id="record-info"></span>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div id="analysis-tab" class="tab-content">
+                        <div class="empty-state">
+                            <h3>Analysis Coming Soon</h3>
+                            <p>This tab will display:</p>
+                            <ul>
+                                <li>QA status distribution metrics</li>
+                                <li>Success rate percentage</li>
+                                <li>Pie chart visualization by status</li>
+                                <li>Trend analysis over time</li>
+                            </ul>
                         </div>
                     </div>
 

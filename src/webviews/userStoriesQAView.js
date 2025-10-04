@@ -92,6 +92,35 @@ function clearFilters() {
     renderRecordInfo();
 }
 
+// Initialize tab functionality
+function initializeTabs() {
+    const tabs = document.querySelectorAll('.tab');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchTab(tabName);
+        });
+    });
+}
+
+// Switch between tabs
+function switchTab(tabName) {
+    // Remove active class from all tabs and content
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab and content
+    document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Handle tab-specific logic
+    if (tabName === 'analysis') {
+        // Future: Load analysis data
+        console.log('Analysis tab selected - placeholder for future analytics');
+    }
+}
+
 // Refresh data (global function for onclick)
 function refresh() {
     showSpinner();
@@ -554,6 +583,14 @@ window.addEventListener('message', event => {
             renderRecordInfo();
             updateApplyButtonState();
             break;
+        
+        case 'switchToTab':
+            // Switch to the specified tab
+            if (message.data && message.data.tabName) {
+                console.log('[UserStoriesQAView] Received switchToTab command:', message.data.tabName);
+                switchTab(message.data.tabName);
+            }
+            break;
             
         case 'qaChangeSaved':
             console.log('QA change saved:', message.success);
@@ -589,6 +626,9 @@ window.addEventListener('message', event => {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('User Stories QA webview loaded');
+    
+    // Initialize tab functionality
+    initializeTabs();
     
     // Setup filter event listeners for auto-apply
     const filterInputs = ['filterStoryNumber', 'filterStoryText', 'filterQAStatus'];

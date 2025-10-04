@@ -5,20 +5,74 @@ common types of graphs...
 - pie chart (each slice is a category, shows how many items are in each category)
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
- 
 
 
+add 'ready to test' status to user story qa item?
+
+user stories - qa...
+- use tabbed design
+  - existing user stories qa view to 'Details' tab
+    - list view of existing user stories
+  - pie chart of user stories by qa status
+    - number of user stories in each qa status (pending, started, success, failure)
+    - show percentages of each status
+
+metrics view...
+- new metrics...
+  - number of user stories in each qa status (pending, started, success, failure)
+  - percentage of user stories with qa status of success
+
+data object usage analysis view...
+- proportional usage tab
+  - add filter by reference type
+- usage distribution tab
+  - add filter by reference type
+- complexity vs usage tab
+  - add filter by reference type
+
+
+data object size analysis view...
+- all objects have an ID and Code and maybe audit columns
+- ID and Code are indexed
+- indexed fields count 2X the size of non indexed fields
+
+api...
+- add api?
+- add endpoint?
+- add get report
+- others?
+
+api endpoint list view...
+- tab endpoints
+  - across all apis, list all endpoints (get, delete, etc) and destination report and page and flow
+  - filter
+    - api name
+    - version
+   
 
 data object prop usage analysis view...
+- data object usage looks at 'Source Object Name:'. data object prop usage would look at Source Object Name: and  'Source Property Name:'
 - copy of data object usage analysis view but at the data object property level
 - add role filter, item type (flow, page) on pages on data object usage
 - unused data object prop info as well
   - no references from anywhere
 
+ 
+ 
+
+page data source Analysis report...
+- Details tab
+  - list all page elements (page init header var, report col, form control, etc.)
+  - show when a data source is set and to what object and prop
+  
+
 --------------------------
 
+Page review view. QA of each page?
+- similar to user story qa view but for all non config pages?
+  - what if page changes?`
+
 new metrics?
-- Track progress on user story completion 
 - Foreign Key Relationships Count - Analyze object references
 - Index Count - Analyze index usage 
 
@@ -26,23 +80,12 @@ new metrics?
 find data object circular references?
  
 
-breadcrumb report
-- pages that have breadcrumbs
-- pages that have no breadcrumbs
+breadcrumb report?
+- pages that have breadcrumbs?
+- pages that have no breadcrumbs?
+- breadcrumbs follow full user journey on destination page?
 
 
-Report Data Source Analysis View
-- including items with no data source
-
-form Data Source Analysis View
-- including items with no data source
- 
-
-data object user story coverage analysis:  
-- how many have user stories?
-- how many dont have user stories?
-
- 
 
 no sourceobjectname in form param model or interface?
  
@@ -105,7 +148,6 @@ allow single broad search textbox on all filter sections
 
 automatically generate a text file that ai can read to get info on the app (read only)
 - setting on project to automatically do this on save? in separate process?
-
 
 apis
  
@@ -175,24 +217,6 @@ change requests...
 
 MCP server
 - implement MCP server in the extension that the copilot agent can connect to.
-functions
-    - data objects
-        - get all data objects
-        - get data object settings
-        - get data object properties
-        - get data object property settings
-        - add data object
-        - change data object setting
-        - add data object property
-        - change data object property setting
-        - show object details
-        - show object property list
-    - validation requests
-        - show validation request list
-        - add validation request
-        - get validation request details
-        - show validation request details
-        - show validation request change request list
  
   
 
@@ -210,9 +234,6 @@ user stories
 *************************
 
 
-user story - Roles
-- if dne, ask the user if they would like to create one
-
 
 role requirements validation...
 show what is covered by existing user stories too
@@ -228,11 +249,7 @@ show a list of missing stories. allow user to add them individually
 *************************
 low priority
 *************************
-
-png/svg button to icon button of screenshot icon? camera?
-
-check sort arrow on all tables
-
+ 
 
 
 model services api todo...
@@ -259,7 +276,7 @@ feature to create a few demo db objects, forms, reports, pages, etc. to show the
 ares changes...
 rearrange register controls on page: fabricate
 
- 
+
 
 
 demo view...
