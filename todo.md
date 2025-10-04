@@ -46,6 +46,26 @@ page data source Analysis report...
 
 --------------------------
 
+user story dev view...
+- similar to qa view but for devs
+- statuses...
+  - on hold
+  - ready for development
+  - in progress
+  - blocked
+  - completed
+  - ready for dev env deployment
+  - deployed to dev env
+  - ready for qa
+- detail of status of each user story
+- story is done when user journey is complete
+- probably need to set order of stories that they should be developed in
+  - priority?
+- story point estimates?
+
+user story qa view...
+- kanban view cards should show steps in user journey to follow
+
 allow 'a' or 'an' in user story before role name
 
 data data object coverage in user stories. this is not a filter in data object usage. you cant just add a filter
@@ -116,10 +136,6 @@ analysis treeview item... ask ai for ideas
   - role: user story count?, page count?
   - user story: journey count? dependency count of all pages used?
 
-user story qa kanban board view?
-- drag and drop support
-- swimlanes for different stages
-- card details view
 
 gant chart view?
 

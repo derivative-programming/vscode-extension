@@ -1219,6 +1219,122 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         .modal-button-secondary:hover {
                             background: var(--vscode-button-secondaryHoverBackground);
                         }
+                        
+                        /* Forecast Tab Styles */
+                        .forecast-header-actions {
+                            display: flex;
+                            justify-content: flex-end;
+                            gap: 8px;
+                            margin-bottom: 15px;
+                        }
+                        
+                        .forecast-summary {
+                            margin-bottom: 20px;
+                            padding: 15px;
+                            background: var(--vscode-editor-inactiveSelectionBackground);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                        }
+                        
+                        .gantt-container {
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            padding: 20px;
+                            background: var(--vscode-editor-background);
+                            min-height: 400px;
+                            position: relative;
+                        }
+                        
+                        .gantt-viz {
+                            overflow-x: auto;
+                            overflow-y: auto;
+                        }
+                        
+                        .gantt-tooltip {
+                            position: absolute;
+                            background: var(--vscode-editorHoverWidget-background);
+                            border: 1px solid var(--vscode-editorHoverWidget-border);
+                            border-radius: 4px;
+                            padding: 10px;
+                            font-size: 12px;
+                            color: var(--vscode-editorHoverWidget-foreground);
+                            pointer-events: none;
+                            z-index: 1000;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                            line-height: 1.5;
+                        }
+                        
+                        /* Config Modal Styles */
+                        .config-section {
+                            margin-bottom: 25px;
+                        }
+                        
+                        .config-section h4 {
+                            margin: 0 0 12px 0;
+                            font-size: 14px;
+                            font-weight: 600;
+                            color: var(--vscode-foreground);
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                            padding-bottom: 8px;
+                        }
+                        
+                        .config-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        
+                        .config-table th {
+                            text-align: left;
+                            padding: 8px;
+                            background: var(--vscode-sideBar-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            font-size: 12px;
+                            font-weight: 600;
+                        }
+                        
+                        .config-table td {
+                            padding: 6px 8px;
+                            border: 1px solid var(--vscode-panel-border);
+                        }
+                        
+                        .config-table input[type="checkbox"] {
+                            cursor: pointer;
+                        }
+                        
+                        .config-table input[type="time"] {
+                            width: 100%;
+                            padding: 4px;
+                            background: var(--vscode-input-background);
+                            border: 1px solid var(--vscode-input-border);
+                            color: var(--vscode-input-foreground);
+                            border-radius: 2px;
+                        }
+                        
+                        .config-summary {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 8px;
+                            padding: 12px;
+                            background: var(--vscode-sideBar-background);
+                            border-radius: 4px;
+                            font-size: 13px;
+                        }
+                        
+                        .modal-field input[type="number"] {
+                            width: 100%;
+                            padding: 6px 8px;
+                            background: var(--vscode-input-background);
+                            border: 1px solid var(--vscode-input-border);
+                            border-radius: 3px;
+                            color: var(--vscode-input-foreground);
+                            font-size: 13px;
+                            box-sizing: border-box;
+                        }
+                        
+                        .modal-field input[type="number"]:focus {
+                            outline: 1px solid var(--vscode-focusBorder);
+                            outline-offset: -1px;
+                        }
                     </style>
                 </head>
                 <body>
@@ -1228,9 +1344,10 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     </div>
 
                     <div class="tabs">
-                        <button class="tab ${initialTab === 'analysis' ? '' : (initialTab === 'board' ? '' : 'active')}" data-tab="details">Details</button>
+                        <button class="tab ${initialTab === 'analysis' ? '' : (initialTab === 'board' ? '' : (initialTab === 'forecast' ? '' : 'active'))}" data-tab="details">Details</button>
                         <button class="tab ${initialTab === 'board' ? 'active' : ''}" data-tab="board">Board</button>
                         <button class="tab ${initialTab === 'analysis' ? 'active' : ''}" data-tab="analysis">Status Distribution</button>
+                        <button class="tab ${initialTab === 'forecast' ? 'active' : ''}" data-tab="forecast">Forecast</button>
                     </div>
 
                     <div id="details-tab" class="tab-content ${initialTab === 'analysis' ? '' : 'active'}">
@@ -1451,6 +1568,51 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         <div class="spinner"></div>
                     </div>
 
+                    <div id="forecast-tab" class="tab-content ${initialTab === 'forecast' ? 'active' : ''}">
+                        <div class="forecast-header-actions">
+                            <button id="configForecastButton" class="icon-button" title="Configure Forecast">
+                                <i class="codicon codicon-settings-gear"></i>
+                            </button>
+                            <button id="forecastRefreshButton" class="icon-button" title="Refresh Forecast">
+                                <i class="codicon codicon-refresh"></i>
+                            </button>
+                            <button id="forecastExportButton" class="icon-button" title="Download CSV">
+                                <i class="codicon codicon-cloud-download"></i>
+                            </button>
+                        </div>
+
+                        <div class="forecast-summary">
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Stories to Test:</span>
+                                    <span class="stat-value" id="forecast-total-stories">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Daily Capacity:</span>
+                                    <span class="stat-value" id="forecast-daily-capacity">0 hours</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Estimated Completion:</span>
+                                    <span class="stat-value" id="forecast-completion-date">N/A</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Working Days:</span>
+                                    <span class="stat-value" id="forecast-working-days">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="gantt-container">
+                            <div id="gantt-loading" class="loading">Loading forecast...</div>
+                            <div id="forecast-gantt" class="gantt-viz"></div>
+                            <div id="forecast-empty-state" class="empty-state" style="display: none;">
+                                <h3>No Stories to Forecast</h3>
+                                <p>There are no stories in "Ready to Test" status.</p>
+                                <p>Move stories to "Ready to Test" in the Board or Details tab to see the forecast.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Card Detail Modal -->
                     <div id="cardDetailModal" class="modal-overlay">
                         <div class="modal-content">
@@ -1491,6 +1653,63 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             <div class="modal-footer">
                                 <button class="modal-button modal-button-secondary" onclick="closeCardModal()">Cancel</button>
                                 <button class="modal-button modal-button-primary" onclick="saveCardModal()">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QA Configuration Modal -->
+                    <div id="qaConfigModal" class="modal-overlay">
+                        <div class="modal-content" style="max-width: 700px;">
+                            <div class="modal-header">
+                                <h3 class="modal-title">QA Forecast Configuration</h3>
+                                <button class="modal-close" onclick="closeQAConfigModal()">
+                                    <i class="codicon codicon-close"></i>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="config-section">
+                                    <h4>Testing Parameters</h4>
+                                    <div class="modal-field">
+                                        <label>Average Test Time per Story (hours):</label>
+                                        <input type="number" id="configAvgTestTime" min="0.5" max="40" step="0.5" value="4" />
+                                    </div>
+                                    <div class="modal-field">
+                                        <label>Available QA Resources (testers):</label>
+                                        <input type="number" id="configQAResources" min="1" max="20" step="1" value="2" />
+                                    </div>
+                                </div>
+
+                                <div class="config-section">
+                                    <h4>Working Hours</h4>
+                                    <table class="config-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 80px;">Enabled</th>
+                                                <th style="width: 100px;">Day</th>
+                                                <th>Start Time</th>
+                                                <th>End Time</th>
+                                                <th style="width: 80px;">Hours</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="workingHoursTable">
+                                            <!-- Will be populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="config-section">
+                                    <h4>Summary</h4>
+                                    <div class="config-summary">
+                                        <div><strong>Working Days per Week:</strong> <span id="configWorkingDays">5</span></div>
+                                        <div><strong>Hours per Day:</strong> <span id="configHoursPerDay">8</span></div>
+                                        <div><strong>Total Capacity per Day:</strong> <span id="configDailyCapacity">16 hours</span></div>
+                                        <div><strong>Stories per Day:</strong> <span id="configStoriesPerDay">~4</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-button modal-button-secondary" onclick="closeQAConfigModal()">Cancel</button>
+                                <button class="modal-button modal-button-primary" onclick="saveQAConfigModal()">Save Configuration</button>
                             </div>
                         </div>
                     </div>
@@ -1721,6 +1940,129 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                                 console.error("[Extension] Error saving PNG to workspace:", error);
                                 vscode.window.showErrorMessage('Failed to save PNG to workspace: ' + error.message);
                             }
+                            break;
+
+                        case 'loadQAConfig':
+                            console.log("[Extension] UserStoriesQA loadQAConfig requested");
+                            try {
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    throw new Error('No workspace folder is open');
+                                }
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const configFilePath = path.join(workspaceRoot, 'app-dna-qa-config.json');
+                                
+                                let config: any;
+                                if (fs.existsSync(configFilePath)) {
+                                    const content = fs.readFileSync(configFilePath, 'utf8');
+                                    config = JSON.parse(content);
+                                } else {
+                                    // Default config
+                                    config = {
+                                        avgTestTime: 4,
+                                        qaResources: 2,
+                                        workingHours: {
+                                            monday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            tuesday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            wednesday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            thursday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            friday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            saturday: { enabled: false, startTime: '09:00', endTime: '17:00' },
+                                            sunday: { enabled: false, startTime: '09:00', endTime: '17:00' }
+                                        }
+                                    };
+                                }
+                                
+                                panel.webview.postMessage({
+                                    command: 'qaConfigLoaded',
+                                    config: config
+                                });
+                            } catch (error) {
+                                console.error("[Extension] Error loading QA config:", error);
+                                // Send default config on error
+                                panel.webview.postMessage({
+                                    command: 'qaConfigLoaded',
+                                    config: {
+                                        avgTestTime: 4,
+                                        qaResources: 2,
+                                        workingHours: {
+                                            monday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            tuesday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            wednesday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            thursday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            friday: { enabled: true, startTime: '09:00', endTime: '17:00' },
+                                            saturday: { enabled: false, startTime: '09:00', endTime: '17:00' },
+                                            sunday: { enabled: false, startTime: '09:00', endTime: '17:00' }
+                                        }
+                                    }
+                                });
+                            }
+                            break;
+
+                        case 'saveQAConfig':
+                            console.log("[Extension] UserStoriesQA saveQAConfig requested:", message.config);
+                            try {
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    throw new Error('No workspace folder is open');
+                                }
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const configFilePath = path.join(workspaceRoot, 'app-dna-qa-config.json');
+                                
+                                // Save config to file
+                                fs.writeFileSync(configFilePath, JSON.stringify(message.config, null, 2), 'utf8');
+                                
+                                vscode.window.showInformationMessage('QA configuration saved');
+                                
+                                panel.webview.postMessage({
+                                    command: 'qaConfigSaved',
+                                    success: true,
+                                    config: message.config
+                                });
+                            } catch (error) {
+                                console.error("[Extension] Error saving QA config:", error);
+                                vscode.window.showErrorMessage('Failed to save QA configuration: ' + error.message);
+                                panel.webview.postMessage({
+                                    command: 'qaConfigSaved',
+                                    success: false,
+                                    error: error.message
+                                });
+                            }
+                            break;
+
+                        case 'exportForecastCSV':
+                            console.log("[Extension] UserStoriesQA exportForecastCSV requested");
+                            try {
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    throw new Error('No workspace folder is open');
+                                }
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const reportDir = path.join(workspaceRoot, 'user_story_reports');
+                                if (!fs.existsSync(reportDir)) {
+                                    fs.mkdirSync(reportDir, { recursive: true });
+                                }
+                                
+                                const timestamp = new Date().toISOString().split('T')[0];
+                                const filename = `qa-forecast-${timestamp}.csv`;
+                                const filePath = path.join(reportDir, filename);
+                                
+                                fs.writeFileSync(filePath, message.csvContent, 'utf8');
+                                
+                                vscode.window.showInformationMessage('Forecast CSV saved to workspace: ' + filePath);
+                                vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+                            } catch (error) {
+                                console.error("[Extension] Error exporting forecast CSV:", error);
+                                vscode.window.showErrorMessage('Failed to export forecast CSV: ' + error.message);
+                            }
+                            break;
+
+                        case 'showErrorMessage':
+                            vscode.window.showErrorMessage(message.message);
+                            break;
+
+                        case 'showInfoMessage':
+                            vscode.window.showInformationMessage(message.message);
                             break;
 
                         default:

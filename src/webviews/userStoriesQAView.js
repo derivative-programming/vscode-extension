@@ -611,6 +611,718 @@ function generateQADistributionPNG() {
     img.src = url;
 }
 
+// ============================================
+// QA Forecast Functions
+// ============================================
+
+// Global variable to store QA configuration
+let qaConfig = null;
+
+// Open QA Configuration Modal
+function openQAConfigModal() {
+    const modal = document.getElementById("qaConfigModal");
+    if (!modal) return;
+    
+    // Request config from extension
+    vscode.postMessage({
+        command: "loadQAConfig"
+    });
+    
+    // Show modal (config will be populated when received)
+    modal.classList.add("active");
+}
+
+// Close QA Configuration Modal
+function closeQAConfigModal() {
+    const modal = document.getElementById("qaConfigModal");
+    if (modal) {
+        modal.classList.remove("active");
+    }
+}
+
+// Save QA Configuration Modal
+function saveQAConfigModal() {
+    const avgTestTimeInput = document.getElementById("configAvgTestTime");
+    const qaResourcesInput = document.getElementById("configQAResources");
+    
+    if (!avgTestTimeInput || !qaResourcesInput) return;
+    
+    // Validate inputs
+    const avgTestTime = parseFloat(avgTestTimeInput.value);
+    const qaResources = parseInt(qaResourcesInput.value);
+    
+    if (isNaN(avgTestTime) || avgTestTime <= 0) {
+        vscode.postMessage({
+            command: "showErrorMessage",
+            message: "Average test time must be a positive number"
+        });
+        return;
+    }
+    
+    if (isNaN(qaResources) || qaResources < 1) {
+        vscode.postMessage({
+            command: "showErrorMessage",
+            message: "Number of QA resources must be at least 1"
+        });
+        return;
+    }
+    
+    // Collect working hours
+    const workingHours = {};
+    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    
+    days.forEach(day => {
+        const enabledCheckbox = document.getElementById(day + "Enabled");
+        const startTimeInput = document.getElementById(day + "Start");
+        const endTimeInput = document.getElementById(day + "End");
+        
+        if (enabledCheckbox && startTimeInput && endTimeInput) {
+            workingHours[day] = {
+                enabled: enabledCheckbox.checked,
+                startTime: startTimeInput.value,
+                endTime: endTimeInput.value
+            };
+        }
+    });
+    
+    // Validate at least one day is enabled
+    const hasEnabledDay = Object.values(workingHours).some(day => day.enabled);
+    if (!hasEnabledDay) {
+        vscode.postMessage({
+            command: "showErrorMessage",
+            message: "At least one working day must be enabled"
+        });
+        return;
+    }
+    
+    // Create config object
+    const config = {
+        avgTestTime: avgTestTime,
+        qaResources: qaResources,
+        workingHours: workingHours
+    };
+    
+    // Save config
+    vscode.postMessage({
+        command: "saveQAConfig",
+        config: config
+    });
+    
+    closeQAConfigModal();
+}
+
+// Populate working hours table
+function populateWorkingHoursTable(config) {
+    const tbody = document.querySelector("#workingHoursTable tbody");
+    if (!tbody) return;
+    
+    const days = [
+        { key: "monday", label: "Monday" },
+        { key: "tuesday", label: "Tuesday" },
+        { key: "wednesday", label: "Wednesday" },
+        { key: "thursday", label: "Thursday" },
+        { key: "friday", label: "Friday" },
+        { key: "saturday", label: "Saturday" },
+        { key: "sunday", label: "Sunday" }
+    ];
+    
+    tbody.innerHTML = "";
+    
+    days.forEach(day => {
+        const dayConfig = config.workingHours[day.key] || { enabled: false, startTime: "09:00", endTime: "17:00" };
+        
+        const row = document.createElement("tr");
+        row.innerHTML = "<td>" + day.label + "</td>" +
+            "<td style=\"text-align: center;\">" +
+            "<input type=\"checkbox\" id=\"" + day.key + "Enabled\" " + (dayConfig.enabled ? "checked" : "") + ">" +
+            "</td>" +
+            "<td><input type=\"time\" id=\"" + day.key + "Start\" value=\"" + dayConfig.startTime + "\"></td>" +
+            "<td><input type=\"time\" id=\"" + day.key + "End\" value=\"" + dayConfig.endTime + "\"></td>";
+        tbody.appendChild(row);
+        
+        // Add event listener to checkbox and time inputs to update summary
+        const checkbox = row.querySelector("#" + day.key + "Enabled");
+        const startInput = row.querySelector("#" + day.key + "Start");
+        const endInput = row.querySelector("#" + day.key + "End");
+        if (checkbox) {
+            checkbox.addEventListener("change", function() { updateConfigSummary(); });
+        }
+        if (startInput) {
+            startInput.addEventListener("change", function() { updateConfigSummary(); });
+        }
+        if (endInput) {
+            endInput.addEventListener("change", function() { updateConfigSummary(); });
+        }
+    });
+}
+
+// Update config summary section
+function updateConfigSummary() {
+    const avgTestTimeInput = document.getElementById("configAvgTestTime");
+    const qaResourcesInput = document.getElementById("configQAResources");
+    const summaryDiv = document.querySelector(".config-summary");
+    
+    if (!avgTestTimeInput || !qaResourcesInput || !summaryDiv) return;
+    
+    const avgTestTime = parseFloat(avgTestTimeInput.value) || 0;
+    const qaResources = parseInt(qaResourcesInput.value) || 1;
+    
+    // Calculate working days and hours per week
+    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    let workingDaysCount = 0;
+    let totalHoursPerWeek = 0;
+    
+    days.forEach(day => {
+        const enabledCheckbox = document.getElementById(day + "Enabled");
+        const startTimeInput = document.getElementById(day + "Start");
+        const endTimeInput = document.getElementById(day + "End");
+        
+        if (enabledCheckbox && enabledCheckbox.checked && startTimeInput && endTimeInput) {
+            workingDaysCount++;
+            
+            // Calculate hours for this day
+            const startParts = startTimeInput.value.split(":");
+            const endParts = endTimeInput.value.split(":");
+            const startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+            const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+            const hoursThisDay = (endMinutes - startMinutes) / 60;
+            totalHoursPerWeek += hoursThisDay;
+        }
+    });
+    
+    const dailyCapacity = totalHoursPerWeek > 0 ? (totalHoursPerWeek * qaResources / workingDaysCount) : 0;
+    const storiesPerDay = avgTestTime > 0 ? (dailyCapacity / avgTestTime) : 0;
+    
+    summaryDiv.innerHTML = "<div><strong>Working Days per Week:</strong> " + workingDaysCount + "</div>" +
+        "<div><strong>Total Hours per Week:</strong> " + totalHoursPerWeek.toFixed(1) + " hours</div>" +
+        "<div><strong>Daily Capacity:</strong> " + dailyCapacity.toFixed(1) + " hours</div>" +
+        "<div><strong>Stories per Day:</strong> " + storiesPerDay.toFixed(2) + " stories</div>";
+}
+
+// Refresh forecast
+function refreshForecast() {
+    if (!qaConfig) {
+        vscode.postMessage({
+            command: "showInfoMessage",
+            message: "Please configure QA settings first"
+        });
+        openQAConfigModal();
+        return;
+    }
+    
+    calculateAndRenderForecast();
+}
+
+// Export forecast data to CSV
+function exportForecastData() {
+    // Get forecast data
+    const forecastData = calculateQAForecast();
+    if (!forecastData || forecastData.length === 0) {
+        vscode.postMessage({
+            command: "showInfoMessage",
+            message: "No forecast data to export"
+        });
+        return;
+    }
+    
+    // Convert to CSV
+    const csvLines = ["Story Number,Story Name,Test Start,Test End,Duration (hours),Tester"];
+    forecastData.forEach(item => {
+        const startDate = new Date(item.startDate).toLocaleString();
+        const endDate = new Date(item.endDate).toLocaleString();
+        const duration = ((item.endDate - item.startDate) / (1000 * 60 * 60)).toFixed(2);
+        const storyName = (item.storyName || "").replace(/,/g, ";"); // Escape commas
+        csvLines.push(item.storyNumber + "," + storyName + "," + startDate + "," + endDate + "," + duration + ",Tester " + (item.testerIndex + 1));
+    });
+    
+    const csvContent = csvLines.join("\n");
+    
+    // Send to extension for file save
+    vscode.postMessage({
+        command: "exportForecastCSV",
+        csvContent: csvContent
+    });
+}
+
+// Calculate QA forecast schedule
+function calculateQAForecast() {
+    console.log("[calculateQAForecast] Starting calculation", { hasConfig: !!qaConfig, itemsCount: allItems ? allItems.length : 0 });
+    
+    if (!qaConfig || !allItems) {
+        console.log("[calculateQAForecast] Missing config or items");
+        return [];
+    }
+    
+    // Get stories that are "ready-to-test"
+    const readyToTestStories = allItems.filter(item => 
+        item.qaStatus === "ready-to-test" && !item.isIgnored
+    ).sort((a, b) => {
+        const numA = parseInt(a.storyNumber) || 0;
+        const numB = parseInt(b.storyNumber) || 0;
+        return numA - numB;
+    });
+    
+    console.log("[calculateQAForecast] Found ready-to-test stories:", readyToTestStories.length);
+    
+    if (readyToTestStories.length === 0) {
+        console.log("[calculateQAForecast] No ready-to-test stories found");
+        return [];
+    }
+    
+    const avgTestTime = qaConfig.avgTestTime;
+    const qaResources = qaConfig.qaResources;
+    const workingHours = qaConfig.workingHours;
+    
+    console.log("[calculateQAForecast] Using config:", { avgTestTime, qaResources, workingHoursKeys: Object.keys(workingHours) });
+    
+    // Initialize testers with current date and time
+    const testers = [];
+    const now = new Date();
+    
+    for (let i = 0; i < qaResources; i++) {
+        testers.push({
+            index: i,
+            availableAt: new Date(now)
+        });
+    }
+    
+    // Schedule each story
+    const forecastItems = [];
+    
+    readyToTestStories.forEach(story => {
+        // Find the tester who will be available earliest
+        testers.sort((a, b) => a.availableAt - b.availableAt);
+        const tester = testers[0];
+        
+        // Calculate start date (next working time after tester is available)
+        let startDate = new Date(tester.availableAt);
+        startDate = getNextWorkingTime(startDate, workingHours);
+        
+        // Calculate end date (add avgTestTime hours of working time)
+        const endDate = addWorkingHours(startDate, avgTestTime, workingHours);
+        
+        // Create forecast item
+        forecastItems.push({
+            storyNumber: story.storyNumber,
+            storyName: story.storyName,
+            startDate: startDate,
+            endDate: endDate,
+            testerIndex: tester.index
+        });
+        
+        // Update tester availability
+        tester.availableAt = new Date(endDate);
+    });
+    
+    return forecastItems;
+}
+
+// Get next working time from a given date
+function getNextWorkingTime(date, workingHours) {
+    const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    let currentDate = new Date(date);
+    let attempts = 0;
+    const maxAttempts = 14; // Two weeks of searching
+    
+    while (attempts < maxAttempts) {
+        const dayName = daysOfWeek[currentDate.getDay()];
+        const dayConfig = workingHours[dayName];
+        
+        if (dayConfig && dayConfig.enabled) {
+            // Parse start and end times
+            const startParts = dayConfig.startTime.split(":");
+            const endParts = dayConfig.endTime.split(":");
+            
+            const startTime = new Date(currentDate);
+            startTime.setHours(parseInt(startParts[0]), parseInt(startParts[1]), 0, 0);
+            
+            const endTime = new Date(currentDate);
+            endTime.setHours(parseInt(endParts[0]), parseInt(endParts[1]), 0, 0);
+            
+            // If current time is before start time, return start time
+            if (currentDate < startTime) {
+                return new Date(startTime);
+            }
+            
+            // If current time is within working hours, return current time
+            if (currentDate >= startTime && currentDate < endTime) {
+                return new Date(currentDate);
+            }
+            
+            // If current time is after end time, move to next day
+        }
+        
+        // Move to start of next day
+        currentDate.setDate(currentDate.getDate() + 1);
+        currentDate.setHours(0, 0, 0, 0);
+        attempts++;
+    }
+    
+    // Fallback: return original date if no working time found
+    return new Date(date);
+}
+
+// Add working hours to a date
+function addWorkingHours(startDate, hoursToAdd, workingHours) {
+    const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    let currentDate = new Date(startDate);
+    let remainingHours = hoursToAdd;
+    let attempts = 0;
+    const maxAttempts = 365; // One year of searching
+    
+    while (remainingHours > 0 && attempts < maxAttempts) {
+        const dayName = daysOfWeek[currentDate.getDay()];
+        const dayConfig = workingHours[dayName];
+        
+        if (dayConfig && dayConfig.enabled) {
+            // Parse start and end times
+            const startParts = dayConfig.startTime.split(":");
+            const endParts = dayConfig.endTime.split(":");
+            
+            const startTime = new Date(currentDate);
+            startTime.setHours(parseInt(startParts[0]), parseInt(startParts[1]), 0, 0);
+            
+            const endTime = new Date(currentDate);
+            endTime.setHours(parseInt(endParts[0]), parseInt(endParts[1]), 0, 0);
+            
+            // Calculate available hours in this day
+            let availableStart = currentDate < startTime ? startTime : currentDate;
+            let availableHours = (endTime - availableStart) / (1000 * 60 * 60);
+            
+            if (availableHours > 0) {
+                if (remainingHours <= availableHours) {
+                    // Can finish within this day
+                    currentDate = new Date(availableStart);
+                    currentDate.setTime(currentDate.getTime() + remainingHours * 60 * 60 * 1000);
+                    return currentDate;
+                } else {
+                    // Use all available hours and continue to next day
+                    remainingHours -= availableHours;
+                }
+            }
+        }
+        
+        // Move to start of next day
+        currentDate.setDate(currentDate.getDate() + 1);
+        currentDate.setHours(0, 0, 0, 0);
+        attempts++;
+    }
+    
+    // Fallback: return calculated date even if not in working hours
+    return currentDate;
+}
+
+// Calculate and render forecast
+function calculateAndRenderForecast() {
+    console.log("[calculateAndRenderForecast] Starting render");
+    
+    const loadingDiv = document.getElementById("gantt-loading");
+    const vizDiv = document.getElementById("forecast-gantt");
+    const emptyDiv = document.getElementById("forecast-empty-state");
+    
+    console.log("[calculateAndRenderForecast] Found elements:", { loading: !!loadingDiv, viz: !!vizDiv, empty: !!emptyDiv });
+    
+    if (!loadingDiv || !vizDiv || !emptyDiv) {
+        console.log("[calculateAndRenderForecast] Missing required elements");
+        return;
+    }
+    
+    // Show loading
+    loadingDiv.style.display = "block";
+    vizDiv.style.display = "none";
+    emptyDiv.style.display = "none";
+    
+    // Calculate forecast
+    const forecastData = calculateQAForecast();
+    
+    console.log("[calculateAndRenderForecast] Forecast data calculated:", forecastData ? forecastData.length : 0, "items");
+    
+    // Hide loading
+    loadingDiv.style.display = "none";
+    
+    if (!forecastData || forecastData.length === 0) {
+        console.log("[calculateAndRenderForecast] No forecast data, showing empty state");
+        emptyDiv.style.display = "block";
+        return;
+    }
+    
+    vizDiv.style.display = "block";
+    
+    console.log("[calculateAndRenderForecast] Updating summary and rendering Gantt");
+    
+    // Update summary stats
+    updateForecastSummary(forecastData);
+    
+    // Render Gantt chart
+    renderForecastGantt(forecastData);
+}
+
+// Update forecast summary stats
+function updateForecastSummary(forecastData) {
+    const storiesToTestSpan = document.getElementById("forecast-total-stories");
+    const dailyCapacitySpan = document.getElementById("forecast-daily-capacity");
+    const completionDateSpan = document.getElementById("forecast-completion-date");
+    const workingDaysSpan = document.getElementById("forecast-working-days");
+    
+    if (!storiesToTestSpan || !dailyCapacitySpan || !completionDateSpan || !workingDaysSpan) return;
+    
+    // Stories to test
+    storiesToTestSpan.textContent = forecastData.length;
+    
+    // Daily capacity
+    const avgTestTime = qaConfig.avgTestTime;
+    const qaResources = qaConfig.qaResources;
+    const workingHours = qaConfig.workingHours;
+    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    let workingDaysCount = 0;
+    let totalHoursPerWeek = 0;
+    
+    days.forEach(day => {
+        const dayConfig = workingHours[day];
+        if (dayConfig && dayConfig.enabled) {
+            workingDaysCount++;
+            const startParts = dayConfig.startTime.split(":");
+            const endParts = dayConfig.endTime.split(":");
+            const startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+            const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+            const hoursThisDay = (endMinutes - startMinutes) / 60;
+            totalHoursPerWeek += hoursThisDay;
+        }
+    });
+    
+    const dailyCapacity = workingDaysCount > 0 ? (totalHoursPerWeek * qaResources / workingDaysCount) : 0;
+    dailyCapacitySpan.textContent = dailyCapacity.toFixed(1) + " hrs";
+    
+    // Completion date (end date of last story)
+    if (forecastData.length > 0) {
+        const lastStory = forecastData[forecastData.length - 1];
+        const completionDate = new Date(lastStory.endDate);
+        completionDateSpan.textContent = completionDate.toLocaleDateString();
+    }
+    
+    // Working days (count unique dates in forecast)
+    const uniqueDates = new Set();
+    forecastData.forEach(item => {
+        let currentDate = new Date(item.startDate);
+        const endDate = new Date(item.endDate);
+        
+        while (currentDate <= endDate) {
+            uniqueDates.add(currentDate.toDateString());
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+    });
+    workingDaysSpan.textContent = uniqueDates.size;
+}
+
+// Render forecast Gantt chart using D3
+function renderForecastGantt(forecastData) {
+    // Clear existing chart
+    const vizDiv = document.getElementById("forecast-gantt");
+    if (!vizDiv) return;
+    vizDiv.innerHTML = "";
+    
+    // Set dimensions - make chart much wider for hourly view
+    const margin = { top: 40, right: 20, bottom: 80, left: 150 };
+    
+    // Calculate required width based on time span (aim for ~60px per hour)
+    const minDate = d3.min(forecastData, d => d.startDate);
+    const maxDate = d3.max(forecastData, d => d.endDate);
+    const timeSpanHours = (maxDate - minDate) / (1000 * 60 * 60);
+    const calculatedWidth = Math.max(vizDiv.clientWidth - margin.left - margin.right, timeSpanHours * 60);
+    
+    const width = calculatedWidth;
+    const height = Math.max(400, forecastData.length * 40) - margin.top - margin.bottom;
+    
+    // Create SVG
+    const svg = d3.select("#forecast-gantt")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    // Create scales (minDate, maxDate, timeSpanHours already calculated above)
+    const xScale = d3.scaleTime()
+        .domain([minDate, maxDate])
+        .range([0, width]);
+    
+    const yScale = d3.scaleBand()
+        .domain(forecastData.map(d => d.storyNumber))
+        .range([0, height])
+        .padding(0.2);
+    
+    // Define color scale for testers
+    const colorScale = d3.scaleOrdinal()
+        .domain([...new Set(forecastData.map(d => d.testerIndex))])
+        .range(d3.schemeCategory10);
+    
+    // Add X axis with hours
+    // Determine appropriate tick interval based on time span
+    let tickInterval;
+    let tickFormat;
+    
+    if (timeSpanHours <= 48) {
+        // Less than 2 days: show every 2 hours
+        tickInterval = d3.timeHour.every(2);
+        tickFormat = d3.timeFormat("%I %p");
+    } else if (timeSpanHours <= 168) {
+        // Less than 1 week: show every 4 hours
+        tickInterval = d3.timeHour.every(4);
+        tickFormat = d3.timeFormat("%m/%d %I %p");
+    } else {
+        // More than 1 week: show every 8 hours
+        tickInterval = d3.timeHour.every(8);
+        tickFormat = d3.timeFormat("%m/%d %I %p");
+    }
+    
+    const xAxis = d3.axisBottom(xScale)
+        .ticks(tickInterval)
+        .tickFormat(tickFormat);
+    
+    svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+        .selectAll("text")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end")
+        .style("font-size", "10px");
+    
+    // Add Y axis
+    svg.append("g")
+        .call(d3.axisLeft(yScale));
+    
+    // Add grid lines (vertical lines for each hour tick)
+    svg.append("g")
+        .attr("class", "grid")
+        .attr("opacity", 0.1)
+        .call(d3.axisBottom(xScale)
+            .ticks(tickInterval)
+            .tickSize(height)
+            .tickFormat("")
+        );
+    
+    // Add day separator lines (darker vertical lines at midnight)
+    const dayStarts = [];
+    let currentDate = new Date(minDate);
+    currentDate.setHours(0, 0, 0, 0);
+    currentDate.setDate(currentDate.getDate() + 1); // Start from next day
+    
+    while (currentDate <= maxDate) {
+        dayStarts.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    svg.selectAll(".day-separator")
+        .data(dayStarts)
+        .enter()
+        .append("line")
+        .attr("class", "day-separator")
+        .attr("x1", d => xScale(d))
+        .attr("x2", d => xScale(d))
+        .attr("y1", 0)
+        .attr("y2", height)
+        .attr("stroke", "#666")
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", "3,3")
+        .attr("opacity", 0.3);
+    
+    // Add day labels at the top
+    svg.selectAll(".day-label")
+        .data(dayStarts)
+        .enter()
+        .append("text")
+        .attr("class", "day-label")
+        .attr("x", d => xScale(d))
+        .attr("y", -25)
+        .attr("text-anchor", "start")
+        .attr("font-size", "11px")
+        .attr("font-weight", "bold")
+        .attr("fill", "#666")
+        .text(d => d3.timeFormat("%b %d, %Y")(d));
+    
+    // Add today marker
+    const today = new Date();
+    if (today >= minDate && today <= maxDate) {
+        svg.append("line")
+            .attr("x1", xScale(today))
+            .attr("x2", xScale(today))
+            .attr("y1", 0)
+            .attr("y2", height)
+            .attr("stroke", "red")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "5,5");
+        
+        svg.append("text")
+            .attr("x", xScale(today))
+            .attr("y", -10)
+            .attr("text-anchor", "middle")
+            .attr("fill", "red")
+            .attr("font-size", "12px")
+            .text("Today");
+    }
+    
+    // Create tooltip
+    const tooltip = d3.select("body")
+        .append("div")
+        .attr("class", "gantt-tooltip")
+        .style("display", "none");
+    
+    // Add bars
+    svg.selectAll(".bar")
+        .data(forecastData)
+        .enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", d => xScale(d.startDate))
+        .attr("y", d => yScale(d.storyNumber))
+        .attr("width", d => xScale(d.endDate) - xScale(d.startDate))
+        .attr("height", yScale.bandwidth())
+        .attr("fill", d => colorScale(d.testerIndex))
+        .attr("opacity", 0.8)
+        .attr("stroke", "#000")
+        .attr("stroke-width", 1)
+        .attr("cursor", "pointer")
+        .on("mouseover", function(event, d) {
+            d3.select(this).attr("opacity", 1);
+            const duration = ((d.endDate - d.startDate) / (1000 * 60 * 60)).toFixed(2);
+            tooltip.style("display", "block")
+                .html("<strong>Story " + d.storyNumber + "</strong><br/>" +
+                    (d.storyName || "No name") + "<br/>" +
+                    "<strong>Start:</strong> " + d.startDate.toLocaleString() + "<br/>" +
+                    "<strong>End:</strong> " + d.endDate.toLocaleString() + "<br/>" +
+                    "<strong>Duration:</strong> " + duration + " hours<br/>" +
+                    "<strong>Tester:</strong> Tester " + (d.testerIndex + 1))
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 10) + "px");
+        })
+        .on("mouseout", function() {
+            d3.select(this).attr("opacity", 0.8);
+            tooltip.style("display", "none");
+        })
+        .on("click", function(event, d) {
+            // Find the full story item and open detail modal
+            const storyItem = allItems.find(item => item.storyNumber === d.storyNumber);
+            if (storyItem) {
+                openCardModal(storyItem);
+            }
+        });
+    
+    // Add labels on bars
+    svg.selectAll(".bar-label")
+        .data(forecastData)
+        .enter()
+        .append("text")
+        .attr("class", "bar-label")
+        .attr("x", d => xScale(d.startDate) + (xScale(d.endDate) - xScale(d.startDate)) / 2)
+        .attr("y", d => yScale(d.storyNumber) + yScale.bandwidth() / 2)
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "middle")
+        .attr("fill", "#fff")
+        .attr("font-size", "10px")
+        .attr("pointer-events", "none")
+        .text(d => "T" + (d.testerIndex + 1));
+}
+
 // Initialize tab functionality
 function initializeTabs() {
     const tabs = document.querySelectorAll('.tab');
@@ -642,6 +1354,17 @@ function switchTab(tabName) {
         // Render Kanban board
         console.log('[userStoriesQAView] Board tab selected - rendering kanban board');
         renderKanbanBoard();
+    } else if (tabName === 'forecast') {
+        // Render forecast if config is available
+        console.log('[userStoriesQAView] Forecast tab selected - rendering forecast');
+        if (qaConfig) {
+            calculateAndRenderForecast();
+        } else {
+            // Request config from extension
+            vscode.postMessage({
+                command: 'loadQAConfig'
+            });
+        }
     } else if (tabName === 'details') {
         // Refresh details tab to show latest data
         console.log('[userStoriesQAView] Details tab selected - refreshing table');
@@ -1517,6 +2240,52 @@ window.addEventListener('message', event => {
                 alert('Error exporting CSV: ' + (message.error || 'Unknown error'));
             }
             break;
+        
+        case 'qaConfigLoaded':
+            console.log('QA config loaded:', message.config);
+            // Store config globally
+            qaConfig = message.config;
+            
+            // Populate config modal
+            const avgTestTimeInput = document.getElementById('configAvgTestTime');
+            const qaResourcesInput = document.getElementById('configQAResources');
+            
+            if (avgTestTimeInput && qaConfig) {
+                avgTestTimeInput.value = qaConfig.avgTestTime || 4;
+            }
+            
+            if (qaResourcesInput && qaConfig) {
+                qaResourcesInput.value = qaConfig.qaResources || 2;
+            }
+            
+            // Populate working hours table
+            if (qaConfig) {
+                populateWorkingHoursTable(qaConfig);
+                updateConfigSummary();
+            }
+            
+            // If forecast tab is active, render it
+            const forecastTab = document.getElementById('forecast-tab');
+            if (forecastTab && forecastTab.classList.contains('active')) {
+                calculateAndRenderForecast();
+            }
+            break;
+        
+        case 'qaConfigSaved':
+            console.log('QA config saved:', message.success);
+            if (message.success) {
+                // Update global config
+                qaConfig = message.config;
+                
+                // Refresh forecast if visible
+                const forecastTab = document.getElementById('forecast-tab');
+                if (forecastTab && forecastTab.classList.contains('active')) {
+                    calculateAndRenderForecast();
+                }
+            } else {
+                console.error('Error saving QA config:', message.error);
+            }
+            break;
             
         default:
             console.log('Unknown message:', message);
@@ -1741,6 +2510,114 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(function() {
             renderKanbanBoard();
         }, 100);
+    }
+    
+    // Setup forecast action buttons
+    const forecastConfigButton = document.getElementById('configForecastButton');
+    const forecastRefreshButton = document.getElementById('forecastRefreshButton');
+    const forecastExportButton = document.getElementById('forecastExportButton');
+    
+    if (forecastConfigButton) {
+        forecastConfigButton.addEventListener('click', openQAConfigModal);
+        // Apply icon button styling
+        forecastConfigButton.style.background = "none";
+        forecastConfigButton.style.border = "none";
+        forecastConfigButton.style.color = "var(--vscode-editor-foreground)";
+        forecastConfigButton.style.padding = "4px 8px";
+        forecastConfigButton.style.cursor = "pointer";
+        forecastConfigButton.style.display = "flex";
+        forecastConfigButton.style.alignItems = "center";
+        forecastConfigButton.style.borderRadius = "4px";
+        forecastConfigButton.style.transition = "background 0.15s";
+        forecastConfigButton.addEventListener("mouseenter", function() {
+            forecastConfigButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        forecastConfigButton.addEventListener("mouseleave", function() {
+            forecastConfigButton.style.background = "none";
+        });
+    }
+    
+    if (forecastRefreshButton) {
+        forecastRefreshButton.addEventListener('click', refreshForecast);
+        // Apply icon button styling
+        forecastRefreshButton.style.background = "none";
+        forecastRefreshButton.style.border = "none";
+        forecastRefreshButton.style.color = "var(--vscode-editor-foreground)";
+        forecastRefreshButton.style.padding = "4px 8px";
+        forecastRefreshButton.style.cursor = "pointer";
+        forecastRefreshButton.style.display = "flex";
+        forecastRefreshButton.style.alignItems = "center";
+        forecastRefreshButton.style.borderRadius = "4px";
+        forecastRefreshButton.style.transition = "background 0.15s";
+        forecastRefreshButton.addEventListener("mouseenter", function() {
+            forecastRefreshButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        forecastRefreshButton.addEventListener("mouseleave", function() {
+            forecastRefreshButton.style.background = "none";
+        });
+    }
+    
+    if (forecastExportButton) {
+        forecastExportButton.addEventListener('click', exportForecastData);
+        // Apply icon button styling
+        forecastExportButton.style.background = "none";
+        forecastExportButton.style.border = "none";
+        forecastExportButton.style.color = "var(--vscode-editor-foreground)";
+        forecastExportButton.style.padding = "4px 8px";
+        forecastExportButton.style.cursor = "pointer";
+        forecastExportButton.style.display = "flex";
+        forecastExportButton.style.alignItems = "center";
+        forecastExportButton.style.borderRadius = "4px";
+        forecastExportButton.style.transition = "background 0.15s";
+        forecastExportButton.addEventListener("mouseenter", function() {
+            forecastExportButton.style.background = "var(--vscode-list-hoverBackground)";
+        });
+        forecastExportButton.addEventListener("mouseleave", function() {
+            forecastExportButton.style.background = "none";
+        });
+    }
+    
+    // Setup QA config modal event listeners
+    const qaConfigCancelButton = document.getElementById('qaConfigCancelButton');
+    const qaConfigSaveButton = document.getElementById('qaConfigSaveButton');
+    const avgTestTimeInput = document.getElementById('configAvgTestTime');
+    const qaResourcesInput = document.getElementById('configQAResources');
+    
+    if (qaConfigCancelButton) {
+        qaConfigCancelButton.addEventListener('click', closeQAConfigModal);
+    }
+    
+    if (qaConfigSaveButton) {
+        qaConfigSaveButton.addEventListener('click', saveQAConfigModal);
+    }
+    
+    if (avgTestTimeInput) {
+        avgTestTimeInput.addEventListener('input', updateConfigSummary);
+    }
+    
+    if (qaResourcesInput) {
+        qaResourcesInput.addEventListener('input', updateConfigSummary);
+    }
+    
+    // Setup config modal close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const configModal = document.getElementById('qaConfigModal');
+            if (configModal && configModal.classList.contains('active')) {
+                closeQAConfigModal();
+            }
+        }
+    });
+    
+    // Setup config modal close on overlay click
+    const qaConfigModal = document.getElementById('qaConfigModal');
+    if (qaConfigModal) {
+        qaConfigModal.addEventListener('click', function(e) {
+            // Only close if clicking the overlay itself, not the modal content
+            if (e.target === qaConfigModal) {
+                closeQAConfigModal();
+            }
+        });
     }
     
     // Setup modal close on Escape key

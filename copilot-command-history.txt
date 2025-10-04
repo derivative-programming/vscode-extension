@@ -1,3 +1,112 @@
+## January 9, 2025 - User Stories QA View - Forecast Tab (Gantt Chart)
+
+**Command**: Implement QA Forecast Gantt chart feature showing timeline predictions for when "ready-to-test" stories will be completed based on QA resources, working hours, and average test time per story.
+
+**Status**: ✅ COMPLETED - FULL IMPLEMENTATION
+
+**Implementation Summary**:
+Added a fourth "Forecast" tab to the User Stories QA View featuring a Gantt chart that forecasts when ready-to-test stories will be completed. The forecast uses a capacity planning algorithm that schedules stories based on available QA resources, working hours per day/week, and average test time per story. Includes configuration modal for setting parameters and CSV export functionality.
+
+**Files Modified**:
+
+1. **src/commands/userStoriesQACommands.ts**:
+   - Updated tab structure to include Forecast tab as fourth tab (~line 916)
+   - Added Forecast tab HTML content (~lines 1460-1515):
+     - Header actions (Configure, Refresh, Export buttons)
+     - Summary stats section (Stories to Test, Daily Capacity, Completion Date, Working Days)
+     - Gantt container with loading/empty states
+   - Added QA Configuration modal HTML (~lines 1550-1640):
+     - Testing parameters section (Avg Test Time, QA Resources inputs)
+     - Working hours table (7 day rows with enabled checkbox, start/end times)
+     - Summary section (calculated metrics: working days, hours, capacity, stories/day)
+     - Modal footer (Cancel, Save buttons)
+   - Added comprehensive CSS styles (~lines 1200-1380):
+     - Forecast header actions styling
+     - Forecast summary box styling
+     - Gantt container and visualization area
+     - Gantt tooltip styling
+     - Config modal specific styles (sections, table, summary)
+     - Input field styling for number and time inputs
+   - Added backend message handlers:
+     - `loadQAConfig` - Loads from app-dna-qa-config.json or returns defaults
+     - `saveQAConfig` - Saves config to app-dna-qa-config.json
+     - `exportForecastCSV` - Exports forecast data to CSV file
+     - `showErrorMessage` / `showInfoMessage` - Display notifications
+
+2. **src/webviews/userStoriesQAView.js**:
+   - Added global variable `qaConfig` to store configuration (~line 617)
+   - Added configuration modal functions (~lines 620-815):
+     - `openQAConfigModal()` - Shows modal and requests config
+     - `closeQAConfigModal()` - Hides modal
+     - `saveQAConfigModal()` - Validates and saves configuration
+     - `populateWorkingHoursTable(config)` - Generates 7 day rows
+     - `updateConfigSummary()` - Calculates and displays summary metrics
+   - Added forecast data functions (~lines 816-920):
+     - `refreshForecast()` - Main refresh handler
+     - `exportForecastData()` - Converts forecast to CSV format
+     - `calculateQAForecast()` - Main scheduling algorithm:
+       - Filters ready-to-test stories, sorts by story number
+       - Initializes testers with availability tracking
+       - Schedules each story to earliest available tester
+       - Respects working hours and days
+       - Returns array of forecast items with dates and tester assignments
+     - `getNextWorkingTime(date, workingHours)` - Finds next available working time
+     - `addWorkingHours(startDate, hoursToAdd, workingHours)` - Adds working hours respecting schedule
+   - Added forecast rendering functions (~lines 1005-1240):
+     - `calculateAndRenderForecast()` - Main render orchestrator
+     - `updateForecastSummary(forecastData)` - Updates summary stat spans
+     - `renderForecastGantt(forecastData)` - D3.js Gantt chart rendering:
+       - Creates SVG with proper margins and sizing
+       - Time scale (X axis) and band scale (Y axis) for story numbers
+       - Color scale for different testers
+       - Grid lines for date readability
+       - Today marker (red dashed line)
+       - Horizontal bars showing story test periods
+       - Bar labels showing tester assignment (T1, T2, etc.)
+       - Interactive tooltips with story details and duration
+       - Click handler to open card detail modal
+   - Updated `switchTab()` to handle Forecast tab (~line 1270):
+     - Renders forecast if config available
+     - Requests config from extension if not loaded
+   - Added forecast event listeners in DOMContentLoaded (~lines 2380-2485):
+     - Forecast action button handlers (configure, refresh, export)
+     - Icon button styling applied to all buttons
+     - Config modal button handlers (cancel, save)
+     - Input change handlers for real-time summary updates
+     - Escape key handler for config modal
+     - Overlay click handler for config modal
+   - Added message handlers (~lines 2145-2205):
+     - `qaConfigLoaded` - Populates config modal and renders forecast if visible
+     - `qaConfigSaved` - Updates global config and refreshes forecast
+
+3. **docs/architecture/qa-forecast-gantt-design.md**:
+   - Created comprehensive design document
+   - Four different approaches evaluated (Simple, Capacity Planning, Work Item Based, Advanced Simulation)
+   - Selected: Capacity Planning approach with configuration
+   - Configuration model defined (avgTestTime, qaResources, workingHours)
+   - Scheduling algorithm documented with pseudocode
+   - D3.js Gantt chart implementation approach
+   - Edge cases and considerations documented
+
+**Architecture Notes**:
+- **Capacity Planning Algorithm**: Schedules stories in story number order, assigns to earliest available tester, respects working hours
+- **Parallel Resources**: Multiple testers work simultaneously, each tracked independently
+- **Working Hours**: Flexible configuration for each day of week with start/end times
+- **Date Calculations**: Accurate handling of working hours spanning multiple days
+- **D3.js Integration**: Uses existing D3.js v7 loaded via CDN
+- **Config Persistence**: Stored in app-dna-qa-config.json at workspace root
+- **CSV Export**: Includes story number, name, start/end dates, duration, tester assignment
+- **Modal Integration**: Reuses existing modal pattern from card detail modal
+
+**Testing Considerations**:
+- Test with various QA resource counts (1, 2, 5, 10)
+- Test with different working hour configurations (5-day week, 7-day week, custom hours)
+- Test with edge cases (no ready-to-test stories, all days disabled, very long stories)
+- Verify date calculations across day boundaries
+- Verify today marker appears correctly
+- Test Gantt chart rendering with many stories (scrolling, performance)
+- Test modal validation (zero resources, zero test time, no working days)
+
 ## October 4, 2025 - User Stories QA View - Kanban Board Tab
 
 **Command**: add kanban board view of the details tab. the status defines the swim lane of each user story card. each user story card would show user story number and text. we can use drag and drop to change status/swimlane of a card. this tab would have the same filter section as the details tab.
