@@ -316,9 +316,20 @@ function getSizeSummaryData(modelService: ModelService): any[] {
             let propertyCount = 0;
             const sizeBreakdown: { [key: string]: number } = {};
             
+            // Add implicit fields that all data objects have
+            // ID field: int (4 bytes)
+            totalSizeBytes += 4;
+            propertyCount += 1;
+            sizeBreakdown['int'] = (sizeBreakdown['int'] || 0) + 4;
+            
+            // Code field: varchar(50) (50 bytes)
+            totalSizeBytes += 50;
+            propertyCount += 1;
+            sizeBreakdown['varchar'] = (sizeBreakdown['varchar'] || 0) + 50;
+            
             // Calculate size for each property
             if (dataObject.prop && Array.isArray(dataObject.prop)) {
-                propertyCount = dataObject.prop.length;
+                propertyCount += dataObject.prop.length;
                 
                 dataObject.prop.forEach((prop: any, index: number) => {
                     const propSize = calculatePropertySize(prop);
@@ -391,6 +402,27 @@ function getSizeDetailsData(modelService: ModelService): any[] {
             }
             
             console.log(`Processing properties for object: ${dataObject.name}`);
+            
+            // Add implicit fields that all data objects have
+            // ID field: int (4 bytes)
+            detailsData.push({
+                dataObjectName: dataObject.name,
+                propName: 'ID',
+                sizeBytes: 4,
+                dataType: 'int',
+                dataTypeSize: '',
+                description: 'Implicit ID field (primary key)'
+            });
+            
+            // Code field: varchar(50) (50 bytes)
+            detailsData.push({
+                dataObjectName: dataObject.name,
+                propName: 'Code',
+                sizeBytes: 50,
+                dataType: 'varchar',
+                dataTypeSize: '50',
+                description: 'Implicit Code field'
+            });
             
             // Process each property
             if (dataObject.prop && Array.isArray(dataObject.prop)) {

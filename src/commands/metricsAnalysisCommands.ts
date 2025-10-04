@@ -1201,6 +1201,10 @@ function calculateTotalDataObjectSize(modelService: ModelService): number {
         console.log(`[calculateTotalDataObjectSize] Processing ${allObjects.length} objects`);
         
         allObjects.forEach(dataObject => {
+            // Add implicit fields that all data objects have
+            // ID field: int (4 bytes) + Code field: varchar(50) (50 bytes)
+            totalSizeBytes += 54;
+            
             if (dataObject.prop && Array.isArray(dataObject.prop)) {
                 dataObject.prop.forEach((prop: any) => {
                     const propSize = calculatePropertySizeForMetrics(prop);
@@ -1248,6 +1252,10 @@ function calculateAverageDataObjectSize(modelService: ModelService): number {
         console.log(`[calculateAverageDataObjectSize] Processing ${allObjects.length} objects`);
         
         allObjects.forEach(dataObject => {
+            // Add implicit fields that all data objects have
+            // ID field: int (4 bytes) + Code field: varchar(50) (50 bytes)
+            totalSizeBytes += 54;
+            
             if (dataObject.prop && Array.isArray(dataObject.prop)) {
                 dataObject.prop.forEach((prop: any) => {
                     const propSize = calculatePropertySizeForMetrics(prop);
@@ -1290,7 +1298,9 @@ function calculateMaxDataObjectSize(modelService: ModelService): number {
         let maxSizeBytes = 0;
         
         allObjects.forEach(dataObject => {
-            let objectSizeBytes = 0;
+            // Add implicit fields that all data objects have
+            // ID field: int (4 bytes) + Code field: varchar(50) (50 bytes)
+            let objectSizeBytes = 54;
             
             if (dataObject.prop && Array.isArray(dataObject.prop)) {
                 dataObject.prop.forEach((prop: any) => {
@@ -1326,7 +1336,9 @@ function calculateMinDataObjectSize(modelService: ModelService): number {
         let minSizeBytes = Number.MAX_SAFE_INTEGER;
         
         allObjects.forEach(dataObject => {
-            let objectSizeBytes = 0;
+            // Add implicit fields that all data objects have
+            // ID field: int (4 bytes) + Code field: varchar(50) (50 bytes)
+            let objectSizeBytes = 54;
             
             if (dataObject.prop && Array.isArray(dataObject.prop)) {
                 dataObject.prop.forEach((prop: any) => {

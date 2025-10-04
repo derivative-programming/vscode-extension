@@ -12,15 +12,15 @@ verify all pngs generated are readable with corect axis labels visible on either
 
 data object usage analysis view...
 - proportional usage tab
-  - add filter by reference type
+  - add filter by reference type (should use that reference type in count)
 - usage distribution tab
-  - add filter by reference type
+  - add filter by reference type (should use that reference type in count)
 - complexity vs usage tab
-  - add filter by reference type
+  - add filter by reference type (should use that reference type in count)
 
 
 data object size analysis view...
-- all objects have an ID and Code and maybe audit columns
+- all objects have maybe audit columns
 - ID and Code are indexed
 - indexed fields count 2X the size of non indexed fields
 

@@ -1222,7 +1222,9 @@ function getDatabaseSizeForecastWebviewContent(webview: vscode.Webview, extensio
  * Calculate the size of a data object in KB using the same logic as data object size analysis
  */
 function calculateDataObjectSizeInKB(dataObject: any): number {
-    let totalSizeBytes = 0;
+    // Add implicit fields that all data objects have
+    // ID field: int (4 bytes) + Code field: varchar(50) (50 bytes)
+    let totalSizeBytes = 54;
     
     if (dataObject.prop && Array.isArray(dataObject.prop)) {
         dataObject.prop.forEach((prop: any) => {
