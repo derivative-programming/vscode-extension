@@ -1,3 +1,83 @@
+## October 4, 2025 - User Story Journey View - Journey Distance Distribution Bar/Pie Chart Toggle
+
+**Command**: next is User Story Journey View journey distance Distribution tab
+
+**Status**: ✅ COMPLETED
+
+**Implementation Summary**:
+Added chart type toggle to the Journey Distance Distribution tab in the User Story Journey view, allowing users to switch between bar chart (histogram) and pie chart visualizations of journey complexity distribution. This is the fourth of six identified distribution views requiring this enhancement.
+
+**Files Modified**:
+
+1. **src/commands/userStoriesJourneyCommands.ts**:
+   - Added chart type toggle buttons HTML (~line 3289 in histogram-actions)
+   - Reused existing CSS styles for `.chart-type-toggle` and `.chart-type-button`
+   - Toggle buttons use codicon icons: `codicon-graph-line` (bar) and `codicon-pie-chart` (pie)
+
+2. **src/webviews/userStoriesJourneyView.js**:
+   - Added `journeyChartType` state variable at module level (line ~25)
+   - Created new `renderJourneyPieChart()` function (~180 lines):
+     - Complexity categories: Simple (1-2), Medium (3-5), Complex (6-10), Very Complex (10+)
+     - Fixed semantic colors: gray/green/orange/red for Simple/Medium/Complex/VeryComplex
+     - Reuses existing `calculateJourneyComplexityDistribution(allItems)` function for data
+     - Filters zero-value categories for cleaner visualization
+     - D3.js pie layout with interactive hover effects
+     - Percentage labels on slices >5%
+     - Vertical legend with color swatches, names, counts, percentages
+     - Tooltip showing category, story count, and percentage
+   - Created unified `renderJourneyDistribution()` function (lines ~2347-2353):
+     - Routes to bar or pie renderer based on state
+   - Added event listeners for toggle buttons (lines ~1586):
+     - Update state variable
+     - Toggle `.active` class
+     - Call unified render function
+   - Updated render call in tab switching handler:
+     - Line 1425: Changed `renderJourneyHistogram()` to `renderJourneyDistribution()`
+
+**Key Features**:
+- **Complexity Categories**: Semantic grouping (Simple/Medium/Complex/Very Complex) based on journey page count
+- **Color Scheme**: Fixed semantic colors communicate complexity levels intuitively
+- **Data Reuse**: Leverages existing `calculateJourneyComplexityDistribution()` for consistency
+- **Zero Filtering**: Excludes empty categories for clean visualization
+- **Theme Support**: Full light/dark mode compatibility
+- **State Persistence**: Chart type persists during tab switching
+
+**Pattern Consistency**:
+Follows established pattern from:
+- QA Status Distribution (userStoriesQAView)
+- Role Distribution (userStoriesView)
+- Page Usage Distribution (userStoriesJourneyView)
+
+**Testing**:
+- ✅ Compilation successful (webpack 5.99.9)
+- ✅ No TypeScript errors
+- ✅ Toggle switches between bar and pie charts
+- ✅ Tab switching preserves chart type preference
+
+**Documentation Created**:
+- `docs/architecture/journey-distance-distribution-chart-toggle.md` - Complete technical documentation
+- Updated `todo.md` with completion marker
+- Updated `copilot-command-history.txt`
+
+**Architecture Notes**:
+- State variable at module level works correctly for regular JS files
+- Used semantic colors vs gradient because complexity levels have inherent meaning
+- Category thresholds match existing histogram implementation
+- Reused calculation logic for data consistency with treemap and histogram
+
+**Journey Distance Context**:
+Journey distance represents the maximum number of pages a user story touches:
+- Simple (1-2): Quick tasks or single-page interactions
+- Medium (3-5): Standard multi-step processes
+- Complex (6-10): Workflows requiring multiple interactions
+- Very Complex (10+): Extensive journeys that may need optimization
+
+**Next Steps**:
+- Page List View Complexity Distribution tab
+- Data Object Size view size Distribution tab
+
+---
+
 ## October 4, 2025 - User Story Journey View - Page Usage Distribution Bar/Pie Chart Toggle
 
 **Command**: next is User Story Journey View page usage Distribution tab

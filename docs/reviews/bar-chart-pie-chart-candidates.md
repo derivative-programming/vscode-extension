@@ -31,6 +31,15 @@
 - **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
 - **Colors**: Semantic (Green, Blue, Amber, Red for Low/Medium/High/VeryHigh)
 
+### 4. User Stories Journey - Journey Distance Distribution
+- **Location**: `src/webviews/userStoriesJourneyView.js`
+- **Function**: `renderJourneyHistogram()` / `renderJourneyPieChart()`
+- **Command File**: `src/commands/userStoriesJourneyCommands.ts`
+- **Tab Name**: "Journey Distribution"
+- **Categories**: 4 complexity levels (Simple 1-2, Medium 3-5, Complex 6-10, Very Complex 10+)
+- **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
+- **Colors**: Semantic (Gray, Green, Orange, Red for Simple/Medium/Complex/VeryComplex)
+
 ## Candidate Views for Pie Chart Toggle
 
 ### 2. User Stories - Role Distribution ✅ COMPLETED
@@ -65,22 +74,23 @@
   - Zero-value categories filtered out
   - Percentage labels shown on slices >5%
 
-### 4. User Stories Journey - Journey Complexity Distribution ⭐ HIGH PRIORITY
+### 4. User Stories Journey - Journey Distance Distribution
 - **Location**: `src/webviews/userStoriesJourneyView.js`
-- **Function**: `renderJourneyHistogram()`
+- **Function**: `renderJourneyHistogram()` / `renderJourneyPieChart()`
 - **Command File**: `src/commands/userStoriesJourneyCommands.ts`
 - **Tab Name**: "Journey Distribution"
 - **Categories**: 4 complexity levels (Simple 1-2, Medium 3-5, Complex 6-10, Very Complex 10+)
-- **Why Good Candidate**:
-  - Categorical distribution showing story complexity
-  - Clear proportional meaning
-  - Users want to understand complexity breakdown
-  - Similar to page usage histogram
+- **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
 - **Implementation Notes**:
-  - Line ~1913 in userStoriesJourneyView.js
-  - Calculates from allItems (user stories)
-  - Has tooltip with full descriptions
-  - Colors: Gray, Green, Orange, Red
+  - Line ~1942 in userStoriesJourneyView.js (bar), pie chart function added after
+  - Unified `renderJourneyDistribution()` function routes to appropriate renderer
+  - Reuses existing `calculateJourneyComplexityDistribution(allItems)` for data
+  - Toggle buttons added at line ~3289 in userStoriesJourneyCommands.ts
+  - Reused existing CSS styling from page usage implementation
+  - State variable: `journeyChartType` at line ~25
+  - Colors: Semantic (Gray, Green, Orange, Red for Simple/Medium/Complex/VeryComplex)
+  - Zero-value categories filtered out
+  - Percentage labels shown on slices >5%
 
 ### 5. Page List - Element Distribution (Page Complexity) 🔶 MEDIUM PRIORITY
 - **Location**: `src/webviews/pageListView.js`

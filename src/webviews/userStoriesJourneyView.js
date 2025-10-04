@@ -21,6 +21,9 @@ let selectedItems = new Set();
 // Keep track of current chart type for page usage histogram (bar or pie)
 let pageUsageChartType = 'bar';
 
+// Keep track of current chart type for journey distance histogram (bar or pie)
+let journeyChartType = 'bar';
+
 // Keep track of unique values for filter dropdowns
 let filterOptions = {
     rolesRequired: []
@@ -1419,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (tabName === 'journey-distribution') {
             // Journey distribution tab selected - render histogram
             console.log('Journey distribution tab selected - rendering histogram');
-            renderJourneyHistogram();
+            renderJourneyDistribution();
         }
     }
     
@@ -1580,6 +1583,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Setup journey histogram button event handlers
+    const journeyChartTypeBarBtn = document.getElementById('journeyChartTypeBar');
+    const journeyChartTypePieBtn = document.getElementById('journeyChartTypePie');
+    
+    if (journeyChartTypeBarBtn) {
+        journeyChartTypeBarBtn.addEventListener('click', function() {
+            if (journeyChartType === 'bar') {
+                return; // Already in bar mode
+            }
+            
+            journeyChartType = 'bar';
+            
+            // Update button states
+            journeyChartTypeBarBtn.classList.add('active');
+            journeyChartTypePieBtn.classList.remove('active');
+            
+            // Re-render the distribution
+            renderJourneyDistribution();
+        });
+    }
+    
+    if (journeyChartTypePieBtn) {
+        journeyChartTypePieBtn.addEventListener('click', function() {
+            if (journeyChartType === 'pie') {
+                return; // Already in pie mode
+            }
+            
+            journeyChartType = 'pie';
+            
+            // Update button states
+            journeyChartTypePieBtn.classList.add('active');
+            journeyChartTypeBarBtn.classList.remove('active');
+            
+            // Re-render the distribution
+            renderJourneyDistribution();
+        });
+    }
+    
     const refreshJourneyHistogramButton = document.getElementById('refreshHistogramButton');
     const generateJourneyHistogramPngBtn = document.getElementById('generateHistogramPngBtn');
     
@@ -2128,6 +2168,189 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         return distribution;
+    }
+
+    // Render journey complexity distribution as a pie chart
+    function renderJourneyPieChart() {
+        const journeyHistogramVisualization = document.getElementById('journey-histogram-visualization');
+        const journeyHistogramLoading = document.getElementById('journey-histogram-loading');
+        
+        if (!journeyHistogramVisualization || !journeyHistogramLoading || !allItems || allItems.length === 0) {
+            console.error('Journey histogram elements not found or no data available');
+            return;
+        }
+
+        // Hide loading and show visualization
+        journeyHistogramLoading.classList.add('hidden');
+        journeyHistogramVisualization.classList.remove('hidden');
+
+        // Clear previous content
+        journeyHistogramVisualization.innerHTML = '';
+
+        // Calculate complexity distribution from allItems
+        const distribution = calculateJourneyComplexityDistribution(allItems);
+        
+        // Prepare data for pie chart
+        const pieData = [
+            { category: 'Simple', count: distribution.simple, color: '#6c757d', description: 'Simple (1-2 pages)' },
+            { category: 'Medium', count: distribution.medium, color: '#28a745', description: 'Medium (3-5 pages)' },
+            { category: 'Complex', count: distribution.complex, color: '#f66a0a', description: 'Complex (6-10 pages)' },
+            { category: 'Very Complex', count: distribution.veryComplex, color: '#d73a49', description: 'Very Complex (10+ pages)' }
+        ];
+
+        // Filter out categories with zero count
+        const filteredData = pieData.filter(d => d.count > 0);
+        
+        if (filteredData.length === 0) {
+            journeyHistogramVisualization.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--vscode-descriptionForeground);">No data available</div>';
+            return;
+        }
+
+        // Calculate total for percentages
+        const totalStories = filteredData.reduce((sum, d) => sum + d.count, 0);
+
+        // Setup dimensions
+        const width = 600;
+        const height = 400;
+        const radius = Math.min(width, height) / 2 - 40;
+
+        // Create SVG
+        const svg = d3.select(journeyHistogramVisualization)
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .style('background', 'var(--vscode-editor-background)');
+
+        const g = svg.append('g')
+            .attr('transform', `translate(${width / 2 - 100},${height / 2})`);
+
+        // Create pie layout
+        const pie = d3.pie()
+            .value(d => d.count)
+            .sort(null);
+
+        // Create arc generator
+        const arc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(radius);
+
+        // Create tooltip
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'histogram-tooltip')
+            .style('opacity', 0)
+            .style('position', 'absolute')
+            .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+            .style('border', '1px solid var(--vscode-panel-border)')
+            .style('border-radius', '3px')
+            .style('padding', '8px')
+            .style('font-size', '12px')
+            .style('z-index', '1000')
+            .style('pointer-events', 'none');
+
+        // Create pie slices
+        const slices = g.selectAll('.pie-slice')
+            .data(pie(filteredData))
+            .enter()
+            .append('g')
+            .attr('class', 'pie-slice');
+
+        // Add paths for slices
+        slices.append('path')
+            .attr('d', arc)
+            .attr('fill', d => d.data.color)
+            .attr('stroke', 'var(--vscode-panel-border)')
+            .attr('stroke-width', 2)
+            .style('opacity', 1)
+            .on('mouseover', function(event, d) {
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .style('opacity', 0.9);
+
+                const percentage = ((d.data.count / totalStories) * 100).toFixed(1);
+                tooltip.transition()
+                    .duration(200)
+                    .style('opacity', .9);
+                
+                tooltip.html(`
+                    <strong>${d.data.description}</strong><br/>
+                    Stories: ${d.data.count}<br/>
+                    Percentage: ${percentage}%
+                `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+            })
+            .on('mouseout', function() {
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .style('opacity', 1);
+
+                tooltip.transition()
+                    .duration(500)
+                    .style('opacity', 0);
+            });
+
+        // Add percentage labels on slices (only for slices > 5%)
+        slices.append('text')
+            .attr('transform', d => `translate(${arc.centroid(d)})`)
+            .attr('text-anchor', 'middle')
+            .attr('dy', '0.35em')
+            .style('fill', 'white')
+            .style('font-size', '14px')
+            .style('font-weight', 'bold')
+            .style('pointer-events', 'none')
+            .text(d => {
+                const percentage = (d.data.count / totalStories) * 100;
+                return percentage > 5 ? `${Math.round(percentage)}%` : '';
+            });
+
+        // Add legend
+        const legend = svg.append('g')
+            .attr('transform', `translate(${width - 160}, 20)`);
+
+        const legendItems = legend.selectAll('.legend-item')
+            .data(filteredData)
+            .enter()
+            .append('g')
+            .attr('class', 'legend-item')
+            .attr('transform', (d, i) => `translate(0, ${i * 25})`);
+
+        legendItems.append('rect')
+            .attr('width', 18)
+            .attr('height', 18)
+            .attr('fill', d => d.color)
+            .attr('stroke', 'var(--vscode-panel-border)')
+            .attr('stroke-width', 1);
+
+        legendItems.append('text')
+            .attr('x', 24)
+            .attr('y', 9)
+            .attr('dy', '0.35em')
+            .style('fill', 'var(--vscode-foreground)')
+            .style('font-size', '12px')
+            .text(d => d.category);
+
+        legendItems.append('text')
+            .attr('x', 24)
+            .attr('y', 9)
+            .attr('dy', '0.35em')
+            .attr('dx', '70px')
+            .style('fill', 'var(--vscode-descriptionForeground)')
+            .style('font-size', '11px')
+            .text(d => {
+                const percentage = ((d.count / totalStories) * 100).toFixed(1);
+                return `(${d.count}, ${percentage}%)`;
+            });
+    }
+
+    // Unified function to render journey distribution (bar or pie)
+    function renderJourneyDistribution() {
+        if (journeyChartType === 'pie') {
+            renderJourneyPieChart();
+        } else {
+            renderJourneyHistogram();
+        }
     }
 
     // Generate PNG from journey histogram

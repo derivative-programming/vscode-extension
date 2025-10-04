@@ -3292,6 +3292,14 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                                     <p>Distribution of user stories across journey distance complexity categories</p>
                                 </div>
                                 <div class="histogram-actions">
+                                    <div class="chart-type-toggle">
+                                        <button id="journeyChartTypeBar" class="chart-type-button active" title="Bar Chart">
+                                            <span class="codicon codicon-graph-line"></span>
+                                        </button>
+                                        <button id="journeyChartTypePie" class="chart-type-button" title="Pie Chart">
+                                            <span class="codicon codicon-pie-chart"></span>
+                                        </button>
+                                    </div>
                                     <button id="refreshHistogramButton" class="icon-button histogram-refresh-button" title="Refresh Data">
                                         <i class="codicon codicon-refresh"></i>
                                     </button>

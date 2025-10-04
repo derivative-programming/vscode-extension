@@ -10,7 +10,7 @@ for all histogram\distribution tabs, give an option to show as pie chart instead
 - ✅ DONE: User Story QA Status Distribution tab now has bar/pie chart toggle
 - ✅ DONE: User Story View Role Distribution tab now has bar/pie chart toggle
 - ✅ DONE: User Story Journey View page usage Distribution tab now has bar/pie chart toggle
-- ⭐ User Story Journey View journey distance Distribution tab
+- ✅ DONE: User Story Journey View journey distance Distribution tab now has bar/pie chart toggle
 - ⭐ Page List View Complexity Distribution tab
 - ⭐ Data Object Size view size Distribution tab 
 - data object usage view usage distribution tab
