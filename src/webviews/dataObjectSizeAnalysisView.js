@@ -15,6 +15,9 @@
     let detailsCurrentSortColumn = -1;
     let detailsCurrentSortDirection = 'asc';
     let treemapData = [];
+    
+    // Keep track of current chart type for size distribution (bar or pie)
+    let sizeChartType = 'bar';
 
     // DOM Elements
     let summaryFilter, summaryTableBody, summaryRecordInfo, summaryTableContainer, summaryLoading;
@@ -118,6 +121,45 @@
             showSpinner();
             loadData();
         });
+        
+        // Setup size chart type toggle buttons
+        const sizeChartTypeBarBtn = document.getElementById('sizeChartTypeBar');
+        const sizeChartTypePieBtn = document.getElementById('sizeChartTypePie');
+        
+        if (sizeChartTypeBarBtn) {
+            sizeChartTypeBarBtn.addEventListener('click', function() {
+                if (sizeChartType === 'bar') {
+                    return; // Already in bar mode
+                }
+                
+                sizeChartType = 'bar';
+                
+                // Update button states
+                sizeChartTypeBarBtn.classList.add('active');
+                sizeChartTypePieBtn.classList.remove('active');
+                
+                // Re-render the distribution
+                renderSizeDistribution();
+            });
+        }
+        
+        if (sizeChartTypePieBtn) {
+            sizeChartTypePieBtn.addEventListener('click', function() {
+                if (sizeChartType === 'pie') {
+                    return; // Already in pie mode
+                }
+                
+                sizeChartType = 'pie';
+                
+                // Update button states
+                sizeChartTypePieBtn.classList.add('active');
+                sizeChartTypeBarBtn.classList.remove('active');
+                
+                // Re-render the distribution
+                renderSizeDistribution();
+            });
+        }
+        
         document.getElementById('generateHistogramPngBtn')?.addEventListener('click', generateHistogramPNG);
         document.getElementById('refreshHistogramButton')?.addEventListener('click', function() {
             showSpinner();
@@ -183,7 +225,7 @@
         } else if (tabName === 'treemap' && treemapData.length > 0) {
             renderTreemap();
         } else if (tabName === 'histogram' && originalSummaryData.length > 0) {
-            renderHistogram();
+            renderSizeDistribution();
         } else if (tabName === 'dotplot' && originalSummaryData.length > 0) {
             renderDotplot();
         }
@@ -766,7 +808,7 @@
                 // If histogram tab is active, render it
                 const histogramTab = document.querySelector('[data-tab="histogram"]');
                 if (histogramTab && histogramTab.classList.contains('active')) {
-                    renderHistogram();
+                    renderSizeDistribution();
                 }
                 
                 hideSpinner();
@@ -958,6 +1000,187 @@
         // Hide loading and show visualization
         histogramLoading.classList.add('hidden');
         histogramVisualization.classList.remove('hidden');
+    }
+
+    // Render size distribution as a pie chart
+    function renderSizePieChart() {
+        const histogramVisualization = document.getElementById('histogram-visualization');
+        const histogramLoading = document.getElementById('histogram-loading');
+        
+        if (!histogramVisualization || !histogramLoading || originalSummaryData.length === 0) {
+            return;
+        }
+        
+        // Clear any existing content
+        histogramVisualization.innerHTML = '';
+        
+        // Calculate size distribution
+        const distribution = calculateSizeDistribution(originalSummaryData);
+        
+        // Prepare data for pie chart
+        const pieData = [
+            { category: 'Tiny', count: distribution.tinySize, color: '#6c757d', description: 'Tiny Size (<1KB)' },
+            { category: 'Small', count: distribution.smallSize, color: '#28a745', description: 'Small Size (1KB-10KB)' },
+            { category: 'Medium', count: distribution.mediumSize, color: '#f66a0a', description: 'Medium Size (10KB-100KB)' },
+            { category: 'Large', count: distribution.largeSize, color: '#d73a49', description: 'Large Size (>100KB)' }
+        ];
+        
+        // Filter out categories with zero count
+        const filteredData = pieData.filter(d => d.count > 0);
+        
+        if (filteredData.length === 0) {
+            histogramVisualization.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--vscode-descriptionForeground);">No data available</div>';
+            return;
+        }
+        
+        // Calculate total for percentages
+        const totalObjects = filteredData.reduce((sum, d) => sum + d.count, 0);
+        
+        // Setup dimensions
+        const width = 600;
+        const height = 400;
+        const radius = Math.min(width, height) / 2 - 40;
+        
+        // Create SVG
+        const svg = d3.select(histogramVisualization)
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+        
+        const g = svg.append('g')
+            .attr('transform', `translate(${width / 2 - 100},${height / 2})`);
+        
+        // Create pie layout
+        const pie = d3.pie()
+            .value(d => d.count)
+            .sort(null);
+        
+        // Create arc generator
+        const arc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(radius);
+        
+        // Create tooltip
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'histogram-tooltip')
+            .style('opacity', 0)
+            .style('position', 'absolute')
+            .style('background', 'var(--vscode-editor-hoverHighlightBackground)')
+            .style('border', '1px solid var(--vscode-panel-border)')
+            .style('border-radius', '3px')
+            .style('padding', '8px')
+            .style('font-size', '12px')
+            .style('z-index', '1000')
+            .style('pointer-events', 'none');
+        
+        // Create pie slices
+        const slices = g.selectAll('.pie-slice')
+            .data(pie(filteredData))
+            .enter()
+            .append('g')
+            .attr('class', 'pie-slice');
+        
+        // Add paths for slices
+        slices.append('path')
+            .attr('d', arc)
+            .attr('fill', d => d.data.color)
+            .attr('stroke', 'var(--vscode-foreground)')
+            .attr('stroke-width', 2)
+            .style('opacity', 1)
+            .on('mouseover', function(event, d) {
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .style('opacity', 0.9);
+                
+                const percentage = ((d.data.count / totalObjects) * 100).toFixed(1);
+                tooltip.transition()
+                    .duration(200)
+                    .style('opacity', .9);
+                
+                tooltip.html(`
+                    <strong>${d.data.description}</strong><br/>
+                    Objects: ${d.data.count}<br/>
+                    Percentage: ${percentage}%
+                `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+            })
+            .on('mouseout', function() {
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .style('opacity', 1);
+                
+                tooltip.transition()
+                    .duration(500)
+                    .style('opacity', 0);
+            });
+        
+        // Add percentage labels on slices (only for slices > 5%)
+        slices.append('text')
+            .attr('transform', d => `translate(${arc.centroid(d)})`)
+            .attr('text-anchor', 'middle')
+            .attr('dy', '0.35em')
+            .style('fill', 'white')
+            .style('font-size', '14px')
+            .style('font-weight', 'bold')
+            .style('pointer-events', 'none')
+            .text(d => {
+                const percentage = (d.data.count / totalObjects) * 100;
+                return percentage > 5 ? `${Math.round(percentage)}%` : '';
+            });
+        
+        // Add legend
+        const legend = svg.append('g')
+            .attr('transform', `translate(${width - 160}, 20)`);
+        
+        const legendItems = legend.selectAll('.legend-item')
+            .data(filteredData)
+            .enter()
+            .append('g')
+            .attr('class', 'legend-item')
+            .attr('transform', (d, i) => `translate(0, ${i * 25})`);
+        
+        legendItems.append('rect')
+            .attr('width', 18)
+            .attr('height', 18)
+            .attr('fill', d => d.color)
+            .attr('stroke', 'var(--vscode-foreground)')
+            .attr('stroke-width', 1);
+        
+        legendItems.append('text')
+            .attr('x', 24)
+            .attr('y', 9)
+            .attr('dy', '0.35em')
+            .style('fill', 'var(--vscode-foreground)')
+            .style('font-size', '12px')
+            .text(d => `${d.category} Size`);
+        
+        legendItems.append('text')
+            .attr('x', 24)
+            .attr('y', 9)
+            .attr('dy', '0.35em')
+            .attr('dx', '85px')
+            .style('fill', 'var(--vscode-descriptionForeground)')
+            .style('font-size', '11px')
+            .text(d => {
+                const percentage = ((d.count / totalObjects) * 100).toFixed(1);
+                return `(${d.count}, ${percentage}%)`;
+            });
+        
+        // Hide loading and show visualization
+        histogramLoading.classList.add('hidden');
+        histogramVisualization.classList.remove('hidden');
+    }
+
+    // Unified function to render size distribution (bar or pie)
+    function renderSizeDistribution() {
+        if (sizeChartType === 'pie') {
+            renderSizePieChart();
+        } else {
+            renderHistogram();
+        }
     }
 
     // Calculate size distribution from data

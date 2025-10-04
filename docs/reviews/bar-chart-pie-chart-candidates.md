@@ -49,6 +49,16 @@
 - **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (October 4, 2025)
 - **Colors**: Semantic (Gray, Green, Orange, Red for VeryLow/Low/Medium/High)
 
+### 6. Data Object Size Analysis - Size Distribution
+- **Location**: `src/webviews/dataObjectSizeAnalysisView.js`
+- **Function**: `renderHistogram()` / `renderSizePieChart()`
+- **Command File**: `src/commands/dataObjectSizeAnalysisCommands.ts`
+- **Tab Name**: "Size Distribution"
+- **Categories**: 4 size categories (Tiny <1KB, Small 1-10KB, Medium 10-100KB, Large >100KB)
+- **Status**: ✅ **COMPLETED** - Bar/Pie toggle implemented (January 4, 2025)
+- **Colors**: Semantic (Gray, Green, Orange, Red for Tiny/Small/Medium/Large)
+- **Implementation Notes**: Helps identify database optimization opportunities (indexed fields count 2x)
+
 ## Candidate Views for Pie Chart Toggle
 
 ### 2. User Stories - Role Distribution ✅ COMPLETED
@@ -119,25 +129,6 @@
   - Colors: Semantic (Gray, Green, Orange, Red for VeryLow/Low/Medium/High)
   - Zero-value categories filtered out
   - Percentage labels shown on slices >5%
-
-### 6. Data Object Size Analysis - Size Distribution 🔶 MEDIUM PRIORITY
-- **Location**: `src/webviews/dataObjectSizeAnalysisView.js`
-- **Function**: `renderHistogram()`
-- **Command File**: `src/commands/dataObjectSizeAnalysisCommands.ts`
-- **Tab Name**: "Size Distribution"
-- **Categories**: 4 size categories (Tiny <1KB, Small 1-10KB, Medium 10-100KB, Large >100KB)
-- **Why Good Candidate**:
-  - Shows distribution of data object sizes
-  - Proportional view shows where most objects fall
-  - Useful for understanding data model balance
-- **Why Lower Priority**:
-  - Technical analysis view (less frequently accessed)
-  - Size ranges might be better compared as bars
-  - Already has multiple other visualization tabs (treemap, dotplot)
-- **Implementation Notes**:
-  - Line ~812 in dataObjectSizeAnalysisView.js
-  - Uses originalSummaryData
-  - Colors: Gray, Green, Orange, Red
 
 ## Not Suitable for Pie Chart
 
