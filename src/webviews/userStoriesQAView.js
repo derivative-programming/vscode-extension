@@ -1121,17 +1121,26 @@ function renderForecastGantt(forecastData) {
     if (!vizDiv) return;
     vizDiv.innerHTML = "";
     
-    // Set dimensions - make chart much wider for hourly view
-    const margin = { top: 40, right: 20, bottom: 80, left: 150 };
+    // Set dimensions
+    const margin = { top: 60, right: 40, bottom: 20, left: 100 };
     
-    // Calculate required width based on time span (aim for ~60px per hour)
+    // Calculate time span and dimensions
     const minDate = d3.min(forecastData, d => d.startDate);
     const maxDate = d3.max(forecastData, d => d.endDate);
-    const timeSpanHours = (maxDate - minDate) / (1000 * 60 * 60);
-    const calculatedWidth = Math.max(vizDiv.clientWidth - margin.left - margin.right, timeSpanHours * 60);
     
-    const width = calculatedWidth;
-    const height = Math.max(400, forecastData.length * 40) - margin.top - margin.bottom;
+    // Start from beginning of first hour, end at end of last hour
+    const startDate = new Date(minDate);
+    startDate.setMinutes(0, 0, 0);
+    const endDate = new Date(maxDate);
+    endDate.setMinutes(59, 59, 999);
+    
+    // Calculate total hours
+    const totalHours = Math.ceil((endDate - startDate) / (1000 * 60 * 60));
+    
+    // Set column width for each hour
+    const hourWidth = 30;
+    const width = totalHours * hourWidth;
+    const height = forecastData.length * 35;
     
     // Create SVG
     const svg = d3.select("#forecast-gantt")
@@ -1141,124 +1150,162 @@ function renderForecastGantt(forecastData) {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
-    // Create scales (minDate, maxDate, timeSpanHours already calculated above)
+    // Create scales
     const xScale = d3.scaleTime()
-        .domain([minDate, maxDate])
+        .domain([startDate, endDate])
         .range([0, width]);
     
     const yScale = d3.scaleBand()
         .domain(forecastData.map(d => d.storyNumber))
         .range([0, height])
-        .padding(0.2);
+        .padding(0.15);
     
     // Define color scale for testers
     const colorScale = d3.scaleOrdinal()
         .domain([...new Set(forecastData.map(d => d.testerIndex))])
         .range(d3.schemeCategory10);
     
-    // Add X axis with hours
-    // Determine appropriate tick interval based on time span
-    let tickInterval;
-    let tickFormat;
-    
-    if (timeSpanHours <= 48) {
-        // Less than 2 days: show every 2 hours
-        tickInterval = d3.timeHour.every(2);
-        tickFormat = d3.timeFormat("%I %p");
-    } else if (timeSpanHours <= 168) {
-        // Less than 1 week: show every 4 hours
-        tickInterval = d3.timeHour.every(4);
-        tickFormat = d3.timeFormat("%m/%d %I %p");
-    } else {
-        // More than 1 week: show every 8 hours
-        tickInterval = d3.timeHour.every(8);
-        tickFormat = d3.timeFormat("%m/%d %I %p");
+    // Create array of all hours in range
+    const allHours = [];
+    let currentHour = new Date(startDate);
+    while (currentHour <= endDate) {
+        allHours.push(new Date(currentHour));
+        currentHour = new Date(currentHour.getTime() + 60 * 60 * 1000); // Add 1 hour
     }
     
-    const xAxis = d3.axisBottom(xScale)
-        .ticks(tickInterval)
-        .tickFormat(tickFormat);
+    // Group hours by day for day headers
+    const dayGroups = [];
+    let currentDayKey = null;
+    let dayStart = 0;
     
-    svg.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis)
-        .selectAll("text")
-        .attr("transform", "rotate(-45)")
-        .style("text-anchor", "end")
-        .style("font-size", "10px");
-    
-    // Add Y axis
-    svg.append("g")
-        .call(d3.axisLeft(yScale));
-    
-    // Add grid lines (vertical lines for each hour tick)
-    svg.append("g")
-        .attr("class", "grid")
-        .attr("opacity", 0.1)
-        .call(d3.axisBottom(xScale)
-            .ticks(tickInterval)
-            .tickSize(height)
-            .tickFormat("")
-        );
-    
-    // Add day separator lines (darker vertical lines at midnight)
-    const dayStarts = [];
-    let currentDate = new Date(minDate);
-    currentDate.setHours(0, 0, 0, 0);
-    currentDate.setDate(currentDate.getDate() + 1); // Start from next day
-    
-    while (currentDate <= maxDate) {
-        dayStarts.push(new Date(currentDate));
-        currentDate.setDate(currentDate.getDate() + 1);
+    allHours.forEach((hour, index) => {
+        const dayKey = d3.timeFormat("%Y-%m-%d")(hour);
+        if (dayKey !== currentDayKey) {
+            if (currentDayKey !== null) {
+                dayGroups.push({ 
+                    date: new Date(allHours[dayStart]), 
+                    start: dayStart, 
+                    end: index - 1 
+                });
+            }
+            currentDayKey = dayKey;
+            dayStart = index;
+        }
+    });
+    if (currentDayKey !== null) {
+        dayGroups.push({ 
+            date: new Date(allHours[dayStart]), 
+            start: dayStart, 
+            end: allHours.length - 1 
+        });
     }
     
-    svg.selectAll(".day-separator")
-        .data(dayStarts)
-        .enter()
-        .append("line")
-        .attr("class", "day-separator")
-        .attr("x1", d => xScale(d))
-        .attr("x2", d => xScale(d))
-        .attr("y1", 0)
-        .attr("y2", height)
-        .attr("stroke", "#666")
-        .attr("stroke-width", 1)
-        .attr("stroke-dasharray", "3,3")
-        .attr("opacity", 0.3);
-    
-    // Add day labels at the top
-    svg.selectAll(".day-label")
-        .data(dayStarts)
-        .enter()
-        .append("text")
-        .attr("class", "day-label")
-        .attr("x", d => xScale(d))
-        .attr("y", -25)
-        .attr("text-anchor", "start")
-        .attr("font-size", "11px")
-        .attr("font-weight", "bold")
-        .attr("fill", "#666")
-        .text(d => d3.timeFormat("%b %d, %Y")(d));
-    
-    // Add today marker
-    const today = new Date();
-    if (today >= minDate && today <= maxDate) {
-        svg.append("line")
-            .attr("x1", xScale(today))
-            .attr("x2", xScale(today))
-            .attr("y1", 0)
-            .attr("y2", height)
-            .attr("stroke", "red")
-            .attr("stroke-width", 2)
-            .attr("stroke-dasharray", "5,5");
+    // Draw day headers
+    dayGroups.forEach(day => {
+        const x1 = day.start * hourWidth;
+        const x2 = (day.end + 1) * hourWidth;
+        
+        svg.append("rect")
+            .attr("x", x1)
+            .attr("y", -50)
+            .attr("width", x2 - x1)
+            .attr("height", 20)
+            .attr("fill", "#f0f0f0")
+            .attr("stroke", "#999");
         
         svg.append("text")
-            .attr("x", xScale(today))
-            .attr("y", -10)
+            .attr("x", (x1 + x2) / 2)
+            .attr("y", -35)
             .attr("text-anchor", "middle")
-            .attr("fill", "red")
-            .attr("font-size", "12px")
-            .text("Today");
+            .attr("font-size", "11px")
+            .attr("font-weight", "bold")
+            .text(d3.timeFormat("%b %d, %Y")(day.date));
+    });
+    
+    // Draw hour headers (show hour number 0-23)
+    svg.selectAll(".hour-header")
+        .data(allHours)
+        .enter()
+        .append("text")
+        .attr("class", "hour-header")
+        .attr("x", (d, i) => i * hourWidth + hourWidth / 2)
+        .attr("y", -15)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "9px")
+        .text(d => d3.timeFormat("%H")(d));
+    
+    // Draw vertical grid lines for each hour
+    svg.selectAll(".hour-line")
+        .data(allHours)
+        .enter()
+        .append("line")
+        .attr("class", "hour-line")
+        .attr("x1", (d, i) => i * hourWidth)
+        .attr("x2", (d, i) => i * hourWidth)
+        .attr("y1", 0)
+        .attr("y2", height)
+        .attr("stroke", "#e0e0e0")
+        .attr("stroke-width", 0.5);
+    
+    // Highlight non-working hours (based on default 9-5 schedule)
+    svg.selectAll(".non-working")
+        .data(allHours.filter(h => {
+            const hour = h.getHours();
+            return hour < 9 || hour >= 17;
+        }))
+        .enter()
+        .append("rect")
+        .attr("class", "non-working")
+        .attr("x", d => {
+            const hourIndex = allHours.findIndex(hour => hour.getTime() === d.getTime());
+            return hourIndex * hourWidth;
+        })
+        .attr("y", 0)
+        .attr("width", hourWidth)
+        .attr("height", height)
+        .attr("fill", "#f5f5f5")
+        .attr("opacity", 0.5);
+    
+    // Draw story name labels on Y-axis
+    svg.selectAll(".story-label")
+        .data(forecastData)
+        .enter()
+        .append("text")
+        .attr("class", "story-label")
+        .attr("x", -5)
+        .attr("y", d => yScale(d.storyNumber) + yScale.bandwidth() / 2)
+        .attr("text-anchor", "end")
+        .attr("dominant-baseline", "middle")
+        .attr("font-size", "11px")
+        .text(d => "Story " + d.storyNumber);
+    
+    // Add current hour marker
+    const now = new Date();
+    if (now >= startDate && now <= endDate) {
+        const currentHourIndex = allHours.findIndex(h => 
+            h.getFullYear() === now.getFullYear() &&
+            h.getMonth() === now.getMonth() &&
+            h.getDate() === now.getDate() &&
+            h.getHours() === now.getHours()
+        );
+        
+        if (currentHourIndex >= 0) {
+            svg.append("rect")
+                .attr("x", currentHourIndex * hourWidth)
+                .attr("y", -50)
+                .attr("width", hourWidth)
+                .attr("height", height + 50)
+                .attr("fill", "orange")
+                .attr("opacity", 0.2);
+            
+            svg.append("line")
+                .attr("x1", currentHourIndex * hourWidth)
+                .attr("x2", currentHourIndex * hourWidth)
+                .attr("y1", -50)
+                .attr("y2", height)
+                .attr("stroke", "orange")
+                .attr("stroke-width", 2);
+        }
     }
     
     // Create tooltip
@@ -1267,7 +1314,7 @@ function renderForecastGantt(forecastData) {
         .attr("class", "gantt-tooltip")
         .style("display", "none");
     
-    // Add bars
+    // Add bars for each story
     svg.selectAll(".bar")
         .data(forecastData)
         .enter()
@@ -1275,28 +1322,32 @@ function renderForecastGantt(forecastData) {
         .attr("class", "bar")
         .attr("x", d => xScale(d.startDate))
         .attr("y", d => yScale(d.storyNumber))
-        .attr("width", d => xScale(d.endDate) - xScale(d.startDate))
+        .attr("width", d => Math.max(2, xScale(d.endDate) - xScale(d.startDate)))
         .attr("height", yScale.bandwidth())
         .attr("fill", d => colorScale(d.testerIndex))
-        .attr("opacity", 0.8)
-        .attr("stroke", "#000")
-        .attr("stroke-width", 1)
+        .attr("opacity", 0.85)
+        .attr("stroke", "#333")
+        .attr("stroke-width", 0.5)
+        .attr("rx", 3)
+        .attr("ry", 3)
         .attr("cursor", "pointer")
         .on("mouseover", function(event, d) {
-            d3.select(this).attr("opacity", 1);
-            const duration = ((d.endDate - d.startDate) / (1000 * 60 * 60)).toFixed(2);
+            d3.select(this).attr("opacity", 1).attr("stroke-width", 1.5);
+            const duration = ((d.endDate - d.startDate) / (1000 * 60 * 60)).toFixed(1);
+            const startTime = d3.timeFormat("%b %d, %I:%M %p")(d.startDate);
+            const endTime = d3.timeFormat("%b %d, %I:%M %p")(d.endDate);
             tooltip.style("display", "block")
                 .html("<strong>Story " + d.storyNumber + "</strong><br/>" +
                     (d.storyName || "No name") + "<br/>" +
-                    "<strong>Start:</strong> " + d.startDate.toLocaleString() + "<br/>" +
-                    "<strong>End:</strong> " + d.endDate.toLocaleString() + "<br/>" +
-                    "<strong>Duration:</strong> " + duration + " hours<br/>" +
+                    "<strong>Start:</strong> " + startTime + "<br/>" +
+                    "<strong>End:</strong> " + endTime + "<br/>" +
+                    "<strong>Duration:</strong> " + duration + " hrs<br/>" +
                     "<strong>Tester:</strong> Tester " + (d.testerIndex + 1))
                 .style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY - 10) + "px");
         })
         .on("mouseout", function() {
-            d3.select(this).attr("opacity", 0.8);
+            d3.select(this).attr("opacity", 0.85).attr("stroke-width", 0.5);
             tooltip.style("display", "none");
         })
         .on("click", function(event, d) {
@@ -1307,18 +1358,28 @@ function renderForecastGantt(forecastData) {
             }
         });
     
-    // Add labels on bars
+    // Add tester avatars/labels on bars (only if bar is wide enough)
     svg.selectAll(".bar-label")
         .data(forecastData)
         .enter()
         .append("text")
         .attr("class", "bar-label")
-        .attr("x", d => xScale(d.startDate) + (xScale(d.endDate) - xScale(d.startDate)) / 2)
+        .attr("x", d => {
+            const barWidth = xScale(d.endDate) - xScale(d.startDate);
+            return barWidth > 15 ? xScale(d.startDate) + barWidth / 2 : xScale(d.startDate) - 15;
+        })
         .attr("y", d => yScale(d.storyNumber) + yScale.bandwidth() / 2)
-        .attr("text-anchor", "middle")
+        .attr("text-anchor", d => {
+            const barWidth = xScale(d.endDate) - xScale(d.startDate);
+            return barWidth > 15 ? "middle" : "end";
+        })
         .attr("dominant-baseline", "middle")
-        .attr("fill", "#fff")
-        .attr("font-size", "10px")
+        .attr("fill", d => {
+            const barWidth = xScale(d.endDate) - xScale(d.startDate);
+            return barWidth > 15 ? "#fff" : "#666";
+        })
+        .attr("font-size", "9px")
+        .attr("font-weight", "bold")
         .attr("pointer-events", "none")
         .text(d => "T" + (d.testerIndex + 1));
 }
