@@ -337,6 +337,126 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             text-align: left;
                             display: inline-block;
                         }
+                        
+                        /* Histogram container styles */
+                        .histogram-container {
+                            padding: 20px;
+                            background: var(--vscode-editor-background);
+                        }
+                        
+                        .histogram-header {
+                            margin-bottom: 20px;
+                        }
+                        
+                        .histogram-header-content {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-start;
+                            gap: 15px;
+                        }
+                        
+                        .histogram-title {
+                            flex: 1;
+                        }
+                        
+                        .histogram-title h3 {
+                            margin: 0 0 5px 0;
+                            color: var(--vscode-foreground);
+                            font-size: 18px;
+                            font-weight: 500;
+                        }
+                        
+                        .histogram-title p {
+                            margin: 0;
+                            color: var(--vscode-descriptionForeground);
+                            font-size: 13px;
+                        }
+                        
+                        .histogram-actions {
+                            display: flex;
+                            gap: 8px;
+                            align-items: center;
+                        }
+                        
+                        .histogram-refresh-button {
+                            background: none !important;
+                        }
+                        
+                        .histogram-viz {
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                            margin-bottom: 20px;
+                            padding: 10px;
+                            background: var(--vscode-editor-background);
+                        }
+                        
+                        .histogram-viz.hidden {
+                            display: none;
+                        }
+                        
+                        .loading {
+                            text-align: center;
+                            padding: 40px;
+                            color: var(--vscode-descriptionForeground);
+                            font-style: italic;
+                        }
+                        
+                        .loading.hidden {
+                            display: none;
+                        }
+                        
+                        /* QA Distribution Summary Stats */
+                        .qa-distribution-summary {
+                            margin-top: 20px;
+                            padding: 15px;
+                            background: var(--vscode-editor-inactiveSelectionBackground);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                        }
+                        
+                        .summary-stats {
+                            display: flex;
+                            gap: 30px;
+                            flex-wrap: wrap;
+                        }
+                        
+                        .stat-item {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 5px;
+                        }
+                        
+                        .stat-label {
+                            font-size: 12px;
+                            color: var(--vscode-descriptionForeground);
+                            font-weight: 500;
+                        }
+                        
+                        .stat-value {
+                            font-size: 20px;
+                            color: var(--vscode-foreground);
+                            font-weight: 600;
+                        }
+                        
+                        .stat-value.success {
+                            color: #28a745;
+                        }
+                        
+                        /* QA Distribution tooltip */
+                        .qa-distribution-tooltip {
+                            position: absolute;
+                            background: var(--vscode-editorHoverWidget-background);
+                            border: 1px solid var(--vscode-editorHoverWidget-border);
+                            border-radius: 4px;
+                            padding: 10px;
+                            font-size: 12px;
+                            color: var(--vscode-editorHoverWidget-foreground);
+                            pointer-events: none;
+                            z-index: 1000;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                            line-height: 1.5;
+                        }
+                        
                         table { border-collapse: collapse; width: 100%; margin-top: 1em; }
                         th, td { border: 1px solid var(--vscode-editorWidget-border); padding: 8px 12px; text-align: left; }
                         th { background: var(--vscode-sideBar-background); cursor: pointer; font-weight: bold; }
@@ -357,7 +477,7 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             opacity: 0.6;
                             cursor: not-allowed;
                         }
-                        button:hover:not(:disabled):not(.filter-button-secondary) {
+                        button:hover:not(:disabled):not(.filter-button-secondary):not(.tab) {
                             background-color: var(--vscode-button-hoverBackground);
                         }
                         .qa-status-select {
@@ -408,8 +528,50 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         }
                         
                         .icon-button:focus {
-                            outline: 1px solid var(--vscode-focusBorder);
-                            outline-offset: 2px;
+                            outline: none;
+                        }
+                        
+                        .icon-button:active {
+                            outline: none;
+                            border: none;
+                        }
+                        
+                        /* Override PNG button hover to prevent blue background */
+                        #generateQADistributionPngBtn:hover {
+                            background: var(--vscode-toolbar-hoverBackground) !important;
+                        }
+                        
+                        /* Processing overlay for histogram refresh */
+                        .histogram-processing-overlay {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: rgba(0, 0, 0, 0.3);
+                            display: none;
+                            align-items: center;
+                            justify-content: center;
+                            z-index: 1000;
+                            border-radius: 4px;
+                        }
+                        
+                        .histogram-processing-overlay.active {
+                            display: flex;
+                        }
+                        
+                        .histogram-processing-spinner {
+                            width: 40px;
+                            height: 40px;
+                            border: 4px solid rgba(255, 255, 255, 0.3);
+                            border-top: 4px solid var(--vscode-progressBar-background);
+                            border-radius: 50%;
+                            animation: spin 1s linear infinite;
+                        }
+                        
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
                         }
                         
                         .filter-section {
@@ -790,15 +952,47 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     </div>
 
                     <div id="analysis-tab" class="tab-content">
-                        <div class="empty-state">
-                            <h3>Analysis Coming Soon</h3>
-                            <p>This tab will display:</p>
-                            <ul>
-                                <li>QA status distribution metrics (Pending, Ready to Test, Started, Success, Failure)</li>
-                                <li>Success rate percentage</li>
-                                <li>Pie chart visualization by status</li>
-                                <li>Trend analysis over time</li>
-                            </ul>
+                        <div class="histogram-container" style="position: relative;">
+                            <div class="histogram-header">
+                                <div class="histogram-header-content">
+                                    <div class="histogram-title">
+                                        <h3>QA Status Distribution</h3>
+                                        <p>Distribution of user stories across QA testing statuses</p>
+                                    </div>
+                                    <div class="histogram-actions">
+                                        <button id="refreshQADistributionButton" class="icon-button histogram-refresh-button" title="Refresh Distribution">
+                                            <i class="codicon codicon-refresh"></i>
+                                        </button>
+                                        <button id="generateQADistributionPngBtn" class="icon-button" title="Export as PNG">
+                                            <i class="codicon codicon-device-camera"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="qa-distribution-processing" class="histogram-processing-overlay">
+                                <div class="histogram-processing-spinner"></div>
+                            </div>
+                            
+                            <div id="qa-distribution-loading" class="loading">Loading QA status distribution...</div>
+                            <div id="qa-distribution-visualization" class="histogram-viz hidden"></div>
+                            
+                            <div class="qa-distribution-summary">
+                                <div class="summary-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Total Stories:</span>
+                                        <span class="stat-value" id="totalQAStories">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Success Rate:</span>
+                                        <span class="stat-value success" id="qaSuccessRate">0%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Completion Rate:</span>
+                                        <span class="stat-value" id="qaCompletionRate">0%</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -806,6 +1000,7 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         <div class="spinner"></div>
                     </div>
 
+                    <script src="https://d3js.org/d3.v7.min.js"></script>
                     <script src="${scriptUri}"></script>
                 </body>
                 </html>
@@ -994,6 +1189,42 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             } catch (error) {
                                 console.error("[Extension] Error saving CSV to workspace:", error);
                                 vscode.window.showErrorMessage('Failed to save CSV to workspace: ' + error.message);
+                            }
+                            break;
+
+                        case 'saveQADistributionPNG':
+                            try {
+                                console.log("[Extension] UserStoriesQA saveQADistributionPNG requested");
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    throw new Error('No workspace folder is open');
+                                }
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const reportDir = path.join(workspaceRoot, 'user_story_reports');
+                                if (!fs.existsSync(reportDir)) {
+                                    fs.mkdirSync(reportDir, { recursive: true });
+                                }
+                                
+                                // Extract base64 data
+                                const base64Data = message.data.base64.replace(/^data:image\/png;base64,/, '');
+                                const buffer = Buffer.from(base64Data, 'base64');
+                                
+                                // Generate filename
+                                const timestamp = new Date().toISOString().split('T')[0];
+                                const filename = `qa-status-distribution-${timestamp}.png`;
+                                const filePath = path.join(reportDir, filename);
+                                
+                                // Write file
+                                fs.writeFileSync(filePath, buffer);
+                                
+                                // Show success message and open file
+                                vscode.window.showInformationMessage('PNG file saved to workspace: ' + filePath);
+                                vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+                                
+                                console.log("[Extension] PNG saved successfully to", filePath);
+                            } catch (error) {
+                                console.error("[Extension] Error saving PNG to workspace:", error);
+                                vscode.window.showErrorMessage('Failed to save PNG to workspace: ' + error.message);
                             }
                             break;
 

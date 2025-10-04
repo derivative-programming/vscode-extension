@@ -92,6 +92,293 @@ function clearFilters() {
     renderRecordInfo();
 }
 
+// Calculate QA status distribution from current data
+function calculateQAStatusDistribution() {
+    const distribution = {
+        'pending': 0,
+        'ready-to-test': 0,
+        'started': 0,
+        'success': 0,
+        'failure': 0
+    };
+    
+    // Count items by status
+    allItems.forEach(item => {
+        const status = item.qaStatus || 'pending';
+        if (distribution.hasOwnProperty(status)) {
+            distribution[status]++;
+        }
+    });
+    
+    return distribution;
+}
+
+// Get semantic color for QA status
+function getQAStatusColor(value) {
+    const colors = {
+        'pending': '#858585',       // Gray
+        'ready-to-test': '#0078d4', // Blue
+        'started': '#f39c12',        // Orange
+        'success': '#28a745',        // Green
+        'failure': '#d73a49'         // Red
+    };
+    return colors[value] || '#858585';
+}
+
+// Update QA summary statistics
+function updateQASummaryStats(distribution) {
+    const totalStories = Object.values(distribution).reduce((sum, count) => sum + count, 0);
+    const successCount = distribution.success || 0;
+    const completedCount = (distribution.success || 0) + (distribution.failure || 0);
+    
+    const successRate = totalStories > 0 ? ((successCount / totalStories) * 100).toFixed(1) : '0.0';
+    const completionRate = totalStories > 0 ? ((completedCount / totalStories) * 100).toFixed(1) : '0.0';
+    
+    // Update DOM
+    const totalStoriesEl = document.getElementById('qa-total-stories');
+    const successRateEl = document.getElementById('qa-success-rate');
+    const completionRateEl = document.getElementById('qa-completion-rate');
+    
+    if (totalStoriesEl) {
+        totalStoriesEl.textContent = totalStories;
+    }
+    if (successRateEl) {
+        successRateEl.textContent = successRate + '%';
+    }
+    if (completionRateEl) {
+        completionRateEl.textContent = completionRate + '%';
+    }
+}
+
+// Render QA status distribution histogram
+function renderQAStatusDistributionHistogram() {
+    console.log('[userStoriesQAView] Rendering QA status distribution histogram');
+    
+    const vizDiv = document.getElementById('qa-distribution-visualization');
+    const loadingDiv = document.getElementById('qa-distribution-loading');
+    
+    if (!vizDiv) {
+        console.warn('[userStoriesQAView] qa-distribution-visualization div not found');
+        return;
+    }
+    
+    // Show loading, hide visualization
+    if (loadingDiv) {
+        loadingDiv.classList.remove('hidden');
+    }
+    vizDiv.classList.add('hidden');
+    
+    // Clear previous SVG
+    vizDiv.innerHTML = '';
+    
+    // Calculate distribution
+    const distribution = calculateQAStatusDistribution();
+    updateQASummaryStats(distribution);
+    
+    // Fixed status order (workflow-based)
+    const statusOrder = ['pending', 'ready-to-test', 'started', 'success', 'failure'];
+    const statusLabels = {
+        'pending': 'Pending',
+        'ready-to-test': 'Ready to Test',
+        'started': 'Started',
+        'success': 'Success',
+        'failure': 'Failure'
+    };
+    
+    // Prepare data array
+    const data = statusOrder.map(status => ({
+        status: status,
+        label: statusLabels[status],
+        count: distribution[status] || 0,
+        color: getQAStatusColor(status)
+    }));
+    
+    // D3.js rendering
+    const margin = { top: 20, right: 20, bottom: 60, left: 60 };
+    const width = Math.max(600, vizDiv.clientWidth - 40) - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+    
+    const svg = d3.select('#qa-distribution-visualization')
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    
+    // X scale
+    const x = d3.scaleBand()
+        .domain(data.map(d => d.label))
+        .range([0, width])
+        .padding(0.2);
+    
+    // Y scale
+    const maxCount = d3.max(data, d => d.count) || 1;
+    const y = d3.scaleLinear()
+        .domain([0, maxCount])
+        .nice()
+        .range([height, 0]);
+    
+    // X axis
+    svg.append('g')
+        .attr('transform', 'translate(0,' + height + ')')
+        .call(d3.axisBottom(x))
+        .selectAll('text')
+        .style('text-anchor', 'end')
+        .attr('dx', '-.8em')
+        .attr('dy', '.15em')
+        .attr('transform', 'rotate(-45)')
+        .attr('fill', 'var(--vscode-editor-foreground)')
+        .style('font-size', '11px');
+    
+    // Y axis
+    svg.append('g')
+        .call(d3.axisLeft(y).ticks(5))
+        .selectAll('text')
+        .attr('fill', 'var(--vscode-editor-foreground)');
+    
+    // Y axis label
+    svg.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', 0 - margin.left)
+        .attr('x', 0 - (height / 2))
+        .attr('dy', '1em')
+        .style('text-anchor', 'middle')
+        .style('fill', 'var(--vscode-editor-foreground)')
+        .style('font-size', '12px')
+        .text('Number of Stories');
+    
+    // Style axis lines
+    svg.selectAll('.domain, .tick line')
+        .attr('stroke', 'var(--vscode-panel-border)');
+    
+    // Create tooltip div if it doesn't exist
+    let tooltip = d3.select('.qa-distribution-tooltip');
+    if (tooltip.empty()) {
+        tooltip = d3.select('body')
+            .append('div')
+            .attr('class', 'qa-distribution-tooltip')
+            .style('opacity', 0);
+    }
+    
+    // Bars
+    svg.selectAll('.bar')
+        .data(data)
+        .enter()
+        .append('rect')
+        .attr('class', 'bar')
+        .attr('x', d => x(d.label))
+        .attr('width', x.bandwidth())
+        .attr('y', d => y(d.count))
+        .attr('height', d => height - y(d.count))
+        .attr('fill', d => d.color)
+        .style('cursor', 'pointer')
+        .on('mouseover', function(event, d) {
+            d3.select(this).style('opacity', 0.8);
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', 1);
+            
+            const totalStories = data.reduce((sum, item) => sum + item.count, 0);
+            const percentage = totalStories > 0 ? ((d.count / totalStories) * 100).toFixed(1) : '0.0';
+            
+            tooltip.html('<strong>' + d.label + '</strong><br/>Count: ' + d.count + '<br/>Percentage: ' + percentage + '%')
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function() {
+            d3.select(this).style('opacity', 1);
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        });
+    
+    // Count labels on bars
+    svg.selectAll('.bar-label')
+        .data(data)
+        .enter()
+        .append('text')
+        .attr('class', 'bar-label')
+        .attr('x', d => x(d.label) + x.bandwidth() / 2)
+        .attr('y', d => y(d.count) - 5)
+        .attr('text-anchor', 'middle')
+        .text(d => d.count)
+        .attr('fill', 'var(--vscode-editor-foreground)')
+        .attr('font-size', '12px')
+        .attr('font-weight', 'bold');
+    
+    // Hide loading, show visualization
+    if (loadingDiv) {
+        loadingDiv.classList.add('hidden');
+    }
+    vizDiv.classList.remove('hidden');
+    
+    console.log('[userStoriesQAView] QA status distribution histogram rendered successfully');
+}
+
+// Generate PNG from QA distribution histogram
+function generateQADistributionPNG() {
+    console.log('[userStoriesQAView] Generating QA distribution PNG');
+    
+    const svgElement = document.querySelector('#qa-distribution-visualization svg');
+    if (!svgElement) {
+        console.error('[userStoriesQAView] SVG element not found for PNG generation');
+        alert('Please render the histogram first');
+        return;
+    }
+    
+    // Serialize SVG to string
+    const serializer = new XMLSerializer();
+    let svgString = serializer.serializeToString(svgElement);
+    
+    // Add XML declaration if not present
+    if (!svgString.startsWith('<?xml')) {
+        svgString = '<?xml version="1.0" encoding="UTF-8"?>' + svgString;
+    }
+    
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    const svgRect = svgElement.getBoundingClientRect();
+    canvas.width = svgRect.width * 2; // 2x for better quality
+    canvas.height = svgRect.height * 2;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+    
+    // Fill with white background (not transparent)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, svgRect.width, svgRect.height);
+    
+    // Create image from SVG
+    const img = new Image();
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    
+    img.onload = function() {
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+        
+        // Convert canvas to base64 PNG
+        const pngDataUrl = canvas.toDataURL('image/png');
+        
+        // Send to extension
+        vscode.postMessage({
+            command: 'saveQADistributionPNG',
+            data: {
+                base64: pngDataUrl
+            }
+        });
+        
+        console.log('[userStoriesQAView] PNG data sent to extension');
+    };
+    
+    img.onerror = function(error) {
+        console.error('[userStoriesQAView] Error loading SVG for PNG conversion:', error);
+        alert('Error generating PNG image');
+    };
+    
+    img.src = url;
+}
+
 // Initialize tab functionality
 function initializeTabs() {
     const tabs = document.querySelectorAll('.tab');
@@ -116,8 +403,9 @@ function switchTab(tabName) {
     
     // Handle tab-specific logic
     if (tabName === 'analysis') {
-        // Future: Load analysis data
-        console.log('Analysis tab selected - placeholder for future analytics');
+        // Render QA status distribution histogram
+        console.log('[userStoriesQAView] Analysis tab selected - rendering histogram');
+        renderQAStatusDistributionHistogram();
     }
 }
 
@@ -701,6 +989,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         refreshButton.addEventListener("mouseleave", function() {
             refreshButton.style.background = "none";
+        });
+    }
+    
+    // Setup histogram refresh button
+    const refreshQADistributionButton = document.getElementById('refreshQADistributionButton');
+    if (refreshQADistributionButton) {
+        refreshQADistributionButton.addEventListener('click', function() {
+            console.log('[userStoriesQAView] Refreshing QA distribution histogram');
+            
+            // Show processing overlay
+            const processingOverlay = document.getElementById('qa-distribution-processing');
+            if (processingOverlay) {
+                processingOverlay.classList.add('active');
+            }
+            
+            // Use setTimeout to allow overlay to show before rendering
+            setTimeout(function() {
+                renderQAStatusDistributionHistogram();
+                
+                // Hide processing overlay after render
+                if (processingOverlay) {
+                    processingOverlay.classList.remove('active');
+                }
+            }, 50);
+        });
+    }
+    
+    // Setup PNG generation button
+    const generateQADistributionPngBtn = document.getElementById('generateQADistributionPngBtn');
+    if (generateQADistributionPngBtn) {
+        generateQADistributionPngBtn.addEventListener('click', function() {
+            console.log('[userStoriesQAView] Generate PNG button clicked');
+            generateQADistributionPNG();
         });
     }
     
