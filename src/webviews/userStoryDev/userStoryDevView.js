@@ -58,22 +58,39 @@ function switchTab(tabName) {
     event.target.classList.add('active');
     currentTab = tabName;
 
-    // Render tab-specific content
+    // Render tab-specific content and refresh data
     switch (tabName) {
         case 'details':
             renderDetailsTab();
+            // Auto-refresh data from extension
+            if (typeof refreshData === 'function') {
+                refreshData();
+            }
             break;
         case 'analysis':
             renderAnalysisTab();
+            // Auto-refresh analytics calculations
+            if (typeof refreshAnalytics === 'function') {
+                refreshAnalytics();
+            }
             break;
         case 'board':
             renderBoardTab();
+            // Auto-refresh board layout
+            if (typeof refreshBoard === 'function') {
+                refreshBoard();
+            }
             break;
         case 'sprint':
             renderSprintTab();
+            // Sprint tab renders fresh data, no additional refresh needed
             break;
         case 'forecast':
             renderForecastTab();
+            // Auto-refresh forecast calculations
+            if (typeof refreshForecast === 'function') {
+                refreshForecast();
+            }
             break;
     }
 }

@@ -178,7 +178,7 @@ function calculateStorySchedules(stories, config, startDate) {
         
         schedules.push({
             storyId: story.storyNumber || story.id,
-            storyText: story.story,
+            storyText: story.storyText || story.story || '',
             priority: story.priority,
             devStatus: story.devStatus,
             storyPoints,
@@ -186,7 +186,7 @@ function calculateStorySchedules(stories, config, startDate) {
             daysNeeded,
             startDate: storyStartDate,
             endDate: storyEndDate,
-            developer: story.developer || "Unassigned",
+            developer: story.assignedTo || story.developer || "Unassigned",
             dependencies: story.dependencies || []
         });
         

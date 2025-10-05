@@ -1331,6 +1331,7 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     gap: 16px;
                     margin-bottom: 16px;
                     flex-wrap: wrap;
+                    justify-content: space-between;
                 }
 
                 .action-group {
@@ -1870,6 +1871,68 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 }
 
                 /* Analysis Tab Styles */
+                .analysis-container {
+                    padding: 0;
+                }
+
+                .analysis-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+
+                .analysis-header h3 {
+                    margin: 0;
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: var(--vscode-foreground);
+                }
+
+                .analysis-controls {
+                    display: flex;
+                    gap: 8px;
+                }
+
+                .metrics-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 16px;
+                    margin-bottom: 24px;
+                }
+
+                .charts-section {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 24px;
+                }
+
+                .chart-subtitle {
+                    font-size: 12px;
+                    color: var(--vscode-descriptionForeground);
+                    font-weight: normal;
+                }
+
+                .chart-large {
+                    grid-column: 1 / -1;
+                }
+
+                .data-table-section {
+                    margin-top: 24px;
+                }
+
+                .table-header {
+                    margin-bottom: 12px;
+                }
+
+                .table-header h4 {
+                    margin: 0;
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: var(--vscode-foreground);
+                }
+
                 .analytics-header {
                     display: flex;
                     justify-content: space-between;
@@ -1964,11 +2027,18 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
 
                 .chart-header {
                     display: flex;
-                    align-items: center;
-                    gap: 8px;
+                    flex-direction: column;
+                    gap: 4px;
                     margin-bottom: 12px;
                     padding-bottom: 8px;
                     border-bottom: 1px solid var(--vscode-panel-border);
+                }
+
+                .chart-header h4 {
+                    margin: 0;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: var(--vscode-foreground);
                 }
 
                 .chart-title {

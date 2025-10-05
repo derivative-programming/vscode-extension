@@ -334,7 +334,7 @@ function renderGanttD3Chart(schedules, containerId) {
         .attr("y", (d, i) => yScale(i))
         .attr("width", d => Math.max(2, xScale(d.endDate) - xScale(d.startDate)))
         .attr("height", yScale.bandwidth())
-        .attr("fill", d => developerColorScale(developerIndices[d.developer]))
+        .attr("fill", d => devStatusColorScale(d.devStatus))
         .attr("opacity", 0.85)
         .attr("stroke", "#333")
         .attr("stroke-width", 0.5)

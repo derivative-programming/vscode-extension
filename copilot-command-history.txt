@@ -1,5 +1,241 @@
 ================================================================================
 Date: October 5, 2025
+Command: Fix forecast data property mapping to use correct field names
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+The Gantt chart tooltip was showing incorrect dev status (e.g., "On-Hold" when 
+the actual status was "Critical" or another status). The forecast tab was not 
+properly loading the dev status data from the app-dna-user-story-dev.json file
+where status changes are saved.
+
+ROOT CAUSE:
+Property name mismatch in forecastFunctions.js when building story schedules:
+1. The combined data uses `storyText` but schedule builder was accessing `story.story`
+2. The combined data uses `assignedTo` but schedule builder was accessing `story.developer`
+
+This caused the schedule to pull the wrong property values, likely getting undefined
+or default values instead of the actual saved dev status and other fields.
+
+SOLUTION:
+Updated the schedule building in forecastFunctions.js to use the correct property
+names with fallbacks:
+
+```javascript
+storyText: story.storyText || story.story || '',
+developer: story.assignedTo || story.developer || "Unassigned",
+```
+
+This ensures:
+1. Story text is pulled from the correct property
+2. Developer/assigned-to is pulled from the correct property
+3. Fallbacks ensure compatibility if property names vary
+4. Dev status and other fields are correctly mapped from the loaded dev file
+
+PROPERTY MAPPING:
+The extension loads dev data from `app-dna-user-story-dev.json` and merges it
+with user stories from the model. The combined data structure uses:
+- `storyText` (not `story`)
+- `assignedTo` (not `developer`)
+- `devStatus` (correctly mapped)
+- `priority`, `storyPoints`, etc. (all from dev file)
+
+FILES MODIFIED:
+- src/webviews/userStoryDev/components/scripts/forecastFunctions.js
+
+VERIFICATION:
+The data flow is:
+1. Extension loads app-dna-user-story-dev.json (line 87-96 in userStoriesDevCommands.ts)
+2. Creates devLookup map from dev data (line 99-103)
+3. Merges dev data with user stories (line 194: devStatus: existingDev?.devStatus)
+4. Sends combined data to webview
+5. Forecast calculations now correctly use the merged data
+
+USER BENEFIT:
+- Gantt chart tooltips now show the correct, up-to-date dev status
+- Status changes made in the details tab are properly reflected in the forecast
+- Developer assignments are correctly displayed
+- All forecast data is synchronized with the saved dev file
+
+================================================================================
+Date: October 5, 2025
+Command: Fix Gantt chart to display dev status colors correctly
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+On the forecast tab, the Gantt chart bars were not displaying the correct dev
+status. The bars were being colored by developer assignment instead of by 
+development status, making it difficult to see which stories were on-hold, 
+in-progress, blocked, etc.
+
+ROOT CAUSE:
+In ganttChart.js, the bar fill color was using:
+  `.attr("fill", d => developerColorScale(developerIndices[d.developer]))`
+
+This colored the bars by developer, not by dev status. Although a 
+`devStatusColorScale` was defined, it was never actually used.
+
+SOLUTION:
+Changed the bar fill attribute to use dev status coloring:
+  `.attr("fill", d => devStatusColorScale(d.devStatus))`
+
+The devStatusColorScale maps statuses to colors:
+- on-hold: #858585 (gray)
+- ready-for-dev: #0078d4 (blue)
+- in-progress: #f39c12 (orange)
+- blocked: #d73a49 (red)
+- completed: #10b981 (green)
+
+VERIFICATION:
+Confirmed that storySchedules objects include devStatus property (line 183 in
+forecastFunctions.js), so the data is available for coloring.
+
+FILES MODIFIED:
+- src/webviews/userStoryDev/components/scripts/ganttChart.js (line 342)
+
+VISUAL RESULT:
+- Gantt chart bars now display with colors matching the dev status
+- Easy to identify on-hold (gray), in-progress (orange), blocked (red) stories
+- Developer information is still shown in the tooltip
+- Status is also displayed in the tooltip with proper formatting
+
+USER BENEFIT:
+Users can now quickly visualize the development status of stories in the 
+timeline, making it easier to identify bottlenecks, blocked stories, and
+overall project health at a glance.
+
+================================================================================
+Date: October 5, 2025
+Command: Implement automatic refresh when switching tabs
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+When switching between tabs in the user story dev view, the tab content was not
+automatically refreshed, requiring manual refresh button clicks to see updated
+data or recalculated analytics.
+
+SOLUTION:
+Modified the `switchTab()` function in userStoryDevView.js to automatically call
+the appropriate refresh function for each tab after rendering:
+
+1. **Details Tab**: Calls `refreshData()` to fetch fresh data from extension
+2. **Analysis Tab**: Calls `refreshAnalytics()` to recalculate charts and metrics
+3. **Board Tab**: Calls `refreshBoard()` to re-render the kanban board
+4. **Sprint Tab**: No additional refresh needed (renders fresh on switch)
+5. **Forecast Tab**: Calls `refreshForecast()` to recalculate forecast data
+
+IMPLEMENTATION DETAILS:
+- Added function existence checks (`typeof refreshData === 'function'`) to
+  prevent errors if refresh functions are not loaded
+- Each tab's refresh function is called after the initial render
+- Details tab specifically requests fresh data from the extension
+- Other tabs recalculate/re-render using the current in-memory data
+- Spinner overlays are shown during refresh operations
+
+BEHAVIOR:
+- User switches to a tab → Content renders → Data automatically refreshes
+- Eliminates need to manually click refresh buttons after switching tabs
+- Ensures user always sees the most current data/calculations when viewing a tab
+
+FILES MODIFIED:
+- src/webviews/userStoryDev/userStoryDevView.js (switchTab function)
+
+USER BENEFIT:
+Users no longer need to remember to click the refresh button when switching tabs.
+Tab data is always fresh and up-to-date automatically.
+
+================================================================================
+Date: October 5, 2025
+Command: Align Refresh button to the right in analytics tab and add missing CSS
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+The Refresh button in the user story dev view analytics tab needed to be right-
+justified. Additionally, several CSS classes used in the template were missing 
+from the webview stylesheet, causing layout issues.
+
+ROOT CAUSE:
+1. The template used `.analysis-header` but there was no corresponding CSS
+2. Missing CSS for several classes: `.analysis-container`, `.analysis-controls`,
+   `.metrics-grid`, `.charts-section`, `.chart-subtitle`, `.chart-large`, 
+   `.data-table-section`, `.table-header`
+3. The `.chart-header` was using flex-row layout but the template uses h4 and
+   subtitle in a column layout
+
+SOLUTION:
+Added comprehensive CSS for the analytics tab in userStoriesDevCommands.ts:
+
+1. **`.analysis-header`** - Uses flexbox with `justify-content: space-between`
+   to push the refresh button to the right
+   
+2. **`.analysis-controls`** - Container for the refresh button with flex display
+
+3. **`.metrics-grid`** - Grid layout for metric cards
+
+4. **`.charts-section`** - Grid layout for charts with auto-fit columns
+
+5. **`.chart-header`** - Changed to flex-column to support h4 + subtitle layout
+
+6. **Other supporting classes** - Added `.chart-subtitle`, `.chart-large`, 
+   `.data-table-section`, `.table-header` for complete tab styling
+
+CSS CHANGES:
+- Added `.analysis-container` - Container styling
+- Added `.analysis-header` - Flex layout with space-between for right alignment
+- Added `.analysis-header h3` - Header text styling
+- Added `.analysis-controls` - Controls container
+- Added `.metrics-grid` - Grid for metrics
+- Added `.charts-section` - Grid for charts
+- Added `.chart-subtitle` - Subtitle styling
+- Added `.chart-large` - Full-width charts
+- Added `.data-table-section` - Table section
+- Added `.table-header` and `.table-header h4` - Table header styling
+- Modified `.chart-header` - Changed to flex-column for proper layout
+- Added `.chart-header h4` - Header styling within charts
+
+FILES MODIFIED:
+- src/commands/userStoriesDevCommands.ts (CSS styling in getWebviewContent)
+
+VISUAL RESULT:
+- Refresh button is now right-aligned in the analytics tab header
+- "Development Analytics" title on the left, refresh button on the right
+- All charts and metrics display properly with consistent styling
+- Responsive grid layouts work correctly
+
+================================================================================
+Date: October 5, 2025
+Command: Align Download CSV and Refresh buttons to the right in details tab
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+The Download CSV and Refresh buttons in the user story dev view details tab 
+needed to be right-justified to improve the UI layout.
+
+SOLUTION:
+Added `justify-content: space-between` to the `.action-bar` CSS class in the 
+webview content. This flexbox property pushes the second `.action-group` 
+(containing the Download CSV and Refresh buttons) to the right side of the 
+action bar, while keeping the first group (Bulk action buttons) on the left.
+
+CSS CHANGE:
+- Modified `.action-bar` in userStoriesDevCommands.ts getWebviewContent()
+- Added: justify-content: space-between;
+
+FILES MODIFIED:
+- src/commands/userStoriesDevCommands.ts (CSS styling in getWebviewContent)
+
+VISUAL RESULT:
+- Bulk action buttons (Status, Priority, Assignment, Sprint) remain on the left
+- Download CSV and Refresh icon buttons are now aligned to the right
+- Layout properly responds to flex-wrap when window is narrowed
+
+================================================================================
+Date: October 5, 2025
 Command: Fix user story dev view details tab - devFilePath error
 Status: COMPLETED
 ================================================================================
