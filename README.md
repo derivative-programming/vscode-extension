@@ -16,10 +16,14 @@ Transform your development workflow: design your application model once, then ge
 
 ### 📝 Intelligent Model Editing
 - **Tree View Navigation**: Navigate your project structure with organized sections:
-  - **PROJECT**: Settings, lexicon, user stories, and MCP server management
-  - **DATA OBJECTS**: Business entities with filtering and search
-  - **PAGES**: Forms and reports (when advanced properties are enabled)
-  - **MODEL SERVICES**: AI-powered processing and code generation services
+  - **PROJECT**: Configuration settings, lexicon management, MCP servers (both stdio and HTTP)
+  - **DATA OBJECTS**: Business entities with hierarchical organization, filtering, and list views
+  - **USER STORIES**: Comprehensive story management with 8 specialized views
+  - **PAGES**: Forms and reports for UI design (advanced feature)
+  - **FLOWS**: Workflow and flow management including page init, general, DynaFlow workflows (advanced feature)
+  - **APIS**: API site management from all namespaces (advanced feature)
+  - **ANALYSIS**: Analytics dashboard with 9 analysis tools (advanced feature)
+  - **MODEL SERVICES**: AI-powered processing, validation, and code generation services
 - **Form-Based Editor**: Edit JSON properties using intuitive, dynamically generated forms
 - **Right-Click Context Menus**: Add, edit, and manage items with convenient context menus
 - **Advanced Filtering**: Filter objects, reports, and forms independently for focused navigation
@@ -31,13 +35,41 @@ Transform your development workflow: design your application model once, then ge
 - **Real-Time Updates**: Preview updates automatically as you modify your model
 - **Navigation Integration**: Seamlessly switch between preview and detailed editing
 
+### 📊 Analytics & Analysis Dashboard
+- **Comprehensive Metrics**: Project-wide metrics dashboard tracking model complexity and statistics
+- **Data Object Analysis**: Storage size requirements, usage tracking, and relationship hierarchy visualization
+- **Database Forecasting**: Configurable database growth predictions based on data object sizes and usage patterns
+- **User Story Analytics**: Role distribution analysis, user journey mapping, and page distance tracking
+- **Page Complexity Analysis**: Detailed page metrics with treemap visualizations showing element distributions
+- **QA Forecasting**: Testing schedule and forecast based on user story completion status
+
+### 🔄 Workflow & Flow Management
+- **PAGE_INIT Flows**: Manage page initialization workflows for application startup logic
+- **GENERAL Flows**: Create and edit custom general workflow definitions for business logic
+- **DynaFlow Workflows**: Advanced workflow management with DynaFlow-based conditional workflows
+- **Workflow Tasks**: Granular workflow task management for complex business processes
+- **Independent Filtering**: Filter each flow type independently with dedicated filter controls
+
+### 🌐 API Site Management
+- **Centralized API View**: Browse all API sites from all namespaces in one location
+- **API Site Details**: View and manage API site configurations including name, title, description, and version
+- **Quick Access**: Direct navigation to API site settings and configurations
+
+### 📋 List & Table Views
+- **Page List**: Comprehensive tabular view of all pages with complexity analysis, sorting, and filtering
+- **Data Object List**: Detailed data object listing with search and filter capabilities
+- **Page Init List**: Overview of all page initialization configurations
+- **Workflow List**: DynaFlow workflow overview with status and details
+- **General List**: Complete listing of general flow definitions
+
 ### ⚡ AI-Powered Code Generation
 - **Model Services Integration**: Connect to cloud-based AI services for intelligent processing
-- **Feature Catalog**: Browse and select from a library of pre-built model features
-- **AI Processing**: Submit models for AI-assisted enhancement and validation
-- **Multi-Platform Fabrication**: Generate code for .NET, Python, Web, Mobile, AR/VR (planned) applications
-- **Blueprint Catalog**: Select from fabrication templates for different application types
-- **Validation Services**: Automated model validation with improvement suggestions
+- **Model Feature Catalog**: Browse and select from a library of pre-built model features
+- **Model AI Processing**: Submit models for AI-assisted enhancement and validation
+- **Model Validation**: Automated model validation with improvement suggestions and best practice recommendations
+- **Fabrication Blueprint Catalog**: Select from fabrication templates for different application types
+- **Model Fabrication**: Generate complete source code for .NET, Python, Web, Mobile, AR/VR (planned) applications
+- **Authentication**: Secure login/logout/register functionality for accessing Model Services
 
 ### 🔧 Advanced Development Features
 - **File Watching**: Automatic detection of external file changes
@@ -123,24 +155,31 @@ User Stories has evolved into its own dedicated section with comprehensive manag
 
 #### User Stories Views
 
+- **Roles**: Direct access to the Role data object with lookup items. Manage and configure all user roles for your application.
+
 - **Role Requirements**: Manage role requirements and permissions for data objects. Define what roles can access which data objects and configure security constraints for your application.
 
 - **Stories**: Create and manage user stories with proper formatting and validation. Add, edit, and organize user stories that define your application's functionality.
 
+- **Development**: Track development progress, story points, developer assignments, and sprint planning. Monitor the implementation status of each user story.
+
 - **Page Mapping**: Map user stories to specific pages and requirements. Visualize which pages fulfill each user story and ensure comprehensive coverage of your application's functionality.
 
-- **User Journey**: Track and visualize the user journey showing which pages fulfill each story. Follow the flow of user interactions across your application.
+- **User Journey**: Track and visualize the user journey showing which pages fulfill each story. Follow the flow of user interactions across your application with navigation pattern analysis.
 
 - **Requirements Fulfillment**: Monitor required and restricted role requirements across user stories. Ensure that role-based access controls are properly implemented and validated.
 
-- **QA**: Track quality assurance status of user stories. Monitor testing progress, validation status, and completion metrics for your user stories.
+- **QA**: Track quality assurance status of user stories. Monitor testing progress, validation status, completion metrics, and QA forecasting for your user stories.
 
 ### Tree View (Sidebar)
-- **PROJECT**: Configuration settings, lexicon management, MCP servers
-- **USER STORIES**: Dedicated section with multiple specialized views (see User Stories Management above)
-- **DATA OBJECTS**: Business entities with hierarchical organization and filtering
+- **PROJECT**: Configuration settings, lexicon management, MCP servers (both stdio and HTTP)
+- **DATA OBJECTS**: Business entities with hierarchical organization, filtering, and list views
+- **USER STORIES**: Comprehensive story management with 8 specialized views (see User Stories Management above)
 - **PAGES**: Forms and reports for user interface design (advanced feature)
-- **MODEL SERVICES**: AI-powered processing, validation, and code generation services
+- **FLOWS**: Workflow and flow management including PAGE_INIT, GENERAL, WORKFLOWS, and WORKFLOW_TASKS (advanced feature)
+- **APIS**: API site management from all namespaces with quick access to configurations (advanced feature)
+- **ANALYSIS**: Analytics dashboard with 9 analysis tools including metrics, forecasting, and visualizations (advanced feature)
+- **MODEL SERVICES**: AI-powered processing, validation, and code generation services with authentication
 
 ### Detail Panels
 - **Dynamic Forms**: Property editors generated from JSON structure
@@ -191,6 +230,157 @@ The Page Preview feature is particularly useful for:
 - **Role Planning**: Understanding access patterns and user workflows
 - **Client Demos**: Showing stakeholders how the application will look and function
 - **Development Planning**: Identifying form requirements and user interactions
+
+## Analytics & Analysis Dashboard
+
+The ANALYSIS section provides comprehensive analytics and forecasting tools to help you understand your application model's complexity, structure, and growth patterns. Access these tools from the ANALYSIS tree section (requires "Show Advanced Properties" setting enabled).
+
+### Available Analysis Tools
+
+#### Metrics Analysis
+View project-wide metrics and statistics including:
+- Total count of data objects, pages, forms, reports, and workflows
+- Property and relationship counts across the model
+- Complexity metrics and model structure insights
+- Historical metric tracking with trend visualization
+
+#### Data Object Analysis
+- **Data Object Hierarchy**: Interactive diagram showing parent-child relationships between data objects with visual hierarchy representation
+- **Data Object Size**: Calculate storage requirements for each data object based on property types (int, string, datetime, etc.) with detailed breakdowns
+- **Data Object Usage**: Comprehensive cross-reference analysis showing where each data object is used across forms, reports, flows, and other components
+
+#### Forecasting Tools
+- **Database Size Forecast**: Configure expected record counts and growth rates for each data object, then predict total database storage requirements over time with detailed projections
+- **QA Forecast**: View testing schedule and forecast based on user story completion status, test case counts, and QA resource allocation
+
+#### User Story Analytics
+- **User Stories Role Distribution**: Analyze how roles are distributed across user stories with charts showing role usage patterns
+- **User Story Journey**: Visualize user journeys through the application with page distance analysis and navigation pattern tracking
+
+#### Page Analysis
+- **Page Complexity**: Detailed page metrics showing element counts (fields, buttons, parameters) with treemap visualizations displaying complexity distributions across all pages
+
+### How to Access
+- Expand the ANALYSIS section in the tree view
+- Click on any analysis tool to open its interactive view
+- Most tools include charts, graphs, and exportable data
+- Analysis results update automatically when your model changes
+
+## Workflow & Flow Management
+
+The FLOWS section provides comprehensive workflow and business logic management capabilities. Access this section from the FLOWS tree item (requires "Show Advanced Properties" setting enabled).
+
+### Flow Types
+
+#### PAGE_INIT Flows
+Page initialization workflows that execute when pages load:
+- Configure startup logic for forms and reports
+- Set initial parameter values and state
+- Define data loading and validation logic
+- Manage page-level security and access control
+- Use the Page Init List for tabular overview with filtering
+
+#### GENERAL Flows
+Custom general workflow definitions for business logic:
+- Create reusable workflow patterns
+- Define multi-step business processes
+- Configure conditional logic and branching
+- Add new general flows with `Alt+A` + general flow command
+- Use the General List for comprehensive flow overview
+
+#### WORKFLOWS (DynaFlow-based)
+Advanced workflow management for dynamic business processes:
+- Conditional feature requiring DynaFlow data object in your model
+- Define complex, stateful workflows with multiple stages
+- Configure workflow transitions and validations
+- Track workflow execution and history
+- Use the Workflow List for workflow overview and management
+
+#### WORKFLOW_TASKS (DynaFlowTask-based)
+Granular workflow task management:
+- Conditional feature requiring both DynaFlow and DynaFlowTask data objects
+- Break workflows into individual tasks
+- Assign and track task completion
+- Configure task dependencies and sequencing
+- Monitor task execution status
+
+### Flow Management Features
+- **Independent Filtering**: Each flow type has dedicated filter controls for focused navigation
+- **List Views**: Tabular views available for Page Init, General, and Workflows
+- **Right-Click Menus**: Quick access to add, edit, and manage flows
+- **Visual Indicators**: Icons and status indicators show flow types and states
+- **Search & Filter**: Find flows quickly with built-in search and filter capabilities
+
+## API Site Management
+
+The APIS section provides centralized management of API sites across all namespaces in your model. Access this section from the APIS tree item (requires "Show Advanced Properties" setting enabled).
+
+### Features
+- **Centralized View**: Browse all API sites from all namespaces in one location
+- **API Site Details**: View comprehensive information including:
+  - API site name and title
+  - Description and purpose
+  - Version number
+  - Configuration settings
+- **Quick Access**: Click any API site to open its configuration details
+- **Alphabetical Sorting**: API sites are automatically sorted alphabetically for easy navigation
+- **Cross-Namespace Support**: See API sites from all namespaces without navigating through individual namespace trees
+
+### How to Use
+1. Expand the APIS section in the tree view
+2. Browse the list of available API sites
+3. Click on any API site to view or edit its configuration
+4. Hover over an API site to see its tooltip with full details
+
+## List & Table Views
+
+The extension provides comprehensive list and table views for various model elements, offering alternative ways to view and manage your model data beyond the tree view.
+
+### Available List Views
+
+#### Page List
+Comprehensive tabular view of all pages (forms and reports):
+- **Complexity Analysis**: View element counts for each page (fields, buttons, parameters)
+- **Sorting**: Sort by name, complexity, type, or other attributes
+- **Filtering**: Filter pages by type, role requirements, or other criteria
+- **Treemap Visualization**: Visual representation of page complexity distribution
+- **Quick Navigation**: Click any page to open its detailed editor
+- Access via the table icon next to PAGES in the tree view
+
+#### Data Object List
+Detailed listing of all data objects:
+- **Comprehensive View**: See all data objects in a sortable, filterable table
+- **Property Counts**: View property and relationship counts for each object
+- **Search**: Quick search across object names and descriptions
+- **Parent-Child Display**: See object hierarchy relationships
+- Access via the table icon next to DATA OBJECTS in the tree view
+
+#### Page Init List
+Overview of all page initialization configurations:
+- **Tabular Format**: View all page init flows in a structured table
+- **Flow Details**: See configuration details for each page init flow
+- **Filtering**: Filter by page or flow characteristics
+- Access via the table icon next to PAGE_INIT in the FLOWS section
+
+#### Workflow List
+DynaFlow workflow overview:
+- **Workflow Status**: View status and configuration of all workflows
+- **Details View**: See workflow stages, transitions, and logic
+- **Management**: Edit and manage workflows from the list view
+- Access via the table icon next to WORKFLOWS in the FLOWS section
+
+#### General List
+Complete listing of general flow definitions:
+- **Flow Overview**: View all general flows in a structured format
+- **Configuration Details**: See flow names, descriptions, and configurations
+- **Quick Access**: Jump to flow editors directly from the list
+- Access via the table icon next to GENERAL in the FLOWS section
+
+### List View Benefits
+- **Alternative Navigation**: Different perspective on model structure beyond tree view
+- **Bulk Operations**: Easier to compare and analyze multiple items simultaneously
+- **Data Export**: Many list views support data export for reporting
+- **Quick Search**: Find items faster with built-in search and filter capabilities
 
 ## Model Context Protocol (MCP) Integration
 

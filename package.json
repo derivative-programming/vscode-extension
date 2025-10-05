@@ -8,9 +8,10 @@
     "vscode": "^1.99.0"
   },
   "categories": [
-    "Other",
-    "Snippets",
-    "Programming Languages"
+    "Programming Languages",
+    "Data Science",
+    "Visualization",
+    "Other"
   ],
   "keywords": [
     "code generation",
@@ -21,7 +22,15 @@
     "json schema",
     "copilot",
     "mcp",
-    "model context protocol"
+    "model context protocol",
+    "analytics",
+    "workflow management",
+    "data modeling",
+    "application builder",
+    "low-code",
+    "api management",
+    "database design",
+    "architecture"
   ],
   "repository": {
     "type": "git",
