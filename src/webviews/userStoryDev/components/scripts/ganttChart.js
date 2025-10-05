@@ -58,13 +58,15 @@ function renderGanttChart(items, forecast, config, containerId = "gantt-chart-co
  * @returns {Array} Filtered schedules
  */
 function filterSchedules(schedules, filter) {
+    const forecastableStatuses = ['on-hold', 'ready-for-dev', 'in-progress', 'blocked'];
+    
     switch (filter) {
         case "incomplete":
-            return schedules.filter(s => s.status !== "Done");
+            return schedules.filter(s => forecastableStatuses.includes(s.devStatus));
         case "complete":
-            return schedules.filter(s => s.status === "Done");
+            return schedules.filter(s => s.devStatus === "completed");
         case "blocked":
-            return schedules.filter(s => s.status === "Blocked");
+            return schedules.filter(s => s.devStatus === "blocked");
         case "critical":
             return schedules.filter(s => s.priority === "Critical");
         default:
@@ -129,10 +131,15 @@ function renderGanttD3Chart(schedules, containerId) {
         .range([0, height])
         .padding(0.2);
     
-    // Color scale by priority
-    const colorScale = d3.scaleOrdinal()
-        .domain(["Critical", "High", "Medium", "Low", "Done"])
-        .range(["#f85149", "#fb8500", "#3b82f6", "#6b7280", "#10b981"]);
+    // Color scale by priority (for incomplete stories)
+    const priorityColorScale = d3.scaleOrdinal()
+        .domain(["Critical", "High", "Medium", "Low"])
+        .range(["#d73a49", "#f39c12", "#0078d4", "#858585"]);
+    
+    // Color scale by dev status
+    const devStatusColorScale = d3.scaleOrdinal()
+        .domain(["on-hold", "ready-for-dev", "in-progress", "blocked", "completed"])
+        .range(["#858585", "#0078d4", "#f39c12", "#d73a49", "#10b981"]);
     
     // Grid lines (vertical - dates)
     const xAxis = d3.axisBottom(xScale)
@@ -201,7 +208,10 @@ function renderGanttD3Chart(schedules, containerId) {
         .attr("width", d => Math.max(2, xScale(d.endDate) - xScale(d.startDate)))
         .attr("height", yScale.bandwidth())
         .attr("rx", 4)
-        .style("fill", d => d.status === "Done" ? colorScale("Done") : colorScale(d.priority))
+        .style("fill", d => {
+            // Color by dev status for forecasted stories
+            return devStatusColorScale(d.devStatus) || priorityColorScale(d.priority) || "#6b7280";
+        })
         .style("opacity", 0.8)
         .style("stroke", "var(--vscode-panel-border)")
         .style("stroke-width", 1)
@@ -280,7 +290,7 @@ function showGanttTooltip(event, data) {
         <div style="margin-top: 4px;">${truncateText(data.storyText, 50)}</div>
         <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--vscode-panel-border);">
             <div><strong>Priority:</strong> ${data.priority}</div>
-            <div><strong>Status:</strong> ${data.status}</div>
+            <div><strong>Dev Status:</strong> ${formatDevStatus(data.devStatus)}</div>
             <div><strong>Points:</strong> ${data.storyPoints}</div>
             <div><strong>Developer:</strong> ${data.developer}</div>
         </div>
@@ -414,14 +424,14 @@ function exportGanttChartCSV() {
     const schedules = currentGanttData.schedules;
     
     // CSV headers
-    const headers = ["Story ID", "Story", "Priority", "Status", "Points", "Developer", "Start Date", "End Date", "Duration (days)"];
+    const headers = ["Story ID", "Story", "Priority", "Dev Status", "Points", "Developer", "Start Date", "End Date", "Duration (days)"];
     
     // CSV rows
     const rows = schedules.map(s => [
         s.storyId,
         `"${s.storyText.replace(/"/g, '""')}"`, // Escape quotes
         s.priority,
-        s.status,
+        formatDevStatus(s.devStatus),
         s.storyPoints,
         s.developer,
         formatDateShort(s.startDate),
@@ -471,3 +481,20 @@ function formatDateShort(date) {
     }
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
+
+/**
+ * Format dev status for display
+ * @param {string} devStatus - Dev status value
+ * @returns {string} Formatted dev status label
+ */
+function formatDevStatus(devStatus) {
+    const statusMap = {
+        'on-hold': 'On Hold',
+        'ready-for-dev': 'Ready for Development',
+        'in-progress': 'In Progress',
+        'blocked': 'Blocked',
+        'completed': 'Completed'
+    };
+    return statusMap[devStatus] || devStatus;
+}
+

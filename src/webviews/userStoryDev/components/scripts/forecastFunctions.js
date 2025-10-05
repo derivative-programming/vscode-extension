@@ -18,16 +18,27 @@ function calculateDevelopmentForecast(items, config) {
     // Extract forecast config from the full config object
     const forecastConfig = (config && config.forecastConfig) ? config.forecastConfig : getDefaultForecastConfig();
     
-    // Get completed and incomplete stories
-    const completedStories = items.filter(item => item.status === "Done");
-    const incompleteStories = items.filter(item => item.status !== "Done");
+    // Dev statuses to include in forecast (not yet completed)
+    const forecastableStatuses = ['on-hold', 'ready-for-dev', 'in-progress', 'blocked'];
     
-    if (completedStories.length === 0) {
-        return null; // Need velocity data
+    // Get completed and incomplete stories (use devStatus field)
+    const completedStories = items.filter(item => item.devStatus === "completed");
+    const incompleteStories = items.filter(item => forecastableStatuses.includes(item.devStatus));
+    
+    if (incompleteStories.length === 0) {
+        return null; // No stories to forecast
     }
     
     // Calculate average velocity (pass the full config which contains sprints)
-    const averageVelocity = forecastConfig.velocityOverride || calculateAverageVelocity(items, config);
+    // If no completed stories, use a default velocity or velocity override
+    let averageVelocity = forecastConfig.velocityOverride;
+    if (!averageVelocity) {
+        averageVelocity = calculateAverageVelocity(items, config);
+        // If still no velocity (no completed stories), use default of 10 points per sprint
+        if (averageVelocity === 0) {
+            averageVelocity = 10;
+        }
+    }
     
     // Calculate remaining work
     const totalRemainingPoints = incompleteStories.reduce((sum, item) => {
@@ -80,8 +91,8 @@ function calculateDevelopmentForecast(items, config) {
  */
 function calculateAverageVelocity(items, config) {
     if (!config || !config.sprints || config.sprints.length === 0) {
-        // Fallback: calculate from completed stories
-        const completedStories = items.filter(item => item.status === "Done");
+        // Fallback: calculate from completed stories (use devStatus field)
+        const completedStories = items.filter(item => item.devStatus === "completed");
         if (completedStories.length === 0) {
             return 0;
         }
@@ -97,7 +108,7 @@ function calculateAverageVelocity(items, config) {
     
     const velocities = completedSprints.map(sprint => {
         const sprintStories = items.filter(item => 
-            item.assignedSprint === sprint.sprintId && item.status === "Done"
+            item.assignedSprint === sprint.sprintId && item.devStatus === "completed"
         );
         return sprintStories.reduce((sum, item) => sum + (parseInt(item.storyPoints) || 0), 0);
     });
@@ -166,7 +177,7 @@ function calculateStorySchedules(stories, config, startDate) {
             storyId: story.storyNumber || story.id,
             storyText: story.story,
             priority: story.priority,
-            status: story.status,
+            devStatus: story.devStatus,
             storyPoints,
             hoursNeeded,
             daysNeeded,
@@ -191,11 +202,11 @@ function sortStoriesForScheduling(stories) {
     const priorityOrder = { "Critical": 0, "High": 1, "Medium": 2, "Low": 3 };
     
     return stories.slice().sort((a, b) => {
-        // First by status (blocked stories last)
-        if (a.status === "Blocked" && b.status !== "Blocked") {
+        // First by devStatus (blocked stories last)
+        if (a.devStatus === "blocked" && b.devStatus !== "blocked") {
             return 1;
         }
-        if (b.status === "Blocked" && a.status !== "Blocked") {
+        if (b.devStatus === "blocked" && a.devStatus !== "blocked") {
             return -1;
         }
         
@@ -230,28 +241,29 @@ function assessProjectRisk(items, config, averageVelocity) {
         factors.push("Low team velocity");
     }
     
-    // Factor 2: Blocked stories
-    const blockedStories = items.filter(item => item.status === "Blocked");
+    // Factor 2: Blocked stories (use devStatus field)
+    const blockedStories = items.filter(item => item.devStatus === "blocked");
     if (blockedStories.length > 0) {
         const blockedPercentage = (blockedStories.length / items.length) * 100;
         riskScore += Math.min(25, blockedPercentage);
         factors.push(`${blockedStories.length} blocked stories`);
     }
     
-    // Factor 3: Large unestimated stories
+    // Factor 3: Large unestimated stories (use devStatus field)
+    const forecastableStatuses = ['on-hold', 'ready-for-dev', 'in-progress', 'blocked'];
     const unestimatedStories = items.filter(item => 
-        item.status !== "Done" && (!item.storyPoints || item.storyPoints === "?")
+        forecastableStatuses.includes(item.devStatus) && (!item.storyPoints || item.storyPoints === "?")
     );
     if (unestimatedStories.length > 0) {
         riskScore += 20;
         factors.push(`${unestimatedStories.length} unestimated stories`);
     }
     
-    // Factor 4: High concentration of critical/high priority
+    // Factor 4: High concentration of critical/high priority (use devStatus field)
     const highPriorityIncomplete = items.filter(item => 
-        item.status !== "Done" && (item.priority === "Critical" || item.priority === "High")
+        forecastableStatuses.includes(item.devStatus) && (item.priority === "Critical" || item.priority === "High")
     );
-    const incompleteCount = items.filter(item => item.status !== "Done").length;
+    const incompleteCount = items.filter(item => forecastableStatuses.includes(item.devStatus)).length;
     if (incompleteCount > 0) {
         const highPriorityPercentage = (highPriorityIncomplete.length / incompleteCount) * 100;
         if (highPriorityPercentage > 50) {
@@ -290,7 +302,7 @@ function assessProjectRisk(items, config, averageVelocity) {
 function calculateSprintVelocities(items, config) {
     return config.sprints.map(sprint => {
         const sprintStories = items.filter(item => 
-            item.assignedSprint === sprint.sprintId && item.status === "Done"
+            item.assignedSprint === sprint.sprintId && item.devStatus === "completed"
         );
         return sprintStories.reduce((sum, item) => sum + (parseInt(item.storyPoints) || 0), 0);
     });
@@ -318,16 +330,17 @@ function calculateVariance(values) {
  */
 function identifyBottlenecks(items, config) {
     const bottlenecks = [];
+    const forecastableStatuses = ['on-hold', 'ready-for-dev', 'in-progress', 'blocked'];
     
-    // Blocked stories
-    const blockedStories = items.filter(item => item.status === "Blocked");
+    // Blocked stories (use devStatus field)
+    const blockedStories = items.filter(item => item.devStatus === "blocked");
     if (blockedStories.length > 0) {
         bottlenecks.push(`${blockedStories.length} blocked stories preventing progress`);
     }
     
-    // Developer overload
+    // Developer overload (use devStatus field)
     const developerWorkload = {};
-    items.filter(item => item.status !== "Done").forEach(item => {
+    items.filter(item => forecastableStatuses.includes(item.devStatus)).forEach(item => {
         const dev = item.developer || "Unassigned";
         if (!developerWorkload[dev]) {
             developerWorkload[dev] = { count: 0, points: 0 };
@@ -342,9 +355,9 @@ function identifyBottlenecks(items, config) {
         }
     });
     
-    // Unassigned high-priority work
+    // Unassigned high-priority work (use devStatus field)
     const unassignedCritical = items.filter(item => 
-        item.status !== "Done" && 
+        forecastableStatuses.includes(item.devStatus) && 
         item.priority === "Critical" && 
         (!item.developer || item.developer === "Unassigned")
     );
@@ -364,36 +377,40 @@ function identifyBottlenecks(items, config) {
  */
 function generateRecommendations(items, config, riskAssessment) {
     const recommendations = [];
+    const forecastableStatuses = ['on-hold', 'ready-for-dev', 'in-progress', 'blocked'];
     
-    // Address blocked stories
-    const blockedStories = items.filter(item => item.status === "Blocked");
+    // Address blocked stories (use devStatus field)
+    const blockedStories = items.filter(item => item.devStatus === "blocked");
     if (blockedStories.length > 0) {
         recommendations.push("Prioritize unblocking blocked stories to improve flow");
     }
     
-    // Estimate unestimated stories
+    // Estimate unestimated stories (use devStatus field)
     const unestimatedStories = items.filter(item => 
-        item.status !== "Done" && (!item.storyPoints || item.storyPoints === "?")
+        forecastableStatuses.includes(item.devStatus) && (!item.storyPoints || item.storyPoints === "?")
     );
     if (unestimatedStories.length > 0) {
         recommendations.push(`Estimate ${unestimatedStories.length} unestimated stories for better forecasting`);
     }
     
-    // Balance developer workload
+    // Balance developer workload (use devStatus field)
     const developerCounts = {};
-    items.filter(item => item.status !== "Done").forEach(item => {
+    items.filter(item => forecastableStatuses.includes(item.devStatus)).forEach(item => {
         const dev = item.developer || "Unassigned";
         developerCounts[dev] = (developerCounts[dev] || 0) + 1;
     });
     
-    const maxWorkload = Math.max(...Object.values(developerCounts));
-    const minWorkload = Math.min(...Object.values(developerCounts));
-    if (maxWorkload - minWorkload > 5) {
-        recommendations.push("Consider rebalancing work across team members");
+    const workloadValues = Object.values(developerCounts);
+    if (workloadValues.length > 1) {
+        const maxWorkload = Math.max(...workloadValues);
+        const minWorkload = Math.min(...workloadValues);
+        if (maxWorkload - minWorkload > 5) {
+            recommendations.push("Consider rebalancing work across team members");
+        }
     }
     
     // High risk mitigation
-    if (riskAssessment.level === "high") {
+    if (riskAssessment && riskAssessment.level === "high") {
         recommendations.push("High risk detected - consider reducing scope or extending timeline");
     }
     

@@ -168,9 +168,9 @@ The Analysis tab provides visual insights and metrics.
 Six key metrics displayed at top:
 
 1. **Total Stories**: Total number of stories
-2. **Completed**: Stories with status "Done"
-3. **In Progress**: Active work items
-4. **Blocked**: Stories needing attention
+2. **Completed**: Stories with status "completed"
+3. **In Progress**: Stories with status "in-progress"
+4. **Blocked**: Stories with status "blocked"
 5. **Total Points**: Sum of all story points
 6. **Velocity**: Average points per sprint
 
@@ -228,15 +228,15 @@ The Board tab provides a Kanban-style visual workflow.
 
 ### Columns
 
-8 status columns:
-1. **To Do** - Not started
-2. **In Progress** - Active work
-3. **In Review** - Code review or QA
-4. **Done** - Completed
-5. **Blocked** - Impediments
-6. **On Hold** - Temporarily paused
-7. **Deferred** - Postponed
-8. **Archived** - Historical reference
+8 status columns (matching development workflow):
+1. **On Hold** - Story is paused
+2. **Ready for Development** - Story is ready to start
+3. **In Progress** - Actively being developed
+4. **Blocked** - Story is blocked (impediments)
+5. **Completed** - Development complete
+6. **Ready for Dev Env Deployment** - Ready to deploy to dev environment
+7. **Deployed to Dev Env** - Deployed and running in dev
+8. **Ready for QA** - Ready for QA testing
 
 ### Story Cards
 
@@ -438,9 +438,9 @@ The Forecast tab predicts project completion using historical velocity.
 
 **Show (Filter)**:
 - All Stories
-- Incomplete Only (To Do, In Progress, In Review)
-- Completed Only (Done)
-- Blocked
+- Incomplete Only (Ready for Dev, In Progress, Blocked)
+- Completed Only (Completed, Ready for QA)
+- Blocked Stories
 - Critical Priority
 
 **Zoom**:
@@ -701,11 +701,11 @@ Click **Configure** button to adjust forecast settings.
 
 **Issue**: Charts not rendering
 - **Cause**: No completed stories for velocity charts
-- **Solution**: Mark some stories as "Done" with actualEndDate
+- **Solution**: Mark some stories as "completed" with actualEndDate
 
 **Issue**: Forecast shows "No velocity data"
 - **Cause**: No completed stories to calculate velocity
-- **Solution**: Complete at least 2-3 stories to establish velocity
+- **Solution**: Complete at least 2-3 stories to establish velocity (set status to "completed")
 
 **Issue**: Changes not saving
 - **Cause**: File permissions or file watcher conflict

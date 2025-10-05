@@ -10,10 +10,7 @@ const DEV_STATUSES = [
     { value: 'ready-for-dev', label: 'Ready for Development', color: '#3794ff' },
     { value: 'in-progress', label: 'In Progress', color: '#ff9f40' },
     { value: 'blocked', label: 'Blocked', color: '#ff4040' },
-    { value: 'completed', label: 'Completed', color: '#2ea043' },
-    { value: 'ready-for-dev-env-deploy', label: 'Ready for Dev Env Deploy', color: '#8b5cf6' },
-    { value: 'deployed-to-dev', label: 'Deployed to Dev', color: '#06b6d4' },
-    { value: 'ready-for-qa', label: 'Ready for QA', color: '#10b981' }
+    { value: 'completed', label: 'Completed', color: '#2ea043' }
 ];
 
 /**

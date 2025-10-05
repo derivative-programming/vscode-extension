@@ -6,6 +6,15 @@
 
 Building a comprehensive User Story Development View with 5 tabs for tracking development progress, managing story points, assignments, sprints, and forecasting completion.
 
+### Development Status Values
+
+The 5 development statuses (used in `devStatus` field):
+- `on-hold` - Story is paused
+- `ready-for-dev` - Story is ready to start
+- `in-progress` - Actively being developed
+- `blocked` - Story is blocked (impediments)
+- `completed` - Development complete
+
 ## Implementation Status
 
 ### ✅ COMPLETED PHASES (0-4)

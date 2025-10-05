@@ -302,10 +302,7 @@ function createDevStatusDropdown(storyId, currentStatus, config) {
         { value: 'ready-for-dev', label: 'Ready for Development' },
         { value: 'in-progress', label: 'In Progress' },
         { value: 'blocked', label: 'Blocked' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'ready-for-dev-env-deploy', label: 'Ready for Dev Env Deploy' },
-        { value: 'deployed-to-dev', label: 'Deployed to Dev' },
-        { value: 'ready-for-qa', label: 'Ready for QA' }
+        { value: 'completed', label: 'Completed' }
     ];
     
     statuses.forEach(status => {

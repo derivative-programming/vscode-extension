@@ -695,7 +695,12 @@ US-004 │                            │        [D2═════════�
 **Gantt Chart Features:**
 
 1. **Story Selection Logic:**
-   - **Included:** All stories where status ≠ "ready-for-qa"
+   - **Included:** Stories in active development only:
+     - `on-hold` - Story is paused
+     - `ready-for-dev` - Story is ready to start
+     - `in-progress` - Actively being developed
+     - `blocked` - Story is blocked (reason optional)
+   - **Excluded:** Completed, deployed, and QA-ready stories (no longer in development)
    - **Grouping:**
      - Group 1: Stories with sprint assigned (shown first)
        - Sorted by sprint start date, then story number

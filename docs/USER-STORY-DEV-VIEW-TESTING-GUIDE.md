@@ -39,14 +39,14 @@ Create test data files in your workspace:
   "items": [
     {
       "storyNumber": "US-001",
-      "priority": "Critical",
+      "priority": "critical",
       "story": "User login functionality",
       "acceptanceCriteria": "Users can log in with email and password",
       "storyPoints": "5",
-      "status": "Done",
-      "developer": "Alice Johnson",
+      "devStatus": "completed",
+      "assignedTo": "Alice Johnson",
       "startDate": "2025-09-01",
-      "targetDate": "2025-09-05",
+      "estimatedEndDate": "2025-09-05",
       "actualEndDate": "2025-09-04",
       "notes": "Implemented OAuth integration",
       "assignedSprint": "sprint-1",
@@ -176,9 +176,9 @@ console.assert(normalized.forecastConfig !== undefined, "Config normalized");
 ```javascript
 // Test velocity calculation
 const completedStories = [
-  { status: "Done", storyPoints: "5" },
-  { status: "Done", storyPoints: "8" },
-  { status: "Done", storyPoints: "3" }
+  { devStatus: "completed", storyPoints: "5" },
+  { devStatus: "completed", storyPoints: "8" },
+  { devStatus: "completed", storyPoints: "3" }
 ];
 const velocity = calculateAverageVelocity(completedStories, {});
 console.assert(velocity > 0, "Velocity calculated");
@@ -257,8 +257,8 @@ console.assert(burndownData.length === 14, "14 days of data");
 
 **Steps**:
 1. Go to Board tab
-2. Drag a story from "To Do" to "In Progress"
-3. Verify status changes
+2. Drag a story from "Ready for Development" to "In Progress"
+3. Verify status changes from "ready-for-dev" to "in-progress"
 4. Verify change persists after refresh
 
 **Expected**: Drag drop works, status updates, persists
@@ -300,10 +300,10 @@ console.assert(burndownData.length === 14, "14 days of data");
 ### Board Tab
 
 **Test Checklist**:
-- [ ] 8 columns render (To Do → Done, Blocked)
+- [ ] 8 columns render (On Hold → Ready for QA)
 - [ ] Story cards show all details
 - [ ] Drag and drop between columns works
-- [ ] Status updates on drop
+- [ ] Status updates on drop (e.g., ready-for-dev → in-progress)
 - [ ] Add story button works
 - [ ] Filter by priority works
 - [ ] Filter by developer works
@@ -463,11 +463,11 @@ console.assert(burndownData.length === 14, "14 days of data");
 // Generate 500 stories
 const stories = Array.from({ length: 500 }, (_, i) => ({
   storyNumber: `US-${i + 1}`,
-  priority: ["Critical", "High", "Medium", "Low"][i % 4],
+  priority: ["critical", "high", "medium", "low"][i % 4],
   story: `Test story ${i + 1}`,
   storyPoints: String((i % 13) + 1),
-  status: ["To Do", "In Progress", "In Review", "Done"][i % 4],
-  developer: `Dev ${(i % 5) + 1}`
+  devStatus: ["ready-for-dev", "in-progress", "blocked", "completed"][i % 4],
+  assignedTo: `Dev ${(i % 5) + 1}`
 }));
 
 // Measure render time

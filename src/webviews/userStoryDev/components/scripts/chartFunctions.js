@@ -14,10 +14,7 @@ function getVSCodeChartColors() {
             'ready-for-dev': 'var(--vscode-charts-blue)',
             'in-progress': 'var(--vscode-charts-yellow)',
             'blocked': 'var(--vscode-charts-red)',
-            'completed': 'var(--vscode-charts-green)',
-            'ready-for-dev-env-deploy': 'var(--vscode-charts-purple)',
-            'deployed-to-dev': 'var(--vscode-charts-orange)',
-            'ready-for-qa': 'var(--vscode-input-background)'
+            'completed': 'var(--vscode-charts-green)'
         },
         // Priority colors
         priority: {

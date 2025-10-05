@@ -216,28 +216,6 @@ function generateBlockedCard(items) {
 }
 
 /**
- * Generate ready for QA metric card
- * @param {Array} items - All user story items
- * @returns {string} HTML for card
- */
-function generateReadyForQACard(items) {
-    const readyForQA = items.filter(item => item.devStatus === 'ready-for-qa').length;
-    const cardClass = readyForQA > 0 ? 'metric-success' : '';
-    
-    return `
-        <div class="metric-card ${cardClass}">
-            <div class="metric-icon">
-                <span class="codicon codicon-checklist"></span>
-            </div>
-            <div class="metric-content">
-                <div class="metric-value">${readyForQA}</div>
-                <div class="metric-label">Ready for QA</div>
-            </div>
-        </div>
-    `;
-}
-
-/**
  * Generate story points completion metric card
  * @param {Array} items - All user story items
  * @returns {string} HTML for card
@@ -330,7 +308,6 @@ if (typeof module !== 'undefined' && module.exports) {
         generateAverageCycleTimeCard,
         generateInProgressCard,
         generateBlockedCard,
-        generateReadyForQACard,
         generateStoryPointsCard,
         generatePriorityDistributionCard,
         updateMetricCard

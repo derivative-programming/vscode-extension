@@ -62,8 +62,7 @@ function renderKanbanBoard(items, config) {
  */
 function clearAllColumns() {
     const statuses = [
-        'on-hold', 'ready-for-dev', 'in-progress', 'blocked',
-        'completed', 'ready-for-dev-env-deploy', 'deployed-to-dev', 'ready-for-qa'
+        'on-hold', 'ready-for-dev', 'in-progress', 'blocked', 'completed'
     ];
     
     statuses.forEach(status => {
@@ -83,10 +82,7 @@ function groupItemsByStatus(items) {
         'ready-for-dev': [],
         'in-progress': [],
         'blocked': [],
-        'completed': [],
-        'ready-for-dev-env-deploy': [],
-        'deployed-to-dev': [],
-        'ready-for-qa': []
+        'completed': []
     };
     
     items.forEach(item => {
@@ -339,8 +335,7 @@ function filterBoard() {
     
     // Update all column counts
     const statuses = [
-        'on-hold', 'ready-for-dev', 'in-progress', 'blocked',
-        'completed', 'ready-for-dev-env-deploy', 'deployed-to-dev', 'ready-for-qa'
+        'on-hold', 'ready-for-dev', 'in-progress', 'blocked', 'completed'
     ];
     
     statuses.forEach(status => {

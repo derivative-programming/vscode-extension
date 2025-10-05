@@ -83,7 +83,7 @@ function generateBoardTab(items, config) {
 }
 
 /**
- * Generate the 8 Kanban columns
+ * Generate the 5 Kanban columns
  */
 function generateKanbanColumns() {
     const columns = [
@@ -91,10 +91,7 @@ function generateKanbanColumns() {
         { id: 'ready-for-dev', label: 'Ready for Dev', icon: 'check' },
         { id: 'in-progress', label: 'In Progress', icon: 'sync' },
         { id: 'blocked', label: 'Blocked', icon: 'error' },
-        { id: 'completed', label: 'Completed', icon: 'pass' },
-        { id: 'ready-for-dev-env-deploy', label: 'Ready for Deploy', icon: 'rocket' },
-        { id: 'deployed-to-dev', label: 'Deployed', icon: 'cloud-upload' },
-        { id: 'ready-for-qa', label: 'Ready for QA', icon: 'beaker' }
+        { id: 'completed', label: 'Completed', icon: 'pass' }
     ];
 
     return columns.map(column => `

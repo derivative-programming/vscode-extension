@@ -13,14 +13,15 @@
 function generateForecastTab(items, config) {
     const forecastConfig = config.forecastConfig || getDefaultForecastConfig();
     const hasStories = items && items.length > 0;
-    const hasCompletedStories = hasStories && items.some(item => item.status === "Done");
+    const forecastableStatuses = ['on-hold', 'ready-for-dev', 'in-progress', 'blocked'];
+    const hasForecastableStories = hasStories && items.some(item => forecastableStatuses.includes(item.devStatus));
     
     return `
         <div class="forecast-tab-container">
             ${generateForecastHeader(forecastConfig)}
             
             ${!hasStories ? generateForecastEmptyState("no-stories") : 
-              !hasCompletedStories ? generateForecastEmptyState("no-velocity") :
+              !hasForecastableStories ? generateForecastEmptyState("no-forecastable") :
               generateForecastContent(items, forecastConfig)}
         </div>
     `;
@@ -380,15 +381,15 @@ function generateForecastEmptyState(reason) {
                 <p>Add user stories in the Details tab to see project timeline forecasts.</p>
             </div>
         `;
-    } else if (reason === "no-velocity") {
+    } else if (reason === "no-forecastable") {
         return `
             <div class="forecast-empty-state">
                 <span class="codicon codicon-graph"></span>
-                <h3>No Velocity Data Available</h3>
-                <p>Complete some user stories to establish team velocity for forecasting.</p>
+                <h3>No Stories to Forecast</h3>
+                <p>No stories with forecastable dev statuses (on-hold, ready-for-dev, in-progress, blocked) found.</p>
                 <p class="forecast-empty-hint">
                     <span class="codicon codicon-lightbulb"></span>
-                    Mark stories as "Done" in the Details or Board tabs to generate velocity data.
+                    Add stories and set their dev status in the Details or Board tabs to see the forecast timeline.
                 </p>
             </div>
         `;
