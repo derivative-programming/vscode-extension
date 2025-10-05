@@ -14,13 +14,13 @@ function generateForecastConfigModal(config) {
     
     return `
         <div class="modal-overlay" id="forecast-config-modal" onclick="closeForecastConfigModal(event)">
-            <div class="modal-container modal-large" onclick="event.stopPropagation()">
+            <div class="modal-content story-detail-modal" onclick="event.stopPropagation()" style="max-width: 800px;">
                 <div class="modal-header">
                     <h3>
                         <span class="codicon codicon-settings-gear"></span>
                         Forecast Configuration
                     </h3>
-                    <button class="modal-close-btn" onclick="closeForecastConfigModal()">
+                    <button class="modal-close" onclick="closeForecastConfigModal()">
                         <span class="codicon codicon-close"></span>
                     </button>
                 </div>

@@ -92,38 +92,59 @@ function groupSchedules(schedules, groupBy) {
 }
 
 /**
- * Render D3.js Gantt chart
+ * Render D3.js Gantt chart with hourly precision
  * @param {Array} schedules - Grouped and filtered schedules
  * @param {string} containerId - Container element ID
  */
 function renderGanttD3Chart(schedules, containerId) {
     const container = document.getElementById(containerId);
     const containerWidth = container.offsetWidth;
-    const margin = { top: 40, right: 120, bottom: 60, left: 200 };
+    const margin = { top: 60, right: 40, bottom: 20, left: 150 };
     const width = containerWidth - margin.left - margin.right;
-    const rowHeight = 40;
+    const rowHeight = 30;
     const height = schedules.length * rowHeight;
+    const hourWidth = 30; // 30px per hour for hourly precision
     
     // Create SVG
     const svg = d3.select(`#${containerId}`)
         .append("svg")
         .attr("width", containerWidth)
         .attr("height", height + margin.top + margin.bottom)
-        .style("overflow", "visible");
+        .style("overflow-x", "auto")
+        .style("overflow-y", "visible");
     
     const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
     
-    // Calculate date range
+    // Calculate date range with hourly precision
     const allDates = schedules.flatMap(s => [s.startDate, s.endDate]);
     const minDate = d3.min(allDates);
     const maxDate = d3.max(allDates);
-    const today = new Date();
     
-    // X scale (time)
+    // Round to start and end of days
+    const startDate = new Date(minDate);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(maxDate);
+    endDate.setHours(23, 59, 59, 999);
+    
+    // Generate array of all hours in the range
+    const allHours = [];
+    const currentHour = new Date(startDate);
+    while (currentHour <= endDate) {
+        allHours.push(new Date(currentHour));
+        currentHour.setHours(currentHour.getHours() + 1);
+    }
+    
+    const totalHours = allHours.length;
+    const totalWidth = totalHours * hourWidth;
+    
+    // Update SVG width based on hour count
+    svg.attr("width", Math.max(containerWidth, totalWidth + margin.left + margin.right));
+    
+    // X scale (time) - hourly precision
     const xScale = d3.scaleTime()
-        .domain([minDate, maxDate])
-        .range([0, width]);
+        .domain([startDate, endDate])
+        .range([0, totalWidth]);
     
     // Y scale (stories)
     const yScale = d3.scaleBand()
@@ -131,126 +152,248 @@ function renderGanttD3Chart(schedules, containerId) {
         .range([0, height])
         .padding(0.2);
     
-    // Color scale by priority (for incomplete stories)
-    const priorityColorScale = d3.scaleOrdinal()
-        .domain(["Critical", "High", "Medium", "Low"])
-        .range(["#d73a49", "#f39c12", "#0078d4", "#858585"]);
-    
     // Color scale by dev status
     const devStatusColorScale = d3.scaleOrdinal()
         .domain(["on-hold", "ready-for-dev", "in-progress", "blocked", "completed"])
         .range(["#858585", "#0078d4", "#f39c12", "#d73a49", "#10b981"]);
     
-    // Grid lines (vertical - dates)
-    const xAxis = d3.axisBottom(xScale)
-        .ticks(d3.timeDay.every(getTickInterval()))
-        .tickFormat(d3.timeFormat("%b %d"));
+    // Developer color scale (similar to QA tester colors)
+    const developerColorScale = d3.scaleOrdinal(d3.schemeCategory10);
     
-    g.append("g")
-        .attr("class", "gantt-x-axis")
-        .attr("transform", `translate(0,${height})`)
-        .call(xAxis)
-        .selectAll("text")
-        .attr("transform", "rotate(-45)")
-        .style("text-anchor", "end");
+    // Get unique developers
+    const developers = [...new Set(schedules.map(s => s.developer))];
+    const developerIndices = {};
+    developers.forEach((dev, idx) => {
+        developerIndices[dev] = idx;
+    });
     
-    // Y axis (story labels)
-    g.append("g")
-        .attr("class", "gantt-y-axis")
-        .selectAll(".gantt-y-label")
+    // Draw non-working hours background (before 9am and after 5pm)
+    allHours.forEach((hour, index) => {
+        const hourOfDay = hour.getHours();
+        if (hourOfDay < 9 || hourOfDay >= 17) {
+            g.append("rect")
+                .attr("x", index * hourWidth)
+                .attr("y", -50)
+                .attr("width", hourWidth)
+                .attr("height", height + 50)
+                .attr("fill", "var(--vscode-editorWidget-background)")
+                .attr("opacity", 0.3);
+        }
+    });
+    
+    // Draw vertical grid lines for each hour
+    allHours.forEach((hour, index) => {
+        g.append("line")
+            .attr("x1", index * hourWidth)
+            .attr("x2", index * hourWidth)
+            .attr("y1", -50)
+            .attr("y2", height)
+            .attr("stroke", "var(--vscode-panel-border)")
+            .attr("stroke-width", 0.5)
+            .attr("opacity", 0.3);
+    });
+    
+    // Group hours by day for day headers
+    const dayGroups = [];
+    let currentDay = null;
+    let dayStart = 0;
+    
+    allHours.forEach((hour, index) => {
+        const dayKey = hour.toDateString();
+        if (dayKey !== currentDay) {
+            if (currentDay !== null) {
+                dayGroups.push({
+                    day: currentDay,
+                    start: dayStart,
+                    end: index - 1,
+                    date: allHours[dayStart]
+                });
+            }
+            currentDay = dayKey;
+            dayStart = index;
+        }
+    });
+    
+    // Add last day group
+    if (currentDay !== null) {
+        dayGroups.push({
+            day: currentDay,
+            start: dayStart,
+            end: allHours.length - 1,
+            date: allHours[dayStart]
+        });
+    }
+    
+    // Draw day headers
+    dayGroups.forEach(group => {
+        const dayWidth = (group.end - group.start + 1) * hourWidth;
+        g.append("rect")
+            .attr("x", group.start * hourWidth)
+            .attr("y", -50)
+            .attr("width", dayWidth)
+            .attr("height", 20)
+            .attr("fill", "var(--vscode-editorGroupHeader-tabsBackground)")
+            .attr("stroke", "var(--vscode-panel-border)")
+            .attr("stroke-width", 1);
+        
+        g.append("text")
+            .attr("x", group.start * hourWidth + dayWidth / 2)
+            .attr("y", -35)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "11px")
+            .attr("font-weight", "bold")
+            .attr("fill", "var(--vscode-foreground)")
+            .text(d3.timeFormat("%b %d")(group.date));
+    });
+    
+    // Draw hour headers
+    allHours.forEach((hour, index) => {
+        g.append("text")
+            .attr("x", index * hourWidth + hourWidth / 2)
+            .attr("y", -15)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "9px")
+            .attr("fill", "var(--vscode-descriptionForeground)")
+            .text(hour.getHours());
+    });
+    
+    // Draw story name labels on Y-axis
+    g.selectAll(".story-label")
         .data(schedules)
         .enter()
         .append("text")
-        .attr("class", "gantt-y-label")
-        .attr("x", -10)
+        .attr("class", "story-label")
+        .attr("x", -5)
         .attr("y", (d, i) => yScale(i) + yScale.bandwidth() / 2)
-        .attr("dy", "0.35em")
         .attr("text-anchor", "end")
-        .text(d => `${d.storyId}: ${truncateText(d.storyText, 25)}`)
-        .style("font-size", "12px")
-        .style("fill", "var(--vscode-foreground)")
+        .attr("dominant-baseline", "middle")
+        .attr("font-size", "11px")
+        .attr("fill", "var(--vscode-foreground)")
+        .text(d => `Story ${d.storyId}`)
+        .style("cursor", "pointer")
+        .on("click", function(event, d) {
+            // Open story detail modal
+            if (typeof openStoryDetailModal === "function") {
+                openStoryDetailModal(d.storyId);
+            }
+        })
         .append("title")
-        .text(d => `${d.storyId}: ${d.storyText}`);
+        .text(d => d.storyText);
     
-    // Today line
-    if (today >= minDate && today <= maxDate) {
-        g.append("line")
-            .attr("class", "gantt-today-line")
-            .attr("x1", xScale(today))
-            .attr("x2", xScale(today))
-            .attr("y1", 0)
-            .attr("y2", height)
-            .style("stroke", "#fbbf24")
-            .style("stroke-width", 2)
-            .style("stroke-dasharray", "5,5");
+    // Add current hour marker
+    const now = new Date();
+    if (now >= startDate && now <= endDate) {
+        const currentHourIndex = allHours.findIndex(h => 
+            h.getFullYear() === now.getFullYear() &&
+            h.getMonth() === now.getMonth() &&
+            h.getDate() === now.getDate() &&
+            h.getHours() === now.getHours()
+        );
         
-        g.append("text")
-            .attr("x", xScale(today))
-            .attr("y", -10)
-            .attr("text-anchor", "middle")
-            .style("fill", "#fbbf24")
-            .style("font-size", "12px")
-            .style("font-weight", "bold")
-            .text("Today");
+        if (currentHourIndex >= 0) {
+            g.append("rect")
+                .attr("x", currentHourIndex * hourWidth)
+                .attr("y", -50)
+                .attr("width", hourWidth)
+                .attr("height", height + 50)
+                .attr("fill", "orange")
+                .attr("opacity", 0.2);
+            
+            g.append("line")
+                .attr("x1", currentHourIndex * hourWidth)
+                .attr("x2", currentHourIndex * hourWidth)
+                .attr("y1", -50)
+                .attr("y2", height)
+                .attr("stroke", "orange")
+                .attr("stroke-width", 2);
+        }
     }
     
-    // Story bars
-    const bars = g.selectAll(".gantt-bar")
+    // Create tooltip
+    const tooltip = d3.select("body")
+        .append("div")
+        .attr("class", "gantt-tooltip")
+        .style("display", "none")
+        .style("position", "absolute")
+        .style("background", "var(--vscode-editorHoverWidget-background)")
+        .style("border", "1px solid var(--vscode-editorHoverWidget-border)")
+        .style("padding", "8px 12px")
+        .style("border-radius", "4px")
+        .style("font-size", "12px")
+        .style("pointer-events", "none")
+        .style("z-index", "1000")
+        .style("box-shadow", "0 2px 8px rgba(0,0,0,0.3)");
+    
+    // Add bars for each story
+    const bars = g.selectAll(".bar")
         .data(schedules)
         .enter()
-        .append("g")
-        .attr("class", "gantt-bar-group");
-    
-    bars.append("rect")
-        .attr("class", "gantt-bar")
+        .append("rect")
+        .attr("class", "bar")
         .attr("x", d => xScale(d.startDate))
         .attr("y", (d, i) => yScale(i))
         .attr("width", d => Math.max(2, xScale(d.endDate) - xScale(d.startDate)))
         .attr("height", yScale.bandwidth())
-        .attr("rx", 4)
-        .style("fill", d => {
-            // Color by dev status for forecasted stories
-            return devStatusColorScale(d.devStatus) || priorityColorScale(d.priority) || "#6b7280";
-        })
-        .style("opacity", 0.8)
-        .style("stroke", "var(--vscode-panel-border)")
-        .style("stroke-width", 1)
+        .attr("fill", d => developerColorScale(developerIndices[d.developer]))
+        .attr("opacity", 0.85)
+        .attr("stroke", "#333")
+        .attr("stroke-width", 0.5)
+        .attr("rx", 3)
+        .attr("ry", 3)
+        .attr("cursor", "pointer")
         .on("mouseover", function(event, d) {
-            d3.select(this)
-                .style("opacity", 1)
-                .style("stroke-width", 2);
-            showGanttTooltip(event, d);
+            d3.select(this).attr("opacity", 1).attr("stroke-width", 1.5);
+            const duration = ((d.endDate - d.startDate) / (1000 * 60 * 60)).toFixed(1);
+            const startTime = d3.timeFormat("%b %d, %I:%M %p")(d.startDate);
+            const endTime = d3.timeFormat("%b %d, %I:%M %p")(d.endDate);
+            
+            tooltip.style("display", "block")
+                .html(`<strong>Story ${d.storyId}</strong><br/>` +
+                    `${truncateText(d.storyText, 60)}<br/>` +
+                    `<strong>Start:</strong> ${startTime}<br/>` +
+                    `<strong>End:</strong> ${endTime}<br/>` +
+                    `<strong>Duration:</strong> ${duration} hrs<br/>` +
+                    `<strong>Points:</strong> ${d.storyPoints}<br/>` +
+                    `<strong>Developer:</strong> ${d.developer}<br/>` +
+                    `<strong>Status:</strong> ${formatDevStatus(d.devStatus)}`)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 10) + "px");
         })
         .on("mouseout", function() {
-            d3.select(this)
-                .style("opacity", 0.8)
-                .style("stroke-width", 1);
-            hideGanttTooltip();
+            d3.select(this).attr("opacity", 0.85).attr("stroke-width", 0.5);
+            tooltip.style("display", "none");
+        })
+        .on("click", function(event, d) {
+            tooltip.style("display", "none");
+            if (typeof openStoryDetailModal === "function") {
+                openStoryDetailModal(d.storyId);
+            }
         });
     
-    // Story points labels on bars
-    bars.append("text")
-        .attr("x", d => xScale(d.startDate) + (xScale(d.endDate) - xScale(d.startDate)) / 2)
+    // Add developer labels on bars (only if bar is wide enough)
+    g.selectAll(".bar-label")
+        .data(schedules)
+        .enter()
+        .append("text")
+        .attr("class", "bar-label")
+        .attr("x", d => {
+            const barWidth = xScale(d.endDate) - xScale(d.startDate);
+            return barWidth > 20 ? xScale(d.startDate) + barWidth / 2 : xScale(d.startDate) - 20;
+        })
         .attr("y", (d, i) => yScale(i) + yScale.bandwidth() / 2)
-        .attr("dy", "0.35em")
-        .attr("text-anchor", "middle")
-        .style("fill", "white")
-        .style("font-size", "11px")
-        .style("font-weight", "bold")
-        .style("pointer-events", "none")
+        .attr("text-anchor", d => {
+            const barWidth = xScale(d.endDate) - xScale(d.startDate);
+            return barWidth > 20 ? "middle" : "end";
+        })
+        .attr("dominant-baseline", "middle")
+        .attr("fill", d => {
+            const barWidth = xScale(d.endDate) - xScale(d.startDate);
+            return barWidth > 20 ? "#fff" : "#666";
+        })
+        .attr("font-size", "9px")
+        .attr("font-weight", "bold")
+        .attr("pointer-events", "none")
         .text(d => `${d.storyPoints}pts`);
-    
-    // Developer labels
-    bars.append("text")
-        .attr("x", d => xScale(d.endDate) + 5)
-        .attr("y", (d, i) => yScale(i) + yScale.bandwidth() / 2)
-        .attr("dy", "0.35em")
-        .style("fill", "var(--vscode-descriptionForeground)")
-        .style("font-size", "10px")
-        .text(d => d.developer);
-    
-    // Dependencies (if any)
-    // TODO: Add dependency arrows if story relationships are defined
 }
 
 /**
@@ -266,51 +409,8 @@ function getTickInterval() {
     }
 }
 
-/**
- * Show tooltip for Gantt bar
- * @param {Event} event - Mouse event
- * @param {Object} data - Story schedule data
- */
-function showGanttTooltip(event, data) {
-    const tooltip = d3.select("body")
-        .append("div")
-        .attr("class", "gantt-tooltip")
-        .style("position", "absolute")
-        .style("background", "var(--vscode-editorHoverWidget-background)")
-        .style("border", "1px solid var(--vscode-editorHoverWidget-border)")
-        .style("padding", "8px 12px")
-        .style("border-radius", "4px")
-        .style("font-size", "12px")
-        .style("pointer-events", "none")
-        .style("z-index", "1000")
-        .style("box-shadow", "0 2px 8px rgba(0,0,0,0.3)");
-    
-    tooltip.html(`
-        <div><strong>${data.storyId}</strong></div>
-        <div style="margin-top: 4px;">${truncateText(data.storyText, 50)}</div>
-        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--vscode-panel-border);">
-            <div><strong>Priority:</strong> ${data.priority}</div>
-            <div><strong>Dev Status:</strong> ${formatDevStatus(data.devStatus)}</div>
-            <div><strong>Points:</strong> ${data.storyPoints}</div>
-            <div><strong>Developer:</strong> ${data.developer}</div>
-        </div>
-        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--vscode-panel-border);">
-            <div><strong>Start:</strong> ${formatDateShort(data.startDate)}</div>
-            <div><strong>End:</strong> ${formatDateShort(data.endDate)}</div>
-            <div><strong>Duration:</strong> ${data.daysNeeded.toFixed(1)} days</div>
-        </div>
-    `);
-    
-    tooltip.style("left", (event.pageX + 10) + "px")
-        .style("top", (event.pageY - 10) + "px");
-}
-
-/**
- * Hide Gantt tooltip
- */
-function hideGanttTooltip() {
-    d3.selectAll(".gantt-tooltip").remove();
-}
+// Note: openStoryDetailModal is defined in modalFunctionality.js
+// No need to redefine it here - it's already available globally
 
 /**
  * Show empty state in Gantt container

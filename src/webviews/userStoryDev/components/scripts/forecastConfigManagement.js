@@ -11,10 +11,12 @@ let currentHolidays = [];
  * Show forecast configuration modal
  */
 function showForecastConfigModal() {
-    const modalContainer = document.getElementById("modal-container");
+    // Get or create modal container
+    let modalContainer = document.getElementById("modal-container");
     if (!modalContainer) {
-        console.error("Modal container not found");
-        return;
+        modalContainer = document.createElement("div");
+        modalContainer.id = "modal-container";
+        document.body.appendChild(modalContainer);
     }
     
     // Get current config

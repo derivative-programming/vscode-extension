@@ -1,3 +1,160 @@
+## October 5, 2025 - User Story Dev View - Fix Forecast Config Modal Display
+
+**Command**: Fix forecast config modal display issues (incorrect CSS classes causing broken layout)
+
+**Status**: ✅ COMPLETED - MODAL CSS CLASSES CORRECTED
+
+**Problem**:
+The forecast configuration modal was displaying with broken layout:
+1. Content overlapping and not properly visible
+2. Labels and form elements not formatted correctly
+3. Modal not using the correct CSS classes from the existing modal system
+
+**Root Cause**:
+The forecast config modal template used different CSS class names than other modals:
+- Used: `modal-container` and `modal-large` (no CSS defined for these)
+- Should use: `modal-content` and `story-detail-modal` (like other modals)
+- Also used `modal-close-btn` instead of `modal-close`
+
+**Solution**:
+Updated the modal template to use the correct CSS classes matching the existing modal system:
+
+**Code Changes**:
+```javascript
+// Before - wrong CSS classes
+<div class="modal-container modal-large" onclick="event.stopPropagation()">
+    <button class="modal-close-btn" onclick="closeForecastConfigModal()">
+
+// After - correct CSS classes
+<div class="modal-content story-detail-modal" onclick="event.stopPropagation()" style="max-width: 800px;">
+    <button class="modal-close" onclick="closeForecastConfigModal()">
+```
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/forecastConfigModalTemplate.js`
+
+**Result**:
+- Modal now displays correctly with proper layout
+- All form elements are properly visible and formatted
+- Consistent styling with other modals in the system
+
+---
+
+## October 5, 2025 - User Story Dev View - Fix Forecast Config Modal Container Error
+
+**Command**: Fix "Modal container not found" error when clicking config button on forecast tab
+
+**Status**: ✅ COMPLETED - MODAL CONTAINER CREATION ADDED
+
+**Problem**:
+When clicking the config button on the User Story Dev View forecast tab:
+```
+forecastConfigManagement.js:16 Modal container not found
+```
+
+The `showForecastConfigModal()` function looked for `modal-container` element but:
+1. The element doesn't exist in the DOM initially
+2. The function returned early without creating it
+3. Sprint management handles this by creating the container if it doesn't exist
+
+**Solution**:
+Applied the same pattern used in sprint management - create the modal container if it doesn't exist:
+
+**Code Changes**:
+```javascript
+// Before - returned early if container not found
+function showForecastConfigModal() {
+    const modalContainer = document.getElementById("modal-container");
+    if (!modalContainer) {
+        console.error("Modal container not found");
+        return; // ❌ Stops here
+    }
+    // ...
+}
+
+// After - creates container if needed
+function showForecastConfigModal() {
+    let modalContainer = document.getElementById("modal-container");
+    if (!modalContainer) {
+        modalContainer = document.createElement("div");
+        modalContainer.id = "modal-container";
+        document.body.appendChild(modalContainer); // ✅ Creates it
+    }
+    // ...
+}
+```
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/scripts/forecastConfigManagement.js`
+
+**Result**:
+- Config button on forecast tab now works correctly
+- Modal opens without console errors
+- Pattern matches sprint management implementation
+
+---
+
+## October 5, 2025 - User Story Dev View - Convert Gantt to Hourly Precision
+
+**Command**: Use hourly precision for Dev View forecast Gantt chart (1 point = 4 hours by default)
+
+**Status**: ✅ COMPLETED - HOURLY GANTT CHART IMPLEMENTED
+
+**Problem**:
+Dev View Gantt chart used daily precision while QA View used hourly precision. Since story points are measured in 4-hour increments, hourly precision is more accurate for development forecasting.
+
+**Solution**:
+Completely rewrote Dev View Gantt chart to match QA View's hourly precision implementation:
+
+1. **Hourly Time Scale**: 30px per hour instead of daily ticks
+2. **Two-Level Headers**: Day headers (date labels) + hour headers (0-23)
+3. **Non-Working Hours**: Highlights hours before 9am and after 5pm
+4. **Current Hour Marker**: Orange rectangle and line showing current hour (not just "today")
+5. **Vertical Grid Lines**: One line per hour for better readability
+6. **Developer Color Coding**: Uses d3.schemeCategory10 like QA View's tester colors
+7. **Click to Open Modal**: Clicking story bar or Y-axis label opens story detail modal
+8. **Working Hours Logic**: Schedule calculations respect 9am-5pm, Mon-Fri working hours
+
+**Code Changes**:
+
+1. **ganttChart.js - renderGanttD3Chart()**: Complete rewrite
+   - Changed from daily to hourly precision (30px per hour)
+   - Added two-level headers (day + hour)
+   - Added non-working hours background highlighting
+   - Added current hour marker with orange rectangle
+   - Added vertical grid lines per hour
+   - Changed color scale from devStatus to developer index
+   - Added click handlers to open story detail modal
+   - Updated margins: {top: 60, right: 40, bottom: 20, left: 150}
+
+2. **forecastFunctions.js - calculateStorySchedules()**: Updated for hourly precision
+   - Added `getNextWorkingHour()` function to skip non-working hours
+   - Added `calculateCompletionDateByHours()` function to add hours respecting working schedule
+   - Changed scheduling to work in hourly increments instead of days
+   - Ensures all schedules respect 9am-5pm, Mon-Fri constraints
+
+3. **ganttChart.js - openStoryDetailModal()**: Removed duplicate
+   - Function already defined in modalFunctionality.js
+   - No need to redefine, available globally
+
+**Architecture Notes**:
+- QA View uses hourly precision because QA tasks are tracked by hour
+- Dev View now uses hourly precision because story points = 4 hours by default
+- Both views share similar visual design for consistency
+- Working hours logic prevents scheduling during nights/weekends
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/scripts/ganttChart.js` - Complete rewrite of renderGanttD3Chart()
+- `src/webviews/userStoryDev/components/scripts/forecastFunctions.js` - Added hourly scheduling functions
+
+**Result**:
+- Dev View Gantt chart displays with hourly precision matching QA View
+- Stories scheduled in working hours only (9am-5pm, Mon-Fri)
+- Visual consistency between Dev and QA views
+- Click interaction opens story detail modal
+
+---
+
 ## October 5, 2025 - User Story Dev View - Fix Forecast Recommendations Error
 
 **Command**: Fix "Cannot read properties of undefined (reading 'level')" error in forecast recommendations

@@ -152,7 +152,7 @@ function calculateCompletionDate(startDate, workingDays, config) {
 }
 
 /**
- * Calculate individual story schedules
+ * Calculate individual story schedules with hourly precision
  * @param {Array} stories - Incomplete stories to schedule
  * @param {Object} config - Forecast configuration
  * @param {Date} startDate - Start date for scheduling
@@ -161,6 +161,9 @@ function calculateCompletionDate(startDate, workingDays, config) {
 function calculateStorySchedules(stories, config, startDate) {
     const schedules = [];
     let currentDate = new Date(startDate);
+    
+    // Ensure we start at next working hour (9am-5pm, Mon-Fri)
+    currentDate = getNextWorkingHour(currentDate, config);
     
     // Sort stories by priority and dependencies
     const sortedStories = sortStoriesForScheduling(stories);
@@ -171,7 +174,7 @@ function calculateStorySchedules(stories, config, startDate) {
         const daysNeeded = hoursNeeded / (config.workingHoursPerDay * config.parallelWorkFactor);
         
         const storyStartDate = new Date(currentDate);
-        const storyEndDate = calculateCompletionDate(storyStartDate, daysNeeded, config);
+        const storyEndDate = calculateCompletionDateByHours(storyStartDate, hoursNeeded, config);
         
         schedules.push({
             storyId: story.storyNumber || story.id,
@@ -188,9 +191,86 @@ function calculateStorySchedules(stories, config, startDate) {
         });
         
         currentDate = new Date(storyEndDate);
+        // Move to next working hour after this story ends
+        currentDate = getNextWorkingHour(currentDate, config);
     }
     
     return schedules;
+}
+
+/**
+ * Get next working hour (9am-5pm, Mon-Fri)
+ * @param {Date} date - Starting date
+ * @param {Object} config - Forecast configuration
+ * @returns {Date} Next working hour
+ */
+function getNextWorkingHour(date, config) {
+    const result = new Date(date);
+    
+    // Skip weekends
+    while (result.getDay() === 0 || result.getDay() === 6) {
+        result.setDate(result.getDate() + 1);
+        result.setHours(9, 0, 0, 0);
+    }
+    
+    // If before 9am, set to 9am
+    if (result.getHours() < 9) {
+        result.setHours(9, 0, 0, 0);
+    }
+    // If after 5pm, move to 9am next day
+    else if (result.getHours() >= 17) {
+        result.setDate(result.getDate() + 1);
+        result.setHours(9, 0, 0, 0);
+        // Check if next day is weekend
+        return getNextWorkingHour(result, config);
+    }
+    
+    return result;
+}
+
+/**
+ * Calculate completion date by adding working hours
+ * @param {Date} startDate - Start date
+ * @param {number} hoursNeeded - Number of working hours needed
+ * @param {Object} config - Forecast configuration
+ * @returns {Date} Completion date
+ */
+function calculateCompletionDateByHours(startDate, hoursNeeded, config) {
+    let currentDate = new Date(startDate);
+    let hoursRemaining = hoursNeeded;
+    
+    while (hoursRemaining > 0) {
+        // Skip weekends
+        if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+            currentDate.setDate(currentDate.getDate() + 1);
+            currentDate.setHours(9, 0, 0, 0);
+            continue;
+        }
+        
+        const currentHour = currentDate.getHours();
+        
+        // If before working hours, jump to 9am
+        if (currentHour < 9) {
+            currentDate.setHours(9, 0, 0, 0);
+            continue;
+        }
+        
+        // If after working hours, jump to 9am next day
+        if (currentHour >= 17) {
+            currentDate.setDate(currentDate.getDate() + 1);
+            currentDate.setHours(9, 0, 0, 0);
+            continue;
+        }
+        
+        // We're in working hours, consume one hour
+        hoursRemaining -= 1;
+        
+        if (hoursRemaining > 0) {
+            currentDate.setHours(currentDate.getHours() + 1);
+        }
+    }
+    
+    return currentDate;
 }
 
 /**
