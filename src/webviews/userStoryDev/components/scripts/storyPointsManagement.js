@@ -201,11 +201,131 @@ function formatStoryPoints(points) {
     return points + ' points';
 }
 
+/**
+ * Handle bulk story points update
+ * @param {Array<string>} storyIds - Array of story IDs
+ * @param {string} newPoints - New story points value
+ */
+function handleBulkStoryPointsUpdate(storyIds, newPoints) {
+    if (!storyIds || storyIds.length === 0) {
+        return;
+    }
+    
+    // Update local state
+    storyIds.forEach(storyId => {
+        const item = allItems.find(i => i.storyId === storyId);
+        if (item) {
+            item.storyPoints = newPoints;
+            
+            // Recalculate estimated end date if we have a start date
+            if (item.startDate && newPoints && newPoints !== '?') {
+                const estimatedEndDate = calculateEstimatedEndDate(
+                    item.startDate,
+                    parseInt(newPoints),
+                    devConfig
+                );
+                item.estimatedEndDate = estimatedEndDate;
+            }
+        }
+    });
+    
+    // Send bulk update to extension
+    vscode.postMessage({
+        command: 'bulkUpdateStoryPoints',
+        storyIds: storyIds,
+        newPoints: newPoints
+    });
+    
+    // Re-render table
+    const filteredItems = getFilteredItems();
+    renderTable(filteredItems, devConfig, currentSortState);
+    
+    // Clear selection
+    clearSelection();
+}
+
+/**
+ * Open bulk story points update modal
+ */
+function openBulkStoryPointsModal() {
+    const selectedIds = getSelectedStoryIds();
+    if (selectedIds.length === 0) {
+        vscode.postMessage({
+            command: 'showMessage',
+            type: 'warning',
+            message: 'Please select at least one user story'
+        });
+        return;
+    }
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+    modal.innerHTML = `
+        <div class="modal-content" style="background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 20px; max-width: 400px; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <h2 style="margin-top: 0; color: var(--vscode-foreground); font-size: 18px; font-weight: 600;">Bulk Story Points Update</h2>
+            <p style="color: var(--vscode-descriptionForeground); margin: 10px 0 20px 0;">Update story points for ${selectedIds.length} selected user ${selectedIds.length === 1 ? 'story' : 'stories'}:</p>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="bulkStoryPointsSelect" style="display: block; margin-bottom: 6px; color: var(--vscode-foreground); font-weight: 500;">Story Points:</label>
+                <select id="bulkStoryPointsSelect" class="form-control" style="width: 100%; padding: 6px 8px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 3px;">
+                    ${STORY_POINTS_OPTIONS.map(points => `<option value="${points}">${points === '?' ? '? (Not Estimated)' : points + ' points'}</option>`).join('')}
+                </select>
+            </div>
+            <div class="modal-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="applyBulkStoryPoints()" class="primary-button" style="padding: 6px 16px; background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="codicon codicon-check"></i> Apply
+                </button>
+                <button onclick="closeBulkStoryPointsModal()" class="secondary-button" style="padding: 6px 16px; background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); border: none; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="codicon codicon-close"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Focus the select
+    setTimeout(() => {
+        document.getElementById('bulkStoryPointsSelect')?.focus();
+    }, 100);
+}
+
+/**
+ * Close bulk story points modal
+ */
+function closeBulkStoryPointsModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+/**
+ * Apply bulk story points update
+ */
+function applyBulkStoryPoints() {
+    const select = document.getElementById('bulkStoryPointsSelect');
+    if (!select) {
+        return;
+    }
+    
+    const newPoints = select.value;
+    const selectedIds = getSelectedStoryIds();
+    
+    handleBulkStoryPointsUpdate(selectedIds, newPoints);
+    closeBulkStoryPointsModal();
+}
+
 // Export functions
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         STORY_POINTS_OPTIONS,
         handleStoryPointsChange,
+        handleBulkStoryPointsUpdate,
+        openBulkStoryPointsModal,
+        closeBulkStoryPointsModal,
+        applyBulkStoryPoints,
         calculateTotalPoints,
         calculateEstimatedEndDate,
         calculateVelocity,

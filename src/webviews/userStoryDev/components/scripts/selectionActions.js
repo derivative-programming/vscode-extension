@@ -120,6 +120,7 @@ function updateBulkActionButtons() {
     const bulkButtons = [
         'bulkStatusBtn',
         'bulkPriorityBtn',
+        'bulkStoryPointsBtn',
         'bulkAssignmentBtn',
         'bulkSprintBtn'
     ];

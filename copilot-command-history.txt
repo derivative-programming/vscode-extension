@@ -1,5 +1,174 @@
 ================================================================================
 Date: October 5, 2025
+Command: Add bulk story points setting option
+Status: COMPLETED
+================================================================================
+
+FEATURE REQUEST:
+Add a bulk story points update button to the Details tab so users can set story
+points for multiple selected stories at once.
+
+IMPLEMENTATION:
+
+FRONTEND CHANGES:
+
+1. Enhanced storyPointsManagement.js
+   - Added handleBulkStoryPointsUpdate() function
+   - Added openBulkStoryPointsModal() function with inline styling
+   - Added closeBulkStoryPointsModal() function
+   - Added applyBulkStoryPoints() function
+   - Modal includes dropdown with Fibonacci sequence: ?, 1, 2, 3, 5, 8, 13, 21
+   - Recalculates estimated end dates when points are updated
+
+2. Updated detailsTabTemplate.js
+   - Added "Bulk Story Points" button with codicon-number icon
+   - Button positioned between Priority and Assignment buttons
+   - Button ID: bulkStoryPointsBtn
+
+3. Updated selectionActions.js
+   - Added 'bulkStoryPointsBtn' to updateBulkActionButtons() list
+   - Button enables/disables based on selection state
+
+BACKEND CHANGES:
+
+4. Added message handlers in userStoriesDevCommands.ts
+   - Added bulkUpdatePriority handler (was missing)
+   - Added bulkUpdateStoryPoints handler (NEW)
+   - Added bulkUpdateAssignment handler (was missing)
+   - Added bulkUpdateSprint handler (was missing)
+   
+All bulk handlers follow same pattern:
+   - Load existing dev data from app-dna-user-story-dev.json
+   - Update specified field for each story ID
+   - Save updated data back to file
+   - Show success message
+   - Reload data to refresh UI
+
+FILES MODIFIED:
+1. src/webviews/userStoryDev/components/scripts/storyPointsManagement.js
+   - Added 4 bulk operation functions (~120 lines)
+2. src/webviews/userStoryDev/components/templates/detailsTabTemplate.js
+   - Added bulk story points button to action bar
+3. src/webviews/userStoryDev/components/scripts/selectionActions.js
+   - Added button ID to enable/disable list
+4. src/commands/userStoriesDevCommands.ts
+   - Added 4 bulk update case handlers (~180 lines)
+
+BUTTON ADDED:
+<button onclick="openBulkStoryPointsModal()">
+    <i class="codicon codicon-number"></i> Bulk Story Points
+</button>
+
+MODAL FEATURES:
+- Dropdown with story points options (?, 1, 2, 3, 5, 8, 13, 21)
+- Shows count of selected stories
+- Apply and Cancel buttons
+- Inline styled with VS Code theme variables
+- Auto-focus on dropdown
+- Responsive design (90% width, max 400px)
+
+USER WORKFLOW:
+1. Select one or more user stories in Details tab
+2. Click "Bulk Story Points" button (enabled when stories selected)
+3. Select story points from dropdown
+4. Click Apply
+5. All selected stories updated with chosen points
+6. Estimated end dates recalculated where applicable
+7. Table refreshes to show updated values
+8. Success message shows count of updated stories
+
+BENEFITS:
+✅ Faster story estimation for multiple stories
+✅ Consistent story points across similar stories
+✅ Reduces repetitive clicking
+✅ Follows established bulk operation pattern
+✅ Professional modal UI with VS Code theming
+
+ALSO FIXED:
+While implementing, discovered and fixed missing backend handlers for:
+- bulkUpdatePriority
+- bulkUpdateAssignment
+- bulkUpdateSprint
+
+These bulk operations were sending messages but had no handlers on the backend.
+Now all 5 bulk operations (Status, Priority, Points, Assignment, Sprint) work end-to-end.
+
+================================================================================
+Date: October 5, 2025
+Command: Fix bulk modal display issues on Details tab
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+Bulk operation modals (Status Update, Priority Update, Assignment, Sprint) were
+not displaying properly on the Details tab. Modals appeared but were invisible
+or had no styling - content was not visible to users.
+
+ROOT CAUSE:
+Modals used CSS class names (modal-overlay, modal-content) without any actual
+CSS definitions. No inline styles were applied, resulting in:
+- No positioning (not fixed/centered)
+- No background overlay
+- No z-index (appeared behind content)
+- No VS Code theme colors
+- Unstyled buttons and form elements
+
+SOLUTION:
+Added comprehensive inline CSS styles to all 4 bulk modals using VS Code theme
+variables for proper theming and visibility.
+
+MODAL OVERLAY STYLING:
+- position: fixed with full screen coverage (top/left/right/bottom: 0)
+- Semi-transparent dark background: rgba(0,0,0,0.5)
+- Flexbox centering: display: flex, align-items: center, justify-content: center
+- High z-index: 10000 (above all content)
+
+MODAL CONTENT STYLING:
+- VS Code theme background: var(--vscode-editor-background)
+- Theme-aware border: var(--vscode-panel-border)
+- Rounded corners: border-radius: 6px
+- Proper padding: 20px
+- Responsive width: max-width 400px, width 90%
+- Elevation shadow: box-shadow
+
+FORM ELEMENTS:
+- VS Code input theme variables
+- Full width with proper padding
+- Theme-aware colors for background, foreground, border
+
+BUTTONS:
+- Primary button: var(--vscode-button-background/foreground)
+- Secondary button: var(--vscode-button-secondaryBackground/foreground)
+- Flexbox layout with icon and text
+- Proper padding and border-radius
+
+FILES MODIFIED:
+1. src/webviews/userStoryDev/components/scripts/devStatusManagement.js
+   - openBulkStatusModal() - Added inline styles to overlay and content
+2. src/webviews/userStoryDev/components/scripts/priorityManagement.js
+   - openBulkPriorityModal() - Added inline styles to overlay and content
+3. src/webviews/userStoryDev/components/scripts/assignmentManagement.js
+   - openBulkAssignmentModal() - Added inline styles to overlay and content
+   - openBulkSprintModal() - Added inline styles to overlay and content
+
+BENEFITS:
+✅ Modals now fully visible and centered
+✅ Proper VS Code theme integration (light/dark/high contrast)
+✅ Professional appearance with shadows and rounded corners
+✅ No external CSS dependencies
+✅ Self-contained, maintainable code
+✅ Responsive design (90% width on small screens)
+
+PATTERN ESTABLISHED:
+Simple modals should use inline styles with VS Code theme variables rather than
+relying on external CSS classes. This ensures visibility and proper theming.
+
+DOCUMENTATION:
+Created comprehensive fix document at:
+docs/fixes/bulk-modal-display-fix.md
+
+================================================================================
+Date: October 5, 2025
 Command: Fix Gantt chart story sorting - empty stories appearing first
 Status: COMPLETED
 ================================================================================

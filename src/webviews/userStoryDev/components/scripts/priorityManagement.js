@@ -172,21 +172,22 @@ function openBulkPriorityModal() {
     // Create modal
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 400px;">
-            <h2>Bulk Priority Update</h2>
-            <p>Update priority for ${selectedIds.length} selected user ${selectedIds.length === 1 ? 'story' : 'stories'}:</p>
-            <div class="form-group">
-                <label for="bulkPrioritySelect">New Priority:</label>
-                <select id="bulkPrioritySelect" class="form-control">
+        <div class="modal-content" style="background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 20px; max-width: 400px; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <h2 style="margin-top: 0; color: var(--vscode-foreground); font-size: 18px; font-weight: 600;">Bulk Priority Update</h2>
+            <p style="color: var(--vscode-descriptionForeground); margin: 10px 0 20px 0;">Update priority for ${selectedIds.length} selected user ${selectedIds.length === 1 ? 'story' : 'stories'}:</p>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="bulkPrioritySelect" style="display: block; margin-bottom: 6px; color: var(--vscode-foreground); font-weight: 500;">New Priority:</label>
+                <select id="bulkPrioritySelect" class="form-control" style="width: 100%; padding: 6px 8px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 3px;">
                     ${PRIORITY_LEVELS.map(p => `<option value="${p.value}">${p.label}</option>`).join('')}
                 </select>
             </div>
-            <div class="modal-actions">
-                <button onclick="applyBulkPriority()" class="primary-button">
+            <div class="modal-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="applyBulkPriority()" class="primary-button" style="padding: 6px 16px; background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                     <i class="codicon codicon-check"></i> Apply
                 </button>
-                <button onclick="closeBulkPriorityModal()" class="secondary-button">
+                <button onclick="closeBulkPriorityModal()" class="secondary-button" style="padding: 6px 16px; background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); border: none; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                     <i class="codicon codicon-close"></i> Cancel
                 </button>
             </div>

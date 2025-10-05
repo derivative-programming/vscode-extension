@@ -79,6 +79,9 @@ function generateDetailsTab(items, config) {
                 <button onclick="openBulkPriorityModal()" class="action-button" id="bulkPriorityBtn" disabled>
                     <i class="codicon codicon-warning"></i> Bulk Priority Update
                 </button>
+                <button onclick="openBulkStoryPointsModal()" class="action-button" id="bulkStoryPointsBtn" disabled>
+                    <i class="codicon codicon-number"></i> Bulk Story Points
+                </button>
                 <button onclick="openBulkAssignmentModal()" class="action-button" id="bulkAssignmentBtn" disabled>
                     <i class="codicon codicon-person"></i> Bulk Assignment
                 </button>

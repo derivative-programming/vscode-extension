@@ -555,6 +555,185 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                             }
                             break;
 
+                        case 'bulkUpdatePriority':
+                            try {
+                                const { storyIds, newPriority } = message;
+                                
+                                const modelFilePath = modelService.getCurrentFilePath();
+                                if (!modelFilePath) {
+                                    throw new Error("No model file path available");
+                                }
+                                
+                                const modelDir = path.dirname(modelFilePath);
+                                const filePath = path.join(modelDir, 'app-dna-user-story-dev.json');
+
+                                // Load existing data
+                                let existingData: any = { devData: [] };
+                                if (fs.existsSync(filePath)) {
+                                    const content = fs.readFileSync(filePath, 'utf8');
+                                    existingData = JSON.parse(content);
+                                }
+
+                                // Update each story
+                                storyIds.forEach((storyId: string) => {
+                                    const index = existingData.devData.findIndex((d: any) => d.storyId === storyId);
+                                    if (index >= 0) {
+                                        existingData.devData[index].priority = newPriority;
+                                    }
+                                });
+
+                                await saveDevData(existingData.devData, filePath);
+
+                                panel.webview.postMessage({
+                                    command: 'devChangeSaved',
+                                    success: true
+                                });
+
+                                vscode.window.showInformationMessage(`Updated ${storyIds.length} stories to priority: ${newPriority}`);
+                                
+                                // Reload data
+                                await loadUserStoriesDevData(panel, modelService);
+                            } catch (error) {
+                                console.error('[Extension] Error in bulk priority update:', error);
+                                vscode.window.showErrorMessage(`Error updating priorities: ${(error as Error).message}`);
+                            }
+                            break;
+
+                        case 'bulkUpdateStoryPoints':
+                            try {
+                                const { storyIds, newPoints } = message;
+                                
+                                const modelFilePath = modelService.getCurrentFilePath();
+                                if (!modelFilePath) {
+                                    throw new Error("No model file path available");
+                                }
+                                
+                                const modelDir = path.dirname(modelFilePath);
+                                const filePath = path.join(modelDir, 'app-dna-user-story-dev.json');
+
+                                // Load existing data
+                                let existingData: any = { devData: [] };
+                                if (fs.existsSync(filePath)) {
+                                    const content = fs.readFileSync(filePath, 'utf8');
+                                    existingData = JSON.parse(content);
+                                }
+
+                                // Update each story
+                                storyIds.forEach((storyId: string) => {
+                                    const index = existingData.devData.findIndex((d: any) => d.storyId === storyId);
+                                    if (index >= 0) {
+                                        existingData.devData[index].storyPoints = newPoints;
+                                    }
+                                });
+
+                                await saveDevData(existingData.devData, filePath);
+
+                                panel.webview.postMessage({
+                                    command: 'devChangeSaved',
+                                    success: true
+                                });
+
+                                vscode.window.showInformationMessage(`Updated ${storyIds.length} stories to ${newPoints} story points`);
+                                
+                                // Reload data
+                                await loadUserStoriesDevData(panel, modelService);
+                            } catch (error) {
+                                console.error('[Extension] Error in bulk story points update:', error);
+                                vscode.window.showErrorMessage(`Error updating story points: ${(error as Error).message}`);
+                            }
+                            break;
+
+                        case 'bulkUpdateAssignment':
+                            try {
+                                const { storyIds, newAssignment } = message;
+                                
+                                const modelFilePath = modelService.getCurrentFilePath();
+                                if (!modelFilePath) {
+                                    throw new Error("No model file path available");
+                                }
+                                
+                                const modelDir = path.dirname(modelFilePath);
+                                const filePath = path.join(modelDir, 'app-dna-user-story-dev.json');
+
+                                // Load existing data
+                                let existingData: any = { devData: [] };
+                                if (fs.existsSync(filePath)) {
+                                    const content = fs.readFileSync(filePath, 'utf8');
+                                    existingData = JSON.parse(content);
+                                }
+
+                                // Update each story
+                                storyIds.forEach((storyId: string) => {
+                                    const index = existingData.devData.findIndex((d: any) => d.storyId === storyId);
+                                    if (index >= 0) {
+                                        existingData.devData[index].assignedTo = newAssignment;
+                                    }
+                                });
+
+                                await saveDevData(existingData.devData, filePath);
+
+                                panel.webview.postMessage({
+                                    command: 'devChangeSaved',
+                                    success: true
+                                });
+
+                                const assignmentText = newAssignment || '(Unassigned)';
+                                vscode.window.showInformationMessage(`Updated ${storyIds.length} stories to: ${assignmentText}`);
+                                
+                                // Reload data
+                                await loadUserStoriesDevData(panel, modelService);
+                            } catch (error) {
+                                console.error('[Extension] Error in bulk assignment update:', error);
+                                vscode.window.showErrorMessage(`Error updating assignments: ${(error as Error).message}`);
+                            }
+                            break;
+
+                        case 'bulkUpdateSprint':
+                            try {
+                                const { storyIds, newSprintId, newSprint } = message;
+                                
+                                const modelFilePath = modelService.getCurrentFilePath();
+                                if (!modelFilePath) {
+                                    throw new Error("No model file path available");
+                                }
+                                
+                                const modelDir = path.dirname(modelFilePath);
+                                const filePath = path.join(modelDir, 'app-dna-user-story-dev.json');
+
+                                // Load existing data
+                                let existingData: any = { devData: [] };
+                                if (fs.existsSync(filePath)) {
+                                    const content = fs.readFileSync(filePath, 'utf8');
+                                    existingData = JSON.parse(content);
+                                }
+
+                                // Update each story
+                                storyIds.forEach((storyId: string) => {
+                                    const index = existingData.devData.findIndex((d: any) => d.storyId === storyId);
+                                    if (index >= 0) {
+                                        existingData.devData[index].sprintId = newSprintId;
+                                        existingData.devData[index].sprint = newSprint;
+                                    }
+                                });
+
+                                await saveDevData(existingData.devData, filePath);
+
+                                panel.webview.postMessage({
+                                    command: 'devChangeSaved',
+                                    success: true
+                                });
+
+                                const sprintText = newSprint || '(No Sprint)';
+                                vscode.window.showInformationMessage(`Updated ${storyIds.length} stories to sprint: ${sprintText}`);
+                                
+                                // Reload data
+                                await loadUserStoriesDevData(panel, modelService);
+                            } catch (error) {
+                                console.error('[Extension] Error in bulk sprint update:', error);
+                                vscode.window.showErrorMessage(`Error updating sprints: ${(error as Error).message}`);
+                            }
+                            break;
+
                         case 'createSprint':
                         case 'updateSprint':
                         case 'saveSprint':

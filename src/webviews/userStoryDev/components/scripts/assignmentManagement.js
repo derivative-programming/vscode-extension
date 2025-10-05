@@ -239,22 +239,23 @@ function openBulkAssignmentModal() {
     // Create modal
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 400px;">
-            <h2>Bulk Developer Assignment</h2>
-            <p>Assign ${selectedIds.length} selected user ${selectedIds.length === 1 ? 'story' : 'stories'} to:</p>
-            <div class="form-group">
-                <label for="bulkAssignmentSelect">Developer:</label>
-                <select id="bulkAssignmentSelect" class="form-control">
+        <div class="modal-content" style="background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 20px; max-width: 400px; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <h2 style="margin-top: 0; color: var(--vscode-foreground); font-size: 18px; font-weight: 600;">Bulk Developer Assignment</h2>
+            <p style="color: var(--vscode-descriptionForeground); margin: 10px 0 20px 0;">Assign ${selectedIds.length} selected user ${selectedIds.length === 1 ? 'story' : 'stories'} to:</p>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="bulkAssignmentSelect" style="display: block; margin-bottom: 6px; color: var(--vscode-foreground); font-weight: 500;">Developer:</label>
+                <select id="bulkAssignmentSelect" class="form-control" style="width: 100%; padding: 6px 8px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 3px;">
                     <option value="">(Unassigned)</option>
                     ${developers.map(dev => `<option value="${dev.name}">${dev.name}</option>`).join('')}
                 </select>
             </div>
-            <div class="modal-actions">
-                <button onclick="applyBulkAssignment()" class="primary-button">
+            <div class="modal-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="applyBulkAssignment()" class="primary-button" style="padding: 6px 16px; background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                     <i class="codicon codicon-check"></i> Assign
                 </button>
-                <button onclick="closeBulkAssignmentModal()" class="secondary-button">
+                <button onclick="closeBulkAssignmentModal()" class="secondary-button" style="padding: 6px 16px; background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); border: none; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                     <i class="codicon codicon-close"></i> Cancel
                 </button>
             </div>
@@ -314,22 +315,23 @@ function openBulkSprintModal() {
     // Create modal
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 400px;">
-            <h2>Bulk Sprint Assignment</h2>
-            <p>Assign ${selectedIds.length} selected user ${selectedIds.length === 1 ? 'story' : 'stories'} to:</p>
-            <div class="form-group">
-                <label for="bulkSprintSelect">Sprint:</label>
-                <select id="bulkSprintSelect" class="form-control">
+        <div class="modal-content" style="background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 20px; max-width: 400px; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <h2 style="margin-top: 0; color: var(--vscode-foreground); font-size: 18px; font-weight: 600;">Bulk Sprint Assignment</h2>
+            <p style="color: var(--vscode-descriptionForeground); margin: 10px 0 20px 0;">Assign ${selectedIds.length} selected user ${selectedIds.length === 1 ? 'story' : 'stories'} to:</p>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="bulkSprintSelect" style="display: block; margin-bottom: 6px; color: var(--vscode-foreground); font-weight: 500;">Sprint:</label>
+                <select id="bulkSprintSelect" class="form-control" style="width: 100%; padding: 6px 8px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); border-radius: 3px;">
                     <option value="">(No Sprint / Backlog)</option>
                     ${sprints.map(sprint => `<option value="${sprint.sprintId}">${sprint.sprintName}</option>`).join('')}
                 </select>
             </div>
-            <div class="modal-actions">
-                <button onclick="applyBulkSprintAssignment()" class="primary-button">
+            <div class="modal-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="applyBulkSprintAssignment()" class="primary-button" style="padding: 6px 16px; background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                     <i class="codicon codicon-check"></i> Assign
                 </button>
-                <button onclick="closeBulkSprintModal()" class="secondary-button">
+                <button onclick="closeBulkSprintModal()" class="secondary-button" style="padding: 6px 16px; background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); border: none; border-radius: 3px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                     <i class="codicon codicon-close"></i> Cancel
                 </button>
             </div>
