@@ -45,6 +45,9 @@ function generateBoardTab(items, config) {
                     <button onclick="clearBoardFilters()" class="board-clear-btn">
                         <i class="codicon codicon-clear-all"></i> Clear Filters
                     </button>
+                    <button onclick="refreshBoard()" class="icon-button" title="Refresh">
+                        <i class="codicon codicon-refresh"></i>
+                    </button>
                 </div>
             </div>
 

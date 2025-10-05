@@ -47,17 +47,15 @@ function generateForecastHeader(forecastConfig) {
                     <span class="codicon codicon-settings-gear"></span>
                     Configure
                 </button>
-                <button class="forecast-btn forecast-btn-secondary" onclick="refreshForecast()">
+                <button class="icon-button" onclick="refreshForecast()" title="Refresh">
                     <span class="codicon codicon-refresh"></span>
-                    Refresh
                 </button>
                 <button class="forecast-btn forecast-btn-secondary" onclick="exportGanttChart('png')">
                     <span class="codicon codicon-file-media"></span>
                     Export PNG
                 </button>
-                <button class="forecast-btn forecast-btn-secondary" onclick="exportGanttChart('csv')">
-                    <span class="codicon codicon-file-code"></span>
-                    Export CSV
+                <button class="icon-button" onclick="exportGanttChartCSV()" title="Download CSV">
+                    <span class="codicon codicon-cloud-download"></span>
                 </button>
             </div>
         </div>

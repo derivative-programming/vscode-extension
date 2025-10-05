@@ -397,12 +397,23 @@ function clearBoardFilters() {
  * Refresh board (re-render from current data)
  */
 function refreshBoard() {
-    renderKanbanBoard(allItems, devConfig);
+    // Show spinner overlay
+    showSpinner();
     
-    // Reapply filters if any are active
-    if (boardFilters.developer || boardFilters.priority || boardFilters.sprint) {
-        filterBoard();
-    }
+    // Re-render after brief delay to allow spinner to display
+    setTimeout(() => {
+        try {
+            renderKanbanBoard(allItems, devConfig);
+            
+            // Reapply filters if any are active
+            if (boardFilters.developer || boardFilters.priority || boardFilters.sprint) {
+                filterBoard();
+            }
+        } finally {
+            // Hide spinner after processing
+            hideSpinner();
+        }
+    }, 50);
 }
 
 // Export functions

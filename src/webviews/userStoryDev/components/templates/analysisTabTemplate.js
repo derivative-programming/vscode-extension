@@ -15,8 +15,8 @@ function generateAnalysisTab(items, config) {
             <div class="analysis-header">
                 <h3>Development Analytics</h3>
                 <div class="analysis-controls">
-                    <button onclick="refreshAnalytics()" class="analytics-button">
-                        <i class="codicon codicon-refresh"></i> Refresh
+                    <button onclick="refreshAnalytics()" class="icon-button" title="Refresh">
+                        <i class="codicon codicon-refresh"></i>
                     </button>
                 </div>
             </div>

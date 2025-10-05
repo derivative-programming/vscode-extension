@@ -1,3 +1,283 @@
+## October 5, 2025 - User Story Dev View - Fix Forecast Tab Export CSV Button Design and Functionality
+
+**Command**: Update the user story dev view forecast tab export CSV button to match the dev view details tab design and functionality (icon-only button that auto-opens CSV in workspace)
+
+**Status**: ✅ COMPLETED
+
+**Problem**:
+The user story dev view forecast tab export CSV button had different design and functionality compared to the details tab:
+- Forecast tab used `class="forecast-btn forecast-btn-secondary"` with text label "Export CSV"
+- Forecast tab used codicon-file-code icon
+- Forecast tab downloaded CSV via browser blob (manual download to Downloads folder)
+- Details tab used `class="icon-button"` with icon-only design, cloud-download icon, and automatically saved to workspace folder and opened the file
+
+**Solution**:
+Updated button styling, functionality, and message flow to match the details tab pattern:
+
+1. **Changed button styling** in `forecastTabTemplate.js`:
+   - Changed from `class="forecast-btn forecast-btn-secondary"` to `class="icon-button"`
+   - Removed text label "Export CSV"
+   - Changed icon from `codicon-file-code` to `codicon-cloud-download`
+   - Added `title="Download CSV"` tooltip
+   - Changed from `onclick="exportGanttChart('csv')"` to `onclick="exportGanttChartCSV()"`
+
+2. **Updated exportGanttChartCSV function** in `ganttChart.js`:
+   - Simplified to just send `downloadGanttCsv` command with schedule data
+   - Removed browser blob download logic
+   - Extension now handles CSV generation and saving
+
+3. **Added downloadGanttCsv handler** in `userStoriesDevCommands.ts`:
+   - Receives schedule data from webview
+   - Generates CSV with columns: Story ID, Story, Priority, Dev Status, Points, Developer, Start Date, End Date, Duration (days)
+   - Includes helper functions for formatting dev status and dates
+   - Creates timestamped filename: `gantt_schedule_YYYYMMDDHHMMSS.csv`
+   - Sends csvData message back to webview
+
+4. **Uses existing saveCsvToWorkspace handler**:
+   - Saves CSV to `user_story_reports` directory in workspace
+   - Shows information message with file path
+   - Automatically opens the CSV file in VS Code
+
+5. **Uses existing csvData message handler** in `userStoryDevView.js`:
+   - Already handles csvData messages and forwards to saveCsvToWorkspace
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/forecastTabTemplate.js` - Updated export CSV button HTML (line ~57)
+- `src/webviews/userStoryDev/components/scripts/ganttChart.js` - Simplified exportGanttChartCSV function (lines 518-530)
+- `src/commands/userStoriesDevCommands.ts` - Added downloadGanttCsv handler (lines 863-936)
+
+**Architecture Notes**:
+- CSV export follows the pattern: button click → extension generates CSV → extension sends back to webview → webview triggers save to workspace → extension saves and opens file
+- Gantt CSV includes schedule/timeline data (different from regular dev tracking CSV)
+- Automatic file opening provides better UX than browser download
+- Timestamped filenames prevent overwrites
+
+---
+
+## October 5, 2025 - User Story Dev View - Fix Forecast Tab Refresh Button Design
+
+**Command**: Update the user story dev view forecast tab refresh button to match the dev view details tab refresh button design (icon-only button with processing animation overlay)
+
+**Status**: ✅ COMPLETED
+
+**Problem**:
+The user story dev view forecast tab refresh button had inconsistent design compared to the details tab:
+- Forecast tab used `class="forecast-btn forecast-btn-secondary"` which had no CSS defined (undefined styling)
+- Forecast tab had text label "Refresh"
+- Forecast tab didn't show spinner overlay - just showed info message
+- Details tab used `class="icon-button"` with proper styling and spinner overlay (correct design)
+
+**Solution**:
+Updated the forecast tab refresh button to match the details tab design:
+
+1. **Updated button HTML** in `forecastTabTemplate.js`:
+   - Changed from `class="forecast-btn forecast-btn-secondary"` to `class="icon-button"`
+   - Removed text label "Refresh"
+   - Added `title="Refresh"` for tooltip
+   - Changed from `<span>` to icon consistency
+   - Kept icon: `<span class="codicon codicon-refresh"></span>`
+
+2. **Updated refreshForecast function** in `forecastConfigManagement.js`:
+   - Added `showSpinner()` call at start
+   - Wrapped renderForecastTab in try-finally block
+   - Added `hideSpinner()` call in finally block
+   - Added 50ms timeout to allow spinner to display
+   - Removed info message toast (spinner overlay is the indicator)
+   - Kept validation check for available stories
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/forecastTabTemplate.js` - Updated refresh button HTML (lines ~50-52)
+- `src/webviews/userStoryDev/components/scripts/forecastConfigManagement.js` - Updated refreshForecast function (lines 233-251)
+
+**Architecture Notes**:
+- All tabs in dev view now have consistent refresh button design
+- Forecast tab still has other action buttons (Configure, Export PNG, Export CSV) with their original styling
+- Only refresh button was changed to icon-only design for consistency
+- Spinner overlay provides better visual feedback than toast message
+
+---
+
+## October 5, 2025 - User Story Dev View - Add Board Tab Refresh Button
+
+**Command**: Add refresh button to the user story dev view board tab to match the details tab design (icon-only button with processing animation overlay)
+
+**Status**: ✅ COMPLETED
+
+**Problem**:
+The user story dev view board tab was missing a refresh button, while the details tab and analysis tab both had refresh buttons with consistent design.
+
+**Solution**:
+Added a refresh button to the board tab with the same design pattern as the details and analysis tabs:
+
+1. **Added refresh button** in `boardTabTemplate.js`:
+   - Icon-only button with `class="icon-button"`
+   - Positioned after the "Clear Filters" button in the board controls
+   - Uses `onclick="refreshBoard()"`
+   - Tooltip: "Refresh"
+   - Icon: `<i class="codicon codicon-refresh"></i>`
+
+2. **Updated refreshBoard function** in `kanbanFunctions.js`:
+   - Added `showSpinner()` call at start
+   - Wrapped rendering logic in try-finally block
+   - Added `hideSpinner()` call in finally block
+   - Added 50ms timeout to allow spinner to display
+   - Maintains filter reapplication after refresh
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/boardTabTemplate.js` - Added refresh button (lines ~47-49)
+- `src/webviews/userStoryDev/components/scripts/kanbanFunctions.js` - Updated refreshBoard function (lines 397-417)
+
+**Architecture Notes**:
+- All tabs in dev view now have consistent refresh button design
+- Board tab refresh button positioned logically after filter controls
+- Spinner overlay provides consistent loading feedback across all tabs
+- Function already existed but wasn't exposed via UI button
+
+---
+
+## October 5, 2025 - User Story Dev View - Fix Analysis Tab Refresh Button Design
+
+**Command**: Update the user story dev view analysis tab refresh button to match the dev view details tab refresh button design (icon-only button with processing animation overlay)
+
+**Status**: ✅ COMPLETED
+
+**Problem**:
+The user story dev view analysis tab refresh button had inconsistent design compared to the details tab:
+- Analysis tab used `class="analytics-button"` which had no CSS defined (undefined styling)
+- Analysis tab had text label "Refresh"
+- Analysis tab didn't show spinner overlay - only showed inline chart loading states
+- Details tab used `class="icon-button"` with proper styling and spinner overlay (correct design)
+
+**Solution**:
+Updated the analysis tab refresh button to match the details tab design:
+
+1. **Updated button HTML** in `analysisTabTemplate.js`:
+   - Changed from `class="analytics-button"` to `class="icon-button"`
+   - Removed text label "Refresh"
+   - Added `title="Refresh"` for tooltip
+   - Kept icon: `<i class="codicon codicon-refresh"></i>`
+
+2. **Updated refreshAnalytics function** in `userStoryDevView.js`:
+   - Added `showSpinner()` call at start
+   - Wrapped renderAnalysisTab in try-finally block
+   - Added `hideSpinner()` call in finally block
+   - Changed timeout from 300ms to 50ms for faster response
+   - Removed inline chart loading states (spinner overlay is now the indicator)
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/analysisTabTemplate.js` - Updated refresh button HTML (line ~18)
+- `src/webviews/userStoryDev/userStoryDevView.js` - Updated refreshAnalytics function (lines 177-194)
+
+**Architecture Notes**:
+- All refresh buttons in dev view now use consistent icon-button styling
+- All refresh actions show spinner overlay for consistent UX
+- Spinner overlay pattern: showSpinner() → process/render → hideSpinner()
+- Icon-button class provides consistent VS Code design language
+
+---
+
+## October 5, 2025 - User Story Dev View - Fix Export to CSV Button Design and Functionality
+
+**Command**: Update the user story dev view details tab export to CSV button to match the list view stories tab design and functionality (icon-only button that auto-opens CSV in workspace)
+
+**Status**: ✅ COMPLETED
+
+**Problem**:
+The user story dev view details tab export button had different design and functionality compared to the list view:
+- Dev view used `.action-button` class with background, text label "Export CSV", and codicon-export icon
+- Dev view showed save dialog (manual file location choice)
+- List view used `.icon-button` class with no background, icon-only (codicon-cloud-download), and automatically saved to workspace folder and opened the file
+
+**Solution**:
+Updated button styling, functionality, and message flow to match the list view pattern:
+
+1. **Changed button styling** in `detailsTabTemplate.js`:
+   - Changed from `class="action-button"` to `class="icon-button"`
+   - Removed text label "Export CSV"
+   - Changed icon from `codicon-export` to `codicon-cloud-download`
+   - Added `title="Download CSV"` tooltip
+
+2. **Updated exportToCSV function** in `selectionActions.js`:
+   - Simplified to just send `downloadCsv` command (matching list view)
+   - Removed item filtering logic
+   - Extension now generates CSV from model data
+
+3. **Added downloadCsv handler** in `userStoriesDevCommands.ts`:
+   - Loads user stories from model
+   - Loads dev tracking data from `app-dna-user-story-dev.json` file
+   - Generates CSV with columns: storyNumber, storyText, devStatus, priority, assignedTo, sprint, storyPoints, estimatedHours, actualHours
+   - Creates timestamped filename: `user_story_dev_report_YYYYMMDDHHMMSS.csv`
+   - Sends csvData message back to webview
+
+4. **Added saveCsvToWorkspace handler** in `userStoriesDevCommands.ts`:
+   - Creates `user_story_reports` directory in workspace
+   - Saves CSV file to workspace folder
+   - Shows information message with file path
+   - Automatically opens the CSV file in VS Code
+
+5. **Added csvData message handler** in `userStoryDevView.js`:
+   - Receives CSV content and filename from extension
+   - Forwards to saveCsvToWorkspace command
+   - Matches list view message flow pattern
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/detailsTabTemplate.js` - Updated button HTML (line ~92)
+- `src/webviews/userStoryDev/components/scripts/selectionActions.js` - Simplified exportToCSV function (lines 203-209)
+- `src/commands/userStoriesDevCommands.ts` - Added downloadCsv and saveCsvToWorkspace handlers (lines 778-859)
+- `src/webviews/userStoryDev/userStoryDevView.js` - Added csvData message handler (lines 357-372)
+
+**Architecture Notes**:
+- CSV export follows the pattern: button click → extension generates CSV → extension sends back to webview → webview triggers save to workspace → extension saves and opens file
+- Dev data is stored separately in `app-dna-user-story-dev.json` file in the same directory as the model
+- CSV includes both story data and dev tracking fields
+- Automatic file opening provides better UX than save dialog
+
+---
+
+## October 5, 2025 - User Story Dev View - Fix Refresh Button Design
+
+**Command**: Update the user story dev view details tab refresh button to match the list view stories tab refresh button design (icon-only button with processing animation overlay)
+
+**Status**: ✅ COMPLETED
+
+**Problem**:
+The user story dev view details tab refresh button had a different design compared to the list view stories tab:
+- Dev view used `.action-button` class with background color, text label "Refresh", and padding
+- List view used `.icon-button` class with no background, icon-only design, hover effect
+
+**Solution**:
+Updated both the button styling and structure to match the list view:
+
+1. **Added `.icon-button` CSS class** to `userStoriesDevCommands.ts`:
+   - No background by default
+   - Hover state with `var(--vscode-toolbar-hoverBackground)`
+   - Focus outline with `var(--vscode-focusBorder)`
+   - 16px font size for icon
+   - Flex layout for centering
+
+2. **Updated refresh button HTML** in `detailsTabTemplate.js`:
+   - Changed from `class="action-button"` to `class="icon-button"`
+   - Removed text label "Refresh"
+   - Added `title="Refresh"` for tooltip
+   - Kept icon-only: `<i class="codicon codicon-refresh"></i>`
+
+3. **Fixed spinner overlay CSS** (already completed):
+   - Uses proper `--vscode-progressBar-background` and `--vscode-progressBar-foreground` colors
+   - Consistent z-index of 1000
+
+**Files Modified**:
+- `src/commands/userStoriesDevCommands.ts` - Added `.icon-button` CSS class (lines ~1158-1178)
+- `src/commands/userStoriesDevCommands.ts` - Fixed spinner overlay CSS (lines 996-1017)
+- `src/webviews/userStoryDev/components/templates/detailsTabTemplate.js` - Updated refresh button HTML (line ~96)
+
+**Architecture Notes**:
+- Icon buttons are used for common toolbar actions (refresh, add, upload, download)
+- Action buttons with text labels are used for bulk operations and primary actions
+- Both views now have consistent UX with icon-only refresh buttons
+- The spinner overlay pattern: showSpinner() → displays overlay → refresh command → hideSpinner()
+
+---
+
 ## October 5, 2025 - Tree View - Add Development Item Under USER STORIES
 
 **Command**: Add 'Development' item to tree view under USER STORIES, between 'Stories' and 'Page Mapping'

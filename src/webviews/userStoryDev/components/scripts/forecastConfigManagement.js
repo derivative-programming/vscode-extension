@@ -239,11 +239,16 @@ function refreshForecast() {
         return;
     }
     
-    // Re-render forecast tab
-    renderForecastTab();
+    // Show spinner overlay
+    showSpinner();
     
-    vscode.postMessage({ 
-        command: "showInfo", 
-        message: "Forecast refreshed" 
-    });
+    // Re-render after brief delay to allow spinner to display
+    setTimeout(() => {
+        try {
+            renderForecastTab();
+        } finally {
+            // Hide spinner after processing
+            hideSpinner();
+        }
+    }, 50);
 }

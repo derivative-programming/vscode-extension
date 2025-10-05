@@ -775,21 +775,190 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                             await loadDevConfig(panel, modelService);
                             break;
 
-                        case 'exportCSV':
+                        case 'downloadCsv':
                             try {
-                                const csvData = message.data;
-                                const uri = await vscode.window.showSaveDialog({
-                                    filters: { 'CSV Files': ['csv'] },
-                                    defaultUri: vscode.Uri.file('user-stories-dev.csv')
+                                // Get the current model data
+                                const currentModel = modelService.getCurrentModel();
+                                if (!currentModel || !currentModel.namespace || !Array.isArray(currentModel.namespace) || currentModel.namespace.length === 0) {
+                                    throw new Error("Model structure is invalid or namespace not found");
+                                }
+
+                                // Get the first namespace
+                                const namespace = currentModel.namespace[0];
+                                const stories = namespace.userStory || [];
+
+                                // Load dev data from separate file
+                                let existingDevData: any = { devData: [] };
+                                const modelFilePath = modelService.getCurrentFilePath();
+                                if (modelFilePath) {
+                                    const modelDir = path.dirname(modelFilePath);
+                                    const devFilePath = path.join(modelDir, 'app-dna-user-story-dev.json');
+                                    try {
+                                        if (fs.existsSync(devFilePath)) {
+                                            const devContent = fs.readFileSync(devFilePath, 'utf8');
+                                            existingDevData = JSON.parse(devContent);
+                                        }
+                                    } catch (error) {
+                                        console.warn("[Extension] Could not load dev data for CSV export:", error);
+                                    }
+                                }
+                                
+                                // Create a map for quick lookup
+                                const devDataMap = new Map();
+                                if (existingDevData.devData) {
+                                    existingDevData.devData.forEach((dev: any) => {
+                                        devDataMap.set(dev.storyId, dev);
+                                    });
+                                }
+
+                                // Create CSV content with dev tracking fields
+                                let csvContent = "storyNumber,storyText,devStatus,priority,assignedTo,sprint,storyPoints,estimatedHours,actualHours\n";
+                                stories.forEach((story: any) => {
+                                    const storyNumber = story.storyNumber || "";
+                                    const storyText = `"${(story.storyText || "").replace(/"/g, '""')}"`;
+                                    
+                                    // Get dev data for this story
+                                    const dev = devDataMap.get(story.storyId);
+                                    const devStatus = dev?.devStatus || "";
+                                    const priority = dev?.priority || "";
+                                    const assignedTo = dev?.assignedTo || "";
+                                    const sprint = dev?.sprint || "";
+                                    const storyPoints = dev?.storyPoints || "";
+                                    const estimatedHours = dev?.estimatedHours || "";
+                                    const actualHours = dev?.actualHours || "";
+                                    
+                                    csvContent += `${storyNumber},${storyText},${devStatus},${priority},${assignedTo},${sprint},${storyPoints},${estimatedHours},${actualHours}\n`;
                                 });
 
-                                if (uri) {
-                                    fs.writeFileSync(uri.fsPath, csvData, 'utf8');
-                                    vscode.window.showInformationMessage('CSV exported successfully');
-                                }
+                                // Generate timestamped filename
+                                const now = new Date();
+                                const pad = (n: number) => n.toString().padStart(2, '0');
+                                const y = now.getFullYear();
+                                const m = pad(now.getMonth() + 1);
+                                const d = pad(now.getDate());
+                                const h = pad(now.getHours());
+                                const min = pad(now.getMinutes());
+                                const s = pad(now.getSeconds());
+                                const timestamp = `${y}${m}${d}${h}${min}${s}`;
+                                const filename = `user_story_dev_report_${timestamp}.csv`;
+
+                                // Send CSV content back to webview for download
+                                panel.webview.postMessage({
+                                    command: 'csvData',
+                                    data: {
+                                        content: csvContent,
+                                        filename: filename
+                                    }
+                                });
                             } catch (error) {
-                                console.error('[Extension] Error exporting CSV:', error);
-                                vscode.window.showErrorMessage(`Error exporting CSV: ${(error as Error).message}`);
+                                console.error('[Extension] Error generating CSV:', error);
+                                vscode.window.showErrorMessage(`Error generating CSV: ${(error as Error).message}`);
+                                panel.webview.postMessage({
+                                    command: 'error',
+                                    error: (error as Error).message
+                                });
+                            }
+                            break;
+
+                        case 'downloadGanttCsv':
+                            try {
+                                const schedules = message.schedules;
+                                
+                                if (!schedules || schedules.length === 0) {
+                                    throw new Error("No schedule data to export");
+                                }
+                                
+                                // Helper function to format dev status
+                                const formatDevStatus = (status: string): string => {
+                                    const statusMap: { [key: string]: string } = {
+                                        'on-hold': 'On Hold',
+                                        'ready-for-dev': 'Ready for Dev',
+                                        'in-progress': 'In Progress',
+                                        'blocked': 'Blocked',
+                                        'completed': 'Completed'
+                                    };
+                                    return statusMap[status] || status;
+                                };
+                                
+                                // Helper function to format date
+                                const formatDateShort = (dateStr: string): string => {
+                                    if (!dateStr) {
+                                        return '';
+                                    }
+                                    const date = new Date(dateStr);
+                                    return date.toISOString().split('T')[0];
+                                };
+                                
+                                // CSV headers
+                                const headers = ["Story ID", "Story", "Priority", "Dev Status", "Points", "Developer", "Start Date", "End Date", "Duration (days)"];
+                                
+                                // CSV rows
+                                const rows = schedules.map((s: any) => [
+                                    s.storyId,
+                                    `"${(s.storyText || '').replace(/"/g, '""')}"`, // Escape quotes
+                                    s.priority || '',
+                                    formatDevStatus(s.devStatus),
+                                    s.storyPoints || '',
+                                    s.developer || '',
+                                    formatDateShort(s.startDate),
+                                    formatDateShort(s.endDate),
+                                    s.daysNeeded ? s.daysNeeded.toFixed(1) : ''
+                                ]);
+                                
+                                // Combine
+                                const csvContent = [headers, ...rows]
+                                    .map(row => row.join(","))
+                                    .join("\n");
+                                
+                                // Generate timestamped filename
+                                const now = new Date();
+                                const pad = (n: number) => n.toString().padStart(2, '0');
+                                const y = now.getFullYear();
+                                const m = pad(now.getMonth() + 1);
+                                const d = pad(now.getDate());
+                                const h = pad(now.getHours());
+                                const min = pad(now.getMinutes());
+                                const s = pad(now.getSeconds());
+                                const timestamp = `${y}${m}${d}${h}${min}${s}`;
+                                const filename = `gantt_schedule_${timestamp}.csv`;
+
+                                // Send CSV content back to webview for saving
+                                panel.webview.postMessage({
+                                    command: 'csvData',
+                                    data: {
+                                        content: csvContent,
+                                        filename: filename
+                                    }
+                                });
+                            } catch (error) {
+                                console.error('[Extension] Error generating Gantt CSV:', error);
+                                vscode.window.showErrorMessage(`Error generating Gantt CSV: ${(error as Error).message}`);
+                                panel.webview.postMessage({
+                                    command: 'error',
+                                    error: (error as Error).message
+                                });
+                            }
+                            break;
+
+                        case 'saveCsvToWorkspace':
+                            try {
+                                console.log("[Extension] UserStoryDev saveCsvToWorkspace requested");
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    throw new Error('No workspace folder is open');
+                                }
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const reportDir = path.join(workspaceRoot, 'user_story_reports');
+                                if (!fs.existsSync(reportDir)) {
+                                    fs.mkdirSync(reportDir, { recursive: true });
+                                }
+                                const filePath = path.join(reportDir, message.data.filename);
+                                fs.writeFileSync(filePath, message.data.content, 'utf8');
+                                vscode.window.showInformationMessage('CSV file saved to workspace: ' + filePath);
+                                vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+                            } catch (error) {
+                                console.error("[Extension] Error saving CSV to workspace:", error);
+                                vscode.window.showErrorMessage('Failed to save CSV to workspace: ' + (error as Error).message);
                             }
                             break;
 
@@ -994,21 +1163,21 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 }
 
                 .spinner-overlay {
-                    display: none;
                     position: fixed;
                     top: 0;
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: rgba(0, 0, 0, 0.5);
+                    background-color: rgba(0, 0, 0, 0.5);
+                    display: none;
                     justify-content: center;
                     align-items: center;
-                    z-index: 9999;
+                    z-index: 1000;
                 }
 
                 .spinner {
-                    border: 4px solid var(--vscode-editor-background);
-                    border-top: 4px solid var(--vscode-progressBar-background);
+                    border: 4px solid var(--vscode-progressBar-background);
+                    border-top: 4px solid var(--vscode-progressBar-foreground);
                     border-radius: 50%;
                     width: 40px;
                     height: 40px;
@@ -1153,6 +1322,31 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 .action-button:disabled {
                     opacity: 0.5;
                     cursor: not-allowed;
+                }
+
+                /* Icon button styling for toolbar actions (icon-only buttons) */
+                .icon-button {
+                    background: none;
+                    border: none;
+                    color: var(--vscode-foreground);
+                    cursor: pointer;
+                    padding: 5px;
+                    margin-left: 5px;
+                    border-radius: 3px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                }
+
+                .icon-button:hover {
+                    background: var(--vscode-toolbar-hoverBackground);
+                    color: var(--vscode-foreground);
+                }
+
+                .icon-button:focus {
+                    outline: 1px solid var(--vscode-focusBorder);
+                    outline-offset: 2px;
                 }
 
                 .record-info {

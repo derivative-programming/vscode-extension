@@ -180,16 +180,18 @@ function refreshAnalytics() {
         return;
     }
 
-    // Show loading state for charts
-    const chartBodies = analysisTab.querySelectorAll('.chart-body');
-    chartBodies.forEach(body => {
-        body.innerHTML = generateChartLoadingState();
-    });
+    // Show spinner overlay
+    showSpinner();
 
-    // Re-calculate and re-render after brief delay
+    // Re-calculate and re-render after brief delay to allow spinner to display
     setTimeout(() => {
-        renderAnalysisTab();
-    }, 300);
+        try {
+            renderAnalysisTab();
+        } finally {
+            // Hide spinner after processing
+            hideSpinner();
+        }
+    }, 50);
 }
 
 /**
@@ -357,6 +359,23 @@ window.addEventListener('message', event => {
                 if (tabButton) {
                     tabButton.click();
                 }
+            }
+            break;
+
+        case 'csvData':
+            // Download CSV file - send to extension to save in workspace
+            try {
+                console.log('[UserStoryDev] Received csvData message from extension', message.data);
+                // Send a message to the extension host to save the file in the workspace
+                vscode.postMessage({
+                    command: 'saveCsvToWorkspace',
+                    data: {
+                        content: message.data.content,
+                        filename: message.data.filename
+                    }
+                });
+            } catch (e) {
+                console.error('[UserStoryDev] Failed to trigger CSV workspace save:', e);
             }
             break;
 

@@ -201,20 +201,9 @@ function refreshData() {
  * Export current view to CSV
  */
 function exportToCSV() {
-    const itemsToExport = getFilteredItems();
-    
-    if (!itemsToExport || itemsToExport.length === 0) {
-        vscode.postMessage({
-            command: 'showMessage',
-            type: 'warning',
-            message: 'No items to export'
-        });
-        return;
-    }
-    
+    console.log('[UserStoryDev] Download CSV button clicked');
     vscode.postMessage({
-        command: 'exportCSV',
-        items: itemsToExport
+        command: 'downloadCsv'
     });
 }
 

@@ -516,44 +516,17 @@ function exportGanttChartPNG() {
  * Export Gantt schedule data as CSV
  */
 function exportGanttChartCSV() {
+    console.log('[UserStoryDev] Download Gantt CSV button clicked');
+    
     if (!currentGanttData || !currentGanttData.schedules) {
         vscode.postMessage({ command: "showError", message: "No schedule data to export" });
         return;
     }
     
-    const schedules = currentGanttData.schedules;
-    
-    // CSV headers
-    const headers = ["Story ID", "Story", "Priority", "Dev Status", "Points", "Developer", "Start Date", "End Date", "Duration (days)"];
-    
-    // CSV rows
-    const rows = schedules.map(s => [
-        s.storyId,
-        `"${s.storyText.replace(/"/g, '""')}"`, // Escape quotes
-        s.priority,
-        formatDevStatus(s.devStatus),
-        s.storyPoints,
-        s.developer,
-        formatDateShort(s.startDate),
-        formatDateShort(s.endDate),
-        s.daysNeeded.toFixed(1)
-    ]);
-    
-    // Combine
-    const csvContent = [headers, ...rows]
-        .map(row => row.join(","))
-        .join("\n");
-    
-    // Download
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `gantt-schedule-${new Date().toISOString().split("T")[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-    
-    vscode.postMessage({ command: "showInfo", message: "Schedule data exported as CSV" });
+    vscode.postMessage({
+        command: 'downloadGanttCsv',
+        schedules: currentGanttData.schedules
+    });
 }
 
 /**

@@ -90,11 +90,11 @@ function generateDetailsTab(items, config) {
                 </button>
             </div>
             <div class="action-group">
-                <button onclick="exportToCSV()" class="action-button">
-                    <i class="codicon codicon-export"></i> Export CSV
+                <button onclick="exportToCSV()" class="icon-button" title="Download CSV">
+                    <i class="codicon codicon-cloud-download"></i>
                 </button>
-                <button onclick="refreshData()" class="action-button">
-                    <i class="codicon codicon-refresh"></i> Refresh
+                <button onclick="refreshData()" class="icon-button" title="Refresh">
+                    <i class="codicon codicon-refresh"></i>
                 </button>
             </div>
         </div>
