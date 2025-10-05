@@ -1,3 +1,132 @@
+## October 5, 2025 - User Story Dev View - Make Project Overview Metrics Compact Grid
+
+**Command**: Display project overview metrics in a compact grid layout instead of one per line
+
+**Status**: ✅ COMPLETED - GRID LAYOUT ADDED
+
+**Problem**:
+The Project Overview metrics were displayed one per line, taking up excessive vertical space and making the forecast tab look sparse and wasteful.
+
+**Solution**:
+Wrapped the four metrics in a CSS grid container that displays them in a responsive grid layout.
+
+**Code Changes**:
+```javascript
+// Before - metrics stacked vertically (one per line)
+<div class="forecast-stats-content">
+    <h4 class="forecast-stats-title">Project Overview</h4>
+    ${generateForecastMetric(...)}  // ← Each takes full width
+    ${generateForecastMetric(...)}
+    ${generateForecastMetric(...)}
+    ${generateForecastMetric(...)}
+    ${generateRiskAssessment(...)}
+</div>
+
+// After - metrics in responsive grid
+<div class="forecast-stats-content">
+    <h4 class="forecast-stats-title">Project Overview</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        ${generateForecastMetric(...)}  // ← Grid items
+        ${generateForecastMetric(...)}
+        ${generateForecastMetric(...)}
+        ${generateForecastMetric(...)}
+    </div>
+    ${generateRiskAssessment(...)}
+</div>
+```
+
+**Grid Layout Details**:
+- `display: grid` - Enables CSS Grid layout
+- `grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))` - Responsive columns
+  - Automatically fits as many columns as possible
+  - Each column minimum 200px wide
+  - Columns expand equally to fill space
+- `gap: 12px` - Space between grid items
+- `margin-bottom: 20px` - Space before Risk Assessment section
+
+**Responsive Behavior**:
+- Wide screens: 4 metrics in a row
+- Medium screens: 2 metrics per row
+- Narrow screens: 1 metric per row (stacked)
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/forecastTabTemplate.js`
+
+**Result**:
+- Much more compact display of metrics
+- Better use of horizontal space
+- Overview section takes less vertical space
+- More room for Gantt chart
+- Responsive design adapts to screen width
+
+---
+
+## October 5, 2025 - User Story Dev View - Move Project Overview Above Gantt Chart
+
+**Command**: Move project overview to display above Gantt chart instead of beside it on forecast tab
+
+**Status**: ✅ COMPLETED - LAYOUT RESTRUCTURED
+
+**Problem**:
+The forecast tab displayed the Project Overview statistics in a sidebar to the right of the Gantt chart. User requested the overview to be displayed above the Gantt chart for better visual hierarchy and readability.
+
+**Solution**:
+Restructured the forecast content layout to display Project Overview at the top in a full-width section, with the Gantt chart below it.
+
+**Code Changes**:
+```javascript
+// Before - side-by-side layout
+function generateForecastContent(items, forecastConfig) {
+    return `
+        <div class="forecast-content-layout">
+            <div class="forecast-main-section">
+                ${generateTimelineControls()}
+                ${generateGanttChartContainer()}
+            </div>
+            <div class="forecast-stats-sidebar">  // ← Sidebar on right
+                ${generateForecastStatistics(items, forecastConfig)}
+            </div>
+        </div>
+    `;
+}
+
+// After - stacked vertical layout with inline styles
+function generateForecastContent(items, forecastConfig) {
+    return `
+        <div class="forecast-content-layout" style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="forecast-stats-top" style="width: 100%;">  // ← Full width on top
+                ${generateForecastStatistics(items, forecastConfig)}
+            </div>
+            <div class="forecast-main-section" style="width: 100%; flex: 1;">
+                ${generateTimelineControls()}
+                ${generateGanttChartContainer()}
+            </div>
+        </div>
+    `;
+}
+```
+
+**Layout Changes**:
+- Changed `forecast-stats-sidebar` → `forecast-stats-top`
+- Moved stats section before main section in DOM order
+- Added inline styles to force vertical stacking:
+  - `display: flex; flex-direction: column` on parent container
+  - `width: 100%` on both stats and main sections
+  - `gap: 20px` for spacing between sections
+- Stats now display full-width above the Gantt chart
+- Gantt chart has more horizontal space
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/forecastTabTemplate.js`
+
+**Result**:
+- Project Overview now displays above Gantt chart
+- Better visual hierarchy (stats → timeline controls → chart)
+- Gantt chart can use full width of the view
+- More readable layout for project metrics
+
+---
+
 ## October 5, 2025 - User Story Dev View - Remove Select/Deselect All Buttons
 
 **Command**: Remove 'Select All' and 'Deselect All' buttons from details tab

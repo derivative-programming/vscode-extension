@@ -72,13 +72,13 @@ function generateForecastHeader(forecastConfig) {
  */
 function generateForecastContent(items, forecastConfig) {
     return `
-        <div class="forecast-content-layout">
-            <div class="forecast-main-section">
+        <div class="forecast-content-layout" style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="forecast-stats-top" style="width: 100%;">
+                ${generateForecastStatistics(items, forecastConfig)}
+            </div>
+            <div class="forecast-main-section" style="width: 100%; flex: 1;">
                 ${generateTimelineControls()}
                 ${generateGanttChartContainer()}
-            </div>
-            <div class="forecast-stats-sidebar">
-                ${generateForecastStatistics(items, forecastConfig)}
             </div>
         </div>
     `;
@@ -220,33 +220,35 @@ function generateForecastStatistics(items, forecastConfig) {
         <div class="forecast-stats-content">
             <h4 class="forecast-stats-title">Project Overview</h4>
             
-            ${generateForecastMetric(
-                "calendar",
-                "Projected Completion",
-                formatForecastDate(projectedCompletionDate),
-                riskLevel === "high" ? "risk-high" : riskLevel === "medium" ? "risk-medium" : "risk-low"
-            )}
-            
-            ${generateForecastMetric(
-                "clock",
-                "Remaining Hours",
-                `${totalRemainingHours.toFixed(1)} hrs`,
-                ""
-            )}
-            
-            ${generateForecastMetric(
-                "calendar",
-                "Remaining Work Days",
-                `${totalRemainingDays.toFixed(1)} days`,
-                ""
-            )}
-            
-            ${generateForecastMetric(
-                "pulse",
-                "Team Velocity",
-                `${averageVelocity.toFixed(1)} pts/sprint`,
-                ""
-            )}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                ${generateForecastMetric(
+                    "calendar",
+                    "Projected Completion",
+                    formatForecastDate(projectedCompletionDate),
+                    riskLevel === "high" ? "risk-high" : riskLevel === "medium" ? "risk-medium" : "risk-low"
+                )}
+                
+                ${generateForecastMetric(
+                    "clock",
+                    "Remaining Hours",
+                    `${totalRemainingHours.toFixed(1)} hrs`,
+                    ""
+                )}
+                
+                ${generateForecastMetric(
+                    "calendar",
+                    "Remaining Work Days",
+                    `${totalRemainingDays.toFixed(1)} days`,
+                    ""
+                )}
+                
+                ${generateForecastMetric(
+                    "pulse",
+                    "Team Velocity",
+                    `${averageVelocity.toFixed(1)} pts/sprint`,
+                    ""
+                )}
+            </div>
             
             ${generateRiskAssessment(riskLevel, bottlenecks)}
             ${generateRecommendations(recommendations)}
