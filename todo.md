@@ -48,6 +48,15 @@ page data source Analysis report...
 
 user story dev view...
 - similar to qa view but for devs
+
+  - deployed to dev env
+  - ready for dev env deployment
+  - completed
+  - blocked
+  - in progress
+  - ready for development
+  - on hold
+
 - statuses...
   - on hold
   - ready for development
@@ -63,8 +72,6 @@ user story dev view...
   - priority?
 - story point estimates?
 
-user story qa view...
-- kanban view cards should show steps in user journey to follow
 
 allow 'a' or 'an' in user story before role name
 

@@ -419,6 +419,11 @@
         "icon": "$(checklist)"
       },
       {
+        "command": "appdna.userStoriesDev",
+        "title": "User Stories Development",
+        "icon": "$(code)"
+      },
+      {
         "command": "appdna.metricsAnalysis",
         "title": "Show Metrics Analysis",
         "icon": "$(pulse)"

@@ -46,6 +46,7 @@ import { registerDataObjectListCommands, getDataObjectListPanel, closeDataObject
 import { registerRoleRequirementsCommands, getRoleRequirementsPanel, closeRoleRequirementsPanel } from './roleRequirementsCommands';
 import { showRequirementsFulfillment, getRequirementsFulfillmentPanel, closeRequirementsFulfillmentPanel } from './requirementsFulfillmentCommands';
 import { registerUserStoriesQACommands, getUserStoriesQAPanel, closeUserStoriesQAPanel } from './userStoriesQACommands';
+import { registerUserStoriesDevCommands, getUserStoriesDevPanel, closeUserStoriesDevPanel } from './userStoriesDevCommands';
 import { registerUserStoriesPageMappingCommands, getUserStoriesPageMappingPanel, closeUserStoriesPageMappingPanel } from './userStoriesPageMappingCommands';
 import { registerUserStoriesJourneyCommands, getUserStoriesJourneyPanel, closeUserStoriesJourneyPanel } from './userStoriesJourneyCommands';
 import { registerMetricsAnalysisCommands, getMetricsAnalysisPanel, closeMetricsAnalysisPanel } from './metricsAnalysisCommands';
@@ -788,6 +789,9 @@ export function registerCommands(
     
     // Register user stories QA commands
     registerUserStoriesQACommands(context, modelService);
+    
+    // Register user stories dev commands
+    registerUserStoriesDevCommands(context, modelService);
     
     // Register user stories page mapping commands
     registerUserStoriesPageMappingCommands(context, modelService);
