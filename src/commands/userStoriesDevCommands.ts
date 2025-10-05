@@ -940,6 +940,42 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                             }
                             break;
 
+                        case 'saveGanttChartPNG':
+                            try {
+                                console.log("[Extension] UserStoryDev saveGanttChartPNG requested");
+                                const workspaceFolders = vscode.workspace.workspaceFolders;
+                                if (!workspaceFolders || workspaceFolders.length === 0) {
+                                    throw new Error('No workspace folder is open');
+                                }
+                                const workspaceRoot = workspaceFolders[0].uri.fsPath;
+                                const reportDir = path.join(workspaceRoot, 'user_story_reports');
+                                if (!fs.existsSync(reportDir)) {
+                                    fs.mkdirSync(reportDir, { recursive: true });
+                                }
+                                
+                                // Extract base64 data
+                                const base64Data = message.data.base64.replace(/^data:image\/png;base64,/, '');
+                                const buffer = Buffer.from(base64Data, 'base64');
+                                
+                                // Generate filename
+                                const timestamp = new Date().toISOString().split('T')[0];
+                                const filename = `gantt-chart-${timestamp}.png`;
+                                const filePath = path.join(reportDir, filename);
+                                
+                                // Write file
+                                fs.writeFileSync(filePath, buffer);
+                                
+                                // Show success message and open file
+                                vscode.window.showInformationMessage('PNG file saved to workspace: ' + filePath);
+                                vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+                                
+                                console.log("[Extension] PNG saved successfully to", filePath);
+                            } catch (error) {
+                                console.error("[Extension] Error saving PNG to workspace:", error);
+                                vscode.window.showErrorMessage('Failed to save PNG to workspace: ' + (error as Error).message);
+                            }
+                            break;
+
                         case 'saveCsvToWorkspace':
                             try {
                                 console.log("[Extension] UserStoryDev saveCsvToWorkspace requested");

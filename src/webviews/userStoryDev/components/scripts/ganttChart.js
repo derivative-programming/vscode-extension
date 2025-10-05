@@ -490,26 +490,96 @@ function exportGanttChart(format) {
  * Export Gantt chart as PNG image
  */
 function exportGanttChartPNG() {
-    const svg = document.querySelector("#gantt-chart-container svg");
-    if (!svg) {
+    console.log('[UserStoryDev] Generating Gantt chart PNG');
+    
+    const svgElement = document.querySelector("#gantt-chart-container svg");
+    if (!svgElement) {
+        console.error('[UserStoryDev] SVG element not found for PNG generation');
         vscode.postMessage({ command: "showError", message: "No chart to export" });
         return;
     }
     
-    // Serialize SVG to string
+    // Clone the SVG and resolve CSS variables
+    const svgClone = svgElement.cloneNode(true);
+    const computedStyle = getComputedStyle(document.body);
+    
+    // Get computed colors
+    const foregroundColor = computedStyle.getPropertyValue('--vscode-editor-foreground').trim() || '#cccccc';
+    const borderColor = computedStyle.getPropertyValue('--vscode-panel-border').trim() || '#666666';
+    
+    // Replace CSS variables with computed values in all elements
+    const elementsWithFill = svgClone.querySelectorAll('[fill*="var(--vscode"]');
+    elementsWithFill.forEach(el => {
+        el.setAttribute('fill', foregroundColor);
+    });
+    
+    const elementsWithStroke = svgClone.querySelectorAll('[stroke*="var(--vscode"]');
+    elementsWithStroke.forEach(el => {
+        el.setAttribute('stroke', borderColor);
+    });
+    
+    // Also handle style attributes that might contain CSS variables
+    const elementsWithStyle = svgClone.querySelectorAll('[style*="var(--vscode"]');
+    elementsWithStyle.forEach(el => {
+        let style = el.getAttribute('style');
+        if (style) {
+            style = style.replace(/var\(--vscode-editor-foreground\)/g, foregroundColor);
+            style = style.replace(/var\(--vscode-panel-border\)/g, borderColor);
+            el.setAttribute('style', style);
+        }
+    });
+    
+    // Serialize the modified SVG
     const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(svg);
+    let svgString = serializer.serializeToString(svgClone);
     
-    // Create blob and download
-    const blob = new Blob([svgString], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `gantt-chart-${new Date().toISOString().split("T")[0]}.svg`;
-    link.click();
-    URL.revokeObjectURL(url);
+    // Add XML declaration if not present
+    if (!svgString.startsWith('<?xml')) {
+        svgString = '<?xml version="1.0" encoding="UTF-8"?>' + svgString;
+    }
     
-    vscode.postMessage({ command: "showInfo", message: "Gantt chart exported as SVG" });
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    const svgRect = svgElement.getBoundingClientRect();
+    canvas.width = svgRect.width * 2; // 2x for better quality
+    canvas.height = svgRect.height * 2;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+    
+    // Fill with white background (not transparent)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, svgRect.width, svgRect.height);
+    
+    // Create image from SVG
+    const img = new Image();
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    
+    img.onload = function() {
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+        
+        // Convert canvas to base64 PNG
+        const pngDataUrl = canvas.toDataURL('image/png');
+        
+        // Send to extension
+        vscode.postMessage({
+            command: 'saveGanttChartPNG',
+            data: {
+                base64: pngDataUrl
+            }
+        });
+        
+        console.log('[UserStoryDev] PNG data sent to extension');
+    };
+    
+    img.onerror = function(error) {
+        console.error('[UserStoryDev] Error loading SVG for PNG conversion:', error);
+        vscode.postMessage({ command: "showError", message: "Error generating PNG image" });
+    };
+    
+    img.src = url;
 }
 
 /**

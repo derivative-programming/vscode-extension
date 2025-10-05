@@ -1,3 +1,62 @@
+## October 5, 2025 - User Story Dev View - Update Forecast Tab PNG Export to Match QA View Design and Behavior
+
+**Command**: Update the user story dev view forecast tab "Export PNG" button to match the QA view status distribution tab design (camera icon button) and behavior (auto-save and open image, not download prompt)
+
+**Status**: ✅ COMPLETED
+
+**Problem**:
+The user story dev view forecast tab PNG export had different design and behavior compared to the QA view status distribution tab:
+- Dev view used text button with "Export PNG" label and file-media icon
+- Dev view exported as SVG with client-side download prompt
+- QA view uses icon-only button with camera icon and tooltip
+- QA view converts to PNG, saves to workspace, and automatically opens the image
+
+**Solution**:
+Updated forecast tab PNG export to match QA view design and functionality:
+
+1. **Updated Button Design** in `forecastTabTemplate.js` (line 53):
+   - Changed from: `<button class="forecast-btn forecast-btn-secondary">` with text "Export PNG"
+   - Changed to: `<button class="icon-button">` (icon-only button)
+   - Changed icon from `codicon-file-media` to `codicon-device-camera` (camera icon)
+   - Added tooltip: `title="Export as PNG"`
+
+2. **Rewrote exportGanttChartPNG function** in `ganttChart.js` (lines 492-582):
+   - Clones SVG and resolves CSS variables to computed values
+   - Creates canvas and converts SVG to high-quality PNG (2x resolution)
+   - Fills white background (not transparent)
+   - Converts canvas to base64 PNG data URL
+   - Sends PNG data to extension via `saveGanttChartPNG` command
+   - Handles errors gracefully with console logging
+
+3. **Added Command Handler** in `userStoriesDevCommands.ts` (lines 943-979):
+   - Added `case 'saveGanttChartPNG':` message handler
+   - Extracts base64 PNG data from message
+   - Saves PNG to `user_story_reports/` directory in workspace
+   - Generates timestamped filename: `gantt-chart-YYYY-MM-DD.png`
+   - Shows success notification to user
+   - **Automatically opens the PNG image** using `vscode.commands.executeCommand('vscode.open', ...)`
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/forecastTabTemplate.js` - Updated button to icon-only with camera icon
+- `src/webviews/userStoryDev/components/scripts/ganttChart.js` - Rewrote PNG export to match QA view (SVG→PNG conversion, send to extension)
+- `src/commands/userStoriesDevCommands.ts` - Added saveGanttChartPNG handler to save and open PNG
+
+**User Experience Improvements**:
+- **Consistent design**: Camera icon button matches QA view and is more intuitive
+- **Auto-open image**: PNG opens immediately in VS Code for viewing (no save dialog)
+- **Workspace integration**: Saves to standard `user_story_reports/` directory
+- **High quality**: 2x resolution for crisp PNG export
+- **Professional appearance**: White background, resolved CSS variables
+
+**Architecture Notes**:
+- Follows same pattern as QA view's `generateQADistributionPNG` function
+- Uses HTML5 Canvas API for SVG→PNG conversion
+- CSS variables (VS Code theme colors) are resolved before conversion
+- Message passing: webview → extension → file system → open command
+- Both PNG and CSV exports now follow consistent patterns
+
+---
+
 ## October 5, 2025 - User Story Dev View - Update Details Tab Filters to Auto-Apply
 
 **Command**: Update the user story dev view details tab filter section to auto-apply filters on change, removing the need for an "Apply Filters" button
