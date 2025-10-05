@@ -177,7 +177,8 @@ function calculateStorySchedules(stories, config, startDate) {
         const storyEndDate = calculateCompletionDateByHours(storyStartDate, hoursNeeded, config);
         
         schedules.push({
-            storyId: story.storyNumber || story.id,
+            storyId: story.storyId,
+            storyNumber: story.storyNumber || story.id,
             storyText: story.storyText || story.story || '',
             priority: story.priority,
             devStatus: story.devStatus,

@@ -1,5 +1,122 @@
 ================================================================================
 Date: October 5, 2025
+Command: Auto-refresh tab after modal save (Details, Board, Forecast)
+Status: COMPLETED
+================================================================================
+
+ENHANCEMENT REQUEST:
+When the story detail modal is saved, the current tab should refresh to show
+the updated data. This should work consistently across all tabs:
+- Details tab
+- Board tab
+- Forecast tab
+
+IMPLEMENTATION:
+Added `refreshCurrentTab()` function in modalFunctionality.js that:
+1. Detects the currently active tab using global `currentTab` variable
+2. Calls the appropriate refresh/render function for that tab:
+   - Details tab → renderDetailsTab()
+   - Board tab → refreshBoard()
+   - Forecast tab → refreshForecast()
+   - Analysis tab → renderAnalysisTab()
+   - Sprint tab → renderSprintTab()
+
+Modified `saveStoryDetails()` to:
+1. Close modal first (for better UX)
+2. Call refreshCurrentTab() to update the view
+
+FILES MODIFIED:
+- src/webviews/userStoryDev/components/scripts/modalFunctionality.js
+
+BEHAVIOR:
+- Modal saves changes to item in allItems array
+- Modal sends saveDevChange message to extension
+- Modal closes
+- Current tab refreshes automatically to show updated data
+- User sees immediate visual feedback without manual refresh
+
+BENEFITS:
+✅ Consistent behavior across all tabs
+✅ Immediate visual feedback after save
+✅ No need for manual refresh
+✅ Better user experience
+
+================================================================================
+Date: October 5, 2025
+Command: Fix Gantt chart click to open story modal - storyId mismatch
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+Clicking on Gantt chart items (bars or labels) resulted in error:
+"Item not found: 2" - The modal couldn't find the story in allItems array.
+
+ROOT CAUSE:
+In forecastFunctions.js, calculateStorySchedules() was creating schedule objects 
+with incorrect storyId mapping:
+- Was: `storyId: story.storyNumber || story.id` (e.g., "2")
+- Needed: `storyId: story.storyId` (the actual unique identifier/UUID)
+
+The modal searches for items using `allItems.find(i => i.storyId === storyId)`, 
+so it needs the actual storyId field, not the display number.
+
+FIX APPLIED:
+1. In forecastFunctions.js line 180:
+   - Changed to use `story.storyId` for the storyId field
+   - Added separate `storyNumber` field for display purposes
+   
+2. In ganttChart.js:
+   - Updated Y-axis labels to display `d.storyNumber || d.storyId`
+   - Updated tooltip to display `d.storyNumber || d.storyId`
+   - Kept click handlers using `d.storyId` (correct for lookup)
+
+FILES MODIFIED:
+- src/webviews/userStoryDev/components/scripts/forecastFunctions.js
+- src/webviews/userStoryDev/components/scripts/ganttChart.js
+
+ARCHITECTURE NOTES:
+- Story objects have two ID fields:
+  - `storyId`: Unique identifier (UUID) used for lookups
+  - `storyNumber`: Display number shown to users (e.g., "2", "5")
+- Schedule objects now include both fields for proper operation
+- Click handlers must pass storyId for modal lookup
+- Display elements should show storyNumber for user readability
+
+================================================================================
+Date: October 5, 2025
+Command: Add debug logging to diagnose dev status issue in forecast
+Status: IN PROGRESS - DEBUGGING
+================================================================================
+
+ISSUE:
+After fixing property mappings, the Gantt chart tooltip still shows "On-Hold" 
+status instead of the actual status (e.g., "Critical"). Need to investigate 
+why the dev status data isn't being correctly used.
+
+DEBUGGING APPROACH:
+Added console.log statements to trace the data flow:
+
+1. At start of calculateDevelopmentForecast():
+   - Logs sample item structure (full JSON)
+   - Logs count of total, incomplete, and completed items
+   
+2. In calculateStorySchedules():
+   - Logs each story's devStatus, priority, and assignedTo values
+   - Shows what data is actually being used to build schedules
+
+NEXT STEPS:
+1. Reload the extension and open Dev Console
+2. Navigate to Forecast tab
+3. Check console logs to see:
+   - What devStatus values are in the items
+   - Whether the dev file data is actually being merged
+   - If status is "on-hold", determine why it's not loading from dev file
+
+FILES MODIFIED:
+- src/webviews/userStoryDev/components/scripts/forecastFunctions.js (added logging)
+
+================================================================================
+Date: October 5, 2025
 Command: Fix forecast data property mapping to use correct field names
 Status: COMPLETED
 ================================================================================

@@ -93,12 +93,11 @@ function saveStoryDetails() {
         data: devRecord
     });
     
-    // Re-render table to show changes
-    const filteredItems = getFilteredItems();
-    renderTable(filteredItems, devConfig, currentSortState);
-    
-    // Close modal
+    // Close modal first
     closeStoryDetailModal();
+    
+    // Refresh the current active tab to reflect changes
+    refreshCurrentTab();
 }
 
 /**
@@ -218,6 +217,51 @@ function handleModalFormSubmit(e) {
 }
 
 /**
+ * Refresh the current active tab after modal save
+ */
+function refreshCurrentTab() {
+    // currentTab is a global variable set in userStoryDevView.js
+    if (typeof currentTab === 'undefined') {
+        console.warn('currentTab not defined, refreshing details tab by default');
+        if (typeof renderDetailsTab === 'function') {
+            renderDetailsTab();
+        }
+        return;
+    }
+    
+    switch (currentTab) {
+        case 'details':
+            if (typeof renderDetailsTab === 'function') {
+                renderDetailsTab();
+            }
+            break;
+        case 'board':
+            if (typeof refreshBoard === 'function') {
+                refreshBoard();
+            }
+            break;
+        case 'forecast':
+            if (typeof refreshForecast === 'function') {
+                refreshForecast();
+            }
+            break;
+        case 'analysis':
+            if (typeof renderAnalysisTab === 'function') {
+                renderAnalysisTab();
+            }
+            break;
+        case 'sprint':
+            if (typeof renderSprintTab === 'function') {
+                renderSprintTab();
+            }
+            break;
+        default:
+            console.warn('Unknown tab:', currentTab);
+            break;
+    }
+}
+
+/**
  * Open modal for a new story (if needed in future)
  * @param {Object} defaultValues - Default values for new story
  */
@@ -234,6 +278,7 @@ if (typeof module !== 'undefined' && module.exports) {
         saveStoryDetails,
         setupModalEventListeners,
         handleModalFormSubmit,
+        refreshCurrentTab,
         openNewStoryModal
     };
 }

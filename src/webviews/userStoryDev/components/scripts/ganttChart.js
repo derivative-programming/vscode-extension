@@ -269,7 +269,7 @@ function renderGanttD3Chart(schedules, containerId) {
         .attr("dominant-baseline", "middle")
         .attr("font-size", "11px")
         .attr("fill", "var(--vscode-foreground)")
-        .text(d => `Story ${d.storyId}`)
+        .text(d => `Story ${d.storyNumber || d.storyId}`)
         .style("cursor", "pointer")
         .on("click", function(event, d) {
             // Open story detail modal
@@ -348,7 +348,7 @@ function renderGanttD3Chart(schedules, containerId) {
             const endTime = d3.timeFormat("%b %d, %I:%M %p")(d.endDate);
             
             tooltip.style("display", "block")
-                .html(`<strong>Story ${d.storyId}</strong><br/>` +
+                .html(`<strong>Story ${d.storyNumber || d.storyId}</strong><br/>` +
                     `${truncateText(d.storyText, 60)}<br/>` +
                     `<strong>Start:</strong> ${startTime}<br/>` +
                     `<strong>End:</strong> ${endTime}<br/>` +
