@@ -63,9 +63,6 @@ function generateDetailsTab(items, config) {
                     </div>
                 </div>
                 <div class="filter-actions">
-                    <button onclick="applyFilters()" class="filter-button">
-                        <i class="codicon codicon-filter"></i> Apply Filters
-                    </button>
                     <button onclick="clearFilters()" class="filter-button">
                         <i class="codicon codicon-clear-all"></i> Clear Filters
                     </button>

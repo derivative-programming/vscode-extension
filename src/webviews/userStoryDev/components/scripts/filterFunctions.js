@@ -201,18 +201,17 @@ function hasActiveFilters() {
 }
 
 /**
- * Set up event listeners for filter inputs (Enter key to apply)
+ * Set up event listeners for filter inputs (auto-apply on change)
  */
 function setupFilterEventListeners() {
     const textInputs = ['filterStoryNumber', 'filterStoryText'];
     
+    // Auto-apply on text input changes
     textInputs.forEach(id => {
         const input = document.getElementById(id);
         if (input) {
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    applyFilters();
-                }
+            input.addEventListener('input', () => {
+                applyFilters();
             });
         }
     });

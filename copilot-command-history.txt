@@ -1,3 +1,43 @@
+## October 5, 2025 - User Story Dev View - Update Details Tab Filters to Auto-Apply
+
+**Command**: Update the user story dev view details tab filter section to auto-apply filters on change, removing the need for an "Apply Filters" button
+
+**Status**: ✅ COMPLETED
+
+**Problem**:
+The user story dev view details tab had an "Apply Filters" button that required users to manually click to apply filters after changing filter values. This was inconsistent with other views in the extension which automatically apply filters as soon as filter control values change.
+
+**Solution**:
+Updated the filter section to auto-apply filters immediately when any filter control value changes:
+
+1. **Removed "Apply Filters" button** from `detailsTabTemplate.js`:
+   - Deleted the "Apply Filters" button from the filter actions section
+   - Kept the "Clear Filters" button for resetting all filters at once
+
+2. **Updated setupFilterEventListeners function** in `filterFunctions.js`:
+   - Changed text input event from 'keypress' (Enter key only) to 'input' (fires as user types)
+   - Text filters (Story Number, Story Text) now auto-apply on each keystroke
+   - Dropdown filters (Status, Priority, Assigned To, Sprint) already had auto-apply on change
+   - Updated function comment to reflect auto-apply behavior
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/detailsTabTemplate.js` - Removed Apply Filters button (lines ~66-68)
+- `src/webviews/userStoryDev/components/scripts/filterFunctions.js` - Updated setupFilterEventListeners to use 'input' event (lines 205-207)
+
+**User Experience Improvements**:
+- **Immediate feedback**: Filters apply as user types or selects values
+- **Fewer clicks**: No need to click "Apply Filters" button
+- **Consistent UX**: Matches behavior of other views in the extension (user stories list view, etc.)
+- **Clear Filters still available**: One-click reset for all filters
+
+**Architecture Notes**:
+- Text inputs use 'input' event (fires on each keystroke)
+- Dropdowns use 'change' event (fires when selection changes)
+- Both trigger applyFilters() which filters the table and updates record count
+- Clear Filters button resets all filter controls and reapplies to show all items
+
+---
+
 ## October 5, 2025 - User Story Dev View - Fix Forecast Tab Export CSV Button Design and Functionality
 
 **Command**: Update the user story dev view forecast tab export CSV button to match the dev view details tab design and functionality (icon-only button that auto-opens CSV in workspace)
