@@ -280,7 +280,13 @@ function calculateCompletionDateByHours(startDate, hoursNeeded, config) {
  * @returns {Array} Sorted stories
  */
 function sortStoriesForScheduling(stories) {
-    const priorityOrder = { "Critical": 0, "High": 1, "Medium": 2, "Low": 3 };
+    // Priority order (case-insensitive)
+    const priorityOrder = {
+        "critical": 0,
+        "high": 1,
+        "medium": 2,
+        "low": 3
+    };
     
     return stories.slice().sort((a, b) => {
         // First by devStatus (blocked stories last)
@@ -291,17 +297,38 @@ function sortStoriesForScheduling(stories) {
             return -1;
         }
         
-        // Then by priority
-        const aPriority = priorityOrder[a.priority] ?? 4;
-        const bPriority = priorityOrder[b.priority] ?? 4;
+        // Then by priority (case-insensitive, undefined/empty goes last)
+        const aPriorityKey = a.priority ? a.priority.toLowerCase() : null;
+        const bPriorityKey = b.priority ? b.priority.toLowerCase() : null;
+        
+        const aPriority = aPriorityKey && priorityOrder[aPriorityKey] !== undefined 
+            ? priorityOrder[aPriorityKey] 
+            : 999; // Stories with no priority go last
+        const bPriority = bPriorityKey && priorityOrder[bPriorityKey] !== undefined 
+            ? priorityOrder[bPriorityKey] 
+            : 999; // Stories with no priority go last
+        
         if (aPriority !== bPriority) {
             return aPriority - bPriority;
         }
         
         // Then by story points (smaller first for quick wins)
-        const aPoints = parseInt(a.storyPoints) || 0;
-        const bPoints = parseInt(b.storyPoints) || 0;
-        return aPoints - bPoints;
+        // Handle '?' and empty values - treat as very large (go last)
+        const aPoints = (a.storyPoints && a.storyPoints !== '?') 
+            ? parseInt(a.storyPoints) 
+            : 999; // Stories with no points go last
+        const bPoints = (b.storyPoints && b.storyPoints !== '?') 
+            ? parseInt(b.storyPoints) 
+            : 999; // Stories with no points go last
+        
+        if (aPoints !== bPoints) {
+            return aPoints - bPoints;
+        }
+        
+        // Finally, sort by story number for consistency
+        const aNumber = parseInt(a.storyNumber) || 0;
+        const bNumber = parseInt(b.storyNumber) || 0;
+        return aNumber - bNumber;
     });
 }
 

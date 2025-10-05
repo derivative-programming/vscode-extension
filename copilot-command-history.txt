@@ -1,5 +1,110 @@
 ================================================================================
 Date: October 5, 2025
+Command: Fix Gantt chart story sorting - empty stories appearing first
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+Stories with no saved data (empty priority, no story points) were appearing 
+BEFORE stories with actual priority and point values in the Gantt chart. This 
+created illogical ordering where unestimated stories showed at the top.
+
+ROOT CAUSE:
+1. Priority matching was case-sensitive (looked for "Critical" but data had "critical")
+2. Empty priority got default value 4, which was too low (between Low and end)
+3. Empty story points converted to 0, sorting before stories with actual estimates
+4. No final sort key, causing unpredictable order for equal values
+
+SOLUTION:
+Rewrote sortStoriesForScheduling() function with 4-tier sorting:
+1. Dev status (blocked last)
+2. Priority (case-insensitive, empty=999 goes last)
+3. Story points (smaller first, empty=999 goes last)
+4. Story number (for consistency)
+
+KEY CHANGES:
+- Priority matching now case-insensitive: .toLowerCase() before lookup
+- Empty priority gets value 999 instead of 4 (goes last)
+- Story points '?' and undefined get value 999 (goes last)
+- Added story number as final tie-breaker for consistency
+
+FILES MODIFIED:
+- src/webviews/userStoryDev/components/scripts/forecastFunctions.js
+  - Rewrote sortStoriesForScheduling() (line 282)
+  - Lowercase priority keys in priorityOrder object
+  - Empty values now get 999 (sort last)
+  - Added story number as 4th sort key
+
+SORT ORDER NOW:
+1. Non-blocked stories
+2. Priority: Critical → High → Medium → Low → (Not Set)
+3. Within priority: 1pt → 2pt → 3pt → ... → (Not Set)
+4. Within points: Story 1 → Story 2 → Story 3 → ...
+
+BENEFITS:
+✅ Stories with data appear first
+✅ Empty/unestimated stories appear last
+✅ Works with any priority case (critical, Critical, CRITICAL)
+✅ Consistent, predictable ordering
+✅ Quick wins (small points) prioritized within same priority
+
+DOCUMENTATION:
+Created comprehensive fix document at:
+docs/fixes/gantt-chart-story-sorting-fix.md
+
+================================================================================
+Date: October 5, 2025
+Command: Fix Gantt chart priority-based coloring
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+All Gantt chart bars in the Forecast tab were showing as gray instead of 
+displaying priority-based colors (Critical=red, High=orange, Medium=orange, 
+Low=blue, Completed=green) as documented in the user guide.
+
+ROOT CAUSE:
+- Bar fill was using `devStatusColorScale(d.devStatus)` instead of priority
+- No priority color scale was defined
+- Legend had correct HTML but no inline styles
+- Tooltip didn't show priority prominently
+
+SOLUTION:
+1. Added `priorityColorScale` with correct color mapping from priorityManagement.js
+2. Updated bar fill logic to use priority (completed stories override with green)
+3. Enhanced tooltip to show priority before status
+4. Added `formatPriority()` helper function
+5. Added inline styles to legend items with exact colors
+
+FILES MODIFIED:
+- src/webviews/userStoryDev/components/scripts/ganttChart.js
+  - Added priorityColorScale (line ~157)
+  - Updated bar fill logic (line ~355)
+  - Enhanced tooltip (line ~368)
+  - Added formatPriority() helper (line ~670)
+- src/webviews/userStoryDev/components/templates/forecastTabTemplate.js
+  - Added inline styles to legend (line ~154)
+
+COLOR MAPPING:
+- Critical: #ff4040 (bright red)
+- High: #ff6b6b (red)
+- Medium: #ff9f40 (orange)
+- Low: #3794ff (blue)
+- Completed: #10b981 (green, overrides priority)
+- Not Set: #858585 (gray)
+
+ARCHITECTURE NOTES:
+- Priority-based coloring chosen for visual hierarchy in forecasting
+- Completed stories always green (status is final)
+- Handles both lowercase and capitalized priority values
+- Consistent with priority colors across all tabs
+
+DOCUMENTATION:
+Created comprehensive fix document at:
+docs/fixes/gantt-chart-priority-coloring-fix.md
+
+================================================================================
+Date: October 5, 2025
 Command: Auto-refresh tab after modal save (Details, Board, Forecast)
 Status: COMPLETED
 ================================================================================

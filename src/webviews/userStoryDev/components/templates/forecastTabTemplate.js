@@ -150,34 +150,34 @@ function generateGanttChartContainer() {
                     Calculating timeline...
                 </div>
             </div>
-            <div class="gantt-legend">
-                <div class="legend-item">
-                    <span class="legend-bar legend-bar-critical"></span>
-                    <span>Critical Priority</span>
+            <div class="gantt-legend" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; padding: 10px; background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); border-radius: 4px;">
+                <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="legend-bar legend-bar-critical" style="display: inline-block; width: 20px; height: 12px; background-color: #ff4040; border-radius: 2px;"></span>
+                    <span style="font-size: 12px;">Critical Priority</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-bar legend-bar-high"></span>
-                    <span>High Priority</span>
+                <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="legend-bar legend-bar-high" style="display: inline-block; width: 20px; height: 12px; background-color: #ff6b6b; border-radius: 2px;"></span>
+                    <span style="font-size: 12px;">High Priority</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-bar legend-bar-medium"></span>
-                    <span>Medium Priority</span>
+                <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="legend-bar legend-bar-medium" style="display: inline-block; width: 20px; height: 12px; background-color: #ff9f40; border-radius: 2px;"></span>
+                    <span style="font-size: 12px;">Medium Priority</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-bar legend-bar-low"></span>
-                    <span>Low Priority</span>
+                <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="legend-bar legend-bar-low" style="display: inline-block; width: 20px; height: 12px; background-color: #3794ff; border-radius: 2px;"></span>
+                    <span style="font-size: 12px;">Low Priority</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-bar legend-bar-complete"></span>
-                    <span>Completed</span>
+                <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="legend-bar legend-bar-complete" style="display: inline-block; width: 20px; height: 12px; background-color: #10b981; border-radius: 2px;"></span>
+                    <span style="font-size: 12px;">Completed</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-marker legend-marker-today"></span>
-                    <span>Today</span>
+                <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="legend-marker legend-marker-today" style="display: inline-block; width: 20px; height: 2px; background-color: orange;"></span>
+                    <span style="font-size: 12px;">Today</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-marker legend-marker-dependency"></span>
-                    <span>Dependency</span>
+                <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="legend-marker legend-marker-dependency" style="display: inline-block; width: 2px; height: 12px; background-color: var(--vscode-textLink-foreground); border-left: 2px dashed var(--vscode-textLink-foreground);"></span>
+                    <span style="font-size: 12px;">Dependency</span>
                 </div>
             </div>
         </div>

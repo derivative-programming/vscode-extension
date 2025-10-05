@@ -152,7 +152,15 @@ function renderGanttD3Chart(schedules, containerId) {
         .range([0, height])
         .padding(0.2);
     
-    // Color scale by dev status
+    // Color scale by priority (matching PRIORITY_LEVELS from priorityManagement.js)
+    const priorityColorScale = d3.scaleOrdinal()
+        .domain(["low", "medium", "high", "critical", "Low", "Medium", "High", "Critical"])
+        .range([
+            "#3794ff", "#ff9f40", "#ff6b6b", "#ff4040",  // lowercase
+            "#3794ff", "#ff9f40", "#ff6b6b", "#ff4040"   // capitalized
+        ]);
+    
+    // Color scale by dev status (for completed stories)
     const devStatusColorScale = d3.scaleOrdinal()
         .domain(["on-hold", "ready-for-dev", "in-progress", "blocked", "completed"])
         .range(["#858585", "#0078d4", "#f39c12", "#d73a49", "#10b981"]);
@@ -334,7 +342,13 @@ function renderGanttD3Chart(schedules, containerId) {
         .attr("y", (d, i) => yScale(i))
         .attr("width", d => Math.max(2, xScale(d.endDate) - xScale(d.startDate)))
         .attr("height", yScale.bandwidth())
-        .attr("fill", d => devStatusColorScale(d.devStatus))
+        .attr("fill", d => {
+            // Use green for completed stories, otherwise color by priority
+            if (d.devStatus === "completed") {
+                return "#10b981"; // Green for completed
+            }
+            return priorityColorScale(d.priority) || "#858585"; // Default gray if no priority
+        })
         .attr("opacity", 0.85)
         .attr("stroke", "#333")
         .attr("stroke-width", 0.5)
@@ -350,12 +364,13 @@ function renderGanttD3Chart(schedules, containerId) {
             tooltip.style("display", "block")
                 .html(`<strong>Story ${d.storyNumber || d.storyId}</strong><br/>` +
                     `${truncateText(d.storyText, 60)}<br/>` +
+                    `<strong>Priority:</strong> ${formatPriority(d.priority)}<br/>` +
+                    `<strong>Status:</strong> ${formatDevStatus(d.devStatus)}<br/>` +
                     `<strong>Start:</strong> ${startTime}<br/>` +
                     `<strong>End:</strong> ${endTime}<br/>` +
                     `<strong>Duration:</strong> ${duration} hrs<br/>` +
                     `<strong>Points:</strong> ${d.storyPoints}<br/>` +
-                    `<strong>Developer:</strong> ${d.developer}<br/>` +
-                    `<strong>Status:</strong> ${formatDevStatus(d.devStatus)}`)
+                    `<strong>Developer:</strong> ${d.developer}`)
                 .style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY - 10) + "px");
         })
@@ -639,5 +654,18 @@ function formatDevStatus(devStatus) {
         'completed': 'Completed'
     };
     return statusMap[devStatus] || devStatus;
+}
+
+/**
+ * Format priority for display
+ * @param {string} priority - Priority value
+ * @returns {string} Formatted priority label
+ */
+function formatPriority(priority) {
+    if (!priority) {
+        return "(Not Set)";
+    }
+    // Capitalize first letter
+    return priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase();
 }
 
