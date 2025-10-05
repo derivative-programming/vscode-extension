@@ -76,14 +76,6 @@ function generateDetailsTab(items, config) {
         <!-- Action Buttons -->
         <div class="action-bar">
             <div class="action-group">
-                <button onclick="selectAllRows()" class="action-button">
-                    <i class="codicon codicon-check-all"></i> Select All
-                </button>
-                <button onclick="deselectAllRows()" class="action-button">
-                    <i class="codicon codicon-close-all"></i> Deselect All
-                </button>
-            </div>
-            <div class="action-group">
                 <button onclick="openBulkStatusModal()" class="action-button" id="bulkStatusBtn" disabled>
                     <i class="codicon codicon-symbol-event"></i> Bulk Status Update
                 </button>

@@ -1,3 +1,51 @@
+## October 5, 2025 - User Story Dev View - Remove Select/Deselect All Buttons
+
+**Command**: Remove 'Select All' and 'Deselect All' buttons from details tab
+
+**Status**: ✅ COMPLETED - BUTTONS REMOVED
+
+**Problem**:
+User requested removal of the Select All and Deselect All buttons from the User Story Dev View details tab action bar.
+
+**Solution**:
+Removed both buttons from the action bar while keeping all other bulk action buttons intact.
+
+**Code Changes**:
+```javascript
+// Before - had Select/Deselect buttons
+<div class="action-group">
+    <button onclick="selectAllRows()" class="action-button">
+        <i class="codicon codicon-check-all"></i> Select All
+    </button>
+    <button onclick="deselectAllRows()" class="action-button">
+        <i class="codicon codicon-close-all"></i> Deselect All
+    </button>
+</div>
+<div class="action-group">
+    <button onclick="openBulkStatusModal()" class="action-button">
+
+// After - removed Select/Deselect buttons
+<div class="action-group">
+    <button onclick="openBulkStatusModal()" class="action-button">
+```
+
+**Remaining Functionality**:
+- Individual row checkboxes still work
+- "Select All" checkbox in table header still works
+- Bulk action buttons (Status, Priority, Assignment, Sprint) still work
+- Functions `selectAllRows()` and `deselectAllRows()` still exist in code for potential future use
+
+**Files Modified**:
+- `src/webviews/userStoryDev/components/templates/detailsTabTemplate.js`
+
+**Result**:
+- Select All button removed from action bar
+- Deselect All button removed from action bar
+- Action bar now starts directly with bulk action buttons
+- UI is cleaner and less cluttered
+
+---
+
 ## October 5, 2025 - User Story Dev View - Fix Forecast Config Modal Display
 
 **Command**: Fix forecast config modal display issues (incorrect CSS classes causing broken layout)
