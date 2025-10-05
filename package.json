@@ -3,7 +3,7 @@
   "publisher": "derivative-programming",
   "displayName": "AppDNA Model Builder",
   "description": "Build application models and generate code for multiple platforms (.NET, Python, Web, Mobile). Professional schema-driven UI with GitHub Copilot integration via Model Context Protocol.",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "engines": {
     "vscode": "^1.99.0"
   },
@@ -291,266 +291,319 @@
       {
         "command": "appdna.addFile",
         "title": "New Project Model",
+        "category": "AppDNA",
         "icon": "$(add)"
       },
       {
         "command": "appdna.showWorkflowTaskDetails",
         "title": "Show Workflow Task Details",
+        "category": "AppDNA",
         "icon": "$(inspect)"
       },
       {
         "command": "appdna.addObject",
         "title": "Add Object",
+        "category": "AppDNA",
         "icon": "$(add)"
       },
       {
         "command": "appdna.addReport",
         "title": "Add Report",
+        "category": "AppDNA",
         "icon": "$(add)"
       },
       {
         "command": "appdna.addForm",
         "title": "Add Form",
+        "category": "AppDNA",
         "icon": "$(add)"
       },
       {
         "command": "appdna.addGeneralFlow",
         "title": "Add General Flow",
+        "category": "AppDNA",
         "icon": "$(add)"
       },
       {
         "command": "appdna.generateCode",
         "title": "Generate Code",
+        "category": "AppDNA",
         "icon": "$(code)"
       },
       {
         "command": "appdna.listAllObjects",
         "title": "List All Objects",
+        "category": "AppDNA",
         "icon": "$(list-tree)"
       },
       {
         "command": "appdna.listAllReports",
         "title": "List All Reports",
+        "category": "AppDNA",
         "icon": "$(table)"
       },
       {
         "command": "appdna.saveFile",
         "title": "Save Model To File",
+        "category": "AppDNA",
         "icon": "$(save)"
       },
       {
         "command": "appdna.refreshView",
         "title": "Refresh",
+        "category": "AppDNA",
         "icon": "$(refresh)"
       },
       {
         "command": "appdna.showWelcome",
         "title": "Welcome to AppDNA",
+        "category": "AppDNA",
         "icon": "$(home)"
       },
       {
         "command": "appdna.showHelp",
         "title": "Help",
+        "category": "AppDNA",
         "icon": "$(question)"
       },
       {
         "command": "appdna.startMCPServer",
         "title": "Start MCP Server",
+        "category": "AppDNA",
         "icon": "$(debug-start)"
       },
       {
         "command": "appdna.stopMCPServer",
         "title": "Stop MCP Server",
+        "category": "AppDNA",
         "icon": "$(debug-stop)"
       },
       {
         "command": "appdna.startMCPHttpServer",
         "title": "Start MCP HTTP Server",
+        "category": "AppDNA",
         "icon": "$(globe)"
       },
       {
         "command": "appdna.stopMCPHttpServer",
         "title": "Stop MCP HTTP Server",
+        "category": "AppDNA",
         "icon": "$(close)"
       },
       {
         "command": "appdna.collapseAllTopLevel",
         "title": "Collapse Tree",
+        "category": "AppDNA",
         "icon": "$(collapse-all)"
       },
       {
         "command": "appdna.expandAllTopLevel",
         "title": "Expand Tree",
+        "category": "AppDNA",
         "icon": "$(expand-all)"
       },
       {
         "command": "appdna.showHierarchyDiagram",
         "title": "Show Hierarchy Diagram",
+        "category": "AppDNA",
         "icon": "$(type-hierarchy)"
       },
       {
         "command": "appdna.showPageFlowDiagram",
         "title": "Show Page Flow Diagram",
+        "category": "AppDNA",
         "icon": "$(outline-view-icon)"
       },
       {
         "command": "appdna.showPagePreview",
         "title": "Show Page Preview",
+        "category": "AppDNA",
         "icon": "$(eye)"
       },
       {
         "command": "appdna.pageList",
         "title": "Show Page List",
+        "category": "AppDNA",
         "icon": "$(table)"
       },
       {
         "command": "appdna.dataObjectList",
         "title": "Show Data Objects List",
+        "category": "AppDNA",
         "icon": "$(table)"
       },
       {
         "command": "appdna.showRoleRequirements",
         "title": "Show Role Requirements",
+        "category": "AppDNA",
         "icon": "$(shield)"
       },
       {
         "command": "appdna.userStoriesQA",
         "title": "User Stories QA",
+        "category": "AppDNA",
         "icon": "$(checklist)"
       },
       {
         "command": "appdna.userStoriesDev",
         "title": "User Stories Development",
+        "category": "AppDNA",
         "icon": "$(code)"
       },
       {
         "command": "appdna.metricsAnalysis",
         "title": "Show Metrics Analysis",
+        "category": "AppDNA",
         "icon": "$(pulse)"
       },
       {
         "command": "appdna.dataObjectUsageAnalysis",
         "title": "Show Data Object Usage Analysis",
+        "category": "AppDNA",
         "icon": "$(references)"
       },
       {
         "command": "appdna.databaseSizeForecast",
         "title": "Show Database Size Forecast",
+        "category": "AppDNA",
         "icon": "$(graph-line)"
       },
       {
         "command": "appdna.userStoriesPageMapping",
         "title": "User Stories Page Mapping",
+        "category": "AppDNA",
         "icon": "$(link)"
       },
       {
         "command": "appdna.userStoriesJourney",
         "title": "User Stories Journey",
+        "category": "AppDNA",
         "icon": "$(map)"
       },
       {
         "command": "appdna.showFilter",
         "title": "Filter Tree View",
+        "category": "AppDNA",
         "icon": "$(filter)"
       },
       {
         "command": "appdna.clearFilter",
         "title": "Clear Filter",
+        "category": "AppDNA",
         "icon": "$(clear-all)"
       },
       {
         "command": "appdna.showReportFilter",
         "title": "Filter Reports",
+        "category": "AppDNA",
         "icon": "$(filter)"
       },
       {
         "command": "appdna.clearReportFilter",
         "title": "Clear Report Filter",
+        "category": "AppDNA",
         "icon": "$(clear-all)"
       },
       {
         "command": "appdna.showDataObjectFilter",
         "title": "Filter Data Objects",
+        "category": "AppDNA",
         "icon": "$(filter)"
       },
       {
         "command": "appdna.clearDataObjectFilter",
         "title": "Clear Data Object Filter",
+        "category": "AppDNA",
         "icon": "$(clear-all)"
       },
       {
         "command": "appdna.showFormFilter",
         "title": "Filter Forms",
+        "category": "AppDNA",
         "icon": "$(filter)"
       },
       {
         "command": "appdna.clearFormFilter",
         "title": "Clear Form Filter",
+        "category": "AppDNA",
         "icon": "$(clear-all)"
       },
       {
         "command": "appdna.showPageInitFilter",
         "title": "Filter Page Init",
+        "category": "AppDNA",
         "icon": "$(filter)"
       },
       {
         "command": "appdna.clearPageInitFilter",
         "title": "Clear Page Init Filter",
+        "category": "AppDNA",
         "icon": "$(clear-all)"
       },
       {
         "command": "appdna.pageInitList",
         "title": "Show Page Init List",
+        "category": "AppDNA",
         "icon": "$(table)"
       },
       {
         "command": "appdna.workflowList",
         "title": "Show Workflow List",
+        "category": "AppDNA",
         "icon": "$(table)"
       },
       {
         "command": "appdna.generalList",
         "title": "Show General List",
+        "category": "AppDNA",
         "icon": "$(table)"
       },
       {
         "command": "appdna.showGeneralFlowDetails",
         "title": "Show General Flow Details",
+        "category": "AppDNA",
         "icon": "$(inspect)"
       },
       {
         "command": "appdna.showWorkflowsFilter",
         "title": "Filter Workflows",
+        "category": "AppDNA",
         "icon": "$(filter)"
       },
       {
         "command": "appdna.clearWorkflowsFilter",
         "title": "Clear Workflows Filter",
+        "category": "AppDNA",
         "icon": "$(clear-all)"
       },
       {
         "command": "appdna.showWorkflowTasksFilter",
         "title": "Filter Workflow Tasks",
+        "category": "AppDNA",
         "icon": "$(filter)"
       },
       {
         "command": "appdna.clearWorkflowTasksFilter",
         "title": "Clear Workflow Tasks Filter",
+        "category": "AppDNA",
         "icon": "$(clear-all)"
       },
       {
         "command": "appdna.showGeneralFilter",
         "title": "Filter General Workflows",
+        "category": "AppDNA",
         "icon": "$(filter)"
       },
       {
         "command": "appdna.clearGeneralFilter",
         "title": "Clear General Filter",
+        "category": "AppDNA",
         "icon": "$(clear-all)"
       },
       {
         "command": "appdna.showAppDNASettings",
         "title": "AppDNA Settings",
+        "category": "AppDNA",
         "icon": "$(gear)"
       }
     ],
