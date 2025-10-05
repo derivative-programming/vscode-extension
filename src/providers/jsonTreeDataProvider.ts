@@ -416,6 +416,21 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 };
                 items.push(storiesItem);
                 
+                // Create Development item under USER STORIES
+                const developmentItem = new JsonTreeItem(
+                    'Development',
+                    vscode.TreeItemCollapsibleState.None,
+                    'userStoriesDevelopment'
+                );
+                
+                developmentItem.tooltip = "Track development progress, story points, assignments, and sprints";
+                developmentItem.command = {
+                    command: 'appdna.userStoriesDev',
+                    title: 'User Stories Development',
+                    arguments: []
+                };
+                items.push(developmentItem);
+                
                 // Create Page Mapping item under USER STORIES
                 const pageMappingItem = new JsonTreeItem(
                     'Page Mapping',

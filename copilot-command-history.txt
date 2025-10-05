@@ -1,3 +1,62 @@
+## October 5, 2025 - Tree View - Add Development Item Under USER STORIES
+
+**Command**: Add 'Development' item to tree view under USER STORIES, between 'Stories' and 'Page Mapping'
+
+**Status**: ✅ COMPLETED - TREE ITEM ADDED
+
+**Problem**:
+User requested adding a 'Development' tree item under USER STORIES section to provide easy access to the User Stories Development view from the tree view.
+
+**Solution**:
+Added a new tree item 'Development' in the USER STORIES children, positioned between 'Stories' and 'Page Mapping', that opens the User Stories Development view when clicked.
+
+**Code Changes**:
+```typescript
+// Added new Development item in jsonTreeDataProvider.ts
+
+// Create Development item under USER STORIES
+const developmentItem = new JsonTreeItem(
+    'Development',
+    vscode.TreeItemCollapsibleState.None,
+    'userStoriesDevelopment'
+);
+
+developmentItem.tooltip = "Track development progress, story points, assignments, and sprints";
+developmentItem.command = {
+    command: 'appdna.userStoriesDev',  // Uses existing command
+    title: 'User Stories Development',
+    arguments: []
+};
+items.push(developmentItem);
+```
+
+**Tree Structure**:
+```
+USER STORIES
+├── Roles
+├── Role Requirements
+├── Stories
+├── Development           ← NEW ITEM
+├── Page Mapping
+├── User Journey
+├── Requirements Fulfillment
+└── QA
+```
+
+**Files Modified**:
+- `src/providers/jsonTreeDataProvider.ts`
+
+**Command Used**:
+- `appdna.userStoriesDev` - Existing command registered in userStoriesDevCommands.ts
+
+**Result**:
+- 'Development' item now appears in USER STORIES section
+- Clicking it opens the User Stories Development view
+- Positioned between 'Stories' and 'Page Mapping' as requested
+- Consistent with other USER STORIES child items
+
+---
+
 ## October 5, 2025 - User Story Dev View - Make Project Overview Metrics Compact Grid
 
 **Command**: Display project overview metrics in a compact grid layout instead of one per line
