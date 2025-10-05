@@ -32,13 +32,11 @@ function handlePriorityChange(storyId, newPriority) {
     // Update local state
     item.priority = newPriority;
     
-    // Send update to extension
+    // Build complete dev record and send to extension
+    const devRecord = buildDevRecord(item);
     vscode.postMessage({
         command: 'saveDevChange',
-        storyId: storyId,
-        changes: {
-            priority: newPriority
-        }
+        data: devRecord
     });
 }
 

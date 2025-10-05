@@ -99,6 +99,30 @@ function hideSpinner() {
 }
 
 /**
+ * Build complete dev record for saving
+ * Helper function to create a complete dev record with all fields
+ * @param {object} item - The item object from allItems
+ * @returns {object} Complete dev record ready to send to extension
+ */
+function buildDevRecord(item) {
+    return {
+        storyId: item.storyId,
+        devStatus: item.devStatus || 'on-hold',
+        priority: item.priority || 'medium',
+        storyPoints: item.storyPoints || '?',
+        assignedTo: item.assignedTo || '',
+        sprint: item.sprint || '',
+        sprintId: item.sprintId || '',
+        startDate: item.startDate || '',
+        estimatedEndDate: item.estimatedEndDate || '',
+        actualEndDate: item.actualEndDate || '',
+        blockedReason: item.blockedReason || '',
+        devNotes: item.devNotes || '',
+        devFilePath: item.devFilePath
+    };
+}
+
+/**
  * Render Details Tab
  */
 function renderDetailsTab() {

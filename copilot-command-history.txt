@@ -1,0 +1,56 @@
+================================================================================
+Date: October 5, 2025
+Command: Fix user story dev view details tab - devFilePath error
+Status: COMPLETED
+================================================================================
+
+ISSUE:
+When setting priority (or other fields) on a user story in the dev view details 
+tab, the extension was throwing an error:
+  "TypeError: Cannot read properties of undefined (reading 'devFilePath')"
+
+ROOT CAUSE:
+The webview scripts were sending messages to the extension in the wrong format:
+- Webview was sending: { command: 'saveDevChange', storyId: X, changes: {...} }
+- Extension expected: { command: 'saveDevChange', data: { complete dev record } }
+
+The extension handler at userStoriesDevCommands.ts line 447 was accessing 
+`message.data.devFilePath`, but the data property didn't exist because the 
+webview wasn't wrapping the payload correctly.
+
+SOLUTION:
+1. Created a helper function `buildDevRecord(item)` in userStoryDevView.js that 
+   builds a complete dev record with all required fields including devFilePath
+
+2. Updated 6 webview script files to use this helper function:
+   - priorityManagement.js (handlePriorityChange)
+   - devStatusManagement.js (handleDevStatusChange)
+   - modalFunctionality.js (saveStoryDetails)
+   - storyPointsManagement.js (handleStoryPointsChange)
+   - assignmentManagement.js (handleDeveloperAssignment, handleSprintAssignment)
+
+ARCHITECTURE NOTES:
+- The devFilePath is sent to the webview as part of each item in the initial data
+- Each item in allItems array contains all dev record fields including devFilePath
+- All single-item save operations must send the COMPLETE dev record, not partial changes
+- The extension rebuilds the entire record and saves it to the dev file
+- Bulk operations use separate commands (bulkUpdateDevStatus, etc.) and don't need devFilePath in each item
+
+FILES MODIFIED:
+- src/webviews/userStoryDev/userStoryDevView.js
+- src/webviews/userStoryDev/components/scripts/priorityManagement.js
+- src/webviews/userStoryDev/components/scripts/devStatusManagement.js
+- src/webviews/userStoryDev/components/scripts/modalFunctionality.js
+- src/webviews/userStoryDev/components/scripts/storyPointsManagement.js
+- src/webviews/userStoryDev/components/scripts/assignmentManagement.js
+
+TESTING RECOMMENDATION:
+Test all single-field changes in the details tab:
+- Priority dropdown
+- Dev Status dropdown
+- Story Points dropdown
+- Developer assignment
+- Sprint assignment
+- Edit modal (all fields)
+
+================================================================================

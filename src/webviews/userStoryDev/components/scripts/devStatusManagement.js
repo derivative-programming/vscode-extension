@@ -43,15 +43,11 @@ function handleDevStatusChange(storyId, newStatus) {
         item.actualEndDate = new Date().toISOString().split('T')[0];
     }
     
-    // Send update to extension
+    // Build complete dev record and send to extension
+    const devRecord = buildDevRecord(item);
     vscode.postMessage({
         command: 'saveDevChange',
-        storyId: storyId,
-        changes: {
-            devStatus: newStatus,
-            startDate: item.startDate,
-            actualEndDate: item.actualEndDate
-        }
+        data: devRecord
     });
 }
 

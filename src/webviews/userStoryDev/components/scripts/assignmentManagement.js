@@ -22,13 +22,11 @@ function handleDeveloperAssignment(storyId, developerId) {
     // Update local state
     item.assignedTo = developerId;
     
-    // Send update to extension
+    // Build complete dev record and send to extension
+    const devRecord = buildDevRecord(item);
     vscode.postMessage({
         command: 'saveDevChange',
-        storyId: storyId,
-        changes: {
-            assignedTo: developerId
-        }
+        data: devRecord
     });
 }
 
@@ -148,13 +146,11 @@ function handleSprintAssignment(storyId, sprintId) {
     // Update local state
     item.sprint = sprintId;
     
-    // Send update to extension
+    // Build complete dev record and send to extension
+    const devRecord = buildDevRecord(item);
     vscode.postMessage({
         command: 'saveDevChange',
-        storyId: storyId,
-        changes: {
-            sprint: sprintId
-        }
+        data: devRecord
     });
 }
 

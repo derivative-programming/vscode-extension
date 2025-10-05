@@ -46,28 +46,7 @@ page data source Analysis report...
 
 --------------------------
 
-user story dev view...
-- similar to qa view but for devs
-
-  - deployed to dev env
-  - ready for dev env deployment
-  - completed
-  - blocked
-  - in progress
-  - ready for development
-  - on hold
-
-- statuses...
-  - on hold
-  - ready for development
-  - in progress
-  - blocked
-  - completed
-  - ready for dev env deployment
-  - deployed to dev env
-  - ready for qa
-- detail of status of each user story
-- story is done when user journey is complete
+user story dev view... 
 - probably need to set order of stories that they should be developed in
   - priority?
 - story point estimates?

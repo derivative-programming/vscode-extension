@@ -67,31 +67,30 @@ function saveStoryDetails() {
         return;
     }
     
-    // Gather all form values
-    const changes = {
-        devStatus: document.getElementById('modalDevStatus')?.value || '',
-        priority: document.getElementById('modalPriority')?.value || '',
-        storyPoints: document.getElementById('modalStoryPoints')?.value || '',
-        assignedTo: document.getElementById('modalAssignedTo')?.value || '',
-        sprint: document.getElementById('modalSprint')?.value || '',
-        startDate: document.getElementById('modalStartDate')?.value || '',
-        estEndDate: document.getElementById('modalEstEndDate')?.value || '',
-        actualEndDate: document.getElementById('modalActualEndDate')?.value || '',
-        blockedReason: document.getElementById('modalBlockedReason')?.value || '',
-        devNotes: document.getElementById('modalDevNotes')?.value || ''
-    };
-    
-    // Update local state
+    // Find the item and update local state
     const item = allItems.find(i => i.storyId === currentModalStoryId);
-    if (item) {
-        Object.assign(item, changes);
+    if (!item) {
+        console.error('Item not found:', currentModalStoryId);
+        return;
     }
     
-    // Send update to extension
+    // Update item properties from form values
+    item.devStatus = document.getElementById('modalDevStatus')?.value || item.devStatus || '';
+    item.priority = document.getElementById('modalPriority')?.value || item.priority || '';
+    item.storyPoints = document.getElementById('modalStoryPoints')?.value || item.storyPoints || '';
+    item.assignedTo = document.getElementById('modalAssignedTo')?.value || item.assignedTo || '';
+    item.sprint = document.getElementById('modalSprint')?.value || item.sprint || '';
+    item.startDate = document.getElementById('modalStartDate')?.value || item.startDate || '';
+    item.estimatedEndDate = document.getElementById('modalEstEndDate')?.value || item.estimatedEndDate || '';
+    item.actualEndDate = document.getElementById('modalActualEndDate')?.value || item.actualEndDate || '';
+    item.blockedReason = document.getElementById('modalBlockedReason')?.value || item.blockedReason || '';
+    item.devNotes = document.getElementById('modalDevNotes')?.value || item.devNotes || '';
+    
+    // Build complete dev record and send to extension
+    const devRecord = buildDevRecord(item);
     vscode.postMessage({
         command: 'saveDevChange',
-        storyId: currentModalStoryId,
-        changes: changes
+        data: devRecord
     });
     
     // Re-render table to show changes

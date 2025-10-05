@@ -34,17 +34,14 @@ function handleStoryPointsChange(storyId, newPoints) {
             parseInt(newPoints),
             devConfig
         );
-        item.estEndDate = estimatedEndDate;
+        item.estimatedEndDate = estimatedEndDate;
     }
     
-    // Send update to extension
+    // Build complete dev record and send to extension
+    const devRecord = buildDevRecord(item);
     vscode.postMessage({
         command: 'saveDevChange',
-        storyId: storyId,
-        changes: {
-            storyPoints: newPoints,
-            estEndDate: item.estEndDate
-        }
+        data: devRecord
     });
 }
 
