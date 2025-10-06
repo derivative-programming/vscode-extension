@@ -6,7 +6,20 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
+user story dev view...
+- move config to the first tab?
+- sprint tab
+  - modals are not shown in visible area. need to scroll down to see them
+    - create sprint
+    - edit sprint
+    - delete sprint
+  - dragging backlog items into a sprint does not work
+  - click of a backlog item should open the edit modal
+- forecast tab
+  - remove the group by and zoom controls
 
+user story qa view...
+- move forecast config to the first tab?
 
 verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
 

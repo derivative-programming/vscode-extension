@@ -1628,6 +1628,20 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 }
 
                 /* Modal Styles */
+                .modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.6);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    overflow: auto;
+                }
+
                 .modal-overlay {
                     position: fixed;
                     top: 0;
@@ -1645,10 +1659,20 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     background: var(--vscode-editor-background);
                     border: 1px solid var(--vscode-panel-border);
                     border-radius: 4px;
+                    width: 90%;
                     max-width: 800px;
                     max-height: 90vh;
                     overflow-y: auto;
                     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+                    margin: 20px;
+                }
+
+                .modal-medium {
+                    max-width: 600px;
+                }
+
+                .modal-small {
+                    max-width: 400px;
                 }
 
                 .modal-header {
@@ -1659,9 +1683,11 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     align-items: center;
                 }
 
-                .modal-header h2 {
+                .modal-header h2,
+                .modal-header h3 {
                     margin: 0;
                     font-size: 18px;
+                    color: var(--vscode-foreground);
                 }
 
                 .close-button {
@@ -1688,10 +1714,12 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     margin-bottom: 24px;
                 }
 
-                .form-section h3 {
+                .form-section h3,
+                .form-section h4 {
                     margin: 0 0 12px 0;
                     font-size: 14px;
                     color: var(--vscode-foreground);
+                    font-weight: 600;
                 }
 
                 .form-row {
@@ -1725,11 +1753,46 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     outline: 1px solid var(--vscode-focusBorder);
                 }
 
+                .form-input,
+                .form-select,
+                .form-textarea {
+                    padding: 6px 8px;
+                    background: var(--vscode-input-background);
+                    color: var(--vscode-input-foreground);
+                    border: 1px solid var(--vscode-input-border);
+                    border-radius: 2px;
+                    font-family: var(--vscode-font-family);
+                    font-size: 13px;
+                    width: 100%;
+                }
+
+                .form-input:focus,
+                .form-select:focus,
+                .form-textarea:focus {
+                    outline: 1px solid var(--vscode-focusBorder);
+                }
+
+                .form-input:disabled,
+                .form-select:disabled,
+                .form-textarea:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+
+                .field-hint {
+                    color: var(--vscode-descriptionForeground);
+                    font-size: 11px;
+                    font-weight: normal;
+                    margin-left: 4px;
+                }
+
                 .readonly-input {
                     background: var(--vscode-input-background);
                     opacity: 0.7;
                 }
 
+                /* Button Styles */
+                .btn,
                 .primary-button {
                     padding: 6px 16px;
                     background: var(--vscode-button-background);
@@ -1737,15 +1800,35 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     border: none;
                     border-radius: 2px;
                     cursor: pointer;
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
                     gap: 6px;
+                    font-size: 13px;
                 }
 
+                .btn:hover,
                 .primary-button:hover {
                     background: var(--vscode-button-hoverBackground);
                 }
 
+                .btn-primary {
+                    padding: 6px 16px;
+                    background: var(--vscode-button-background);
+                    color: var(--vscode-button-foreground);
+                    border: none;
+                    border-radius: 2px;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 13px;
+                }
+
+                .btn-primary:hover {
+                    background: var(--vscode-button-hoverBackground);
+                }
+
+                .btn-secondary,
                 .secondary-button {
                     padding: 6px 16px;
                     background: var(--vscode-button-secondaryBackground);
@@ -1753,13 +1836,118 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     border: none;
                     border-radius: 2px;
                     cursor: pointer;
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
                     gap: 6px;
+                    font-size: 13px;
                 }
 
+                .btn-secondary:hover,
                 .secondary-button:hover {
                     background: var(--vscode-button-secondaryHoverBackground);
+                }
+
+                .btn-sm {
+                    padding: 4px 12px;
+                    font-size: 12px;
+                }
+
+                .btn-icon {
+                    padding: 6px;
+                    background: transparent;
+                    border: 1px solid var(--vscode-button-border);
+                    color: var(--vscode-foreground);
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 2px;
+                }
+
+                .btn-icon:hover {
+                    background: var(--vscode-toolbar-hoverBackground);
+                }
+
+                .modal-close {
+                    background: none;
+                    border: none;
+                    color: var(--vscode-foreground);
+                    cursor: pointer;
+                    padding: 4px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 2px;
+                }
+
+                .modal-close:hover {
+                    background: var(--vscode-toolbar-hoverBackground);
+                }
+
+                .btn-danger {
+                    padding: 6px 16px;
+                    background: var(--vscode-inputValidation-errorBackground);
+                    color: white;
+                    border: 1px solid var(--vscode-inputValidation-errorBorder);
+                    border-radius: 2px;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 13px;
+                }
+
+                .btn-danger:hover {
+                    background: var(--vscode-errorForeground);
+                }
+
+                /* Warning and Info Messages */
+                .warning-message {
+                    display: flex;
+                    gap: 12px;
+                    padding: 12px;
+                    background: var(--vscode-inputValidation-warningBackground);
+                    border: 1px solid var(--vscode-inputValidation-warningBorder);
+                    border-radius: 4px;
+                    align-items: flex-start;
+                }
+
+                .warning-message .codicon {
+                    color: var(--vscode-inputValidation-warningForeground);
+                    font-size: 20px;
+                    flex-shrink: 0;
+                }
+
+                .warning-content {
+                    flex: 1;
+                }
+
+                .warning-content p {
+                    margin: 0 0 8px 0;
+                }
+
+                .warning-content p:last-child {
+                    margin-bottom: 0;
+                }
+
+                /* Sprint Presets */
+                .sprint-presets {
+                    margin-top: 12px;
+                    padding-top: 12px;
+                    border-top: 1px solid var(--vscode-panel-border);
+                }
+
+                .sprint-presets h5 {
+                    margin: 0 0 8px 0;
+                    font-size: 12px;
+                    color: var(--vscode-descriptionForeground);
+                    font-weight: 600;
+                }
+
+                .preset-buttons {
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
                 }
 
                 .info-box {
