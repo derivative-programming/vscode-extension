@@ -42,7 +42,7 @@ function getDefaultDevConfig() {
  */
 function getDefaultForecastConfig() {
     return {
-        hoursPerPoint: 8,
+        hoursPerPoint: 4,
         workingHoursPerDay: 8,
         workingDaysPerWeek: 5,
         excludeWeekends: true,

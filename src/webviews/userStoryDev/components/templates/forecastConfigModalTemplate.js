@@ -50,7 +50,7 @@ function generateForecastConfigModal(config) {
                                     min="0.5"
                                     max="40"
                                     step="0.5"
-                                    value="${forecastConfig.hoursPerPoint || 8}"
+                                    value="${forecastConfig.hoursPerPoint || 4}"
                                     required
                                 />
                                 <small class="form-hint">Typical range: 4-16 hours per point</small>

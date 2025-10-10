@@ -63,7 +63,7 @@ function saveForecastConfig(event) {
     
     // Build config object
     const forecastConfig = {
-        hoursPerPoint: parseFloat(formData.get("hoursPerPoint")) || 8,
+        hoursPerPoint: parseFloat(formData.get("hoursPerPoint")) || 4,
         workingHoursPerDay: parseFloat(formData.get("workingHoursPerDay")) || 8,
         workingDaysPerWeek: parseInt(formData.get("workingDaysPerWeek")) || 5,
         excludeWeekends: formData.get("excludeWeekends") === "on",

@@ -331,7 +331,7 @@ function generateConfigSummary(forecastConfig) {
             <div class="forecast-config-items">
                 <div class="forecast-config-item">
                     <span class="forecast-config-label">Hours per Point:</span>
-                    <span class="forecast-config-value">${forecastConfig.hoursPerPoint || 8}</span>
+                    <span class="forecast-config-value">${forecastConfig.hoursPerPoint || 4}</span>
                 </div>
                 <div class="forecast-config-item">
                     <span class="forecast-config-label">Working Hours/Day:</span>
@@ -393,7 +393,7 @@ function generateForecastEmptyState(reason) {
  */
 function getDefaultForecastConfig() {
     return {
-        hoursPerPoint: 8,
+        hoursPerPoint: 4,
         workingHoursPerDay: 8,
         workingDaysPerWeek: 5,
         excludeWeekends: true,
