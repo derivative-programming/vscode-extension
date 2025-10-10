@@ -89,29 +89,6 @@ function generateTimelineControls() {
     return `
         <div class="timeline-controls">
             <div class="timeline-controls-left">
-                <label class="timeline-control-label">
-                    <span class="codicon codicon-filter"></span>
-                    Group By:
-                </label>
-                <select id="gantt-group-by" class="timeline-select" onchange="updateGanttGrouping(this.value)">
-                    <option value="status">Status</option>
-                    <option value="priority">Priority</option>
-                    <option value="developer">Developer</option>
-                    <option value="sprint">Sprint</option>
-                    <option value="none">None (Flat)</option>
-                </select>
-                
-                <label class="timeline-control-label">
-                    <span class="codicon codicon-eye"></span>
-                    Show:
-                </label>
-                <select id="gantt-filter" class="timeline-select" onchange="filterGanttChart(this.value)">
-                    <option value="all">All Stories</option>
-                    <option value="incomplete">Incomplete Only</option>
-                    <option value="complete">Completed Only</option>
-                    <option value="blocked">Blocked</option>
-                    <option value="critical">Critical Priority</option>
-                </select>
             </div>
             
             <div class="timeline-controls-right">
@@ -119,6 +96,9 @@ function generateTimelineControls() {
                     <span class="codicon codicon-calendar"></span>
                     Zoom:
                 </label>
+                <button class="timeline-btn" onclick="zoomGanttChart('hour')" title="Hour view">
+                    <span class="codicon codicon-watch"></span>
+                </button>
                 <button class="timeline-btn" onclick="zoomGanttChart('day')" title="Day view">
                     <span class="codicon codicon-dash"></span>
                 </button>

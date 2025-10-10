@@ -1,7 +1,7 @@
 /**
  * Gantt Chart Rendering
  * D3.js-based Gantt chart for project timeline visualization
- * Last Modified: October 5, 2025
+ * Last Modified: October 10, 2025
  */
 
 // Global state for Gantt chart
@@ -9,7 +9,7 @@ let currentGanttData = null;
 let currentGanttConfig = null;
 let currentGroupBy = "status";
 let currentFilter = "all";
-let currentZoomLevel = "week";
+let currentZoomLevel = "hour";
 
 /**
  * Render Gantt chart with story timelines
@@ -417,10 +417,11 @@ function renderGanttD3Chart(schedules, containerId) {
  */
 function getTickInterval() {
     switch (currentZoomLevel) {
+        case "hour": return 0.04; // ~1 hour in days
         case "day": return 1;
         case "week": return 7;
         case "month": return 30;
-        default: return 7;
+        default: return 0.04;
     }
 }
 
@@ -476,10 +477,10 @@ function filterGanttChart(filter) {
 
 /**
  * Zoom Gantt chart
- * @param {string} zoomLevel - Zoom level (day/week/month/reset)
+ * @param {string} zoomLevel - Zoom level (hour/day/week/month/reset)
  */
 function zoomGanttChart(zoomLevel) {
-    currentZoomLevel = zoomLevel === "reset" ? "week" : zoomLevel;
+    currentZoomLevel = zoomLevel === "reset" ? "hour" : zoomLevel;
     if (currentGanttData && currentGanttConfig) {
         renderGanttChart(
             currentGanttData.items,
