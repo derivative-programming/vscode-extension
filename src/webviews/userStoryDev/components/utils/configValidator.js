@@ -43,10 +43,19 @@ function getDefaultDevConfig() {
 function getDefaultForecastConfig() {
     return {
         hoursPerPoint: 4,
-        workingHoursPerDay: 8,
-        workingDaysPerWeek: 5,
-        excludeWeekends: true,
+        workingHoursPerDay: 8, // Legacy field, kept for backward compatibility
+        workingDaysPerWeek: 5, // Legacy field, kept for backward compatibility
+        excludeWeekends: true, // Legacy field, kept for backward compatibility
         excludeNonWorkingHours: true,
+        workingHours: [
+            { day: "Monday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+            { day: "Tuesday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+            { day: "Wednesday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+            { day: "Thursday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+            { day: "Friday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+            { day: "Saturday", enabled: false, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+            { day: "Sunday", enabled: false, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 }
+        ],
         holidays: [],
         velocityOverride: null,
         parallelWorkFactor: 1.0,

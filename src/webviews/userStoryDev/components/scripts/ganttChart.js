@@ -220,7 +220,72 @@ function renderGanttD3Chart(schedules, containerId) {
     // Update SVG width based on hour count
     svg.attr("width", Math.max(containerWidth, totalWidth + margin.left + margin.right));
     
+    /**
+     * Convert a date to its pixel position in the rendered timeline
+     * This accounts for excluded weekends and non-working hours
+     * @param {Date} date - Date to convert
+     * @returns {number} Pixel position
+     */
+    function dateToPixelPosition(date) {
+        if (!date) {
+            return 0;
+        }
+        
+        let position = 0;
+        const targetTime = new Date(date);
+        
+        for (let i = 0; i < allTimeUnits.length; i++) {
+            const unitTime = allTimeUnits[i];
+            
+            if (timeUnit === "hour") {
+                // For hour view, check if target is before this hour
+                if (targetTime < unitTime) {
+                    break;
+                }
+                // If target is within this hour, add fractional position
+                const nextUnit = allTimeUnits[i + 1];
+                if (nextUnit && targetTime >= unitTime && targetTime < nextUnit) {
+                    const hourProgress = (targetTime - unitTime) / (nextUnit - unitTime);
+                    position += hourProgress * pixelsPerUnit;
+                    break;
+                }
+                position += pixelsPerUnit;
+            } else if (timeUnit === "day") {
+                // For day view, check if target is on this day
+                const unitDay = new Date(unitTime);
+                unitDay.setHours(0, 0, 0, 0);
+                const nextDay = new Date(unitDay);
+                nextDay.setDate(nextDay.getDate() + 1);
+                
+                if (targetTime < unitDay) {
+                    break;
+                }
+                if (targetTime >= unitDay && targetTime < nextDay) {
+                    const dayProgress = (targetTime - unitDay) / (24 * 60 * 60 * 1000);
+                    position += dayProgress * pixelsPerUnit;
+                    break;
+                }
+                position += pixelsPerUnit;
+            } else {
+                // For week/month views, use linear interpolation
+                const nextUnit = allTimeUnits[i + 1];
+                if (!nextUnit || targetTime < unitTime) {
+                    break;
+                }
+                if (targetTime >= unitTime && targetTime < nextUnit) {
+                    const progress = (targetTime - unitTime) / (nextUnit - unitTime);
+                    position += progress * pixelsPerUnit;
+                    break;
+                }
+                position += pixelsPerUnit;
+            }
+        }
+        
+        return position;
+    }
+    
     // X scale (time) - hourly precision
+    // NOTE: This scale is kept for reference but dateToPixelPosition should be used for accurate positioning
     const xScale = d3.scaleTime()
         .domain([startDate, endDate])
         .range([0, totalWidth]);
@@ -513,9 +578,9 @@ function renderGanttD3Chart(schedules, containerId) {
         .enter()
         .append("rect")
         .attr("class", "bar")
-        .attr("x", d => xScale(d.startDate))
+        .attr("x", d => dateToPixelPosition(d.startDate))
         .attr("y", (d, i) => yScale(i))
-        .attr("width", d => Math.max(2, xScale(d.endDate) - xScale(d.startDate)))
+        .attr("width", d => Math.max(2, dateToPixelPosition(d.endDate) - dateToPixelPosition(d.startDate)))
         .attr("height", yScale.bandwidth())
         .attr("fill", d => {
             // Use green for completed stories, otherwise color by priority
@@ -567,17 +632,23 @@ function renderGanttD3Chart(schedules, containerId) {
         .append("text")
         .attr("class", "bar-label")
         .attr("x", d => {
-            const barWidth = xScale(d.endDate) - xScale(d.startDate);
-            return barWidth > 20 ? xScale(d.startDate) + barWidth / 2 : xScale(d.startDate) - 20;
+            const startPos = dateToPixelPosition(d.startDate);
+            const endPos = dateToPixelPosition(d.endDate);
+            const barWidth = endPos - startPos;
+            return barWidth > 20 ? startPos + barWidth / 2 : startPos - 20;
         })
         .attr("y", (d, i) => yScale(i) + yScale.bandwidth() / 2)
         .attr("text-anchor", d => {
-            const barWidth = xScale(d.endDate) - xScale(d.startDate);
+            const startPos = dateToPixelPosition(d.startDate);
+            const endPos = dateToPixelPosition(d.endDate);
+            const barWidth = endPos - startPos;
             return barWidth > 20 ? "middle" : "end";
         })
         .attr("dominant-baseline", "middle")
         .attr("fill", d => {
-            const barWidth = xScale(d.endDate) - xScale(d.startDate);
+            const startPos = dateToPixelPosition(d.startDate);
+            const endPos = dateToPixelPosition(d.endDate);
+            const barWidth = endPos - startPos;
             return barWidth > 20 ? "#fff" : "#666";
         })
         .attr("font-size", "9px")

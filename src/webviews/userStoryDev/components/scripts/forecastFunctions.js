@@ -200,12 +200,18 @@ function calculateStorySchedules(stories, config, startDate) {
 }
 
 /**
- * Get next working hour (9am-5pm, Mon-Fri)
+ * Get next working hour using configurable working hours
  * @param {Date} date - Starting date
  * @param {Object} config - Forecast configuration
  * @returns {Date} Next working hour
  */
 function getNextWorkingHour(date, config) {
+    // Use helper function from workingHoursHelper.js if available
+    if (typeof getNextWorkingDateTime === 'function') {
+        return getNextWorkingDateTime(date, config);
+    }
+    
+    // Fallback to legacy 9am-5pm, Mon-Fri logic
     const result = new Date(date);
     
     // Skip weekends
@@ -230,7 +236,7 @@ function getNextWorkingHour(date, config) {
 }
 
 /**
- * Calculate completion date by adding working hours
+ * Calculate completion date by adding working hours using configurable schedule
  * @param {Date} startDate - Start date
  * @param {number} hoursNeeded - Number of working hours needed
  * @param {Object} config - Forecast configuration
@@ -239,27 +245,50 @@ function getNextWorkingHour(date, config) {
 function calculateCompletionDateByHours(startDate, hoursNeeded, config) {
     let currentDate = new Date(startDate);
     let hoursRemaining = hoursNeeded;
+    let iterations = 0;
+    const maxIterations = hoursNeeded * 24 * 2; // Safety limit
     
-    while (hoursRemaining > 0) {
-        // Skip weekends
-        if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+    while (hoursRemaining > 0 && iterations < maxIterations) {
+        iterations++;
+        
+        // Check if current date/time is within working hours
+        const dayOfWeek = currentDate.getDay();
+        
+        // Get working hours for this day using helper
+        let workingHours;
+        if (typeof getWorkingHoursForDay === 'function') {
+            workingHours = getWorkingHoursForDay(config, dayOfWeek);
+        } else {
+            // Fallback: legacy 9am-5pm, Mon-Fri
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            workingHours = {
+                enabled: !isWeekend,
+                startHour: 9,
+                endHour: 17,
+                startTime: { hour: 9, minute: 0 },
+                endTime: { hour: 17, minute: 0 }
+            };
+        }
+        
+        // Skip non-working days
+        if (!workingHours.enabled) {
             currentDate.setDate(currentDate.getDate() + 1);
-            currentDate.setHours(9, 0, 0, 0);
+            currentDate.setHours(0, 0, 0, 0);
             continue;
         }
         
-        const currentHour = currentDate.getHours();
+        const currentHour = currentDate.getHours() + (currentDate.getMinutes() / 60);
         
-        // If before working hours, jump to 9am
-        if (currentHour < 9) {
-            currentDate.setHours(9, 0, 0, 0);
+        // If before working hours, jump to start time
+        if (currentHour < workingHours.startHour) {
+            currentDate.setHours(workingHours.startTime.hour, workingHours.startTime.minute, 0, 0);
             continue;
         }
         
-        // If after working hours, jump to 9am next day
-        if (currentHour >= 17) {
+        // If after working hours, jump to next day's start time
+        if (currentHour >= workingHours.endHour) {
             currentDate.setDate(currentDate.getDate() + 1);
-            currentDate.setHours(9, 0, 0, 0);
+            currentDate.setHours(0, 0, 0, 0);
             continue;
         }
         

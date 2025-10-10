@@ -57,62 +57,31 @@ function generateForecastConfigModal(config) {
                             </div>
                         </div>
                         
-                        <!-- Working Schedule -->
+                        <!-- Working Hours -->
                         <div class="config-section">
                             <h4 class="config-section-title">
                                 <span class="codicon codicon-calendar"></span>
-                                Working Schedule
+                                Working Hours
                             </h4>
                             
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="working-hours-per-day" class="form-label">
-                                        Working Hours per Day *
-                                    </label>
-                                    <input 
-                                        type="number" 
-                                        id="working-hours-per-day" 
-                                        name="workingHoursPerDay"
-                                        class="form-input"
-                                        min="1"
-                                        max="24"
-                                        step="0.5"
-                                        value="${forecastConfig.workingHoursPerDay || 8}"
-                                        required
-                                    />
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="working-days-per-week" class="form-label">
-                                        Working Days per Week *
-                                    </label>
-                                    <input 
-                                        type="number" 
-                                        id="working-days-per-week" 
-                                        name="workingDaysPerWeek"
-                                        class="form-input"
-                                        min="1"
-                                        max="7"
-                                        step="1"
-                                        value="${forecastConfig.workingDaysPerWeek || 5}"
-                                        required
-                                    />
-                                </div>
+                            <div class="working-hours-table-container">
+                                <table class="working-hours-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 80px;">Enabled</th>
+                                            <th style="width: 120px;">Day</th>
+                                            <th style="width: 140px;">Start Time</th>
+                                            <th style="width: 140px;">End Time</th>
+                                            <th style="width: 80px;">Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="workingHoursTableBody">
+                                        ${generateWorkingHoursRows(forecastConfig.workingHours)}
+                                    </tbody>
+                                </table>
                             </div>
                             
-                            <div class="form-group">
-                                <label class="form-checkbox-label">
-                                    <input 
-                                        type="checkbox" 
-                                        id="exclude-weekends" 
-                                        name="excludeWeekends"
-                                        ${forecastConfig.excludeWeekends !== false ? "checked" : ""}
-                                    />
-                                    <span>Exclude weekends from timeline</span>
-                                </label>
-                            </div>
-                            
-                            <div class="form-group">
+                            <div class="form-group" style="margin-top: 16px;">
                                 <label class="form-checkbox-label">
                                     <input 
                                         type="checkbox" 
@@ -120,7 +89,7 @@ function generateForecastConfigModal(config) {
                                         name="excludeNonWorkingHours"
                                         ${forecastConfig.excludeNonWorkingHours !== false ? "checked" : ""}
                                     />
-                                    <span>Exclude non-working hours from timeline (before 9 AM, after 5 PM)</span>
+                                    <span>Hide non-working hours in Gantt chart timeline</span>
                                 </label>
                             </div>
                         </div>
@@ -311,4 +280,100 @@ function formatHolidayDate(date) {
         return date;
     }
     return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+}
+
+/**
+ * Generate working hours table rows
+ * @param {Array} workingHours - Array of working hours configuration for each day
+ * @returns {string} HTML for table rows
+ */
+function generateWorkingHoursRows(workingHours) {
+    // Ensure we have default working hours
+    const defaultWorkingHours = [
+        { day: "Monday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+        { day: "Tuesday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+        { day: "Wednesday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+        { day: "Thursday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+        { day: "Friday", enabled: true, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+        { day: "Saturday", enabled: false, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 },
+        { day: "Sunday", enabled: false, startTime: "09:00 AM", endTime: "05:00 PM", hours: 8.0 }
+    ];
+    
+    const hours = workingHours && Array.isArray(workingHours) ? workingHours : defaultWorkingHours;
+    
+    return hours.map((dayConfig, index) => {
+        const dayName = dayConfig.day || defaultWorkingHours[index].day;
+        const enabled = dayConfig.enabled !== undefined ? dayConfig.enabled : defaultWorkingHours[index].enabled;
+        const startTime = dayConfig.startTime || defaultWorkingHours[index].startTime;
+        const endTime = dayConfig.endTime || defaultWorkingHours[index].endTime;
+        const hoursValue = dayConfig.hours !== undefined ? dayConfig.hours : defaultWorkingHours[index].hours;
+        
+        return `
+            <tr class="working-hours-row ${!enabled ? 'disabled-row' : ''}">
+                <td style="text-align: center;">
+                    <input 
+                        type="checkbox" 
+                        class="working-hours-enabled-checkbox"
+                        data-day-index="${index}"
+                        ${enabled ? 'checked' : ''}
+                        onchange="updateWorkingHoursRow(${index})"
+                    />
+                </td>
+                <td>${dayName}</td>
+                <td>
+                    <input 
+                        type="time" 
+                        class="working-hours-time-input"
+                        data-day-index="${index}"
+                        data-time-type="start"
+                        value="${convertTo24Hour(startTime)}"
+                        ${!enabled ? 'disabled' : ''}
+                        onchange="updateWorkingHoursCalculation(${index})"
+                    />
+                </td>
+                <td>
+                    <input 
+                        type="time" 
+                        class="working-hours-time-input"
+                        data-day-index="${index}"
+                        data-time-type="end"
+                        value="${convertTo24Hour(endTime)}"
+                        ${!enabled ? 'disabled' : ''}
+                        onchange="updateWorkingHoursCalculation(${index})"
+                    />
+                </td>
+                <td class="working-hours-display" data-day-index="${index}">
+                    ${hoursValue.toFixed(1)}
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+/**
+ * Convert 12-hour time format to 24-hour format for HTML time input
+ * @param {string} time12h - Time in format "HH:MM AM/PM"
+ * @returns {string} Time in format "HH:MM" (24-hour)
+ */
+function convertTo24Hour(time12h) {
+    if (!time12h) {
+        return "09:00";
+    }
+    
+    const parts = time12h.trim().toUpperCase().match(/(\d+):(\d+)\s*(AM|PM)/);
+    if (!parts) {
+        return "09:00";
+    }
+    
+    let hour = parseInt(parts[1]);
+    const minute = parts[2];
+    const meridiem = parts[3];
+    
+    if (meridiem === "PM" && hour !== 12) {
+        hour += 12;
+    } else if (meridiem === "AM" && hour === 12) {
+        hour = 0;
+    }
+    
+    return `${String(hour).padStart(2, '0')}:${minute}`;
 }

@@ -1339,6 +1339,9 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                 configValidator: panel.webview.asWebviewUri(
                     vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'utils', 'configValidator.js')
                 ),
+                workingHoursHelper: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'utils', 'workingHoursHelper.js')
+                ),
                 errorHandling: panel.webview.asWebviewUri(
                     vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'utils', 'errorHandling.js')
                 ),
@@ -1839,6 +1842,99 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 .readonly-input {
                     background: var(--vscode-input-background);
                     opacity: 0.7;
+                }
+
+                /* Working Hours Table Styles */
+                .working-hours-table-container {
+                    overflow-x: auto;
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                    background: var(--vscode-editor-background);
+                }
+
+                .working-hours-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 13px;
+                }
+
+                .working-hours-table thead {
+                    background: var(--vscode-editorGroup-dropBackground);
+                }
+
+                .working-hours-table th {
+                    padding: 8px 12px;
+                    text-align: left;
+                    font-weight: 600;
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                    color: var(--vscode-foreground);
+                }
+
+                .working-hours-table td {
+                    padding: 8px 12px;
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                }
+
+                .working-hours-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+                .working-hours-table tbody tr:hover {
+                    background: var(--vscode-list-hoverBackground);
+                }
+
+                .working-hours-table tbody tr.disabled-row {
+                    opacity: 0.5;
+                }
+
+                .working-hours-enabled-checkbox {
+                    cursor: pointer;
+                    width: 16px;
+                    height: 16px;
+                }
+
+                .working-hours-time-input {
+                    padding: 4px 8px;
+                    background: var(--vscode-input-background);
+                    color: var(--vscode-input-foreground);
+                    border: 1px solid var(--vscode-input-border);
+                    border-radius: 2px;
+                    font-family: var(--vscode-font-family);
+                    font-size: 13px;
+                    width: 100%;
+                }
+
+                .working-hours-time-input:focus {
+                    outline: 1px solid var(--vscode-focusBorder);
+                }
+
+                .working-hours-time-input:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+
+                .working-hours-display {
+                    text-align: right;
+                    font-weight: 600;
+                    color: var(--vscode-charts-blue);
+                }
+
+                .working-hours-table tbody tr.invalid-time-range {
+                    background: var(--vscode-inputValidation-errorBackground);
+                }
+
+                .working-hours-table tbody tr.warning-time-range {
+                    background: var(--vscode-inputValidation-warningBackground);
+                }
+
+                .working-hours-table tbody tr.invalid-time-range:hover {
+                    background: var(--vscode-inputValidation-errorBackground);
+                    opacity: 0.9;
+                }
+
+                .working-hours-table tbody tr.warning-time-range:hover {
+                    background: var(--vscode-inputValidation-warningBackground);
+                    opacity: 0.9;
                 }
 
                 /* Button Styles */
@@ -3629,6 +3725,7 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
             <!-- Load utility helpers first (no dependencies) -->
             <script src="${scriptUris.devDataHelpers}"></script>
             <script src="${scriptUris.configValidator}"></script>
+            <script src="${scriptUris.workingHoursHelper}"></script>
             <script src="${scriptUris.errorHandling}"></script>
             
             <!-- Templates must be loaded next -->
