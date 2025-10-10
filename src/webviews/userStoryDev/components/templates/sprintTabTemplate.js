@@ -244,6 +244,26 @@ function generateSprintsList(sprints, items) {
                         <div class="capacity-fill" style="width: ${Math.min(completionRate, 100)}%"></div>
                     </div>
                 </div>
+                ${sprintStories.length > 0 ? `
+                    <div class="sprint-card-stories">
+                        <div class="sprint-stories-header">
+                            <span class="codicon codicon-list-unordered"></span>
+                            <span>Assigned Stories</span>
+                        </div>
+                        <div class="sprint-stories-list">
+                            ${sprintStories.map(story => `
+                                <div class="sprint-story-item">
+                                    <span class="story-number">#${story.storyNumber}</span>
+                                    <span class="story-title">${story.story}</span>
+                                    <span class="story-points-badge">${story.storyPoints || '?'}</span>
+                                    <button class="btn-icon btn-small" onclick="unassignStoryFromSprint('${story.storyId}')" title="Remove from sprint">
+                                        <span class="codicon codicon-close"></span>
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
     }).join('');

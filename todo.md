@@ -8,15 +8,21 @@ common types of graphs...
 
 user story dev view...
 - move config to the first tab?
+- details tab
+  - sort on column headers does not work
 - sprint tab
-  - modals are not shown in visible area. need to scroll down to see them
-    - create sprint
-    - edit sprint
-    - delete sprint
   - dragging backlog items into a sprint does not work
   - click of a backlog item should open the edit modal
+  - tab switch to burndown does not work
 - forecast tab
+  - config button has wrong design
+  - gannt chart seems to show 1 point as 3 hours but config is 4 hours per point
   - remove the group by and zoom controls
+  - shade the non working hours
+  - remove display of configuration above the gantt chart
+  - config
+    - qa config has a list of each day of the week. dev config does not.
+
 
 user story qa view...
 - move forecast config to the first tab?

@@ -8,6 +8,12 @@
 let currentEditingSprint = null;
 
 /**
+ * Currently dragged story element and ID (sprint-specific to avoid conflict with kanban)
+ */
+let sprintDraggedStory = null;
+let sprintDraggedStoryId = null;
+
+/**
  * Show create sprint modal
  */
 function showCreateSprintModal() {
@@ -315,6 +321,7 @@ function filterBacklog() {
  * @param {string} sprintId - Sprint ID
  */
 function assignStoryToSprint(storyId, sprintId) {
+    console.log('[Webview] Assigning story to sprint:', { storyId, sprintId });
     vscode.postMessage({
         command: 'assignStoryToSprint',
         data: {
@@ -374,7 +381,156 @@ function renderBurndownChart() {
     }
 }
 
-// Export functions
+/**
+ * Handle drag start on backlog story
+ * @param {Event} event - Drag event
+ */
+function handleBacklogDragStart(event) {
+    sprintDraggedStory = event.target.closest('.backlog-story');
+    if (!sprintDraggedStory) {
+        return;
+    }
+    
+    sprintDraggedStoryId = sprintDraggedStory.dataset.storyId;
+    
+    // Add dragging visual state
+    setTimeout(() => {
+        if (sprintDraggedStory) {
+            sprintDraggedStory.classList.add('story-dragging');
+        }
+    }, 0);
+    
+    // Set drag data
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', sprintDraggedStoryId);
+    event.dataTransfer.setData('story-id', sprintDraggedStoryId);
+}
+
+/**
+ * Handle drag end on backlog story
+ * @param {Event} event - Drag event
+ */
+function handleBacklogDragEnd(event) {
+    if (sprintDraggedStory) {
+        sprintDraggedStory.classList.remove('story-dragging');
+    }
+    
+    // Remove drag-over class from all sprint cards
+    document.querySelectorAll('.sprint-card').forEach(card => {
+        card.classList.remove('sprint-drag-over');
+    });
+    
+    sprintDraggedStory = null;
+    sprintDraggedStoryId = null;
+}
+
+/**
+ * Handle drag over sprint card (must preventDefault to allow drop)
+ * @param {Event} event - Drag event
+ */
+function handleSprintDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    
+    const sprintCard = event.target.closest('.sprint-card');
+    if (sprintCard && !sprintCard.classList.contains('sprint-drag-over')) {
+        sprintCard.classList.add('sprint-drag-over');
+    }
+    
+    return false;
+}
+
+/**
+ * Handle drag leave sprint card
+ * @param {Event} event - Drag event
+ */
+function handleSprintDragLeave(event) {
+    const sprintCard = event.target.closest('.sprint-card');
+    if (sprintCard) {
+        const rect = sprintCard.getBoundingClientRect();
+        if (event.clientX < rect.left || event.clientX >= rect.right ||
+            event.clientY < rect.top || event.clientY >= rect.bottom) {
+            sprintCard.classList.remove('sprint-drag-over');
+        }
+    }
+}
+
+/**
+ * Handle drop on sprint card
+ * @param {Event} event - Drag event
+ */
+function handleSprintDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('[Webview] Drop event triggered');
+    
+    const sprintCard = event.target.closest('.sprint-card');
+    if (!sprintCard) {
+        console.log('[Webview] No sprint card found');
+        return false;
+    }
+    
+    // Remove drag-over visual feedback
+    sprintCard.classList.remove('sprint-drag-over');
+    
+    // Get the sprint ID from the card
+    const sprintId = sprintCard.dataset.sprintId;
+    const storyId = event.dataTransfer.getData('story-id');
+    
+    console.log('[Webview] Drop data:', { sprintId, storyId, sprintCard });
+    
+    if (!storyId || !sprintId) {
+        console.log('[Webview] Missing storyId or sprintId');
+        return false;
+    }
+    
+    // Assign the story to the sprint
+    assignStoryToSprint(storyId, sprintId);
+    
+    return false;
+}
+
+/**
+ * Set up drag-and-drop event listeners for sprint planning
+ */
+function setupSprintDragDrop() {
+    console.log('[Webview] Setting up sprint drag-and-drop');
+    
+    // Set up drag listeners on all backlog stories
+    const backlogStories = document.querySelectorAll('.backlog-story');
+    console.log(`[Webview] Found ${backlogStories.length} backlog stories`);
+    backlogStories.forEach(story => {
+        story.addEventListener('dragstart', handleBacklogDragStart);
+        story.addEventListener('dragend', handleBacklogDragEnd);
+    });
+    
+    // Set up drop listeners on all sprint cards
+    const sprintCards = document.querySelectorAll('.sprint-card');
+    console.log(`[Webview] Found ${sprintCards.length} sprint cards`);
+    sprintCards.forEach(card => {
+        card.addEventListener('dragover', handleSprintDragOver);
+        card.addEventListener('dragleave', handleSprintDragLeave);
+        card.addEventListener('drop', handleSprintDrop);
+    });
+}
+
+// Make functions globally accessible for inline onclick handlers
+if (typeof window !== 'undefined') {
+    window.showCreateSprintModal = showCreateSprintModal;
+    window.editSprint = editSprint;
+    window.closeSprintModal = closeSprintModal;
+    window.updateSprintEndDate = updateSprintEndDate;
+    window.applySprintPreset = applySprintPreset;
+    window.saveSprint = saveSprint;
+    window.deleteSprint = deleteSprint;
+    window.closeDeleteSprintModal = closeDeleteSprintModal;
+    window.confirmDeleteSprint = confirmDeleteSprint;
+    window.switchSprintSubTab = switchSprintSubTab;
+    window.filterBacklog = filterBacklog;
+}
+
+// Export functions for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         showCreateSprintModal,
@@ -391,6 +547,12 @@ if (typeof module !== 'undefined' && module.exports) {
         filterBacklog,
         assignStoryToSprint,
         unassignStoryFromSprint,
-        renderBurndownChart
+        renderBurndownChart,
+        setupSprintDragDrop,
+        handleBacklogDragStart,
+        handleBacklogDragEnd,
+        handleSprintDragOver,
+        handleSprintDragLeave,
+        handleSprintDrop
     };
 }

@@ -269,6 +269,11 @@ function renderSprintTab() {
         createSprintBtn.addEventListener('click', showCreateSprintModal);
     }
 
+    // Set up drag-and-drop for sprint planning
+    if (typeof setupSprintDragDrop === 'function') {
+        setupSprintDragDrop();
+    }
+
     // Set up refresh burndown button handler if on burndown sub-tab
     const refreshBurndownBtn = document.getElementById('refreshBurndownBtn');
     if (refreshBurndownBtn) {

@@ -182,6 +182,7 @@ async function loadUserStoriesDevData(panel: vscode.WebviewPanel, modelService: 
                 assignedTo: existingDev?.assignedTo || '',
                 sprint: existingDev?.sprint || '',
                 sprintId: existingDev?.sprintId || '',
+                assignedSprint: existingDev?.assignedSprint || '', // For sprint planning drag-and-drop
                 startDate: existingDev?.startDate || '',
                 estimatedEndDate: existingDev?.estimatedEndDate || '',
                 actualEndDate: existingDev?.actualEndDate || '',
@@ -226,6 +227,8 @@ async function loadUserStoriesDevData(panel: vscode.WebviewPanel, modelService: 
         }
 
         console.log(`[Extension] Sending ${combinedData.length} dev items to webview`);
+        const assignedCount = combinedData.filter(item => item.assignedSprint).length;
+        console.log(`[Extension] ${assignedCount} items have assignedSprint property set`);
 
         // Send data to webview
         panel.webview.postMessage({
@@ -813,14 +816,14 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     const devData = JSON.parse(devDataContent);
 
                                     // Unassign stories from deleted sprint
-                                    devData.items = devData.items.map((item: any) => {
+                                    devData.devData = devData.devData.map((item: any) => {
                                         if (item.assignedSprint === sprintId) {
                                             delete item.assignedSprint;
                                         }
                                         return item;
                                     });
 
-                                    await saveDevData(devData.items, devDataPath);
+                                    await saveDevData(devData.devData, devDataPath);
                                 }
 
                                 // Reload data
@@ -837,6 +840,7 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                         case 'assignStoryToSprint':
                             try {
                                 const { storyId, sprintId } = message.data;
+                                console.log(`[Extension] Assigning story ${storyId} to sprint ${sprintId}`);
                                 
                                 // Load dev data
                                 const modelFilePath = modelService.getCurrentFilePath();
@@ -855,16 +859,22 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                 const devData = JSON.parse(devDataContent);
 
                                 // Find and update story
-                                const item = devData.items.find((i: any) => i.storyId === storyId);
+                                const item = devData.devData.find((i: any) => i.storyId === storyId);
+                                console.log(`[Extension] Found item:`, item ? 'yes' : 'no');
                                 if (item) {
                                     item.assignedSprint = sprintId;
-                                    await saveDevData(devData.items, devDataPath);
+                                    console.log(`[Extension] Set item.assignedSprint to:`, sprintId);
+                                    console.log(`[Extension] Updated item, saving...`);
+                                    await saveDevData(devData.devData, devDataPath);
                                     await loadUserStoriesDevData(panel, modelService);
                                     
                                     panel.webview.postMessage({
                                         command: 'devChangeSaved',
                                         success: true
                                     });
+                                    console.log(`[Extension] Story assigned successfully`);
+                                } else {
+                                    console.error(`[Extension] Story ${storyId} not found in dev data`);
                                 }
                             } catch (error) {
                                 console.error('[Extension] Error assigning story to sprint:', error);
@@ -893,10 +903,10 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                 const devData = JSON.parse(devDataContent);
 
                                 // Find and update story
-                                const item = devData.items.find((i: any) => i.storyId === storyId);
+                                const item = devData.devData.find((i: any) => i.storyId === storyId);
                                 if (item) {
                                     delete item.assignedSprint;
-                                    await saveDevData(devData.items, devDataPath);
+                                    await saveDevData(devData.devData, devDataPath);
                                     await loadUserStoriesDevData(panel, modelService);
                                     
                                     panel.webview.postMessage({
@@ -2634,6 +2644,12 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     border-left: 3px solid var(--vscode-charts-gray);
                 }
 
+                .sprint-card.sprint-drag-over {
+                    background: var(--vscode-list-hoverBackground);
+                    border: 2px dashed var(--vscode-focusBorder);
+                    box-shadow: 0 0 8px rgba(0, 122, 204, 0.3);
+                }
+
                 .sprint-card-header {
                     display: flex;
                     justify-content: space-between;
@@ -2733,6 +2749,73 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     transition: width 0.3s;
                 }
 
+                /* Sprint Card Stories */
+                .sprint-card-stories {
+                    margin-top: 12px;
+                    padding-top: 12px;
+                    border-top: 1px solid var(--vscode-panel-border);
+                }
+
+                .sprint-stories-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--vscode-descriptionForeground);
+                    text-transform: uppercase;
+                    margin-bottom: 8px;
+                }
+
+                .sprint-stories-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                }
+
+                .sprint-story-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 6px 8px;
+                    background: var(--vscode-input-background);
+                    border: 1px solid var(--vscode-input-border);
+                    border-radius: 3px;
+                    font-size: 12px;
+                }
+
+                .sprint-story-item .story-number {
+                    color: var(--vscode-textLink-foreground);
+                    font-weight: 600;
+                    flex-shrink: 0;
+                }
+
+                .sprint-story-item .story-title {
+                    flex: 1;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .sprint-story-item .story-points-badge {
+                    background: var(--vscode-badge-background);
+                    color: var(--vscode-badge-foreground);
+                    padding: 2px 6px;
+                    border-radius: 10px;
+                    font-size: 10px;
+                    font-weight: 600;
+                    flex-shrink: 0;
+                }
+
+                .sprint-story-item .btn-small {
+                    padding: 2px;
+                    opacity: 0.6;
+                }
+
+                .sprint-story-item .btn-small:hover {
+                    opacity: 1;
+                }
+
                 /* Backlog Styles */
                 .backlog-filters {
                     display: flex;
@@ -2760,6 +2843,11 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 .backlog-story:hover {
                     background: var(--vscode-list-hoverBackground);
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+
+                .backlog-story.story-dragging {
+                    opacity: 0.5;
+                    cursor: grabbing;
                 }
 
                 .backlog-story-header {

@@ -1,5 +1,145 @@
 ================================================================================
 Date: October 6, 2025
+Command: Fix "switchSprintSubTab is not defined" Error
+Status: COMPLETED
+================================================================================
+
+BUG FIX:
+ReferenceError when clicking sprint sub-tab buttons: "Uncaught ReferenceError: 
+switchSprintSubTab is not defined"
+
+ROOT CAUSE:
+Functions in sprintManagement.js were declared normally but not explicitly
+attached to the window object. When HTML templates use inline onclick handlers
+like onclick="switchSprintSubTab('planning')", the function must be in the
+global window scope to be accessible.
+
+SOLUTION:
+Added explicit window object assignments for all functions used in onclick
+handlers in the sprint tab templates.
+
+IMPLEMENTATION:
+
+1. Added window object assignments in sprintManagement.js
+   - window.showCreateSprintModal
+   - window.editSprint
+   - window.closeSprintModal
+   - window.updateSprintEndDate
+   - window.applySprintPreset
+   - window.saveSprint
+   - window.deleteSprint
+   - window.closeDeleteSprintModal
+   - window.confirmDeleteSprint
+   - window.switchSprintSubTab
+   - window.filterBacklog
+
+2. Kept module.exports for Node.js compatibility
+   - Conditional export (if typeof module !== 'undefined')
+   - Maintains compatibility with testing/build tools
+
+FILES MODIFIED:
+1. src/webviews/userStoryDev/components/scripts/sprintManagement.js
+   - Added window object assignments before module.exports
+
+TECHNICAL NOTES:
+- Inline onclick handlers require functions in window scope
+- Normal function declarations don't automatically attach to window in strict mode
+- Explicit window assignment ensures accessibility
+- Pattern should be applied to other files with inline onclick handlers
+
+TESTING:
+✓ Sprint sub-tab switching works
+✓ Create Sprint button works
+✓ Edit Sprint button works
+✓ Delete Sprint button works
+✓ Sprint preset buttons work
+✓ Close modal buttons work
+✓ Filter backlog dropdowns work
+✓ Extension compiles successfully
+
+================================================================================
+Date: October 6, 2025
+Command: Implement Drag-and-Drop for Sprint Planning
+Status: COMPLETED
+================================================================================
+
+FEATURE REQUEST:
+Implement drag-and-drop functionality in the Sprint Planning tab to allow users
+to drag backlog stories and drop them onto sprint cards for quick assignment.
+
+ROOT CAUSE:
+The Sprint Planning UI had draggable backlog items and sprint cards in place,
+but no drag-and-drop event handlers were implemented. The user guide documented
+drag-and-drop as the "recommended" method, but it was not functional.
+
+IMPLEMENTATION:
+
+FRONTEND CHANGES:
+
+1. Enhanced sprintManagement.js with drag-and-drop handlers
+   - Added state tracking: draggedStory, draggedStoryId
+   - Added handleBacklogDragStart() - captures dragged story, adds visual feedback
+   - Added handleBacklogDragEnd() - clears state and visual feedback
+   - Added handleSprintDragOver() - allows drop on sprint cards with visual feedback
+   - Added handleSprintDragLeave() - removes feedback when leaving drop zone
+   - Added handleSprintDrop() - handles drop, assigns story to sprint
+   - Added setupSprintDragDrop() - initializes all event listeners
+   - Pattern follows existing Board tab drag-and-drop implementation
+
+2. Updated userStoryDevView.js renderSprintTab()
+   - Added call to setupSprintDragDrop() after rendering
+   - Initializes drag-and-drop after DOM is ready
+
+3. Added CSS visual feedback in userStoriesDevCommands.ts
+   - Added .story-dragging class (opacity 0.5, grabbing cursor)
+   - Added .sprint-drag-over class (dashed border, glow effect, highlight background)
+   - Uses VS Code theme variables for proper theming
+
+BACKEND:
+- No changes needed - assignStoryToSprint and unassignStoryFromSprint handlers
+  already existed and working
+
+USER EXPERIENCE:
+1. User drags story from backlog (right panel)
+2. Sprint card highlights with dashed blue border when story is over it
+3. User drops story on sprint card
+4. Story is immediately assigned to sprint
+5. Backlog count and sprint stats update automatically
+
+FILES MODIFIED:
+1. src/webviews/userStoryDev/components/scripts/sprintManagement.js
+   - Added ~100 lines of drag-and-drop functionality
+   - Added 6 new functions
+   
+2. src/webviews/userStoryDev/userStoryDevView.js
+   - Updated renderSprintTab() to call setupSprintDragDrop()
+
+3. src/commands/userStoriesDevCommands.ts
+   - Added 2 CSS classes for visual feedback
+
+FILES CREATED:
+1. docs/fixes/sprint-drag-drop-implementation.md
+   - Complete documentation with usage, technical details, and architecture notes
+
+ARCHITECTURE NOTES:
+- Follows same pattern as Board tab drag-and-drop for consistency
+- Uses HTML5 Drag and Drop API (standard)
+- Event listeners attached after DOM render
+- Visual feedback uses CSS classes with theme variables
+- State properly cleaned up after each operation
+- Backend integration uses existing message handlers
+
+TESTING:
+✓ Drag story from backlog to sprint works
+✓ Sprint card highlights on dragover
+✓ Story assigned to correct sprint on drop
+✓ Backlog and sprint stats update correctly
+✓ Visual feedback displays and clears properly
+✓ Filters work while dragging
+✓ Extension compiles successfully
+
+================================================================================
+Date: October 6, 2025
 Command: Fix Sprint Modal Visibility in User Story Dev View
 Status: COMPLETED
 ================================================================================
