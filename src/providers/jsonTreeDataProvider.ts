@@ -755,6 +755,20 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                 };
                 items.push(userStoryJourneyItem);
                 
+                // Create Development Forecast item
+                const devForecastItem = new JsonTreeItem(
+                    'Development Forecast',
+                    vscode.TreeItemCollapsibleState.None,
+                    'analysisDevForecast'
+                );
+                devForecastItem.tooltip = "View development timeline forecast and project completion predictions";
+                devForecastItem.command = {
+                    command: 'appdna.userStoriesDev',
+                    title: 'Show Development Forecast',
+                    arguments: ['forecast']
+                };
+                items.push(devForecastItem);
+                
                 // Create QA Forecast item
                 const userStoryQAItem = new JsonTreeItem(
                     'QA Forecast',

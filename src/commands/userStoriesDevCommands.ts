@@ -439,6 +439,14 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
             await loadUserStoriesDevData(panel, modelService);
             await loadDevConfig(panel, modelService);
 
+            // If initialTab is specified, send message to switch to that tab after data is loaded
+            if (initialTab) {
+                panel.webview.postMessage({
+                    command: 'switchToTab',
+                    data: { tabName: initialTab }
+                });
+            }
+
             // Handle messages from the webview
             panel.webview.onDidReceiveMessage(
                 async (message) => {

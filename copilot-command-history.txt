@@ -1569,3 +1569,147 @@ Test all single-field changes in the details tab:
 - Edit modal (all fields)
 
 ================================================================================
+
+================================================================================
+Date: October 10, 2025
+Command: Add Development Forecast TreeView Item
+Status: COMPLETED
+================================================================================
+
+TASK:
+Review the generation of the treeview and add a 'Development Forecast' item 
+that appears above 'QA Forecast' in the Analytics section. When clicked, it 
+should open the User Stories Development view with the Forecast tab pre-selected.
+
+IMPLEMENTATION:
+
+1. TREEVIEW ITEM ADDITION
+   File: src/providers/jsonTreeDataProvider.ts
+   Location: Analytics section, before QA Forecast item
+   
+   Added new tree item:
+   - Label: 'Development Forecast'
+   - Context Value: 'analysisDevForecast'
+   - Command: 'appdna.userStoriesDev' with argument ['forecast']
+   - Tooltip: View development timeline forecast and project completion predictions
+
+2. TAB SWITCHING MECHANISM
+   The implementation leverages existing infrastructure:
+   - Command 'appdna.userStoriesDev' accepts optional initialTab parameter
+   - Extension sends 'switchToTab' message to webview with tabName: 'forecast'
+   - Webview handler finds and clicks the forecast tab button
+   - This pattern matches the QA Forecast implementation
+
+3. ANALYTICS SECTION ORDER (Updated)
+   1. Metrics
+   2. Data Object Hierarchy
+   3. Data Object Size
+   4. Data Object Usage
+   5. Database Size Forecast
+   6. User Stories Role Distribution
+   7. Page Complexity
+   8. User Story Journey
+   9. Development Forecast  NEW
+   10. QA Forecast
+
+4. DOCUMENTATION
+   Created: docs/architecture/development-forecast-treeview-integration.md
+   - Complete implementation details
+   - Tab switching mechanism explanation
+   - Testing checklist
+   - Architecture notes and design decisions
+
+5. TODO UPDATE
+   Removed completed task from todo.md
+
+ARCHITECTURE NOTES:
+- Follows consistent pattern with other Analytics items
+- Reuses existing command infrastructure (no new command needed)
+- Positioned logically before QA Forecast (Development  QA flow)
+- Uses command argument to specify initial tab for panel reuse
+- Matches existing QA Forecast command pattern
+
+FILES MODIFIED:
+- src/providers/jsonTreeDataProvider.ts (+13 lines)
+- todo.md (removed completed task)
+
+FILES CREATED:
+- docs/architecture/development-forecast-treeview-integration.md
+
+TESTING REQUIRED:
+- Verify item appears in Analytics section before QA Forecast
+- Click item and verify Dev view opens with Forecast tab active
+- Verify Gantt chart renders correctly
+- Test when panel is already open (should reveal and switch tab)
+
+
+================================================================================
+Date: October 10, 2025
+Command: Fix Development Forecast Initial Tab Switching
+Status: COMPLETED
+================================================================================
+
+BUG REPORT:
+After implementing the Development Forecast treeview item, it was discovered
+that it required TWO clicks to open the Forecast tab. The first click would
+open the Dev view on the Details tab, then a second click was needed to switch
+to the Forecast tab.
+
+ROOT CAUSE:
+The initialTab switching logic was incomplete. When a panel already existed,
+the code correctly sent a 'switchToTab' message (lines 407-410). However, when
+creating a NEW panel, the code loaded data and config but never sent the
+'switchToTab' message for the initialTab parameter.
+
+The flow was:
+1. Create new panel
+2. Load data (await loadUserStoriesDevData)
+3. Load config (await loadDevConfig)
+4.  Missing: Send switchToTab message
+5. Set up message handlers
+
+SOLUTION:
+Added code to send the 'switchToTab' message after data and config are loaded
+for newly created panels, matching the behavior for existing panels.
+
+IMPLEMENTATION:
+File: src/commands/userStoriesDevCommands.ts
+Location: After data/config loading, before message handler setup
+
+Added after line 440:
+`	ypescript
+// If initialTab is specified, send message to switch to that tab after data is loaded
+if (initialTab) {
+    panel.webview.postMessage({
+        command: 'switchToTab',
+        data: { tabName: initialTab }
+    });
+}
+`
+
+WHY THIS WORKS:
+- Data and config are loaded first (webview can process the data)
+- Then the switchToTab message is sent
+- Webview's message handler finds the forecast tab button and clicks it
+- Tab switches immediately on first click
+
+BEHAVIOR NOW:
+- First click: Opens Dev view with Forecast tab active 
+- Subsequent clicks: Reveals panel and switches to Forecast tab 
+- Consistent behavior for both new and existing panels 
+
+FILES MODIFIED:
+- src/commands/userStoriesDevCommands.ts (+7 lines)
+- docs/architecture/development-forecast-treeview-integration.md (documented fix)
+
+TESTING:
+- Click Development Forecast item when panel doesn't exist
+- Verify Forecast tab is active immediately
+- Click again to verify panel reveals and stays on Forecast tab
+- No console errors
+
+COMPARISON WITH QA FORECAST:
+The QA view uses a different pattern with a 'UserStoriesQAWebviewReady' message
+that triggers data loading. The Dev view loads data immediately, so we need to
+send the tab switch message right after data loading completes.
+

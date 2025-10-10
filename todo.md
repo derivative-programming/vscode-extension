@@ -7,10 +7,6 @@ common types of graphs...
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
 
-analysis treeview item - Development Forecast
-- show above QA forecast
-- on click, show user story dev view forecast tab
-
 user story dev view...
 - sprint tab
   - click of a backlog item should open the edit modal
