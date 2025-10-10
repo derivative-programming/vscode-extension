@@ -378,8 +378,11 @@ function calculateCompletionDateByHours(startDate, hoursNeeded, config) {
             continue;
         }
         
-        // We're in working hours, consume one hour
-        hoursRemaining -= 1;
+        // We're in working hours, consume hours accounting for parallel work factor
+        // parallelWorkFactor represents number of developers working simultaneously
+        // e.g., factor of 2.0 means 2 developers = 2 hours of work done per calendar hour
+        const parallelFactor = config.parallelWorkFactor || 1.0;
+        hoursRemaining -= parallelFactor;
         currentDate.setHours(currentDate.getHours() + 1);
     }
     
