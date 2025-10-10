@@ -1,5 +1,78 @@
 ================================================================================
 Date: October 10, 2025
+Command: Add Expansion/Contraction to Project Overview Section
+Status: COMPLETED
+================================================================================
+
+UI ENHANCEMENT:
+Added ability to expand and contract the "Project Overview" section above the
+Gantt chart to save screen space and allow users to focus on the timeline when
+they don't need to see the statistics.
+
+IMPLEMENTATION:
+
+1. Updated forecastTabTemplate.js - generateForecastStatistics():
+   - Made the "Project Overview" title clickable
+   - Added chevron icon (down/right) to indicate expandable state
+   - Wrapped all statistics content in a new div: "project-overview-details"
+   - Added onclick handler: onclick="toggleProjectOverview()"
+   - Added cursor: pointer style to title for visual feedback
+
+2. Created toggleProjectOverview() function in forecastConfigManagement.js:
+   - Toggles visibility of project-overview-details div
+   - Changes chevron icon between down (expanded) and right (collapsed)
+   - Uses simple display: block/none toggle
+   - Handles missing elements gracefully
+   - Attached to window object for onclick handler access
+
+VISUAL BEHAVIOR:
+
+Initial State:
+- Section is expanded by default
+- Title shows "Project Overview" with chevron-down icon
+- All content visible (metrics, risk assessment, recommendations, config)
+
+After Click (Collapsed):
+- Content hidden (display: none)
+- Icon changes to chevron-right
+- Only title bar visible
+- Gantt chart gets more screen space
+
+After Click Again (Expanded):
+- Content shown (display: block)
+- Icon changes back to chevron-down
+- All statistics visible again
+
+USER BENEFITS:
+- Save vertical space when viewing detailed timeline
+- Quick toggle without losing place in chart
+- Visual indicator (chevron) shows current state
+- Familiar UI pattern (collapsible sections)
+
+TECHNICAL NOTES:
+- Simple CSS display toggle (no animations for performance)
+- Icon uses VS Code's codicon library
+- Function added to window object for inline onclick compatibility
+- No state persistence (resets to expanded on tab switch)
+
+FILES MODIFIED:
+1. src/webviews/userStoryDev/components/templates/forecastTabTemplate.js
+   - Updated generateForecastStatistics() to add collapsible structure
+   - Added onclick handler and chevron icon to title
+
+2. src/webviews/userStoryDev/components/scripts/forecastConfigManagement.js
+   - Added toggleProjectOverview() function
+   - Attached function to window object
+   - Updated file last modified date to October 10, 2025
+
+FUTURE ENHANCEMENTS (Optional):
+- Add smooth CSS transition for expand/collapse animation
+- Persist collapsed state to user preferences
+- Add keyboard shortcut for toggle (e.g., Ctrl+E)
+- Add tooltip: "Click to expand/collapse"
+
+================================================================================
+Date: October 10, 2025
 Command: Fix Zoom Buttons Functionality
 Status: COMPLETED
 ================================================================================

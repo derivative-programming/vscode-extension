@@ -1,7 +1,7 @@
 /**
  * Forecast Configuration Management
  * Handles forecast configuration modal and settings
- * Last Modified: October 5, 2025
+ * Last Modified: October 10, 2025
  */
 
 // Global state for holidays
@@ -251,4 +251,30 @@ function refreshForecast() {
             hideSpinner();
         }
     }, 50);
+}
+
+/**
+ * Toggle Project Overview section expansion/contraction
+ */
+function toggleProjectOverview() {
+    const detailsSection = document.getElementById("project-overview-details");
+    const toggleIcon = document.getElementById("project-overview-toggle-icon");
+    
+    if (!detailsSection || !toggleIcon) {
+        return;
+    }
+    
+    // Toggle visibility
+    if (detailsSection.style.display === "none") {
+        detailsSection.style.display = "block";
+        toggleIcon.className = "codicon codicon-chevron-down";
+    } else {
+        detailsSection.style.display = "none";
+        toggleIcon.className = "codicon codicon-chevron-right";
+    }
+}
+
+// Ensure function is available globally for onclick handlers
+if (typeof window !== 'undefined') {
+    window.toggleProjectOverview = toggleProjectOverview;
 }

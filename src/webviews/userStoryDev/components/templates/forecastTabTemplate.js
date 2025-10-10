@@ -195,41 +195,46 @@ function generateForecastStatistics(items, forecastConfig) {
     
     return `
         <div class="forecast-stats-content">
-            <h4 class="forecast-stats-title">Project Overview</h4>
+            <h4 class="forecast-stats-title" onclick="toggleProjectOverview()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                <span>Project Overview</span>
+                <span id="project-overview-toggle-icon" class="codicon codicon-chevron-down"></span>
+            </h4>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
-                ${generateForecastMetric(
-                    "calendar",
-                    "Projected Completion",
-                    formatForecastDate(projectedCompletionDate),
-                    riskLevel === "high" ? "risk-high" : riskLevel === "medium" ? "risk-medium" : "risk-low"
-                )}
+            <div id="project-overview-details" class="project-overview-details">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                    ${generateForecastMetric(
+                        "calendar",
+                        "Projected Completion",
+                        formatForecastDate(projectedCompletionDate),
+                        riskLevel === "high" ? "risk-high" : riskLevel === "medium" ? "risk-medium" : "risk-low"
+                    )}
+                    
+                    ${generateForecastMetric(
+                        "clock",
+                        "Remaining Hours",
+                        `${totalRemainingHours.toFixed(1)} hrs`,
+                        ""
+                    )}
+                    
+                    ${generateForecastMetric(
+                        "calendar",
+                        "Remaining Work Days",
+                        `${totalRemainingDays.toFixed(1)} days`,
+                        ""
+                    )}
+                    
+                    ${generateForecastMetric(
+                        "pulse",
+                        "Team Velocity",
+                        `${averageVelocity.toFixed(1)} pts/sprint`,
+                        ""
+                    )}
+                </div>
                 
-                ${generateForecastMetric(
-                    "clock",
-                    "Remaining Hours",
-                    `${totalRemainingHours.toFixed(1)} hrs`,
-                    ""
-                )}
-                
-                ${generateForecastMetric(
-                    "calendar",
-                    "Remaining Work Days",
-                    `${totalRemainingDays.toFixed(1)} days`,
-                    ""
-                )}
-                
-                ${generateForecastMetric(
-                    "pulse",
-                    "Team Velocity",
-                    `${averageVelocity.toFixed(1)} pts/sprint`,
-                    ""
-                )}
+                ${generateRiskAssessment(riskLevel, bottlenecks)}
+                ${generateRecommendations(recommendations)}
+                ${generateConfigSummary(forecastConfig)}
             </div>
-            
-            ${generateRiskAssessment(riskLevel, bottlenecks)}
-            ${generateRecommendations(recommendations)}
-            ${generateConfigSummary(forecastConfig)}
         </div>
     `;
 }
