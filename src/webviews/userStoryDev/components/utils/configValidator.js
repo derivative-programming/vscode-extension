@@ -46,6 +46,7 @@ function getDefaultForecastConfig() {
         workingHoursPerDay: 8,
         workingDaysPerWeek: 5,
         excludeWeekends: true,
+        excludeNonWorkingHours: true,
         holidays: [],
         velocityOverride: null,
         parallelWorkFactor: 1.0,

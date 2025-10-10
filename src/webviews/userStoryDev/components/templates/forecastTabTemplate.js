@@ -122,6 +122,7 @@ function generateTimelineControls() {
  */
 function generateGanttChartContainer(forecastConfig) {
     const excludeWeekends = forecastConfig?.excludeWeekends !== false;
+    const excludeNonWorkingHours = forecastConfig?.excludeNonWorkingHours !== false;
     
     return `
         <div class="gantt-chart-wrapper">
@@ -157,10 +158,12 @@ function generateGanttChartContainer(forecastConfig) {
                     <span class="legend-marker legend-marker-today" style="display: inline-block; width: 20px; height: 2px; background-color: orange;"></span>
                     <span style="font-size: 12px;">Today</span>
                 </div>
+                ${excludeNonWorkingHours === false ? `
                 <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
                     <span style="display: inline-block; width: 20px; height: 12px; background-color: #808080; opacity: 0.15; border-radius: 2px;"></span>
                     <span style="font-size: 12px;">Non-Working Hours</span>
                 </div>
+                ` : ''}
                 ${!excludeWeekends ? `
                 <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
                     <span style="display: inline-block; width: 20px; height: 12px; background-color: #ff0000; opacity: 0.08; border-radius: 2px;"></span>
@@ -410,6 +413,7 @@ function getDefaultForecastConfig() {
         workingHoursPerDay: 8,
         workingDaysPerWeek: 5,
         excludeWeekends: true,
+        excludeNonWorkingHours: true,
         holidays: [],
         velocityOverride: null,
         parallelWorkFactor: 1.0

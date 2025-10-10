@@ -167,12 +167,20 @@ function renderGanttD3Chart(schedules, containerId) {
             while (currentTime <= endDate) {
                 const dayOfWeek = currentTime.getDay();
                 const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                // Logic: Include hour if (weekends are included OR this is not a weekend)
+                const hourOfDay = currentTime.getHours();
+                const excludeNonWorkingHours = currentGanttConfig?.excludeNonWorkingHours !== false;
+                const isNonWorkingHour = hourOfDay < 9 || hourOfDay >= 17;
+                
+                // Logic: Include hour if (weekends are included OR this is not a weekend) 
+                // AND (non-working hours are included OR this is a working hour)
                 // - If excludeWeekends=true and isWeekend=true: false || false = false (skip)
-                // - If excludeWeekends=true and isWeekend=false: false || true = true (include)
-                // - If excludeWeekends=false and isWeekend=true: true || false = true (include)
-                // - If excludeWeekends=false and isWeekend=false: true || true = true (include)
-                if (!excludeWeekends || !isWeekend) {
+                // - If excludeWeekends=true and isWeekend=false: false || true = true (check next condition)
+                // - If excludeWeekends=false and isWeekend=true: true || false = true (check next condition)
+                // - If excludeWeekends=false and isWeekend=false: true || true = true (check next condition)
+                // - If excludeNonWorkingHours=true and isNonWorkingHour=true: false || false = false (skip)
+                // - If excludeNonWorkingHours=true and isNonWorkingHour=false: false || true = true (include)
+                // - If excludeNonWorkingHours=false: true || anything = true (include if passed weekend check)
+                if ((!excludeWeekends || !isWeekend) && (!excludeNonWorkingHours || !isNonWorkingHour)) {
                     allTimeUnits.push(new Date(currentTime));
                 }
                 currentTime.setHours(currentTime.getHours() + 1);

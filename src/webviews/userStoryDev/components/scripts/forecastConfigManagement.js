@@ -67,6 +67,7 @@ function saveForecastConfig(event) {
         workingHoursPerDay: parseFloat(formData.get("workingHoursPerDay")) || 8,
         workingDaysPerWeek: parseInt(formData.get("workingDaysPerWeek")) || 5,
         excludeWeekends: formData.get("excludeWeekends") === "on",
+        excludeNonWorkingHours: formData.get("excludeNonWorkingHours") === "on",
         velocityOverride: formData.get("velocityOverride") ? parseFloat(formData.get("velocityOverride")) : null,
         parallelWorkFactor: parseFloat(formData.get("parallelWorkFactor")) || 1.0,
         holidays: currentHolidays,
