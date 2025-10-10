@@ -401,10 +401,10 @@ function generateSprintStoriesSummary(sprint, items) {
                 ${sprintStories.map(story => `
                     <tr class="status-${story.devStatus}">
                         <td>#${story.storyNumber}</td>
-                        <td class="story-text">${story.story}</td>
+                        <td class="story-text">${story.storyText}</td>
                         <td><span class="status-badge">${formatStatus(story.devStatus)}</span></td>
                         <td>${story.storyPoints || '?'}</td>
-                        <td>${story.assignedDeveloper || '-'}</td>
+                        <td>${story.assignedTo || '-'}</td>
                     </tr>
                 `).join('')}
             </tbody>

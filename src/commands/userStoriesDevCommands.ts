@@ -859,23 +859,43 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                 const devData = JSON.parse(devDataContent);
 
                                 // Find and update story
-                                const item = devData.devData.find((i: any) => i.storyId === storyId);
+                                let item = devData.devData.find((i: any) => i.storyId === storyId);
                                 console.log(`[Extension] Found item:`, item ? 'yes' : 'no');
-                                if (item) {
-                                    item.assignedSprint = sprintId;
-                                    console.log(`[Extension] Set item.assignedSprint to:`, sprintId);
-                                    console.log(`[Extension] Updated item, saving...`);
-                                    await saveDevData(devData.devData, devDataPath);
-                                    await loadUserStoriesDevData(panel, modelService);
-                                    
-                                    panel.webview.postMessage({
-                                        command: 'devChangeSaved',
-                                        success: true
-                                    });
-                                    console.log(`[Extension] Story assigned successfully`);
+                                
+                                if (!item) {
+                                    // Story doesn't exist in dev data yet, create a new entry
+                                    console.log(`[Extension] Story ${storyId} not found in dev data, creating new entry`);
+                                    item = {
+                                        storyId: storyId,
+                                        devStatus: 'on-hold',
+                                        priority: 'medium',
+                                        storyPoints: '?',
+                                        assignedTo: '',
+                                        sprint: '',
+                                        sprintId: '',
+                                        assignedSprint: sprintId,
+                                        startDate: '',
+                                        estimatedEndDate: '',
+                                        actualEndDate: '',
+                                        blockedReason: '',
+                                        devNotes: ''
+                                    };
+                                    devData.devData.push(item);
                                 } else {
-                                    console.error(`[Extension] Story ${storyId} not found in dev data`);
+                                    // Story exists, just update the sprint assignment
+                                    item.assignedSprint = sprintId;
                                 }
+                                
+                                console.log(`[Extension] Set item.assignedSprint to:`, sprintId);
+                                console.log(`[Extension] Updated item, saving...`);
+                                await saveDevData(devData.devData, devDataPath);
+                                await loadUserStoriesDevData(panel, modelService);
+                                
+                                panel.webview.postMessage({
+                                    command: 'devChangeSaved',
+                                    success: true
+                                });
+                                console.log(`[Extension] Story assigned successfully`);
                             } catch (error) {
                                 console.error('[Extension] Error assigning story to sprint:', error);
                                 vscode.window.showErrorMessage(`Error assigning story: ${(error as Error).message}`);
