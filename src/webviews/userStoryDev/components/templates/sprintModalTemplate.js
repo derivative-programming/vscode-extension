@@ -64,6 +64,7 @@ function generateSprintModal(sprint = null) {
                                         id="sprintEndDate" 
                                         class="form-input" 
                                         value="${isEdit ? sprint.endDate : ''}"
+                                        onchange="updateSprintEndDate()"
                                         required
                                     />
                                 </div>

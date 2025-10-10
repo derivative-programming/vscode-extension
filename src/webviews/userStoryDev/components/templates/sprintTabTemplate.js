@@ -251,16 +251,19 @@ function generateSprintsList(sprints, items) {
                             <span>Assigned Stories</span>
                         </div>
                         <div class="sprint-stories-list">
-                            ${sprintStories.map(story => `
-                                <div class="sprint-story-item">
+                            ${sprintStories.map(story => {
+                                const tooltipText = `Story #${story.storyNumber}\n${story.storyText}\n\nPriority: ${formatPriority(story.priority)}\nStatus: ${formatDevStatus(story.devStatus)}\nPoints: ${story.storyPoints || '?'}\nDeveloper: ${story.assignedTo || 'Unassigned'}`;
+                                return `
+                                <div class="sprint-story-item" title="${escapeHtml(tooltipText)}">
                                     <span class="story-number">#${story.storyNumber}</span>
-                                    <span class="story-title">${story.story}</span>
+                                    <span class="story-title">${story.storyText}</span>
                                     <span class="story-points-badge">${story.storyPoints || '?'}</span>
                                     <button class="btn-icon btn-small" onclick="unassignStoryFromSprint('${story.storyId}')" title="Remove from sprint">
                                         <span class="codicon codicon-close"></span>
                                     </button>
                                 </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 ` : ''}
@@ -296,7 +299,7 @@ function generateBacklogStories(items) {
                 <span class="story-number">#${story.storyNumber}</span>
                 ${story.priority ? `<span class="priority-badge priority-${story.priority}">${story.priority}</span>` : ''}
             </div>
-            <div class="backlog-story-text">${story.story}</div>
+            <div class="backlog-story-text">${story.storyText}</div>
             <div class="backlog-story-footer">
                 <span class="story-points">
                     <span class="codicon codicon-dashboard"></span>
@@ -446,6 +449,38 @@ function formatDate(dateString) {
     }
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/**
+ * Format priority for display
+ */
+function formatPriority(priority) {
+    if (!priority || priority === 'none') {
+        return 'Not Set';
+    }
+    return priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase();
+}
+
+/**
+ * Format dev status for display
+ */
+function formatDevStatus(status) {
+    if (!status) {
+        return 'Not Set';
+    }
+    // Convert kebab-case to Title Case
+    return status.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+}
+
+/**
+ * Escape HTML for use in title attributes
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Export functions

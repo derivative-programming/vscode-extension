@@ -1896,9 +1896,9 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
 
                 .btn-danger {
                     padding: 6px 16px;
-                    background: var(--vscode-inputValidation-errorBackground);
+                    background: #f85149;
                     color: white;
-                    border: 1px solid var(--vscode-inputValidation-errorBorder);
+                    border: 1px solid #f85149;
                     border-radius: 2px;
                     cursor: pointer;
                     display: inline-flex;
@@ -1908,7 +1908,8 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 }
 
                 .btn-danger:hover {
-                    background: var(--vscode-errorForeground);
+                    background: #da3633;
+                    border-color: #da3633;
                 }
 
                 /* Warning and Info Messages */
