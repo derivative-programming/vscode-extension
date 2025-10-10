@@ -86,11 +86,8 @@ function switchTab(tabName) {
             // Sprint tab renders fresh data, no additional refresh needed
             break;
         case 'forecast':
+            // Render forecast tab (includes calculation and Gantt chart)
             renderForecastTab();
-            // Auto-refresh forecast calculations
-            if (typeof refreshForecast === 'function') {
-                refreshForecast();
-            }
             break;
     }
 }

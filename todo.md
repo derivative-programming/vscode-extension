@@ -7,12 +7,11 @@ common types of graphs...
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
 
+
+
 user story dev view...
 - sprint tab
   - click of a backlog item should open the edit modal
-- forecast tab
-  - config
-    - qa config has a list of each day of the week. dev config does not.
 
 
 user story qa view...

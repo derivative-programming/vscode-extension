@@ -46,19 +46,41 @@ function calculateDevelopmentForecast(items, config) {
         return sum + points;
     }, 0);
     
-    const totalRemainingHours = totalRemainingPoints * forecastConfig.hoursPerPoint;
-    
-    // Calculate working days needed
-    const hoursPerDay = forecastConfig.workingHoursPerDay * forecastConfig.parallelWorkFactor;
-    const totalRemainingDays = totalRemainingHours / hoursPerDay;
-    
-    // Project completion date
+    // Calculate story schedules first (uses accurate hour-by-hour calculation)
     const today = new Date();
-    const projectedCompletionDate = calculateCompletionDate(
-        today,
-        totalRemainingDays,
-        forecastConfig
-    );
+    const storySchedules = calculateStorySchedules(incompleteStories, forecastConfig, today);
+    
+    // Calculate accurate remaining hours and days from actual story schedules
+    let totalRemainingHours;
+    let totalRemainingDays;
+    let projectedCompletionDate;
+    
+    if (storySchedules && storySchedules.length > 0) {
+        // Sum actual hours needed from all story schedules (most accurate)
+        totalRemainingHours = storySchedules.reduce((sum, schedule) => {
+            return sum + schedule.hoursNeeded;
+        }, 0);
+        
+        // Calculate actual working days from today to completion date
+        // This accounts for per-day working hours, weekends, holidays
+        projectedCompletionDate = storySchedules.reduce((latest, schedule) => {
+            return schedule.endDate > latest ? schedule.endDate : latest;
+        }, storySchedules[0].endDate);
+        
+        // Calculate working days between now and completion
+        totalRemainingDays = calculateWorkingDaysBetween(today, projectedCompletionDate, forecastConfig);
+        
+    } else {
+        // Fallback to legacy calculation if schedules can't be generated
+        totalRemainingHours = totalRemainingPoints * forecastConfig.hoursPerPoint;
+        const hoursPerDay = forecastConfig.workingHoursPerDay * forecastConfig.parallelWorkFactor;
+        totalRemainingDays = totalRemainingHours / hoursPerDay;
+        projectedCompletionDate = calculateCompletionDate(
+            today,
+            totalRemainingDays,
+            forecastConfig
+        );
+    }
     
     // Calculate risk level
     const riskAssessment = assessProjectRisk(items, forecastConfig, averageVelocity);
@@ -79,7 +101,7 @@ function calculateDevelopmentForecast(items, config) {
         riskScore: riskAssessment.score,
         bottlenecks,
         recommendations,
-        storySchedules: calculateStorySchedules(incompleteStories, forecastConfig, today)
+        storySchedules: storySchedules
     };
 }
 
@@ -115,6 +137,70 @@ function calculateAverageVelocity(items, config) {
     
     const totalVelocity = velocities.reduce((sum, v) => sum + v, 0);
     return totalVelocity / completedSprints.length;
+}
+
+/**
+ * Calculate working days between two dates accounting for working hours, weekends, and holidays
+ * @param {Date} startDate - Start date
+ * @param {Date} endDate - End date
+ * @param {Object} config - Forecast configuration
+ * @returns {number} Number of working days (can be fractional)
+ */
+function calculateWorkingDaysBetween(startDate, endDate, config) {
+    if (!startDate || !endDate) {
+        return 0;
+    }
+    
+    // Get working hours helper if available
+    const hasWorkingHoursHelper = typeof getWorkingHoursForDay === 'function';
+    
+    let workingDays = 0;
+    const currentDate = new Date(startDate);
+    const holidays = new Set((config.holidays || []).map(h => new Date(h).toDateString()));
+    
+    // Iterate day by day
+    while (currentDate < endDate) {
+        const dayOfWeek = currentDate.getDay();
+        const dateString = currentDate.toDateString();
+        
+        // Skip holidays
+        if (!holidays.has(dateString)) {
+            if (hasWorkingHoursHelper) {
+                // Use per-day working hours configuration
+                const workingHours = getWorkingHoursForDay(config, dayOfWeek);
+                if (workingHours && workingHours.enabled && workingHours.hours > 0) {
+                    // Check if this is the last day (partial day)
+                    const tomorrow = new Date(currentDate);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    tomorrow.setHours(0, 0, 0, 0);
+                    
+                    if (endDate < tomorrow) {
+                        // Partial day - calculate fraction based on hours worked
+                        const hoursWorked = (endDate - currentDate) / (1000 * 60 * 60);
+                        const fractionOfDay = Math.min(hoursWorked / workingHours.hours, 1);
+                        workingDays += fractionOfDay;
+                    } else {
+                        // Full working day
+                        workingDays += 1;
+                    }
+                }
+            } else {
+                // Fallback: Use legacy excludeWeekends logic
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                if (config.excludeWeekends !== false && isWeekend) {
+                    // Skip weekend
+                } else {
+                    workingDays += 1;
+                }
+            }
+        }
+        
+        // Move to next day
+        currentDate.setDate(currentDate.getDate() + 1);
+        currentDate.setHours(0, 0, 0, 0);
+    }
+    
+    return workingDays;
 }
 
 /**

@@ -22,7 +22,7 @@ function generateForecastTab(items, config) {
             
             ${!hasStories ? generateForecastEmptyState("no-stories") : 
               !hasForecastableStories ? generateForecastEmptyState("no-forecastable") :
-              generateForecastContent(items, forecastConfig)}
+              generateForecastContent(items, config)}
         </div>
     `;
 }
@@ -63,18 +63,18 @@ function generateForecastHeader(forecastConfig) {
 /**
  * Generate main forecast content with Gantt chart and statistics
  * @param {Array} items - All user story items
- * @param {Object} forecastConfig - Forecast configuration
+ * @param {Object} config - Full configuration object
  * @returns {string} HTML for main content
  */
-function generateForecastContent(items, forecastConfig) {
+function generateForecastContent(items, config) {
     return `
         <div class="forecast-content-layout" style="display: flex; flex-direction: column; gap: 20px;">
             <div class="forecast-stats-top" style="width: 100%;">
-                ${generateForecastStatistics(items, forecastConfig)}
+                ${generateForecastStatistics(items, config)}
             </div>
             <div class="forecast-main-section" style="width: 100%; flex: 1;">
                 ${generateTimelineControls()}
-                ${generateGanttChartContainer(forecastConfig)}
+                ${generateGanttChartContainer(config.forecastConfig || getDefaultForecastConfig())}
             </div>
         </div>
     `;
@@ -182,12 +182,12 @@ function generateGanttChartContainer(forecastConfig) {
 /**
  * Generate forecast statistics sidebar
  * @param {Array} items - All user story items
- * @param {Object} forecastConfig - Forecast configuration
+ * @param {Object} config - Full configuration object
  * @returns {string} HTML for statistics sidebar
  */
-function generateForecastStatistics(items, forecastConfig) {
+function generateForecastStatistics(items, config) {
     // Calculate forecast data
-    const forecast = calculateDevelopmentForecast ? calculateDevelopmentForecast(items, forecastConfig) : null;
+    const forecast = calculateDevelopmentForecast ? calculateDevelopmentForecast(items, config) : null;
     
     if (!forecast) {
         return `
@@ -248,7 +248,6 @@ function generateForecastStatistics(items, forecastConfig) {
                 
                 ${generateRiskAssessment(riskLevel, bottlenecks)}
                 ${generateRecommendations(recommendations)}
-                ${generateConfigSummary(forecastConfig)}
             </div>
         </div>
     `;
@@ -328,40 +327,6 @@ function generateRecommendations(recommendations) {
             <ul class="forecast-recommendation-list">
                 ${recommendations.map(r => `<li>${escapeHtml(r)}</li>`).join("")}
             </ul>
-        </div>
-    `;
-}
-
-/**
- * Generate configuration summary
- * @param {Object} forecastConfig - Forecast configuration
- * @returns {string} HTML for config summary
- */
-function generateConfigSummary(forecastConfig) {
-    return `
-        <div class="forecast-config-summary">
-            <h5 class="forecast-section-title">
-                <span class="codicon codicon-settings-gear"></span>
-                Configuration
-            </h5>
-            <div class="forecast-config-items">
-                <div class="forecast-config-item">
-                    <span class="forecast-config-label">Hours per Point:</span>
-                    <span class="forecast-config-value">${forecastConfig.hoursPerPoint || 4}</span>
-                </div>
-                <div class="forecast-config-item">
-                    <span class="forecast-config-label">Working Hours/Day:</span>
-                    <span class="forecast-config-value">${forecastConfig.workingHoursPerDay || 8}</span>
-                </div>
-                <div class="forecast-config-item">
-                    <span class="forecast-config-label">Working Days/Week:</span>
-                    <span class="forecast-config-value">${forecastConfig.workingDaysPerWeek || 5}</span>
-                </div>
-                <div class="forecast-config-item">
-                    <span class="forecast-config-label">Exclude Weekends:</span>
-                    <span class="forecast-config-value">${forecastConfig.excludeWeekends !== false ? "Yes" : "No"}</span>
-                </div>
-            </div>
         </div>
     `;
 }
