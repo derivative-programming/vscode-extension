@@ -232,14 +232,38 @@ function renderGanttD3Chart(schedules, containerId) {
     if (timeUnit === "hour") {
         allHours.forEach((hour, index) => {
             const hourOfDay = hour.getHours();
-            if (hourOfDay < 9 || hourOfDay >= 17) {
+            const dayOfWeek = hour.getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            const isNonWorkingHour = hourOfDay < 9 || hourOfDay >= 17;
+            
+            if (isNonWorkingHour || isWeekend) {
                 g.append("rect")
                     .attr("x", index * hourWidth)
                     .attr("y", -50)
                     .attr("width", hourWidth)
                     .attr("height", height + 50)
-                    .attr("fill", "var(--vscode-editorWidget-background)")
-                    .attr("opacity", 0.3);
+                    .attr("fill", isWeekend ? "#ff0000" : "#808080")
+                    .attr("opacity", isWeekend ? 0.08 : 0.15)
+                    .attr("stroke", "none");
+            }
+        });
+    }
+    
+    // Draw non-working days background (for day/week/month views)
+    if (timeUnit === "day" || timeUnit === "week" || timeUnit === "month") {
+        allHours.forEach((timePoint, index) => {
+            const dayOfWeek = timePoint.getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            
+            if (isWeekend) {
+                g.append("rect")
+                    .attr("x", index * pixelsPerUnit)
+                    .attr("y", -50)
+                    .attr("width", pixelsPerUnit)
+                    .attr("height", height + 50)
+                    .attr("fill", "#ff0000")
+                    .attr("opacity", 0.08)
+                    .attr("stroke", "none");
             }
         });
     }
