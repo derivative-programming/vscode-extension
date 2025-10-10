@@ -265,10 +265,7 @@ function calculateCompletionDateByHours(startDate, hoursNeeded, config) {
         
         // We're in working hours, consume one hour
         hoursRemaining -= 1;
-        
-        if (hoursRemaining > 0) {
-            currentDate.setHours(currentDate.getHours() + 1);
-        }
+        currentDate.setHours(currentDate.getHours() + 1);
     }
     
     return currentDate;
