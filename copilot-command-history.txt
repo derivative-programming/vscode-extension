@@ -1,5 +1,202 @@
 ================================================================================
 Date: October 10, 2025
+Command: Add sortDevTable Command Handler in Extension
+Status: COMPLETED
+================================================================================
+
+BUG FIX:
+After fixing the client-side sorting issue, clicking columns now triggered the
+sort action, but the extension was showing an error:
+"[Extension Host] [Extension] Unknown command: sortDevTable"
+
+This meant the webview was sending the message but the extension had no handler
+to process it.
+
+ROOT CAUSE:
+The webview's handleSort() function was sending a 'sortDevTable' message to the
+extension, but there was no case handler in the extension's message switch
+statement to handle this command.
+
+SOLUTION:
+Added a case handler for 'sortDevTable' command in the extension's
+webview.onDidReceiveMessage listener in userStoriesDevCommands.ts.
+
+IMPLEMENTATION:
+
+Added case handler after 'refresh' case:
+```typescript
+case 'sortDevTable':
+    try {
+        const sortColumn = message.column;
+        const sortDescending = message.descending;
+        console.log(`[Extension] Sorting by ${sortColumn}, descending: ${sortDescending}`);
+        await loadUserStoriesDevData(panel, modelService, sortColumn, sortDescending);
+    } catch (error) {
+        console.error('[Extension] Error sorting dev table:', error);
+        vscode.window.showErrorMessage(`Error sorting table: ${(error as Error).message}`);
+    }
+    break;
+```
+
+HOW IT WORKS:
+
+1. User clicks sortable column header in Details tab
+2. Webview calls handleSort(columnKey)
+3. handleSort sends message to extension:
+   ```javascript
+   vscode.postMessage({
+       command: 'sortDevTable',
+       column: columnKey,
+       descending: descending
+   });
+   ```
+4. Extension receives message and extracts sort parameters
+5. Extension calls loadUserStoriesDevData() with sort parameters
+6. loadUserStoriesDevData() already had support for sortColumn and sortDescending
+7. Data is sorted and sent back to webview
+8. Webview re-renders table with sorted data
+
+TECHNICAL NOTES:
+- The loadUserStoriesDevData() function signature already supported sorting:
+  `async function loadUserStoriesDevData(panel, modelService, sortColumn?, sortDescending?)`
+- The sorting logic was already implemented, just needed the message handler
+- Error handling added for graceful failure
+- Console logging added for debugging
+
+SORT FLOW:
+```
+Webview Click → handleSort() → vscode.postMessage('sortDevTable')
+                                        ↓
+Extension Handler → loadUserStoriesDevData(panel, model, column, desc)
+                                        ↓
+Data Sorted → panel.webview.postMessage('setDevData')
+                                        ↓
+Webview Updates → renderTable() with sorted data
+```
+
+FILES MODIFIED:
+1. src/commands/userStoriesDevCommands.ts
+   - Added 'sortDevTable' case handler in message switch statement
+   - Extracts column and descending parameters
+   - Calls loadUserStoriesDevData with sort parameters
+   - Added error handling and logging
+
+TESTING:
+- Click any sortable column header
+- Verify no console errors
+- Verify table sorts correctly
+- Verify sort indicator (▲/▼) updates
+- Click again to toggle sort direction
+- Try sorting different columns
+
+SORTING NOW FULLY FUNCTIONAL:
+✅ Client-side: handleSort() attached to window object
+✅ Server-side: sortDevTable command handler added
+✅ Data flow: Webview ↔ Extension communication working
+✅ UI feedback: Sort indicators updating correctly
+
+================================================================================
+Date: October 10, 2025
+Command: Fix Details Tab Column Sorting
+Status: COMPLETED
+================================================================================
+
+BUG FIX:
+Clicking on sortable column headers in the Details tab had no effect - columns
+were not sorting when clicked.
+
+ROOT CAUSE:
+The handleSort() function (and other related functions) were defined in
+selectionActions.js but not attached to the window object. The click handler
+in tableRenderer.js was trying to call handleSort() directly using:
+
+```javascript
+th.addEventListener('click', () => {
+    handleSort(column.key);
+});
+```
+
+However, in strict mode or when code is modularized, functions need to be
+explicitly attached to the window object to be accessible globally.
+
+SOLUTION:
+Added window object assignments for all functions used by event handlers and
+other parts of the application before the module.exports block.
+
+IMPLEMENTATION:
+
+Added window attachments in selectionActions.js:
+```javascript
+// Attach functions to window for global access
+if (typeof window !== 'undefined') {
+    window.handleRowSelection = handleRowSelection;
+    window.handleSelectAll = handleSelectAll;
+    window.selectAllRows = selectAllRows;
+    window.deselectAllRows = deselectAllRows;
+    window.updateSelectAllCheckbox = updateSelectAllCheckbox;
+    window.updateAllRowCheckboxes = updateAllRowCheckboxes;
+    window.updateBulkActionButtons = updateBulkActionButtons;
+    window.getSelectedStoryIds = getSelectedStoryIds;
+    window.getSelectedStoryItems = getSelectedStoryItems;
+    window.clearSelection = clearSelection;
+    window.handleSort = handleSort;              // KEY FIX
+    window.refreshData = refreshData;
+    window.exportToCSV = exportToCSV;
+}
+```
+
+FUNCTIONS AFFECTED:
+The following functions are now globally accessible:
+- handleSort - Handles column sorting (KEY FIX)
+- handleRowSelection - Checkbox selection
+- handleSelectAll - Select all checkbox
+- refreshData - Refresh button
+- exportToCSV - CSV export button
+- Other utility functions
+
+SORTING BEHAVIOR:
+With this fix, clicking sortable column headers now:
+1. Toggles sort direction (ascending ↔ descending) when clicking same column
+2. Sends sortDevTable message to extension with column and direction
+3. Updates sort indicator (▲/▼) in column header
+4. Re-renders table with sorted data
+
+SORTABLE COLUMNS:
+- Story # (storyNumber)
+- Story Text (storyText)
+- Priority (priority)
+- Points (storyPoints)
+- Assigned To (assignedTo)
+- Dev Status (devStatus)
+- Sprint (sprint)
+- Start Date (startDate)
+- Est. End Date (estEndDate)
+- Actual End Date (actualEndDate)
+
+NON-SORTABLE COLUMNS:
+- Select checkbox
+- Blocked Reason
+- Dev Notes
+
+TECHNICAL NOTES:
+- Pattern follows best practice for VS Code webviews
+- Conditional window assignment (typeof window !== 'undefined')
+- Maintains module.exports for Node.js compatibility
+- Same pattern should be applied to other files with event handlers
+
+FILES MODIFIED:
+1. src/webviews/userStoryDev/components/scripts/selectionActions.js
+   - Added window object assignments before module.exports
+   - Updated file last modified date to October 10, 2025
+
+TESTING:
+- Click any sortable column header
+- Verify sort indicator (▲/▼) appears
+- Click again to toggle sort direction
+- Verify table rows re-order correctly
+
+================================================================================
+Date: October 10, 2025
 Command: Add Configure Button to Details Tab
 Status: COMPLETED
 ================================================================================

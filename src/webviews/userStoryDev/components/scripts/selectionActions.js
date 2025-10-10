@@ -1,6 +1,6 @@
 // Description: Row selection and bulk action functions
 // Created: October 5, 2025
-// Last Modified: October 5, 2025
+// Last Modified: October 10, 2025
 
 /**
  * Handle individual row checkbox selection
@@ -206,6 +206,23 @@ function exportToCSV() {
     vscode.postMessage({
         command: 'downloadCsv'
     });
+}
+
+// Attach functions to window for global access
+if (typeof window !== 'undefined') {
+    window.handleRowSelection = handleRowSelection;
+    window.handleSelectAll = handleSelectAll;
+    window.selectAllRows = selectAllRows;
+    window.deselectAllRows = deselectAllRows;
+    window.updateSelectAllCheckbox = updateSelectAllCheckbox;
+    window.updateAllRowCheckboxes = updateAllRowCheckboxes;
+    window.updateBulkActionButtons = updateBulkActionButtons;
+    window.getSelectedStoryIds = getSelectedStoryIds;
+    window.getSelectedStoryItems = getSelectedStoryItems;
+    window.clearSelection = clearSelection;
+    window.handleSort = handleSort;
+    window.refreshData = refreshData;
+    window.exportToCSV = exportToCSV;
 }
 
 // Export functions

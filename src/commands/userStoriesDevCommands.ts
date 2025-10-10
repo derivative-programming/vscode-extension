@@ -984,6 +984,18 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                             await loadDevConfig(panel, modelService);
                             break;
 
+                        case 'sortDevTable':
+                            try {
+                                const sortColumn = message.column;
+                                const sortDescending = message.descending;
+                                console.log(`[Extension] Sorting by ${sortColumn}, descending: ${sortDescending}`);
+                                await loadUserStoriesDevData(panel, modelService, sortColumn, sortDescending);
+                            } catch (error) {
+                                console.error('[Extension] Error sorting dev table:', error);
+                                vscode.window.showErrorMessage(`Error sorting table: ${(error as Error).message}`);
+                            }
+                            break;
+
                         case 'downloadCsv':
                             try {
                                 // Get the current model data
