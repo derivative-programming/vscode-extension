@@ -154,6 +154,10 @@ function renderGanttD3Chart(schedules, containerId) {
     const endDate = new Date(maxDate);
     endDate.setHours(23, 59, 59, 999);
     
+    // Get excludeWeekends setting from config (defaults to true)
+    // currentGanttConfig is the forecastConfig object itself, not a wrapper
+    const excludeWeekends = currentGanttConfig?.excludeWeekends !== false;
+    
     // Generate array of time units based on zoom level
     const allTimeUnits = [];
     const currentTime = new Date(startDate);
@@ -161,13 +165,27 @@ function renderGanttD3Chart(schedules, containerId) {
     switch (timeUnit) {
         case "hour":
             while (currentTime <= endDate) {
-                allTimeUnits.push(new Date(currentTime));
+                const dayOfWeek = currentTime.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                // Logic: Include hour if (weekends are included OR this is not a weekend)
+                // - If excludeWeekends=true and isWeekend=true: false || false = false (skip)
+                // - If excludeWeekends=true and isWeekend=false: false || true = true (include)
+                // - If excludeWeekends=false and isWeekend=true: true || false = true (include)
+                // - If excludeWeekends=false and isWeekend=false: true || true = true (include)
+                if (!excludeWeekends || !isWeekend) {
+                    allTimeUnits.push(new Date(currentTime));
+                }
                 currentTime.setHours(currentTime.getHours() + 1);
             }
             break;
         case "day":
             while (currentTime <= endDate) {
-                allTimeUnits.push(new Date(currentTime));
+                const dayOfWeek = currentTime.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                // Same logic as hour view
+                if (!excludeWeekends || !isWeekend) {
+                    allTimeUnits.push(new Date(currentTime));
+                }
                 currentTime.setDate(currentTime.getDate() + 1);
             }
             break;
@@ -232,25 +250,40 @@ function renderGanttD3Chart(schedules, containerId) {
     if (timeUnit === "hour") {
         allHours.forEach((hour, index) => {
             const hourOfDay = hour.getHours();
-            const dayOfWeek = hour.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
             const isNonWorkingHour = hourOfDay < 9 || hourOfDay >= 17;
             
-            if (isNonWorkingHour || isWeekend) {
+            // When excludeWeekends is true, weekend hours are not in the array
+            // so we only need to check for non-working hours
+            if (isNonWorkingHour) {
                 g.append("rect")
                     .attr("x", index * hourWidth)
                     .attr("y", -50)
                     .attr("width", hourWidth)
                     .attr("height", height + 50)
-                    .attr("fill", isWeekend ? "#ff0000" : "#808080")
-                    .attr("opacity", isWeekend ? 0.08 : 0.15)
+                    .attr("fill", "#808080")
+                    .attr("opacity", 0.15)
                     .attr("stroke", "none");
+            } else if (!excludeWeekends) {
+                // If weekends are included, shade them as well
+                const dayOfWeek = hour.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                if (isWeekend) {
+                    g.append("rect")
+                        .attr("x", index * hourWidth)
+                        .attr("y", -50)
+                        .attr("width", hourWidth)
+                        .attr("height", height + 50)
+                        .attr("fill", "#ff0000")
+                        .attr("opacity", 0.08)
+                        .attr("stroke", "none");
+                }
             }
         });
     }
     
     // Draw non-working days background (for day/week/month views)
-    if (timeUnit === "day" || timeUnit === "week" || timeUnit === "month") {
+    // Only shade weekends if they are included in the timeline
+    if (!excludeWeekends && (timeUnit === "day" || timeUnit === "week" || timeUnit === "month")) {
         allHours.forEach((timePoint, index) => {
             const dayOfWeek = timePoint.getDay();
             const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;

@@ -395,7 +395,21 @@ window.addEventListener('message', event => {
             if (message.success) {
                 console.log('[Webview] Forecast config saved successfully');
                 devConfig.forecastConfig = message.config;
+                // Close the config modal
+                if (typeof closeForecastConfigModal === 'function') {
+                    closeForecastConfigModal();
+                }
                 renderForecastTab();
+            } else {
+                // Re-enable the save button on error
+                const form = document.getElementById("forecast-config-form");
+                if (form) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<span class="codicon codicon-save"></span> Save Configuration';
+                    }
+                }
             }
             break;
 

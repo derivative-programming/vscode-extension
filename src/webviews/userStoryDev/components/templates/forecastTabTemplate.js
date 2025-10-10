@@ -74,7 +74,7 @@ function generateForecastContent(items, forecastConfig) {
             </div>
             <div class="forecast-main-section" style="width: 100%; flex: 1;">
                 ${generateTimelineControls()}
-                ${generateGanttChartContainer()}
+                ${generateGanttChartContainer(forecastConfig)}
             </div>
         </div>
     `;
@@ -117,9 +117,12 @@ function generateTimelineControls() {
 
 /**
  * Generate Gantt chart container
+ * @param {Object} forecastConfig - Forecast configuration
  * @returns {string} HTML for Gantt chart
  */
-function generateGanttChartContainer() {
+function generateGanttChartContainer(forecastConfig) {
+    const excludeWeekends = forecastConfig?.excludeWeekends !== false;
+    
     return `
         <div class="gantt-chart-wrapper">
             <div id="gantt-chart-container" class="gantt-chart-container">
@@ -158,10 +161,12 @@ function generateGanttChartContainer() {
                     <span style="display: inline-block; width: 20px; height: 12px; background-color: #808080; opacity: 0.15; border-radius: 2px;"></span>
                     <span style="font-size: 12px;">Non-Working Hours</span>
                 </div>
+                ${!excludeWeekends ? `
                 <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
                     <span style="display: inline-block; width: 20px; height: 12px; background-color: #ff0000; opacity: 0.08; border-radius: 2px;"></span>
                     <span style="font-size: 12px;">Weekends</span>
                 </div>
+                ` : ''}
                 <div class="legend-item" style="display: flex; align-items: center; gap: 6px;">
                     <span class="legend-marker legend-marker-dependency" style="display: inline-block; width: 2px; height: 12px; background-color: var(--vscode-textLink-foreground); border-left: 2px dashed var(--vscode-textLink-foreground);"></span>
                     <span style="font-size: 12px;">Dependency</span>

@@ -6,20 +6,15 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
+
+analysis treeview item - Development Forecast
+- show above QA forecast
+- on click, show user story dev view forecast tab
+
 user story dev view...
-- move config to the first tab?
-- details tab
-  - sort on column headers does not work
 - sprint tab
-  - dragging backlog items into a sprint does not work
   - click of a backlog item should open the edit modal
-  - tab switch to burndown does not work
 - forecast tab
-  - config button has wrong design
-  - gannt chart seems to show 1 point as 3 hours but config is 4 hours per point
-  - remove the group by and zoom controls
-  - shade the non working hours
-  - remove display of configuration above the gantt chart
   - config
     - qa config has a list of each day of the week. dev config does not.
 
@@ -66,9 +61,7 @@ page data source Analysis report...
 --------------------------
 
 user story dev view... 
-- probably need to set order of stories that they should be developed in
-  - priority?
-- story point estimates?
+- probably need to set order of stories that they should be developed in 
 
 
 allow 'a' or 'an' in user story before role name

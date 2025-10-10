@@ -111,6 +111,18 @@ function generateForecastConfigModal(config) {
                                     <span>Exclude weekends from timeline</span>
                                 </label>
                             </div>
+                            
+                            <div class="form-group">
+                                <label class="form-checkbox-label">
+                                    <input 
+                                        type="checkbox" 
+                                        id="exclude-non-working-hours" 
+                                        name="excludeNonWorkingHours"
+                                        ${forecastConfig.excludeNonWorkingHours !== false ? "checked" : ""}
+                                    />
+                                    <span>Exclude non-working hours from timeline (before 9 AM, after 5 PM)</span>
+                                </label>
+                            </div>
                         </div>
                         
                         <!-- Velocity Settings -->
