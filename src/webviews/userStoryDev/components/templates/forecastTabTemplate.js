@@ -43,9 +43,8 @@ function generateForecastHeader(forecastConfig) {
                 <span class="forecast-subtitle">Timeline and completion predictions</span>
             </div>
             <div class="forecast-header-right">
-                <button class="forecast-btn forecast-btn-secondary" onclick="showForecastConfigModal()">
+                <button class="icon-button" onclick="showForecastConfigModal()" title="Configure">
                     <span class="codicon codicon-settings-gear"></span>
-                    Configure
                 </button>
                 <button class="icon-button" onclick="refreshForecast()" title="Refresh">
                     <span class="codicon codicon-refresh"></span>

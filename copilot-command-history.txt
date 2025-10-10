@@ -1,5 +1,136 @@
 ================================================================================
 Date: October 10, 2025
+Command: Add Configure Button to Details Tab
+Status: COMPLETED
+================================================================================
+
+UI ENHANCEMENT:
+Added the forecast configuration modal button to the Details tab action bar,
+allowing users to access forecast configuration settings from the Details tab
+without needing to switch to the Forecast tab.
+
+RATIONALE:
+The forecast configuration affects project-wide settings (hours per point,
+working schedule, velocity, holidays, etc.) that are relevant when viewing and
+managing user stories in the Details tab. Having quick access to configuration
+from the Details tab improves user workflow.
+
+IMPLEMENTATION:
+
+Added Configure button to Details tab action bar in detailsTabTemplate.js:
+```html
+<button onclick="showForecastConfigModal()" class="icon-button" title="Configure">
+    <i class="codicon codicon-settings-gear"></i>
+</button>
+```
+
+PLACEMENT:
+The button was added to the second action-group (utility buttons section) 
+alongside the existing icon buttons:
+- Configure (gear icon) - NEW
+- Export CSV (download icon)
+- Refresh (refresh icon)
+
+This keeps bulk operation buttons (Bulk Status, Bulk Priority, etc.) in the
+first action-group and utility buttons in the second group.
+
+BUTTON ORDER IN DETAILS TAB:
+Left side (Bulk Operations):
+- Bulk Status Update
+- Bulk Priority Update  
+- Bulk Story Points
+- Bulk Assignment
+- Bulk Sprint Assignment
+
+Right side (Utility):
+- Configure (NEW)
+- Download CSV
+- Refresh
+
+CONSISTENCY:
+The Configure button uses the same:
+- Class: "icon-button"
+- Icon: "codicon-settings-gear"
+- Tooltip: "Configure"
+- Handler: "showForecastConfigModal()"
+
+This matches the implementation in the Forecast tab for visual consistency.
+
+BENEFITS:
+- Access forecast config without switching tabs
+- Convenient when planning/estimating stories
+- Consistent configuration across all tabs
+- Same icon-only design pattern
+- No additional code needed (reuses existing modal function)
+
+FILES MODIFIED:
+1. src/webviews/userStoryDev/components/templates/detailsTabTemplate.js
+   - Added Configure button to action bar
+   - Updated file last modified date to October 10, 2025
+
+TECHNICAL NOTES:
+- The showForecastConfigModal() function is already globally available
+- Configuration changes will affect forecast calculations across all tabs
+- Modal is the same one accessed from the Forecast tab
+- No changes needed to modal functionality itself
+
+================================================================================
+Date: October 10, 2025
+Command: Change Configure Button to Icon-Only Style
+Status: COMPLETED
+================================================================================
+
+UI REFINEMENT:
+Changed the "Configure" button from a text button to an icon-only button to
+match the design pattern of the other header buttons (Refresh, Export PNG,
+Download CSV).
+
+CHANGES MADE:
+
+Before:
+```html
+<button class="forecast-btn forecast-btn-secondary" onclick="showForecastConfigModal()">
+    <span class="codicon codicon-settings-gear"></span>
+    Configure
+</button>
+```
+
+After:
+```html
+<button class="icon-button" onclick="showForecastConfigModal()" title="Configure">
+    <span class="codicon codicon-settings-gear"></span>
+</button>
+```
+
+SPECIFIC UPDATES:
+1. Changed class from "forecast-btn forecast-btn-secondary" to "icon-button"
+2. Removed "Configure" text label
+3. Added title="Configure" attribute for tooltip on hover
+4. Maintained same onclick handler and gear icon
+
+VISUAL CONSISTENCY:
+Now all header action buttons use the same design pattern:
+- Configure (gear icon) - NEW STYLE
+- Refresh (refresh icon)
+- Export PNG (camera icon)
+- Download CSV (download icon)
+
+All buttons are icon-only with tooltips showing on hover.
+
+BENEFITS:
+- Cleaner, more compact header
+- Consistent visual design across all action buttons
+- More space-efficient
+- Professional appearance
+- Tooltip provides text label on hover
+
+FILES MODIFIED:
+1. src/webviews/userStoryDev/components/templates/forecastTabTemplate.js
+   - Updated generateForecastHeader() function
+   - Changed Configure button styling and structure
+
+================================================================================
+Date: October 10, 2025
 Command: Add Expansion/Contraction to Project Overview Section
 Status: COMPLETED
 ================================================================================

@@ -1,6 +1,6 @@
 // Description: Template generator for Details Tab (Development Tracking Table)
 // Created: October 5, 2025
-// Last Modified: October 5, 2025
+// Last Modified: October 10, 2025
 
 /**
  * Generate the HTML for the Details Tab
@@ -90,6 +90,9 @@ function generateDetailsTab(items, config) {
                 </button>
             </div>
             <div class="action-group">
+                <button onclick="showForecastConfigModal()" class="icon-button" title="Configure">
+                    <i class="codicon codicon-settings-gear"></i>
+                </button>
                 <button onclick="exportToCSV()" class="icon-button" title="Download CSV">
                     <i class="codicon codicon-cloud-download"></i>
                 </button>
