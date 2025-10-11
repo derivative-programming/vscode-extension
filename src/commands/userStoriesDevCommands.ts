@@ -1048,8 +1048,8 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     }
                                 }
                                 
-                                // Load dev config to get sprint names
-                                let devConfig: any = { sprints: [] };
+                                // Load dev config to get sprint names and developers
+                                let devConfig: any = { sprints: [], developers: [] };
                                 if (modelFilePath) {
                                     const modelDir = path.dirname(modelFilePath);
                                     const configFilePath = path.join(modelDir, 'app-dna-user-story-dev-config.json');
@@ -1071,6 +1071,50 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     });
                                 }
                                 
+                                // Helper function to convert devStatus ID to display label
+                                const getDevStatusLabel = (status: string): string => {
+                                    const statusMap: { [key: string]: string } = {
+                                        'on-hold': 'On Hold',
+                                        'ready-for-dev': 'Ready for Development',
+                                        'in-progress': 'In Progress',
+                                        'blocked': 'Blocked',
+                                        'completed': 'Completed'
+                                    };
+                                    return statusMap[status] || status || '';
+                                };
+                                
+                                // Helper function to convert priority ID to display label
+                                const getPriorityLabel = (priority: string): string => {
+                                    const priorityMap: { [key: string]: string } = {
+                                        'critical': 'Critical',
+                                        'high': 'High',
+                                        'medium': 'Medium',
+                                        'low': 'Low'
+                                    };
+                                    return priorityMap[priority] || priority || '';
+                                };
+                                
+                                // Helper function to format dates
+                                const formatDate = (dateStr: string): string => {
+                                    if (!dateStr) {
+                                        return '';
+                                    }
+                                    // Return as-is if already formatted, otherwise try to format
+                                    return dateStr;
+                                };
+                                
+                                // Helper function to escape CSV values
+                                const escapeCsvValue = (value: string): string => {
+                                    if (!value) {
+                                        return '';
+                                    }
+                                    // If value contains comma, quote, or newline, wrap in quotes and escape quotes
+                                    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                                        return `"${value.replace(/"/g, '""')}"`;
+                                    }
+                                    return value;
+                                };
+                                
                                 // Create a map for quick lookup
                                 const devDataMap = new Map();
                                 if (existingDevData.devData) {
@@ -1079,24 +1123,52 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     });
                                 }
 
-                                // Create CSV content with dev tracking fields
-                                let csvContent = "storyNumber,storyText,devStatus,priority,assignedTo,sprint,storyPoints,estimatedHours,actualHours\n";
+                                // Create CSV content with columns matching the Details Tab table
+                                // Columns: Story #, Story Text, Priority, Points, Assigned To, Dev Status, Sprint, Start Date, Est. End Date, Actual End Date, Blocked Reason, Dev Notes
+                                let csvContent = "Story #,Story Text,Priority,Points,Assigned To,Dev Status,Sprint,Start Date,Est. End Date,Actual End Date,Blocked Reason,Dev Notes\n";
                                 stories.forEach((story: any) => {
-                                    const storyNumber = story.storyNumber || "";
-                                    const storyText = `"${(story.storyText || "").replace(/"/g, '""')}"`;
+                                    // Only export processed stories that aren't ignored
+                                    if (story.isStoryProcessed !== "true" || story.isIgnored === "true") {
+                                        return;
+                                    }
                                     
-                                    // Get dev data for this story
-                                    const dev = devDataMap.get(story.storyId);
-                                    const devStatus = dev?.devStatus || "";
-                                    const priority = dev?.priority || "";
+                                    const storyNumber = story.storyNumber || "";
+                                    const storyText = story.storyText || "";
+                                    
+                                    // Get dev data for this story - use story.name as the key (matches loadUserStoriesDevData)
+                                    const storyId = story.name || story.storyId || "";
+                                    const dev = devDataMap.get(storyId);
+                                    
+                                    // Get display labels for dropdown values
+                                    const priority = getPriorityLabel(dev?.priority || "");
+                                    const storyPoints = dev?.storyPoints || "";
                                     const assignedTo = dev?.assignedTo || "";
+                                    const devStatus = getDevStatusLabel(dev?.devStatus || "");
                                     const sprintId = dev?.sprintId || "";
                                     const sprintName = sprintId ? (sprintMap.get(sprintId) || sprintId) : "";
-                                    const storyPoints = dev?.storyPoints || "";
-                                    const estimatedHours = dev?.estimatedHours || "";
-                                    const actualHours = dev?.actualHours || "";
+                                    const startDate = formatDate(dev?.startDate || "");
+                                    const estEndDate = formatDate(dev?.estimatedEndDate || dev?.estEndDate || "");
+                                    const actualEndDate = formatDate(dev?.actualEndDate || "");
+                                    const blockedReason = dev?.blockedReason || "";
+                                    const devNotes = dev?.devNotes || "";
                                     
-                                    csvContent += `${storyNumber},${storyText},${devStatus},${priority},${assignedTo},${sprintName},${storyPoints},${estimatedHours},${actualHours}\n`;
+                                    // Build CSV row with proper escaping
+                                    const row = [
+                                        storyNumber,
+                                        escapeCsvValue(storyText),
+                                        priority,
+                                        storyPoints,
+                                        assignedTo,
+                                        devStatus,
+                                        sprintName,
+                                        startDate,
+                                        estEndDate,
+                                        actualEndDate,
+                                        escapeCsvValue(blockedReason),
+                                        escapeCsvValue(devNotes)
+                                    ].join(',');
+                                    
+                                    csvContent += row + '\n';
                                 });
 
                                 // Generate timestamped filename

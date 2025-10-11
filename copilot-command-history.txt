@@ -2435,3 +2435,78 @@ FILES CREATED:
 - docs/DEVELOPERS-TAB-IMPLEMENTATION.md (complete documentation)
 
 STATUS: Production-ready, fully integrated with User Story Dev View
+
+================================================================================
+Date: October 11, 2025 (afternoon)
+Command: Fix Details Tab CSV Export - Match Displayed Columns
+Status: COMPLETED
+================================================================================
+
+FIX DETAILS TAB CSV EXPORT:
+
+User reported CSV export doesn't match displayed columns in Details Tab.
+Problems: Wrong columns, wrong values (IDs instead of labels), missing columns.
+
+PROBLEMS FOUND:
+
+1. Wrong CSV Columns:
+   - Had: storyNumber,storyText,devStatus,priority,assignedTo,sprint,storyPoints,estimatedHours,actualHours
+   - Should have: All 12 visible table columns
+
+2. Wrong Values:
+   - Exported IDs: on-hold, ready-for-dev, critical, high
+   - Should export labels: On Hold, Ready for Development, Critical, High
+
+3. Missing Columns:
+   - Missing: Start Date, Est. End Date, Actual End Date, Blocked Reason, Dev Notes
+
+4. Extra Columns:
+   - Had: estimatedHours, actualHours (not in table)
+
+5. Wrong Order:
+   - Column order didn't match table display order
+
+SOLUTION IMPLEMENTED:
+
+File: src/commands/userStoriesDevCommands.ts (lines 1023-1129)
+
+1. Updated CSV Headers:
+   OLD: storyNumber,storyText,devStatus,priority,assignedTo,sprint,storyPoints,estimatedHours,actualHours
+   NEW: Story #,Story Text,Priority,Points,Assigned To,Dev Status,Sprint,Start Date,Est. End Date,Actual End Date,Blocked Reason,Dev Notes
+
+2. Added Helper Functions:
+   - getDevStatusLabel() - Maps on-hold -> On Hold, etc.
+   - getPriorityLabel() - Maps critical -> Critical, etc.
+   - formatDate() - Formats dates consistently
+   - escapeCsvValue() - Proper CSV escaping
+
+3. Added Story Filtering:
+   - Only exports processed, non-ignored stories
+
+4. Fixed Column Order:
+   - Now matches table display exactly
+
+5. Improved CSV Escaping:
+   - Handles commas, quotes, newlines in text fields
+
+FILES MODIFIED:
+- src/commands/userStoriesDevCommands.ts
+
+DOCUMENTATION CREATED:
+- docs/fixes/details-tab-csv-export-fix.md
+- docs/reviews/user-story-dev-details-tab-review.md (comprehensive review)
+
+ARCHITECTURE NOTES:
+- CSV export now uses display labels instead of internal IDs
+- Matches DEV_TABLE_COLUMNS definition from tableRenderer.js
+- Proper CSV RFC 4180 escaping implemented
+- Breaking change: Scripts parsing old format need updates
+
+TESTING REQUIRED:
+- Export with various story statuses and priorities
+- Verify text escaping (commas, quotes, newlines)
+- Open in Excel/Google Sheets to verify formatting
+- Verify all 12 columns present and in correct order
+
+================================================================================
+
