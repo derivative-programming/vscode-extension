@@ -93,6 +93,10 @@ function switchTab(tabName) {
             // Render forecast tab (includes calculation and Gantt chart)
             renderForecastTab();
             break;
+        case 'cost':
+            // Render cost analysis tab
+            renderCostTab();
+            break;
     }
 }
 
@@ -340,6 +344,19 @@ function renderForecastTab() {
             }, 100);
         }
     }
+}
+
+/**
+ * Render Cost Tab
+ */
+function renderCostTab() {
+    const costTab = document.getElementById('costTab');
+    if (!costTab) {
+        return;
+    }
+
+    // Generate cost tab HTML
+    costTab.innerHTML = generateCostTab(allItems, devConfig);
 }
 
 /**

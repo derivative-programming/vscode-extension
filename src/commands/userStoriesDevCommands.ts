@@ -1546,6 +1546,14 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                 forecastConfigManagement: panel.webview.asWebviewUri(
                     vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'forecastConfigManagement.js')
                 ),
+                // Templates - Cost Tab
+                costTabTemplate: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'templates', 'costTabTemplate.js')
+                ),
+                // Scripts - Cost Tab
+                costAnalysisFunctions: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'costAnalysisFunctions.js')
+                ),
                 // Utility scripts (shared helpers)
                 devDataHelpers: panel.webview.asWebviewUri(
                     vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'utils', 'devDataHelpers.js')
@@ -4091,6 +4099,175 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     font-family: var(--vscode-font-family);
                     color: var(--vscode-foreground);
                 }
+
+                /* Cost Tab Styles */
+                .cost-tab-container {
+                    padding: 0;
+                }
+
+                .cost-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+
+                .cost-header h3 {
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .cost-actions {
+                    display: flex;
+                    gap: 8px;
+                }
+
+                .cost-filters {
+                    display: flex;
+                    gap: 20px;
+                    margin-bottom: 20px;
+                    padding: 12px;
+                    background: var(--vscode-editor-background);
+                    border-radius: 4px;
+                }
+
+                .cost-filters label {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    cursor: pointer;
+                }
+
+                .cost-table-wrapper {
+                    overflow-x: auto;
+                    margin-bottom: 24px;
+                }
+
+                .cost-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 13px;
+                }
+
+                .cost-table thead th {
+                    position: sticky;
+                    top: 0;
+                    background: var(--vscode-editor-background);
+                    padding: 12px 16px;
+                    text-align: left;
+                    border-bottom: 2px solid var(--vscode-panel-border);
+                    font-weight: 600;
+                    z-index: 10;
+                }
+
+                .cost-table .developer-column {
+                    min-width: 150px;
+                    position: sticky;
+                    left: 0;
+                    background: var(--vscode-editor-background);
+                    z-index: 11;
+                }
+
+                .cost-table thead .developer-column {
+                    z-index: 12;
+                }
+
+                .cost-table .month-column {
+                    min-width: 120px;
+                    text-align: right;
+                }
+
+                .cost-table .month-column.current-month {
+                    background: var(--vscode-list-hoverBackground);
+                }
+
+                .cost-table .current-badge {
+                    display: block;
+                    font-size: 10px;
+                    font-weight: normal;
+                    color: var(--vscode-charts-blue);
+                    margin-top: 2px;
+                }
+
+                .cost-table tbody tr {
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                }
+
+                .cost-table tbody tr:hover {
+                    background: var(--vscode-list-hoverBackground);
+                }
+
+                .cost-table .developer-row td {
+                    padding: 12px 16px;
+                }
+
+                .cost-table .developer-name {
+                    font-weight: 500;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    position: sticky;
+                    left: 0;
+                    background: inherit;
+                }
+
+                .cost-table .unassigned-row {
+                    background: var(--vscode-editor-background);
+                    font-style: italic;
+                }
+
+                .cost-table .unassigned-row .developer-name {
+                    color: var(--vscode-descriptionForeground);
+                }
+
+                .cost-table .total-row {
+                    background: var(--vscode-editor-background);
+                    border-top: 2px solid var(--vscode-panel-border);
+                    font-weight: 600;
+                }
+
+                .cost-cell {
+                    text-align: right;
+                }
+
+                .cost-cell.current-month {
+                    background: var(--vscode-list-hoverBackground);
+                }
+
+                .cost-cell.has-cost {
+                    color: var(--vscode-charts-green);
+                }
+
+                .cost-summary {
+                    display: flex;
+                    gap: 20px;
+                    padding: 20px;
+                    background: var(--vscode-editor-background);
+                    border-radius: 4px;
+                }
+
+                .summary-card {
+                    flex: 1;
+                    padding: 16px;
+                    background: var(--vscode-input-background);
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                }
+
+                .summary-label {
+                    font-size: 11px;
+                    text-transform: uppercase;
+                    color: var(--vscode-descriptionForeground);
+                    margin-bottom: 8px;
+                }
+
+                .summary-value {
+                    font-size: 24px;
+                    font-weight: 600;
+                    color: var(--vscode-charts-green);
+                }
             </style>
         </head>
         <body>
@@ -4106,6 +4283,7 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 <button class="tab" onclick="switchTab('sprint')">Sprint</button>
                 <button class="tab" onclick="switchTab('developers')">Developers</button>
                 <button class="tab" onclick="switchTab('forecast')">Forecast</button>
+                <button class="tab" onclick="switchTab('cost')">Cost</button>
             </div>
 
             <div id="detailsTab" class="tab-content active">
@@ -4156,6 +4334,14 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 </div>
             </div>
 
+            <div id="costTab" class="tab-content">
+                <div class="empty-state">
+                    <i class="codicon codicon-credit-card"></i>
+                    <h3>Cost Analysis</h3>
+                    <p>Monthly cost breakdown will be displayed here</p>
+                </div>
+            </div>
+
             <div id="spinner-overlay" class="spinner-overlay">
                 <div class="spinner"></div>
             </div>
@@ -4181,6 +4367,7 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
             <script src="${scriptUris.developerModalTemplate}"></script>
             <script src="${scriptUris.forecastTabTemplate}"></script>
             <script src="${scriptUris.forecastConfigModalTemplate}"></script>
+            <script src="${scriptUris.costTabTemplate}"></script>
             
             <!-- Then load helper modules -->
             <script src="${scriptUris.velocityCalculator}"></script>
@@ -4215,6 +4402,9 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
             <script src="${scriptUris.forecastFunctions}"></script>
             <script src="${scriptUris.ganttChart}"></script>
             <script src="${scriptUris.forecastConfigManagement}"></script>
+            
+            <!-- Cost Tab scripts -->
+            <script src="${scriptUris.costAnalysisFunctions}"></script>
             
             <!-- Finally load the main orchestrator -->
             <script src="${scriptUris.main}"></script>

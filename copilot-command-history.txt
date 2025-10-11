@@ -2533,3 +2533,9 @@ Status: Completed
 Notes: Changed from sequential scheduling (all stories one after another) to parallel scheduling by developer. Now tracks each developer's timeline in a Map, so Story 10 (Dev 1) and Story 11 (Dev 2) can run concurrently starting at the same time rather than Story 11 waiting for Story 10 to finish. This accurately reflects team capacity with multiple developers working simultaneously.
 Architecture: Modified forecastFunctions.js calculateStorySchedules function to use developerTimelines Map.
 
+2025-10-11 16:30 - Add Cost Analysis tab to User Story Dev View
+Command: Created new Cost tab with monthly cost breakdown by developer
+Status: Completed
+Notes: Added new 'Cost' tab displaying monthly costs for each developer plus unassigned tasks. Shows past, current, and future months with filtering options. Includes grand total, average monthly cost, and peak monthly cost. CSV export functionality included. Stories are costed using hourly rates x story points x hours per point from forecast config. Uses completed story actual end dates or estimated dates for incomplete stories.
+Architecture: New files: costTabTemplate.js, costAnalysisFunctions.js. Updated userStoriesDevCommands.ts (added tab, scripts, CSS), userStoryDevView.js (added renderCostTab).
+
