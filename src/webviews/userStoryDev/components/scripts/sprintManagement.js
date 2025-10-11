@@ -352,35 +352,48 @@ function unassignStoryFromSprint(storyId) {
  * Render burndown chart for selected sprint
  */
 function renderBurndownChart() {
-    const sprintSelect = document.getElementById('burndownSprintSelect');
-    if (!sprintSelect) {
-        return;
-    }
+    // Show spinner overlay
+    showSpinner();
     
-    const sprintId = sprintSelect.value;
-    const sprint = devConfig.sprints.find(s => s.sprintId === sprintId);
-    
-    if (!sprint) {
-        return;
-    }
-    
-    // Update metrics
-    const metricsContainer = document.getElementById('burndownMetrics');
-    if (metricsContainer) {
-        metricsContainer.innerHTML = generateBurndownMetrics(sprint, allItems);
-    }
-    
-    // Update stories list
-    const storiesContainer = document.getElementById('sprintStoriesList');
-    if (storiesContainer) {
-        storiesContainer.innerHTML = generateSprintStoriesSummary(sprint, allItems);
-    }
-    
-    // Render D3 burndown chart
-    const chartContainer = document.getElementById('burndownChartBody');
-    if (chartContainer) {
-        renderSprintBurndownChart(sprint, allItems, 'burndownChartBody');
-    }
+    // Use setTimeout to allow spinner to display before processing
+    setTimeout(() => {
+        try {
+            const sprintSelect = document.getElementById('burndownSprintSelect');
+            if (!sprintSelect) {
+                hideSpinner();
+                return;
+            }
+            
+            const sprintId = sprintSelect.value;
+            const sprint = devConfig.sprints.find(s => s.sprintId === sprintId);
+            
+            if (!sprint) {
+                hideSpinner();
+                return;
+            }
+            
+            // Update metrics
+            const metricsContainer = document.getElementById('burndownMetrics');
+            if (metricsContainer) {
+                metricsContainer.innerHTML = generateBurndownMetrics(sprint, allItems);
+            }
+            
+            // Update stories list
+            const storiesContainer = document.getElementById('sprintStoriesList');
+            if (storiesContainer) {
+                storiesContainer.innerHTML = generateSprintStoriesSummary(sprint, allItems);
+            }
+            
+            // Render D3 burndown chart
+            const chartContainer = document.getElementById('burndownChartBody');
+            if (chartContainer) {
+                renderSprintBurndownChart(sprint, allItems, 'burndownChartBody');
+            }
+        } finally {
+            // Hide spinner after processing
+            hideSpinner();
+        }
+    }, 50);
 }
 
 /**

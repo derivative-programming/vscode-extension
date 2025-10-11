@@ -152,9 +152,8 @@ function generateSprintBurndownContent(items, config) {
                         `).join('')}
                     </select>
                 </div>
-                <button id="refreshBurndownBtn" class="btn btn-secondary">
-                    <span class="codicon codicon-refresh"></span>
-                    Refresh
+                <button id="refreshBurndownBtn" class="icon-button" title="Refresh">
+                    <i class="codicon codicon-refresh"></i>
                 </button>
             </div>
 

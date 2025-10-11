@@ -18,7 +18,7 @@ function renderSprintBurndownChart(sprint, items, containerId) {
     container.innerHTML = '';
     
     // Get sprint stories
-    const sprintStories = items.filter(item => item.assignedSprint === sprint.sprintId);
+    const sprintStories = items.filter(item => item.sprintId === sprint.sprintId);
     
     if (sprintStories.length === 0) {
         container.innerHTML = '<div class="chart-no-data">No stories assigned to this sprint</div>';
