@@ -58,14 +58,22 @@ function handleDevStatusChange(storyId, newStatus) {
  */
 function handleBulkStatusUpdate(storyIds, newStatus) {
     if (!storyIds || storyIds.length === 0) {
+        console.warn('handleBulkStatusUpdate: No story IDs provided');
         return;
     }
+    
+    console.log(`handleBulkStatusUpdate: Updating ${storyIds.length} stories to status "${newStatus}"`, storyIds);
+    
+    let updatedCount = 0;
+    let notFoundCount = 0;
     
     // Update local state
     storyIds.forEach(storyId => {
         const item = allItems.find(i => i.storyId === storyId);
         if (item) {
+            console.log(`  - Updating story ${storyId}: "${item.devStatus}" → "${newStatus}"`);
             item.devStatus = newStatus;
+            updatedCount++;
             
             // Auto-set dates
             if (newStatus === 'in-progress' && !item.startDate) {
@@ -74,18 +82,41 @@ function handleBulkStatusUpdate(storyIds, newStatus) {
             if (newStatus === 'completed' && !item.actualEndDate) {
                 item.actualEndDate = new Date().toISOString().split('T')[0];
             }
+        } else {
+            console.warn(`  - Story ${storyId} not found in allItems!`);
+            notFoundCount++;
         }
     });
+    
+    console.log(`handleBulkStatusUpdate: Updated ${updatedCount} items, ${notFoundCount} not found`);
+    
+    // Get file path from first item
+    const firstItem = allItems.find(i => i.storyId === storyIds[0]);
+    const filePath = firstItem?.devFilePath;
+    
+    if (!filePath) {
+        console.error('handleBulkStatusUpdate: No file path found!');
+        vscode.postMessage({
+            command: 'showMessage',
+            type: 'error',
+            message: 'Could not determine file path for bulk update'
+        });
+        return;
+    }
     
     // Send bulk update to extension
     vscode.postMessage({
         command: 'bulkUpdateDevStatus',
-        storyIds: storyIds,
-        newStatus: newStatus
+        data: {
+            storyIds: storyIds,
+            devStatus: newStatus,
+            filePath: filePath
+        }
     });
     
     // Re-render table to show changes
     const filteredItems = getFilteredItems();
+    console.log(`handleBulkStatusUpdate: Re-rendering table with ${filteredItems.length} filtered items`);
     renderTable(filteredItems, devConfig, currentSortState);
     
     // Clear selection after bulk operation

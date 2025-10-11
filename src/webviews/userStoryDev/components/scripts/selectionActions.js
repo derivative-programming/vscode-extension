@@ -8,21 +8,38 @@
  * @param {boolean} isChecked - Whether checkbox is checked
  */
 function handleRowSelection(storyId, isChecked) {
+    console.log('handleRowSelection called - storyId:', storyId, 'isChecked:', isChecked);
+    
     if (!selectedItems) {
+        console.log('selectedItems was undefined, creating new Set');
         selectedItems = new Set();
     }
     
     if (isChecked) {
         selectedItems.add(storyId);
+        console.log('Added to selection. selectedItems.size:', selectedItems.size);
     } else {
         selectedItems.delete(storyId);
+        console.log('Removed from selection. selectedItems.size:', selectedItems.size);
     }
     
     // Update select all checkbox state
-    updateSelectAllCheckbox();
+    console.log('About to call updateSelectAllCheckbox()');
+    try {
+        updateSelectAllCheckbox();
+        console.log('updateSelectAllCheckbox() completed');
+    } catch (error) {
+        console.error('Error in updateSelectAllCheckbox():', error);
+    }
     
     // Enable/disable bulk action buttons
-    updateBulkActionButtons();
+    console.log('About to call updateBulkActionButtons()');
+    try {
+        updateBulkActionButtons();
+        console.log('updateBulkActionButtons() completed');
+    } catch (error) {
+        console.error('Error in updateBulkActionButtons():', error);
+    }
 }
 
 /**
@@ -125,14 +142,28 @@ function updateBulkActionButtons() {
         'bulkSprintBtn'
     ];
     
+    // Ensure selectedItems exists
+    if (typeof selectedItems === 'undefined') {
+        console.warn('selectedItems is undefined in updateBulkActionButtons');
+        return;
+    }
+    
     const hasSelection = selectedItems && selectedItems.size > 0;
+    console.log('updateBulkActionButtons - hasSelection:', hasSelection, 'selectedItems.size:', selectedItems?.size);
     
     bulkButtons.forEach(buttonId => {
         const button = document.getElementById(buttonId);
         if (button) {
+            const beforeState = button.disabled;
             button.disabled = !hasSelection;
+            const afterState = button.disabled;
+            console.log(`Button ${buttonId}: was disabled=${beforeState}, setting to disabled=${!hasSelection}, now disabled=${afterState}`);
+        } else {
+            console.warn(`Button ${buttonId} not found in DOM`);
         }
     });
+    
+    console.log('updateBulkActionButtons completed - all buttons processed');
 }
 
 /**
@@ -140,7 +171,9 @@ function updateBulkActionButtons() {
  * @returns {Array<string>} Array of selected story IDs
  */
 function getSelectedStoryIds() {
-    return Array.from(selectedItems);
+    const ids = Array.from(selectedItems);
+    console.log(`getSelectedStoryIds: Returning ${ids.length} selected IDs:`, ids);
+    return ids;
 }
 
 /**

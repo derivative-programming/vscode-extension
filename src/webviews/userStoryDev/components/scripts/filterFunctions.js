@@ -234,6 +234,17 @@ function setupFilterEventListeners() {
     });
 }
 
+// Attach functions to window for global access
+if (typeof window !== 'undefined') {
+    window.applyFilters = applyFilters;
+    window.clearFilters = clearFilters;
+    window.getFilteredItems = getFilteredItems;
+    window.toggleFilterSection = toggleFilterSection;
+    window.updateRecordInfo = updateRecordInfo;
+    window.hasActiveFilters = hasActiveFilters;
+    window.setupFilterEventListeners = setupFilterEventListeners;
+}
+
 // Export functions
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {

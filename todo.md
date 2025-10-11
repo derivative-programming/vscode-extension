@@ -10,10 +10,6 @@ common types of graphs...
 
 user story dev view...
 - Developers tab (between sprint and forecast)
-  - create ui that can update the developers array in app-dna-user-story-dev-config.json
-    - similar design to the details tab, with filter section and data table.
-  - allow edit of a developer in a modal dialog
-  - allow delete of a developer (with confirmation)
   - add an hourly rate to a developer. need a default developer rate in the config modal too.
   - show total cost of remaining work based on assigned developers to stories and their hourly rates
 - add a Costs tab after forecast tab

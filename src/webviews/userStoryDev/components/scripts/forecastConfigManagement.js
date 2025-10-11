@@ -93,6 +93,7 @@ function saveForecastConfig(event) {
     // Build config object
     const forecastConfig = {
         hoursPerPoint: parseFloat(formData.get("hoursPerPoint")) || 4,
+        defaultDeveloperRate: parseFloat(formData.get("defaultDeveloperRate")) || 60,
         workingHours: workingHours, // New: per-day working hours configuration
         workingHoursPerDay: calculateAverageFromWorkingHours(workingHours), // Legacy field for compatibility
         workingDaysPerWeek: workingHours.filter(day => day.enabled && day.hours > 0).length, // Legacy field for compatibility

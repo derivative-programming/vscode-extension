@@ -91,6 +91,9 @@ function calculateDevelopmentForecast(items, config) {
     // Generate recommendations
     const recommendations = generateRecommendations(items, forecastConfig, riskAssessment);
     
+    // Calculate costs
+    const costAnalysis = calculateProjectCosts(items, incompleteStories, completedStories, config);
+    
     return {
         projectedCompletionDate,
         totalRemainingHours,
@@ -101,7 +104,10 @@ function calculateDevelopmentForecast(items, config) {
         riskScore: riskAssessment.score,
         bottlenecks,
         recommendations,
-        storySchedules: storySchedules
+        storySchedules: storySchedules,
+        totalCost: costAnalysis.totalCost,
+        completedCost: costAnalysis.completedCost,
+        remainingCost: costAnalysis.remainingCost
     };
 }
 
@@ -644,4 +650,68 @@ function generateRecommendations(items, config, riskAssessment) {
     }
     
     return recommendations;
+}
+
+/**
+ * Calculate project costs (total, completed, and remaining)
+ * @param {Array} allItems - All user story items
+ * @param {Array} incompleteStories - Stories not yet completed
+ * @param {Array} completedStories - Completed stories
+ * @param {Object} config - Full configuration object with developers and forecast config
+ * @returns {Object} Cost breakdown { totalCost, completedCost, remainingCost }
+ */
+function calculateProjectCosts(allItems, incompleteStories, completedStories, config) {
+    const forecastConfig = (config && config.forecastConfig) ? config.forecastConfig : getDefaultForecastConfig();
+    const developers = (config && config.developers) ? config.developers : [];
+    const defaultRate = forecastConfig.defaultDeveloperRate || 60;
+    const hoursPerPoint = forecastConfig.hoursPerPoint || 4;
+    
+    /**
+     * Get effective hourly rate for a developer
+     * @param {string} developerName - Name of the developer
+     * @returns {number} Hourly rate
+     */
+    function getEffectiveRate(developerName) {
+        if (!developerName) {
+            return defaultRate;
+        }
+        
+        const developer = developers.find(d => d.name === developerName);
+        if (developer && developer.hourlyRate !== null && developer.hourlyRate !== undefined) {
+            return developer.hourlyRate;
+        }
+        
+        return defaultRate;
+    }
+    
+    /**
+     * Calculate cost for a single story
+     * @param {Object} story - User story item
+     * @returns {number} Story cost
+     */
+    function calculateStoryCost(story) {
+        const storyPoints = parseFloat(story.storyPoints) || 0;
+        const hours = storyPoints * hoursPerPoint;
+        const rate = getEffectiveRate(story.assignedTo || story.developer);
+        return hours * rate;
+    }
+    
+    // Calculate completed cost
+    const completedCost = completedStories.reduce((sum, story) => {
+        return sum + calculateStoryCost(story);
+    }, 0);
+    
+    // Calculate remaining cost
+    const remainingCost = incompleteStories.reduce((sum, story) => {
+        return sum + calculateStoryCost(story);
+    }, 0);
+    
+    // Total cost
+    const totalCost = completedCost + remainingCost;
+    
+    return {
+        totalCost,
+        completedCost,
+        remainingCost
+    };
 }

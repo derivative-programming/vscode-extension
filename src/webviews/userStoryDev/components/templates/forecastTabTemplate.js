@@ -205,7 +205,10 @@ function generateForecastStatistics(items, config) {
         averageVelocity,
         riskLevel,
         bottlenecks,
-        recommendations
+        recommendations,
+        totalCost,
+        completedCost,
+        remainingCost
     } = forecast;
     
     return `
@@ -243,6 +246,20 @@ function generateForecastStatistics(items, config) {
                         "Team Velocity",
                         `${averageVelocity.toFixed(1)} pts/sprint`,
                         ""
+                    )}
+                    
+                    ${generateForecastMetric(
+                        "symbol-currency",
+                        "Total Project Cost",
+                        `$${formatCurrency(totalCost)}`,
+                        ""
+                    )}
+                    
+                    ${generateForecastMetric(
+                        "symbol-currency",
+                        "Remaining Work Cost",
+                        `$${formatCurrency(remainingCost)}`,
+                        remainingCost > totalCost * 0.5 ? "risk-medium" : ""
                     )}
                 </div>
                 
@@ -375,6 +392,7 @@ function generateForecastEmptyState(reason) {
 function getDefaultForecastConfig() {
     return {
         hoursPerPoint: 4,
+        defaultDeveloperRate: 60,
         workingHoursPerDay: 8,
         workingDaysPerWeek: 5,
         excludeWeekends: true,
@@ -402,6 +420,18 @@ function formatForecastDate(date) {
     
     const options = { year: "numeric", month: "short", day: "numeric" };
     return d.toLocaleDateString("en-US", options);
+}
+
+/**
+ * Format currency with thousands separators
+ * @param {number} amount - Amount to format
+ * @returns {string} Formatted currency string (without $ sign)
+ */
+function formatCurrency(amount) {
+    if (amount === null || amount === undefined || isNaN(amount)) {
+        return "0.00";
+    }
+    return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 /**

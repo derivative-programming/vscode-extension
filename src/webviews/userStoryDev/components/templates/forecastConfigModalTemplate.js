@@ -55,6 +55,25 @@ function generateForecastConfigModal(config) {
                                 />
                                 <small class="form-hint">Typical range: 4-16 hours per point</small>
                             </div>
+                            
+                            <div class="form-group">
+                                <label for="default-developer-rate" class="form-label">
+                                    Default Developer Rate ($/hr)
+                                    <span class="form-help" title="Default hourly rate for cost estimation">
+                                        <span class="codicon codicon-question"></span>
+                                    </span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="default-developer-rate" 
+                                    name="defaultDeveloperRate"
+                                    class="form-input"
+                                    min="0"
+                                    step="1"
+                                    value="${forecastConfig.defaultDeveloperRate || 60}"
+                                />
+                                <small class="form-hint">Used for cost calculations and budget estimates</small>
+                            </div>
                         </div>
                         
                         <!-- Working Hours -->

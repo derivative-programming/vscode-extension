@@ -106,6 +106,24 @@ function generateDeveloperModal(developer) {
                             />
                         </div>
 
+                        <!-- Hourly Rate -->
+                        <div class="form-group">
+                            <label for="developerRate">
+                                <span class="codicon codicon-symbol-currency"></span>
+                                Hourly Rate ($/hr)
+                            </label>
+                            <input 
+                                type="number" 
+                                id="developerRate" 
+                                class="form-control" 
+                                value="${developer?.hourlyRate || ''}"
+                                placeholder="Leave blank to use default rate"
+                                min="0"
+                                step="1"
+                            />
+                            <small class="form-text">Override the default developer rate for cost calculations</small>
+                        </div>
+
                         <!-- Active Status -->
                         <div class="form-group">
                             <label class="checkbox-label">

@@ -109,6 +109,10 @@ function generateDevelopersTab(config, items) {
                                 Capacity (pts/sprint)
                                 <span class="sort-indicator"></span>
                             </th>
+                            <th class="col-rate sortable" onclick="sortDevelopersBy('hourlyRate')">
+                                Hourly Rate ($/hr)
+                                <span class="sort-indicator"></span>
+                            </th>
                             <th class="col-assigned sortable" onclick="sortDevelopersBy('assignedCount')">
                                 Assigned Stories
                                 <span class="sort-indicator"></span>
@@ -145,7 +149,7 @@ function generateDevelopersTableRows(developers, items) {
     if (!developers || developers.length === 0) {
         return `
             <tr>
-                <td colspan="8" class="empty-row">
+                <td colspan="9" class="empty-row">
                     <div class="empty-state">
                         <span class="codicon codicon-person"></span>
                         <h3>No Developers</h3>
@@ -182,6 +186,9 @@ function generateDevelopersTableRows(developers, items) {
                 </td>
                 <td class="col-capacity" ondblclick="editDeveloper('${escapeHtml(dev.id)}')">
                     ${dev.capacity || '-'}
+                </td>
+                <td class="col-rate" ondblclick="editDeveloper('${escapeHtml(dev.id)}')">
+                    ${dev.hourlyRate ? '$' + dev.hourlyRate.toFixed(2) : '-'}
                 </td>
                 <td class="col-assigned">
                     <span class="assigned-count ${assignedCount > 0 ? 'has-assignments' : ''}">

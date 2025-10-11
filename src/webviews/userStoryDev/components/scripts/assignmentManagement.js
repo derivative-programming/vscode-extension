@@ -37,26 +37,40 @@ function handleDeveloperAssignment(storyId, developerId) {
  */
 function handleBulkAssignment(storyIds, developerId) {
     if (!storyIds || storyIds.length === 0) {
+        console.warn('handleBulkAssignment: No story IDs provided');
         return;
     }
+    
+    console.log(`handleBulkAssignment: Assigning ${storyIds.length} stories to "${developerId}"`, storyIds);
+    
+    let updatedCount = 0;
+    let notFoundCount = 0;
     
     // Update local state
     storyIds.forEach(storyId => {
         const item = allItems.find(i => i.storyId === storyId);
         if (item) {
+            console.log(`  - Assigning story ${storyId}: "${item.assignedTo}" → "${developerId}"`);
             item.assignedTo = developerId;
+            updatedCount++;
+        } else {
+            console.warn(`  - Story ${storyId} not found in allItems!`);
+            notFoundCount++;
         }
     });
     
-    // Send bulk update to extension
+    console.log(`handleBulkAssignment: Updated ${updatedCount} items, ${notFoundCount} not found`);
+    
+    // Send bulk update to extension (backend expects "newAssignment", not "developerId")
     vscode.postMessage({
         command: 'bulkUpdateAssignment',
         storyIds: storyIds,
-        developerId: developerId
+        newAssignment: developerId  // ✓ Correct property name
     });
     
     // Re-render table
     const filteredItems = getFilteredItems();
+    console.log(`handleBulkAssignment: Re-rendering table with ${filteredItems.length} filtered items`);
     renderTable(filteredItems, devConfig, currentSortState);
     
     // Clear selection
@@ -161,26 +175,46 @@ function handleSprintAssignment(storyId, sprintId) {
  */
 function handleBulkSprintAssignment(storyIds, sprintId) {
     if (!storyIds || storyIds.length === 0) {
+        console.warn('handleBulkSprintAssignment: No story IDs provided');
         return;
     }
+    
+    console.log(`handleBulkSprintAssignment: Assigning ${storyIds.length} stories to sprint "${sprintId}"`, storyIds);
+    
+    // Find sprint name from config
+    const sprint = devConfig.sprints?.find(s => s.id === sprintId);
+    const sprintName = sprint ? sprint.name : sprintId;
+    
+    let updatedCount = 0;
+    let notFoundCount = 0;
     
     // Update local state
     storyIds.forEach(storyId => {
         const item = allItems.find(i => i.storyId === storyId);
         if (item) {
+            console.log(`  - Assigning story ${storyId} to sprint: "${sprintName}"`);
             item.sprint = sprintId;
+            item.sprintId = sprintId;
+            updatedCount++;
+        } else {
+            console.warn(`  - Story ${storyId} not found in allItems!`);
+            notFoundCount++;
         }
     });
     
-    // Send bulk update to extension
+    console.log(`handleBulkSprintAssignment: Updated ${updatedCount} items, ${notFoundCount} not found`);
+    
+    // Send bulk update to extension (backend expects "newSprintId" and "newSprint")
     vscode.postMessage({
         command: 'bulkUpdateSprint',
         storyIds: storyIds,
-        sprintId: sprintId
+        newSprintId: sprintId,  // ✓ Correct property name
+        newSprint: sprintName   // ✓ Also send sprint name
     });
     
     // Re-render table
     const filteredItems = getFilteredItems();
+    console.log(`handleBulkSprintAssignment: Re-rendering table with ${filteredItems.length} filtered items`);
     renderTable(filteredItems, devConfig, currentSortState);
     
     // Clear selection

@@ -208,14 +208,22 @@ function formatStoryPoints(points) {
  */
 function handleBulkStoryPointsUpdate(storyIds, newPoints) {
     if (!storyIds || storyIds.length === 0) {
+        console.warn('handleBulkStoryPointsUpdate: No story IDs provided');
         return;
     }
+    
+    console.log(`handleBulkStoryPointsUpdate: Updating ${storyIds.length} stories to ${newPoints} points`, storyIds);
+    
+    let updatedCount = 0;
+    let notFoundCount = 0;
     
     // Update local state
     storyIds.forEach(storyId => {
         const item = allItems.find(i => i.storyId === storyId);
         if (item) {
+            console.log(`  - Updating story ${storyId}: ${item.storyPoints} → ${newPoints} points`);
             item.storyPoints = newPoints;
+            updatedCount++;
             
             // Recalculate estimated end date if we have a start date
             if (item.startDate && newPoints && newPoints !== '?') {
@@ -226,8 +234,13 @@ function handleBulkStoryPointsUpdate(storyIds, newPoints) {
                 );
                 item.estimatedEndDate = estimatedEndDate;
             }
+        } else {
+            console.warn(`  - Story ${storyId} not found in allItems!`);
+            notFoundCount++;
         }
     });
+    
+    console.log(`handleBulkStoryPointsUpdate: Updated ${updatedCount} items, ${notFoundCount} not found`);
     
     // Send bulk update to extension
     vscode.postMessage({
@@ -238,6 +251,7 @@ function handleBulkStoryPointsUpdate(storyIds, newPoints) {
     
     // Re-render table
     const filteredItems = getFilteredItems();
+    console.log(`handleBulkStoryPointsUpdate: Re-rendering table with ${filteredItems.length} filtered items`);
     renderTable(filteredItems, devConfig, currentSortState);
     
     // Clear selection

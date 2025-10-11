@@ -43,6 +43,7 @@ function getDefaultDevConfig() {
 function getDefaultForecastConfig() {
     return {
         hoursPerPoint: 4,
+        defaultDeveloperRate: 60,
         workingHoursPerDay: 8, // Legacy field, kept for backward compatibility
         workingDaysPerWeek: 5, // Legacy field, kept for backward compatibility
         excludeWeekends: true, // Legacy field, kept for backward compatibility

@@ -47,16 +47,29 @@ function handlePriorityChange(storyId, newPriority) {
  */
 function handleBulkPriorityUpdate(storyIds, newPriority) {
     if (!storyIds || storyIds.length === 0) {
+        console.warn('handleBulkPriorityUpdate: No story IDs provided');
         return;
     }
+    
+    console.log(`handleBulkPriorityUpdate: Updating ${storyIds.length} stories to priority "${newPriority}"`, storyIds);
+    
+    let updatedCount = 0;
+    let notFoundCount = 0;
     
     // Update local state
     storyIds.forEach(storyId => {
         const item = allItems.find(i => i.storyId === storyId);
         if (item) {
+            console.log(`  - Updating story ${storyId}: "${item.priority}" → "${newPriority}"`);
             item.priority = newPriority;
+            updatedCount++;
+        } else {
+            console.warn(`  - Story ${storyId} not found in allItems!`);
+            notFoundCount++;
         }
     });
+    
+    console.log(`handleBulkPriorityUpdate: Updated ${updatedCount} items, ${notFoundCount} not found`);
     
     // Send bulk update to extension
     vscode.postMessage({
@@ -67,6 +80,7 @@ function handleBulkPriorityUpdate(storyIds, newPriority) {
     
     // Re-render table
     const filteredItems = getFilteredItems();
+    console.log(`handleBulkPriorityUpdate: Re-rendering table with ${filteredItems.length} filtered items`);
     renderTable(filteredItems, devConfig, currentSortState);
     
     // Clear selection

@@ -306,6 +306,7 @@ function getDefaultDevConfig(): any {
                 id: "dev1",
                 name: "Developer 1",
                 email: "dev1@example.com",
+                hourlyRate: null,
                 active: true
             }
         ],
@@ -338,7 +339,8 @@ function getDefaultDevConfig(): any {
             defaultSprintLength: 14,
             defaultCapacity: 40,
             storyPointScale: "fibonacci",
-            trackCycleTime: true
+            trackCycleTime: true,
+            defaultDeveloperRate: 60
         }
     };
 }
@@ -3376,6 +3378,11 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
 
                 .developers-table .col-capacity {
                     width: 150px;
+                }
+
+                .developers-table .col-rate {
+                    width: 130px;
+                    text-align: right;
                 }
 
                 .developers-table .col-assigned {

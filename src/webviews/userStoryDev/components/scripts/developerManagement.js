@@ -92,6 +92,8 @@ function saveDeveloper(event) {
     const role = document.getElementById('developerRole').value.trim();
     const capacityInput = document.getElementById('developerCapacity').value.trim();
     const capacity = capacityInput ? parseInt(capacityInput, 10) : null;
+    const rateInput = document.getElementById('developerRate').value.trim();
+    const hourlyRate = rateInput ? parseFloat(rateInput) : null;
     const active = document.getElementById('developerActive').checked;
     
     // Validate
@@ -107,6 +109,11 @@ function saveDeveloper(event) {
     
     if (capacity !== null && (capacity < 0 || capacity > 200)) {
         showFormError('Capacity must be between 0 and 200');
+        return;
+    }
+    
+    if (hourlyRate !== null && hourlyRate < 0) {
+        showFormError('Hourly rate must be a positive number');
         return;
     }
     
@@ -126,6 +133,7 @@ function saveDeveloper(event) {
         email: email || '',
         role: role || '',
         capacity: capacity,
+        hourlyRate: hourlyRate,
         active: active
     };
     
@@ -224,7 +232,7 @@ function toggleDeveloperSelection() {
     });
     
     // Update bulk action button states in action bar
-    updateBulkActionButtons();
+    updateDeveloperBulkActionButtons();
     
     // Update select all checkbox
     updateSelectAllDevelopersCheckbox();
@@ -603,9 +611,9 @@ function getSelectedDevelopers() {
 }
 
 /**
- * Update bulk action button states
+ * Update bulk action button states for Developers tab
  */
-function updateBulkActionButtons() {
+function updateDeveloperBulkActionButtons() {
     const selected = getSelectedDevelopers();
     const hasSelection = selected.length > 0;
     
