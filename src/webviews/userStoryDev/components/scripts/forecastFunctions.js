@@ -257,20 +257,29 @@ function calculateCompletionDate(startDate, workingDays, config) {
  */
 function calculateStorySchedules(stories, config, startDate, activeSprint = null) {
     const schedules = [];
-    let currentDate = new Date(startDate);
     
-    // Ensure we start at next working hour (9am-5pm, Mon-Fri)
-    currentDate = getNextWorkingHour(currentDate, config);
+    // Track each developer's current end time separately for parallel work
+    const developerTimelines = new Map();
+    
+    // Initialize start time
+    const initialStartTime = getNextWorkingHour(new Date(startDate), config);
     
     // Sort stories by sprint, priority and dependencies
     const sortedStories = sortStoriesForScheduling(stories, activeSprint);
     
     for (const story of sortedStories) {
+        const developer = story.assignedTo || story.developer || "Unassigned";
         const storyPoints = parseInt(story.storyPoints) || 1;
         const hoursNeeded = storyPoints * config.hoursPerPoint;
         const daysNeeded = hoursNeeded / (config.workingHoursPerDay * config.parallelWorkFactor);
         
-        const storyStartDate = new Date(currentDate);
+        // Get this developer's current timeline position (or start at initial time)
+        let developerCurrentTime = developerTimelines.get(developer);
+        if (!developerCurrentTime) {
+            developerCurrentTime = new Date(initialStartTime);
+        }
+        
+        const storyStartDate = new Date(developerCurrentTime);
         const storyEndDate = calculateCompletionDateByHours(storyStartDate, hoursNeeded, config);
         
         // If story has no sprintId, assign it to the active sprint
@@ -287,14 +296,14 @@ function calculateStorySchedules(stories, config, startDate, activeSprint = null
             daysNeeded,
             startDate: storyStartDate,
             endDate: storyEndDate,
-            developer: story.assignedTo || story.developer || "Unassigned",
+            developer: developer,
             sprintId: sprintId,
             dependencies: story.dependencies || []
         });
         
-        currentDate = new Date(storyEndDate);
-        // Move to next working hour after this story ends
-        currentDate = getNextWorkingHour(currentDate, config);
+        // Update this developer's timeline to the end of this story
+        const nextWorkingTime = getNextWorkingHour(new Date(storyEndDate), config);
+        developerTimelines.set(developer, nextWorkingTime);
     }
     
     return schedules;

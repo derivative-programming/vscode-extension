@@ -2527,3 +2527,9 @@ Status: Completed
 Notes: Modified the backlog filter to exclude stories with devStatus='completed'. Backlog should only show incomplete stories that are not yet assigned to a sprint (on-hold, ready-for-dev, in-progress, blocked). This prevents completed stories from cluttering the backlog view.
 Architecture: Modified sprintTabTemplate.js generateBacklogStories function.
 
+2025-10-11 16:20 - Enable parallel developer work in Gantt chart scheduling
+Command: Modified calculateStorySchedules in forecastFunctions.js to track developer timelines separately
+Status: Completed
+Notes: Changed from sequential scheduling (all stories one after another) to parallel scheduling by developer. Now tracks each developer's timeline in a Map, so Story 10 (Dev 1) and Story 11 (Dev 2) can run concurrently starting at the same time rather than Story 11 waiting for Story 10 to finish. This accurately reflects team capacity with multiple developers working simultaneously.
+Architecture: Modified forecastFunctions.js calculateStorySchedules function to use developerTimelines Map.
+

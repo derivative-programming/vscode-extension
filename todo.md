@@ -9,14 +9,12 @@ common types of graphs...
  
 
 user story dev view...
-- Developers tab (between sprint and forecast)
 - add a Costs tab after forecast tab
   - table of cost by month by developer and total of all developers for each month. past and future.
 - sprint tab
   - click of a backlog item should open the edit modal
 - forecast tab
   - i dont think the 'Holidays & Non-Working Days' data is used in forecasting.
-  - in the forecast tab, show total cost of remaining work based on assigned developers to stories and their hourly rates
 
 - user story qa view
   - config
