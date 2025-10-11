@@ -157,7 +157,7 @@ function generateDevelopersTableRows(developers, items) {
     }
 
     return developers.map(dev => {
-        const assignedCount = countAssignedStories(dev.id, items);
+        const assignedCount = countAssignedStories(dev.id, items, developers);
         const statusClass = dev.active ? 'status-active' : 'status-inactive';
         const statusText = dev.active ? 'Active' : 'Inactive';
         
@@ -214,16 +214,25 @@ function generateDevelopersTableRows(developers, items) {
 }
 
 /**
- * Count how many stories are assigned to a developer
+ * Count stories assigned to a developer
  * @param {string} developerId - Developer ID
  * @param {Array} items - All user story items
+ * @param {Array} developers - Developers array to lookup name
  * @returns {number} Count of assigned stories
  */
-function countAssignedStories(developerId, items) {
+function countAssignedStories(developerId, items, developers) {
     if (!items || !Array.isArray(items)) {
         return 0;
     }
-    return items.filter(item => item.assignedTo === developerId).length;
+    
+    // Find developer by ID to get their name
+    const developer = developers?.find(d => d.id === developerId);
+    if (!developer) {
+        return 0;
+    }
+    
+    // User stories store assignedTo by developer name, not ID
+    return items.filter(item => item.assignedTo === developer.name).length;
 }
 
 /**

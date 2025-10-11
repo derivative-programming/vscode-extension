@@ -161,7 +161,7 @@ function deleteDeveloper(developerId) {
     }
     
     // Check if developer is assigned to any stories
-    const assignedCount = countAssignedStories(developerId, allItems);
+    const assignedCount = countAssignedStories(developerId, allItems, devConfig.developers);
     if (assignedCount > 0) {
         vscode.postMessage({
             command: 'showError',
@@ -317,7 +317,7 @@ function bulkDeleteDevelopers() {
     const developersWithAssignments = [];
     selectedDevelopers.forEach(devId => {
         const dev = devConfig.developers.find(d => d.id === devId);
-        const assignedCount = countAssignedStories(devId, allItems);
+        const assignedCount = countAssignedStories(devId, allItems, devConfig.developers);
         if (assignedCount > 0) {
             developersWithAssignments.push({ name: dev.name, count: assignedCount });
         }
@@ -484,8 +484,8 @@ function sortDevelopersBy(column) {
                 bVal = b.capacity || 0;
                 break;
             case 'assignedCount':
-                aVal = countAssignedStories(a.id, allItems);
-                bVal = countAssignedStories(b.id, allItems);
+                aVal = countAssignedStories(a.id, allItems, devConfig.developers);
+                bVal = countAssignedStories(b.id, allItems, devConfig.developers);
                 break;
             case 'active':
                 aVal = a.active ? 1 : 0;
