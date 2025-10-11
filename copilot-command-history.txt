@@ -2515,3 +2515,9 @@ TESTING REQUIRED:
 
 ================================================================================
 
+2025-10-11 16:10 - Sort Gantt chart by sprint assignment priority
+Command: Updated sortStoriesForScheduling in forecastFunctions.js to sort by sprint assignment first
+Status: Completed
+Notes: Modified sorting logic to prioritize: 1) Active sprint stories first, 2) Future sprint stories next, 3) Unassigned stories last. Within each group, stories are still sorted by blocked status, priority, story points, and story number. This ensures the Gantt chart displays stories in the correct order with active sprint work at the top.
+Architecture: Modified forecastFunctions.js sortStoriesForScheduling function to accept activeSprint parameter.
+

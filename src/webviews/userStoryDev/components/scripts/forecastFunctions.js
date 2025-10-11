@@ -46,9 +46,13 @@ function calculateDevelopmentForecast(items, config) {
         return sum + points;
     }, 0);
     
+    // Find active sprint to assign unscheduled stories
+    const activeSprint = (config && config.sprints) ? 
+        config.sprints.find(s => s.status === 'active' || s.active === true) : null;
+    
     // Calculate story schedules first (uses accurate hour-by-hour calculation)
     const today = new Date();
-    const storySchedules = calculateStorySchedules(incompleteStories, forecastConfig, today);
+    const storySchedules = calculateStorySchedules(incompleteStories, forecastConfig, today, activeSprint);
     
     // Calculate accurate remaining hours and days from actual story schedules
     let totalRemainingHours;
@@ -248,17 +252,18 @@ function calculateCompletionDate(startDate, workingDays, config) {
  * @param {Array} stories - Incomplete stories to schedule
  * @param {Object} config - Forecast configuration
  * @param {Date} startDate - Start date for scheduling
+ * @param {Object} activeSprint - Active sprint object (optional)
  * @returns {Array} Array of story schedules with start/end dates
  */
-function calculateStorySchedules(stories, config, startDate) {
+function calculateStorySchedules(stories, config, startDate, activeSprint = null) {
     const schedules = [];
     let currentDate = new Date(startDate);
     
     // Ensure we start at next working hour (9am-5pm, Mon-Fri)
     currentDate = getNextWorkingHour(currentDate, config);
     
-    // Sort stories by priority and dependencies
-    const sortedStories = sortStoriesForScheduling(stories);
+    // Sort stories by sprint, priority and dependencies
+    const sortedStories = sortStoriesForScheduling(stories, activeSprint);
     
     for (const story of sortedStories) {
         const storyPoints = parseInt(story.storyPoints) || 1;
@@ -267,6 +272,9 @@ function calculateStorySchedules(stories, config, startDate) {
         
         const storyStartDate = new Date(currentDate);
         const storyEndDate = calculateCompletionDateByHours(storyStartDate, hoursNeeded, config);
+        
+        // If story has no sprintId, assign it to the active sprint
+        const sprintId = story.sprintId || (activeSprint ? activeSprint.sprintId : null);
         
         schedules.push({
             storyId: story.storyId,
@@ -280,6 +288,7 @@ function calculateStorySchedules(stories, config, startDate) {
             startDate: storyStartDate,
             endDate: storyEndDate,
             developer: story.assignedTo || story.developer || "Unassigned",
+            sprintId: sprintId,
             dependencies: story.dependencies || []
         });
         
@@ -400,7 +409,7 @@ function calculateCompletionDateByHours(startDate, hoursNeeded, config) {
  * @param {Array} stories - Stories to sort
  * @returns {Array} Sorted stories
  */
-function sortStoriesForScheduling(stories) {
+function sortStoriesForScheduling(stories, activeSprint = null) {
     // Priority order (case-insensitive)
     const priorityOrder = {
         "critical": 0,
@@ -410,7 +419,35 @@ function sortStoriesForScheduling(stories) {
     };
     
     return stories.slice().sort((a, b) => {
-        // First by devStatus (blocked stories last)
+        // First by sprint assignment:
+        // 1. Active sprint stories first
+        // 2. Future sprint stories next
+        // 3. Unassigned stories last
+        const activeSprintId = activeSprint ? activeSprint.sprintId : null;
+        const aHasActiveSprint = a.sprintId && a.sprintId === activeSprintId;
+        const bHasActiveSprint = b.sprintId && b.sprintId === activeSprintId;
+        const aHasSprint = !!a.sprintId;
+        const bHasSprint = !!b.sprintId;
+        
+        // Active sprint stories come first
+        if (aHasActiveSprint && !bHasActiveSprint) {
+            return -1;
+        }
+        if (!aHasActiveSprint && bHasActiveSprint) {
+            return 1;
+        }
+        
+        // Among non-active-sprint stories: assigned sprints before unassigned
+        if (!aHasActiveSprint && !bHasActiveSprint) {
+            if (aHasSprint && !bHasSprint) {
+                return -1;
+            }
+            if (!aHasSprint && bHasSprint) {
+                return 1;
+            }
+        }
+        
+        // Then by devStatus (blocked stories last)
         if (a.devStatus === "blocked" && b.devStatus !== "blocked") {
             return 1;
         }
