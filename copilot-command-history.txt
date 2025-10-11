@@ -2521,3 +2521,9 @@ Status: Completed
 Notes: Modified sorting logic to prioritize: 1) Active sprint stories first, 2) Future sprint stories next, 3) Unassigned stories last. Within each group, stories are still sorted by blocked status, priority, story points, and story number. This ensures the Gantt chart displays stories in the correct order with active sprint work at the top.
 Architecture: Modified forecastFunctions.js sortStoriesForScheduling function to accept activeSprint parameter.
 
+2025-10-11 16:15 - Exclude completed stories from sprint backlog
+Command: Updated generateBacklogStories in sprintTabTemplate.js to filter out completed stories
+Status: Completed
+Notes: Modified the backlog filter to exclude stories with devStatus='completed'. Backlog should only show incomplete stories that are not yet assigned to a sprint (on-hold, ready-for-dev, in-progress, blocked). This prevents completed stories from cluttering the backlog view.
+Architecture: Modified sprintTabTemplate.js generateBacklogStories function.
+

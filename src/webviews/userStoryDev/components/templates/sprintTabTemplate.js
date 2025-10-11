@@ -285,7 +285,10 @@ function generateSprintsList(sprints, items) {
  * @returns {string} HTML for backlog stories
  */
 function generateBacklogStories(items) {
-    const unassignedStories = items.filter(item => !item.sprintId);
+    // Filter for unassigned stories that are NOT completed
+    const unassignedStories = items.filter(item => 
+        !item.sprintId && item.devStatus !== "completed"
+    );
 
     if (unassignedStories.length === 0) {
         return `
