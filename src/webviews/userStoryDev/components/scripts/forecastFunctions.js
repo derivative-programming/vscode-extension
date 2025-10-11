@@ -570,7 +570,7 @@ function identifyBottlenecks(items, config) {
     // Developer overload (use devStatus field)
     const developerWorkload = {};
     items.filter(item => forecastableStatuses.includes(item.devStatus)).forEach(item => {
-        const dev = item.developer || "Unassigned";
+        const dev = item.assignedTo || item.developer || "Unassigned";
         if (!developerWorkload[dev]) {
             developerWorkload[dev] = { count: 0, points: 0 };
         }
@@ -588,7 +588,7 @@ function identifyBottlenecks(items, config) {
     const unassignedCritical = items.filter(item => 
         forecastableStatuses.includes(item.devStatus) && 
         item.priority === "Critical" && 
-        (!item.developer || item.developer === "Unassigned")
+        (!item.assignedTo && !item.developer)
     );
     if (unassignedCritical.length > 0) {
         bottlenecks.push(`${unassignedCritical.length} critical stories unassigned`);
