@@ -261,11 +261,13 @@ function generateSprintsList(sprints, items) {
                             ${sprintStories.map(story => {
                                 const tooltipText = `Story #${story.storyNumber}\n${story.storyText}\n\nPriority: ${formatPriority(story.priority)}\nStatus: ${formatDevStatus(story.devStatus)}\nPoints: ${story.storyPoints || '?'}\nDeveloper: ${story.assignedTo || 'Unassigned'}`;
                                 return `
-                                <div class="sprint-story-item" title="${escapeHtml(tooltipText)}">
+                                <div class="sprint-story-item" 
+                                     title="${escapeHtml(tooltipText)}"
+                                     onclick="event.target.closest('.btn-icon') ? null : openStoryDetailModal('${story.storyId}')">
                                     <span class="story-number">#${story.storyNumber}</span>
                                     <span class="story-title">${story.storyText}</span>
                                     <span class="story-points-badge">${story.storyPoints || '?'}</span>
-                                    <button class="btn-icon btn-small" onclick="unassignStoryFromSprint('${story.storyId}')" title="Remove from sprint">
+                                    <button class="btn-icon btn-small" onclick="event.stopPropagation(); unassignStoryFromSprint('${story.storyId}')" title="Remove from sprint">
                                         <span class="codicon codicon-close"></span>
                                     </button>
                                 </div>
@@ -304,7 +306,8 @@ function generateBacklogStories(items) {
              data-story-id="${story.storyId}" 
              data-priority="${story.priority || 'none'}"
              data-points="${story.storyPoints || '?'}"
-             draggable="true">
+             draggable="true"
+             onclick="openStoryDetailModal('${story.storyId}')">
             <div class="backlog-story-header">
                 <span class="story-number">#${story.storyNumber}</span>
                 ${story.priority ? `<span class="priority-badge priority-${story.priority}">${story.priority}</span>` : ''}
@@ -409,7 +412,9 @@ function generateSprintStoriesSummary(sprint, items) {
             </thead>
             <tbody>
                 ${sprintStories.map(story => `
-                    <tr class="status-${story.devStatus}">
+                    <tr class="status-${story.devStatus}" 
+                        onclick="openStoryDetailModal('${story.storyId}')" 
+                        style="cursor: pointer;">
                         <td>#${story.storyNumber}</td>
                         <td class="story-text">${story.storyText}</td>
                         <td><span class="status-badge">${formatStatus(story.devStatus)}</span></td>

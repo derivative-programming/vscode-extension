@@ -9,8 +9,6 @@ common types of graphs...
  
 
 user story dev view...
-- add a Costs tab after forecast tab
-  - table of cost by month by developer and total of all developers for each month. past and future.
 - sprint tab
   - click of a backlog item should open the edit modal
 - forecast tab

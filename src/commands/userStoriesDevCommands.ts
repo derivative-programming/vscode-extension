@@ -3156,6 +3156,13 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     border: 1px solid var(--vscode-input-border);
                     border-radius: 3px;
                     font-size: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+
+                .sprint-story-item:hover {
+                    background: var(--vscode-list-hoverBackground);
+                    border-color: var(--vscode-focusBorder);
                 }
 
                 .sprint-story-item .story-number {
@@ -3210,13 +3217,14 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     border: 1px solid var(--vscode-panel-border);
                     border-radius: 4px;
                     padding: 10px;
-                    cursor: move;
+                    cursor: pointer;
                     transition: all 0.2s;
                 }
 
                 .backlog-story:hover {
                     background: var(--vscode-list-hoverBackground);
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    border-color: var(--vscode-focusBorder);
                 }
 
                 .backlog-story.story-dragging {
