@@ -1,3 +1,8 @@
+2025-10-11 15:22 - Fix Gantt hour-boundary positioning
+Command: Adjusted dateToPixelPosition hour logic in src/webviews/userStoryDev/components/scripts/ganttChart.js
+Status: Completed
+Notes: Prevented premature break when target equals unit start; now adds full hours only when target >= nextUnit and breaks on exact start. Ensures 1pm–5pm story renders 4-hour width. Architecture: Webview JS only; no TS changes; respects working-hours boundary (9–17), with 17 as cap.
+
 ================================================================================
 Date: October 11, 2025
 Command: Fix Export and Refresh - Correct Implementation Pattern

@@ -173,13 +173,8 @@ function renderGanttD3Chart(schedules, containerId) {
                 
                 // Logic: Include hour if (weekends are included OR this is not a weekend) 
                 // AND (non-working hours are included OR this is a working hour)
-                // - If excludeWeekends=true and isWeekend=true: false || false = false (skip)
-                // - If excludeWeekends=true and isWeekend=false: false || true = true (check next condition)
-                // - If excludeWeekends=false and isWeekend=true: true || false = true (check next condition)
-                // - If excludeWeekends=false and isWeekend=false: true || true = true (check next condition)
-                // - If excludeNonWorkingHours=true and isNonWorkingHour=true: false || false = false (skip)
-                // - If excludeNonWorkingHours=true and isNonWorkingHour=false: false || true = true (include)
-                // - If excludeNonWorkingHours=false: true || anything = true (include if passed weekend check)
+                // NOTE: Hours 9-16 (9 AM - 4 PM) are included for display
+                // Hour 17 (5 PM) is NOT included in timeline but handled specially in positioning
                 if ((!excludeWeekends || !isWeekend) && (!excludeNonWorkingHours || !isNonWorkingHour)) {
                     allTimeUnits.push(new Date(currentTime));
                 }
@@ -238,18 +233,31 @@ function renderGanttD3Chart(schedules, containerId) {
             const unitTime = allTimeUnits[i];
             
             if (timeUnit === "hour") {
-                // For hour view, check if target is before this hour
-                if (targetTime < unitTime) {
+                // Always treat an hour slot as [unitTime, unitTime + 1h)
+                const hourStart = new Date(unitTime);
+                const hourEnd = new Date(hourStart);
+                hourEnd.setHours(hourEnd.getHours() + 1);
+
+                // If target is before this hour, we're done
+                if (targetTime < hourStart) {
                     break;
                 }
-                // If target is within this hour, add fractional position
-                const nextUnit = allTimeUnits[i + 1];
-                if (nextUnit && targetTime >= unitTime && targetTime < nextUnit) {
-                    const hourProgress = (targetTime - unitTime) / (nextUnit - unitTime);
+
+                // If target is at or beyond the end of this hour, add full width and continue
+                if (targetTime >= hourEnd) {
+                    position += pixelsPerUnit;
+                    continue;
+                }
+
+                // Otherwise target lies within this hour: add proportional width and stop
+                if (targetTime > hourStart && targetTime < hourEnd) {
+                    const hourProgress = (targetTime - hourStart) / (hourEnd - hourStart);
                     position += hourProgress * pixelsPerUnit;
                     break;
                 }
-                position += pixelsPerUnit;
+
+                // targetTime === hourStart exactly: stop without adding width (exact boundary)
+                break;
             } else if (timeUnit === "day") {
                 // For day view, check if target is on this day
                 const unitDay = new Date(unitTime);
