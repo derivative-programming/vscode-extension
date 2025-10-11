@@ -383,19 +383,20 @@ window.addEventListener('message', event => {
             devConfig = message.config;
             hideSpinner();
             
-            // Re-render current tab if needed
-            if (currentTab === 'sprint' || currentTab === 'developers' || currentTab === 'forecast') {
-                switch (currentTab) {
-                    case 'sprint':
-                        renderSprintTab();
-                        break;
-                    case 'developers':
-                        renderDevelopersTab();
-                        break;
-                    case 'forecast':
-                        renderForecastTab();
-                        break;
-                }
+            // Re-render current tab with config data
+            switch (currentTab) {
+                case 'details':
+                    renderDetailsTab();
+                    break;
+                case 'sprint':
+                    renderSprintTab();
+                    break;
+                case 'developers':
+                    renderDevelopersTab();
+                    break;
+                case 'forecast':
+                    renderForecastTab();
+                    break;
             }
             break;
 

@@ -1048,6 +1048,29 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     }
                                 }
                                 
+                                // Load dev config to get sprint names
+                                let devConfig: any = { sprints: [] };
+                                if (modelFilePath) {
+                                    const modelDir = path.dirname(modelFilePath);
+                                    const configFilePath = path.join(modelDir, 'app-dna-user-story-dev-config.json');
+                                    try {
+                                        if (fs.existsSync(configFilePath)) {
+                                            const configContent = fs.readFileSync(configFilePath, 'utf8');
+                                            devConfig = JSON.parse(configContent);
+                                        }
+                                    } catch (error) {
+                                        console.warn("[Extension] Could not load dev config for CSV export:", error);
+                                    }
+                                }
+                                
+                                // Create a map for sprint ID to name lookup
+                                const sprintMap = new Map();
+                                if (devConfig.sprints) {
+                                    devConfig.sprints.forEach((sprint: any) => {
+                                        sprintMap.set(sprint.sprintId, sprint.sprintName || sprint.sprintId);
+                                    });
+                                }
+                                
                                 // Create a map for quick lookup
                                 const devDataMap = new Map();
                                 if (existingDevData.devData) {
@@ -1068,11 +1091,12 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     const priority = dev?.priority || "";
                                     const assignedTo = dev?.assignedTo || "";
                                     const sprintId = dev?.sprintId || "";
+                                    const sprintName = sprintId ? (sprintMap.get(sprintId) || sprintId) : "";
                                     const storyPoints = dev?.storyPoints || "";
                                     const estimatedHours = dev?.estimatedHours || "";
                                     const actualHours = dev?.actualHours || "";
                                     
-                                    csvContent += `${storyNumber},${storyText},${devStatus},${priority},${assignedTo},${sprintId},${storyPoints},${estimatedHours},${actualHours}\n`;
+                                    csvContent += `${storyNumber},${storyText},${devStatus},${priority},${assignedTo},${sprintName},${storyPoints},${estimatedHours},${actualHours}\n`;
                                 });
 
                                 // Generate timestamped filename
