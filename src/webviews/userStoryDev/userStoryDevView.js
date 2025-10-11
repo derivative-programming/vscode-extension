@@ -85,6 +85,10 @@ function switchTab(tabName) {
             renderSprintTab();
             // Sprint tab renders fresh data, no additional refresh needed
             break;
+        case 'developers':
+            renderDevelopersTab();
+            // Developers tab renders fresh data
+            break;
         case 'forecast':
             // Render forecast tab (includes calculation and Gantt chart)
             renderForecastTab();
@@ -285,6 +289,35 @@ function renderSprintTab() {
 }
 
 /**
+ * Render Developers Tab
+ */
+function renderDevelopersTab() {
+    const developersTab = document.getElementById('developersTab');
+    if (!developersTab) {
+        return;
+    }
+
+    // Generate the developers tab HTML using template
+    developersTab.innerHTML = generateDevelopersTab(devConfig, allItems);
+
+    // Set up add developer button handler
+    const addDeveloperBtn = document.getElementById('addDeveloperBtn');
+    if (addDeveloperBtn) {
+        addDeveloperBtn.addEventListener('click', showAddDeveloperModal);
+    }
+
+    // Apply current filters
+    if (developerFilterState.status || developerFilterState.search) {
+        document.getElementById('developerStatusFilter').value = developerFilterState.status;
+        document.getElementById('developerSearchInput').value = developerFilterState.search;
+        filterDevelopers();
+    }
+
+    // Update sort indicators
+    updateDeveloperSortIndicators();
+}
+
+/**
  * Render Forecast Tab
  */
 function renderForecastTab() {
@@ -337,6 +370,9 @@ window.addEventListener('message', event => {
                 case 'sprint':
                     renderSprintTab();
                     break;
+                case 'developers':
+                    renderDevelopersTab();
+                    break;
                 case 'forecast':
                     renderForecastTab();
                     break;
@@ -346,12 +382,16 @@ window.addEventListener('message', event => {
         case 'setDevConfig':
             console.log('[Webview] Received dev config:', message.config);
             devConfig = message.config;
+            hideSpinner();
             
             // Re-render current tab if needed
-            if (currentTab === 'sprint' || currentTab === 'forecast') {
+            if (currentTab === 'sprint' || currentTab === 'developers' || currentTab === 'forecast') {
                 switch (currentTab) {
                     case 'sprint':
                         renderSprintTab();
+                        break;
+                    case 'developers':
+                        renderDevelopersTab();
                         break;
                     case 'forecast':
                         renderForecastTab();

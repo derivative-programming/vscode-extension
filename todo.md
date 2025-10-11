@@ -6,16 +6,30 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
-
-
+ 
 
 user story dev view...
+- Developers tab (between sprint and forecast)
+  - create ui that can update the developers array in app-dna-user-story-dev-config.json
+    - similar design to the details tab, with filter section and data table.
+  - allow edit of a developer in a modal dialog
+  - allow delete of a developer (with confirmation)
+  - add an hourly rate to a developer. need a default developer rate in the config modal too.
+  - show total cost of remaining work based on assigned developers to stories and their hourly rates
+- add a Costs tab after forecast tab
+  - table of cost by month by developer and total of all developers for each month. past and future.
 - sprint tab
   - click of a backlog item should open the edit modal
+- forecast tab
+  - i dont think the 'Holidays & Non-Working Days' data is used in forecasting.
+  - in the forecast tab, show total cost of remaining work based on assigned developers to stories and their hourly rates
+
+- user story qa view
+  - config
+    - add a hourly rate to a qa resource
+  - in the forecast tab, show total cost of remaining work based on qa hourly rates
 
 
-user story qa view...
-- move forecast config to the first tab?
 
 verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
 
@@ -54,6 +68,16 @@ page data source Analysis report...
   
 
 --------------------------
+
+
+- need to calculate order of user stories to be developed
+  - stories need a development order property
+  - look at top level objects first. move down the object tree.
+  - view all needs to happen before add, update, delete, view
+  - view needs to happen before add, update, delete
+  - you can calculate all dependencies a story has. parent objects need to view all, view, and add
+  - you can probably auto create stories that would be dependencies for a given story.
+  - create a tree to show story dependencies, like we use in the object heirarchy display
 
 user story dev view... 
 - probably need to set order of stories that they should be developed in 
@@ -129,8 +153,7 @@ analysis treeview item... ask ai for ideas
   - role: user story count?, page count?
   - user story: journey count? dependency count of all pages used?
 
-
-gant chart view?
+ 
 
 note when workflows are launched? by what pages?
 note what workflows modify which data objects and props?

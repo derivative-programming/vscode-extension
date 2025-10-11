@@ -845,6 +845,26 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                             }
                             break;
 
+                        case 'saveDevConfig':
+                            try {
+                                const config = message.config;
+                                
+                                // Save the entire config
+                                await saveDevConfig(config, modelService);
+
+                                // Send updated config back to webview
+                                panel.webview.postMessage({
+                                    command: 'setDevConfig',
+                                    config: config
+                                });
+
+                                vscode.window.showInformationMessage('Configuration saved successfully');
+                            } catch (error) {
+                                console.error('[Extension] Error saving dev config:', error);
+                                vscode.window.showErrorMessage(`Error saving configuration: ${(error as Error).message}`);
+                            }
+                            break;
+
                         case 'assignStoryToSprint':
                             try {
                                 const { storyId, sprintId } = message.data;
@@ -1089,6 +1109,97 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                             }
                             break;
 
+                        case 'downloadDevelopersCsv':
+                            try {
+                                // Load dev config
+                                const modelFilePath = modelService.getCurrentFilePath();
+                                if (!modelFilePath) {
+                                    throw new Error("No model file is currently open");
+                                }
+
+                                const modelDir = path.dirname(modelFilePath);
+                                const configFilePath = path.join(modelDir, 'app-dna-user-story-dev-config.json');
+                                
+                                let config: any = { developers: [] };
+                                if (fs.existsSync(configFilePath)) {
+                                    const configContent = fs.readFileSync(configFilePath, 'utf8');
+                                    config = JSON.parse(configContent);
+                                }
+
+                                const developers = config.developers || [];
+
+                                // Load dev data to count assignments
+                                const devFilePath = path.join(modelDir, 'app-dna-user-story-dev.json');
+                                let devData: any = { devData: [] };
+                                if (fs.existsSync(devFilePath)) {
+                                    const devContent = fs.readFileSync(devFilePath, 'utf8');
+                                    devData = JSON.parse(devContent);
+                                }
+
+                                // Count assignments for each developer
+                                const assignmentCounts = new Map<string, number>();
+                                if (devData.devData && Array.isArray(devData.devData)) {
+                                    devData.devData.forEach((item: any) => {
+                                        if (item.assignedTo) {
+                                            assignmentCounts.set(item.assignedTo, (assignmentCounts.get(item.assignedTo) || 0) + 1);
+                                        }
+                                    });
+                                }
+
+                                // CSV headers
+                                const headers = ['Name', 'Email', 'Role', 'Capacity (pts/sprint)', 'Status', 'Assigned Stories'];
+                                
+                                // CSV rows
+                                const rows = developers.map((dev: any) => {
+                                    const assignedCount = assignmentCounts.get(dev.name) || 0;
+                                    return [
+                                        dev.name || '',
+                                        dev.email || '',
+                                        dev.role || '',
+                                        dev.capacity || '',
+                                        dev.active !== false ? 'Active' : 'Inactive',
+                                        assignedCount.toString()
+                                    ];
+                                });
+
+                                // Create CSV content
+                                let csvContent = headers.join(',') + '\n';
+                                rows.forEach((row: string[]) => {
+                                    csvContent += row.map(cell => {
+                                        // Escape quotes and wrap in quotes if contains comma or quote
+                                        if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
+                                            return '"' + cell.replace(/"/g, '""') + '"';
+                                        }
+                                        return cell;
+                                    }).join(',') + '\n';
+                                });
+
+                                // Generate filename with timestamp
+                                const now = new Date();
+                                const pad = (n: number) => n.toString().padStart(2, '0');
+                                const y = now.getFullYear();
+                                const m = pad(now.getMonth() + 1);
+                                const d = pad(now.getDate());
+                                const h = pad(now.getHours());
+                                const min = pad(now.getMinutes());
+                                const s = pad(now.getSeconds());
+                                const timestamp = `${y}${m}${d}${h}${min}${s}`;
+                                const filename = `developers_${timestamp}.csv`;
+
+                                // Send CSV content back to webview for download
+                                panel.webview.postMessage({
+                                    command: 'csvData',
+                                    data: {
+                                        content: csvContent,
+                                        filename: filename
+                                    }
+                                });
+                            } catch (error) {
+                                console.error('[Extension] Error generating developers CSV:', error);
+                                vscode.window.showErrorMessage(`Error generating developers CSV: ${(error as Error).message}`);
+                            }
+                            break;
+
                         case 'downloadGanttCsv':
                             try {
                                 const schedules = message.schedules;
@@ -1314,6 +1425,17 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                 ),
                 burndownChart: panel.webview.asWebviewUri(
                     vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'burndownChart.js')
+                ),
+                // Templates - Developers Tab
+                developersTabTemplate: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'templates', 'developersTabTemplate.js')
+                ),
+                developerModalTemplate: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'templates', 'developerModalTemplate.js')
+                ),
+                // Scripts - Developers Tab
+                developerManagement: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'developerManagement.js')
                 ),
                 // Templates - Forecast Tab
                 forecastTabTemplate: panel.webview.asWebviewUri(
@@ -1788,7 +1910,14 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 }
 
                 .form-group label {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
                     margin-bottom: 4px;
+                    font-size: 13px;
+                }
+
+                .form-group label .codicon {
                     font-size: 13px;
                 }
 
@@ -1837,6 +1966,14 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     font-size: 11px;
                     font-weight: normal;
                     margin-left: 4px;
+                }
+
+                .form-text {
+                    display: block;
+                    margin-top: 4px;
+                    color: var(--vscode-input-placeholderForeground);
+                    font-size: 12px;
+                    line-height: 1.4;
                 }
 
                 .readonly-input {
@@ -3147,6 +3284,205 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     font-size: 14px;
                 }
 
+                /* ===== DEVELOPERS TAB STYLES ===== */
+                .developers-tab-container {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                }
+
+                .developers-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                }
+
+                .developers-header-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+
+                .developers-header-text h3 {
+                    margin: 0 0 4px 0;
+                    font-size: 20px;
+                    color: var(--vscode-foreground);
+                }
+
+                .developers-header-text p {
+                    margin: 0;
+                    font-size: 13px;
+                    color: var(--vscode-descriptionForeground);
+                }
+
+                .developers-table-container {
+                    flex: 1;
+                    overflow: auto;
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                    background: var(--vscode-editor-background);
+                }
+
+                .developers-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+
+                .developers-table thead {
+                    position: sticky;
+                    top: 0;
+                    background: var(--vscode-editorGroupHeader-tabsBackground);
+                    z-index: 10;
+                }
+
+                .developers-table th {
+                    padding: 12px 8px;
+                    text-align: left;
+                    font-weight: 600;
+                    font-size: 12px;
+                    color: var(--vscode-foreground);
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                    cursor: default;
+                }
+
+                .developers-table th.sortable {
+                    cursor: pointer;
+                    user-select: none;
+                }
+
+                .developers-table th.sortable:hover {
+                    background: var(--vscode-list-hoverBackground);
+                }
+
+                .developers-table .col-select {
+                    width: 40px;
+                    text-align: center;
+                }
+
+                .developers-table .col-name {
+                    width: 200px;
+                }
+
+                .developers-table .col-email {
+                    width: 220px;
+                }
+
+                .developers-table .col-role {
+                    width: 180px;
+                }
+
+                .developers-table .col-capacity {
+                    width: 150px;
+                }
+
+                .developers-table .col-assigned {
+                    width: 120px;
+                    text-align: center;
+                }
+
+                .developers-table .col-status {
+                    width: 100px;
+                }
+
+                .developers-table .col-actions {
+                    width: 100px;
+                    text-align: right;
+                }
+
+                .developers-table tbody tr {
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                }
+
+                .developers-table tbody tr:hover {
+                    background: var(--vscode-list-hoverBackground);
+                }
+
+                .developers-table tbody td {
+                    padding: 10px 8px;
+                    font-size: 13px;
+                    color: var(--vscode-foreground);
+                }
+
+                .developer-row[data-developer-id] {
+                    cursor: pointer;
+                }
+
+                .assigned-count {
+                    display: inline-block;
+                    padding: 2px 8px;
+                    border-radius: 12px;
+                    background: var(--vscode-badge-background);
+                    color: var(--vscode-badge-foreground);
+                    font-size: 11px;
+                    font-weight: 600;
+                }
+
+                .assigned-count.has-assignments {
+                    background: var(--vscode-charts-blue);
+                    color: white;
+                }
+
+                .status-badge {
+                    display: inline-block;
+                    padding: 3px 8px;
+                    border-radius: 3px;
+                    font-size: 11px;
+                    font-weight: 600;
+                }
+
+                .status-active {
+                    background: var(--vscode-testing-iconPassed);
+                    color: white;
+                }
+
+                .status-inactive {
+                    background: var(--vscode-descriptionForeground);
+                    color: white;
+                    opacity: 0.6;
+                }
+
+                .developers-footer {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 12px;
+                    padding: 12px;
+                    background: var(--vscode-editor-background);
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                }
+
+                #developerBulkActions {
+                    display: flex;
+                    gap: 8px;
+                }
+
+                .checkbox-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    cursor: pointer;
+                }
+
+                .checkbox-text {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+
+                .form-error {
+                    padding: 8px 12px;
+                    background: var(--vscode-inputValidation-errorBackground);
+                    border: 1px solid var(--vscode-inputValidation-errorBorder);
+                    color: var(--vscode-errorForeground);
+                    border-radius: 4px;
+                    margin-top: 12px;
+                    font-size: 12px;
+                }
+
                 /* ===== FORECAST TAB STYLES ===== */
                 .forecast-tab-container {
                     display: flex;
@@ -3671,6 +4007,7 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 <button class="tab" onclick="switchTab('analysis')">Analysis</button>
                 <button class="tab" onclick="switchTab('board')">Board</button>
                 <button class="tab" onclick="switchTab('sprint')">Sprint</button>
+                <button class="tab" onclick="switchTab('developers')">Developers</button>
                 <button class="tab" onclick="switchTab('forecast')">Forecast</button>
             </div>
 
@@ -3706,6 +4043,14 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                 </div>
             </div>
 
+            <div id="developersTab" class="tab-content">
+                <div class="empty-state">
+                    <i class="codicon codicon-person"></i>
+                    <h3>Developers Tab</h3>
+                    <p>Developer management will be displayed here</p>
+                </div>
+            </div>
+
             <div id="forecastTab" class="tab-content">
                 <div class="empty-state">
                     <i class="codicon codicon-calendar"></i>
@@ -3735,6 +4080,8 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
             <script src="${scriptUris.analysisTabTemplate}"></script>
             <script src="${scriptUris.sprintTabTemplate}"></script>
             <script src="${scriptUris.sprintModalTemplate}"></script>
+            <script src="${scriptUris.developersTabTemplate}"></script>
+            <script src="${scriptUris.developerModalTemplate}"></script>
             <script src="${scriptUris.forecastTabTemplate}"></script>
             <script src="${scriptUris.forecastConfigModalTemplate}"></script>
             
@@ -3763,6 +4110,9 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
             <!-- Sprint Tab scripts -->
             <script src="${scriptUris.sprintManagement}"></script>
             <script src="${scriptUris.burndownChart}"></script>
+            
+            <!-- Developers Tab scripts -->
+            <script src="${scriptUris.developerManagement}"></script>
             
             <!-- Forecast Tab scripts -->
             <script src="${scriptUris.forecastFunctions}"></script>
