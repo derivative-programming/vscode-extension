@@ -436,7 +436,7 @@ function renderDeveloperWorkloadChart(items, config, containerId) {
     // Count story points by developer
     const workload = {};
     items.forEach(item => {
-        const dev = item.assignedDeveloper || 'Unassigned';
+        const dev = item.assignedTo || 'Unassigned';
         const points = parseInt(item.storyPoints) || 0;
         workload[dev] = (workload[dev] || 0) + points;
     });

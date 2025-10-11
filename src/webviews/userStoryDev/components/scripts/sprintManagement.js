@@ -170,8 +170,9 @@ function saveSprint(event) {
     };
     
     if (currentEditingSprint) {
-        // Update existing sprint
+        // Update existing sprint - preserve existing properties
         sprintData.sprintId = currentEditingSprint.sprintId;
+        sprintData.sprintNumber = currentEditingSprint.sprintNumber;
         
         vscode.postMessage({
             command: 'updateSprint',
@@ -180,6 +181,7 @@ function saveSprint(event) {
     } else {
         // Create new sprint
         sprintData.sprintId = generateSprintId();
+        sprintData.sprintNumber = (devConfig.sprints?.length || 0) + 1;
         
         vscode.postMessage({
             command: 'createSprint',
@@ -203,7 +205,7 @@ function deleteSprint(sprintId) {
     }
     
     // Count stories assigned to this sprint
-    const storyCount = allItems.filter(item => item.assignedSprint === sprintId).length;
+    const storyCount = allItems.filter(item => item.sprintId === sprintId).length;
     
     const modalHtml = generateSprintDeleteConfirmModal(sprint, storyCount);
     

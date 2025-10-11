@@ -319,7 +319,7 @@ function filterBoard() {
             visible = false;
         }
         
-        if (boardFilters.sprint && story.sprint !== boardFilters.sprint) {
+        if (boardFilters.sprint && story.sprintId !== boardFilters.sprint) {
             visible = false;
         }
         

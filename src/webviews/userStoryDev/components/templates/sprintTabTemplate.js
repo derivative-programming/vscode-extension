@@ -136,7 +136,8 @@ function generateSprintBurndownContent(items, config) {
         `;
     }
 
-    const activeSprint = sprints.find(s => s.status === 'active') || sprints[0];
+    // Handle both old format (active: boolean) and new format (status: string)
+    const activeSprint = sprints.find(s => s.status === 'active' || s.active === true) || sprints[0];
 
     return `
         <div class="burndown-container">
@@ -187,10 +188,14 @@ function generateSprintBurndownContent(items, config) {
 function generateSprintsList(sprints, items) {
     // Sort sprints: active first, then by start date
     const sortedSprints = sprints.slice().sort((a, b) => {
-        if (a.status === 'active' && b.status !== 'active') {
+        // Handle both old format (active: boolean) and new format (status: string)
+        const aStatus = a.status || (a.active ? 'active' : 'planned');
+        const bStatus = b.status || (b.active ? 'active' : 'planned');
+        
+        if (aStatus === 'active' && bStatus !== 'active') {
             return -1;
         }
-        if (a.status !== 'active' && b.status === 'active') {
+        if (aStatus !== 'active' && bStatus === 'active') {
             return 1;
         }
         return new Date(b.startDate) - new Date(a.startDate);
@@ -204,11 +209,14 @@ function generateSprintsList(sprints, items) {
             ? Math.round((completedStories / sprintStories.length) * 100) 
             : 0;
 
+        // Handle both old format (active: boolean) and new format (status: string)
+        const sprintStatus = sprint.status || (sprint.active ? 'active' : 'planned');
+
         return `
-            <div class="sprint-card ${sprint.status}" data-sprint-id="${sprint.sprintId}">
+            <div class="sprint-card ${sprintStatus}" data-sprint-id="${sprint.sprintId}">
                 <div class="sprint-card-header">
                     <div class="sprint-card-title">
-                        <span class="sprint-status-badge status-${sprint.status}">${formatSprintStatus(sprint.status)}</span>
+                        <span class="sprint-status-badge status-${sprintStatus}">${formatSprintStatus(sprintStatus)}</span>
                         <h4>${sprint.sprintName}</h4>
                     </div>
                     <div class="sprint-card-actions">

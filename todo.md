@@ -10,8 +10,6 @@ common types of graphs...
 
 user story dev view...
 - Developers tab (between sprint and forecast)
-  - add an hourly rate to a developer. need a default developer rate in the config modal too.
-  - show total cost of remaining work based on assigned developers to stories and their hourly rates
 - add a Costs tab after forecast tab
   - table of cost by month by developer and total of all developers for each month. past and future.
 - sprint tab

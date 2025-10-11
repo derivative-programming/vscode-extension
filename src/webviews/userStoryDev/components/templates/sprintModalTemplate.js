@@ -91,9 +91,15 @@ function generateSprintModal(sprint = null) {
                                         Status *
                                     </label>
                                     <select id="sprintStatus" class="form-select" required>
-                                        <option value="planned" ${isEdit && sprint.status === 'planned' ? 'selected' : ''}>Planned</option>
-                                        <option value="active" ${isEdit && sprint.status === 'active' ? 'selected' : ''}>Active</option>
-                                        <option value="completed" ${isEdit && sprint.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                        ${(() => {
+                                            // Handle both old format (active: boolean) and new format (status: string)
+                                            const currentStatus = isEdit ? (sprint.status || (sprint.active ? 'active' : 'planned')) : 'planned';
+                                            return `
+                                                <option value="planned" ${currentStatus === 'planned' ? 'selected' : ''}>Planned</option>
+                                                <option value="active" ${currentStatus === 'active' ? 'selected' : ''}>Active</option>
+                                                <option value="completed" ${currentStatus === 'completed' ? 'selected' : ''}>Completed</option>
+                                            `;
+                                        })()}
                                     </select>
                                 </div>
                             </div>
