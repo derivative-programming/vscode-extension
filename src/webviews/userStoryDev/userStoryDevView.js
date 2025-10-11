@@ -129,7 +129,6 @@ function buildDevRecord(item) {
         priority: item.priority || 'medium',
         storyPoints: item.storyPoints || '?',
         assignedTo: item.assignedTo || '',
-        sprint: item.sprint || '',
         sprintId: item.sprintId || '',
         startDate: item.startDate || '',
         estimatedEndDate: item.estimatedEndDate || '',

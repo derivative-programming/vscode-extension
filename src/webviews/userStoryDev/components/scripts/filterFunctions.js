@@ -47,7 +47,7 @@ function applyFilters() {
         }
         
         // Sprint filter
-        if (sprintFilter && item.sprint !== sprintFilter) {
+        if (sprintFilter && item.sprintId !== sprintFilter) {
             return false;
         }
         
@@ -135,7 +135,7 @@ function getFilteredItems() {
         if (assignedToFilter && item.assignedTo !== assignedToFilter) {
             return false;
         }
-        if (sprintFilter && item.sprint !== sprintFilter) {
+        if (sprintFilter && item.sprintId !== sprintFilter) {
             return false;
         }
         return true;

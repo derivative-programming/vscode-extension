@@ -365,7 +365,7 @@ function filterBoard() {
         if (boardFilters.priority && item.priority !== boardFilters.priority) {
             visible = false;
         }
-        if (boardFilters.sprint && item.sprint !== boardFilters.sprint) {
+        if (boardFilters.sprint && item.sprintId !== boardFilters.sprint) {
             visible = false;
         }
         return visible;

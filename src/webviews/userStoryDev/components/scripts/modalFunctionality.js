@@ -79,7 +79,7 @@ function saveStoryDetails() {
     item.priority = document.getElementById('modalPriority')?.value || item.priority || '';
     item.storyPoints = document.getElementById('modalStoryPoints')?.value || item.storyPoints || '';
     item.assignedTo = document.getElementById('modalAssignedTo')?.value || item.assignedTo || '';
-    item.sprint = document.getElementById('modalSprint')?.value || item.sprint || '';
+    item.sprintId = document.getElementById('modalSprint')?.value || item.sprintId || '';
     item.startDate = document.getElementById('modalStartDate')?.value || item.startDate || '';
     item.estimatedEndDate = document.getElementById('modalEstEndDate')?.value || item.estimatedEndDate || '';
     item.actualEndDate = document.getElementById('modalActualEndDate')?.value || item.actualEndDate || '';

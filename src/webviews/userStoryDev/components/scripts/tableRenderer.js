@@ -151,7 +151,7 @@ function createTableRow(item, config) {
                 cell.appendChild(createDevStatusDropdown(item.storyId, item.devStatus, config));
                 break;
             case 'sprint':
-                cell.appendChild(createSprintDropdown(item.storyId, item.sprint, config));
+                cell.appendChild(createSprintDropdown(item.storyId, item.sprintId, config));
                 break;
             case 'startDate':
                 cell.textContent = formatDate(item.startDate);

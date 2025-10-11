@@ -197,7 +197,7 @@ function generateSprintsList(sprints, items) {
     });
 
     return sortedSprints.map(sprint => {
-        const sprintStories = items.filter(item => item.assignedSprint === sprint.sprintId);
+        const sprintStories = items.filter(item => item.sprintId === sprint.sprintId);
         const totalPoints = calculateTotalPoints(sprintStories);
         const completedStories = sprintStories.filter(item => item.devStatus === 'completed').length;
         const completionRate = sprintStories.length > 0 
@@ -278,7 +278,7 @@ function generateSprintsList(sprints, items) {
  * @returns {string} HTML for backlog stories
  */
 function generateBacklogStories(items) {
-    const unassignedStories = items.filter(item => !item.assignedSprint);
+    const unassignedStories = items.filter(item => !item.sprintId);
 
     if (unassignedStories.length === 0) {
         return `
@@ -323,7 +323,7 @@ function generateBacklogStories(items) {
  * @returns {string} HTML for burndown metrics
  */
 function generateBurndownMetrics(sprint, items) {
-    const sprintStories = items.filter(item => item.assignedSprint === sprint.sprintId);
+    const sprintStories = items.filter(item => item.sprintId === sprint.sprintId);
     const totalPoints = calculateTotalPoints(sprintStories);
     const completedPoints = calculateTotalPoints(sprintStories.filter(item => item.devStatus === 'completed'));
     const remainingPoints = totalPoints - completedPoints;
@@ -374,7 +374,7 @@ function generateBurndownMetrics(sprint, items) {
  * @returns {string} HTML for sprint stories summary
  */
 function generateSprintStoriesSummary(sprint, items) {
-    const sprintStories = items.filter(item => item.assignedSprint === sprint.sprintId);
+    const sprintStories = items.filter(item => item.sprintId === sprint.sprintId);
 
     if (sprintStories.length === 0) {
         return `
@@ -416,7 +416,7 @@ function generateSprintStoriesSummary(sprint, items) {
  * Helper: Get count of unassigned stories
  */
 function getUnassignedStoriesCount(items) {
-    return items.filter(item => !item.assignedSprint).length;
+    return items.filter(item => !item.sprintId).length;
 }
 
 /**

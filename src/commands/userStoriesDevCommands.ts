@@ -180,9 +180,7 @@ async function loadUserStoriesDevData(panel: vscode.WebviewPanel, modelService: 
                 priority: existingDev?.priority || 'medium',
                 storyPoints: existingDev?.storyPoints || '?',
                 assignedTo: existingDev?.assignedTo || '',
-                sprint: existingDev?.sprint || '',
                 sprintId: existingDev?.sprintId || '',
-                assignedSprint: existingDev?.assignedSprint || '', // For sprint planning drag-and-drop
                 startDate: existingDev?.startDate || '',
                 estimatedEndDate: existingDev?.estimatedEndDate || '',
                 actualEndDate: existingDev?.actualEndDate || '',
@@ -227,8 +225,8 @@ async function loadUserStoriesDevData(panel: vscode.WebviewPanel, modelService: 
         }
 
         console.log(`[Extension] Sending ${combinedData.length} dev items to webview`);
-        const assignedCount = combinedData.filter(item => item.assignedSprint).length;
-        console.log(`[Extension] ${assignedCount} items have assignedSprint property set`);
+        const assignedCount = combinedData.filter(item => item.sprintId).length;
+        console.log(`[Extension] ${assignedCount} items have sprintId property set`);
 
         // Send data to webview
         panel.webview.postMessage({
@@ -479,7 +477,6 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     priority: devData.priority,
                                     storyPoints: devData.storyPoints,
                                     assignedTo: devData.assignedTo,
-                                    sprint: devData.sprint,
                                     sprintId: devData.sprintId,
                                     startDate: devData.startDate,
                                     estimatedEndDate: devData.estimatedEndDate,
@@ -725,7 +722,6 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     const index = existingData.devData.findIndex((d: any) => d.storyId === storyId);
                                     if (index >= 0) {
                                         existingData.devData[index].sprintId = newSprintId;
-                                        existingData.devData[index].sprint = newSprint;
                                     }
                                 });
 
@@ -827,8 +823,8 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
 
                                     // Unassign stories from deleted sprint
                                     devData.devData = devData.devData.map((item: any) => {
-                                        if (item.assignedSprint === sprintId) {
-                                            delete item.assignedSprint;
+                                        if (item.sprintId === sprintId) {
+                                            delete item.sprintId;
                                         }
                                         return item;
                                     });
@@ -901,9 +897,7 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                         priority: 'medium',
                                         storyPoints: '?',
                                         assignedTo: '',
-                                        sprint: '',
-                                        sprintId: '',
-                                        assignedSprint: sprintId,
+                                        sprintId: sprintId,
                                         startDate: '',
                                         estimatedEndDate: '',
                                         actualEndDate: '',
@@ -913,10 +907,10 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     devData.devData.push(item);
                                 } else {
                                     // Story exists, just update the sprint assignment
-                                    item.assignedSprint = sprintId;
+                                    item.sprintId = sprintId;
                                 }
                                 
-                                console.log(`[Extension] Set item.assignedSprint to:`, sprintId);
+                                console.log(`[Extension] Set item.sprintId to:`, sprintId);
                                 console.log(`[Extension] Updated item, saving...`);
                                 await saveDevData(devData.devData, devDataPath);
                                 await loadUserStoriesDevData(panel, modelService);
@@ -955,7 +949,7 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                 // Find and update story
                                 const item = devData.devData.find((i: any) => i.storyId === storyId);
                                 if (item) {
-                                    delete item.assignedSprint;
+                                    delete item.sprintId;
                                     await saveDevData(devData.devData, devDataPath);
                                     await loadUserStoriesDevData(panel, modelService);
                                     
@@ -1073,12 +1067,12 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     const devStatus = dev?.devStatus || "";
                                     const priority = dev?.priority || "";
                                     const assignedTo = dev?.assignedTo || "";
-                                    const sprint = dev?.sprint || "";
+                                    const sprintId = dev?.sprintId || "";
                                     const storyPoints = dev?.storyPoints || "";
                                     const estimatedHours = dev?.estimatedHours || "";
                                     const actualHours = dev?.actualHours || "";
                                     
-                                    csvContent += `${storyNumber},${storyText},${devStatus},${priority},${assignedTo},${sprint},${storyPoints},${estimatedHours},${actualHours}\n`;
+                                    csvContent += `${storyNumber},${storyText},${devStatus},${priority},${assignedTo},${sprintId},${storyPoints},${estimatedHours},${actualHours}\n`;
                                 });
 
                                 // Generate timestamped filename

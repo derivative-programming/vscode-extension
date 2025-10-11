@@ -14,7 +14,7 @@ function calculateSprintVelocity(items, config) {
     }
     
     const velocityData = config.sprints.map(sprint => {
-        const sprintItems = items.filter(item => item.sprint === sprint.sprintId);
+        const sprintItems = items.filter(item => item.sprintId === sprint.sprintId);
         const completedItems = sprintItems.filter(item => item.devStatus === 'completed');
         
         const plannedPoints = calculateTotalPoints(sprintItems);

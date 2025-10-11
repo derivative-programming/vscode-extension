@@ -158,7 +158,7 @@ function handleSprintAssignment(storyId, sprintId) {
     }
     
     // Update local state
-    item.sprint = sprintId;
+    item.sprintId = sprintId;
     
     // Build complete dev record and send to extension
     const devRecord = buildDevRecord(item);
@@ -193,7 +193,6 @@ function handleBulkSprintAssignment(storyIds, sprintId) {
         const item = allItems.find(i => i.storyId === storyId);
         if (item) {
             console.log(`  - Assigning story ${storyId} to sprint: "${sprintName}"`);
-            item.sprint = sprintId;
             item.sprintId = sprintId;
             updatedCount++;
         } else {
@@ -230,7 +229,7 @@ function getItemsBySprint(sprintId) {
     if (!allItems) {
         return [];
     }
-    return allItems.filter(item => item.sprint === sprintId);
+    return allItems.filter(item => item.sprintId === sprintId);
 }
 
 /**
@@ -241,7 +240,7 @@ function getBacklogItems() {
     if (!allItems) {
         return [];
     }
-    return allItems.filter(item => !item.sprint);
+    return allItems.filter(item => !item.sprintId);
 }
 
 /**
