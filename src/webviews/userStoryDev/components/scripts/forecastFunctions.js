@@ -464,6 +464,21 @@ function sortStoriesForScheduling(stories, activeSprint = null) {
             return -1;
         }
         
+        // For unassigned stories (no sprintId), use development queue position
+        // This provides manual control over ordering
+        if (!aHasSprint && !bHasSprint) {
+            const aQueuePos = a.developmentQueuePosition !== undefined ? 
+                              a.developmentQueuePosition : 
+                              (parseInt(a.storyNumber) || 0);
+            const bQueuePos = b.developmentQueuePosition !== undefined ? 
+                              b.developmentQueuePosition : 
+                              (parseInt(b.storyNumber) || 0);
+            
+            if (aQueuePos !== bQueuePos) {
+                return aQueuePos - bQueuePos;
+            }
+        }
+        
         // Then by priority (case-insensitive, undefined/empty goes last)
         const aPriorityKey = a.priority ? a.priority.toLowerCase() : null;
         const bPriorityKey = b.priority ? b.priority.toLowerCase() : null;
