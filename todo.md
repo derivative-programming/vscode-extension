@@ -17,10 +17,8 @@ user story dev view...
 
 user story qa view
   - in the forecast tab
-    - show total cost of remaining work based on qa hourly rates
     - add zoom buttons
-  - add costs tab
-  
+  - add costs tab, similar to costs tab on user story development view costs tab
 
 
 - display total cost summary
@@ -69,6 +67,7 @@ Metrics
   - User Story Development status incomplete count
   - User Story Development status completed count
   - user story development Active developer count
+  
 
 --------------------------
 

@@ -21,6 +21,9 @@ let selectedItems = new Set();
 // Keep track of current chart type (bar or pie)
 let currentChartType = 'bar';
 
+// Keep track of current zoom level for QA forecast Gantt chart
+let currentQAZoomLevel = 'hour';
+
 // Helper function to show spinner
 function showSpinner() {
     const spinnerOverlay = document.getElementById("spinner-overlay");
@@ -1513,6 +1516,19 @@ function toggleQAProjectOverview() {
     }
 }
 
+// Zoom QA forecast Gantt chart
+function zoomQAGanttChart(zoomLevel) {
+    console.log('[zoomQAGanttChart] Zoom level:', zoomLevel);
+    
+    // Update zoom level (reset means return to hour view)
+    currentQAZoomLevel = zoomLevel === 'reset' ? 'hour' : zoomLevel;
+    
+    // Re-render the Gantt chart with current data
+    // This will be triggered by calling calculateAndRenderForecast
+    // which will use the new zoom level
+    calculateAndRenderForecast();
+}
+
 // Render forecast Gantt chart using D3
 function renderForecastGantt(forecastData) {
     // Clear existing chart
@@ -1531,17 +1547,66 @@ function renderForecastGantt(forecastData) {
     const minDate = d3.min(forecastData, d => d.startDate);
     const maxDate = d3.max(forecastData, d => d.endDate);
     
-    // Start from beginning of first hour, end at end of last hour
+    // Normalize start and end dates based on zoom level
     const startDate = new Date(minDate);
-    startDate.setMinutes(0, 0, 0);
     const endDate = new Date(maxDate);
-    endDate.setMinutes(59, 59, 999);
+    
+    switch (currentQAZoomLevel) {
+        case 'hour':
+            // Start from beginning of first hour
+            startDate.setMinutes(0, 0, 0);
+            endDate.setMinutes(59, 59, 999);
+            break;
+        case 'day':
+            // Start from beginning of first day
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+            break;
+        case 'week':
+            // Start from beginning of week (Sunday)
+            startDate.setHours(0, 0, 0, 0);
+            const dayOfWeek = startDate.getDay();
+            startDate.setDate(startDate.getDate() - dayOfWeek);
+            endDate.setHours(23, 59, 59, 999);
+            break;
+        case 'month':
+            // Start from beginning of first month
+            startDate.setDate(1);
+            startDate.setHours(0, 0, 0, 0);
+            // End at end of last month
+            endDate.setMonth(endDate.getMonth() + 1);
+            endDate.setDate(0); // Last day of previous month
+            endDate.setHours(23, 59, 59, 999);
+            break;
+        default:
+            startDate.setMinutes(0, 0, 0);
+            endDate.setMinutes(59, 59, 999);
+    }
     
     // Calculate total hours (will be adjusted after filtering if needed)
     const totalHours = Math.ceil((endDate - startDate) / (1000 * 60 * 60));
     
-    // Set column width for each hour
-    const hourWidth = 30;
+    // Set pixel width per time unit based on current zoom level
+    let hourWidth; // Note: Despite the name, this represents pixels per TIME UNIT (hour/day/week/month)
+    switch (currentQAZoomLevel) {
+        case 'hour':
+            hourWidth = 40; // 40px per hour
+            break;
+        case 'day':
+            hourWidth = 50; // 50px per day
+            break;
+        case 'week':
+            hourWidth = 80; // 80px per week
+            break;
+        case 'month':
+            hourWidth = 100; // 100px per month
+            break;
+        default:
+            hourWidth = 40;
+    }
+    
+    console.log('[renderForecastGantt] Zoom level:', currentQAZoomLevel, 'Pixels per unit:', hourWidth);
+    
     // Width will be recalculated after allHours is determined
     let width = totalHours * hourWidth;
     const height = forecastData.length * 35;
@@ -1569,18 +1634,46 @@ function renderForecastGantt(forecastData) {
         .domain([...new Set(forecastData.map(d => d.testerIndex))])
         .range(d3.schemeCategory10);
     
-    // Create array of all hours in range
+    // Create array of time units based on zoom level
     const allHoursUnfiltered = [];
-    let currentHour = new Date(startDate);
-    while (currentHour <= endDate) {
-        allHoursUnfiltered.push(new Date(currentHour));
-        currentHour = new Date(currentHour.getTime() + 60 * 60 * 1000); // Add 1 hour
+    let currentTime = new Date(startDate);
+    
+    switch (currentQAZoomLevel) {
+        case 'hour':
+            // Generate hours
+            while (currentTime <= endDate) {
+                allHoursUnfiltered.push(new Date(currentTime));
+                currentTime = new Date(currentTime.getTime() + 60 * 60 * 1000); // Add 1 hour
+            }
+            break;
+        case 'day':
+            // Generate days
+            while (currentTime <= endDate) {
+                allHoursUnfiltered.push(new Date(currentTime));
+                currentTime.setDate(currentTime.getDate() + 1);
+            }
+            break;
+        case 'week':
+            // Generate weeks
+            while (currentTime <= endDate) {
+                allHoursUnfiltered.push(new Date(currentTime));
+                currentTime.setDate(currentTime.getDate() + 7);
+            }
+            break;
+        case 'month':
+            // Generate months
+            while (currentTime <= endDate) {
+                allHoursUnfiltered.push(new Date(currentTime));
+                currentTime.setMonth(currentTime.getMonth() + 1);
+            }
+            break;
     }
     
-    // Filter out non-working hours if hideNonWorkingHours is enabled
-    const allHours = shouldHideNonWorkingHours 
+    // Filter out non-working hours/days if hideNonWorkingHours is enabled
+    // (Only applies to hour and day views)
+    const allHours = (shouldHideNonWorkingHours && (currentQAZoomLevel === 'hour' || currentQAZoomLevel === 'day'))
         ? allHoursUnfiltered.filter(h => {
-            // Check if this hour is within working hours based on qaConfig
+            // Check if this time unit is within working hours based on qaConfig
             const dayOfWeek = h.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
             const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
             const dayName = dayNames[dayOfWeek];
@@ -1593,12 +1686,16 @@ function renderForecastGantt(forecastData) {
                 return false;
             }
             
-            // Check if hour is within the day's working hours
-            const hour = h.getHours();
-            const startHour = parseInt(dayConfig.startTime.split(':')[0]);
-            const endHour = parseInt(dayConfig.endTime.split(':')[0]);
+            // For hour view, also check if hour is within the day's working hours
+            if (currentQAZoomLevel === 'hour') {
+                const hour = h.getHours();
+                const startHour = parseInt(dayConfig.startTime.split(':')[0]);
+                const endHour = parseInt(dayConfig.endTime.split(':')[0]);
+                return hour >= startHour && hour < endHour;
+            }
             
-            return hour >= startHour && hour < endHour;
+            // For day view, just check if day is enabled
+            return true;
         })
         : allHoursUnfiltered;
     
@@ -1606,93 +1703,195 @@ function renderForecastGantt(forecastData) {
     width = allHours.length * hourWidth;
     
     // Create a mapping function to convert date/time to x position
-    // This accounts for filtered hours when hideNonWorkingHours is enabled
+    // This accounts for filtered time units and different zoom levels
     const getXPosition = (date) => {
-        if (!shouldHideNonWorkingHours) {
-            // Use continuous time scale
+        if (!shouldHideNonWorkingHours && currentQAZoomLevel === 'hour') {
+            // Use continuous time scale for hour view without filtering
             return xScale(date);
         } else {
-            // Find the nearest hour in the filtered allHours array
-            let closestIndex = 0;
-            let closestDiff = Math.abs(allHours[0].getTime() - date.getTime());
+            // Find position in the discrete allHours array
+            let position = 0;
+            const targetTime = date.getTime();
             
-            for (let i = 1; i < allHours.length; i++) {
-                const diff = Math.abs(allHours[i].getTime() - date.getTime());
-                if (diff < closestDiff) {
-                    closestDiff = diff;
-                    closestIndex = i;
+            for (let i = 0; i < allHours.length; i++) {
+                const unitTime = allHours[i];
+                
+                if (currentQAZoomLevel === 'hour') {
+                    // Hour view: calculate fractional position within hour
+                    const hourStart = unitTime.getTime();
+                    const hourEnd = hourStart + 60 * 60 * 1000;
+                    
+                    if (targetTime < hourStart) {
+                        break;
+                    }
+                    if (targetTime >= hourStart && targetTime < hourEnd) {
+                        const fraction = (targetTime - hourStart) / (hourEnd - hourStart);
+                        position += fraction * hourWidth;
+                        break;
+                    }
+                    position += hourWidth;
+                } else if (currentQAZoomLevel === 'day') {
+                    // Day view: calculate fractional position within day
+                    const dayStart = new Date(unitTime);
+                    dayStart.setHours(0, 0, 0, 0);
+                    const dayEnd = new Date(dayStart);
+                    dayEnd.setDate(dayEnd.getDate() + 1);
+                    
+                    if (targetTime < dayStart.getTime()) {
+                        break;
+                    }
+                    if (targetTime >= dayStart.getTime() && targetTime < dayEnd.getTime()) {
+                        const fraction = (targetTime - dayStart.getTime()) / (24 * 60 * 60 * 1000);
+                        position += fraction * hourWidth;
+                        break;
+                    }
+                    position += hourWidth;
+                } else {
+                    // Week/month views: use linear interpolation between time units
+                    const nextUnit = allHours[i + 1];
+                    
+                    // If target is before this unit, stop here
+                    if (targetTime < unitTime.getTime()) {
+                        break;
+                    }
+                    
+                    // If there's no next unit (last unit in array), check if target is in this unit
+                    if (!nextUnit) {
+                        // For last unit, check if target falls within a reasonable range
+                        // Calculate the unit duration based on zoom level
+                        let unitDuration;
+                        if (currentQAZoomLevel === 'week') {
+                            unitDuration = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
+                        } else if (currentQAZoomLevel === 'month') {
+                            // Approximate month duration (will vary, but this is for positioning)
+                            const monthStart = new Date(unitTime);
+                            const monthEnd = new Date(monthStart);
+                            monthEnd.setMonth(monthEnd.getMonth() + 1);
+                            unitDuration = monthEnd.getTime() - monthStart.getTime();
+                        }
+                        
+                        if (targetTime >= unitTime.getTime()) {
+                            const fraction = Math.min(1, (targetTime - unitTime.getTime()) / unitDuration);
+                            position += fraction * hourWidth;
+                        }
+                        break;
+                    }
+                    
+                    // If target is between this unit and next unit, interpolate
+                    if (targetTime >= unitTime.getTime() && targetTime < nextUnit.getTime()) {
+                        const fraction = (targetTime - unitTime.getTime()) / (nextUnit.getTime() - unitTime.getTime());
+                        position += fraction * hourWidth;
+                        break;
+                    }
+                    
+                    // Target is beyond this unit, add full width and continue
+                    position += hourWidth;
                 }
             }
             
-            // Calculate fractional position within the hour
-            const hourStart = allHours[closestIndex].getTime();
-            const hourEnd = hourStart + 60 * 60 * 1000;
-            const fraction = (date.getTime() - hourStart) / (hourEnd - hourStart);
-            
-            return (closestIndex + fraction) * hourWidth;
+            return position;
         }
     };
     
-    // Group hours by day for day headers
-    const dayGroups = [];
-    let currentDayKey = null;
-    let dayStart = 0;
-    
-    allHours.forEach((hour, index) => {
-        const dayKey = d3.timeFormat("%Y-%m-%d")(hour);
-        if (dayKey !== currentDayKey) {
-            if (currentDayKey !== null) {
-                dayGroups.push({ 
-                    date: new Date(allHours[dayStart]), 
-                    start: dayStart, 
-                    end: index - 1 
-                });
+    // Draw headers based on zoom level
+    if (currentQAZoomLevel === 'hour') {
+        // Hour view: Show day headers (top row) AND hour labels (bottom row)
+        
+        // Group hours by day for day headers
+        const dayGroups = [];
+        let currentDayKey = null;
+        let dayStart = 0;
+        
+        allHours.forEach((hour, index) => {
+            const dayKey = d3.timeFormat("%Y-%m-%d")(hour);
+            if (dayKey !== currentDayKey) {
+                if (currentDayKey !== null) {
+                    dayGroups.push({ 
+                        date: new Date(allHours[dayStart]), 
+                        start: dayStart, 
+                        end: index - 1 
+                    });
+                }
+                currentDayKey = dayKey;
+                dayStart = index;
             }
-            currentDayKey = dayKey;
-            dayStart = index;
+        });
+        if (currentDayKey !== null) {
+            dayGroups.push({ 
+                date: new Date(allHours[dayStart]), 
+                start: dayStart, 
+                end: allHours.length - 1 
+            });
         }
-    });
-    if (currentDayKey !== null) {
-        dayGroups.push({ 
-            date: new Date(allHours[dayStart]), 
-            start: dayStart, 
-            end: allHours.length - 1 
+        
+        // Draw day headers
+        dayGroups.forEach(day => {
+            const x1 = day.start * hourWidth;
+            const x2 = (day.end + 1) * hourWidth;
+            
+            svg.append("rect")
+                .attr("x", x1)
+                .attr("y", -50)
+                .attr("width", x2 - x1)
+                .attr("height", 20)
+                .attr("fill", "#f0f0f0")
+                .attr("stroke", "#999");
+            
+            svg.append("text")
+                .attr("x", (x1 + x2) / 2)
+                .attr("y", -35)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "11px")
+                .attr("font-weight", "bold")
+                .text(d3.timeFormat("%b %d, %Y")(day.date));
+        });
+        
+        // Draw hour headers (show hour number 0-23)
+        svg.selectAll(".hour-header")
+            .data(allHours)
+            .enter()
+            .append("text")
+            .attr("class", "hour-header")
+            .attr("x", (d, i) => i * hourWidth + hourWidth / 2)
+            .attr("y", -15)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "9px")
+            .text(d => d3.timeFormat("%H")(d));
+    } else {
+        // Day/Week/Month views: Show ONLY single header row (no hour labels)
+        let formatString = "";
+        
+        switch (currentQAZoomLevel) {
+            case 'day':
+                formatString = "%b %d";
+                break;
+            case 'week':
+                formatString = "Week of %b %d";
+                break;
+            case 'month':
+                formatString = "%B %Y";
+                break;
+        }
+        
+        // Draw single header row for each time unit
+        allHours.forEach((timePoint, index) => {
+            svg.append("rect")
+                .attr("x", index * hourWidth)
+                .attr("y", -50)
+                .attr("width", hourWidth)
+                .attr("height", 30)
+                .attr("fill", "#f0f0f0")
+                .attr("stroke", "#999");
+            
+            svg.append("text")
+                .attr("x", index * hourWidth + hourWidth / 2)
+                .attr("y", -30)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .text(d3.timeFormat(formatString)(timePoint));
         });
     }
-    
-    // Draw day headers
-    dayGroups.forEach(day => {
-        const x1 = day.start * hourWidth;
-        const x2 = (day.end + 1) * hourWidth;
-        
-        svg.append("rect")
-            .attr("x", x1)
-            .attr("y", -50)
-            .attr("width", x2 - x1)
-            .attr("height", 20)
-            .attr("fill", "#f0f0f0")
-            .attr("stroke", "#999");
-        
-        svg.append("text")
-            .attr("x", (x1 + x2) / 2)
-            .attr("y", -35)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "11px")
-            .attr("font-weight", "bold")
-            .text(d3.timeFormat("%b %d, %Y")(day.date));
-    });
-    
-    // Draw hour headers (show hour number 0-23)
-    svg.selectAll(".hour-header")
-        .data(allHours)
-        .enter()
-        .append("text")
-        .attr("class", "hour-header")
-        .attr("x", (d, i) => i * hourWidth + hourWidth / 2)
-        .attr("y", -15)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "9px")
-        .text(d => d3.timeFormat("%H")(d));
     
     // Draw vertical grid lines for each hour
     svg.selectAll(".hour-line")

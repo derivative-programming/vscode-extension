@@ -1,3 +1,26 @@
+2025-01-13 16:30 - Add Zoom Controls to QA View Forecast Gantt Chart
+Command: Implemented zoom controls for QA forecast Gantt chart to match Dev View functionality
+Status: Completed (Updated 2025-10-12 for correct pixel widths)
+Notes: Added timeline zoom controls between Project Overview and Gantt chart with 5 buttons:
+Hour (40px per hour), Day (50px per day), Week (80px per week), Month (100px per month), Reset.
+HTML: Timeline controls div with codicon buttons (watch, dash, menu, three-bars, screen-normal).
+CSS: 60+ lines of styles for .timeline-controls, .timeline-btn, .timeline-control-label with hover effects.
+JavaScript: Added currentQAZoomLevel state variable (default 'hour'), zoomQAGanttChart(zoomLevel) function
+that triggers calculateAndRenderForecast() to re-render chart at new scale.
+Modified renderForecastGantt() to use dynamic pixel width per time unit (not per hour for all views).
+Time unit generation: hour view generates hours, day generates days, week generates weeks, month generates months.
+Header rendering: hour view shows two rows (day headers + hour labels), other views show single row (date/week/month only).
+Pattern follows Dev View implementation from forecastTabTemplate.js and ganttChart.js.
+**Fix (2025-10-12)**: Corrected pixel widths to be per time unit (day=50px per day, not 10px per hour).
+**Fix (2025-10-12)**: Fixed month/week view positioning for items in the last time unit - was breaking early without calculating position for items that fell in the final month/week of the timeline.
+**Fix (2025-10-12)**: Critical - Normalized startDate/endDate to align with time unit boundaries (month view starts at day 1 of month, week view starts on Sunday, day view starts at midnight) to ensure timeline headers and positioning use consistent reference points.
+Architecture: Modified src/commands/userStoriesQACommands.ts (added timeline-controls HTML after qa-project-overview div,
+60+ lines CSS), modified src/webviews/userStoriesQAView.js (added currentQAZoomLevel variable, zoomQAGanttChart function,
+dynamic hourWidth switch statement in renderForecastGantt).
+Created docs/architecture/qa-view-zoom-controls-implementation.md.
+
+================================================================================
+
 2025-01-13 16:00 - Fix Webpack Not Copying Root-Level Webview Files
 Command: Updated webpack.config.js to copy all root-level webview JS files and additional subdirectories
 Status: Completed

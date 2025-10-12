@@ -2,7 +2,29 @@
 
 This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
 
-## Latest Implementation Notes (2025-08-24)
+## Latest Implementation Notes (2025-01-13)
+
+### QA View Zoom Controls Implementation - **COMPLETED** (2025-01-13)
+- **Feature**: Added zoom controls to QA View forecast Gantt chart matching Dev View functionality
+- **Implementation**: Timeline controls with 5 zoom levels between Project Overview and Gantt chart
+- **Zoom Levels**:
+  - **Hour** (default): 40px per hour - detailed hourly view
+  - **Day**: 10px per hour - daily overview
+  - **Week**: 2px per hour - weekly planning view
+  - **Month**: 0.5px per hour - high-level timeline
+  - **Reset**: Returns to hour view (40px)
+- **Components**:
+  - **HTML**: Timeline controls div with 5 codicon buttons (watch, dash, menu, three-bars, screen-normal)
+  - **CSS**: 60+ lines of styles for controls, buttons, labels with hover effects
+  - **JavaScript**: `currentQAZoomLevel` state variable, `zoomQAGanttChart(zoomLevel)` function, dynamic `hourWidth` calculation
+- **Architecture Pattern**: Follows Dev View implementation pattern from `forecastTabTemplate.js` and `ganttChart.js`
+- **Files Modified**:
+  - `src/commands/userStoriesQACommands.ts`: Added timeline-controls HTML and CSS
+  - `src/webviews/userStoriesQAView.js`: Added zoom state variable, zoom function, dynamic hourWidth switch
+- **Documentation**: Created `docs/architecture/qa-view-zoom-controls-implementation.md`
+- **Status**: ✅ Zoom controls fully functional with all 5 levels working correctly
+
+## Previous Implementation Notes (2025-08-24)
 
 ### General Flow Modal Implementation - **COMPLETED** (2025-08-24)
 - **Issue**: General Flow details view showing "Add output variable modal - not yet implemented" and "Add input control modal - not yet implemented" console messages

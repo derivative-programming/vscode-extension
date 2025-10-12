@@ -1586,6 +1586,71 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             border-left: 3px solid var(--vscode-testing-iconPassed);
                         }
                         
+                        /* Timeline Controls Styles */
+                        .timeline-controls {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 12px;
+                            margin-bottom: 15px;
+                            background: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                        }
+                        
+                        .timeline-controls-left {
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                        }
+                        
+                        .timeline-controls-right {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        
+                        .timeline-control-label {
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            font-size: 13px;
+                            color: var(--vscode-foreground);
+                            font-weight: 500;
+                            margin-right: 8px;
+                        }
+                        
+                        .timeline-control-label .codicon {
+                            font-size: 14px;
+                        }
+                        
+                        .timeline-btn {
+                            background: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border: 1px solid var(--vscode-button-border, transparent);
+                            border-radius: 3px;
+                            padding: 6px 10px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: all 0.2s ease;
+                            min-width: 32px;
+                            min-height: 28px;
+                        }
+                        
+                        .timeline-btn:hover {
+                            background: var(--vscode-button-secondaryHoverBackground);
+                        }
+                        
+                        .timeline-btn:active {
+                            transform: translateY(1px);
+                        }
+                        
+                        .timeline-btn .codicon {
+                            font-size: 14px;
+                        }
+                        
                         .gantt-container {
                             border: 1px solid var(--vscode-panel-border);
                             border-radius: 4px;
@@ -1961,6 +2026,33 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
 
                         <div id="qa-project-overview" class="qa-project-overview">
                             <!-- Project Overview will be dynamically generated -->
+                        </div>
+
+                        <div class="timeline-controls">
+                            <div class="timeline-controls-left">
+                            </div>
+                            
+                            <div class="timeline-controls-right">
+                                <label class="timeline-control-label">
+                                    <span class="codicon codicon-calendar"></span>
+                                    Zoom:
+                                </label>
+                                <button class="timeline-btn" onclick="zoomQAGanttChart('hour')" title="Hour view">
+                                    <span class="codicon codicon-watch"></span>
+                                </button>
+                                <button class="timeline-btn" onclick="zoomQAGanttChart('day')" title="Day view">
+                                    <span class="codicon codicon-dash"></span>
+                                </button>
+                                <button class="timeline-btn" onclick="zoomQAGanttChart('week')" title="Week view">
+                                    <span class="codicon codicon-menu"></span>
+                                </button>
+                                <button class="timeline-btn" onclick="zoomQAGanttChart('month')" title="Month view">
+                                    <span class="codicon codicon-three-bars"></span>
+                                </button>
+                                <button class="timeline-btn" onclick="zoomQAGanttChart('reset')" title="Reset zoom">
+                                    <span class="codicon codicon-screen-normal"></span>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="gantt-container">
