@@ -13,7 +13,7 @@ Header rendering: hour view shows two rows (day headers + hour labels), other vi
 Pattern follows Dev View implementation from forecastTabTemplate.js and ganttChart.js.
 **Fix (2025-10-12)**: Corrected pixel widths to be per time unit (day=50px per day, not 10px per hour).
 **Fix (2025-10-12)**: Fixed month/week view positioning for items in the last time unit - was breaking early without calculating position for items that fell in the final month/week of the timeline.
-**Fix (2025-10-12)**: Critical - Normalized startDate/endDate to align with time unit boundaries (month view starts at day 1 of month, week view starts on Sunday, day view starts at midnight) to ensure timeline headers and positioning use consistent reference points.
+**Fix (2025-10-12)**: Critical - Normalized startDate/endDate to align with time unit boundaries (month view starts at day 1 of month, week view starts on Sunday, day view starts at midnight) to ensure timeline headers and positioning use consistent reference points. Applied to BOTH QA View and Dev View.
 Architecture: Modified src/commands/userStoriesQACommands.ts (added timeline-controls HTML after qa-project-overview div,
 60+ lines CSS), modified src/webviews/userStoriesQAView.js (added currentQAZoomLevel variable, zoomQAGanttChart function,
 dynamic hourWidth switch statement in renderForecastGantt).

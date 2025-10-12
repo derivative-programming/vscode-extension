@@ -148,11 +148,41 @@ function renderGanttD3Chart(schedules, containerId) {
     const minDate = d3.min(allDates);
     const maxDate = d3.max(allDates);
     
-    // Round to start and end of days
+    // Normalize start and end dates based on zoom level
     const startDate = new Date(minDate);
-    startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(maxDate);
-    endDate.setHours(23, 59, 59, 999);
+    
+    switch (timeUnit) {
+        case "hour":
+            // Start from beginning of first hour
+            startDate.setMinutes(0, 0, 0);
+            endDate.setMinutes(59, 59, 999);
+            break;
+        case "day":
+            // Start from beginning of first day
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+            break;
+        case "week":
+            // Start from beginning of week (Sunday)
+            startDate.setHours(0, 0, 0, 0);
+            const dayOfWeek = startDate.getDay();
+            startDate.setDate(startDate.getDate() - dayOfWeek);
+            endDate.setHours(23, 59, 59, 999);
+            break;
+        case "month":
+            // Start from beginning of first month
+            startDate.setDate(1);
+            startDate.setHours(0, 0, 0, 0);
+            // End at end of last month
+            endDate.setMonth(endDate.getMonth() + 1);
+            endDate.setDate(0); // Last day of previous month
+            endDate.setHours(23, 59, 59, 999);
+            break;
+        default:
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+    }
     
     // Get excludeWeekends setting from config (defaults to true)
     // currentGanttConfig is the forecastConfig object itself, not a wrapper

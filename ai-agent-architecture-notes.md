@@ -2,7 +2,27 @@
 
 This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
 
-## Latest Implementation Notes (2025-01-13)
+## Latest Implementation Notes (2025-10-12)
+
+### Gantt Chart Date Normalization Fix - **COMPLETED** (2025-10-12)
+- **Issue**: Both QA View and Dev View Gantt charts had incorrect timeline alignment for month/week/day zoom views
+- **Root Cause**: Start/end dates were not normalized to time unit boundaries
+  - Month view: Timeline starting at Oct 15 instead of Oct 1 caused all stories to appear in wrong columns
+  - Week view: Timeline not starting on Sunday caused arbitrary week boundaries
+  - Day view: Timeline starting at arbitrary hour instead of midnight
+- **Solution**: Added zoom-level-specific date normalization for both views
+  - **Hour view**: Normalize to beginning of hour (MM:00:00)
+  - **Day view**: Normalize to midnight (00:00:00)
+  - **Week view**: Normalize to Sunday midnight
+  - **Month view**: Normalize to day 1 of month, end at last day of month
+- **Files Modified**:
+  - `src/webviews/userStoriesQAView.js` (lines ~1547-1580)
+  - `src/webviews/userStoryDev/components/scripts/ganttChart.js` (lines ~147-183)
+- **Impact**: Month view stories now appear in correct month columns, week boundaries align with Sunday-Saturday, timeline headers match actual time unit boundaries
+- **Documentation**: Created comprehensive fix document `docs/architecture/gantt-chart-zoom-date-normalization-fix.md`
+- **Status**: ✅ Both QA and Dev View timelines now properly aligned to time unit boundaries
+
+## Previous Implementation Notes (2025-01-13)
 
 ### QA View Zoom Controls Implementation - **COMPLETED** (2025-01-13)
 - **Feature**: Added zoom controls to QA View forecast Gantt chart matching Dev View functionality

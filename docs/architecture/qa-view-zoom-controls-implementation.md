@@ -250,6 +250,10 @@ This implementation follows the same pattern as the User Story Development View 
 - **Month view**: Start at day 1 of month, end at last day of month
 - Ensures timeline units align with natural time boundaries
 
+**Applied to**: Both QA View (`userStoriesQAView.js`) and Dev View (`ganttChart.js`)
+- QA View: Lines ~1547-1580 in `renderForecastGantt()`
+- Dev View: Lines ~147-183 in `renderGanttChart()`
+
 ## Testing
 
 ### Manual Testing Steps
