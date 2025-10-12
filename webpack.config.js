@@ -72,12 +72,24 @@ const extensionConfig = {
     new CopyWebpackPlugin({
       patterns: [
         { 
+          from: 'src/webviews/*.js',
+          to: 'webviews/[name][ext]'
+        },
+        { 
           from: 'src/webviews/objects',
           to: 'webviews/objects' 
         },
         { 
           from: 'src/webviews/reports',
           to: 'webviews/reports' 
+        },
+        { 
+          from: 'src/webviews/pageflow',
+          to: 'webviews/pageflow' 
+        },
+        { 
+          from: 'src/webviews/userStoryDev',
+          to: 'webviews/userStoryDev' 
         }
       ]
     })

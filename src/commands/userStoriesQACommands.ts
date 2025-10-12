@@ -1380,12 +1380,210 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             margin-bottom: 15px;
                         }
                         
-                        .forecast-summary {
+                        /* QA Project Overview Styles */
+                        .qa-project-overview {
                             margin-bottom: 20px;
+                        }
+                        
+                        .forecast-stats-content {
                             padding: 15px;
                             background: var(--vscode-editor-inactiveSelectionBackground);
                             border: 1px solid var(--vscode-panel-border);
                             border-radius: 4px;
+                        }
+                        
+                        .forecast-stats-title {
+                            margin: 0 0 15px 0;
+                            font-size: 16px;
+                            font-weight: 600;
+                            color: var(--vscode-foreground);
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        
+                        .project-overview-details {
+                            display: block;
+                        }
+                        
+                        .forecast-metric {
+                            background: var(--vscode-editor-background);
+                            border: 2px solid var(--vscode-panel-border);
+                            border-radius: 6px;
+                            padding: 12px;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            transition: all 0.2s ease;
+                        }
+                        
+                        .forecast-metric:hover {
+                            background: var(--vscode-list-hoverBackground);
+                            border-color: var(--vscode-focusBorder);
+                        }
+                        
+                        .forecast-metric.risk-low {
+                            border-color: var(--vscode-testing-iconPassed);
+                        }
+                        
+                        .forecast-metric.risk-medium {
+                            border-color: var(--vscode-editorWarning-foreground);
+                        }
+                        
+                        .forecast-metric.risk-high {
+                            border-color: var(--vscode-editorError-foreground);
+                        }
+                        
+                        .forecast-metric-icon {
+                            font-size: 24px;
+                            color: var(--vscode-symbolIcon-variableForeground);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        
+                        .forecast-metric-content {
+                            flex: 1;
+                        }
+                        
+                        .forecast-metric-label {
+                            font-size: 11px;
+                            color: var(--vscode-descriptionForeground);
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                            margin-bottom: 4px;
+                        }
+                        
+                        .forecast-metric-value {
+                            font-size: 18px;
+                            font-weight: 600;
+                            color: var(--vscode-foreground);
+                        }
+                        
+                        .forecast-risk-section {
+                            margin-top: 20px;
+                            padding: 15px;
+                            border-radius: 6px;
+                            background: var(--vscode-editor-background);
+                            border-left: 4px solid var(--vscode-panel-border);
+                        }
+                        
+                        .forecast-risk-section.risk-low {
+                            border-left-color: var(--vscode-testing-iconPassed);
+                        }
+                        
+                        .forecast-risk-section.risk-medium {
+                            border-left-color: var(--vscode-editorWarning-foreground);
+                        }
+                        
+                        .forecast-risk-section.risk-high {
+                            border-left-color: var(--vscode-editorError-foreground);
+                        }
+                        
+                        .forecast-risk-title {
+                            margin: 0 0 10px 0;
+                            font-size: 14px;
+                            font-weight: 600;
+                            color: var(--vscode-foreground);
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        
+                        .risk-level {
+                            color: var(--vscode-editorWarning-foreground);
+                        }
+                        
+                        .forecast-risk-section.risk-high .risk-level {
+                            color: var(--vscode-editorError-foreground);
+                        }
+                        
+                        .forecast-risk-section.risk-low .risk-level {
+                            color: var(--vscode-testing-iconPassed);
+                        }
+                        
+                        .risk-description {
+                            margin: 0 0 10px 0;
+                            font-size: 13px;
+                            color: var(--vscode-descriptionForeground);
+                        }
+                        
+                        .bottleneck-list {
+                            list-style: none;
+                            padding: 0;
+                            margin: 0;
+                        }
+                        
+                        .bottleneck-item {
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 8px;
+                            padding: 8px;
+                            margin-bottom: 6px;
+                            background: var(--vscode-input-background);
+                            border-radius: 4px;
+                            font-size: 13px;
+                        }
+                        
+                        .bottleneck-item i {
+                            margin-top: 2px;
+                            color: var(--vscode-editorWarning-foreground);
+                        }
+                        
+                        .bottleneck-item.high i {
+                            color: var(--vscode-editorError-foreground);
+                        }
+                        
+                        .forecast-recommendations-section {
+                            margin-top: 20px;
+                            padding: 15px;
+                            border-radius: 6px;
+                            background: var(--vscode-editor-background);
+                            border: 1px solid var(--vscode-panel-border);
+                        }
+                        
+                        .forecast-recommendations-title {
+                            margin: 0 0 10px 0;
+                            font-size: 14px;
+                            font-weight: 600;
+                            color: var(--vscode-foreground);
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        
+                        .recommendations-list {
+                            list-style: none;
+                            padding: 0;
+                            margin: 0;
+                        }
+                        
+                        .recommendation-item {
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 8px;
+                            padding: 8px;
+                            margin-bottom: 6px;
+                            background: var(--vscode-input-background);
+                            border-radius: 4px;
+                            font-size: 13px;
+                        }
+                        
+                        .recommendation-item i {
+                            margin-top: 2px;
+                            color: var(--vscode-symbolIcon-variableForeground);
+                        }
+                        
+                        .recommendation-item.priority-high {
+                            border-left: 3px solid var(--vscode-editorError-foreground);
+                        }
+                        
+                        .recommendation-item.priority-medium {
+                            border-left: 3px solid var(--vscode-editorWarning-foreground);
+                        }
+                        
+                        .recommendation-item.priority-low {
+                            border-left: 3px solid var(--vscode-testing-iconPassed);
                         }
                         
                         .gantt-container {
@@ -1761,25 +1959,8 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             </button>
                         </div>
 
-                        <div class="forecast-summary">
-                            <div class="summary-stats">
-                                <div class="stat-item">
-                                    <span class="stat-label">Stories to Test:</span>
-                                    <span class="stat-value" id="forecast-total-stories">0</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Daily Capacity:</span>
-                                    <span class="stat-value" id="forecast-daily-capacity">0 hours</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Estimated Completion:</span>
-                                    <span class="stat-value" id="forecast-completion-date">N/A</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Working Days:</span>
-                                    <span class="stat-value" id="forecast-working-days">0</span>
-                                </div>
-                            </div>
+                        <div id="qa-project-overview" class="qa-project-overview">
+                            <!-- Project Overview will be dynamically generated -->
                         </div>
 
                         <div class="gantt-container">

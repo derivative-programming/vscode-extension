@@ -852,8 +852,8 @@ function openUserJourneyForPage(targetPage, pageRole) {
 // Export forecast data to CSV
 function exportForecastData() {
     // Get forecast data
-    const forecastData = calculateQAForecast();
-    if (!forecastData || forecastData.length === 0) {
+    const forecastResult = calculateQAForecast();
+    if (!forecastResult || !forecastResult.items || forecastResult.items.length === 0) {
         vscode.postMessage({
             command: "showInfoMessage",
             message: "No forecast data to export"
@@ -863,7 +863,7 @@ function exportForecastData() {
     
     // Convert to CSV
     const csvLines = ["Story Number,Story Name,Test Start,Test End,Duration (hours),Tester"];
-    forecastData.forEach(item => {
+    forecastResult.items.forEach(item => {
         const startDate = new Date(item.startDate).toLocaleString();
         const endDate = new Date(item.endDate).toLocaleString();
         const duration = ((item.endDate - item.startDate) / (1000 * 60 * 60)).toFixed(2);
@@ -966,7 +966,208 @@ function calculateQAForecast() {
         tester.availableAt = new Date(endDate);
     });
     
-    return forecastItems;
+    // Calculate additional metrics for Project Overview
+    const totalStories = forecastItems.length;
+    const projectedCompletionDate = totalStories > 0 ? forecastItems[forecastItems.length - 1].endDate : null;
+    
+    // Calculate total hours
+    const totalRemainingHours = totalStories * avgTestTime;
+    
+    // Calculate working days
+    const uniqueDates = new Set();
+    forecastItems.forEach(item => {
+        let currentDate = new Date(item.startDate);
+        const endDate = new Date(item.endDate);
+        
+        while (currentDate <= endDate) {
+            const dayName = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][currentDate.getDay()];
+            const dayConfig = workingHours[dayName];
+            if (dayConfig && dayConfig.enabled) {
+                uniqueDates.add(currentDate.toDateString());
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+    });
+    const totalRemainingDays = uniqueDates.size;
+    
+    // Calculate costs using defaultQARate
+    const defaultQARate = qaConfig.defaultQARate || 50;
+    const totalCost = totalRemainingHours * defaultQARate;
+    const remainingCost = totalCost; // All work is remaining in QA forecast
+    
+    // Assess risk level based on various factors
+    const riskAssessment = assessQARisk(readyToTestStories, qaResources, avgTestTime, totalRemainingDays);
+    
+    // Identify bottlenecks
+    const bottlenecks = identifyQABottlenecks(readyToTestStories, qaResources, avgTestTime);
+    
+    // Calculate recommendations
+    const recommendations = calculateQARecommendations(readyToTestStories, qaResources, avgTestTime, riskAssessment);
+    
+    return {
+        items: forecastItems,
+        projectedCompletionDate,
+        totalRemainingHours,
+        totalRemainingDays,
+        totalStories,
+        totalCost,
+        remainingCost,
+        riskLevel: riskAssessment.level,
+        riskScore: riskAssessment.score,
+        bottlenecks,
+        recommendations
+    };
+}
+
+// Assess QA risk level
+function assessQARisk(stories, resources, avgTestTime, totalDays) {
+    let score = 0;
+    const reasons = [];
+    
+    // Factor 1: Number of stories per QA resource
+    const storiesPerResource = stories.length / Math.max(1, resources);
+    if (storiesPerResource > 10) {
+        score += 30;
+        reasons.push("High story-to-tester ratio");
+    } else if (storiesPerResource > 5) {
+        score += 15;
+        reasons.push("Moderate story-to-tester ratio");
+    }
+    
+    // Factor 2: Timeline pressure (stories taking more than 2 weeks)
+    if (totalDays > 14) {
+        score += 20;
+        reasons.push("Extended timeline");
+    } else if (totalDays > 7) {
+        score += 10;
+        reasons.push("Moderate timeline");
+    }
+    
+    // Factor 3: Long test times
+    if (avgTestTime > 8) {
+        score += 20;
+        reasons.push("Long average test time");
+    } else if (avgTestTime > 4) {
+        score += 10;
+        reasons.push("Moderate average test time");
+    }
+    
+    // Factor 4: Blocked stories
+    const blockedCount = stories.filter(s => s.qaStatus === "blocked").length;
+    if (blockedCount > 0) {
+        score += Math.min(20, blockedCount * 5);
+        reasons.push(`${blockedCount} blocked story(ies)`);
+    }
+    
+    // Determine risk level
+    let level = "low";
+    if (score >= 50) {
+        level = "high";
+    } else if (score >= 25) {
+        level = "medium";
+    }
+    
+    return {
+        level,
+        score,
+        reasons
+    };
+}
+
+// Identify QA bottlenecks
+function identifyQABottlenecks(stories, resources, avgTestTime) {
+    const bottlenecks = [];
+    
+    // Bottleneck 1: Insufficient QA resources
+    if (stories.length > resources * 5) {
+        bottlenecks.push({
+            type: "resources",
+            severity: "high",
+            message: `${stories.length} stories for ${resources} QA resource(s) - consider adding more testers`
+        });
+    } else if (stories.length > resources * 3) {
+        bottlenecks.push({
+            type: "resources",
+            severity: "medium",
+            message: `${stories.length} stories for ${resources} QA resource(s) - workload is moderate`
+        });
+    }
+    
+    // Bottleneck 2: Long test times
+    if (avgTestTime > 8) {
+        bottlenecks.push({
+            type: "testTime",
+            severity: "high",
+            message: `Average test time is ${avgTestTime} hours - consider test automation or simplification`
+        });
+    } else if (avgTestTime > 6) {
+        bottlenecks.push({
+            type: "testTime",
+            severity: "medium",
+            message: `Average test time is ${avgTestTime} hours - may benefit from optimization`
+        });
+    }
+    
+    // Bottleneck 3: Blocked stories
+    const blockedStories = stories.filter(s => s.qaStatus === "blocked");
+    if (blockedStories.length > 0) {
+        bottlenecks.push({
+            type: "blocked",
+            severity: "high",
+            message: `${blockedStories.length} story(ies) blocked - resolve blockers to improve flow`
+        });
+    }
+    
+    return bottlenecks;
+}
+
+// Calculate QA recommendations (data function)
+function calculateQARecommendations(stories, resources, avgTestTime, riskAssessment) {
+    const recommendations = [];
+    
+    // Recommendation based on risk level
+    if (riskAssessment.level === "high") {
+        recommendations.push({
+            priority: "high",
+            message: "Consider adding additional QA resources or extending timeline"
+        });
+    }
+    
+    // Recommendation based on story count
+    const storiesPerResource = stories.length / Math.max(1, resources);
+    if (storiesPerResource > 8) {
+        recommendations.push({
+            priority: "high",
+            message: `Each tester has ${storiesPerResource.toFixed(1)} stories - consider parallel testing or additional resources`
+        });
+    }
+    
+    // Recommendation based on test time
+    if (avgTestTime > 6) {
+        recommendations.push({
+            priority: "medium",
+            message: "Consider test automation to reduce average test time"
+        });
+    }
+    
+    // Recommendation for blocked stories
+    const blockedCount = stories.filter(s => s.qaStatus === "blocked").length;
+    if (blockedCount > 0) {
+        recommendations.push({
+            priority: "high",
+            message: `Resolve ${blockedCount} blocked story(ies) to maintain testing flow`
+        });
+    }
+    
+    // If no specific recommendations, provide general guidance
+    if (recommendations.length === 0) {
+        recommendations.push({
+            priority: "low",
+            message: "QA forecast looks healthy - maintain current testing pace"
+        });
+    }
+    
+    return recommendations;
 }
 
 // Get next working time from a given date
@@ -1093,16 +1294,16 @@ function calculateAndRenderForecast() {
     // Use setTimeout to allow the processing overlay to render before calculation
     setTimeout(() => {
         // Calculate forecast
-        const forecastData = calculateQAForecast();
+        const forecastResult = calculateQAForecast();
         
-        console.log("[calculateAndRenderForecast] Forecast data calculated:", forecastData ? forecastData.length : 0, "items");
+        console.log("[calculateAndRenderForecast] Forecast result calculated:", forecastResult ? forecastResult.items.length : 0, "items");
         
         // Hide processing overlay
         if (processingOverlay) {
             processingOverlay.classList.remove("active");
         }
         
-        if (!forecastData || forecastData.length === 0) {
+        if (!forecastResult || !forecastResult.items || forecastResult.items.length === 0) {
             console.log("[calculateAndRenderForecast] No forecast data, showing empty state");
             emptyDiv.style.display = "block";
             return;
@@ -1110,71 +1311,206 @@ function calculateAndRenderForecast() {
         
         vizDiv.style.display = "block";
         
-        console.log("[calculateAndRenderForecast] Updating summary and rendering Gantt");
+        console.log("[calculateAndRenderForecast] Updating Project Overview and rendering Gantt");
         
-        // Update summary stats
-        updateForecastSummary(forecastData);
+        // Update Project Overview section
+        updateProjectOverview(forecastResult);
         
         // Render Gantt chart
-        renderForecastGantt(forecastData);
+        renderForecastGantt(forecastResult.items);
     }, 50);
 }
 
-// Update forecast summary stats
-function updateForecastSummary(forecastData) {
-    const storiesToTestSpan = document.getElementById("forecast-total-stories");
-    const dailyCapacitySpan = document.getElementById("forecast-daily-capacity");
-    const completionDateSpan = document.getElementById("forecast-completion-date");
-    const workingDaysSpan = document.getElementById("forecast-working-days");
-    
-    if (!storiesToTestSpan || !dailyCapacitySpan || !completionDateSpan || !workingDaysSpan) return;
-    
-    // Stories to test
-    storiesToTestSpan.textContent = forecastData.length;
-    
-    // Daily capacity
-    const avgTestTime = qaConfig.avgTestTime;
-    const qaResources = qaConfig.qaResources;
-    const workingHours = qaConfig.workingHours;
-    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-    let workingDaysCount = 0;
-    let totalHoursPerWeek = 0;
-    
-    days.forEach(day => {
-        const dayConfig = workingHours[day];
-        if (dayConfig && dayConfig.enabled) {
-            workingDaysCount++;
-            const startParts = dayConfig.startTime.split(":");
-            const endParts = dayConfig.endTime.split(":");
-            const startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
-            const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
-            const hoursThisDay = (endMinutes - startMinutes) / 60;
-            totalHoursPerWeek += hoursThisDay;
-        }
-    });
-    
-    const dailyCapacity = workingDaysCount > 0 ? (totalHoursPerWeek * qaResources / workingDaysCount) : 0;
-    dailyCapacitySpan.textContent = dailyCapacity.toFixed(1) + " hrs";
-    
-    // Completion date (end date of last story)
-    if (forecastData.length > 0) {
-        const lastStory = forecastData[forecastData.length - 1];
-        const completionDate = new Date(lastStory.endDate);
-        completionDateSpan.textContent = completionDate.toLocaleDateString();
+// Update Project Overview section
+function updateProjectOverview(forecastResult) {
+    const projectOverviewDiv = document.getElementById("qa-project-overview");
+    if (!projectOverviewDiv) {
+        console.log("[updateProjectOverview] Project overview div not found");
+        return;
     }
     
-    // Working days (count unique dates in forecast)
-    const uniqueDates = new Set();
-    forecastData.forEach(item => {
-        let currentDate = new Date(item.startDate);
-        const endDate = new Date(item.endDate);
-        
-        while (currentDate <= endDate) {
-            uniqueDates.add(currentDate.toDateString());
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-    });
-    workingDaysSpan.textContent = uniqueDates.size;
+    const {
+        projectedCompletionDate,
+        totalRemainingHours,
+        totalRemainingDays,
+        totalStories,
+        totalCost,
+        remainingCost,
+        riskLevel,
+        bottlenecks,
+        recommendations
+    } = forecastResult;
+    
+    // Format completion date
+    const formattedDate = projectedCompletionDate ? 
+        new Date(projectedCompletionDate).toLocaleDateString("en-US", { 
+            year: "numeric", 
+            month: "short", 
+            day: "numeric" 
+        }) : "N/A";
+    
+    // Format currency
+    const formatCurrency = (value) => {
+        return "$" + value.toLocaleString("en-US", { 
+            minimumFractionDigits: 0, 
+            maximumFractionDigits: 0 
+        });
+    };
+    
+    // Determine risk class
+    const riskClass = riskLevel === "high" ? "risk-high" : 
+                      riskLevel === "medium" ? "risk-medium" : "risk-low";
+    
+    // Generate Project Overview HTML
+    projectOverviewDiv.innerHTML = `
+        <div class="forecast-stats-content">
+            <h4 class="forecast-stats-title" onclick="toggleQAProjectOverview()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                <span>Project Overview</span>
+                <span id="qa-project-overview-toggle-icon" class="codicon codicon-chevron-down"></span>
+            </h4>
+            
+            <div id="qa-project-overview-details" class="project-overview-details">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                    ${generateQAForecastMetric(
+                        "calendar",
+                        "Projected Completion",
+                        formattedDate,
+                        riskClass
+                    )}
+                    
+                    ${generateQAForecastMetric(
+                        "clock",
+                        "Remaining Hours",
+                        totalRemainingHours.toFixed(1) + " hrs",
+                        ""
+                    )}
+                    
+                    ${generateQAForecastMetric(
+                        "calendar",
+                        "Remaining Work Days",
+                        totalRemainingDays.toFixed(1) + " days",
+                        ""
+                    )}
+                    
+                    ${generateQAForecastMetric(
+                        "beaker",
+                        "Stories to Test",
+                        totalStories.toString(),
+                        ""
+                    )}
+                    
+                    ${generateQAForecastMetric(
+                        "symbol-currency",
+                        "Total QA Cost",
+                        formatCurrency(totalCost),
+                        ""
+                    )}
+                    
+                    ${generateQAForecastMetric(
+                        "symbol-currency",
+                        "Remaining QA Cost",
+                        formatCurrency(remainingCost),
+                        remainingCost > totalCost * 0.5 ? "risk-medium" : ""
+                    )}
+                </div>
+                
+                ${generateQARiskAssessment(riskLevel, bottlenecks)}
+                ${generateQARecommendations(recommendations)}
+            </div>
+        </div>
+    `;
+}
+
+// Generate a QA forecast metric card
+function generateQAForecastMetric(icon, label, value, riskClass) {
+    return `
+        <div class="forecast-metric ${riskClass}">
+            <div class="forecast-metric-icon">
+                <i class="codicon codicon-${icon}"></i>
+            </div>
+            <div class="forecast-metric-content">
+                <div class="forecast-metric-label">${label}</div>
+                <div class="forecast-metric-value">${value}</div>
+            </div>
+        </div>
+    `;
+}
+
+// Generate QA risk assessment section
+function generateQARiskAssessment(riskLevel, bottlenecks) {
+    if (!bottlenecks || bottlenecks.length === 0) {
+        return "";
+    }
+    
+    const riskClass = riskLevel === "high" ? "risk-high" : 
+                      riskLevel === "medium" ? "risk-medium" : "risk-low";
+    
+    const riskLabel = riskLevel === "high" ? "High Risk" : 
+                      riskLevel === "medium" ? "Medium Risk" : "Low Risk";
+    
+    const bottlenecksList = bottlenecks.map(b => `
+        <li class="bottleneck-item ${b.severity}">
+            <i class="codicon codicon-warning"></i>
+            <span>${b.message}</span>
+        </li>
+    `).join("");
+    
+    return `
+        <div class="forecast-risk-section ${riskClass}">
+            <h5 class="forecast-risk-title">
+                <i class="codicon codicon-shield"></i>
+                Risk Assessment: <span class="risk-level">${riskLabel}</span>
+            </h5>
+            <div class="forecast-risk-content">
+                <p class="risk-description">Key bottlenecks identified:</p>
+                <ul class="bottleneck-list">
+                    ${bottlenecksList}
+                </ul>
+            </div>
+        </div>
+    `;
+}
+
+// Generate QA recommendations section
+function generateQARecommendations(recommendations) {
+    if (!recommendations || recommendations.length === 0) {
+        return "";
+    }
+    
+    const recommendationsList = recommendations.map(r => `
+        <li class="recommendation-item priority-${r.priority}">
+            <i class="codicon codicon-light-bulb"></i>
+            <span>${r.message}</span>
+        </li>
+    `).join("");
+    
+    return `
+        <div class="forecast-recommendations-section">
+            <h5 class="forecast-recommendations-title">
+                <i class="codicon codicon-lightbulb"></i>
+                Recommendations
+            </h5>
+            <ul class="recommendations-list">
+                ${recommendationsList}
+            </ul>
+        </div>
+    `;
+}
+
+// Toggle QA Project Overview visibility
+function toggleQAProjectOverview() {
+    const detailsDiv = document.getElementById("qa-project-overview-details");
+    const toggleIcon = document.getElementById("qa-project-overview-toggle-icon");
+    
+    if (!detailsDiv || !toggleIcon) return;
+    
+    if (detailsDiv.style.display === "none") {
+        detailsDiv.style.display = "block";
+        toggleIcon.className = "codicon codicon-chevron-down";
+    } else {
+        detailsDiv.style.display = "none";
+        toggleIcon.className = "codicon codicon-chevron-right";
+    }
 }
 
 // Render forecast Gantt chart using D3

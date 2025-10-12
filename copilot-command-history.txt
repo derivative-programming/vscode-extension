@@ -1,3 +1,49 @@
+2025-01-13 16:00 - Fix Webpack Not Copying Root-Level Webview Files
+Command: Updated webpack.config.js to copy all root-level webview JS files and additional subdirectories
+Status: Completed
+Notes: Extension was failing to activate with "Cannot find module '../webviews/addObjectWizardView'" error.
+Root cause: CopyWebpackPlugin was only copying subdirectories (objects/, reports/) but not root-level files.
+Added pattern to copy src/webviews/*.js → dist/webviews/, plus pageflow/ and userStoryDev/ subdirectories.
+Now copies 42 root-level JS files including all wizard views, QA view, user stories view, etc.
+Build succeeds with 2.2 MiB of webview assets emitted, extension activates successfully.
+Architecture: Modified webpack.config.js CopyWebpackPlugin patterns.
+Created docs/fixes/webpack-webview-files-not-copied-fix.md.
+
+================================================================================
+
+2025-01-13 15:45 - Fix Function Name Collision in QA Project Overview
+Command: Renamed calculateQARecommendations calculation function to avoid collision with HTML generation function
+Status: Completed
+Notes: Runtime error "recommendations.map is not a function" caused by two functions named generateQARecommendations:
+one for calculating recommendations (returns array), one for generating HTML (expects array parameter).
+Renamed calculation function from generateQARecommendations → calculateQARecommendations to follow naming convention:
+calculate* for data functions, generate* for HTML generation functions.
+Architecture: Modified src/webviews/userStoriesQAView.js (renamed function at line ~1123, updated call at line ~1005).
+Created docs/fixes/qa-project-overview-function-name-collision-fix.md.
+
+================================================================================
+
+2025-01-13 15:30 - Add Project Overview Section to QA View Forecast Tab
+Command: Implemented comprehensive Project Overview section in QA forecast tab with metrics, risk assessment, and recommendations
+Status: Completed
+Notes: Added Project Overview section similar to Dev View but adapted for QA-specific metrics:
+- 6 metric cards in responsive grid: Projected Completion (risk-colored), Remaining Hours, Remaining Work Days, 
+  Stories to Test (replaces Team Velocity), Total QA Cost, Remaining QA Cost
+- Risk assessment algorithm with 4 factors: story-to-tester ratio, timeline pressure, test time, blocked stories
+- Bottleneck identification: resource constraints, long test times, blocked stories
+- Recommendations engine: priority-coded actionable guidance
+- Collapsible section with toggle (chevron icon)
+- Cost calculations using qaConfig.defaultQARate
+- Extended calculateQAForecast() to return object with items array and additional metrics
+- Updated all callers to use forecastResult.items instead of direct array
+Architecture: Modified src/webviews/userStoriesQAView.js (added 200+ lines: assessQARisk, identifyQABottlenecks,
+calculateQARecommendations, updateProjectOverview, generateQAForecastMetric, generateQARiskAssessment, 
+generateQARecommendations, toggleQAProjectOverview functions; modified calculateQAForecast to return extended object).
+Modified src/commands/userStoriesQACommands.ts (added qa-project-overview div, 200+ lines of CSS for metric cards,
+risk sections, recommendations styling). Created docs/architecture/qa-view-project-overview-implementation.md.
+
+================================================================================
+
 2025-10-12 10:25 - Fix Duplicate Dollar Signs in Forecast Tab
 Command: Removed manual "$" symbols from cost metrics in forecast tab
 Status: Completed

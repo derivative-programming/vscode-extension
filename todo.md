@@ -16,9 +16,11 @@ user story dev view...
 
 
 user story qa view
-  - config
-    - add a hourly rate to a qa resource
-  - in the forecast tab, show total cost of remaining work based on qa hourly rates
+  - in the forecast tab
+    - show total cost of remaining work based on qa hourly rates
+    - add zoom buttons
+  - add costs tab
+  
 
 
 - display total cost summary
