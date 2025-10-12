@@ -67,6 +67,9 @@ function switchTab(tabName) {
                 refreshData();
             }
             break;
+        case 'devQueue':
+            renderDevQueueTab();
+            break;
         case 'analysis':
             renderAnalysisTab();
             // Auto-refresh analytics calculations
@@ -131,6 +134,7 @@ function buildDevRecord(item) {
         storyId: item.storyId,
         devStatus: item.devStatus || 'on-hold',
         priority: item.priority || 'medium',
+        developmentQueuePosition: item.developmentQueuePosition,
         storyPoints: item.storyPoints || '?',
         assignedTo: item.assignedTo || '',
         sprintId: item.sprintId || '',
@@ -163,6 +167,22 @@ function renderDetailsTab() {
 
     // Update record info
     updateRecordInfo(allItems.length, allItems.length);
+}
+
+/**
+ * Render Dev Queue Tab
+ */
+function renderDevQueueTab() {
+    const devQueueTab = document.getElementById('devQueueTab');
+    if (!devQueueTab) {
+        return;
+    }
+
+    // Generate the tab HTML using template
+    devQueueTab.innerHTML = generateDevQueueTab(allItems, devConfig);
+
+    // Initialize drag and drop
+    initializeDevQueueDragDrop();
 }
 
 /**

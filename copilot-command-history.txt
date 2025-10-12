@@ -2551,3 +2551,87 @@ Status: Completed
 Notes: Added onclick handler to sprint-story-item divs in sprint cards. Handler checks if close button was clicked (event.stopPropagation on button), otherwise opens edit modal. Updated CSS to show pointer cursor and hover effects on sprint story items.
 Architecture: Modified sprintTabTemplate.js (added onclick with event propagation check to sprint-story-item). Modified userStoriesDevCommands.ts CSS (added cursor: pointer, transition, and hover state to .sprint-story-item).
 
+
+================================================================================
+Date: October 12, 2025
+Command: Add Dev Queue Tab with Drag-and-Drop Reordering
+Status: COMPLETED
+================================================================================
+
+NEW FEATURE - ARCHITECTURE:
+Added new 'Dev Queue' tab between Details and Analysis tabs for visual queue management.
+
+FEATURE OVERVIEW:
+- Display all incomplete user stories (not completed)
+- Drag-and-drop reordering with visual feedback
+- Auto-resequencing with gaps of 10
+- Click items to open story detail modal
+- Real-time synchronization with Board tab
+- Batch updates to developmentQueuePosition property
+
+FILES CREATED:
+1. src/webviews/userStoryDev/components/templates/devQueueTabTemplate.js (190 lines)
+   - generateDevQueueTab() - Main template with description and stats
+   - generateDevQueueItems() - Individual draggable queue items
+   - refreshDevQueueList() - Refresh after reordering
+   - updateDevQueueStats() - Update status counters
+
+2. src/webviews/userStoryDev/components/scripts/devQueueDragDrop.js (225 lines)
+   - initializeDevQueueDragDrop() - Setup drag event listeners
+   - Drag event handlers (start, over, enter, leave, drop, end)
+   - reorderQueue() - Recalculate positions after drag
+   - autoSequenceQueue() - Auto-number 10, 20, 30...
+   - resetQueuePositions() - Clear custom positions
+   - openStoryModal() - Click handler for story details
+
+FILES MODIFIED:
+1. src/commands/userStoriesDevCommands.ts
+   - Added Dev Queue tab button in tabs section
+   - Added devQueueTab content div
+   - Added devQueueTabTemplate and devQueueDragDrop to scriptUris
+   - Added script tags for new modules
+   - Added comprehensive Dev Queue CSS styles (200+ lines)
+   - Added 'batchUpdateQueuePositions' message handler (saves multiple positions)
+
+2. src/webviews/userStoryDev/userStoryDevView.js
+   - Added 'devQueue' case to switchTab() function
+   - Added renderDevQueueTab() function
+
+ARCHITECTURE NOTES:
+- Follows existing tab pattern (template + scripts + styles)
+- Uses HTML5 drag-and-drop API
+- Resequencing uses increments of 10 for future flexibility
+- Batch updates minimize file I/O (single save for all changes)
+- Visual feedback: .dragging and .drag-over CSS classes
+- Status-aware styling with color-coded badges
+- Empty state when all stories completed
+
+USER WORKFLOW:
+1. Switch to Dev Queue tab
+2. See list of incomplete stories sorted by queue position
+3. Drag item to new position
+4. System auto-resequences all affected items
+5. Changes save immediately to app-dna-user-story-dev.json
+6. Board tab reflects new ordering
+7. Optional: Use Auto-Sequence or Reset buttons
+
+INTEGRATION:
+- Reuses existing sortByQueuePosition() function
+- Reuses existing showStoryDetailModal() for click
+- Coordinates with Board tab via refreshBoard()
+- Sends batch updates via batchUpdateQueuePositions command
+- Extension handles file I/O and persistence
+
+TESTING CHECKLIST:
+- [ ] Tab appears between Details and Analysis
+- [ ] Shows incomplete stories only
+- [ ] Drag-and-drop reorders items
+- [ ] Positions update in JSON file
+- [ ] Board tab reflects new order
+- [ ] Click opens story modal
+- [ ] Auto-Sequence button works
+- [ ] Reset button clears positions
+- [ ] Stats update correctly
+- [ ] Empty state when all completed
+
+

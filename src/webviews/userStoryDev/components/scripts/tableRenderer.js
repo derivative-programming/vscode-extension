@@ -10,6 +10,7 @@ const DEV_TABLE_COLUMNS = [
     { key: 'storyNumber', label: 'Story #', sortable: true, className: 'story-number-column', width: '100px' },
     { key: 'storyText', label: 'Story Text', sortable: true, className: 'story-text-column', width: '250px' },
     { key: 'priority', label: 'Priority', sortable: true, className: 'priority-column', width: '100px' },
+    { key: 'developmentQueuePosition', label: 'Dev Queue Position', sortable: true, className: 'queue-position-column', width: '140px' },
     { key: 'storyPoints', label: 'Points', sortable: true, className: 'story-points-column', width: '80px' },
     { key: 'assignedTo', label: 'Assigned To', sortable: true, className: 'assigned-to-column', width: '150px' },
     { key: 'devStatus', label: 'Dev Status', sortable: true, className: 'dev-status-column', width: '180px' },
@@ -141,6 +142,9 @@ function createTableRow(item, config) {
             case 'priority':
                 cell.appendChild(createPriorityDropdown(item.storyId, item.priority, config));
                 break;
+            case 'developmentQueuePosition':
+                cell.appendChild(createQueuePositionInput(item.storyId, item.developmentQueuePosition));
+                break;
             case 'storyPoints':
                 cell.appendChild(createStoryPointsDropdown(item.storyId, item.storyPoints, config));
                 break;
@@ -219,6 +223,32 @@ function createPriorityDropdown(storyId, currentPriority, config) {
     });
     
     return select;
+}
+
+/**
+ * Create development queue position input
+ */
+function createQueuePositionInput(storyId, currentPosition) {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'queue-position-input';
+    input.dataset.storyId = storyId;
+    input.value = currentPosition !== undefined ? currentPosition : '';
+    input.min = '0';
+    input.step = '1';
+    input.style.width = '80px';
+    input.title = 'Lower values appear first in Board view columns';
+    
+    input.addEventListener('change', (e) => {
+        handleQueuePositionChange(storyId, e.target.value);
+        e.stopPropagation();
+    });
+    
+    input.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    
+    return input;
 }
 
 /**

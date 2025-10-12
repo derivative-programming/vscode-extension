@@ -9,10 +9,30 @@ common types of graphs...
  
 
 user story dev view...
-- sprint tab
-  - click of a backlog item should open the edit modal
+- need a new property of a development story item : DevelopmentQueuePosition
+  - display backorder in dev queue position order
+  - in forecast display the items not assigned to a sprint in dev queue position order
+  - in the dev queue tab, add a button to calculate the dev queue position based on dependencies
+    - parse the user story to determine the subject object name.
+  
+- analysis tab
+  - move analysis to last tab
+  - why is 'sprint summary' at the bottom?
+- Development Queue tab
+  - describe the tab as setting the order of story development
+  - button to auto calculate order based on dependencies
+  - allow drag and drop to reorder stories
+  - incomplete stories only
+- board tab
+  - display in DevelopmentQueuePosition order
+  - allow drag and drop to reorder stories
+- cost tab
+  - export button
+    - open immediately
+    - fix design
 - forecast tab
   - i dont think the 'Holidays & Non-Working Days' data is used in forecasting.
+- where is velocity calculated and displayed?
 
 - user story qa view
   - config
@@ -20,6 +40,9 @@ user story dev view...
   - in the forecast tab, show total cost of remaining work based on qa hourly rates
 
 
+- display total cost summary
+  - development and qa costs together
+  - add management costs?
 
 verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
 
@@ -60,9 +83,13 @@ page data source Analysis report...
 --------------------------
 
 
-- need to calculate order of user stories to be developed
-  - stories need a development order property
+- need to calculate position of user stories to be developed
+  - stories need a development position property
+  - need a property to hold the suggested development position?
+  - need a property to hold the adjusted development position?
   - look at top level objects first. move down the object tree.
+    - regardless of role
+    - lookup objects matter?
   - view all needs to happen before add, update, delete, view
   - view needs to happen before add, update, delete
   - you can calculate all dependencies a story has. parent objects need to view all, view, and add

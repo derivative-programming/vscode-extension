@@ -172,6 +172,9 @@ async function loadUserStoriesDevData(panel: vscode.WebviewPanel, modelService: 
                 };
             });
 
+            // Parse storyNumber as integer for developmentQueuePosition default
+            const storyNumberInt = typeof storyNumber === 'number' ? storyNumber : (storyNumber === '' ? 0 : parseInt(storyNumber) || 0);
+            
             combinedData.push({
                 storyId: storyId,
                 storyNumber: storyNumber,
@@ -186,6 +189,7 @@ async function loadUserStoriesDevData(panel: vscode.WebviewPanel, modelService: 
                 actualEndDate: existingDev?.actualEndDate || '',
                 blockedReason: existingDev?.blockedReason || '',
                 devNotes: existingDev?.devNotes || '',
+                developmentQueuePosition: existingDev?.developmentQueuePosition !== undefined ? existingDev.developmentQueuePosition : storyNumberInt,
                 devFilePath: devFilePath,
                 mappedPages: pageDetails, // Array of page objects with name, role, isStartPage
                 selected: false // For checkbox functionality
@@ -482,7 +486,8 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     estimatedEndDate: devData.estimatedEndDate,
                                     actualEndDate: devData.actualEndDate,
                                     blockedReason: devData.blockedReason,
-                                    devNotes: devData.devNotes
+                                    devNotes: devData.devNotes,
+                                    developmentQueuePosition: devData.developmentQueuePosition
                                 };
 
                                 if (index >= 0) {
@@ -740,6 +745,63 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                             } catch (error) {
                                 console.error('[Extension] Error in bulk sprint update:', error);
                                 vscode.window.showErrorMessage(`Error updating sprints: ${(error as Error).message}`);
+                            }
+                            break;
+
+                        case 'batchUpdateQueuePositions':
+                            try {
+                                const updates = message.data; // Array of { storyId, developmentQueuePosition }
+                                
+                                const modelFilePath = modelService.getCurrentFilePath();
+                                if (!modelFilePath) {
+                                    throw new Error("No model file path available");
+                                }
+                                
+                                const modelDir = path.dirname(modelFilePath);
+                                const filePath = path.join(modelDir, 'app-dna-user-story-dev.json');
+
+                                // Load existing data
+                                let existingData: any = { devData: [] };
+                                if (fs.existsSync(filePath)) {
+                                    const content = fs.readFileSync(filePath, 'utf8');
+                                    existingData = JSON.parse(content);
+                                }
+
+                                // Update each story's queue position
+                                updates.forEach((update: any) => {
+                                    const index = existingData.devData.findIndex((d: any) => d.storyId === update.storyId);
+                                    if (index >= 0) {
+                                        existingData.devData[index].developmentQueuePosition = update.developmentQueuePosition;
+                                    } else {
+                                        // Create new record if doesn't exist
+                                        existingData.devData.push({
+                                            storyId: update.storyId,
+                                            developmentQueuePosition: update.developmentQueuePosition,
+                                            devStatus: 'on-hold',
+                                            priority: 'medium',
+                                            storyPoints: '?',
+                                            assignedTo: '',
+                                            sprintId: '',
+                                            startDate: '',
+                                            estimatedEndDate: '',
+                                            actualEndDate: '',
+                                            blockedReason: '',
+                                            devNotes: ''
+                                        });
+                                    }
+                                });
+
+                                await saveDevData(existingData.devData, filePath);
+
+                                panel.webview.postMessage({
+                                    command: 'devChangeSaved',
+                                    success: true
+                                });
+
+                                console.log(`[Extension] Updated queue positions for ${updates.length} stories`);
+                            } catch (error) {
+                                console.error('[Extension] Error in batch queue position update:', error);
+                                vscode.window.showErrorMessage(`Error updating queue positions: ${(error as Error).message}`);
                             }
                             break;
 
@@ -1124,8 +1186,8 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                 }
 
                                 // Create CSV content with columns matching the Details Tab table
-                                // Columns: Story #, Story Text, Priority, Points, Assigned To, Dev Status, Sprint, Start Date, Est. End Date, Actual End Date, Blocked Reason, Dev Notes
-                                let csvContent = "Story #,Story Text,Priority,Points,Assigned To,Dev Status,Sprint,Start Date,Est. End Date,Actual End Date,Blocked Reason,Dev Notes\n";
+                                // Columns: Story #, Story Text, Priority, Dev Queue Position, Points, Assigned To, Dev Status, Sprint, Start Date, Est. End Date, Actual End Date, Blocked Reason, Dev Notes
+                                let csvContent = "Story #,Story Text,Priority,Dev Queue Position,Points,Assigned To,Dev Status,Sprint,Start Date,Est. End Date,Actual End Date,Blocked Reason,Dev Notes\n";
                                 stories.forEach((story: any) => {
                                     // Only export processed stories that aren't ignored
                                     if (story.isStoryProcessed !== "true" || story.isIgnored === "true") {
@@ -1141,6 +1203,7 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                     
                                     // Get display labels for dropdown values
                                     const priority = getPriorityLabel(dev?.priority || "");
+                                    const queuePosition = dev?.developmentQueuePosition !== undefined ? dev.developmentQueuePosition : storyNumber;
                                     const storyPoints = dev?.storyPoints || "";
                                     const assignedTo = dev?.assignedTo || "";
                                     const devStatus = getDevStatusLabel(dev?.devStatus || "");
@@ -1157,6 +1220,7 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                                         storyNumber,
                                         escapeCsvValue(storyText),
                                         priority,
+                                        queuePosition,
                                         storyPoints,
                                         assignedTo,
                                         devStatus,
@@ -1473,6 +1537,15 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                 ),
                 priorityManagement: panel.webview.asWebviewUri(
                     vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'priorityManagement.js')
+                ),
+                queuePositionManagement: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'queuePositionManagement.js')
+                ),
+                devQueueTabTemplate: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'templates', 'devQueueTabTemplate.js')
+                ),
+                devQueueDragDrop: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'devQueueDragDrop.js')
                 ),
                 storyPointsManagement: panel.webview.asWebviewUri(
                     vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'storyPointsManagement.js')
@@ -4276,6 +4349,235 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     font-weight: 600;
                     color: var(--vscode-charts-green);
                 }
+
+                /* Dev Queue Tab Styles */
+                .dev-queue-container {
+                    padding: 0;
+                }
+
+                .dev-queue-header {
+                    margin-bottom: 20px;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid var(--vscode-panel-border);
+                }
+
+                .dev-queue-header h3 {
+                    margin: 0 0 12px 0;
+                    font-size: 18px;
+                    color: var(--vscode-foreground);
+                }
+
+                .dev-queue-description {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 8px;
+                    padding: 12px;
+                    background: var(--vscode-textCodeBlock-background);
+                    border-left: 3px solid var(--vscode-focusBorder);
+                    border-radius: 4px;
+                    line-height: 1.5;
+                    color: var(--vscode-descriptionForeground);
+                    font-size: 13px;
+                }
+
+                .dev-queue-description .codicon {
+                    margin-top: 2px;
+                    flex-shrink: 0;
+                }
+
+                .dev-queue-stats {
+                    display: flex;
+                    gap: 16px;
+                    margin-bottom: 20px;
+                    padding: 16px;
+                    background: var(--vscode-input-background);
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                }
+
+                .dev-queue-stats .stat-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+
+                .dev-queue-stats .stat-label {
+                    font-size: 11px;
+                    text-transform: uppercase;
+                    color: var(--vscode-descriptionForeground);
+                }
+
+                .dev-queue-stats .stat-value {
+                    font-size: 20px;
+                    font-weight: 600;
+                    color: var(--vscode-foreground);
+                }
+
+                .dev-queue-actions {
+                    display: flex;
+                    gap: 8px;
+                    margin-bottom: 16px;
+                }
+
+                .dev-queue-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                .dev-queue-item {
+                    display: flex;
+                    background: var(--vscode-list-inactiveSelectionBackground);
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
+                    cursor: move;
+                    transition: all 0.2s ease;
+                }
+
+                .dev-queue-item:hover {
+                    background: var(--vscode-list-hoverBackground);
+                    border-color: var(--vscode-focusBorder);
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                }
+
+                .dev-queue-item.dragging {
+                    opacity: 0.5;
+                    transform: scale(0.98);
+                }
+
+                .dev-queue-item.drag-over {
+                    border-color: var(--vscode-focusBorder);
+                    border-width: 2px;
+                    background: var(--vscode-list-activeSelectionBackground);
+                }
+
+                .queue-item-handle {
+                    display: flex;
+                    align-items: center;
+                    padding: 12px 8px;
+                    color: var(--vscode-descriptionForeground);
+                    cursor: grab;
+                }
+
+                .queue-item-handle:active {
+                    cursor: grabbing;
+                }
+
+                .queue-item-content {
+                    flex: 1;
+                    padding: 12px;
+                    cursor: pointer;
+                }
+
+                .queue-item-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 8px;
+                    flex-wrap: wrap;
+                }
+
+                .queue-item-position {
+                    font-weight: 600;
+                    font-size: 14px;
+                    color: var(--vscode-textLink-foreground);
+                }
+
+                .queue-item-story-number {
+                    font-size: 12px;
+                    color: var(--vscode-descriptionForeground);
+                }
+
+                .queue-item-status {
+                    padding: 2px 8px;
+                    border-radius: 3px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                }
+
+                .queue-item-status.status-on-hold {
+                    background: var(--vscode-inputValidation-warningBackground);
+                    color: var(--vscode-inputValidation-warningForeground);
+                }
+
+                .queue-item-status.status-ready-for-dev {
+                    background: var(--vscode-charts-blue);
+                    color: white;
+                }
+
+                .queue-item-status.status-in-progress {
+                    background: var(--vscode-charts-green);
+                    color: white;
+                }
+
+                .queue-item-status.status-blocked {
+                    background: var(--vscode-charts-red);
+                    color: white;
+                }
+
+                .queue-item-priority {
+                    padding: 2px 8px;
+                    border-radius: 3px;
+                    font-size: 11px;
+                    font-weight: 600;
+                }
+
+                .queue-item-priority.priority-critical {
+                    background: var(--vscode-charts-red);
+                    color: white;
+                }
+
+                .queue-item-priority.priority-high {
+                    background: var(--vscode-charts-orange);
+                    color: white;
+                }
+
+                .queue-item-priority.priority-medium {
+                    background: var(--vscode-charts-yellow);
+                    color: black;
+                }
+
+                .queue-item-priority.priority-low {
+                    background: var(--vscode-charts-blue);
+                    color: white;
+                }
+
+                .queue-item-text {
+                    margin-bottom: 8px;
+                    line-height: 1.4;
+                    color: var(--vscode-foreground);
+                }
+
+                .queue-item-footer {
+                    display: flex;
+                    gap: 12px;
+                    font-size: 12px;
+                    color: var(--vscode-descriptionForeground);
+                }
+
+                .queue-item-footer span {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+
+                .empty-queue-message {
+                    text-align: center;
+                    padding: 60px 20px;
+                    color: var(--vscode-descriptionForeground);
+                }
+
+                .empty-queue-message .codicon {
+                    font-size: 48px;
+                    margin-bottom: 16px;
+                    color: var(--vscode-charts-green);
+                }
+
+                .empty-queue-message p {
+                    font-size: 16px;
+                    margin: 0;
+                }
             </style>
         </head>
         <body>
@@ -4286,6 +4588,7 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
 
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('details')">Details</button>
+                <button class="tab" onclick="switchTab('devQueue')">Dev Queue</button>
                 <button class="tab" onclick="switchTab('analysis')">Analysis</button>
                 <button class="tab" onclick="switchTab('board')">Board</button>
                 <button class="tab" onclick="switchTab('sprint')">Sprint</button>
@@ -4299,6 +4602,14 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
                     <i class="codicon codicon-loading codicon-modifier-spin"></i>
                     <h3>Loading development data...</h3>
                     <p>Please wait while we load your user stories</p>
+                </div>
+            </div>
+
+            <div id="devQueueTab" class="tab-content">
+                <div class="empty-state">
+                    <i class="codicon codicon-list-ordered"></i>
+                    <h3>Development Queue</h3>
+                    <p>Queue view will be displayed here</p>
                 </div>
             </div>
 
@@ -4366,6 +4677,7 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
             
             <!-- Templates must be loaded next -->
             <script src="${scriptUris.detailsTabTemplate}"></script>
+            <script src="${scriptUris.devQueueTabTemplate}"></script>
             <script src="${scriptUris.storyDetailModalTemplate}"></script>
             <script src="${scriptUris.boardTabTemplate}"></script>
             <script src="${scriptUris.analysisTabTemplate}"></script>
@@ -4387,9 +4699,13 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
             <script src="${scriptUris.selectionActions}"></script>
             <script src="${scriptUris.devStatusManagement}"></script>
             <script src="${scriptUris.priorityManagement}"></script>
+            <script src="${scriptUris.queuePositionManagement}"></script>
             <script src="${scriptUris.storyPointsManagement}"></script>
             <script src="${scriptUris.assignmentManagement}"></script>
             <script src="${scriptUris.modalFunctionality}"></script>
+            
+            <!-- Dev Queue Tab scripts -->
+            <script src="${scriptUris.devQueueDragDrop}"></script>
             
             <!-- Board Tab scripts -->
             <script src="${scriptUris.cardComponent}"></script>

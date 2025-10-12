@@ -74,7 +74,7 @@ function clearAllColumns() {
 }
 
 /**
- * Group items by their dev status
+ * Group items by their dev status and sort by developmentQueuePosition
  */
 function groupItemsByStatus(items) {
     const grouped = {
@@ -90,6 +90,15 @@ function groupItemsByStatus(items) {
         if (grouped[status]) {
             grouped[status].push(item);
         }
+    });
+    
+    // Sort each group by developmentQueuePosition (ascending)
+    Object.keys(grouped).forEach(status => {
+        grouped[status].sort((a, b) => {
+            const posA = a.developmentQueuePosition !== undefined ? a.developmentQueuePosition : (typeof a.storyNumber === 'number' ? a.storyNumber : parseInt(a.storyNumber) || 0);
+            const posB = b.developmentQueuePosition !== undefined ? b.developmentQueuePosition : (typeof b.storyNumber === 'number' ? b.storyNumber : parseInt(b.storyNumber) || 0);
+            return posA - posB;
+        });
     });
     
     return grouped;
