@@ -103,6 +103,30 @@ async function loadUserStoriesQAData(panel: vscode.WebviewPanel, modelService: M
             });
         }
 
+        // Load existing dev data from separate file to get actualEndDate
+        let existingDevData: any = { devData: [] };
+        if (modelFilePath) {
+            const modelDir = path.dirname(modelFilePath);
+            const devFilePath = path.join(modelDir, 'app-dna-user-story-dev.json');
+            try {
+                if (fs.existsSync(devFilePath)) {
+                    const devContent = fs.readFileSync(devFilePath, 'utf8');
+                    existingDevData = JSON.parse(devContent);
+                }
+            } catch (error) {
+                console.warn("[Extension] Could not load existing dev file:", error);
+                existingDevData = { devData: [] };
+            }
+        }
+
+        // Create lookup for existing dev data
+        const devLookup = new Map<string, any>();
+        if (existingDevData.devData) {
+            existingDevData.devData.forEach((dev: any) => {
+                devLookup.set(dev.storyId, dev);
+            });
+        }
+
         console.log(`[Extension] Found ${userStories.length} user stories`);
 
         // Load page mapping data
@@ -171,10 +195,15 @@ async function loadUserStoriesQAData(panel: vscode.WebviewPanel, modelService: M
                 };
             });
 
+            // Get dev completed date from dev data
+            const existingDev = devLookup.get(storyId);
+            const devCompletedDate = existingDev?.actualEndDate || '';
+
             combinedData.push({
                 storyId: storyId,
                 storyNumber: storyNumber,
                 storyText: story.storyText || '',
+                devCompletedDate: devCompletedDate, // From dev file
                 qaStatus: existingQA?.qaStatus || 'pending',
                 qaNotes: existingQA?.qaNotes || '',
                 dateVerified: existingQA?.dateVerified || '',
@@ -814,6 +843,11 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         .story-text-column {
                             max-width: 300px;
                             word-wrap: break-word;
+                        }
+                        
+                        .dev-completed-date-column {
+                            width: 180px;
+                            text-align: center;
                         }
                         
                         .qa-status-column {
@@ -1835,6 +1869,10 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                                         <label>Available QA Resources (testers):</label>
                                         <input type="number" id="configQAResources" min="1" max="20" step="1" value="2" />
                                     </div>
+                                    <div class="modal-field">
+                                        <label>Default QA Rate ($/hr):</label>
+                                        <input type="number" id="configDefaultQARate" min="0" max="500" step="1" value="50" />
+                                    </div>
                                 </div>
 
                                 <div class="config-section">
@@ -1853,6 +1891,16 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                                             <!-- Will be populated dynamically -->
                                         </tbody>
                                     </table>
+                                </div>
+
+                                <div class="config-section">
+                                    <h4>Display Options</h4>
+                                    <div class="modal-field">
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" id="configHideNonWorkingHours" style="margin-right: 8px;" />
+                                            <span>Hide non-working hours in Gantt chart timeline</span>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div class="config-section">
@@ -2009,13 +2057,14 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             try {
                                 // Generate CSV content
                                 const items = message.data.items || [];
-                                const csvHeaders = ['Story Number', 'Story Text', 'Status', 'Notes', 'Date Verified'];
+                                const csvHeaders = ['Story Number', 'Story Text', 'Development Completed Date', 'Status', 'Notes', 'Date Verified'];
                                 const csvRows = [csvHeaders.join(',')];
                                 
                                 items.forEach((item: any) => {
                                     const row = [
                                         `"${(item.storyNumber || '').replace(/"/g, '""')}"`,
                                         `"${(item.storyText || '').replace(/"/g, '""')}"`,
+                                        `"${(item.devCompletedDate || '').replace(/"/g, '""')}"`,
                                         `"${(item.qaStatus || '').replace(/"/g, '""')}"`,
                                         `"${(item.qaNotes || '').replace(/"/g, '""')}"`,
                                         `"${(item.dateVerified || '').replace(/"/g, '""')}"`
@@ -2119,6 +2168,8 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                                     config = {
                                         avgTestTime: 4,
                                         qaResources: 2,
+                                        defaultQARate: 50,
+                                        hideNonWorkingHours: false,
                                         workingHours: {
                                             monday: { enabled: true, startTime: '09:00', endTime: '17:00' },
                                             tuesday: { enabled: true, startTime: '09:00', endTime: '17:00' },
@@ -2143,6 +2194,8 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                                     config: {
                                         avgTestTime: 4,
                                         qaResources: 2,
+                                        defaultQARate: 50,
+                                        hideNonWorkingHours: false,
                                         workingHours: {
                                             monday: { enabled: true, startTime: '09:00', endTime: '17:00' },
                                             tuesday: { enabled: true, startTime: '09:00', endTime: '17:00' },

@@ -13,16 +13,9 @@ user story dev view...
   - allow drag and drop to reorder stories
 - forecast tab
   - i dont think the 'Holidays & Non-Working Days' data is used in forecasting.
-- 
 
-- user story qa view
-  - details tab
-    - order by dev queue position
-    - show dev queue position in column 'Suggested Order'
-  - board tab
-    - order swim lane by dev queue position
-  - forecast tab
-    - order by dev queue position
+
+user story qa view
   - config
     - add a hourly rate to a qa resource
   - in the forecast tab, show total cost of remaining work based on qa hourly rates

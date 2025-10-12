@@ -644,12 +644,14 @@ function closeQAConfigModal() {
 function saveQAConfigModal() {
     const avgTestTimeInput = document.getElementById("configAvgTestTime");
     const qaResourcesInput = document.getElementById("configQAResources");
+    const defaultQARateInput = document.getElementById("configDefaultQARate");
     
-    if (!avgTestTimeInput || !qaResourcesInput) return;
+    if (!avgTestTimeInput || !qaResourcesInput || !defaultQARateInput) return;
     
     // Validate inputs
     const avgTestTime = parseFloat(avgTestTimeInput.value);
     const qaResources = parseInt(qaResourcesInput.value);
+    const defaultQARate = parseFloat(defaultQARateInput.value);
     
     if (isNaN(avgTestTime) || avgTestTime <= 0) {
         vscode.postMessage({
@@ -663,6 +665,14 @@ function saveQAConfigModal() {
         vscode.postMessage({
             command: "showErrorMessage",
             message: "Number of QA resources must be at least 1"
+        });
+        return;
+    }
+    
+    if (isNaN(defaultQARate) || defaultQARate < 0) {
+        vscode.postMessage({
+            command: "showErrorMessage",
+            message: "Default QA rate must be a non-negative number"
         });
         return;
     }
@@ -695,10 +705,16 @@ function saveQAConfigModal() {
         return;
     }
     
+    // Get display options
+    const hideNonWorkingHoursCheckbox = document.getElementById("configHideNonWorkingHours");
+    const hideNonWorkingHours = hideNonWorkingHoursCheckbox ? hideNonWorkingHoursCheckbox.checked : false;
+    
     // Create config object
     const config = {
         avgTestTime: avgTestTime,
         qaResources: qaResources,
+        defaultQARate: defaultQARate,
+        hideNonWorkingHours: hideNonWorkingHours,
         workingHours: workingHours
     };
     
@@ -874,9 +890,25 @@ function calculateQAForecast() {
     }
     
     // Get stories that are "ready-to-test"
+    // Sort by devCompletedDate (most recent first), then by story number
     const readyToTestStories = allItems.filter(item => 
         item.qaStatus === "ready-to-test" && !item.isIgnored
     ).sort((a, b) => {
+        const dateA = a.devCompletedDate || '';
+        const dateB = b.devCompletedDate || '';
+        
+        // Both have dates - sort by date descending (most recent first)
+        if (dateA && dateB) {
+            return dateB.localeCompare(dateA);
+        }
+        
+        // Only A has date - A comes first
+        if (dateA && !dateB) return -1;
+        
+        // Only B has date - B comes first
+        if (!dateA && dateB) return 1;
+        
+        // Neither has date - sort by story number
         const numA = parseInt(a.storyNumber) || 0;
         const numB = parseInt(b.storyNumber) || 0;
         return numA - numB;
@@ -1152,6 +1184,10 @@ function renderForecastGantt(forecastData) {
     if (!vizDiv) return;
     vizDiv.innerHTML = "";
     
+    // Check if non-working hours should be hidden
+    const shouldHideNonWorkingHours = qaConfig && qaConfig.hideNonWorkingHours === true;
+    console.log('[renderForecastGantt] shouldHideNonWorkingHours:', shouldHideNonWorkingHours);
+    
     // Set dimensions
     const margin = { top: 60, right: 40, bottom: 20, left: 100 };
     
@@ -1165,12 +1201,13 @@ function renderForecastGantt(forecastData) {
     const endDate = new Date(maxDate);
     endDate.setMinutes(59, 59, 999);
     
-    // Calculate total hours
+    // Calculate total hours (will be adjusted after filtering if needed)
     const totalHours = Math.ceil((endDate - startDate) / (1000 * 60 * 60));
     
     // Set column width for each hour
     const hourWidth = 30;
-    const width = totalHours * hourWidth;
+    // Width will be recalculated after allHours is determined
+    let width = totalHours * hourWidth;
     const height = forecastData.length * 35;
     
     // Create SVG
@@ -1197,12 +1234,68 @@ function renderForecastGantt(forecastData) {
         .range(d3.schemeCategory10);
     
     // Create array of all hours in range
-    const allHours = [];
+    const allHoursUnfiltered = [];
     let currentHour = new Date(startDate);
     while (currentHour <= endDate) {
-        allHours.push(new Date(currentHour));
+        allHoursUnfiltered.push(new Date(currentHour));
         currentHour = new Date(currentHour.getTime() + 60 * 60 * 1000); // Add 1 hour
     }
+    
+    // Filter out non-working hours if hideNonWorkingHours is enabled
+    const allHours = shouldHideNonWorkingHours 
+        ? allHoursUnfiltered.filter(h => {
+            // Check if this hour is within working hours based on qaConfig
+            const dayOfWeek = h.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const dayName = dayNames[dayOfWeek];
+            
+            // Get working hours config for this day
+            const dayConfig = qaConfig.workingHours[dayName];
+            
+            // If day is not enabled, filter it out
+            if (!dayConfig || !dayConfig.enabled) {
+                return false;
+            }
+            
+            // Check if hour is within the day's working hours
+            const hour = h.getHours();
+            const startHour = parseInt(dayConfig.startTime.split(':')[0]);
+            const endHour = parseInt(dayConfig.endTime.split(':')[0]);
+            
+            return hour >= startHour && hour < endHour;
+        })
+        : allHoursUnfiltered;
+    
+    // Update width based on actual hours to display
+    width = allHours.length * hourWidth;
+    
+    // Create a mapping function to convert date/time to x position
+    // This accounts for filtered hours when hideNonWorkingHours is enabled
+    const getXPosition = (date) => {
+        if (!shouldHideNonWorkingHours) {
+            // Use continuous time scale
+            return xScale(date);
+        } else {
+            // Find the nearest hour in the filtered allHours array
+            let closestIndex = 0;
+            let closestDiff = Math.abs(allHours[0].getTime() - date.getTime());
+            
+            for (let i = 1; i < allHours.length; i++) {
+                const diff = Math.abs(allHours[i].getTime() - date.getTime());
+                if (diff < closestDiff) {
+                    closestDiff = diff;
+                    closestIndex = i;
+                }
+            }
+            
+            // Calculate fractional position within the hour
+            const hourStart = allHours[closestIndex].getTime();
+            const hourEnd = hourStart + 60 * 60 * 1000;
+            const fraction = (date.getTime() - hourStart) / (hourEnd - hourStart);
+            
+            return (closestIndex + fraction) * hourWidth;
+        }
+    };
     
     // Group hours by day for day headers
     const dayGroups = [];
@@ -1278,24 +1371,27 @@ function renderForecastGantt(forecastData) {
         .attr("stroke", "#e0e0e0")
         .attr("stroke-width", 0.5);
     
-    // Highlight non-working hours (based on default 9-5 schedule)
-    svg.selectAll(".non-working")
-        .data(allHours.filter(h => {
-            const hour = h.getHours();
-            return hour < 9 || hour >= 17;
-        }))
-        .enter()
-        .append("rect")
-        .attr("class", "non-working")
-        .attr("x", d => {
-            const hourIndex = allHours.findIndex(hour => hour.getTime() === d.getTime());
-            return hourIndex * hourWidth;
-        })
-        .attr("y", 0)
-        .attr("width", hourWidth)
-        .attr("height", height)
-        .attr("fill", "#f5f5f5")
-        .attr("opacity", 0.5);
+    // Highlight non-working hours (based on default 9-5 schedule) - only if not hidden
+    // Note: shouldHideNonWorkingHours is already defined at the top of the function
+    if (!shouldHideNonWorkingHours) {
+        svg.selectAll(".non-working")
+            .data(allHours.filter(h => {
+                const hour = h.getHours();
+                return hour < 9 || hour >= 17;
+            }))
+            .enter()
+            .append("rect")
+            .attr("class", "non-working")
+            .attr("x", d => {
+                const hourIndex = allHours.findIndex(hour => hour.getTime() === d.getTime());
+                return hourIndex * hourWidth;
+            })
+            .attr("y", 0)
+            .attr("width", hourWidth)
+            .attr("height", height)
+            .attr("fill", "#f5f5f5")
+            .attr("opacity", 0.5);
+    }
     
     // Draw story name labels on Y-axis
     svg.selectAll(".story-label")
@@ -1351,9 +1447,9 @@ function renderForecastGantt(forecastData) {
         .enter()
         .append("rect")
         .attr("class", "bar")
-        .attr("x", d => xScale(d.startDate))
+        .attr("x", d => getXPosition(d.startDate))
         .attr("y", d => yScale(d.storyNumber))
-        .attr("width", d => Math.max(2, xScale(d.endDate) - xScale(d.startDate)))
+        .attr("width", d => Math.max(2, getXPosition(d.endDate) - getXPosition(d.startDate)))
         .attr("height", yScale.bandwidth())
         .attr("fill", d => colorScale(d.testerIndex))
         .attr("opacity", 0.85)
@@ -1402,12 +1498,12 @@ function renderForecastGantt(forecastData) {
         .append("text")
         .attr("class", "bar-label")
         .attr("x", d => {
-            const barWidth = xScale(d.endDate) - xScale(d.startDate);
-            return barWidth > 15 ? xScale(d.startDate) + barWidth / 2 : xScale(d.startDate) - 15;
+            const barWidth = getXPosition(d.endDate) - getXPosition(d.startDate);
+            return barWidth > 15 ? getXPosition(d.startDate) + barWidth / 2 : getXPosition(d.startDate) - 15;
         })
         .attr("y", d => yScale(d.storyNumber) + yScale.bandwidth() / 2)
         .attr("text-anchor", d => {
-            const barWidth = xScale(d.endDate) - xScale(d.startDate);
+            const barWidth = getXPosition(d.endDate) - getXPosition(d.startDate);
             return barWidth > 15 ? "middle" : "end";
         })
         .attr("dominant-baseline", "middle")
@@ -1546,6 +1642,36 @@ function renderKanbanBoard() {
         if (statusGroups[status]) {
             statusGroups[status].push(item);
         }
+    });
+    
+    // Sort items within each status group by devCompletedDate
+    // Stories with devCompletedDate appear first, sorted by most recent date first (descending)
+    // Stories without devCompletedDate appear after, sorted by story number
+    Object.keys(statusGroups).forEach(status => {
+        statusGroups[status].sort((a, b) => {
+            const dateA = a.devCompletedDate || '';
+            const dateB = b.devCompletedDate || '';
+            
+            // Both have dates - sort by date descending (most recent first)
+            if (dateA && dateB) {
+                return dateB.localeCompare(dateA); // Descending order
+            }
+            
+            // Only A has date - A comes first
+            if (dateA && !dateB) {
+                return -1;
+            }
+            
+            // Only B has date - B comes first
+            if (!dateA && dateB) {
+                return 1;
+            }
+            
+            // Neither has date - sort by story number
+            const numA = typeof a.storyNumber === 'number' ? a.storyNumber : parseInt(a.storyNumber) || 0;
+            const numB = typeof b.storyNumber === 'number' ? b.storyNumber : parseInt(b.storyNumber) || 0;
+            return numA - numB;
+        });
     });
     
     // Render each column
@@ -1989,6 +2115,7 @@ function renderTable() {
         { key: 'select', label: '', sortable: false, className: 'checkbox-column' },
         { key: 'storyNumber', label: 'Story Number', sortable: true, className: 'story-number-column' },
         { key: 'storyText', label: 'Story Text', sortable: true, className: 'story-text-column' },
+        { key: 'devCompletedDate', label: 'Development Completed Date', sortable: true, className: 'dev-completed-date-column' },
         { key: 'qaStatus', label: 'Status', sortable: true, className: 'qa-status-column' },
         { key: 'qaNotes', label: 'Notes', sortable: false, className: 'qa-notes-column' },
         { key: 'dateVerified', label: 'Date Verified', sortable: true, className: 'date-verified-column' }
@@ -2069,6 +2196,13 @@ function renderTable() {
             storyTextCell.className = "story-text-column";
             storyTextCell.textContent = item.storyText || '';
             row.appendChild(storyTextCell);
+            
+            // Development Completed Date
+            const devCompletedDateCell = document.createElement("td");
+            devCompletedDateCell.className = "dev-completed-date-column";
+            devCompletedDateCell.textContent = item.devCompletedDate || '';
+            devCompletedDateCell.style.textAlign = 'center';
+            row.appendChild(devCompletedDateCell);
             
             // QA Status
             const qaStatusCell = document.createElement("td");
@@ -2420,6 +2554,8 @@ window.addEventListener('message', event => {
             // Populate config modal
             const avgTestTimeInput = document.getElementById('configAvgTestTime');
             const qaResourcesInput = document.getElementById('configQAResources');
+            const defaultQARateInput = document.getElementById('configDefaultQARate');
+            const hideNonWorkingHoursCheckbox = document.getElementById('configHideNonWorkingHours');
             
             if (avgTestTimeInput && qaConfig) {
                 avgTestTimeInput.value = qaConfig.avgTestTime || 4;
@@ -2427,6 +2563,14 @@ window.addEventListener('message', event => {
             
             if (qaResourcesInput && qaConfig) {
                 qaResourcesInput.value = qaConfig.qaResources || 2;
+            }
+            
+            if (defaultQARateInput && qaConfig) {
+                defaultQARateInput.value = qaConfig.defaultQARate || 50;
+            }
+            
+            if (hideNonWorkingHoursCheckbox && qaConfig) {
+                hideNonWorkingHoursCheckbox.checked = qaConfig.hideNonWorkingHours || false;
             }
             
             // Populate working hours table
