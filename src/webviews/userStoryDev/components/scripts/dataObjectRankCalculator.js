@@ -251,31 +251,188 @@ function calculateDataObjectRank(dataObjectName, allDataObjects) {
 }
 
 /**
+ * Extracts the action from a user story text
+ * Based on the logic from userStoriesView.js
+ * @param {string} text - User story text
+ * @returns {string} The extracted action or 'unknown' if not found
+ */
+function extractActionFromUserStory(text) {
+    if (!text || typeof text !== "string") {
+        return "unknown";
+    }
+    
+    const t = text.trim().replace(/\s+/g, " ");
+    
+    // Regex to extract action from: ...wants to [action]... (case insensitive)
+    const re1 = /wants to\s+(view all|view|add|create|update|edit|delete|remove)(?:\s+(?:a|an|all))?\s+/i;
+    const match1 = t.match(re1);
+    if (match1) { 
+        const action = match1[1].toLowerCase();
+        // Normalize action variants
+        if (action === 'create') {
+            return "add";
+        }
+        if (action === 'edit') {
+            return "update";
+        }
+        if (action === 'remove') {
+            return "delete";
+        }
+        return action;
+    }
+    
+    // Regex to extract action from: ...I want to [action]... (case insensitive)
+    const re2 = /I want to\s+(view all|view|add|create|update|edit|delete|remove)(?:\s+(?:a|an|all))?\s+/i;
+    const match2 = t.match(re2);
+    if (match2) { 
+        const action = match2[1].toLowerCase();
+        // Normalize action variants
+        if (action === 'create') {
+            return "add";
+        }
+        if (action === 'edit') {
+            return "update";
+        }
+        if (action === 'remove') {
+            return "delete";
+        }
+        return action;
+    }
+    
+    // Fallback: Simple word matching for edge cases
+    const lowerText = text.toLowerCase();
+    if (lowerText.includes('view all')) {
+        return "view all";
+    }
+    
+    const actions = ['view', 'add', 'update', 'delete'];
+    for (const action of actions) {
+        const actionRegex = new RegExp(`\\b${action}\\b`, 'i');
+        if (actionRegex.test(lowerText)) {
+            return action;
+        }
+    }
+    
+    return "unknown";
+}
+
+/**
+ * Gets the action order for sorting
+ * Add = 0, View All = 1, View = 2, Update = 3, Delete = 4, Other = 5
+ * @param {string} action - The action string
+ * @returns {number} The sort order for the action
+ */
+function getActionOrder(action) {
+    const actionLower = (action || 'unknown').toLowerCase();
+    
+    switch (actionLower) {
+        case 'add':
+        case 'create':
+            return 0;
+        case 'view all':
+            return 1;
+        case 'view':
+            return 2;
+        case 'update':
+        case 'edit':
+            return 3;
+        case 'delete':
+        case 'remove':
+            return 4;
+        default:
+            return 5; // unknown or other actions
+    }
+}
+
+/**
+ * Resolves an extracted object name to the actual object name in the model
+ * Handles plural/singular variants and PascalCase conversion
+ * @param {string} extractedName - The name extracted from user story text
+ * @param {Array} allDataObjects - Array of all data objects from the model
+ * @returns {string|null} The actual object name from the model, or null if not found
+ */
+function resolveDataObjectName(extractedName, allDataObjects) {
+    if (!extractedName || !allDataObjects || allDataObjects.length === 0) {
+        return null;
+    }
+    
+    // Find matching object in model
+    const matchedObject = allDataObjects.find(obj => 
+        obj.name && isDataObjectMatch(obj.name, extractedName)
+    );
+    
+    return matchedObject ? matchedObject.name : null;
+}
+
+/**
  * Gets the primary (lowest rank) data object referenced in a user story
  * @param {string} storyText - The user story text
  * @param {Array} allDataObjects - Array of all data objects from the model
- * @returns {Object} Object with { dataObjectName, rank }
+ * @returns {Object} Object with { dataObjectName, rank, action, actionOrder }
  */
 function getPrimaryDataObjectForStory(storyText, allDataObjects) {
     // Extract data objects from story text
     const extractedObjects = extractDataObjectsFromStory(storyText);
     
+    // Extract action from story text
+    const action = extractActionFromUserStory(storyText);
+    const actionOrder = getActionOrder(action);
+    
     if (extractedObjects.length === 0) {
-        return { dataObjectName: null, rank: 999 };
+        return { 
+            dataObjectName: null, 
+            rank: 999, 
+            action: action, 
+            actionOrder: actionOrder 
+        };
     }
     
-    // Calculate rank for each extracted object
-    const objectRanks = extractedObjects.map(objName => {
-        const rank = calculateDataObjectRank(objName, allDataObjects);
-        return { dataObjectName: objName, rank: rank };
-    });
+    // Resolve extracted names to actual model object names and calculate ranks
+    const objectRanks = [];
+    for (const extractedName of extractedObjects) {
+        const actualName = resolveDataObjectName(extractedName, allDataObjects);
+        if (actualName) {
+            const rank = calculateDataObjectRank(actualName, allDataObjects);
+            objectRanks.push({ 
+                extractedName: extractedName,
+                dataObjectName: actualName, 
+                rank: rank 
+            });
+        } else {
+            console.log(`Could not resolve extracted name '${extractedName}' to a model object`);
+        }
+    }
     
-    // Sort by rank (ascending) and return the one with lowest rank (highest priority)
-    objectRanks.sort((a, b) => a.rank - b.rank);
+    if (objectRanks.length === 0) {
+        console.log(`No valid data objects found in story`);
+        return { 
+            dataObjectName: null, 
+            rank: 999, 
+            action: action, 
+            actionOrder: actionOrder 
+        };
+    }
     
-    console.log(`Story references: ${objectRanks.map(o => `${o.dataObjectName}(rank ${o.rank})`).join(', ')}`);
+    // Special handling for "view all" - prioritize the first object (the one being viewed)
+    // Example: "view all Organizations in a Customer" -> Organizations is the target
+    let primaryObject;
+    if (action === 'view all' && objectRanks.length >= 2) {
+        // For "view all X in Y", the first extracted object (X) is the target
+        primaryObject = objectRanks[0];
+        console.log(`Story references: ${objectRanks.map(o => `${o.dataObjectName}(rank ${o.rank})`).join(', ')}, action: ${action}(order ${actionOrder}), using first object for view all: ${primaryObject.dataObjectName}`);
+    } else {
+        // For other actions, use the lowest rank (highest priority) object
+        objectRanks.sort((a, b) => a.rank - b.rank);
+        primaryObject = objectRanks[0];
+        console.log(`Story references: ${objectRanks.map(o => `${o.dataObjectName}(rank ${o.rank})`).join(', ')}, action: ${action}(order ${actionOrder}), using lowest rank: ${primaryObject.dataObjectName}`);
+    }
     
-    return objectRanks[0];
+    return {
+        dataObjectName: primaryObject.dataObjectName,
+        rank: primaryObject.rank,
+        action: action,
+        actionOrder: actionOrder
+    };
 }
 
 /**
@@ -319,36 +476,53 @@ function handleDataObjectRankingResponse(dataObjects) {
         
         console.log(`Processing ${incompleteItems.length} incomplete stories`);
         
-        // Calculate primary data object and rank for each story
+        // Calculate primary data object, rank, and action for each story
         const storiesWithRank = incompleteItems.map(item => {
             const primaryObject = getPrimaryDataObjectForStory(item.storyText, dataObjects);
             
             return {
                 ...item,
                 primaryDataObject: primaryObject.dataObjectName,
-                dataObjectRank: primaryObject.rank
+                dataObjectRank: primaryObject.rank,
+                action: primaryObject.action,
+                actionOrder: primaryObject.actionOrder
             };
         });
         
-        // Sort by rank (ascending), then by story number (ascending) as tiebreaker
+        // Sort by:
+        // 1. Data object rank (ascending - lower rank = higher priority)
+        // 2. Data object name (alphabetic)
+        // 3. Action order (ascending - Add=0, View All=1, View=2, Update=3, Delete=4, Other=5)
         storiesWithRank.sort((a, b) => {
+            // First sort by data object rank
             if (a.dataObjectRank !== b.dataObjectRank) {
                 return a.dataObjectRank - b.dataObjectRank;
             }
-            return a.storyNumber - b.storyNumber;
+            
+            // If same rank, sort by data object name (alphabetically)
+            const nameA = a.primaryDataObject || "";
+            const nameB = b.primaryDataObject || "";
+            if (nameA !== nameB) {
+                return nameA.localeCompare(nameB);
+            }
+            
+            // If same data object, sort by action order
+            return a.actionOrder - b.actionOrder;
         });
         
         // Assign new queue positions (10, 20, 30, etc.)
         const updates = storiesWithRank.map((story, index) => {
             const newPosition = (index + 1) * 10;
             
-            console.log(`Story ${story.storyNumber}: "${story.storyText?.substring(0, 50)}..." -> Data Object: ${story.primaryDataObject || 'none'}, Rank: ${story.dataObjectRank}, New Position: ${newPosition}`);
+            console.log(`Story ${story.storyNumber}: "${story.storyText?.substring(0, 50)}..." -> Data Object: ${story.primaryDataObject || 'none'}, Rank: ${story.dataObjectRank}, Action: ${story.action}(${story.actionOrder}), New Position: ${newPosition}`);
             
             return {
                 storyId: story.storyId,
                 developmentQueuePosition: newPosition,
                 primaryDataObject: story.primaryDataObject,
-                dataObjectRank: story.dataObjectRank
+                dataObjectRank: story.dataObjectRank,
+                action: story.action,
+                actionOrder: story.actionOrder
             };
         });
         

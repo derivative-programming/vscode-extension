@@ -1,3 +1,40 @@
+2025-10-12 09:30 - Fix Data Object Name Resolution (Plural to Singular)
+Command: Added resolveDataObjectName() to convert extracted names to actual model object names
+Status: Completed
+Notes: Previously, extracted "customers" would not resolve to "Customer" in model, showing rank 999.
+Added resolveDataObjectName() function that uses isDataObjectMatch() to find actual object in model.
+Now getPrimaryDataObjectForStory() resolves extracted names (e.g., "customers", "customer email request") 
+to actual model names (e.g., "Customer", "CustomerEmailRequest") before calculating rank.
+Logs show both extracted name and resolved name for debugging.
+Filters out any extracted names that can't be resolved to model objects.
+Example: "view all Customers" extracts "customers", resolves to "Customer", gets correct rank.
+Architecture: Webview JS only in src/webviews/userStoryDev/components/scripts/dataObjectRankCalculator.js, 
+added resolveDataObjectName() and updated getPrimaryDataObjectForStory().
+
+================================================================================
+
+2025-10-12 09:15 - Fix "View All" Target Object Detection
+Command: Fixed getPrimaryDataObjectForStory() to correctly identify target object in "view all X in Y" patterns
+Status: Completed
+Notes: Previously, "view all Organizations in a Customer" would incorrectly use Customer (parent, rank 1) as the target.
+Now correctly identifies Organizations (the object being viewed) as the target for "view all" actions.
+For "view all" action: uses FIRST extracted object (the one being viewed).
+For other actions: uses LOWEST RANK object (highest priority in hierarchy).
+Example: "view all Organizations in a Customer" now correctly targets Organization, not Customer.
+Architecture: Webview JS only in src/webviews/userStoryDev/components/scripts/dataObjectRankCalculator.js, modified getPrimaryDataObjectForStory() function.
+
+================================================================================
+
+2025-10-11 16:45 - Add Action-Based Sorting to Calculate Queue Position Feature
+Command: Enhanced dataObjectRankCalculator.js with action extraction and three-level sorting
+Status: Completed
+Notes: Added extractActionFromUserStory() and getActionOrder() functions based on userStoriesView.js patterns. 
+Sort order now: (1) data object rank, (2) data object name (alphabetic), (3) action order (Add=0, View All=1, View=2, Update=3, Delete=4, Other=5).
+Updated getPrimaryDataObjectForStory() to return action data, updated handleDataObjectRankingResponse() to use three-level sort, updated console logs to show action info.
+Architecture: Webview JS only in src/webviews/userStoryDev/components/scripts/dataObjectRankCalculator.js
+
+================================================================================
+
 2025-10-11 15:22 - Fix Gantt hour-boundary positioning
 Command: Adjusted dateToPixelPosition hour logic in src/webviews/userStoryDev/components/scripts/ganttChart.js
 Status: Completed

@@ -111,16 +111,20 @@ Webview refreshes Dev Queue tab
 ### Files Created
 
 **1. `src/webviews/userStoryDev/components/scripts/dataObjectRankCalculator.js`**
-   - 370 lines
+   - 540+ lines
    - Main calculation logic
    - Functions:
      - `extractDataObjectsFromStory()` - Extract data object names from story text
      - `addSingularPluralVariants()` - Handle plural/singular matching
-     - `isDataObjectMatch()` - Compare data object names
+     - `toPascalCase()` - Convert "customer email request" to "CustomerEmailRequest"
+     - `isDataObjectMatch()` - Compare data object names with PascalCase conversion
+     - `resolveDataObjectName()` - **NEW** - Resolve extracted names (e.g., "customers") to actual model names (e.g., "Customer")
      - `calculateDataObjectRank()` - Recursive rank calculation
-     - `getPrimaryDataObjectForStory()` - Find lowest rank object in story
+     - `extractActionFromUserStory()` - Extract action from story text (view, add, update, delete, etc.)
+     - `getActionOrder()` - Map actions to sort order (Add=0, View All=1, View=2, Update=3, Delete=4, Other=5)
+     - `getPrimaryDataObjectForStory()` - Find lowest rank object in story with action, resolves names to model objects
      - `calculateQueueByDataObjectRank()` - Main entry point (called by button)
-     - `handleDataObjectRankingResponse()` - Process response from extension
+     - `handleDataObjectRankingResponse()` - Process response from extension with three-level sorting
 
 ### Files Modified
 
@@ -150,6 +154,7 @@ The feature uses the same extraction logic as the Data Object Usage Analysis vie
 ```
 "View all orders in a customer"
 → Extracts: "order", "orders", "customer", "customers"
+→ Target for "view all": "order" (the first object - the one being viewed)
 ```
 
 ### Pattern 2: Action verb patterns
@@ -166,6 +171,23 @@ The feature uses the same extraction logic as the Data Object Usage Analysis vie
 - Excludes "application" from extraction
 - Generates both singular and plural variants
 
+### Name Resolution Process
+1. **Extract**: Extract object names from story text (e.g., "customers", "customer email request")
+2. **Resolve**: Use `resolveDataObjectName()` to find actual model object (e.g., "Customer", "CustomerEmailRequest")
+3. **Validate**: Only use objects that successfully resolve to model objects
+4. **Calculate**: Calculate rank using the resolved model object name
+
+This ensures:
+- "customers" → "Customer" (plural to singular)
+- "customer email request" → "CustomerEmailRequest" (space-separated to PascalCase)
+- Invalid/unknown objects are filtered out
+
+### Target Object Selection Logic
+- **For "view all" actions**: Uses the FIRST extracted object (the object being viewed)
+  - Example: "view all Organizations in a Customer" → Target is Organization
+- **For other actions**: Uses the LOWEST RANK object (highest priority in hierarchy)
+  - Example: "update an Order in a Customer" → Target is Customer (rank 1)
+
 ---
 
 ## Example Scenarios
@@ -177,13 +199,13 @@ The feature uses the same extraction logic as the Data Object Usage Analysis vie
 
 **User Stories:**
 1. "Add a customer" → References Customer (rank 1)
-2. "View orders in a customer" → References Order (rank 2), Customer (rank 1) → Uses rank 1
+2. "View all orders in a customer" → References Order & Customer, uses Order for "view all" → rank 2
 3. "Delete an order" → References Order (rank 2)
 
 **Result:**
-- Story 1: Position 10 (rank 1)
-- Story 2: Position 20 (rank 1)
-- Story 3: Position 30 (rank 2)
+- Story 1: Position 10 (rank 1) - Customer first (parent object)
+- Story 2: Position 20 (rank 2) - Order (child object, but view all uses the object being viewed)
+- Story 3: Position 30 (rank 2) - Order
 
 ### Scenario 2: Multi-Level Hierarchy
 **Data Objects:**
@@ -203,13 +225,59 @@ The feature uses the same extraction logic as the Data Object Usage Analysis vie
 
 ---
 
+## Sorting Algorithm
+
+The feature uses a **three-level sort** to determine queue positions:
+
+### Level 1: Data Object Rank (Primary)
+- Rank 1 = Root objects (no parent)
+- Rank 2 = Children of root objects
+- Rank 3+ = Deeper hierarchy levels
+- Lower rank = higher priority (developed first)
+
+### Level 2: Data Object Name (Secondary)
+- If stories have the same rank, sort alphabetically by data object name
+- Example: "Customer" comes before "EmailRequest" at rank 2
+
+### Level 3: Action Order (Tertiary)
+- If stories have the same rank and same data object, sort by action type
+- Action order:
+  - **Add** = 0 (highest priority - create the object first)
+  - **View All** = 1 (list view after creation)
+  - **View** = 2 (detail view)
+  - **Update** = 3 (modify after viewing)
+  - **Delete** = 4 (delete after all other operations)
+  - **Other** = 5 (unknown actions last)
+
+### Action Extraction
+Uses the same pattern as User Stories List View:
+- Detects "wants to [action]" and "I want to [action]" patterns
+- Normalizes variants: create→add, edit→update, remove→delete
+- Returns standardized action strings
+
+### Example Sort Order
+Given these stories:
+- Story 1: User wants to **update** a **Customer** (rank 2)
+- Story 2: User wants to **add** a **Customer** (rank 2)
+- Story 3: User wants to **view** an **EmailRequest** (rank 2)
+- Story 4: User wants to **add** a **Department** (rank 1)
+
+Final order:
+1. Story 4: Department (rank 1, add)
+2. Story 2: Customer (rank 2, add) - Customer before EmailRequest alphabetically
+3. Story 1: Customer (rank 2, update) - Update after Add for same object
+4. Story 3: EmailRequest (rank 2, view) - EmailRequest after Customer
+
+---
+
 ## Benefits
 
 1. **Logical Development Order**: Build parent objects before child objects
 2. **Reduces Dependencies**: Foundational objects are developed first
-3. **Automatic Prioritization**: No manual sorting required
-4. **Consistent with Data Model**: Follows actual data object hierarchy
-5. **Easy to Adjust**: Positions are 10, 20, 30, etc., allowing easy manual reordering
+3. **Action-Based Workflow**: Add → View → Update → Delete sequence
+4. **Automatic Prioritization**: No manual sorting required
+5. **Consistent with Data Model**: Follows actual data object hierarchy
+6. **Easy to Adjust**: Positions are 10, 20, 30, etc., allowing easy manual reordering
 
 ---
 
