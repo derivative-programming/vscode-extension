@@ -4,6 +4,46 @@ This file serves as the main index for architecture documentation. The detailed 
 
 ## Latest Implementation Notes (2025-10-12)
 
+### QA View Cost Tab Implementation - **COMPLETED** (2025-10-12)
+- **Feature**: Added Cost Analysis tab to QA View for monthly cost breakdown by tester
+- **Pattern**: Follows Dev View cost tab pattern exactly but adapted for QA-specific data
+- **Architecture**: Three-layer design
+  - **Template Layer** (`qaCostTabTemplate.js`): HTML generation functions
+  - **Calculation Layer** (`qaCostAnalysisFunctions.js`): Cost calculation and business logic
+  - **Integration Layer** (commands + view): Tab wiring and event handling
+- **Key Functions**:
+  - `generateQACostTab()`: Main HTML structure with filters, table, summary cards
+  - `calculateQAMonthlyCosts()`: Core calculation logic using `avgTestTime × defaultQARate`
+  - `refreshQACostAnalysis()`: Re-render cost table
+  - `downloadQACostCsv()`: Export to CSV
+- **Cost Calculation**:
+  - Filters stories by QA status (pending, ready-to-test, started, success, failure)
+  - Uses QA forecast to get tester assignments and scheduled dates
+  - Date priority: `qaActualEndDate` → forecast `startDate` → `qaStartDate` → `qaEstimatedEndDate`
+  - Groups costs by month and tester
+  - Supports filtering by past/future/current months
+- **UI Features**:
+  - Monthly cost breakdown table with tester rows and total row
+  - Sticky headers and first column for scrollability
+  - Current month highlighting
+  - Three summary cards: Total Project Cost, Average Monthly Cost, Peak Monthly Cost
+  - Filter checkboxes: Show Past Months, Show Current Month, Show Future Months
+  - Download CSV and Refresh actions
+- **QA-Specific Adaptations**:
+  - "Developer" → "Tester" terminology
+  - Developer rates → QA rates (from config)
+  - Story points × hours → Test hours (from config)
+  - Dev forecast → QA forecast
+  - Development end date → QA end date
+- **Files Created**:
+  - `src/webviews/qaCostTabTemplate.js` (184 lines)
+  - `src/webviews/qaCostAnalysisFunctions.js` (240 lines)
+- **Files Modified**:
+  - `src/commands/userStoriesQACommands.ts`: Added tab button, HTML, CSS (160+ lines), script URIs
+  - `src/webviews/userStoriesQAView.js`: Added cost tab logic to `switchTab()`, added `renderQACostAnalysis()`
+- **Documentation**: Created `docs/architecture/qa-view-cost-tab-implementation.md`
+- **Status**: ✅ Cost tab fully functional with all features working correctly
+
 ### Gantt Chart Date Normalization Fix - **COMPLETED** (2025-10-12)
 - **Issue**: Both QA View and Dev View Gantt charts had incorrect timeline alignment for month/week/day zoom views
 - **Root Cause**: Start/end dates were not normalized to time unit boundaries

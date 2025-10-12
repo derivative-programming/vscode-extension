@@ -342,6 +342,8 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                 vscode.Uri.joinPath(context.extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
             );
             const scriptUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoriesQAView.js'));
+            const qaCostTabTemplateUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'qaCostTabTemplate.js'));
+            const qaCostAnalysisFunctionsUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'qaCostAnalysisFunctions.js'));
 
             // Set the HTML content for the webview
             panel.webview.html = `
@@ -1778,6 +1780,166 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             outline: 1px solid var(--vscode-focusBorder);
                             outline-offset: -1px;
                         }
+
+                        /* Cost Tab Styles */
+                        .cost-tab-container {
+                            padding: 0;
+                        }
+
+                        .cost-header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 20px;
+                        }
+
+                        .cost-header h3 {
+                            margin: 0;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+
+                        .cost-actions {
+                            display: flex;
+                            gap: 8px;
+                        }
+
+                        .cost-filters {
+                            display: flex;
+                            gap: 20px;
+                            margin-bottom: 20px;
+                            padding: 12px;
+                            background: var(--vscode-editor-background);
+                            border-radius: 4px;
+                        }
+
+                        .cost-filters label {
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            cursor: pointer;
+                        }
+
+                        .cost-table-wrapper {
+                            overflow-x: auto;
+                            margin-bottom: 24px;
+                        }
+
+                        .cost-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 13px;
+                        }
+
+                        .cost-table thead th {
+                            position: sticky;
+                            top: 0;
+                            background: var(--vscode-editor-background);
+                            padding: 12px 16px;
+                            text-align: left;
+                            border-bottom: 2px solid var(--vscode-panel-border);
+                            font-weight: 600;
+                            z-index: 10;
+                        }
+
+                        .cost-table .tester-column {
+                            min-width: 150px;
+                            position: sticky;
+                            left: 0;
+                            background: var(--vscode-editor-background);
+                            z-index: 11;
+                        }
+
+                        .cost-table thead .tester-column {
+                            z-index: 12;
+                        }
+
+                        .cost-table .month-column {
+                            min-width: 120px;
+                            text-align: right;
+                        }
+
+                        .cost-table .month-column.current-month {
+                            background: var(--vscode-list-hoverBackground);
+                        }
+
+                        .cost-table .current-badge {
+                            display: block;
+                            font-size: 10px;
+                            font-weight: normal;
+                            color: var(--vscode-charts-blue);
+                            margin-top: 2px;
+                        }
+
+                        .cost-table tbody tr {
+                            border-bottom: 1px solid var(--vscode-panel-border);
+                        }
+
+                        .cost-table tbody tr:hover {
+                            background: var(--vscode-list-hoverBackground);
+                        }
+
+                        .cost-table .tester-row td {
+                            padding: 12px 16px;
+                        }
+
+                        .cost-table .tester-name {
+                            font-weight: 500;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            position: sticky;
+                            left: 0;
+                            background: inherit;
+                        }
+
+                        .cost-table .total-row {
+                            background: var(--vscode-editor-background);
+                            border-top: 2px solid var(--vscode-panel-border);
+                            font-weight: 600;
+                        }
+
+                        .cost-cell {
+                            text-align: right;
+                        }
+
+                        .cost-cell.current-month {
+                            background: var(--vscode-list-hoverBackground);
+                        }
+
+                        .cost-cell.has-cost {
+                            color: var(--vscode-charts-green);
+                        }
+
+                        .cost-summary {
+                            display: flex;
+                            gap: 20px;
+                            padding: 20px;
+                            background: var(--vscode-editor-background);
+                            border-radius: 4px;
+                        }
+
+                        .summary-card {
+                            flex: 1;
+                            padding: 16px;
+                            background: var(--vscode-input-background);
+                            border: 1px solid var(--vscode-panel-border);
+                            border-radius: 4px;
+                        }
+
+                        .summary-label {
+                            font-size: 11px;
+                            text-transform: uppercase;
+                            color: var(--vscode-descriptionForeground);
+                            margin-bottom: 8px;
+                        }
+
+                        .summary-value {
+                            font-size: 24px;
+                            font-weight: 600;
+                            color: var(--vscode-charts-green);
+                        }
                     </style>
                 </head>
                 <body>
@@ -1787,10 +1949,11 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     </div>
 
                     <div class="tabs">
-                        <button class="tab ${initialTab === 'analysis' ? '' : (initialTab === 'board' ? '' : (initialTab === 'forecast' ? '' : 'active'))}" data-tab="details">Details</button>
+                        <button class="tab ${initialTab === 'analysis' ? '' : (initialTab === 'board' ? '' : (initialTab === 'forecast' ? '' : (initialTab === 'cost' ? '' : 'active')))}" data-tab="details">Details</button>
                         <button class="tab ${initialTab === 'board' ? 'active' : ''}" data-tab="board">Board</button>
                         <button class="tab ${initialTab === 'analysis' ? 'active' : ''}" data-tab="analysis">Status Distribution</button>
                         <button class="tab ${initialTab === 'forecast' ? 'active' : ''}" data-tab="forecast">Forecast</button>
+                        <button class="tab ${initialTab === 'cost' ? 'active' : ''}" data-tab="cost">Cost</button>
                     </div>
 
                     <div id="details-tab" class="tab-content ${initialTab === 'analysis' || initialTab === 'board' || initialTab === 'forecast' ? '' : 'active'}">
@@ -2069,6 +2232,17 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                         </div>
                     </div>
 
+                    <!-- Cost Tab -->
+                    <div id="cost-tab" class="tab-content ${initialTab === 'cost' ? 'active' : ''}">
+                        <div id="qaCostAnalysisContainer">
+                            <div class="empty-state">
+                                <i class="codicon codicon-credit-card" style="font-size: 48px; opacity: 0.5;"></i>
+                                <h3>Cost Analysis</h3>
+                                <p>Loading QA cost breakdown by tester...</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Card Detail Modal -->
                     <div id="cardDetailModal" class="modal-overlay">
                         <div class="modal-content">
@@ -2194,6 +2368,8 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                     </div>
 
                     <script src="https://d3js.org/d3.v7.min.js"></script>
+                    <script src="${qaCostTabTemplateUri}"></script>
+                    <script src="${qaCostAnalysisFunctionsUri}"></script>
                     <script src="${scriptUri}"></script>
                 </body>
                 </html>

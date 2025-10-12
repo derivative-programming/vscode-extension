@@ -15,11 +15,6 @@ user story dev view...
   - i dont think the 'Holidays & Non-Working Days' data is used in forecasting.
 
 
-user story qa view
-  - in the forecast tab
-    - add zoom buttons
-  - add costs tab, similar to costs tab on user story development view costs tab
-
 
 - display total cost summary
   - development and qa costs together

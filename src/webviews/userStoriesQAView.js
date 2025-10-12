@@ -2094,12 +2094,47 @@ function switchTab(tabName) {
                 command: 'loadQAConfig'
             });
         }
+    } else if (tabName === 'cost') {
+        // Render cost analysis
+        console.log('[userStoriesQAView] Cost tab selected - rendering cost analysis');
+        if (qaConfig) {
+            renderQACostAnalysis();
+        } else {
+            // Request config from extension
+            vscode.postMessage({
+                command: 'loadQAConfig'
+            });
+        }
     } else if (tabName === 'details') {
         // Refresh details tab to show latest data
         console.log('[userStoriesQAView] Details tab selected - refreshing table');
         renderTable();
         renderRecordInfo();
     }
+}
+
+/**
+ * Render QA cost analysis tab
+ */
+function renderQACostAnalysis() {
+    const container = document.getElementById('qaCostAnalysisContainer');
+    
+    if (!container) {
+        console.warn('[userStoriesQAView] Cost container not found');
+        return;
+    }
+    
+    if (!qaConfig) {
+        console.warn('[userStoriesQAView] QA Config not loaded yet');
+        container.innerHTML = '<div class="empty-state"><p>Configuration not loaded. Please wait...</p></div>';
+        return;
+    }
+    
+    console.log('[userStoriesQAView] Rendering cost analysis with items:', allItems?.length, 'config:', qaConfig);
+    
+    // Generate full cost tab HTML (includes header, filters, and table)
+    const costHTML = generateQACostTab(allItems, qaConfig);
+    container.innerHTML = costHTML;
 }
 
 // Refresh data (global function for onclick)

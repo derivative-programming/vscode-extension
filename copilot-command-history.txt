@@ -1,3 +1,29 @@
+2025-10-12 18:00 - Add Cost Tab to QA View
+Command: Implemented Cost Analysis tab for QA View to show monthly cost breakdown by tester
+Status: Completed
+Notes: Added cost tab following Dev View pattern but adapted for QA-specific data.
+Created qaCostTabTemplate.js (184 lines) with functions: generateQACostTab(), generateQACostAnalysisTable(),
+generateTesterRows(), generateQATotalRow(). Template generates table with monthly columns, filter checkboxes,
+summary cards, and CSV download/refresh actions.
+Created qaCostAnalysisFunctions.js (240 lines) with functions: calculateQAMonthlyCosts(), refreshQACostAnalysis(),
+downloadQACostCsv(). Calculation logic: storyCost = avgTestTime × defaultQARate. Uses QA forecast to get tester
+assignments and dates. Groups costs by month and tester. Filters by past/future/current months.
+Date priority: qaActualEndDate (completed) → forecast startDate → qaStartDate → qaEstimatedEndDate.
+Modified userStoriesQACommands.ts: Added cost tab button (line ~1794), cost tab HTML (lines ~2074-2083),
+cost tab CSS styles (lines ~1783-1939), script URIs (lines ~346-347), script tags (lines ~2211-2212).
+CSS: 160+ lines for .cost-tab-container, .cost-header, .cost-filters, .cost-table, .tester-column (sticky),
+.month-column (with current-month highlighting), .cost-cell, .cost-summary, .summary-card.
+Modified userStoriesQAView.js: Added cost tab logic to switchTab() (lines ~2094-2105),
+added renderQACostAnalysis() function (lines ~2108-2127).
+Features: Monthly cost breakdown, tester rows, total row, filters (past/future/current), CSV export,
+summary cards (total/average/peak costs), sticky headers and first column, current month highlighting.
+Architecture follows three-layer pattern: Template (HTML generation) → Calculation (cost logic) → Integration (tab wiring).
+Adaptations from Dev View: "Developer" → "Tester", developer rates → QA rates, story points → test hours,
+dev forecast → QA forecast. Pattern ensures consistency between Dev and QA cost tabs.
+Created docs/architecture/qa-view-cost-tab-implementation.md.
+
+================================================================================
+
 2025-01-13 16:30 - Add Zoom Controls to QA View Forecast Gantt Chart
 Command: Implemented zoom controls for QA forecast Gantt chart to match Dev View functionality
 Status: Completed (Updated 2025-10-12 for correct pixel widths)
