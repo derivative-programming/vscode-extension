@@ -513,6 +513,26 @@ window.addEventListener('message', event => {
             }
             break;
 
+        case 'setDataObjectsForRanking':
+            console.log('[Webview] Received data objects for ranking:', message.dataObjects.length);
+            // Call the handler in dataObjectRankCalculator.js
+            if (typeof handleDataObjectRankingResponse === 'function') {
+                handleDataObjectRankingResponse(message.dataObjects);
+            } else {
+                console.error('[Webview] handleDataObjectRankingResponse function not found');
+                hideSpinner();
+            }
+            break;
+
+        case 'queuePositionsUpdated':
+            console.log('[Webview] Queue positions updated successfully');
+            hideSpinner();
+            // Refresh the dev queue tab to show updated positions
+            if (currentTab === 'devQueue') {
+                renderDevQueueTab();
+            }
+            break;
+
         default:
             console.warn('[Webview] Unknown command:', message.command);
     }

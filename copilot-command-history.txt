@@ -2635,3 +2635,37 @@ TESTING CHECKLIST:
 - [ ] Empty state when all completed
 
 
+
+---
+Command: Add 'Calculate Queue Position' button to Dev Queue tab based on data object hierarchy rank
+Date: October 12, 2025
+Status:  COMPLETED
+
+Details:
+- Added 'Calculate Queue Position' button to dev queue tab
+- Created new dataObjectRankCalculator.js script with ranking logic
+- Implemented data object extraction from user story text (same logic as data object usage analysis)
+- Implemented hierarchy rank calculation (rank 1 = root objects, rank 2 = children, etc.)
+- Added message handlers in userStoriesDevCommands.ts:
+  - getDataObjectsForRanking: loads all data objects from model
+  - bulkUpdateQueuePositions: updates multiple queue positions at once
+- Updated userStoryDevView.js to handle ranking responses
+- Integrated with existing queue position system
+- Stories are sorted by data object rank, then by story number as tiebreaker
+- New positions assigned as 10, 20, 30, etc. for easy reordering
+
+Architecture Notes:
+- Data object rank calculated recursively through parent relationships
+- Root objects (no parent) = rank 1 (highest priority)
+- Each child level increases rank by 1
+- Stories referencing multiple objects use the lowest rank (highest priority object)
+- Follows same data object extraction patterns as userStoryUtils.ts
+- Integrates with existing dev queue tab and queue position management
+
+Files Modified:
+- src/webviews/userStoryDev/components/templates/devQueueTabTemplate.js (added button)
+- src/webviews/userStoryDev/components/scripts/dataObjectRankCalculator.js (NEW)
+- src/commands/userStoriesDevCommands.ts (added message handlers and script URI)
+- src/webviews/userStoryDev/userStoryDevView.js (added message handlers)
+---
+

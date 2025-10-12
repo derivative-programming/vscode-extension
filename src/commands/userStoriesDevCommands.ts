@@ -805,6 +805,87 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                             }
                             break;
 
+                        case 'getDataObjectsForRanking':
+                            try {
+                                console.log('[Extension] Getting data objects for ranking calculation');
+                                
+                                // Use modelService.getAllObjects() to get all data objects
+                                const dataObjects = modelService.getAllObjects();
+
+                                console.log(`[Extension] Sending ${dataObjects.length} data objects for ranking`);
+
+                                // Send data objects back to webview
+                                panel.webview.postMessage({
+                                    command: 'setDataObjectsForRanking',
+                                    dataObjects: dataObjects
+                                });
+                            } catch (error) {
+                                console.error('[Extension] Error getting data objects for ranking:', error);
+                                vscode.window.showErrorMessage(`Error loading data objects: ${(error as Error).message}`);
+                            }
+                            break;
+
+                        case 'bulkUpdateQueuePositions':
+                            try {
+                                const updates = message.updates; // Array of { storyId, developmentQueuePosition, primaryDataObject, dataObjectRank }
+                                
+                                const modelFilePath = modelService.getCurrentFilePath();
+                                if (!modelFilePath) {
+                                    throw new Error("No model file path available");
+                                }
+                                
+                                const modelDir = path.dirname(modelFilePath);
+                                const filePath = path.join(modelDir, 'app-dna-user-story-dev.json');
+
+                                // Load existing data
+                                let existingData: any = { devData: [] };
+                                if (fs.existsSync(filePath)) {
+                                    const content = fs.readFileSync(filePath, 'utf8');
+                                    existingData = JSON.parse(content);
+                                }
+
+                                // Update each story's queue position
+                                updates.forEach((update: any) => {
+                                    const index = existingData.devData.findIndex((d: any) => d.storyId === update.storyId);
+                                    if (index >= 0) {
+                                        existingData.devData[index].developmentQueuePosition = update.developmentQueuePosition;
+                                    } else {
+                                        // Create new record if doesn't exist
+                                        existingData.devData.push({
+                                            storyId: update.storyId,
+                                            developmentQueuePosition: update.developmentQueuePosition,
+                                            devStatus: 'on-hold',
+                                            priority: 'medium',
+                                            storyPoints: '?',
+                                            assignedTo: '',
+                                            sprintId: '',
+                                            startDate: '',
+                                            estimatedEndDate: '',
+                                            actualEndDate: '',
+                                            blockedReason: '',
+                                            devNotes: ''
+                                        });
+                                    }
+                                });
+
+                                await saveDevData(existingData.devData, filePath);
+
+                                // Reload data to show updated queue positions
+                                await loadUserStoriesDevData(panel, modelService);
+
+                                panel.webview.postMessage({
+                                    command: 'queuePositionsUpdated',
+                                    success: true
+                                });
+
+                                vscode.window.showInformationMessage(`Queue positions calculated successfully for ${updates.length} stories`);
+                                console.log(`[Extension] Updated queue positions for ${updates.length} stories based on data object rank`);
+                            } catch (error) {
+                                console.error('[Extension] Error in bulk queue position update:', error);
+                                vscode.window.showErrorMessage(`Error updating queue positions: ${(error as Error).message}`);
+                            }
+                            break;
+
                         case 'createSprint':
                         case 'updateSprint':
                         case 'saveSprint':
@@ -1540,6 +1621,9 @@ export function registerUserStoriesDevCommands(context: vscode.ExtensionContext,
                 ),
                 queuePositionManagement: panel.webview.asWebviewUri(
                     vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'queuePositionManagement.js')
+                ),
+                dataObjectRankCalculator: panel.webview.asWebviewUri(
+                    vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'scripts', 'dataObjectRankCalculator.js')
                 ),
                 devQueueTabTemplate: panel.webview.asWebviewUri(
                     vscode.Uri.joinPath(context.extensionUri, 'src', 'webviews', 'userStoryDev', 'components', 'templates', 'devQueueTabTemplate.js')
@@ -4706,6 +4790,7 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
             
             <!-- Dev Queue Tab scripts -->
             <script src="${scriptUris.devQueueDragDrop}"></script>
+            <script src="${scriptUris.dataObjectRankCalculator}"></script>
             
             <!-- Board Tab scripts -->
             <script src="${scriptUris.cardComponent}"></script>

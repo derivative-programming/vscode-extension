@@ -54,6 +54,10 @@ function generateDevQueueTab(items, config) {
             </div>
 
             <div class="dev-queue-actions">
+                <button onclick="calculateQueueByDataObjectRank()" class="icon-button" title="Calculate queue positions based on data object hierarchy rank">
+                    <span class="codicon codicon-symbol-class"></span>
+                    Calculate Queue Position
+                </button>
                 <button onclick="autoSequenceQueue()" class="icon-button" title="Auto-sequence positions (10, 20, 30...)">
                     <span class="codicon codicon-list-ordered"></span>
                     Auto-Sequence
