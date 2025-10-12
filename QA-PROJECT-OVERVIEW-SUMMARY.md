@@ -1,8 +1,21 @@
 # QA View Project Overview - Implementation Summary
 
+**Last Updated:** October 12, 2025  
+**Status:** ✅ Implemented | ⚠️ Code Review Complete - Refactoring Recommended
+
 ## ✅ Completed Implementation
 
 I've successfully added a comprehensive Project Overview section to the QA View forecast tab, similar to the Dev View but adapted for QA-specific metrics and concerns.
+
+## ⚠️ Code Review Findings (October 2025)
+
+A comprehensive code review has identified the following:
+- **Critical Bug:** Summary stats ID mismatch (Analysis tab stats don't update)
+- **File Size Issue:** userStoriesQAView.js has grown to 3,457 lines (needs modularization)
+- **Missing Tests:** No automated tests for critical functionality
+- **Performance:** Full re-renders impact UX with 100+ stories
+
+**See:** `docs/reviews/user-story-qa-view-code-review.md` for detailed findings and action plan.
 
 ## What Was Added
 
@@ -57,9 +70,32 @@ Priority-coded recommendations (High/Medium/Low) including:
 | **Cost Basis** | Developer rates | QA rates (defaultQARate) |
 | **Risk Factors** | Sprint velocity, blocked devs | Test time, tester ratio, blockers |
 
+## Technical Debt & Known Issues
+
+### Priority 1: Critical Bug Fix Needed
+- **Summary Stats ID Mismatch:** Analysis tab statistics never update due to mismatched HTML IDs
+  - JavaScript uses: `'qa-total-stories'`, `'qa-success-rate'`, `'qa-completion-rate'`
+  - HTML defines: `'totalQAStories'`, `'qaSuccessRate'`, `'qaCompletionRate'`
+  - **Fix:** Update JavaScript to use correct IDs (5 minute fix)
+
+### Priority 2: Code Organization
+- **File Size:** 3,457 lines in single file exceeds maintainability threshold
+- **Recommendation:** Split into modules by tab/feature (~10 files of 200-400 lines each)
+- **Impact:** Easier maintenance, better testability, reduced merge conflicts
+
+### Priority 3: Testing Gap
+- **Issue:** Zero automated tests for critical functionality
+- **Risk:** Regressions undetected, no safety net for refactoring
+- **Recommendation:** Add unit tests for filtering, calculations, state management (target 80% coverage)
+
+### Priority 4: Performance
+- **Issue:** Full table re-renders on every interaction (noticeable lag with 100+ stories)
+- **Recommendation:** Implement incremental updates and D3 transitions
+- **Expected Impact:** <100ms render times, smooth animations
+
 ## Files Modified
 
-### 1. `src/webviews/userStoriesQAView.js` (+200 lines)
+### 1. `src/webviews/userStoriesQAView.js` (+637 lines since implementation)
 
 **New Functions**:
 - `assessQARisk()` - Calculate risk score (0-100) and level
