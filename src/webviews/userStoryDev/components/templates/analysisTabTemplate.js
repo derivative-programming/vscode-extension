@@ -79,14 +79,6 @@ function generateAnalysisTab(items, config) {
                     <div class="chart-body" id="developerWorkloadChart"></div>
                 </div>
             </div>
-
-            <!-- Data Table Section -->
-            <div class="data-table-section">
-                <div class="table-header">
-                    <h4>Sprint Summary</h4>
-                </div>
-                <div class="table-body" id="sprintSummaryTable"></div>
-            </div>
         </div>
     `;
 }

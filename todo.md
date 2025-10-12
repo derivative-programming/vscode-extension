@@ -9,32 +9,20 @@ common types of graphs...
  
 
 user story dev view...
-- need a new property of a development story item : DevelopmentQueuePosition
-  - display backorder in dev queue position order
-  - in forecast display the items not assigned to a sprint in dev queue position order
-  - in the dev queue tab, add a button to calculate the dev queue position based on dependencies
-    - parse the user story to determine the subject object name.
-  
-- analysis tab
-  - move analysis to last tab
-  - why is 'sprint summary' at the bottom?
-- Development Queue tab
-  - describe the tab as setting the order of story development
-  - button to auto calculate order based on dependencies
-  - allow drag and drop to reorder stories
-  - incomplete stories only
 - board tab
-  - display in DevelopmentQueuePosition order
   - allow drag and drop to reorder stories
-- cost tab
-  - export button
-    - open immediately
-    - fix design
 - forecast tab
   - i dont think the 'Holidays & Non-Working Days' data is used in forecasting.
-- where is velocity calculated and displayed?
+- 
 
 - user story qa view
+  - details tab
+    - order by dev queue position
+    - show dev queue position in column 'Suggested Order'
+  - board tab
+    - order swim lane by dev queue position
+  - forecast tab
+    - order by dev queue position
   - config
     - add a hourly rate to a qa resource
   - in the forecast tab, show total cost of remaining work based on qa hourly rates
@@ -80,25 +68,17 @@ page data source Analysis report...
   - show when a data source is set and to what object and prop
   
 
+Metrics
+- new metrics
+  - User Story Development Sprint Count
+  - User Story Development status incomplete count
+  - User Story Development status completed count
+  - user story development Active developer count
+
 --------------------------
 
-
-- need to calculate position of user stories to be developed
-  - stories need a development position property
-  - need a property to hold the suggested development position?
-  - need a property to hold the adjusted development position?
-  - look at top level objects first. move down the object tree.
-    - regardless of role
-    - lookup objects matter?
-  - view all needs to happen before add, update, delete, view
-  - view needs to happen before add, update, delete
-  - you can calculate all dependencies a story has. parent objects need to view all, view, and add
-  - you can probably auto create stories that would be dependencies for a given story.
-  - create a tree to show story dependencies, like we use in the object heirarchy display
-
-user story dev view... 
-- probably need to set order of stories that they should be developed in 
-
+- you can probably auto create stories that would be dependencies for a given story.
+ 
 
 allow 'a' or 'an' in user story before role name
 

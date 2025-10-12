@@ -19,12 +19,11 @@ function generateCostTab(items, config) {
                     Cost Analysis by Month
                 </h3>
                 <div class="cost-actions">
-                    <button class="btn btn-secondary" onclick="downloadCostCsv()">
-                        <span class="codicon codicon-cloud-download"></span>
-                        Export CSV
+                    <button onclick="downloadCostCsv()" class="icon-button" title="Download CSV">
+                        <i class="codicon codicon-cloud-download"></i>
                     </button>
-                    <button class="icon-button" onclick="refreshCostAnalysis()" title="Refresh">
-                        <span class="codicon codicon-refresh"></span>
+                    <button onclick="refreshCostAnalysis()" class="icon-button" title="Refresh">
+                        <i class="codicon codicon-refresh"></i>
                     </button>
                 </div>
             </div>

@@ -251,14 +251,14 @@ function generateForecastStatistics(items, config) {
                     ${generateForecastMetric(
                         "symbol-currency",
                         "Total Project Cost",
-                        `$${formatCurrency(totalCost)}`,
+                        `${formatCurrency(totalCost)}`,
                         ""
                     )}
                     
                     ${generateForecastMetric(
                         "symbol-currency",
                         "Remaining Work Cost",
-                        `$${formatCurrency(remainingCost)}`,
+                        `${formatCurrency(remainingCost)}`,
                         remainingCost > totalCost * 0.5 ? "risk-medium" : ""
                     )}
                 </div>

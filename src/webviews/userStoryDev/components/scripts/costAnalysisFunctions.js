@@ -191,6 +191,7 @@ function refreshCostAnalysis() {
  * Download cost analysis as CSV
  */
 function downloadCostCsv() {
+    console.log('[UserStoryDev] Cost CSV export button clicked');
     const costData = calculateMonthlyCosts(allItems, devConfig);
     const developers = devConfig?.developers || [];
     
@@ -235,18 +236,31 @@ function downloadCostCsv() {
     ];
     rows.push(totalRow);
     
-    // Create CSV
-    const csv = [
+    // Create CSV content
+    const csvContent = [
         headers.join(','),
         ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
     
-    // Download
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cost-analysis-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+    // Generate timestamped filename
+    const now = new Date();
+    const pad = (n) => n.toString().padStart(2, '0');
+    const y = now.getFullYear();
+    const m = pad(now.getMonth() + 1);
+    const d = pad(now.getDate());
+    const h = pad(now.getHours());
+    const min = pad(now.getMinutes());
+    const s = pad(now.getSeconds());
+    const timestamp = `${y}${m}${d}${h}${min}${s}`;
+    const filename = `user_story_cost_analysis_${timestamp}.csv`;
+    
+    // Send to extension to save in workspace and open immediately
+    vscode.postMessage({
+        command: 'saveCsvToWorkspace',
+        data: {
+            content: csvContent,
+            filename: filename
+        }
+    });
     URL.revokeObjectURL(url);
 }

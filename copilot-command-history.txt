@@ -1,3 +1,68 @@
+2025-10-12 10:25 - Fix Duplicate Dollar Signs in Forecast Tab
+Command: Removed manual "$" symbols from cost metrics in forecast tab
+Status: Completed
+Notes: The forecast tab was showing duplicate dollar signs (e.g., "$$27,250" or "S$27,250").
+This was caused by both:
+1. The "symbol-currency" codicon which displays a currency symbol
+2. Manual "$" in the template string: `$${formatCurrency(...)}`
+Removed the manual "$" from both "Total Project Cost" and "Remaining Work Cost" metrics.
+Now displays correctly with just the currency icon and the formatted number.
+Architecture: Modified src/webviews/userStoryDev/components/templates/forecastTabTemplate.js,
+removed "$" prefix from generateForecastMetric calls for cost metrics.
+
+================================================================================
+
+2025-10-12 10:20 - Update Cost Tab Export Button Design to Match Details Tab
+Command: Changed export button from text button (btn-secondary) to icon-button to match Details tab design
+Status: Completed
+Notes: Export button was using "btn btn-secondary" class with text "Export CSV" and icon.
+Changed to match Details tab design: "icon-button" class with only icon (no text), shows text in tooltip.
+Changed from <span class="codicon"> to <i class="codicon"> for consistency.
+Both export and refresh buttons now have consistent icon-button styling.
+Architecture: Modified src/webviews/userStoryDev/components/templates/costTabTemplate.js,
+updated button classes in cost-actions div.
+
+================================================================================
+
+2025-10-12 10:15 - Fix Cost Tab CSV Export to Open File Immediately
+Command: Updated downloadCostCsv() to use same pattern as Details tab export (save to workspace and open)
+Status: Completed
+Notes: Cost tab was using old browser-side blob download method (download to browser downloads folder).
+Changed to use extension-side save method matching Details tab:
+- Sends 'saveCsvToWorkspace' message to extension with CSV content and filename
+- Extension saves to workspace's user_story_reports folder
+- Extension opens the CSV file immediately with vscode.commands.executeCommand('vscode.open')
+- Uses timestamped filename: user_story_cost_analysis_YYYYMMDDHHMMSS.csv
+This provides consistent UX across all exports and opens the file automatically for user review.
+Architecture: Modified src/webviews/userStoryDev/components/scripts/costAnalysisFunctions.js,
+changed downloadCostCsv() from blob download to vscode.postMessage pattern.
+Uses existing saveCsvToWorkspace handler in src/commands/userStoriesDevCommands.ts.
+
+================================================================================
+
+2025-10-12 10:00 - Remove Unimplemented Sprint Summary Section from Analysis Tab
+Command: Removed empty "Sprint Summary" placeholder section from Analysis tab
+Status: Completed
+Notes: The Sprint Summary section was just a placeholder with no implementation.
+Removed the entire "Data Table Section" div containing Sprint Summary header and empty table body.
+This cleans up the Analysis tab UI by removing non-functional elements.
+The section was listed as a "future enhancement" in documentation but never implemented.
+Architecture: Modified src/webviews/userStoryDev/components/templates/analysisTabTemplate.js,
+removed data-table-section div with sprintSummaryTable element.
+
+================================================================================
+
+2025-10-12 09:45 - Move Analysis Tab to Last Position in User Story Dev View
+Command: Reordered tabs to move Analysis tab from 3rd position to last (8th position)
+Status: Completed
+Notes: Moved Analysis tab button in tab bar from 3rd position (after Dev Queue) to 8th position (after Cost).
+New tab order: Details, Dev Queue, Board, Sprint, Developers, Forecast, Cost, Analysis.
+This provides better workflow as users work through tactical tabs before viewing analytics.
+Architecture: Modified src/commands/userStoriesDevCommands.ts HTML template, tab button order only.
+Tab content divs remain in same order (doesn't affect functionality).
+
+================================================================================
+
 2025-10-12 09:30 - Fix Data Object Name Resolution (Plural to Singular)
 Command: Added resolveDataObjectName() to convert extracted names to actual model object names
 Status: Completed

@@ -4673,12 +4673,12 @@ function getWebviewContent(codiconsUri: vscode.Uri, scriptUris: { [key: string]:
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('details')">Details</button>
                 <button class="tab" onclick="switchTab('devQueue')">Dev Queue</button>
-                <button class="tab" onclick="switchTab('analysis')">Analysis</button>
                 <button class="tab" onclick="switchTab('board')">Board</button>
                 <button class="tab" onclick="switchTab('sprint')">Sprint</button>
                 <button class="tab" onclick="switchTab('developers')">Developers</button>
                 <button class="tab" onclick="switchTab('forecast')">Forecast</button>
                 <button class="tab" onclick="switchTab('cost')">Cost</button>
+                <button class="tab" onclick="switchTab('analysis')">Analysis</button>
             </div>
 
             <div id="detailsTab" class="tab-content active">
