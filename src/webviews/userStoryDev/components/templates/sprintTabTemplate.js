@@ -301,7 +301,10 @@ function generateBacklogStories(items) {
         `;
     }
 
-    return unassignedStories.map(story => `
+    // Sort by development queue position (or story number as fallback)
+    const sortedStories = sortByQueuePosition(unassignedStories);
+
+    return sortedStories.map(story => `
         <div class="backlog-story" 
              data-story-id="${story.storyId}" 
              data-priority="${story.priority || 'none'}"

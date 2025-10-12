@@ -2,9 +2,9 @@
 // Created: October 12, 2025
 // Last Modified: October 12, 2025
 
-let draggedElement = null;
-let draggedStoryId = null;
-let originalIndex = null;
+var devQueueDraggedElement = null;
+var devQueueDraggedStoryId = null;
+var devQueueOriginalIndex = null;
 
 /**
  * Initialize drag and drop for dev queue items
@@ -26,9 +26,9 @@ function initializeDevQueueDragDrop() {
  * Handle drag start
  */
 function handleDragStart(e) {
-    draggedElement = e.currentTarget;
-    draggedStoryId = draggedElement.getAttribute('data-story-id');
-    originalIndex = parseInt(draggedElement.getAttribute('data-array-index'), 10);
+    devQueueDraggedElement = e.currentTarget;
+    devQueueDraggedStoryId = devQueueDraggedElement.getAttribute('data-story-id');
+    devQueueOriginalIndex = parseInt(devQueueDraggedElement.getAttribute('data-array-index'), 10);
     
     e.currentTarget.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
@@ -50,7 +50,7 @@ function handleDragOver(e) {
  * Handle drag enter
  */
 function handleDragEnter(e) {
-    if (e.currentTarget !== draggedElement) {
+    if (e.currentTarget !== devQueueDraggedElement) {
         e.currentTarget.classList.add('drag-over');
     }
 }
@@ -74,11 +74,11 @@ function handleDrop(e) {
     const dropTarget = e.currentTarget;
     dropTarget.classList.remove('drag-over');
     
-    if (draggedElement !== dropTarget) {
+    if (devQueueDraggedElement !== dropTarget) {
         const newIndex = parseInt(dropTarget.getAttribute('data-array-index'), 10);
         
         // Perform the reordering
-        reorderQueue(originalIndex, newIndex);
+        reorderQueue(devQueueOriginalIndex, newIndex);
     }
     
     return false;
@@ -96,9 +96,9 @@ function handleDragEnd(e) {
         item.classList.remove('drag-over');
     });
     
-    draggedElement = null;
-    draggedStoryId = null;
-    originalIndex = null;
+    devQueueDraggedElement = null;
+    devQueueDraggedStoryId = null;
+    devQueueOriginalIndex = null;
 }
 
 /**

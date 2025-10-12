@@ -1,17 +1,17 @@
 // Description: Kanban board functions (drag-and-drop, filtering, statistics)
 // Created: October 5, 2025
-// Last Modified: October 5, 2025
+// Last Modified: October 12, 2025
 
 /**
  * Currently dragged card element and story ID
  */
-let draggedCard = null;
-let draggedStoryId = null;
+var draggedCard = null;
+var draggedStoryId = null;
 
 /**
  * Board filter state
  */
-let boardFilters = {
+var boardFilters = {
     developer: '',
     priority: '',
     sprint: ''
