@@ -13,8 +13,7 @@ import { ModelService } from './services/modelService';
 import { AuthService } from './services/authService';
 import { showWelcomeView } from './webviews/welcomeView';
 import { showLexiconView } from './webviews/lexiconView';
-import { initializeStdioServer } from './mcp/stdioBridge';
-import { AppDNAMcpProvider } from './mcp/mcpProvider';
+import { configureMcpSettings } from './commands/mcpCommands';
 
 // Track whether welcome view has been shown in this session
 let hasShownWelcomeView = false;
@@ -26,9 +25,6 @@ let hasShownWelcomeView = false;
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "AppDNA" is now active!');
     
-    // Check if this is a stdio MCP server request and initialize if needed
-    initializeStdioServer();
-    
     // Set the extension context for use throughout the extension
     setExtensionContext(context);
 
@@ -36,31 +32,26 @@ export function activate(context: vscode.ExtensionContext) {
     const authService = AuthService.getInstance();
     authService.initialize(context);
 
-    // TODO: Register the official MCP server definition provider when API is available
-    // The vscode.lm.registerMcpServerDefinitionProvider API is not yet available in VS Code 1.99.0
-    // Uncomment when upgrading to a newer VS Code version that supports MCP registration
-    /*
-    try {
-        const mcpProvider = new AppDNAMcpProvider();
-        const mcpRegistration = vscode.lm.registerMcpServerDefinitionProvider('appDNAMcpProvider', mcpProvider);
-        context.subscriptions.push(mcpRegistration);
-        context.subscriptions.push(mcpProvider);
-        console.log('MCP server definition provider registered successfully');
-    } catch (error) {
-        console.error('Failed to register MCP server definition provider:', error);
-        // Continue without MCP support if registration fails
-    }
-    */
-
     // Get the workspace folder and model file path from config
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    const modelFileName = workspaceFolder ? require('./utils/fileUtils').getModelFileNameFromConfig(workspaceFolder) : "app-dna.json";
-    const appDNAFilePath = workspaceFolder ? path.join(workspaceFolder, modelFileName) : null;
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    const workspacePath = workspaceFolder?.uri.fsPath;
+    const modelFileName = workspacePath ? require('./utils/fileUtils').getModelFileNameFromConfig(workspacePath) : "app-dna.json";
+    const appDNAFilePath = workspacePath ? path.join(workspacePath, modelFileName) : null;
+    
+    // Configure MCP server settings for GitHub Copilot
+    if (workspaceFolder) {
+        const extension = vscode.extensions.getExtension('derivative-programming.appdna');
+        if (extension) {
+            configureMcpSettings(workspaceFolder, extension.extensionPath).catch(error => {
+                console.warn('Failed to configure MCP settings:', error);
+            });
+        }
+    }
     
     // Set initial context based on file existence
     const fileExists = appDNAFilePath && fs.existsSync(appDNAFilePath);
     updateFileExistsContext(appDNAFilePath);
-    updateConfigExistsContext(workspaceFolder);
+    updateConfigExistsContext(workspacePath);
     
     // Load the objectDetailsView module safely
     try {
@@ -91,9 +82,9 @@ export function activate(context: vscode.ExtensionContext) {
     if (appDNAFilePath && fs.existsSync(appDNAFilePath)) {
         modelService.loadFile(appDNAFilePath).then(() => {
             // Check if we should auto-expand nodes on load
-            if (workspaceFolder) {
+            if (workspacePath) {
                 const { getExpandNodesOnLoadFromConfig } = require('./utils/fileUtils');
-                const shouldExpand = getExpandNodesOnLoadFromConfig(workspaceFolder);
+                const shouldExpand = getExpandNodesOnLoadFromConfig(workspacePath);
                 if (shouldExpand) {
                     // Small delay to ensure tree view is ready, then execute expand command
                     setTimeout(() => {

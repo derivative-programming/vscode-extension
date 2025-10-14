@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { JsonTreeItem } from '../models/types';
 
 // Import from the JavaScript wrapper (following form details pattern)
-const generalFlowDetailsView = require('../webviews/generalFlowDetailsView');
+const generalFlowDetailsView = require('../webviews/generalFlow/generalFlowDetailsView');
 // Import the Add General Flow Wizard webview
 const { showAddGeneralFlowWizard } = require('../webviews/addGeneralFlowWizardView');
 

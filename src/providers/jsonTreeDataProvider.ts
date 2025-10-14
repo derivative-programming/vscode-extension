@@ -6,8 +6,6 @@ import * as fs from 'fs';
 import { JsonTreeItem, AppDNAData, TreeDataChange } from '../models/types';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService';
-import { MCPServer } from '../mcp/server';
-import { MCPHttpServer } from '../mcp/httpServer';
 import { getShowAdvancedPropertiesFromConfig } from '../utils/fileUtils';
 
 /**
@@ -25,10 +23,6 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
     };
     // Auth service instance to manage login state
     private authService: AuthService;
-    // MCP server instance to check server status
-    private mcpServer: MCPServer;
-    // MCP HTTP server instance to check HTTP server status
-    private mcpHttpServer: MCPHttpServer;
     // Reference to the tree view
     private treeView?: vscode.TreeView<JsonTreeItem>;
     // Original tree view title (without unsaved changes indicator)
@@ -53,8 +47,6 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         private readonly modelService: ModelService
     ) { 
         this.authService = AuthService.getInstance();
-        this.mcpServer = MCPServer.getInstance();
-        this.mcpHttpServer = MCPHttpServer.getInstance();
           // Initialize context values
         vscode.commands.executeCommand('setContext', 'appDnaReportFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaDataObjectFilterActive', false);
@@ -63,17 +55,6 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         vscode.commands.executeCommand('setContext', 'appDnaWorkflowsFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaWorkflowTasksFilterActive', false);
         vscode.commands.executeCommand('setContext', 'appDnaGeneralFilterActive', false);
-        
-        // Register to server status changes to update the tree view
-        this.mcpServer.onStatusChange(isRunning => {
-            // Refresh the tree view when server status changes
-            this.refresh();
-        });
-          // Register to HTTP server status changes as well
-        this.mcpHttpServer.onStatusChange(isRunning => {
-            // Refresh the tree view when HTTP server status changes
-            this.refresh();
-        });
           // Set up a timer to check for unsaved changes and update UI when status changes
         setInterval(() => {
             this.updateUnsavedChangesContext();
@@ -291,66 +272,6 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     };
                     items.push(lexiconItem);
                     
-                    // Create MCP Server item with status indicator
-                    const isServerRunning = this.mcpServer.isServerRunning();
-                    const mcpServerItem = new JsonTreeItem(
-                        `MCP Server (${isServerRunning ? 'Running' : 'Stopped'})`,
-                        vscode.TreeItemCollapsibleState.None,
-                        'projectMCPServer'
-                    );
-
-                    // Use different icons based on server status
-                    if (isServerRunning) {
-                        // Server running icon
-                        mcpServerItem.iconPath = new vscode.ThemeIcon('server-environment');
-                        mcpServerItem.tooltip = "MCP Server is currently running. Click to stop.";
-                        mcpServerItem.command = {
-                            command: 'appdna.stopMCPServer',
-                            title: 'Stop MCP Server',
-                            arguments: []
-                        };
-                    } else {
-                        // Server stopped icon
-                        mcpServerItem.iconPath = new vscode.ThemeIcon('server-process');
-                        mcpServerItem.tooltip = "MCP Server is currently stopped. Click to start.";
-                        mcpServerItem.command = {
-                            command: 'appdna.startMCPServer',
-                            title: 'Start MCP Server',
-                            arguments: []
-                        };
-                    }
-                    items.push(mcpServerItem);
-                    
-                    // Create MCP HTTP Server item with status indicator
-                    const isHttpServerRunning = this.mcpHttpServer.isServerRunning();
-                    
-                    const mcpHttpServerItem = new JsonTreeItem(
-                        `MCP HTTP Server (${isHttpServerRunning ? 'Running' : 'Stopped'})`,
-                        vscode.TreeItemCollapsibleState.None,
-                        'projectMCPHttpServer'
-                    );
-                    
-                    // Use different icons based on server status
-                    if (isHttpServerRunning) {
-                        // HTTP Server running icon - use same icon as MCP Server
-                        mcpHttpServerItem.iconPath = new vscode.ThemeIcon('server-environment');
-                        mcpHttpServerItem.tooltip = "MCP HTTP Server is currently running. Click to stop.";
-                        mcpHttpServerItem.command = {
-                            command: 'appdna.stopMCPHttpServer',
-                            title: 'Stop MCP HTTP Server',
-                            arguments: []
-                        };
-                    } else {
-                        // HTTP Server stopped icon - use same icon as MCP Server
-                        mcpHttpServerItem.iconPath = new vscode.ThemeIcon('server-process');
-                        mcpHttpServerItem.tooltip = "MCP HTTP Server is currently stopped. Click to start.";
-                        mcpHttpServerItem.command = {
-                            command: 'appdna.startMCPHttpServer',
-                            title: 'Start MCP HTTP Server',
-                            arguments: []
-                        };
-                    }
-                    items.push(mcpHttpServerItem);
                 }
                 
                 return Promise.resolve(items);

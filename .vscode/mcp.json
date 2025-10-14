@@ -28,17 +28,24 @@
         "type": "object",
         "properties": {}
       }
+    },
+    {
+      "name": "secret_word_of_the_day",
+      "description": "Get the secret word of the day, uniquely generated for this MCP server and project",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
     }
   ],
   "server": {
     "type": "stdio"
   },
   "launch": {
-    "command": "${execPath}",
+    "command": "node",
     "args": [
-      "${workspaceFolder}",
-      "--extensionDevelopmentPath=${execPath}/extensions/derivative-programming.appdna-1.0.20",
-      "--command=appdna.startMCPServer"
-    ]
+      "${workspaceFolder}/dist/mcp/server.js"
+    ],
+    "cwd": "${workspaceFolder}"
   }
 }

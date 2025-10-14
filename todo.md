@@ -6,26 +6,28 @@ common types of graphs...
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
- 
 
-user story dev view...
-- board tab
-  - allow drag and drop to reorder stories
-- forecast tab
-  - i dont think the 'Holidays & Non-Working Days' data is used in forecasting.
-
-
-
-- display total cost summary
-  - development and qa costs together
-  - add management costs?
-
-verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
+Metrics
+- new metrics
+  - User Story Development Sprint completed Count
+  - User Story Development status incomplete count
+  - User Story Development status completed count
+  - user story development Active developer count
+  
 
 data object size analysis view...
 - all objects have maybe audit columns
 - ID and Code are indexed
 - indexed fields count 2X the size of non indexed fields
+
+user story dev view...
+- forecast tab
+  - i dont think the 'Holidays & Non-Working Days' data is used in forecasting.
+
+
+verify all pngs generated are readable with corect axis labels visible on either dark or light theme used
+ 
+ 
 
 api...
 - add api?
@@ -54,19 +56,29 @@ page data source Analysis report...
 - Details tab
   - list all page elements (page init header var, report col, form control, etc.)
   - show when a data source is set and to what object and prop
-  
 
-Metrics
-- new metrics
-  - User Story Development Sprint Count
-  - User Story Development status incomplete count
-  - User Story Development status completed count
-  - user story development Active developer count
-  
+
 
 --------------------------
 
-- you can probably auto create stories that would be dependencies for a given story.
+gituhub copilot allows an extension to create a chat mode.
+  - has rules. can restrict it to just talk to the mcp endpoint?
+
+display total cost summary
+  - development and qa costs together
+  - add management costs?
+ 
+
+possible to get list of statements to bulk add data objects?
+- so I can copy from one model to another
+
+possible to import items from another model? 
+  - or would it be better to export select items?
+    - export would require import too.
+    - export would help creating a model feature
+
+you can probably auto create stories that would be dependencies for a given story.
+  - or set role requirements?
  
 
 allow 'a' or 'an' in user story before role name
@@ -143,8 +155,7 @@ analysis treeview item... ask ai for ideas
 
 note when workflows are launched? by what pages?
 note what workflows modify which data objects and props?
-
-allow single broad search textbox on all filter sections
+ 
 
 automatically generate a text file that ai can read to get info on the app (read only)
 - setting on project to automatically do this on save? in separate process?
@@ -209,7 +220,7 @@ change requests...
 MCP server
 - implement MCP server in the extension that the copilot agent can connect to.
  
-  
+
 
 in the case where the model file is not found or deleted, set the flag showing the model is updated to false. should not be showing indicator that changes exist on the treeview title item
 

@@ -10,8 +10,7 @@ import { JsonTreeDataProvider } from '../providers/jsonTreeDataProvider';
 import { openJsonEditor } from '../webviews/jsonEditor';
 import { addFileCommand, addObjectCommand, removeObjectCommand, generateCodeCommand } from './objectCommands';
 import { newProjectCommand, openProjectCommand, saveProjectCommand } from './projectCommands';
-import { startMCPServerCommand, stopMCPServerCommand } from './mcpCommands';
-import { startMCPHttpServerCommand, stopMCPHttpServerCommand } from './mcpHttpCommands';
+import { startMcpServerCommand, stopMcpServerCommand } from './mcpCommands';
 import { registerGeneralFlowCommands } from './generalFlowCommands';
 import * as objectDetailsView from '../webviews/objectDetailsView';
 import * as reportDetailsView from '../webviews/reports/reportDetailsView';
@@ -891,32 +890,6 @@ export function registerCommands(
         })
     );
     
-    // Register start MCP server command
-    context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.startMCPServer', async () => {
-            await startMCPServerCommand();
-        })
-    );
-    
-    // Register stop MCP server command
-    context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.stopMCPServer', async () => {
-            await stopMCPServerCommand();
-        })
-    );
-    
-    // Register start MCP HTTP server command
-    context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.startMCPHttpServer', async () => {
-            await startMCPHttpServerCommand();
-        })
-    );    // Register stop MCP HTTP server command
-    context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.stopMCPHttpServer', async () => {
-            await stopMCPHttpServerCommand();
-        })
-    );
-    
     registerModelFabricationCommands(context, appDNAFilePath, modelService);
     
     // Register fabrication blueprint catalog commands
@@ -1155,6 +1128,19 @@ export function registerCommands(
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.clearGeneralFilter', () => {
             clearGeneralFilterCommand(jsonTreeDataProvider);
+        })
+    );
+
+    // Register MCP server commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.startMcpServer', async () => {
+            await startMcpServerCommand();
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.stopMcpServer', async () => {
+            await stopMcpServerCommand();
         })
     );
 }

@@ -1,0 +1,55 @@
+2025-10-13: Successfully removed VS Code dependencies from MCP server components
+- Modified UserStoryTools to use in-memory storage only (removed ModelService dependency)
+- Removed role validation methods that required model access
+- Simplified create_user_story and list_user_stories methods for standalone operation
+- TypeScript compilation successful with no errors
+- Compiled JavaScript verified to have no 'vscode' imports
+- MCP server architecture: stdio-based server using @modelcontextprotocol/sdk
+- Status: Ready for testing with GitHub Copilot integration
+
+2025-10-13: Added 'secret_word_of_the_day' tool to MCP server
+- Created secret_word_of_the_day method in UserStoryTools class
+- Generates unique word daily based on date + project identifier hash
+- Uses curated list of interesting words (quantum, nebula, cipher, etc.)
+- Registered tool in MCP server with proper error handling
+- Added to package.json languageModelTools for Copilot discovery
+- Tool is unique to this MCP server and project files
+- TypeScript compilation successful
+
+2025-10-13: Identified MCP server discovery issue
+- GitHub Copilot not recognizing extension's languageModelTools during development
+- Copilot found different MCP server in 'test-vscode-extension' directory
+- Created MCP_SETUP_INSTRUCTIONS.md with user settings configuration
+- Fixed mcp.json launch configuration to use Node.js instead of VS Code executable
+- Issue: Extension languageModelTools may only work when extension is installed, not in development
+- Solution: Configure MCP server in user settings under 'github.copilot.chat.mcp'
+
+2025-10-13: Fixed working directory issue in MCP configuration
+- VS Code auto-creates MCP config with wrong cwd: "c:\\Users\\vince\\Documents\\test-vscode-extension"
+- Updated MCP_SETUP_INSTRUCTIONS.md with fix for auto-generated config
+- User needs to update VS Code settings to use correct cwd: "c:\\VR\\Source\\DP\\vscode-extension"
+- Alternative: Use github.copilot.chat.mcp configuration format
+- After fixing cwd, Copilot should be able to access secret_word_of_the_day tool
+
+2025-10-13: Implemented automatic MCP configuration
+- Modified extension activation to automatically configure MCP settings
+- Extension now creates .vscode/settings.json with correct MCP server config on activation
+- Exported configureMcpSettings function for use by extension.ts
+- Fixed workspace folder handling in extension.ts
+- MCP server configuration now uses extension path resolution for portability
+- Users no longer need manual configuration - extension handles it automatically
+- TypeScript compilation successful
+
+2025-10-13: Fixed TypeScript compilation error in mcpCommands.ts
+- Resolved "import/export may only appear at the top level" error
+- Fixed duplicate configureMcpSettings function declarations
+- Removed orphaned function body that was causing parsing errors
+- TypeScript compilation now succeeds without errors
+- Extension should now activate properly
+
+2025-10-13: Fixed module import path error preventing extension activation
+- Corrected import path in generalFlowCommands.ts from '../webviews/generalFlowDetailsView' to '../webviews/generalFlow/generalFlowDetailsView'
+- File exists in src/webviews/generalFlow/ directory, not directly in webviews/
+- TypeScript compilation successful with webpack bundling
+- Extension activation should now work without "Cannot find module" errors
+- MCP server with secret word tool ready for GitHub Copilot integration

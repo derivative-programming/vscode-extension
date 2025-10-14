@@ -14,7 +14,8 @@ const extensionConfig = {
   mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
 
   entry: {
-    extension: ['./src/extension.ts'] // Include objectDetailsView in the extension entry
+    extension: ['./src/extension.ts'] // Main extension entry point
+    // MCP server is compiled separately to avoid bundling issues
   },
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
