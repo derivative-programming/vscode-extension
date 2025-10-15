@@ -142,6 +142,37 @@ export class MCPServer {
                 };
             }
         });
+
+        // Register open_user_stories_view tool
+        this.server.registerTool('open_user_stories_view', {
+            title: 'Open User Stories View',
+            description: 'Opens the user stories list view in the VS Code extension',
+            inputSchema: {
+                initialTab: z.string().optional().describe('Optional initial tab to show (e.g., "all", "active", "completed")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                initialTab: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ initialTab }) => {
+            try {
+                const result = await this.userStoryTools.open_user_stories_view({ initialTab });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
     }
 
     /**

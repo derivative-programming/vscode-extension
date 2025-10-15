@@ -14,6 +14,8 @@ import { AuthService } from './services/authService';
 import { showWelcomeView } from './webviews/welcomeView';
 import { showLexiconView } from './webviews/lexiconView';
 import { configureMcpSettings } from './commands/mcpCommands';
+import { McpBridge } from './services/mcpBridge';
+import { registerMcpViewCommands } from './commands/mcpViewCommands';
 
 // Track whether welcome view has been shown in this session
 let hasShownWelcomeView = false;
@@ -166,6 +168,16 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register all commands
     registerCommands(context, jsonTreeDataProvider, appDNAFilePath, modelService);
+
+    // Register MCP-specific view commands (hidden from palette)
+    registerMcpViewCommands(context);
+    console.log('[Extension] MCP view commands registered');
+
+    // Start MCP bridge for data and command access
+    const mcpBridge = new McpBridge();
+    mcpBridge.start(context);
+    context.subscriptions.push(mcpBridge);
+    console.log('[Extension] MCP bridge started');
 
     // Show welcome view if the AppDNA file doesn't exist and welcome view hasn't been shown yet
     if (!fileExists && !hasShownWelcomeView) {

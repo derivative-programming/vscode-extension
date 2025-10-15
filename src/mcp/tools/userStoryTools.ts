@@ -72,17 +72,34 @@ export class UserStoryTools {
      * @returns Array of user stories
      */
     public async list_user_stories(): Promise<any> {
-        // For MCP server, use in-memory storage only
-        const inMemoryStories = this.getInMemoryUserStories();
-        return {
-            success: true,
-            stories: inMemoryStories.map(story => ({
-                title: story.storyNumber || "",
-                description: story.storyText || "",
-                isIgnored: story.isIgnored === "true"
-            })),
-            note: inMemoryStories.length > 0 ? "Stories loaded from in-memory storage" : "No stories found"
-        };
+        // Try to get stories from extension via HTTP bridge
+        try {
+            const response = await this.fetchFromBridge('/api/user-stories');
+            return {
+                success: true,
+                stories: response.map((story: any) => ({
+                    title: story.storyNumber || "",
+                    description: story.storyText || "",
+                    isIgnored: story.isIgnored === "true"
+                })),
+                count: response.length,
+                note: "Stories loaded from AppDNA model file via MCP bridge"
+            };
+        } catch (error) {
+            // Fallback to in-memory storage if bridge is not available
+            const inMemoryStories = this.getInMemoryUserStories();
+            return {
+                success: true,
+                stories: inMemoryStories.map(story => ({
+                    title: story.storyNumber || "",
+                    description: story.storyText || "",
+                    isIgnored: story.isIgnored === "true"
+                })),
+                count: inMemoryStories.length,
+                note: "Stories loaded from MCP server memory (bridge not available)",
+                warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
+            };
+        }
     }
 
     /**
@@ -183,5 +200,139 @@ export class UserStoryTools {
             const v = c === 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
+    }
+
+    /**
+     * Fetch data from extension via HTTP bridge (data bridge on port 3001)
+     * @param endpoint The API endpoint to fetch from (e.g., '/api/user-stories')
+     * @returns Promise resolving to the fetched data
+     */
+    private async fetchFromBridge(endpoint: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const http = require('http');
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3001,
+                path: endpoint,
+                method: 'GET',
+                timeout: 5000 // 5 second timeout
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(data);
+                        resolve(parsed);
+                    } catch (e) {
+                        reject(new Error(`Failed to parse response: ${e instanceof Error ? e.message : 'Unknown error'}`));
+                    }
+                });
+            });
+
+            req.on('error', (e: any) => {
+                reject(new Error(`HTTP request failed: ${e.message}`));
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                reject(new Error('Request timed out - is the extension running?'));
+            });
+
+            req.end();
+        });
+    }
+
+    /**
+     * Execute a command in extension via HTTP bridge (command bridge on port 3002)
+     * @param command The VS Code command to execute
+     * @param args Optional arguments for the command
+     * @returns Promise resolving to the command result
+     */
+    private async executeCommand(command: string, args: any[] = []): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ command, args });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/execute-command',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 5000 // 5 second timeout
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        if (response.success) {
+                            resolve(response.result);
+                        } else {
+                            reject(new Error(response.error || 'Command execution failed'));
+                        }
+                    } catch (e) {
+                        reject(new Error(`Failed to parse response: ${e instanceof Error ? e.message : 'Unknown error'}`));
+                    }
+                });
+            });
+
+            req.on('error', (e: any) => {
+                reject(new Error(`HTTP request failed: ${e.message}`));
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                reject(new Error('Request timed out - is the extension running?'));
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
+
+    /**
+     * Opens the user stories list view in the extension
+     * Tool name: open_user_stories_view
+     * @param parameters Optional parameters (initialTab)
+     * @returns Result of opening the view
+     */
+    public async open_user_stories_view(parameters?: any): Promise<any> {
+        try {
+            const initialTab = parameters?.initialTab;
+            
+            // Execute command to open user stories view
+            await this.executeCommand('appdna.mcp.openUserStories', initialTab ? [initialTab] : []);
+            
+            return {
+                success: true,
+                view: 'user-stories',
+                initialTab: initialTab || 'default',
+                message: 'User stories view opened successfully'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+                message: 'Failed to open user stories view - is the extension running?'
+            };
+        }
     }
 }
