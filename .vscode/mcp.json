@@ -1,51 +1,11 @@
 {
-  "name": "AppDNA User Story MCP",
-  "description": "MCP server for interacting with AppDNA user stories",
-  "version": "1.0.0",
-  "tools": [
-    {
-      "name": "create_user_story",
-      "description": "Creates a user story and validates its format",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Title or ID for the user story (optional)"
-          },
-          "description": {
-            "type": "string",
-            "description": "The user story text following one of these formats:\n1. A [Role name] wants to [View all, view, add, update, delete] a [object name]\n2. As a [Role name], I want to [View all, view, add, update, delete] a [object name]"
-          }
-        },
-        "required": ["description"]
-      }
-    },
-    {
-      "name": "list_user_stories",
-      "description": "Lists all user stories",
-      "parameters": {
-        "type": "object",
-        "properties": {}
-      }
-    },
-    {
-      "name": "secret_word_of_the_day",
-      "description": "Get the secret word of the day, uniquely generated for this MCP server and project",
-      "parameters": {
-        "type": "object",
-        "properties": {}
-      }
-    }
-  ],
-  "server": {
-    "type": "stdio"
-  },
-  "launch": {
+  "appdna-extension": {
     "command": "node",
     "args": [
-      "${workspaceFolder}/dist/mcp/server.js"
+      "dist/mcp/server.js"
     ],
-    "cwd": "${workspaceFolder}"
+    "env": {
+      "NODE_PATH": "node_modules"
+    }
   }
 }

@@ -16,6 +16,9 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
     const modelService = ModelService.getInstance();
 
     // Open user stories view
+    // Description: Opens the User Stories view showing all user stories with their roles, descriptions, and acceptance criteria
+    // Tabs: 'stories' (list of all user stories), 'details' (story details table), 'analytics' (role distribution analytics)
+    // Parameters: initialTab (optional) - One of: 'stories', 'details', 'analytics'
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openUserStories', async (initialTab?: string) => {
             // Delegate to existing command
@@ -24,20 +27,32 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
     );
 
     // Open user stories dev view
+    // Description: Opens the User Story Development tracking view with sprint planning, assignments, and forecasting
+    // Tabs: 'details' (story development details), 'devQueue' (priority queue), 'analysis' (status analytics), 
+    //       'board' (kanban board), 'sprint' (sprint management), 'developers' (developer assignments),
+    //       'forecast' (timeline forecasting), 'cost' (cost analysis)
+    // Parameters: initialTab (optional) - One of: 'details', 'devQueue', 'analysis', 'board', 'sprint', 'developers', 'forecast', 'cost'
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.mcp.openUserStoriesDev', async () => {
-            return vscode.commands.executeCommand('appdna.userStoriesDev');
+        vscode.commands.registerCommand('appdna.mcp.openUserStoriesDev', async (initialTab?: string) => {
+            return vscode.commands.executeCommand('appdna.userStoriesDev', initialTab);
         })
     );
 
     // Open user stories QA view
+    // Description: Opens the User Story QA/Testing workflow view for tracking testing progress and status
+    // Tabs: 'details' (QA details), 'board' (testing board), 'analysis' (status distribution), 
+    //       'forecast' (QA timeline), 'cost' (QA cost analysis)
+    // Parameters: initialTab (optional) - One of: 'details', 'board', 'analysis', 'forecast', 'cost'
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.mcp.openUserStoriesQA', async () => {
-            return vscode.commands.executeCommand('appdna.userStoriesQA');
+        vscode.commands.registerCommand('appdna.mcp.openUserStoriesQA', async (initialTab?: string) => {
+            return vscode.commands.executeCommand('appdna.userStoriesQA', initialTab);
         })
     );
 
     // Open user stories journey view
+    // Description: Opens the User Journey visualization showing which pages fulfill each user story
+    // Tabs: 'journey' (visual journey map), 'list' (list view of journeys)
+    // Parameters: None (initialTab not supported)
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openUserStoriesJourney', async () => {
             return vscode.commands.executeCommand('appdna.userStoriesJourney');
@@ -45,13 +60,30 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
     );
 
     // Open user stories page mapping view
+    // Description: Opens the Page Mapping view showing requirements and page-to-story relationships
+    // Tabs: 'mapping' (page mapping table), 'statistics' (mapping statistics)
+    // Parameters: None (initialTab not supported)
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openUserStoriesPageMapping', async () => {
             return vscode.commands.executeCommand('appdna.userStoriesPageMapping');
         })
     );
 
+    // Open user stories role requirements view
+    // Description: Opens the Role Requirements view showing required and not-allowed role requirements
+    // Tabs: 'requirements' (role requirements table), 'coverage' (coverage analysis)
+    // Parameters: None (initialTab not supported)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openUserStoriesRoleRequirements', async () => {
+            return vscode.commands.executeCommand('appdna.showRequirementsFulfillment');
+        })
+    );
+
     // Open object details by name (MCP-friendly - takes string instead of tree item)
+    // Description: Opens the Data Object details view showing object configuration, properties, and lookup items
+    // Tabs: 'settings' (object configuration), 'props' (object properties), 'lookupItems' (lookup values - only for lookup objects)
+    // Parameters: objectName (required) - Name of the data object
+    //            initialTab (optional) - One of: 'settings', 'props', 'lookupItems'
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openObjectDetails', async (objectName: string, initialTab?: string) => {
             if (!modelService.isFileLoaded()) {

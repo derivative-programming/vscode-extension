@@ -53,3 +53,54 @@
 - TypeScript compilation successful with webpack bundling
 - Extension activation should now work without "Cannot find module" errors
 - MCP server with secret word tool ready for GitHub Copilot integration
+
+2025-10-15: Comprehensive MCP view command descriptions for AI consumption
+- CRITICAL INSIGHT: MCP tool descriptions ARE exposed to consumers - they're part of the tool definition
+- Created ViewTools class (src/mcp/tools/viewTools.ts) with methods for all view opening operations
+- Updated MCP server (src/mcp/server.ts) to register 30+ view tools with detailed descriptions
+- Each description explains: what the view shows, available tabs (with values), parameters, and use cases
+- Description format makes tools discoverable and understandable by AI assistants (Claude, etc.)
+- Updated server name from 'appdna-user-stories' to 'appdna-extension' to reflect broader scope
+- Architecture: MCP Server → ViewTools → VS Code Commands (mcpViewCommands.ts)
+- Tools organized by category: User Stories, Data Objects, Forms/Pages, Workflows, Reports/APIs, Analysis, Diagrams, Settings
+- Views with initialTab support: User Stories (3 tabs), User Stories Dev (8 tabs), User Stories QA (5 tabs), Object Details (3 tabs)
+- Created comprehensive documentation: docs/MCP-VIEW-COMMANDS-REFERENCE.md
+- Benefits: Self-documenting, discovery-friendly, maintainable, consistent
+- TypeScript compilation successful - all tools ready for MCP consumption
+- Status: ✅ COMPLETE - MCP consumers can now understand and use all 30+ view opening tools
+
+2025-10-15: Added MCP commands for detail views (forms, pages, reports, workflows, APIs)
+- Extended MCP coverage from 30 to 39 views (95% of all views)
+- Added 9 new ViewTools methods in viewTools.ts (305 → 376 lines):
+  - openFormDetails(formName, initialTab?) - 4 tabs: Settings, Input Controls, Buttons, Output Variables
+  - openPageDetails(pageName, initialTab?) - 4 tabs: Settings, Components, Variables, Buttons
+  - openPagePreview(pageName) - 2 tabs: Preview, Source
+  - openPageInitFlowDetails(flowName, initialTab?) - Workflow settings and tasks
+  - openGeneralWorkflowDetails(workflowName, initialTab?) - Workflow settings and tasks
+  - openWorkflowDetails(workflowName, initialTab?) - DynaFlow workflow editor
+  - openWorkflowTaskDetails(taskName, initialTab?) - 3 tabs: Settings, Input Vars, Output Vars
+  - openReportDetails(reportName, initialTab?) - 4 tabs: Settings, Input Controls, Buttons, Output Variables
+  - openAPIDetails(apiName, initialTab?) - 3 tabs: Settings, Request/Response, Error Handling
+- Added 9 MCP tool registrations in server.ts (1038 → 1324 lines)
+- Each tool requires itemName parameter (formName, pageName, etc.) and optional initialTab parameter
+- Pattern follows successful openObjectDetails implementation
+- Updated docs/MCP-VIEW-COMMANDS-REFERENCE.md with all detail view tools
+- Updated docs/VIEWS-REFERENCE.md: changed detail views from "❌ No" to "✅ [tool_name]"
+- Updated MCP availability summary: 30/41 (73%) → 39/41 (95%)
+- Only 2 views remain without MCP: authentication views (register, login)
+- TypeScript compilation successful - npm run compile completed without errors
+- Status: ✅ COMPLETE - AI assistants can now open specific detail views by item name
+
+2025-10-15: Added MCP commands for authentication views - REACHED 100% COVERAGE
+- Added 2 final ViewTools methods in viewTools.ts (385 → 403 lines):
+  - openRegister() - Opens model services registration form
+  - openLogin() - Opens model services login form
+- Added 2 MCP tool registrations in server.ts (1324 → 1390 lines):
+  - open_register_view - Single-page registration form
+  - open_login_view - Single-page login form
+- Created new "Authentication Views" section in MCP-VIEW-COMMANDS-REFERENCE.md
+- Updated docs/VIEWS-REFERENCE.md: changed auth views from "❌ No" to "✅ [tool_name]"
+- Updated MCP availability summary: 39/41 (95%) → 41/41 (100%) 🎉
+- ALL views now have MCP commands - complete coverage achieved
+- TypeScript compilation successful - npm run compile completed without errors
+- Status: ✅ COMPLETE - 100% MCP coverage, every view is accessible via MCP protocol

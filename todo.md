@@ -5,7 +5,7 @@ common types of graphs...
 - pie chart (each slice is a category, shows how many items are in each category)
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
- 
+
 
 Metrics
 - new metrics
@@ -215,10 +215,7 @@ change requests...
 - on approve all, show processing animation while all are processed
 - show note...  There is a difference between Model AI processing and Model Change Suggestions.  Model Change Suggestions modify existing data in a model, while Model AI processing only adds data to a model.
 - validation error text 'Please provide a reason for rejection.' to red
-
-
-MCP server
-- implement MCP server in the extension that the copilot agent can connect to.
+ 
  
 
 

@@ -43,7 +43,7 @@ export async function configureMcpSettings(workspaceFolder: vscode.WorkspaceFold
     }
 
     // Configure AppDNA MCP server using official stdio format
-    mcpConfig.servers['appdnaUserStories'] = {
+    mcpConfig.servers['appdna-extension'] = {
         type: 'stdio',
         command: 'node',
         args: [path.join(extensionPath, 'dist', 'mcp', 'server.js')],
