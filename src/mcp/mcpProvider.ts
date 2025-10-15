@@ -23,6 +23,28 @@ interface ListUserStoriesInput {
 }
 
 /**
+ * Input schema for list_roles tool
+ */
+interface ListRolesInput {
+    // No parameters needed
+}
+
+/**
+ * Input schema for search_user_stories_by_role tool
+ */
+interface SearchUserStoriesByRoleInput {
+    role: string;
+}
+
+/**
+ * Input schema for search_user_stories tool
+ */
+interface SearchUserStoriesInput {
+    query: string;
+    caseSensitive?: boolean;
+}
+
+/**
  * AppDNA MCP Tools Provider
  * Implements MCP tools directly using VS Code's official language model API
  */
@@ -41,7 +63,10 @@ export class AppDNAMcpProvider {
      * Register MCP tools with VS Code's language model API
      */
     private registerTools(): void {
+        console.log('[MCP Provider] Starting tool registration...');
+        
         // Register create_user_story tool
+        console.log('[MCP Provider] Registering create_user_story...');
         const createTool = vscode.lm.registerTool('create_user_story', {
             prepareInvocation: async (options, token) => {
                 const input = options.input as CreateUserStoryInput;
@@ -68,8 +93,10 @@ export class AppDNAMcpProvider {
                 }
             }
         });
+        console.log('[MCP Provider] ✓ create_user_story registered');
 
         // Register list_user_stories tool
+        console.log('[MCP Provider] Registering list_user_stories...');
         const listTool = vscode.lm.registerTool('list_user_stories', {
             prepareInvocation: async (options, token) => {
                 return {
@@ -94,8 +121,98 @@ export class AppDNAMcpProvider {
                 }
             }
         });
+        console.log('[MCP Provider] ✓ list_user_stories registered');
 
-        this.disposables.push(createTool, listTool);
+        // Register list_roles tool
+        console.log('[MCP Provider] Registering list_roles...');
+        const listRolesTool = vscode.lm.registerTool('list_roles', {
+            prepareInvocation: async (options, token) => {
+                return {
+                    invocationMessage: 'Listing all roles from the AppDNA model',
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const result = await this.userStoryTools.list_roles();
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ list_roles registered');
+
+        // Register search_user_stories_by_role tool
+        console.log('[MCP Provider] Registering search_user_stories_by_role...');
+        const searchByRoleTool = vscode.lm.registerTool('search_user_stories_by_role', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as SearchUserStoriesByRoleInput;
+                return {
+                    invocationMessage: `Searching user stories for role: ${input.role}`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as SearchUserStoriesByRoleInput;
+                    const result = await this.userStoryTools.search_user_stories_by_role(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ search_user_stories_by_role registered');
+
+        // Register search_user_stories tool
+        console.log('[MCP Provider] Registering search_user_stories...');
+        const searchStoriesTool = vscode.lm.registerTool('search_user_stories', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as SearchUserStoriesInput;
+                return {
+                    invocationMessage: `Searching user stories for: "${input.query}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as SearchUserStoriesInput;
+                    const result = await this.userStoryTools.search_user_stories(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ search_user_stories registered');
+
+        this.disposables.push(createTool, listTool, listRolesTool, searchByRoleTool, searchStoriesTool);
+        console.log('[MCP Provider] All 5 tools registered and added to disposables');
     }
 
     /**

@@ -78,6 +78,31 @@ export class McpBridge {
                     res.writeHead(200);
                     res.end(JSON.stringify(model || {}));
                 }
+                else if (req.url === '/api/roles') {
+                    // Get all roles from Role data object lookup items
+                    const roles = new Set<string>();
+                    
+                    // Extract roles from Role data objects
+                    const allObjects = modelService.getAllObjects();
+                    allObjects.forEach((obj: any) => {
+                        if (obj.name && obj.name.toLowerCase() === 'role') {
+                            if (obj.lookupItem && Array.isArray(obj.lookupItem)) {
+                                obj.lookupItem.forEach((lookupItem: any) => {
+                                    if (lookupItem.name) {
+                                        roles.add(lookupItem.name);
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    
+                    const rolesArray = Array.from(roles).sort();
+                    
+                    this.outputChannel.appendLine(`[Data Bridge] Returning ${rolesArray.length} roles`);
+                    
+                    res.writeHead(200);
+                    res.end(JSON.stringify(rolesArray));
+                }
                 else if (req.url === '/api/health') {
                     // Health check endpoint
                     res.writeHead(200);
@@ -95,6 +120,7 @@ export class McpBridge {
                         availableEndpoints: [
                             '/api/user-stories',
                             '/api/objects',
+                            '/api/roles',
                             '/api/model',
                             '/api/health'
                         ]

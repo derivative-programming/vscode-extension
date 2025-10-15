@@ -16,6 +16,7 @@ import { showLexiconView } from './webviews/lexiconView';
 import { configureMcpSettings } from './commands/mcpCommands';
 import { McpBridge } from './services/mcpBridge';
 import { registerMcpViewCommands } from './commands/mcpViewCommands';
+import { AppDNAMcpProvider } from './mcp/mcpProvider';
 
 // Track whether welcome view has been shown in this session
 let hasShownWelcomeView = false;
@@ -178,6 +179,11 @@ export function activate(context: vscode.ExtensionContext) {
     mcpBridge.start(context);
     context.subscriptions.push(mcpBridge);
     console.log('[Extension] MCP bridge started');
+
+    // Initialize AppDNA MCP Provider for VS Code Language Model Tools
+    const mcpProvider = new AppDNAMcpProvider();
+    context.subscriptions.push(mcpProvider);
+    console.log('[Extension] MCP provider initialized - tools registered with VS Code');
 
     // Show welcome view if the AppDNA file doesn't exist and welcome view hasn't been shown yet
     if (!fileExists && !hasShownWelcomeView) {

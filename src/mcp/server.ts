@@ -118,6 +118,109 @@ export class MCPServer {
             }
         });
 
+        // Register list_roles tool
+        this.server.registerTool('list_roles', {
+            title: 'List Roles',
+            description: 'List all roles from the Role data object in the AppDNA model',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                roles: z.array(z.string()),
+                count: z.number(),
+                note: z.string().optional(),
+                warning: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.userStoryTools.list_roles();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register search_user_stories_by_role tool
+        this.server.registerTool('search_user_stories_by_role', {
+            title: 'Search User Stories by Role',
+            description: 'Search for user stories that mention a specific role',
+            inputSchema: {
+                role: z.string().describe('The role name to search for in user stories')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                role: z.string(),
+                stories: z.array(z.object({
+                    title: z.string(),
+                    description: z.string(),
+                    isIgnored: z.boolean()
+                })),
+                count: z.number(),
+                note: z.string().optional(),
+                warning: z.string().optional()
+            }
+        }, async ({ role }) => {
+            try {
+                const result = await this.userStoryTools.search_user_stories_by_role({ role });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register search_user_stories tool
+        this.server.registerTool('search_user_stories', {
+            title: 'Search User Stories',
+            description: 'Search user stories by text query in title or description',
+            inputSchema: {
+                query: z.string().describe('The text to search for in user stories'),
+                caseSensitive: z.boolean().optional().describe('Whether the search should be case-sensitive (default: false)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                query: z.string(),
+                caseSensitive: z.boolean(),
+                stories: z.array(z.object({
+                    title: z.string(),
+                    description: z.string(),
+                    isIgnored: z.boolean()
+                })),
+                count: z.number(),
+                note: z.string().optional(),
+                warning: z.string().optional()
+            }
+        }, async ({ query, caseSensitive }) => {
+            try {
+                const result = await this.userStoryTools.search_user_stories({ query, caseSensitive });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register secret_word_of_the_day tool
         this.server.registerTool('secret_word_of_the_day', {
             title: 'Secret Word of the Day',

@@ -659,6 +659,53 @@
         }
       },
       {
+        "name": "list_roles",
+        "displayName": "List Roles",
+        "modelDescription": "List all user roles available in the AppDNA model. Use this to see what roles exist for user stories and role-based features.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      {
+        "name": "search_user_stories_by_role",
+        "displayName": "Search User Stories by Role",
+        "modelDescription": "Search for user stories that mention a specific role",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string",
+              "description": "The role name to search for in user stories"
+            }
+          },
+          "required": [
+            "role"
+          ]
+        }
+      },
+      {
+        "name": "search_user_stories",
+        "displayName": "Search User Stories",
+        "modelDescription": "Search user stories by text query in title or description",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "The text to search for in user stories"
+            },
+            "caseSensitive": {
+              "type": "boolean",
+              "description": "Whether the search should be case-sensitive (default: false)"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      },
+      {
         "name": "secret_word_of_the_day",
         "displayName": "Secret Word of the Day",
         "modelDescription": "Get the secret word of the day, uniquely generated for this MCP server and project",

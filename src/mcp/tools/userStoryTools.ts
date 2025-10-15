@@ -117,6 +117,33 @@ export class UserStoryTools {
     }
 
     /**
+     * Lists all roles from the Role data object
+     * Tool name: list_roles (following MCP snake_case convention)
+     * @returns Array of role names
+     */
+    public async list_roles(): Promise<any> {
+        // Try to get roles from extension via HTTP bridge
+        try {
+            const response = await this.fetchFromBridge('/api/roles');
+            return {
+                success: true,
+                roles: response,
+                count: response.length,
+                note: "Roles loaded from Role data object via MCP bridge"
+            };
+        } catch (error) {
+            // Return empty list if bridge is not available
+            return {
+                success: false,
+                roles: [],
+                count: 0,
+                note: "Could not load roles from bridge",
+                warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
+            };
+        }
+    }
+
+    /**
      * Get the secret word of the day - unique to this MCP server and project
      * Tool name: secret_word_of_the_day (following MCP snake_case convention)
      * @returns The secret word for today
@@ -156,6 +183,170 @@ export class UserStoryTools {
             project: 'AppDNA VS Code Extension',
             note: 'This word is uniquely generated for this MCP server and project files'
         };
+    }
+
+    /**
+     * Extracts the role from a user story text
+     * @param text User story text
+     * @returns The extracted role name or null if not found
+     */
+    private extractRoleFromUserStory(text: string): string | null {
+        if (!text || typeof text !== "string") {
+            return null;
+        }
+        
+        const t = text.trim().replace(/\s+/g, " ");
+        
+        // Pattern 1: "A [Role] wants to..."
+        const match1 = t.match(/^A\s+([\w\s]+?)\s+wants to\s+/i);
+        if (match1) {
+            return match1[1].trim();
+        }
+        
+        // Pattern 2: "As a [Role], I want to..."
+        const match2 = t.match(/^As a\s+([\w\s]+?)\s*,\s*I want to\s+/i);
+        if (match2) {
+            return match2[1].trim();
+        }
+        
+        return null;
+    }
+
+    /**
+     * Searches user stories by role name
+     * Tool name: search_user_stories_by_role (following MCP snake_case convention)
+     * @param parameters Tool parameters containing role name
+     * @returns Array of user stories matching the role
+     */
+    public async search_user_stories_by_role(parameters: any): Promise<any> {
+        const { role } = parameters;
+        
+        if (!role) {
+            throw new Error('Role parameter is required');
+        }
+        
+        // Try to get stories from extension via HTTP bridge
+        try {
+            const response = await this.fetchFromBridge('/api/user-stories');
+            
+            // Filter stories by role (case-insensitive match)
+            const roleLower = role.toLowerCase();
+            const matchingStories = response.filter((story: any) => {
+                const storyText = story.storyText || "";
+                const extractedRole = this.extractRoleFromUserStory(storyText);
+                return extractedRole && extractedRole.toLowerCase() === roleLower;
+            });
+            
+            return {
+                success: true,
+                role: role,
+                stories: matchingStories.map((story: any) => ({
+                    title: story.storyNumber || "",
+                    description: story.storyText || "",
+                    isIgnored: story.isIgnored === "true"
+                })),
+                count: matchingStories.length,
+                note: "Stories loaded from AppDNA model file via MCP bridge"
+            };
+        } catch (error) {
+            // Fallback to in-memory storage if bridge is not available
+            const inMemoryStories = this.getInMemoryUserStories();
+            const roleLower = role.toLowerCase();
+            const matchingStories = inMemoryStories.filter((story: any) => {
+                const storyText = story.storyText || "";
+                const extractedRole = this.extractRoleFromUserStory(storyText);
+                return extractedRole && extractedRole.toLowerCase() === roleLower;
+            });
+            
+            return {
+                success: true,
+                role: role,
+                stories: matchingStories.map((story: any) => ({
+                    title: story.storyNumber || "",
+                    description: story.storyText || "",
+                    isIgnored: story.isIgnored === "true"
+                })),
+                count: matchingStories.length,
+                note: "Stories loaded from MCP server memory (bridge not available)",
+                warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
+            };
+        }
+    }
+
+    /**
+     * Searches user stories by text query
+     * Tool name: search_user_stories (following MCP snake_case convention)
+     * @param parameters Tool parameters containing search query
+     * @returns Array of user stories matching the search query
+     */
+    public async search_user_stories(parameters: any): Promise<any> {
+        const { query, caseSensitive } = parameters;
+        
+        if (!query) {
+            throw new Error('Query parameter is required');
+        }
+        
+        const isCaseSensitive = caseSensitive === true;
+        
+        // Try to get stories from extension via HTTP bridge
+        try {
+            const response = await this.fetchFromBridge('/api/user-stories');
+            
+            // Filter stories by text search
+            const matchingStories = response.filter((story: any) => {
+                const storyText = story.storyText || "";
+                const storyNumber = story.storyNumber || "";
+                
+                const searchText = isCaseSensitive 
+                    ? storyText + " " + storyNumber
+                    : (storyText + " " + storyNumber).toLowerCase();
+                const searchQuery = isCaseSensitive ? query : query.toLowerCase();
+                
+                return searchText.includes(searchQuery);
+            });
+            
+            return {
+                success: true,
+                query: query,
+                caseSensitive: isCaseSensitive,
+                stories: matchingStories.map((story: any) => ({
+                    title: story.storyNumber || "",
+                    description: story.storyText || "",
+                    isIgnored: story.isIgnored === "true"
+                })),
+                count: matchingStories.length,
+                note: "Stories loaded from AppDNA model file via MCP bridge"
+            };
+        } catch (error) {
+            // Fallback to in-memory storage if bridge is not available
+            const inMemoryStories = this.getInMemoryUserStories();
+            
+            const matchingStories = inMemoryStories.filter((story: any) => {
+                const storyText = story.storyText || "";
+                const storyNumber = story.storyNumber || "";
+                
+                const searchText = isCaseSensitive 
+                    ? storyText + " " + storyNumber
+                    : (storyText + " " + storyNumber).toLowerCase();
+                const searchQuery = isCaseSensitive ? query : query.toLowerCase();
+                
+                return searchText.includes(searchQuery);
+            });
+            
+            return {
+                success: true,
+                query: query,
+                caseSensitive: isCaseSensitive,
+                stories: matchingStories.map((story: any) => ({
+                    title: story.storyNumber || "",
+                    description: story.storyText || "",
+                    isIgnored: story.isIgnored === "true"
+                })),
+                count: matchingStories.length,
+                note: "Stories loaded from MCP server memory (bridge not available)",
+                warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
+            };
+        }
     }
 
     /**
