@@ -1,5 +1,0 @@
-2025-10-11 15:45 - Fix Forecast tab bottleneck detection property mismatch
-Command: Fixed identifyBottlenecks function in src/webviews/userStoryDev/components/scripts/forecastFunctions.js
-Status: Completed
-Notes: The bottleneck detection was checking item.developer but stories use item.assignedTo. Updated to check assignedTo first, then developer as fallback (matching the pattern used in forecast generation line 282). Also fixed unassigned critical story detection to check both properties. This prevents false "Unassigned has X story points" warnings when all stories are properly assigned to developers.
-Architecture: Webview JS only; consistent with property naming throughout codebase where assignedTo is primary developer field.

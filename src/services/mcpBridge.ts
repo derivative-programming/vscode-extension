@@ -71,6 +71,20 @@ export class McpBridge {
                     res.writeHead(200);
                     res.end(JSON.stringify(objects));
                 }
+                else if (req.url === '/api/data-objects') {
+                    // Get all data objects with name, isLookup, and parentObjectName
+                    const objects = modelService.getAllObjects();
+                    const dataObjects = objects.map((obj: any) => ({
+                        name: obj.name || "",
+                        isLookup: obj.isLookup === "true",
+                        parentObjectName: obj.parentObjectName || null
+                    }));
+                    
+                    this.outputChannel.appendLine(`[Data Bridge] Returning ${dataObjects.length} data objects (filtered)`);
+                    
+                    res.writeHead(200);
+                    res.end(JSON.stringify(dataObjects));
+                }
                 else if (req.url === '/api/model') {
                     // Return the entire model
                     this.outputChannel.appendLine('[Data Bridge] Returning full model');
@@ -120,6 +134,7 @@ export class McpBridge {
                         availableEndpoints: [
                             '/api/user-stories',
                             '/api/objects',
+                            '/api/data-objects',
                             '/api/roles',
                             '/api/model',
                             '/api/health'

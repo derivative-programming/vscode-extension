@@ -147,6 +147,48 @@ export class MCPServer {
             }
         });
 
+        // Register list_data_objects tool
+        this.server.registerTool('list_data_objects', {
+            title: 'List Data Objects',
+            description: 'List all data objects from the AppDNA model with optional search and filters. Search by name (case-insensitive, also searches with spaces removed). Filter by isLookup status or parent object name.',
+            inputSchema: {
+                search_name: z.string().optional().describe('Optional search text to filter by object name (case-insensitive, searches with and without spaces)'),
+                is_lookup: z.string().optional().describe('Optional filter for lookup status: "true" or "false"'),
+                parent_object_name: z.string().optional().describe('Optional filter for parent object name (exact match, case-insensitive)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                objects: z.array(z.object({
+                    name: z.string(),
+                    isLookup: z.boolean(),
+                    parentObjectName: z.string().nullable()
+                })),
+                count: z.number(),
+                filters: z.object({
+                    search_name: z.string().nullable(),
+                    is_lookup: z.string().nullable(),
+                    parent_object_name: z.string().nullable()
+                }).optional(),
+                note: z.string().optional(),
+                warning: z.string().optional()
+            }
+        }, async ({ search_name, is_lookup, parent_object_name }) => {
+            try {
+                const result = await this.userStoryTools.list_data_objects({ search_name, is_lookup, parent_object_name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register search_user_stories_by_role tool
         this.server.registerTool('search_user_stories_by_role', {
             title: 'Search User Stories by Role',

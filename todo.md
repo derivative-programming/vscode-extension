@@ -7,6 +7,18 @@ common types of graphs...
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
 
 
+mcp tools
+- objects
+  - ✅ get list of data objects
+  - ✅ allow search on data object
+    - ✅ try name search query text and then remove spaces. 
+    - ✅ no search is case sensitive
+    - ✅ optional filter on isLookup
+    - ✅ optional filter on parent object name (exact match but not case sensitive)
+  - get list of lookup data object values (param of object Name with exact match but not case sensitive)
+
+
+
 Metrics
 - new metrics
   - User Story Development Sprint completed Count
