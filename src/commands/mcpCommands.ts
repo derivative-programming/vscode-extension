@@ -8,6 +8,21 @@ import * as fs from 'fs';
 import { MCPServer } from '../mcp/server';
 
 let mcpProcess: import('child_process').ChildProcess | null = null;
+let onStatusChangeCallback: (() => void) | null = null;
+
+/**
+ * Check if the MCP server is currently running
+ */
+export function isMcpServerRunning(): boolean {
+    return mcpProcess !== null && !mcpProcess.killed;
+}
+
+/**
+ * Set a callback to be called when the MCP server status changes
+ */
+export function setMcpServerStatusChangeCallback(callback: () => void): void {
+    onStatusChangeCallback = callback;
+}
 
 /**
  * Configure VS Code MCP server using mcp.json file
@@ -154,6 +169,11 @@ export async function startMcpServerCommand(): Promise<void> {
 
         vscode.window.showInformationMessage('MCP Server started successfully');
 
+        // Notify listeners of status change
+        if (onStatusChangeCallback) {
+            onStatusChangeCallback();
+        }
+
     } catch (error) {
         console.error('Failed to start MCP server:', error);
         vscode.window.showErrorMessage(`Failed to start MCP Server: ${error}`);
@@ -169,6 +189,11 @@ export async function stopMcpServerCommand(): Promise<void> {
             mcpProcess.kill();
             mcpProcess = null;
             vscode.window.showInformationMessage('MCP Server stopped');
+            
+            // Notify listeners of status change
+            if (onStatusChangeCallback) {
+                onStatusChangeCallback();
+            }
         } else {
             vscode.window.showInformationMessage('MCP Server is not running');
         }

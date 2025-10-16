@@ -7,6 +7,7 @@ import { JsonTreeItem, AppDNAData, TreeDataChange } from '../models/types';
 import { ModelService } from '../services/modelService';
 import { AuthService } from '../services/authService';
 import { getShowAdvancedPropertiesFromConfig } from '../utils/fileUtils';
+import { isMcpServerRunning, setMcpServerStatusChangeCallback } from '../commands/mcpCommands';
 
 /**
  * TreeDataProvider for managing JSON structure in the AppDNA extension
@@ -59,6 +60,11 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
         setInterval(() => {
             this.updateUnsavedChangesContext();
         }, 1000);
+        
+        // Set up MCP server status change callback to refresh tree
+        setMcpServerStatusChangeCallback(() => {
+            this.refresh();
+        });
     }    
     
     // Track the last check result to avoid unnecessary refreshes
@@ -253,6 +259,36 @@ export class JsonTreeDataProvider implements vscode.TreeDataProvider<JsonTreeIte
                     arguments: []
                 };
                 items.push(settingsItem);
+                
+                // Create MCP Server item under PROJECT (always shown)
+                const isServerRunning = isMcpServerRunning();
+                const mcpServerItem = new JsonTreeItem(
+                    `MCP Server (${isServerRunning ? 'Running' : 'Stopped'})`,
+                    vscode.TreeItemCollapsibleState.None,
+                    'projectMcpServer'
+                );
+                
+                // Use different icons and commands based on server status
+                if (isServerRunning) {
+                    // Server running icon
+                    mcpServerItem.iconPath = new vscode.ThemeIcon('server-environment');
+                    mcpServerItem.tooltip = "MCP Server is currently running. Click to stop.";
+                    mcpServerItem.command = {
+                        command: 'appdna.stopMcpServer',
+                        title: 'Stop MCP Server',
+                        arguments: []
+                    };
+                } else {
+                    // Server stopped icon
+                    mcpServerItem.iconPath = new vscode.ThemeIcon('server-process');
+                    mcpServerItem.tooltip = "MCP Server is currently stopped. Click to start.";
+                    mcpServerItem.command = {
+                        command: 'appdna.startMcpServer',
+                        title: 'Start MCP Server',
+                        arguments: []
+                    };
+                }
+                items.push(mcpServerItem);
                 
                 // Only show advanced items if setting is enabled
                 if (showAdvancedProperties) {

@@ -135,3 +135,22 @@ Files Modified:
   - src/mcp/server.ts (updated schema with parameters)
   - src/mcp/mcpProvider.ts (updated interface and invocation message)
 Total Tools: Still 50 (enhanced existing tool)
+
+[2025-10-16] MCP Server Tree View Toggle - COMPLETED
+Status: SUCCESS - Added MCP Server toggle item under PROJECT node
+Feature: Users can now start/stop MCP server directly from tree view
+Location: PROJECT → MCP Server (Running/Stopped)
+Files Modified:
+  - src/commands/mcpCommands.ts (added isMcpServerRunning() and status change callback)
+  - src/providers/jsonTreeDataProvider.ts (added MCP Server item, registered callback)
+UI Elements:
+  - Label shows current status: "MCP Server (Running)" or "MCP Server (Stopped)"
+  - Icons: server-environment (running), server-process (stopped)
+  - Click to toggle: starts when stopped, stops when running
+  - Automatic refresh on status change
+Architecture Notes:
+  - Status detected via mcpProcess variable (non-null and not killed)
+  - Callback pattern used for status change notifications
+  - Tree view refreshes automatically when server status changes
+  - Existing palette commands still available as alternative method
+Documentation: Created docs/architecture/mcp-server-tree-view-toggle.md
