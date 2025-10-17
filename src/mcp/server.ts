@@ -55,20 +55,22 @@ export class MCPServer {
         // Register create_user_story tool
         this.server.registerTool('create_user_story', {
             title: 'Create User Story',
-            description: 'Create a new user story with proper format validation',
+            description: 'Create a new user story with format validation and add it to the AppDNA model via HTTP bridge',
             inputSchema: {
-                title: z.string().optional().describe('Optional title/number for the user story'),
-                description: z.string().describe('The user story description following the format: "As a [Role] I want to [action] [object]"')
+                title: z.string().optional().describe('Optional story number/identifier (will be added as storyNumber field)'),
+                description: z.string().describe('The user story text following the format: "A [Role] wants to [action] [object]" or "As a [Role], I want to [action] [object]"')
             },
             outputSchema: {
                 success: z.boolean(),
                 story: z.object({
-                    id: z.string(),
-                    title: z.string(),
-                    description: z.string()
+                    name: z.string(),
+                    storyText: z.string(),
+                    storyNumber: z.string().optional()
                 }).optional(),
                 error: z.string().optional(),
-                message: z.string().optional()
+                message: z.string().optional(),
+                note: z.string().optional(),
+                validatedFormat: z.boolean().optional()
             }
         }, async ({ title, description }) => {
             try {
@@ -95,9 +97,9 @@ export class MCPServer {
             outputSchema: {
                 success: z.boolean(),
                 stories: z.array(z.object({
-                    title: z.string(),
-                    description: z.string(),
-                    isIgnored: z.boolean()
+                    name: z.string(),
+                    storyText: z.string(),
+                    isIgnored: z.string().optional()
                 })),
                 note: z.string().optional()
             }

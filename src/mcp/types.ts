@@ -170,12 +170,12 @@ export interface UserStoryResult {
     success: boolean;
     story?: {
         name: string;
-        storyNumber: string;
         storyText: string;
         isIgnored?: string;
     };
     error?: string;
     note?: string;
+    message?: string;
 }
 
 /**
@@ -184,9 +184,9 @@ export interface UserStoryResult {
 export interface UserStoryListResult {
     success: boolean;
     stories: Array<{
-        title: string;
-        description: string;
-        isIgnored: boolean;
+        name: string;
+        storyText: string;
+        isIgnored?: string;
     }>;
     note?: string;
 }

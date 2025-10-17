@@ -2,7 +2,46 @@
 
 This file serves as the main index for architecture documentation. The detailed architecture notes have been organized into separate files by topic for better maintainability.
 
-## Latest Implementation Notes (2025-10-12)
+## Latest Implementation Notes (2025-10-16)
+
+### MCP Bridge Validation Module Refactoring - **COMPLETED** (2025-10-16)
+- **Issue**: `mcpBridge.ts` was growing too large (692 lines) with mixed concerns (HTTP + validation)
+- **Solution**: Extracted user story validation logic into dedicated module
+- **Pattern**: Separation of concerns - HTTP bridge vs validation logic
+- **New Module**: `src/services/validation/userStoryValidation.ts` (321 lines)
+  - **Exported Functions**:
+    - `validateUserStory(storyText, modelService)`: Main validation function
+    - `extractRoleFromUserStory(text)`: Extract role from story text
+    - `extractDataObjectsFromUserStory(text)`: Extract data objects
+    - `isValidRole(roleName, modelService)`: Validate role exists
+    - `validateDataObjects(objectNames, modelService)`: Validate objects exist
+  - **Return Type**: `UserStoryValidationResult` interface with `valid`, `error`, `role`, `dataObjects`
+- **Updated File**: `src/services/mcpBridge.ts` (692 → 371 lines, -321 lines)
+  - Imports validation module
+  - Replaced inline validation with single `validateUserStory()` call
+  - Removed 6 private validation methods
+  - Focused on HTTP request/response handling only
+- **Benefits**:
+  - **Testability**: Validation can be unit tested independently
+  - **Reusability**: Validation module can be used by webviews, commands, other services
+  - **Maintainability**: Smaller files, clear module boundaries
+  - **Extensibility**: Clear pattern for adding more validation modules (pages, workflows)
+- **Architecture**:
+  ```
+  src/services/
+  ├── mcpBridge.ts              (HTTP bridge)
+  └── validation/
+      ├── userStoryValidation.ts (User story validation)
+      ├── pageValidation.ts      (TODO - future)
+      └── workflowValidation.ts  (TODO - future)
+  ```
+- **Files Modified**:
+  - `src/services/mcpBridge.ts`: Added import, replaced validation logic, removed methods
+  - `src/services/validation/userStoryValidation.ts`: Created new module
+- **Documentation**: Created `docs/architecture/mcp-bridge-validation-refactoring.md`
+- **Status**: ✅ Refactoring complete, all tests passing, no compilation errors
+
+## Previous Implementation Notes (2025-10-12)
 
 ### QA View Cost Tab Implementation - **COMPLETED** (2025-10-12)
 - **Feature**: Added Cost Analysis tab to QA View for monthly cost breakdown by tester

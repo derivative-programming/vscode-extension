@@ -6,6 +6,7 @@
 import * as http from 'http';
 import * as vscode from 'vscode';
 import { ModelService } from './modelService';
+import { validateUserStory } from './validation/userStoryValidation';
 
 /**
  * MCP Bridge Service
@@ -37,13 +38,22 @@ export class McpBridge {
     /**
      * Data Bridge - Serves data to MCP
      * Port: 3001
-     * Methods: GET
+     * Methods: GET, POST
      */
     private startDataBridge(): void {
         this.dataServer = http.createServer((req, res) => {
             // Set CORS headers for local access
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+            // Handle OPTIONS preflight
+            if (req.method === 'OPTIONS') {
+                res.writeHead(200);
+                res.end();
+                return;
+            }
 
             const logMessage = `[Data Bridge] ${req.method} ${req.url}`;
             this.outputChannel.appendLine(logMessage);
@@ -117,6 +127,109 @@ export class McpBridge {
                     res.writeHead(200);
                     res.end(JSON.stringify(rolesArray));
                 }
+                else if (req.method === 'POST' && req.url === '/api/user-stories') {
+                    // Add a new user story with full validation
+                    let body = '';
+                    
+                    req.on('data', chunk => {
+                        body += chunk.toString();
+                    });
+
+                    req.on('end', async () => {
+                        try {
+                            const { storyText, storyNumber } = JSON.parse(body);
+                            
+                            if (!storyText) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: 'storyText is required'
+                                }));
+                                return;
+                            }
+
+                            // Get namespace
+                            if (!model || !model.namespace || !Array.isArray(model.namespace) || model.namespace.length === 0) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: 'Model structure is invalid or namespace not found'
+                                }));
+                                return;
+                            }
+
+                            const namespace = model.namespace[0];
+                            if (!namespace.userStory || !Array.isArray(namespace.userStory)) {
+                                namespace.userStory = [];
+                            }
+
+                            // Validate user story using validation module
+                            const validation = validateUserStory(storyText, modelService);
+                            if (!validation.valid) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: validation.error
+                                }));
+                                return;
+                            }
+
+                            const roleName = validation.role!;
+                            const dataObjects = validation.dataObjects || [];
+
+                            // Check for duplicate
+                            const existingStory = namespace.userStory.find((story: any) => story.storyText === storyText);
+                            if (existingStory) {
+                                res.writeHead(409);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: 'Duplicate story text already exists'
+                                }));
+                                return;
+                            }
+
+                            // Generate GUID for name
+                            const generateGuid = (): string => {
+                                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                                    const r = Math.random() * 16 | 0;
+                                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                                    return v.toString(16);
+                                });
+                            };
+
+                            // Create new story
+                            const newStory = {
+                                name: generateGuid(),
+                                storyText: storyText,
+                                ...(storyNumber ? { storyNumber } : {})
+                            };
+
+                            // Add to model
+                            namespace.userStory.push(newStory);
+
+                            // Mark unsaved changes
+                            modelService.markUnsavedChanges();
+
+                            this.outputChannel.appendLine(`[Data Bridge] User story created: ${newStory.name}`);
+                            
+                            res.writeHead(201);
+                            res.end(JSON.stringify({ 
+                                success: true,
+                                story: newStory,
+                                message: 'User story added successfully (unsaved changes)'
+                            }));
+                        } catch (error) {
+                            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                            this.outputChannel.appendLine(`[Data Bridge] Error creating story: ${errorMessage}`);
+                            
+                            res.writeHead(500);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: errorMessage
+                            }));
+                        }
+                    });
+                }
                 else if (req.url === '/api/health') {
                     // Health check endpoint
                     res.writeHead(200);
@@ -132,12 +245,13 @@ export class McpBridge {
                     res.end(JSON.stringify({ 
                         error: 'Not found',
                         availableEndpoints: [
-                            '/api/user-stories',
-                            '/api/objects',
-                            '/api/data-objects',
-                            '/api/roles',
-                            '/api/model',
-                            '/api/health'
+                            'GET /api/user-stories',
+                            'POST /api/user-stories',
+                            'GET /api/objects',
+                            'GET /api/data-objects',
+                            'GET /api/roles',
+                            'GET /api/model',
+                            'GET /api/health'
                         ]
                     }));
                 }
@@ -288,4 +402,5 @@ export class McpBridge {
         this.stop();
         this.outputChannel.dispose();
     }
+
 }

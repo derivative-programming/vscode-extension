@@ -1,3 +1,15 @@
+2025-10-16: Refactored mcpBridge.ts to separate validation concerns
+- Created src/services/validation/userStoryValidation.ts module
+- Extracted 6 validation methods from mcpBridge.ts (321 lines)
+- Reduced mcpBridge.ts from 692 → 371 lines
+- Main validation function: validateUserStory() returns UserStoryValidationResult
+- Exported functions: extractRoleFromUserStory, extractDataObjectsFromUserStory, isValidRole, validateDataObjects
+- Updated mcpBridge.ts to use validation module
+- All TypeScript compilation successful, no errors
+- Architecture now supports adding more validation modules (pages, workflows, etc.)
+- Created docs/architecture/mcp-bridge-validation-refactoring.md
+- Status: COMPLETED - Code organization improved, ready for extension
+
 2025-10-13: Successfully removed VS Code dependencies from MCP server components
 - Modified UserStoryTools to use in-memory storage only (removed ModelService dependency)
 - Removed role validation methods that required model access
@@ -154,3 +166,143 @@ Architecture Notes:
   - Tree view refreshes automatically when server status changes
   - Existing palette commands still available as alternative method
 Documentation: Created docs/architecture/mcp-server-tree-view-toggle.md
+
+2025-10-16: Corrected MCP server user story structure to match AppDNA schema
+Status: SUCCESS - Fixed story object structure to match actual app-dna.schema.json format
+Problem: MCP server was returning incorrect structure with 'title'/'description' fields and boolean isIgnored
+Solution: Updated to use correct schema structure with 'name'/'storyText' fields and string isIgnored
+Files Modified:
+  - src/mcp/tools/userStoryTools.ts (all story return/create methods updated)
+  - src/mcp/server.ts (tool registration schemas updated)
+  - src/mcp/types.ts (TypeScript interfaces corrected)
+Correct Structure:
+  - name: string (UUID identifier)
+  - storyText: string (the story text)
+  - isIgnored: string (optional, "true" or "false", defaults to "false")
+Key Changes:
+  - create_user_story now generates UUID for 'name' field using generateGuid()
+  - list_user_stories returns stories with name/storyText/isIgnored as strings
+  - search tools updated to search 'name' field instead of 'storyNumber'
+  - isIgnored kept as string, not converted to boolean
+  - All TypeScript types and Zod schemas aligned with actual model structure
+Architecture Notes:
+  - Ensures consistency with extension's internal AppDNA model format
+  - HTTP bridge now returns data in exact schema format
+  - Both in-memory and bridge modes use same structure
+  - Compatible with existing extension data access patterns
+Documentation: Created docs/architecture/mcp-story-structure-correction.md
+
+2025-10-16: Removed in-memory user story storage from MCP server
+Status: SUCCESS - Simplified MCP server to use only HTTP bridge for data access
+Problem: Dual-tier architecture (HTTP bridge + in-memory fallback) created complexity and confusion
+Solution: Removed all in-memory storage, MCP server now requires extension to be running
+Files Modified:
+  - src/mcp/tools/userStoryTools.ts (removed in-memory array, helper methods, and fallback logic)
+Removed Features:
+  - In-memory user story storage (inMemoryUserStories array)
+  - addInMemoryUserStory() method
+  - getInMemoryUserStories() method
+  - Fallback logic in list/search methods
+Changed Behavior:
+  - create_user_story now returns validation-only response (doesn't create stories)
+  - All tools return success: false with clear error when extension not running
+  - No more fallback to in-memory data when HTTP bridge unavailable
+Benefits:
+  - Single source of truth (AppDNA model via extension)
+  - Clearer error messages for users
+  - ~50 lines of code removed
+  - No data synchronization issues
+  - Simpler architecture and workflow
+Architecture Notes:
+  - MCP server now has single-path data flow: Copilot → MCP → HTTP Bridge → Extension
+  - Extension must be running for any story-related tools to work
+  - All data comes directly from loaded AppDNA model file
+  - Better aligns with VS Code extension architecture patterns
+Documentation: Created docs/architecture/mcp-in-memory-removal.md
+
+2025-10-16: Implemented user story creation via HTTP bridge with full validation
+Status: SUCCESS - MCP server can now create stories in ModelService through POST endpoint
+Problem: create_user_story tool only validated format but didn't actually create stories
+Solution: Added POST /api/user-stories endpoint on HTTP bridge, updated MCP tool to use it
+Files Modified:
+  - src/services/mcpBridge.ts (added POST endpoint for story creation)
+  - src/mcp/tools/userStoryTools.ts (updated create_user_story, added postToBridge method)
+  - src/mcp/server.ts (updated tool description and schemas)
+New Features:
+  - POST /api/user-stories endpoint on data bridge (port 3001)
+  - Accepts storyText (required) and storyNumber (optional) in JSON body
+  - Validates model structure and checks for duplicates
+  - Generates UUID for name field
+  - Adds story to namespace.userStory array
+  - Calls modelService.markUnsavedChanges()
+  - Returns 201 with created story or error status (400/409/500)
+  - postToBridge() helper method for HTTP POST requests
+  - create_user_story now creates real stories in model (not just validation)
+Validation Flow:
+  1. MCP layer validates story format with regex
+  2. HTTP bridge validates model structure
+  3. HTTP bridge checks for duplicate story text
+  4. HTTP bridge adds to model and marks unsaved changes
+Response Codes:
+  - 201: Story created successfully
+  - 400: Invalid request or model structure
+  - 409: Duplicate story text exists
+  - 500: Server error during creation
+Benefits:
+  - Stories actually added to AppDNA model
+  - Integrates with extension's unsaved changes tracking
+  - Consistent with webview story creation workflow
+  - Clear error messages at each validation layer
+  - Proper UUID generation matching extension pattern
+Architecture Notes:
+  - Data bridge now supports both GET and POST methods
+  - CORS headers added for POST support
+  - Story creation follows same pattern as webview (direct model manipulation)
+  - Pattern can be reused for other POST operations (update, delete)
+  - MCP tool first validates format locally, then calls bridge for persistence
+Documentation: Created docs/architecture/mcp-story-creation-via-bridge.md
+
+2025-10-16: Added role and data object validation to story creation endpoint
+Status: SUCCESS - HTTP bridge now validates roles and objects before creating stories
+Problem: Story creation didn't validate that roles and data objects actually exist in model
+Solution: Ported validation logic from userStoriesView.js to mcpBridge.ts
+Files Modified:
+  - src/services/mcpBridge.ts (added validation helper methods and validation logic)
+  - docs/architecture/mcp-story-creation-via-bridge.md (updated documentation)
+New Validation Methods:
+  - extractRoleFromUserStory() - Extracts role from story text
+  - extractDataObjectsFromUserStory() - Extracts objects with variants
+  - isValidRole() - Validates role exists in Role lookup items
+  - validateDataObjects() - Validates all objects exist in model
+  - addSingularPluralVariants() - Adds singular/plural/PascalCase variants
+  - toPascalCase() - Converts names to PascalCase
+Validation Flow (Updated):
+  1. MCP layer validates story format with regex
+  2. HTTP bridge validates model structure
+  3. HTTP bridge extracts and validates role exists
+  4. HTTP bridge extracts and validates data objects exist
+  5. HTTP bridge checks for duplicate story text
+  6. HTTP bridge adds to model and marks unsaved changes
+New Error Responses:
+  - 400: "Unable to extract role from user story text"
+  - 400: 'Role "{roleName}" does not exist in model'
+  - 400: 'Data object(s) "{objects}" do not exist in model'
+Validation Logic:
+  - Role validation checks Role object's lookupItem array
+  - If no Role object exists, any role name is allowed
+  - Object validation checks against getAllObjects() results
+  - Supports singular/plural/PascalCase/spaced variants
+  - Handles "view all X in Y" pattern (validates both X and Y)
+  - Handles simple "action a X" pattern
+Benefits:
+  - Same validation as webview UI (consistent behavior)
+  - Prevents invalid stories from being created
+  - Clear error messages indicating which role/object is missing
+  - Supports all name format variations
+Architecture Notes:
+  - Validation logic ported directly from userStoriesView.js
+  - Maintains consistency between webview and MCP bridge
+  - Helper methods are private to McpBridge class
+  - Graceful error handling (allows creation on validation errors to avoid blocking)
+Documentation: Updated docs/architecture/mcp-story-creation-via-bridge.md
+

@@ -10,12 +10,9 @@
  * Implements user story tools for the MCP server
  */
 export class UserStoryTools {
-    // private modelService: ModelService;
-    private inMemoryUserStories: any[] = [];
-
     constructor(modelService: any) {
-        // this.modelService = modelService;
-        // Always use in-memory storage for MCP server
+        // modelService parameter kept for compatibility but not used
+        // All data comes from HTTP bridge to extension
     }
 
     /**
@@ -41,29 +38,33 @@ export class UserStoryTools {
                        '- "A Manager wants to view all tasks in a project"\n' +
                        '- "A User wants to add a task"\n' +
                        '- "As a User, I want to update an employee"\n' +
-                       '- "As a Manager, I want to view all items in the application"'
+                       '- "As a Manager, I want to view all items in the application"',
+                validatedFormat: false
             };
         }
 
-        // For MCP server, always use in-memory storage
-        const storyId = `US-${Date.now()}`;
-        const newStory = {
-            storyNumber: title || storyId,
-            storyText: description,
-            isIgnored: "false"
-        };
+        // Use HTTP bridge to add story to ModelService with full validation
+        try {
+            const newStory = await this.postToBridge('/api/user-stories', {
+                storyText: description,
+                ...(title ? { storyNumber: title } : {})
+            });
 
-        this.inMemoryUserStories.push(newStory);
-
-        return {
-            success: true,
-            story: {
-                id: storyId,
-                title: newStory.storyNumber,
-                description: newStory.storyText
-            },
-            message: 'User story created successfully in MCP server memory'
-        };
+            return {
+                success: true,
+                story: newStory.story,
+                message: newStory.message || 'User story created successfully',
+                note: 'Story added to AppDNA model via MCP bridge (unsaved changes)',
+                validatedFormat: true
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to create story: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Could not connect to extension or validation failed',
+                validatedFormat: true
+            };
+        }
     }
 
     /**
@@ -72,48 +73,28 @@ export class UserStoryTools {
      * @returns Array of user stories
      */
     public async list_user_stories(): Promise<any> {
-        // Try to get stories from extension via HTTP bridge
+        // Get stories from extension via HTTP bridge
         try {
             const response = await this.fetchFromBridge('/api/user-stories');
             return {
                 success: true,
                 stories: response.map((story: any) => ({
-                    title: story.storyNumber || "",
-                    description: story.storyText || "",
-                    isIgnored: story.isIgnored === "true"
+                    name: story.name || "",
+                    storyText: story.storyText || "",
+                    isIgnored: story.isIgnored || "false"
                 })),
                 count: response.length,
                 note: "Stories loaded from AppDNA model file via MCP bridge"
             };
         } catch (error) {
-            // Fallback to in-memory storage if bridge is not available
-            const inMemoryStories = this.getInMemoryUserStories();
             return {
-                success: true,
-                stories: inMemoryStories.map(story => ({
-                    title: story.storyNumber || "",
-                    description: story.storyText || "",
-                    isIgnored: story.isIgnored === "true"
-                })),
-                count: inMemoryStories.length,
-                note: "Stories loaded from MCP server memory (bridge not available)",
-                warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
+                success: false,
+                stories: [],
+                count: 0,
+                error: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: "MCP bridge is not available. Make sure the extension is running."
             };
         }
-    }
-
-    /**
-     * Add a user story to in-memory storage
-     */
-    public addInMemoryUserStory(story: any): void {
-        this.inMemoryUserStories.push(story);
-    }
-
-    /**
-     * Get all in-memory user stories
-     */
-    public getInMemoryUserStories(): any[] {
-        return this.inMemoryUserStories;
     }
 
     /**
@@ -291,7 +272,7 @@ export class UserStoryTools {
             throw new Error('Role parameter is required');
         }
         
-        // Try to get stories from extension via HTTP bridge
+        // Get stories from extension via HTTP bridge
         try {
             const response = await this.fetchFromBridge('/api/user-stories');
             
@@ -307,34 +288,21 @@ export class UserStoryTools {
                 success: true,
                 role: role,
                 stories: matchingStories.map((story: any) => ({
-                    title: story.storyNumber || "",
-                    description: story.storyText || "",
-                    isIgnored: story.isIgnored === "true"
+                    name: story.name || "",
+                    storyText: story.storyText || "",
+                    isIgnored: story.isIgnored || "false"
                 })),
                 count: matchingStories.length,
                 note: "Stories loaded from AppDNA model file via MCP bridge"
             };
         } catch (error) {
-            // Fallback to in-memory storage if bridge is not available
-            const inMemoryStories = this.getInMemoryUserStories();
-            const roleLower = role.toLowerCase();
-            const matchingStories = inMemoryStories.filter((story: any) => {
-                const storyText = story.storyText || "";
-                const extractedRole = this.extractRoleFromUserStory(storyText);
-                return extractedRole && extractedRole.toLowerCase() === roleLower;
-            });
-            
             return {
-                success: true,
+                success: false,
                 role: role,
-                stories: matchingStories.map((story: any) => ({
-                    title: story.storyNumber || "",
-                    description: story.storyText || "",
-                    isIgnored: story.isIgnored === "true"
-                })),
-                count: matchingStories.length,
-                note: "Stories loaded from MCP server memory (bridge not available)",
-                warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
+                stories: [],
+                count: 0,
+                error: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: "MCP bridge is not available. Make sure the extension is running."
             };
         }
     }
@@ -354,18 +322,18 @@ export class UserStoryTools {
         
         const isCaseSensitive = caseSensitive === true;
         
-        // Try to get stories from extension via HTTP bridge
+        // Get stories from extension via HTTP bridge
         try {
             const response = await this.fetchFromBridge('/api/user-stories');
             
             // Filter stories by text search
             const matchingStories = response.filter((story: any) => {
                 const storyText = story.storyText || "";
-                const storyNumber = story.storyNumber || "";
+                const name = story.name || "";
                 
                 const searchText = isCaseSensitive 
-                    ? storyText + " " + storyNumber
-                    : (storyText + " " + storyNumber).toLowerCase();
+                    ? storyText + " " + name
+                    : (storyText + " " + name).toLowerCase();
                 const searchQuery = isCaseSensitive ? query : query.toLowerCase();
                 
                 return searchText.includes(searchQuery);
@@ -376,41 +344,22 @@ export class UserStoryTools {
                 query: query,
                 caseSensitive: isCaseSensitive,
                 stories: matchingStories.map((story: any) => ({
-                    title: story.storyNumber || "",
-                    description: story.storyText || "",
-                    isIgnored: story.isIgnored === "true"
+                    name: story.name || "",
+                    storyText: story.storyText || "",
+                    isIgnored: story.isIgnored || "false"
                 })),
                 count: matchingStories.length,
                 note: "Stories loaded from AppDNA model file via MCP bridge"
             };
         } catch (error) {
-            // Fallback to in-memory storage if bridge is not available
-            const inMemoryStories = this.getInMemoryUserStories();
-            
-            const matchingStories = inMemoryStories.filter((story: any) => {
-                const storyText = story.storyText || "";
-                const storyNumber = story.storyNumber || "";
-                
-                const searchText = isCaseSensitive 
-                    ? storyText + " " + storyNumber
-                    : (storyText + " " + storyNumber).toLowerCase();
-                const searchQuery = isCaseSensitive ? query : query.toLowerCase();
-                
-                return searchText.includes(searchQuery);
-            });
-            
             return {
-                success: true,
+                success: false,
                 query: query,
                 caseSensitive: isCaseSensitive,
-                stories: matchingStories.map((story: any) => ({
-                    title: story.storyNumber || "",
-                    description: story.storyText || "",
-                    isIgnored: story.isIgnored === "true"
-                })),
-                count: matchingStories.length,
-                note: "Stories loaded from MCP server memory (bridge not available)",
-                warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
+                stories: [],
+                count: 0,
+                error: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: "MCP bridge is not available. Make sure the extension is running."
             };
         }
     }
@@ -502,6 +451,65 @@ export class UserStoryTools {
                 reject(new Error('Request timed out - is the extension running?'));
             });
 
+            req.end();
+        });
+    }
+
+    /**
+     * Post data to extension via HTTP bridge (data bridge on port 3001)
+     * @param endpoint The API endpoint to post to (e.g., '/api/user-stories')
+     * @param data The data to post
+     * @returns Promise resolving to the response data
+     */
+    private async postToBridge(endpoint: string, data: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify(data);
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3001,
+                path: endpoint,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 5000 // 5 second timeout
+            };
+
+            const req = http.request(options, (res: any) => {
+                let responseData = '';
+                
+                res.on('data', (chunk: any) => {
+                    responseData += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(responseData);
+                        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+                            resolve(parsed);
+                        } else {
+                            reject(new Error(parsed.error || `HTTP ${res.statusCode}`));
+                        }
+                    } catch (e) {
+                        reject(new Error(`Failed to parse response: ${e instanceof Error ? e.message : 'Unknown error'}`));
+                    }
+                });
+            });
+
+            req.on('error', (e: any) => {
+                reject(new Error(`HTTP request failed: ${e.message}`));
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                reject(new Error('Request timed out - is the extension running?'));
+            });
+
+            req.write(postData);
             req.end();
         });
     }
