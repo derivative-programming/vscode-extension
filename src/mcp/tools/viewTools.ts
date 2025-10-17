@@ -130,8 +130,7 @@ export class ViewTools {
      * Shows properties, analytics, and lookup items for a specific data object
      */
     public async openObjectDetails(objectName: string, initialTab?: string): Promise<any> {
-        const params = initialTab ? { initialTab } : undefined;
-        return this.executeCommand('appdna.mcp.openObjectDetails', [objectName, params]);
+        return this.executeCommand('appdna.mcp.openObjectDetails', initialTab ? [objectName, initialTab] : [objectName]);
     }
 
     /**

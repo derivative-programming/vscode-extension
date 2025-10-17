@@ -1,3 +1,13 @@
+2025-10-17: Fixed data object details tab selection in MCP tool
+- Fixed openObjectDetails() method in src/mcp/tools/viewTools.ts
+- Problem: Was passing [objectName, { initialTab }] but command expects [objectName, initialTab]
+- Solution: Changed to pass initialTab directly as second parameter, not wrapped in object
+- Now correctly passes: initialTab ? [objectName, initialTab] : [objectName]
+- Command signature: appdna.mcp.openObjectDetails(objectName: string, initialTab?: string)
+- Tab selection now works properly when opening data object details from MCP
+- TypeScript compilation successful
+- Status: ✅ COMPLETE - Data object details tab selection fixed
+
 2025-10-17: Removed MCP list view tools for forms and reports
 - Removed open_forms_list_view tool registration from src/mcp/server.ts
 - Removed open_reports_list_view tool registration from src/mcp/server.ts
