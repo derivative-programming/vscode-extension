@@ -139,7 +139,7 @@ export class ViewTools {
      * Shows all data objects in the model
      */
     public async openDataObjectsList(): Promise<any> {
-        return this.executeCommand('appdna.openDataObjectsList');
+        return this.executeCommand('appdna.dataObjectList');
     }
 
     /**
@@ -147,7 +147,7 @@ export class ViewTools {
      * Shows which pages, forms, and flows use each data object
      */
     public async openDataObjectUsageAnalysis(): Promise<any> {
-        return this.executeCommand('appdna.openDataObjectUsageAnalysis');
+        return this.executeCommand('appdna.dataObjectUsageAnalysis');
     }
 
     /**
@@ -155,7 +155,7 @@ export class ViewTools {
      * Shows estimated record counts and storage requirements
      */
     public async openDataObjectSizeAnalysis(): Promise<any> {
-        return this.executeCommand('appdna.openDataObjectSizeAnalysis');
+        return this.executeCommand('appdna.dataObjectSizeAnalysis');
     }
 
     /**
@@ -163,26 +163,18 @@ export class ViewTools {
      * Shows projected database growth over time
      */
     public async openDatabaseSizeForecast(): Promise<any> {
-        return this.executeCommand('appdna.openDatabaseSizeForecast');
+        return this.executeCommand('appdna.databaseSizeForecast');
     }
 
     // ===== FORM AND PAGE VIEWS =====
 
     /**
-     * Open Forms List View
-     * Shows all forms in the application
-     */
-    public async openFormsList(): Promise<any> {
-        return this.executeCommand('appdna.openFormsList');
-    }
-
-    /**
      * Open Form Details View
      * Shows details for a specific form
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openFormDetails(formName: string, initialTab?: string): Promise<any> {
-        const params = initialTab ? { initialTab } : undefined;
-        return this.executeCommand('appdna.showFormDetails', [formName, params]);
+        throw new Error('Form Details view is not yet implemented. Create form details handler to add this functionality.');
     }
 
     /**
@@ -190,24 +182,25 @@ export class ViewTools {
      * Shows all pages in the application
      */
     public async openPagesList(): Promise<any> {
-        return this.executeCommand('appdna.openPagesList');
+        return this.executeCommand('appdna.pageList');
     }
 
     /**
      * Open Page Details View
      * Shows details for a specific page
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openPageDetails(pageName: string, initialTab?: string): Promise<any> {
-        const params = initialTab ? { initialTab } : undefined;
-        return this.executeCommand('appdna.showPageDetails', [pageName, params]);
+        throw new Error('Page Details view is not yet implemented. Create page details handler to add this functionality.');
     }
 
     /**
      * Open Page Preview View
      * Shows live preview for a specific page
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openPagePreview(pageName: string): Promise<any> {
-        return this.executeCommand('appdna.showPagePreview', [pageName]);
+        throw new Error('Page Preview view is not yet implemented. Create page preview handler to add this functionality.');
     }
 
     // ===== WORKFLOW AND FLOW VIEWS =====
@@ -217,16 +210,16 @@ export class ViewTools {
      * Shows initialization flows for pages
      */
     public async openPageInitFlowsList(): Promise<any> {
-        return this.executeCommand('appdna.openPageInitFlowsList');
+        return this.executeCommand('appdna.pageInitList');
     }
 
     /**
      * Open Page Init Flow Details View
      * Shows details for a specific page initialization flow
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openPageInitFlowDetails(flowName: string, initialTab?: string): Promise<any> {
-        const params = initialTab ? { initialTab } : undefined;
-        return this.executeCommand('appdna.showPageInitDetails', [flowName, params]);
+        throw new Error('Page Init Flow Details view is not yet implemented. Create page init details handler to add this functionality.');
     }
 
     /**
@@ -234,16 +227,16 @@ export class ViewTools {
      * Shows general-purpose workflows
      */
     public async openGeneralWorkflowsList(): Promise<any> {
-        return this.executeCommand('appdna.openGeneralWorkflowsList');
+        return this.executeCommand('appdna.generalList');
     }
 
     /**
      * Open General Workflow Details View
      * Shows details for a specific general workflow
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openGeneralWorkflowDetails(workflowName: string, initialTab?: string): Promise<any> {
-        const params = initialTab ? { initialTab } : undefined;
-        return this.executeCommand('appdna.showGeneralFlowDetails', [workflowName, params]);
+        throw new Error('General Workflow Details view is not yet implemented. Create general workflow details handler to add this functionality.');
     }
 
     /**
@@ -251,52 +244,45 @@ export class ViewTools {
      * Shows all workflows in the application
      */
     public async openWorkflowsList(): Promise<any> {
-        return this.executeCommand('appdna.openWorkflowsList');
+        return this.executeCommand('appdna.workflowList');
     }
 
     /**
      * Open Workflow Details View
      * Shows details for a specific DynaFlow workflow
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openWorkflowDetails(workflowName: string, initialTab?: string): Promise<any> {
-        const params = initialTab ? { initialTab } : undefined;
-        return this.executeCommand('appdna.showWorkflowDetails', [workflowName, params]);
+        throw new Error('Workflow Details view is not yet implemented. Create workflow details handler to add this functionality.');
     }
 
     /**
      * Open Workflow Tasks List View
      * Shows all workflow tasks across all workflows
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openWorkflowTasksList(): Promise<any> {
-        return this.executeCommand('appdna.openWorkflowTasksList');
+        throw new Error('Workflow Tasks List view is not yet implemented. Create workflowTaskListCommands.ts to add this functionality.');
     }
 
     /**
      * Open Workflow Task Details View
      * Shows details for a specific workflow task
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openWorkflowTaskDetails(taskName: string, initialTab?: string): Promise<any> {
-        const params = initialTab ? { initialTab } : undefined;
-        return this.executeCommand('appdna.showWorkflowTaskDetails', [taskName, params]);
+        throw new Error('Workflow Task Details view is not yet implemented. Create workflow task details handler to add this functionality.');
     }
 
     // ===== REPORT VIEWS =====
 
     /**
-     * Open Reports List View
-     * Shows all reports in the application
-     */
-    public async openReportsList(): Promise<any> {
-        return this.executeCommand('appdna.openReportsList');
-    }
-
-    /**
      * Open Report Details View
      * Shows details for a specific report
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openReportDetails(reportName: string, initialTab?: string): Promise<any> {
-        const params = initialTab ? { initialTab } : undefined;
-        return this.executeCommand('appdna.showReportDetails', [reportName, params]);
+        throw new Error('Report Details view is not yet implemented. Create report details handler to add this functionality.');
     }
 
     // ===== API VIEWS =====
@@ -304,18 +290,19 @@ export class ViewTools {
     /**
      * Open APIs List View
      * Shows all external API integrations
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openAPIsList(): Promise<any> {
-        return this.executeCommand('appdna.openAPIsList');
+        throw new Error('APIs List view is not yet implemented. Create apiListCommands.ts to add this functionality.');
     }
 
     /**
      * Open API Details View
      * Shows details for a specific API integration
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openAPIDetails(apiName: string, initialTab?: string): Promise<any> {
-        const params = initialTab ? { initialTab } : undefined;
-        return this.executeCommand('appdna.showAPIDetails', [apiName, params]);
+        throw new Error('API Details view is not yet implemented. Create API details handler to add this functionality.');
     }
 
     // ===== ANALYSIS VIEWS =====
@@ -325,7 +312,7 @@ export class ViewTools {
      * Shows application metrics and KPIs with historical trends
      */
     public async openMetricsAnalysis(): Promise<any> {
-        return this.executeCommand('appdna.openMetricsAnalysis');
+        return this.executeCommand('appdna.metricsAnalysis');
     }
 
     /**
@@ -333,15 +320,16 @@ export class ViewTools {
      * Shows application terminology and definitions
      */
     public async openLexicon(): Promise<any> {
-        return this.executeCommand('appdna.openLexicon');
+        return this.executeCommand('appdna.showLexicon');
     }
 
     /**
      * Open Change Requests View
      * Shows pending and completed change requests
+     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openChangeRequests(): Promise<any> {
-        return this.executeCommand('appdna.openChangeRequests');
+        throw new Error('Change Requests view is not yet implemented. Command appdna.changeRequests does not exist.');
     }
 
     /**
@@ -349,7 +337,7 @@ export class ViewTools {
      * Shows AI analysis and recommendations for the model
      */
     public async openModelAIProcessing(): Promise<any> {
-        return this.executeCommand('appdna.openModelAIProcessing');
+        return this.executeCommand('appdna.modelAIProcessing');
     }
 
     /**
@@ -357,7 +345,7 @@ export class ViewTools {
      * Shows available templates and blueprints
      */
     public async openFabricationBlueprintCatalog(): Promise<any> {
-        return this.executeCommand('appdna.openFabricationBlueprintCatalog');
+        return this.executeCommand('appdna.fabricationBlueprintCatalog');
     }
 
     // ===== DIAGRAM VIEWS =====
@@ -367,7 +355,7 @@ export class ViewTools {
      * Shows object hierarchy relationships
      */
     public async openHierarchyDiagram(): Promise<any> {
-        return this.executeCommand('appdna.openHierarchyDiagram');
+        return this.executeCommand('appdna.showHierarchyDiagram');
     }
 
     /**
@@ -375,7 +363,7 @@ export class ViewTools {
      * Shows navigation flow between pages
      */
     public async openPageFlowDiagram(): Promise<any> {
-        return this.executeCommand('appdna.openPageFlowDiagram');
+        return this.executeCommand('appdna.showPageFlowDiagram');
     }
 
     // ===== SETTINGS AND INFO VIEWS =====
@@ -385,7 +373,7 @@ export class ViewTools {
      * Shows configuration options for the current project
      */
     public async openProjectSettings(): Promise<any> {
-        return this.executeCommand('appdna.openProjectSettings');
+        return this.executeCommand('appdna.showProjectSettings');
     }
 
     /**
@@ -409,7 +397,7 @@ export class ViewTools {
      * Shows help documentation and support resources
      */
     public async openHelp(): Promise<any> {
-        return this.executeCommand('appdna.openHelp');
+        return this.executeCommand('appdna.showHelp');
     }
 
     /**

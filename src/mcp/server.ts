@@ -610,34 +610,7 @@ export class MCPServer {
             }
         });
 
-        // ===== FORM, PAGE, AND UI VIEWS =====
-
-        this.server.registerTool('open_forms_list_view', {
-            title: 'Open Forms List View',
-            description: 'Opens the list view showing all forms in the application. Forms are UI components for data entry and editing. Shows form names, associated data objects, layouts, and validation rules.',
-            inputSchema: {},
-            outputSchema: {
-                success: z.boolean(),
-                view: z.string().optional(),
-                message: z.string().optional(),
-                error: z.string().optional()
-            }
-        }, async () => {
-            try {
-                const result = await this.viewTools.openFormsList();
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-                    structuredContent: result
-                };
-            } catch (error) {
-                const errorResult = { success: false, error: error.message };
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
-                    structuredContent: errorResult,
-                    isError: true
-                };
-            }
-        });
+        // ===== FORM AND PAGE VIEWS =====
 
         this.server.registerTool('open_form_details_view', {
             title: 'Open Form Details View',
@@ -999,33 +972,6 @@ export class MCPServer {
         });
 
         // ===== REPORT AND API VIEWS =====
-
-        this.server.registerTool('open_reports_list_view', {
-            title: 'Open Reports List View',
-            description: 'Opens the list view showing all reports in the application. Reports define data queries, formatting, and presentation for business intelligence and analytics. Shows report names, data sources, parameters, and output formats.',
-            inputSchema: {},
-            outputSchema: {
-                success: z.boolean(),
-                view: z.string().optional(),
-                message: z.string().optional(),
-                error: z.string().optional()
-            }
-        }, async () => {
-            try {
-                const result = await this.viewTools.openReportsList();
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-                    structuredContent: result
-                };
-            } catch (error) {
-                const errorResult = { success: false, error: error.message };
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
-                    structuredContent: errorResult,
-                    isError: true
-                };
-            }
-        });
 
         this.server.registerTool('open_report_details_view', {
             title: 'Open Report Details View',
