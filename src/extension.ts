@@ -187,6 +187,18 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 
 **ALWAYS** use the available MCP (Model Context Protocol) tools for modifying your AppDNA model. These tools provide safe, validated changes through the extension's interface and ensure your model remains consistent and valid.
 
+### Tool Usage Patterns
+
+**Viewing Data Objects:**
+- **Use \`open_object_details_view\`** when you want to see and interact with a data object's details, properties, and settings in a visual interface
+- **Use \`get_data_object\`** only when you need the raw JSON data for programmatic analysis or when the visual interface is not available
+- **Use \`list_data_objects\`** to get an overview of all data objects in your model
+
+**Viewing vs. Getting Data:**
+- **Views** (\`open_*_view\` tools) provide interactive, visual interfaces for exploring and editing model elements
+- **Get tools** (\`get_*\` tools) return raw JSON data for analysis or when you need structured data
+- **Prefer views** for exploration and editing, use get tools for data analysis or automation
+
 ## Best Practices for AppDNA Development
 
 ### Getting Started

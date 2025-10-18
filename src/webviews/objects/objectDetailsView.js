@@ -27,7 +27,19 @@ function showObjectDetails(item, modelService, context, initialTab = 'settings')
     if (activePanels.has(panelId)) {
         console.log(`Panel already exists for ${item.label}, revealing existing panel`);
         // Panel exists, reveal it instead of creating a new one
-        activePanels.get(panelId).reveal(vscode.ViewColumn.One);
+        const existingPanel = activePanels.get(panelId);
+        existingPanel.reveal(vscode.ViewColumn.One);
+        
+        // If initialTab is specified, switch to that tab in the existing panel
+        if (initialTab) {
+            console.log(`Switching existing panel to tab: ${initialTab}`);
+            setTimeout(() => {
+                existingPanel.webview.postMessage({
+                    command: 'restoreTab',
+                    tabId: initialTab
+                });
+            }, 100);
+        }
         return;
     }
     

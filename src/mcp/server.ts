@@ -961,9 +961,9 @@ export class MCPServer {
         // Register open_user_stories_view tool
         this.server.registerTool('open_user_stories_view', {
             title: 'Open User Stories View',
-            description: 'Opens the user stories list view in the VS Code extension. Shows all user stories with three tabs: "Stories" (full list), "Role Distribution" (analytics showing which roles use which stories), and "Role-Based Access" (security requirements). Supports initialTab parameter with values: "all", "analytics", "roleAccess".',
+            description: 'Opens the user stories list view in the VS Code extension. Shows all user stories with three tabs: "Stories" (full list with search/filter), "Details" (detailed table view with expanded information), and "Role Distribution" (analytics showing role distribution charts). Supports initialTab parameter with values: "stories", "details", "analytics".',
             inputSchema: {
-                initialTab: z.string().optional().describe('Optional initial tab to show: "all" (Stories tab), "analytics" (Role Distribution tab), or "roleAccess" (Role-Based Access tab)')
+                initialTab: z.string().optional().describe('Optional initial tab to show: "stories" (Stories tab), "details" (Details tab), or "analytics" (Role Distribution tab)')
             },
             outputSchema: {
                 success: z.boolean(),
@@ -993,9 +993,9 @@ export class MCPServer {
 
         this.server.registerTool('open_user_stories_dev_view', {
             title: 'Open User Stories Dev View',
-            description: 'Opens the development queue view for user stories. Shows eight tabs: "Dev Queue" (stories ready for development), "All Stories" (complete list), "Dev Metrics" (development analytics), "Dev History" (completed work tracking), "Dev Forecast" (capacity planning), "Dev Bottlenecks" (blocked work identification), "Dev Distribution" (workload by developer), and "Dev Trends" (velocity and throughput over time). Supports initialTab parameter with values: "devQueue", "all", "devMetrics", "devHistory", "devForecast", "devBottlenecks", "devDistribution", "devTrends".',
+            description: 'Opens the development tracking view for user stories. Shows eight tabs: "Details" (13-column table with filters and bulk operations), "Dev Queue" (drag-and-drop priority queue), "Board" (Kanban board with 5 status columns), "Sprint" (sprint planning and burndown), "Developers" (developer management and capacity), "Forecast" (Gantt chart timeline), "Cost" (monthly cost analysis), and "Analysis" (metrics and charts). Supports initialTab parameter with values: "details", "devQueue", "board", "sprint", "developers", "forecast", "cost", "analysis".',
             inputSchema: {
-                initialTab: z.string().optional().describe('Optional initial tab: "devQueue", "all", "devMetrics", "devHistory", "devForecast", "devBottlenecks", "devDistribution", or "devTrends"')
+                initialTab: z.string().optional().describe('Optional initial tab: "details", "devQueue", "board", "sprint", "developers", "forecast", "cost", or "analysis"')
             },
             outputSchema: {
                 success: z.boolean(),

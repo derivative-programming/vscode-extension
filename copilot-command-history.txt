@@ -1,0 +1,91 @@
+===============================================================================
+DATE: October 18, 2025
+COMMAND: Review and fix user stories list view MCP tool tabs documentation
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+Review the MCP tool for viewing user stories list view and the tab switching 
+functionality. The user stories list view shows tabs: Stories, Details, Role Distribution.
+
+ISSUES FOUND:
+1. MCP tool description in server.ts had incorrect tab values:
+   - Said "all" instead of "stories"
+   - Said "roleAccess" instead of "analytics"
+   - Missing "details" tab documentation
+
+2. Tab descriptions were wrong:
+   - Said "Role-Based Access (security requirements)" 
+   - Should be "Role Distribution (analytics showing role distribution charts)"
+
+CHANGES MADE:
+File: src/mcp/server.ts (line ~964)
+- Fixed tool description to list correct tabs: "Stories", "Details", "Role Distribution"
+- Updated initialTab parameter values: "stories", "details", "analytics"
+- Corrected tab descriptions to match actual implementation
+
+ARCHITECTURE NOTES:
+- User Stories view implemented in: src/webviews/userStoriesView.js
+- Has 3 tabs with data-tab attributes: "stories", "details", "analytics"
+- Tab switching handled by switchTab() function
+- MCP command handler in: src/commands/mcpViewCommands.ts (had correct values)
+- Documentation reference: docs/VIEWS-REFERENCE.md
+
+VERIFICATION:
+✅ No TypeScript compilation errors
+✅ Tab values now match actual webview implementation
+✅ Descriptions accurately reflect tab functionality
+
+===============================================================================
+
+===============================================================================
+DATE: October 18, 2025
+COMMAND: Update user stories dev view MCP tool tabs documentation
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+Update the MCP tool for the User Stories Development view to reflect the actual
+8 tabs shown in the interface (screenshot provided by user).
+
+ISSUES FOUND:
+1. MCP tool description had completely wrong tab names:
+   - Said: "Dev Queue", "All Stories", "Dev Metrics", "Dev History", "Dev Forecast", 
+     "Dev Bottlenecks", "Dev Distribution", "Dev Trends"
+   - Reality: "Details", "Dev Queue", "Board", "Sprint", "Developers", "Forecast", "Cost", "Analysis"
+
+2. Tab parameter values were incorrect:
+   - Said: "devQueue", "all", "devMetrics", "devHistory", "devForecast", 
+     "devBottlenecks", "devDistribution", "devTrends"
+   - Should be: "details", "devQueue", "board", "sprint", "developers", "forecast", "cost", "analysis"
+
+ACTUAL TAB STRUCTURE (from screenshot and code):
+1. Details - 13-column table with filters and bulk operations
+2. Dev Queue - Drag-and-drop priority queue
+3. Board - Kanban board with 5 status columns
+4. Sprint - Sprint planning and burndown chart
+5. Developers - Developer management and capacity planning
+6. Forecast - Gantt chart timeline with working hours
+7. Cost - Monthly cost analysis by developer
+8. Analysis - 6 KPIs and 5 D3.js charts
+
+CHANGES MADE:
+File: src/mcp/server.ts (line ~994)
+- Updated tool description with correct 8 tabs and accurate descriptions
+- Fixed initialTab parameter values to match actual onclick="switchTab(...)" values
+- Updated inputSchema description with correct tab names
+
+ARCHITECTURE NOTES:
+- User Stories Dev view implemented in: src/webviews/userStoryDev/userStoryDevView.js
+- HTML structure in: src/commands/userStoriesDevCommands.ts (line ~4674)
+- Tab switching uses onclick="switchTab('tabName')" pattern
+- Tab content divs use id="{tabName}Tab" pattern
+- 8 tabs with values: "details", "devQueue", "board", "sprint", "developers", "forecast", "cost", "analysis"
+
+VERIFICATION:
+✅ No TypeScript compilation errors
+✅ Tab values match actual HTML onclick attributes
+✅ Tab order matches screenshot: Details, Dev Queue, Board, Sprint, Developers, Forecast, Cost, Analysis
+✅ Descriptions accurately reflect each tab's purpose
+
+===============================================================================

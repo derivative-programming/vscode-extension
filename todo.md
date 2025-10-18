@@ -10,7 +10,13 @@ common types of graphs...
 
 
 ---------------------
-   
+
+tools...
+- save
+- expand tree
+- collapse tree
+
+
 
 Describe data object model restrictions
 
