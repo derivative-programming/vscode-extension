@@ -171,7 +171,12 @@ export class MCPServer {
             inputSchema: {},
             outputSchema: {
                 success: z.boolean(),
-                roles: z.array(z.string()),
+                roles: z.array(z.object({
+                    name: z.string(),
+                    displayName: z.string(),
+                    description: z.string(),
+                    isActive: z.string()
+                })),
                 count: z.number(),
                 note: z.string().optional(),
                 warning: z.string().optional()
@@ -179,6 +184,83 @@ export class MCPServer {
         }, async () => {
             try {
                 const result = await this.userStoryTools.list_roles();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register add_role tool
+        this.server.registerTool('add_role', {
+            title: 'Add Role',
+            description: 'Add a new role to the Role data object in the AppDNA model. Role name must be in PascalCase format.',
+            inputSchema: {
+                name: z.string().describe('Name of the role (required, must be PascalCase, e.g., "Administrator", "DataEntryClerk")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                role: z.object({
+                    name: z.string(),
+                    displayName: z.string(),
+                    description: z.string(),
+                    isActive: z.string()
+                }).optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ name }) => {
+            try {
+                const result = await this.userStoryTools.add_role({ name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_role tool
+        this.server.registerTool('update_role', {
+            title: 'Update Role',
+            description: 'Update an existing role in the Role data object. Can update displayName, description, and/or isActive. Role name must match exactly (case-sensitive).',
+            inputSchema: {
+                name: z.string().describe('Name of the role to update (required, case-sensitive)'),
+                displayName: z.string().optional().describe('New display name for the role (optional)'),
+                description: z.string().optional().describe('New description for the role (optional)'),
+                isActive: z.string().optional().describe('Active status: "true" or "false" (optional)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                role: z.object({
+                    name: z.string(),
+                    displayName: z.string(),
+                    description: z.string(),
+                    isActive: z.string()
+                }).optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ name, displayName, description, isActive }) => {
+            try {
+                const result = await this.userStoryTools.update_role({ name, displayName, description, isActive });
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

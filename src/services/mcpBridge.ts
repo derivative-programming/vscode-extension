@@ -239,7 +239,7 @@ export class McpBridge {
                 }
                 else if (req.url === '/api/roles') {
                     // Get all roles from Role data object lookup items
-                    const roles = new Set<string>();
+                    const roles: any[] = [];
                     
                     // Extract roles from Role data objects
                     const allObjects = modelService.getAllObjects();
@@ -248,19 +248,233 @@ export class McpBridge {
                             if (obj.lookupItem && Array.isArray(obj.lookupItem)) {
                                 obj.lookupItem.forEach((lookupItem: any) => {
                                     if (lookupItem.name) {
-                                        roles.add(lookupItem.name);
+                                        roles.push({
+                                            name: lookupItem.name,
+                                            displayName: lookupItem.displayName || '',
+                                            description: lookupItem.description || '',
+                                            isActive: lookupItem.isActive || 'true'
+                                        });
                                     }
                                 });
                             }
                         }
                     });
                     
-                    const rolesArray = Array.from(roles).sort();
+                    // Sort by name
+                    roles.sort((a, b) => a.name.localeCompare(b.name));
                     
-                    this.outputChannel.appendLine(`[Data Bridge] Returning ${rolesArray.length} roles`);
+                    this.outputChannel.appendLine(`[Data Bridge] Returning ${roles.length} roles`);
                     
                     res.writeHead(200);
-                    res.end(JSON.stringify(rolesArray));
+                    res.end(JSON.stringify(roles));
+                }
+                else if (req.method === 'POST' && req.url === '/api/roles') {
+                    // Add a new role to the Role data object
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { name } = JSON.parse(body);
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the Role data object
+                            let roleObject: any = null;
+                            let targetNsIndex = 0;
+                            
+                            if (model.namespace && Array.isArray(model.namespace)) {
+                                for (let i = 0; i < model.namespace.length; i++) {
+                                    const ns = model.namespace[i];
+                                    if (ns.object && Array.isArray(ns.object)) {
+                                        const foundRole = ns.object.find((obj: any) => 
+                                            obj.name && obj.name.toLowerCase() === 'role'
+                                        );
+                                        if (foundRole) {
+                                            roleObject = foundRole;
+                                            targetNsIndex = i;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // If Role object doesn't exist, return error
+                            if (!roleObject) {
+                                res.writeHead(400, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'Role data object not found in model. Please create a "Role" lookup object first.'
+                                }));
+                                return;
+                            }
+                            
+                            // Initialize lookupItem array if it doesn't exist
+                            if (!roleObject.lookupItem) {
+                                roleObject.lookupItem = [];
+                            }
+                            
+                            // Create new lookup item for the role
+                            const newLookupItem: any = {
+                                name: name,
+                                displayName: this.generateDisplayText(name),
+                                description: this.generateDisplayText(name),
+                                isActive: "true"
+                            };
+                            
+                            // Add the lookup item to the Role object
+                            roleObject.lookupItem.push(newLookupItem);
+                            
+                            // Mark that there are unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added role: ${name}`);
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: true,
+                                role: {
+                                    name: newLookupItem.name,
+                                    displayName: newLookupItem.displayName,
+                                    description: newLookupItem.description,
+                                    isActive: newLookupItem.isActive
+                                },
+                                message: `Role "${name}" added successfully`
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding role: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Invalid request body'
+                            }));
+                        }
+                    });
+                }
+                else if (req.method === 'POST' && req.url === '/api/roles/update') {
+                    // Update an existing role in the Role data object
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { name, displayName, description, isActive } = JSON.parse(body);
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the Role data object and the specific lookup item
+                            let roleObject: any = null;
+                            let lookupItem: any = null;
+                            
+                            if (model.namespace && Array.isArray(model.namespace)) {
+                                for (let i = 0; i < model.namespace.length; i++) {
+                                    const ns = model.namespace[i];
+                                    if (ns.object && Array.isArray(ns.object)) {
+                                        const foundRole = ns.object.find((obj: any) => 
+                                            obj.name && obj.name.toLowerCase() === 'role'
+                                        );
+                                        if (foundRole) {
+                                            roleObject = foundRole;
+                                            // Find the specific lookup item by name
+                                            if (roleObject.lookupItem && Array.isArray(roleObject.lookupItem)) {
+                                                lookupItem = roleObject.lookupItem.find((item: any) => 
+                                                    item.name === name
+                                                );
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // If Role object doesn't exist, return error
+                            if (!roleObject) {
+                                res.writeHead(400, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'Role data object not found in model.'
+                                }));
+                                return;
+                            }
+                            
+                            // If lookup item doesn't exist, return error
+                            if (!lookupItem) {
+                                res.writeHead(404, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: `Role "${name}" not found.`
+                                }));
+                                return;
+                            }
+                            
+                            // Update the lookup item properties
+                            if (displayName !== undefined) {
+                                lookupItem.displayName = displayName;
+                            }
+                            if (description !== undefined) {
+                                lookupItem.description = description;
+                            }
+                            if (isActive !== undefined) {
+                                lookupItem.isActive = isActive;
+                            }
+                            
+                            // Mark that there are unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated role: ${name}`);
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: true,
+                                role: {
+                                    name: lookupItem.name,
+                                    displayName: lookupItem.displayName,
+                                    description: lookupItem.description,
+                                    isActive: lookupItem.isActive
+                                },
+                                message: `Role "${name}" updated successfully`
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating role: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Invalid request body'
+                            }));
+                        }
+                    });
                 }
                 else if (req.method === 'POST' && req.url === '/api/user-stories') {
                     // Add a new user story with full validation
@@ -536,6 +750,25 @@ export class McpBridge {
     public dispose(): void {
         this.stop();
         this.outputChannel.dispose();
+    }
+
+    /**
+     * Helper function to generate display text from PascalCase name
+     * Converts "AdministratorRole" to "Administrator Role"
+     * @param name PascalCase name
+     * @returns Display text with spaces
+     */
+    private generateDisplayText(name: string): string {
+        if (!name) {
+            return '';
+        }
+        
+        // Insert space before capital letters (except first letter)
+        return name
+            .replace(/([A-Z])/g, ' $1')
+            .trim()
+            // Handle consecutive capital letters (e.g., "XMLParser" -> "XML Parser")
+            .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
     }
 
 }

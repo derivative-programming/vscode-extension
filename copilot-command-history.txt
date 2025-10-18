@@ -1,3 +1,140 @@
+2025-10-18: Added update_role MCP tool
+Details:
+- Implemented tool to update existing roles in the Role data object
+- Allows updating displayName, description, and/or isActive properties
+- Role name is used to identify the role (case-sensitive exact match required)
+- Parameters:
+  * name (required) - Role name to update (case-sensitive)
+  * displayName (optional) - New display name
+  * description (optional) - New description
+  * isActive (optional) - Active status: "true" or "false"
+  * At least one optional field must be provided
+- Validation implemented:
+  * Name parameter required
+  * At least one field to update must be provided
+  * isActive must be "true" or "false" if provided
+  * Role must exist (case-sensitive exact match)
+  * Returns available roles in error message if not found
+- Files modified:
+  1. src/mcp/tools/userStoryTools.ts:
+     * Added update_role() method with validation logic
+     * Case-sensitive role name matching
+     * Only updates properties that are provided (undefined are skipped)
+  2. src/services/mcpBridge.ts:
+     * Added POST /api/roles/update endpoint
+     * Finds Role data object and specific lookup item by name
+     * Updates only provided properties on the lookup item
+     * Marks unsaved changes and refreshes tree view
+  3. src/mcp/server.ts:
+     * Registered update_role tool
+     * All parameters optional except name
+     * Zod schema validation for input/output
+  4. src/mcp/mcpProvider.ts:
+     * Added UpdateRoleInput interface with optional fields
+     * Registered update_role tool for VS Code API
+
+Example Usage:
+update_role({ 
+  name: "Administrator", 
+  displayName: "System Administrator",
+  description: "Full system access",
+  isActive: "true"
+})
+
+Architecture Notes:
+- Partial updates supported - only provide fields you want to change
+- Role name cannot be changed (use as identifier)
+- Case-sensitive name matching ensures exact role is updated
+- Returns full updated role object in response
+
+Status: ✅ COMPLETE - All compilation successful, ready for testing
+
+2025-10-18: Updated list_roles to return full role objects
+Details:
+- Changed list_roles tool to return full role objects instead of just names
+- Response now includes all lookup item properties:
+  * name - Role name (PascalCase)
+  * displayName - Display text with spaces
+  * description - Role description
+  * isActive - Active status ("true" or "false")
+- Files modified:
+  1. src/services/mcpBridge.ts:
+     * Changed GET /api/roles endpoint
+     * OLD: Returned array of strings (role names only)
+     * NEW: Returns array of objects with {name, displayName, description, isActive}
+     * Sorts by name alphabetically
+  2. src/mcp/server.ts:
+     * Updated outputSchema for list_roles
+     * Changed from z.array(z.string()) to z.array(z.object({...}))
+  3. src/mcp/tools/userStoryTools.ts:
+     * Updated duplicate check to use role.name instead of roleName
+     * Now accesses role.name from object instead of string directly
+
+Example Response:
+{
+  "success": true,
+  "roles": [
+    {
+      "name": "Administrator",
+      "displayName": "Administrator",
+      "description": "System administrator",
+      "isActive": "true"
+    },
+    {
+      "name": "DataEntryClerk",
+      "displayName": "Data Entry Clerk",
+      "description": "Data Entry Clerk",
+      "isActive": "true"
+    }
+  ],
+  "count": 2
+}
+
+Status: ✅ COMPLETE - All compilation successful, ready for testing
+
+2025-10-18: Added add_role MCP tool
+Details:
+- Implemented tool to add new roles to the Role data object
+- Roles are stored as lookup items in the "Role" data object
+- Parameters:
+  * name (required) - Must be PascalCase format (e.g., "Administrator", "DataEntryClerk")
+- Validation implemented:
+  * PascalCase name validation using regex /^[A-Z][A-Za-z0-9]*$/
+  * Duplicate role check (case-insensitive)
+  * Required parameter validation
+  * Verifies Role data object exists before adding
+- Files modified:
+  1. src/mcp/tools/userStoryTools.ts:
+     * Added add_role() method with full validation logic
+     * Added isPascalCase() helper method for name validation
+     * Uses existing postToBridge() method for HTTP POST requests
+  2. src/services/mcpBridge.ts:
+     * Added POST /api/roles endpoint
+     * Finds Role data object in model
+     * Creates lookup item with name, displayName, description, isActive
+     * Auto-generates displayName and description from PascalCase name
+     * Added generateDisplayText() helper method (converts "DataEntryClerk" to "Data Entry Clerk")
+     * Marks unsaved changes and refreshes tree view
+  3. src/mcp/server.ts:
+     * Registered add_role tool
+     * Zod schema validation for input/output
+  4. src/mcp/mcpProvider.ts:
+     * Added AddRoleInput interface
+     * Registered add_role tool for VS Code API
+
+Architecture Notes:
+- Roles are NOT separate data objects - they are lookup items in the "Role" object
+- Role object must exist (isLookup="true") before adding roles
+- New lookup item structure:
+  * name: PascalCase role name
+  * displayName: Auto-generated with spaces
+  * description: Same as displayName
+  * isActive: "true"
+- Follows same pattern as list_roles tool
+- Complete validation before HTTP bridge call
+
+Status: ✅ COMPLETE - All compilation successful, ready for testing
+
 2025-10-18: Changed parentObjectName validation to exact case-sensitive match
 Details:
 - BREAKING CHANGE: Reversed validation logic for parentObjectName

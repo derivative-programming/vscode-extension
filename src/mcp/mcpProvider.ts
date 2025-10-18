@@ -50,6 +50,23 @@ interface CreateDataObjectInput {
 }
 
 /**
+ * Input schema for add_role tool
+ */
+interface AddRoleInput {
+    name: string;
+}
+
+/**
+ * Input schema for update_role tool
+ */
+interface UpdateRoleInput {
+    name: string;
+    displayName?: string;
+    description?: string;
+    isActive?: string;
+}
+
+/**
  * Input schema for search_user_stories_by_role tool
  */
 interface SearchUserStoriesByRoleInput {
@@ -172,6 +189,66 @@ export class AppDNAMcpProvider {
             }
         });
         console.log('[MCP Provider] ✓ list_roles registered');
+
+        // Register add_role tool
+        console.log('[MCP Provider] Registering add_role...');
+        const addRoleTool = vscode.lm.registerTool('add_role', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as AddRoleInput;
+                return {
+                    invocationMessage: `Adding role: ${input.name}`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as AddRoleInput;
+                    const result = await this.userStoryTools.add_role(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ add_role registered');
+
+        // Register update_role tool
+        console.log('[MCP Provider] Registering update_role...');
+        const updateRoleTool = vscode.lm.registerTool('update_role', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as UpdateRoleInput;
+                return {
+                    invocationMessage: `Updating role: ${input.name}`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as UpdateRoleInput;
+                    const result = await this.userStoryTools.update_role(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_role registered');
 
         // Register list_data_objects tool
         console.log('[MCP Provider] Registering list_data_objects...');
