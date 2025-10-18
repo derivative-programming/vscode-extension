@@ -1,3 +1,188 @@
+2025-10-18: Added update_user_story MCP tool
+Details:
+- Implemented tool to update the isIgnored property of existing user stories
+- Allows soft delete/ignore pattern without permanently removing stories
+- Story text cannot be changed (intentional design - create new story instead)
+- Parameters:
+  * name (required) - User story name/GUID to identify which story to update
+  * isIgnored (required) - Must be "true" or "false" string value
+- Validation implemented:
+  * Name parameter required for exact matching
+  * isIgnored parameter required (no partial updates allowed)
+  * isIgnored must be exactly "true" or "false" (validates at both tool and bridge levels)
+  * Story must exist in model (validated before update)
+- Files modified:
+  1. src/mcp/tools/userStoryTools.ts:
+     * Added update_user_story() method (~100 lines)
+     * Only allows updating isIgnored property
+     * Returns error if trying to update storyText
+     * Validates story exists before attempting update
+  2. src/services/mcpBridge.ts:
+     * Added POST /api/user-stories/update endpoint
+     * Validates name and isIgnored parameters
+     * Rejects requests that try to change storyText
+     * Updates only isIgnored property on the user story object
+     * Marks unsaved changes and refreshes tree view
+     * Added to endpoint list in 404 response
+  3. src/mcp/server.ts:
+     * Registered update_user_story tool
+     * Input schema: name (string), isIgnored (enum: "true" | "false")
+     * Output schema includes updated story object
+     * Comprehensive error handling and validation messages
+  4. src/mcp/mcpProvider.ts:
+     * Added UpdateUserStoryInput interface
+     * Registered update_user_story tool for VS Code API
+     * Added to disposables array (now 14 tools total, was 13)
+
+Use Cases:
+1. Mark story as ignored: update_user_story({ name: "guid-123", isIgnored: "true" })
+2. Re-enable ignored story: update_user_story({ name: "guid-123", isIgnored: "false" })
+
+Design Decisions:
+- Story text is immutable via MCP tools (prevents accidental changes to validated stories)
+- Use isIgnored pattern for soft delete (follows extension conventions)
+- Separate tool for update vs create (clear separation of concerns)
+- Name-based identification (GUIDs are stable identifiers)
+
+Architecture: Follows existing pattern established by update_role and update_lookup_value tools. Validation at multiple levels (tool, bridge) for security. Tree view refresh ensures UI stays in sync.
+
+Status: ✅ COMPLETE - All compilation successful, zero errors, 14 MCP tools total
+
+2025-10-18: Added get_role_schema MCP tool
+Details:
+- Implemented role-specific documentation/schema tool that returns the structure and validation rules specifically for roles
+- No parameters required - returns static schema definition focused on the Role lookup object
+- Purpose: Help AI assistants understand role structure before creating/updating roles
+- Returns comprehensive schema including:
+  * Object identification (objectName: "Role", isLookupObject: true)
+  * Property definitions (name, displayName, description, isActive)
+  * Data types and required/optional status
+  * Validation rules for each property
+  * Format requirements (PascalCase pattern)
+  * Default values
+  * Usage information (location, access, model structure, purpose)
+  * Tool references (both role-specific and generic lookup tools)
+  * 5 example roles demonstrating common use cases
+  * Implementation notes about Role object characteristics
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added get_role_schema() method (~130 lines)
+     * Returns role-specific schema object with all properties documented
+     * Includes validation rules, examples, usage patterns, and role-specific notes
+     * No bridge call needed - returns static schema information
+     * DataObjectTools now contains 10 tools total
+  2. src/mcp/server.ts:
+     * Registered get_role_schema tool
+     * No input parameters (empty schema)
+     * Comprehensive output schema with nested objects including tools and notes arrays
+  3. src/mcp/mcpProvider.ts:
+     * Registered get_role_schema tool for VS Code API
+     * Updated disposables to include all 13 tools (was 12)
+
+Example Roles Documented:
+1. Administrator - Full system access
+2. Manager - Team management and reporting
+3. User - Standard system access
+4. Guest - Limited read-only access
+5. Deprecated role example with isActive="false"
+
+Implementation Notes Documented:
+- Role object is a special lookup object with name="Role"
+- Must have isLookup="true"
+- Located in same namespace as data objects
+- Contains lookupItem array of role objects
+- Can use role-specific tools (list_roles, add_role, update_role) or generic lookup tools
+- PascalCase validation enforced at bridge level for security
+
+Architecture: Documentation tool pattern follows get_lookup_value_schema design, providing self-documenting API for AI assistants to understand data structures without accessing actual data.
+
+2025-10-18: Added get_lookup_value_schema MCP tool
+Details:
+- Implemented documentation/schema tool that returns the structure and validation rules for lookup values
+- No parameters required - returns static schema definition
+- Purpose: Help AI assistants and developers understand lookup value structure before creating/updating
+- Returns comprehensive schema including:
+  * Property definitions (name, displayName, description, isActive)
+  * Data types and required/optional status
+  * Validation rules for each property
+  * Format requirements (PascalCase pattern)
+  * Default values
+  * Usage information (where stored, how accessed, available tools)
+  * Example objects demonstrating correct structure
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added get_lookup_value_schema() method
+     * Returns detailed schema object with all properties documented
+     * Includes validation rules, examples, and usage patterns
+     * No bridge call needed - returns static schema information
+  2. src/mcp/server.ts:
+     * Registered get_lookup_value_schema tool
+     * No input parameters (empty schema)
+     * Comprehensive output schema with nested objects
+  3. src/mcp/mcpProvider.ts:
+     * Registered get_lookup_value_schema tool for VS Code API
+     * Updated disposables to include all 12 tools
+
+Schema Properties Documented:
+1. name:
+   - Required, string, PascalCase format
+   - Pattern: ^[A-Z][A-Za-z0-9]*$
+   - Must be unique within lookup object
+   - Examples: Administrator, DataEntryClerk, ActiveStatus
+
+2. displayName:
+   - Optional, string
+   - Auto-generated from name if not provided
+   - Can contain spaces and special characters
+   - Examples: "Data Entry Clerk", "Active Status"
+
+3. description:
+   - Optional, string
+   - Auto-generated from name if not provided
+   - Descriptive text
+
+4. isActive:
+   - Optional, string enum: "true" or "false"
+   - Default: "true"
+   - Note: Must be string, not boolean
+
+Validation Rules Included:
+- PascalCase requirements for name
+- Uniqueness constraints
+- Active status format
+- Auto-generation behavior
+
+Usage Information:
+- Location: lookup data objects (isLookup="true")
+- Access: Via lookupItem array property
+- Related tools: add_lookup_value, list_lookup_values, update_lookup_value
+
+Example Objects:
+- Minimal example with required field only
+- Full example with all optional fields
+- Inactive item example
+- Various naming patterns
+
+Architecture Notes:
+- Pure documentation tool - no side effects
+- Returns static schema definition
+- Helps AI understand structure before operations
+- Complements other lookup value tools
+- Similar to OpenAPI/JSON Schema documentation
+
+DataObjectTools Now Contains (9 tools):
+1. list_data_objects - List all data objects
+2. create_data_object - Create new data object
+3. list_roles - List roles (specific lookup object)
+4. add_role - Add role (specific lookup object)
+5. update_role - Update role (specific lookup object)
+6. add_lookup_value - Add lookup value (generic)
+7. list_lookup_values - List lookup values (generic)
+8. update_lookup_value - Update lookup value (generic)
+9. get_lookup_value_schema - Get schema definition (documentation)
+
+Status: ✅ COMPLETE - All compilation successful, zero errors
+
 2025-10-18: Added update_lookup_value MCP tool
 Details:
 - Implemented tool to update existing lookup values in any lookup data object

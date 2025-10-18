@@ -883,6 +883,112 @@ export class McpBridge {
                         }
                     });
                 }
+                else if (req.method === 'POST' && req.url === '/api/user-stories/update') {
+                    // Update an existing user story (isIgnored property only)
+                    let body = '';
+                    
+                    req.on('data', chunk => {
+                        body += chunk.toString();
+                    });
+
+                    req.on('end', async () => {
+                        try {
+                            const { name, isIgnored } = JSON.parse(body);
+                            
+                            if (!name) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: 'name is required to identify the user story'
+                                }));
+                                return;
+                            }
+
+                            if (isIgnored === undefined) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: 'isIgnored is required. Story text cannot be changed.'
+                                }));
+                                return;
+                            }
+
+                            if (isIgnored !== 'true' && isIgnored !== 'false') {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: 'isIgnored must be "true" or "false"'
+                                }));
+                                return;
+                            }
+
+                            // Get namespace
+                            if (!model || !model.namespace || !Array.isArray(model.namespace) || model.namespace.length === 0) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: 'Model structure is invalid or namespace not found'
+                                }));
+                                return;
+                            }
+
+                            const namespace = model.namespace[0];
+                            if (!namespace.userStory || !Array.isArray(namespace.userStory)) {
+                                res.writeHead(404);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: 'No user stories found in model'
+                                }));
+                                return;
+                            }
+
+                            // Find the user story by name
+                            const storyToUpdate = namespace.userStory.find((story: any) => story.name === name);
+                            
+                            if (!storyToUpdate) {
+                                res.writeHead(404);
+                                res.end(JSON.stringify({ 
+                                    success: false,
+                                    error: `User story with name "${name}" not found`
+                                }));
+                                return;
+                            }
+
+                            // Update isIgnored property only
+                            storyToUpdate.isIgnored = isIgnored;
+
+                            // Mark unsaved changes and refresh tree view
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+
+                            this.outputChannel.appendLine(`[Data Bridge] User story updated: ${name}`);
+                            
+                            res.writeHead(200);
+                            res.end(JSON.stringify({ 
+                                success: true,
+                                story: storyToUpdate,
+                                message: 'User story updated successfully (unsaved changes)'
+                            }));
+                        } catch (error) {
+                            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating user story: ${errorMessage}`);
+                            
+                            res.writeHead(500);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: errorMessage
+                            }));
+                        }
+                    });
+                }
                 else if (req.url === '/api/health') {
                     // Health check endpoint
                     res.writeHead(200);
@@ -900,6 +1006,7 @@ export class McpBridge {
                         availableEndpoints: [
                             'GET /api/user-stories',
                             'POST /api/user-stories',
+                            'POST /api/user-stories/update',
                             'GET /api/objects',
                             'GET /api/data-objects',
                             'GET /api/roles',

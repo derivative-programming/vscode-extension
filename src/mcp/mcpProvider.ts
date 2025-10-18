@@ -24,6 +24,14 @@ interface ListUserStoriesInput {
 }
 
 /**
+ * Input schema for update_user_story tool
+ */
+interface UpdateUserStoryInput {
+    name: string;
+    isIgnored: string;
+}
+
+/**
  * Input schema for list_roles tool
  */
 interface ListRolesInput {
@@ -191,6 +199,36 @@ export class AppDNAMcpProvider {
             }
         });
         console.log('[MCP Provider] ✓ list_user_stories registered');
+
+        // Register update_user_story tool
+        console.log('[MCP Provider] Registering update_user_story...');
+        const updateUserStoryTool = vscode.lm.registerTool('update_user_story', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as UpdateUserStoryInput;
+                return {
+                    invocationMessage: `Updating user story ${input.name} (isIgnored: ${input.isIgnored})`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as UpdateUserStoryInput;
+                    const result = await this.userStoryTools.update_user_story(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_user_story registered');
 
         // Register list_roles tool
         console.log('[MCP Provider] Registering list_roles...');
@@ -370,6 +408,62 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ update_lookup_value registered');
 
+        // Register get_lookup_value_schema tool
+        console.log('[MCP Provider] Registering get_lookup_value_schema...');
+        const getLookupValueSchemaTool = vscode.lm.registerTool('get_lookup_value_schema', {
+            prepareInvocation: async (options, token) => {
+                return {
+                    invocationMessage: 'Getting lookup value schema definition',
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const result = await this.dataObjectTools.get_lookup_value_schema();
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_lookup_value_schema registered');
+
+        // Register get_role_schema tool
+        console.log('[MCP Provider] Registering get_role_schema...');
+        const getRoleSchemaTool = vscode.lm.registerTool('get_role_schema', {
+            prepareInvocation: async (options, token) => {
+                return {
+                    invocationMessage: 'Getting role schema definition',
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const result = await this.dataObjectTools.get_role_schema();
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_role_schema registered');
+
         // Register list_data_objects tool
         console.log('[MCP Provider] Registering list_data_objects...');
         const listDataObjectsTool = vscode.lm.registerTool('list_data_objects', {
@@ -502,18 +596,21 @@ export class AppDNAMcpProvider {
 
         this.disposables.push(
             createTool, 
-            listTool, 
+            listTool,
+            updateUserStoryTool,
             listRolesTool, 
             addRoleTool,
             updateRoleTool,
             addLookupValueTool,
             listLookupValuesTool,
             updateLookupValueTool,
+            getLookupValueSchemaTool,
+            getRoleSchemaTool,
             listDataObjectsTool, 
             searchByRoleTool, 
             searchStoriesTool
         );
-        console.log('[MCP Provider] All 11 tools registered and added to disposables');
+        console.log('[MCP Provider] All 14 tools registered and added to disposables');
     }
 
     /**

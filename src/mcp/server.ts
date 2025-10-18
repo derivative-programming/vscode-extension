@@ -132,6 +132,43 @@ export class MCPServer {
             }
         });
 
+        // Register update_user_story tool
+        this.server.registerTool('update_user_story', {
+            title: 'Update User Story',
+            description: 'Update the isIgnored property of an existing user story. Use this to mark stories as ignored (soft delete) or re-enable them. Story text cannot be changed - create a new story instead if needed.',
+            inputSchema: {
+                name: z.string().describe('The name (GUID identifier) of the user story to update. Required for exact matching.'),
+                isIgnored: z.enum(['true', 'false']).describe('Set to "true" to mark story as ignored (soft delete), "false" to re-enable it.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                story: z.object({
+                    name: z.string(),
+                    storyText: z.string(),
+                    isIgnored: z.string()
+                }).optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ name, isIgnored }) => {
+            try {
+                const result = await this.userStoryTools.update_user_story({ name, isIgnored });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register get_user_story_schema tool
         this.server.registerTool('get_user_story_schema', {
             title: 'Get User Story Schema',
@@ -381,6 +418,90 @@ export class MCPServer {
         }, async ({ lookupObjectName, name, displayName, description, isActive }) => {
             try {
                 const result = await this.dataObjectTools.update_lookup_value({ lookupObjectName, name, displayName, description, isActive });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_lookup_value_schema tool
+        this.server.registerTool('get_lookup_value_schema', {
+            title: 'Get Lookup Value Schema',
+            description: 'Get the schema definition for lookup values (lookup items) including properties, validation rules, format requirements, and examples. Useful for understanding the structure of lookup values before creating or updating them.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.object({
+                    type: z.string(),
+                    description: z.string(),
+                    properties: z.record(z.any()),
+                    validationRules: z.record(z.array(z.string())),
+                    usage: z.object({
+                        location: z.string(),
+                        access: z.string(),
+                        tools: z.array(z.string())
+                    }),
+                    exampleObjects: z.array(z.any())
+                }),
+                note: z.string()
+            }
+        }, async () => {
+            try {
+                const result = await this.dataObjectTools.get_lookup_value_schema();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_role_schema tool
+        this.server.registerTool('get_role_schema', {
+            title: 'Get Role Schema',
+            description: 'Get the schema definition specifically for roles in the Role lookup object. Includes properties, validation rules, format requirements, examples, and notes about the Role object structure. Useful for understanding role structure before creating or updating roles.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.object({
+                    type: z.string(),
+                    description: z.string(),
+                    objectName: z.string(),
+                    isLookupObject: z.boolean(),
+                    properties: z.record(z.any()),
+                    validationRules: z.record(z.array(z.string())),
+                    usage: z.object({
+                        location: z.string(),
+                        access: z.string(),
+                        modelStructure: z.string(),
+                        purpose: z.string()
+                    }),
+                    tools: z.object({
+                        roleSpecific: z.array(z.string()),
+                        genericLookup: z.array(z.string())
+                    }),
+                    exampleRoles: z.array(z.any()),
+                    notes: z.array(z.string())
+                }),
+                note: z.string()
+            }
+        }, async () => {
+            try {
+                const result = await this.dataObjectTools.get_role_schema();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

@@ -134,6 +134,89 @@ export class UserStoryTools {
     }
 
     /**
+     * Updates an existing user story (isIgnored property only)
+     * Tool name: update_user_story (following MCP snake_case convention)
+     * @param parameters Tool parameters containing name and isIgnored
+     * @returns Result of the user story update
+     */
+    public async update_user_story(parameters: any): Promise<any> {
+        const { name, isIgnored } = parameters;
+
+        // Validate that name is provided
+        if (!name) {
+            return {
+                success: false,
+                error: 'name parameter is required to identify the user story to update',
+                validationErrors: ['name is required']
+            };
+        }
+
+        // Validate that isIgnored is provided
+        if (isIgnored === undefined) {
+            return {
+                success: false,
+                error: 'isIgnored parameter is required. Story text cannot be changed - create a new story instead.',
+                validationErrors: ['isIgnored is required']
+            };
+        }
+
+        // Validate isIgnored value
+        if (isIgnored !== 'true' && isIgnored !== 'false') {
+            return {
+                success: false,
+                error: `Invalid isIgnored value. Must be "true" or "false". Received: "${isIgnored}"`,
+                validationErrors: ['isIgnored must be "true" or "false"']
+            };
+        }
+
+        // Check if user story exists
+        try {
+            const existingStories = await this.fetchFromBridge('/api/user-stories');
+            
+            // Find story by name (exact match)
+            const storyExists = existingStories.some((story: any) => 
+                story.name === name
+            );
+
+            if (!storyExists) {
+                return {
+                    success: false,
+                    error: `User story with name "${name}" not found. Story name must match exactly.`,
+                    validationErrors: [`User story "${name}" does not exist`],
+                    note: `Found ${existingStories.length} total user stories in the model`
+                };
+            }
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not validate user story existence: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required for validation'
+            };
+        }
+
+        // Update the user story via HTTP bridge
+        try {
+            const updateData: any = { name, isIgnored };
+
+            const result = await this.postToBridge('/api/user-stories/update', updateData);
+
+            return {
+                success: true,
+                story: result.story,
+                message: result.message || 'User story updated successfully',
+                note: 'User story isIgnored property updated in AppDNA model (unsaved changes)'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to update user story: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Could not connect to extension or update failed'
+            };
+        }
+    }
+
+    /**
      * Get the user story schema definition
      * Tool name: get_user_story_schema (following MCP snake_case convention)
      * @returns Schema definition for user story objects

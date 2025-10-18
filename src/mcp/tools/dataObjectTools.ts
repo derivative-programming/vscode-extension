@@ -224,6 +224,140 @@ export class DataObjectTools {
     }
 
     /**
+     * Gets the schema definition for roles (Role lookup object items)
+     * Tool name: get_role_schema (following MCP snake_case convention)
+     * @returns Schema definition with properties, validation rules, and examples
+     */
+    public async get_role_schema(): Promise<any> {
+        return {
+            success: true,
+            schema: {
+                type: 'object',
+                description: 'Role structure in AppDNA model - stored in the Role lookup data object',
+                objectName: 'Role',
+                isLookupObject: true,
+                properties: {
+                    name: {
+                        type: 'string',
+                        required: true,
+                        format: 'PascalCase',
+                        pattern: '^[A-Z][A-Za-z0-9]*$',
+                        description: 'Unique identifier for the role. Must be in PascalCase format (starts with uppercase letter, no spaces, can contain letters and numbers).',
+                        examples: ['Administrator', 'Manager', 'DataEntryClerk', 'Supervisor', 'Guest']
+                    },
+                    displayName: {
+                        type: 'string',
+                        required: false,
+                        description: 'Human-readable display name for the role. Auto-generated from name if not provided (e.g., "DataEntryClerk" becomes "Data Entry Clerk").',
+                        examples: ['Administrator', 'Manager', 'Data Entry Clerk', 'Supervisor', 'Guest']
+                    },
+                    description: {
+                        type: 'string',
+                        required: false,
+                        description: 'Detailed description of the role and its responsibilities. Auto-generated from name if not provided.',
+                        examples: ['System administrator with full access rights', 'Manages team and approves requests', 'Responsible for data entry tasks', 'Supervises operations']
+                    },
+                    isActive: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        default: 'true',
+                        description: 'Indicates whether the role is active and available for assignment. Must be the string "true" or "false" (not boolean). Defaults to "true" if not provided.',
+                        examples: ['true', 'false']
+                    }
+                },
+                validationRules: {
+                    name: [
+                        'Required field',
+                        'Must be unique within the Role object (case-insensitive check)',
+                        'Must be in PascalCase format',
+                        'Must start with uppercase letter',
+                        'Can only contain letters (A-Z, a-z) and numbers (0-9)',
+                        'No spaces, hyphens, or special characters allowed'
+                    ],
+                    displayName: [
+                        'Optional field',
+                        'Auto-generated from name if not provided',
+                        'Can contain spaces and special characters',
+                        'Used for UI display and user-facing text'
+                    ],
+                    description: [
+                        'Optional field',
+                        'Auto-generated from name if not provided',
+                        'Can be any descriptive text',
+                        'Should describe role responsibilities and permissions'
+                    ],
+                    isActive: [
+                        'Optional field',
+                        'Must be string "true" or "false" (not boolean)',
+                        'Defaults to "true" if not provided',
+                        'Use "false" for soft delete (hide role without removing)',
+                        'Inactive roles typically not shown in role selection dropdowns'
+                    ]
+                },
+                usage: {
+                    location: 'Stored in the "Role" lookup data object',
+                    access: 'Via Role object\'s lookupItem array property',
+                    modelStructure: 'namespace → object[name="Role"] → lookupItem[]',
+                    purpose: 'Define user roles and permissions for the application',
+                    tools: [
+                        'list_roles - List all roles from the Role object',
+                        'add_role - Create new role',
+                        'update_role - Update existing role properties',
+                        'get_role_schema - Get this schema definition'
+                    ],
+                    genericAlternatives: [
+                        'list_lookup_values - Can list roles using lookupObjectName="Role"',
+                        'add_lookup_value - Can add roles using lookupObjectName="Role"',
+                        'update_lookup_value - Can update roles using lookupObjectName="Role"'
+                    ]
+                },
+                commonRoles: [
+                    {
+                        name: 'Administrator',
+                        displayName: 'Administrator',
+                        description: 'System administrator with full access to all features',
+                        isActive: 'true'
+                    },
+                    {
+                        name: 'Manager',
+                        displayName: 'Manager',
+                        description: 'Manages team members and approves requests',
+                        isActive: 'true'
+                    },
+                    {
+                        name: 'User',
+                        displayName: 'User',
+                        description: 'Standard user with basic access rights',
+                        isActive: 'true'
+                    },
+                    {
+                        name: 'Guest',
+                        displayName: 'Guest',
+                        description: 'Limited access guest user',
+                        isActive: 'true'
+                    },
+                    {
+                        name: 'Deprecated',
+                        displayName: 'Deprecated',
+                        description: 'No longer used',
+                        isActive: 'false'
+                    }
+                ],
+                notes: [
+                    'Roles are stored in a special lookup data object named "Role"',
+                    'The Role object must have isLookup="true"',
+                    'Role-specific tools (add_role, update_role, list_roles) provide convenience',
+                    'Generic lookup value tools also work with roles',
+                    'Role names are used in user stories and access control',
+                    'Common pattern: Prefix with responsibility (e.g., DataEntryClerk, ReportViewer)'
+                ]
+            },
+            note: 'This schema defines the structure of roles in the AppDNA model Role lookup object'
+        };
+    }
+
+    /**
      * Adds a new role to the Role data object
      * Tool name: add_role (following MCP snake_case convention)
      * @param parameters Tool parameters containing name, displayName, description, isActive
@@ -586,6 +720,114 @@ export class DataObjectTools {
                 note: 'Bridge connection required to update lookup values'
             };
         }
+    }
+
+    /**
+     * Gets the schema definition for lookup values (lookup items)
+     * Tool name: get_lookup_value_schema (following MCP snake_case convention)
+     * @returns Schema definition with properties, validation rules, and examples
+     */
+    public async get_lookup_value_schema(): Promise<any> {
+        return {
+            success: true,
+            schema: {
+                type: 'object',
+                description: 'Lookup value (lookup item) structure in AppDNA model',
+                properties: {
+                    name: {
+                        type: 'string',
+                        required: true,
+                        format: 'PascalCase',
+                        pattern: '^[A-Z][A-Za-z0-9]*$',
+                        description: 'Unique identifier for the lookup value. Must be in PascalCase format (starts with uppercase letter, no spaces, can contain letters and numbers).',
+                        examples: ['Administrator', 'DataEntryClerk', 'ActiveStatus', 'PendingApproval', 'HighPriority']
+                    },
+                    displayName: {
+                        type: 'string',
+                        required: false,
+                        description: 'Human-readable display name for the lookup value. Auto-generated from name if not provided (e.g., "DataEntryClerk" becomes "Data Entry Clerk").',
+                        examples: ['Administrator', 'Data Entry Clerk', 'Active Status', 'Pending Approval', 'High Priority']
+                    },
+                    description: {
+                        type: 'string',
+                        required: false,
+                        description: 'Detailed description of the lookup value. Auto-generated from name if not provided.',
+                        examples: ['System administrator with full access', 'User responsible for data entry tasks', 'Currently active item', 'Item pending approval']
+                    },
+                    isActive: {
+                        type: 'string',
+                        required: false,
+                        enum: ['true', 'false'],
+                        default: 'true',
+                        description: 'Indicates whether the lookup value is active. Must be the string "true" or "false" (not boolean). Defaults to "true" if not provided.',
+                        examples: ['true', 'false']
+                    }
+                },
+                validationRules: {
+                    name: [
+                        'Required field',
+                        'Must be unique within the lookup object (case-insensitive check)',
+                        'Must be in PascalCase format',
+                        'Must start with uppercase letter',
+                        'Can only contain letters (A-Z, a-z) and numbers (0-9)',
+                        'No spaces, hyphens, or special characters allowed'
+                    ],
+                    displayName: [
+                        'Optional field',
+                        'Auto-generated from name if not provided',
+                        'Can contain spaces and special characters',
+                        'Used for UI display'
+                    ],
+                    description: [
+                        'Optional field',
+                        'Auto-generated from name if not provided',
+                        'Can be any descriptive text'
+                    ],
+                    isActive: [
+                        'Optional field',
+                        'Must be string "true" or "false" (not boolean)',
+                        'Defaults to "true" if not provided',
+                        'Use "false" for soft delete (hide without removing)'
+                    ]
+                },
+                usage: {
+                    location: 'Stored in lookup data objects (objects with isLookup="true")',
+                    access: 'Via lookupItem array property on lookup objects',
+                    tools: [
+                        'add_lookup_value - Create new lookup value',
+                        'list_lookup_values - List all lookup values from a lookup object',
+                        'update_lookup_value - Update existing lookup value properties'
+                    ]
+                },
+                exampleObjects: [
+                    {
+                        name: 'Administrator',
+                        displayName: 'Administrator',
+                        description: 'Administrator',
+                        isActive: 'true'
+                    },
+                    {
+                        name: 'DataEntryClerk',
+                        displayName: 'Data Entry Clerk',
+                        description: 'Data Entry Clerk',
+                        isActive: 'true'
+                    },
+                    {
+                        name: 'ActiveStatus',
+                        displayName: 'Active Status',
+                        description: 'Items that are currently active',
+                        isActive: 'true'
+                    },
+                    {
+                        name: 'Deprecated',
+                        displayName: 'Deprecated',
+                        description: 'No longer used',
+                        isActive: 'false'
+                    }
+                ]
+            },
+            note: 'This schema defines the structure of lookup values (lookup items) in the AppDNA model'
+        };
     }
 
     /**
