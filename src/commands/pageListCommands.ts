@@ -53,22 +53,30 @@ export function registerPageListCommands(
     appDNAFilePath: string | null,
     modelService: ModelService
 ): void {
-    // Register page list command
+    // Register page list command with optional initialTab parameter
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.pageList', async () => {
+        vscode.commands.registerCommand('appdna.pageList', async (initialTab?: string) => {
             // Store references to context and modelService
             pageListPanel.context = context;
             pageListPanel.modelService = modelService;
             
             // Create a consistent panel ID
             const panelId = 'pageList';
-            console.log(`pageList command called (panelId: ${panelId})`);
+            console.log(`pageList command called (panelId: ${panelId}, initialTab: ${initialTab})`);
             
             // Check if panel already exists
             if (activePanels.has(panelId)) {
                 console.log(`Panel already exists for page list, revealing existing panel`);
-                // Panel exists, reveal it instead of creating a new one
-                activePanels.get(panelId)?.reveal(vscode.ViewColumn.One);
+                const existingPanel = activePanels.get(panelId);
+                // Panel exists, reveal it
+                existingPanel?.reveal(vscode.ViewColumn.One);
+                // If initialTab is specified, send message to switch to that tab
+                if (initialTab && existingPanel) {
+                    existingPanel.webview.postMessage({
+                        command: 'switchToTab',
+                        tabName: initialTab
+                    });
+                }
                 return;
             }
             
@@ -1060,6 +1068,17 @@ export function registerPageListCommands(
                 </body>
                 </html>
             `;
+
+            // Send initialTab message after HTML is loaded (if specified)
+            if (initialTab) {
+                // Small delay to ensure webview is ready
+                setTimeout(() => {
+                    panel.webview.postMessage({
+                        command: 'switchToTab',
+                        tabName: initialTab
+                    });
+                }, 100);
+            }
 
             // Handle messages from the webview
             panel.webview.onDidReceiveMessage(

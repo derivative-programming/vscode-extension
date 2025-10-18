@@ -1340,17 +1340,20 @@ export class MCPServer {
 
         this.server.registerTool('open_pages_list_view', {
             title: 'Open Pages List View',
-            description: 'Opens the list view showing all pages in the application. Pages are the main UI screens users navigate to. Shows page names, routes, components, layouts, and navigation hierarchy.',
-            inputSchema: {},
+            description: 'Opens the list view showing all pages in the application. Pages are the main UI screens users navigate to. Shows three tabs: "Pages" (page list table), "Complexity Visualization" (treemap), and "Complexity Distribution" (histogram). Supports initialTab parameter with values: "pages", "visualization", "distribution".',
+            inputSchema: {
+                initialTab: z.string().optional().describe('Optional initial tab: "pages", "visualization", or "distribution"')
+            },
             outputSchema: {
                 success: z.boolean(),
                 view: z.string().optional(),
+                initialTab: z.string().optional(),
                 message: z.string().optional(),
                 error: z.string().optional()
             }
-        }, async () => {
+        }, async ({ initialTab }) => {
             try {
-                const result = await this.viewTools.openPagesList();
+                const result = await this.viewTools.openPagesList(initialTab);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

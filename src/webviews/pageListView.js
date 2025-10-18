@@ -728,7 +728,17 @@ window.addEventListener("message", function(event) {
     const message = event.data;
     console.log("[Webview] Received message:", message.command);
     
-    if (message.command === "setPageData") {
+    if (message.command === "switchToTab") {
+        console.log('[PageList] Received switchToTab message:', message.tabName);
+        // Find the tab button and switch to it
+        const tabButton = document.querySelector(`.tab[data-tab="${message.tabName}"]`);
+        if (tabButton) {
+            console.log('[PageList] Found tab button, switching to tab:', message.tabName);
+            switchTab(message.tabName);
+        } else {
+            console.warn('[PageList] Tab button not found for:', message.tabName);
+        }
+    } else if (message.command === "setPageData") {
         console.log("[Webview] Handling setPageData with", message.data?.items?.length || 0, "items");
         const data = message.data || { items: [], totalRecords: 0, sortColumn: 'name', sortDescending: false };
         

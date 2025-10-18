@@ -188,8 +188,8 @@ export class ViewTools {
      * Open Pages List View
      * Shows all pages in the application
      */
-    public async openPagesList(): Promise<any> {
-        return this.executeCommand('appdna.pageList');
+    public async openPagesList(initialTab?: string): Promise<any> {
+        return this.executeCommand('appdna.pageList', initialTab ? [initialTab] : []);
     }
 
     /**

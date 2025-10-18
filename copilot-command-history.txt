@@ -1,5 +1,60 @@
 ===============================================================================
 DATE: October 18, 2025
+COMMAND: Add tab switching support to Page List view MCP tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+Add tab switching support for the Page List view which has 3 tabs:
+1. Pages (page list table)
+2. Complexity Visualization (treemap)
+3. Complexity Distribution (histogram)
+
+CHANGES MADE:
+Files Modified:
+1. src/commands/pageListCommands.ts
+   - Updated command registration to accept `initialTab` parameter: async (initialTab?: string)
+   - Added postMessage for existing panels to switch tabs
+   - Added postMessage for new panels (with setTimeout delay)
+   - Added logging for tab parameter
+
+2. src/webviews/pageListView.js
+   - Added switchToTab message handler
+   - Finds tab button using querySelector with data-tab attribute
+   - Calls switchTab() function to perform the switch
+
+3. src/mcp/server.ts (line ~1341)
+   - Updated open_pages_list_view tool description to document 3 tabs
+   - Added inputSchema with initialTab parameter (Zod optional string)
+   - Added initialTab to outputSchema
+   - Updated handler to accept and pass initialTab parameter
+
+4. src/mcp/tools/viewTools.ts
+   - Updated openPagesList() method to accept initialTab parameter
+   - Passes parameter array to executeCommand
+
+TAB VALUES:
+- "pages" - Pages tab (main table view)
+- "visualization" - Complexity Visualization tab (treemap)
+- "distribution" - Complexity Distribution tab (histogram)
+
+ARCHITECTURE NOTES:
+- Page List view: pageListView.js
+- Command: appdna.pageList
+- HTML tabs defined in pageListCommands.ts with data-tab attributes
+- switchTab() function already existed in webview for tab switching
+- Tab switching pattern: postMessage → querySelector → switchTab()
+
+VERIFICATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful
+✅ Tab values match HTML data-tab attributes
+✅ MCP tool now supports initialTab parameter
+
+===============================================================================
+
+===============================================================================
+DATE: October 18, 2025
 COMMAND: Fix MCP Tools for User Stories Role Requirements and Requirements Fulfillment Views
 STATUS: ✅ COMPLETED
 ===============================================================================
