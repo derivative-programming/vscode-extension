@@ -18,18 +18,18 @@ export class UserStoryTools {
     /**
      * Creates a user story and validates its format
      * Tool name: create_user_story (following MCP snake_case convention)
-     * @param parameters Tool parameters containing title and description
+     * @param parameters Tool parameters containing storyText
      * @returns Result of the user story creation
      */
     public async create_user_story(parameters: any): Promise<any> {
-        const { title, description } = parameters;
+        const { storyText } = parameters;
 
-        if (!description) {
-            throw new Error('Description is required');
+        if (!storyText) {
+            throw new Error('storyText is required');
         }
 
         // Validate the user story format
-        const isValid = this.isValidUserStoryFormat(description);
+        const isValid = this.isValidUserStoryFormat(storyText);
         if (!isValid) {
             return {
                 success: false,
@@ -38,7 +38,8 @@ export class UserStoryTools {
                        '- "A Manager wants to view all tasks in a project"\n' +
                        '- "A User wants to add a task"\n' +
                        '- "As a User, I want to update an employee"\n' +
-                       '- "As a Manager, I want to view all items in the application"',
+                       '- "As a Manager, I want to view all items in the application"\n\n' +
+                       'Valid actions: view all, view, add, create, update, edit, delete, remove',
                 validatedFormat: false
             };
         }
@@ -46,8 +47,7 @@ export class UserStoryTools {
         // Use HTTP bridge to add story to ModelService with full validation
         try {
             const newStory = await this.postToBridge('/api/user-stories', {
-                storyText: description,
-                ...(title ? { storyNumber: title } : {})
+                storyText: storyText
             });
 
             return {
@@ -68,22 +68,58 @@ export class UserStoryTools {
     }
 
     /**
-     * Lists all user stories
+     * Lists all user stories with optional filtering
      * Tool name: list_user_stories (following MCP snake_case convention)
-     * @returns Array of user stories
+     * @param parameters Optional filter parameters (role, search_story_text, includeIgnored)
+     * @returns Array of user stories (optionally filtered)
      */
-    public async list_user_stories(): Promise<any> {
+    public async list_user_stories(parameters?: any): Promise<any> {
+        const { role, search_story_text, includeIgnored } = parameters || {};
+        
         // Get stories from extension via HTTP bridge
         try {
             const response = await this.fetchFromBridge('/api/user-stories');
+            let filteredStories = response;
+            
+            // Filter by role if specified
+            if (role) {
+                const roleLower = role.toLowerCase();
+                filteredStories = filteredStories.filter((story: any) => {
+                    const storyText = story.storyText || "";
+                    const extractedRole = this.extractRoleFromUserStory(storyText);
+                    return extractedRole && extractedRole.toLowerCase() === roleLower;
+                });
+            }
+            
+            // Filter by search text if specified (case-insensitive)
+            if (search_story_text) {
+                const searchLower = search_story_text.toLowerCase();
+                filteredStories = filteredStories.filter((story: any) => {
+                    const storyText = story.storyText || "";
+                    return storyText.toLowerCase().includes(searchLower);
+                });
+            }
+            
+            // Filter out ignored stories unless includeIgnored is true
+            if (includeIgnored !== true) {
+                filteredStories = filteredStories.filter((story: any) => 
+                    story.isIgnored !== "true"
+                );
+            }
+            
             return {
                 success: true,
-                stories: response.map((story: any) => ({
+                stories: filteredStories.map((story: any) => ({
                     name: story.name || "",
                     storyText: story.storyText || "",
                     isIgnored: story.isIgnored || "false"
                 })),
-                count: response.length,
+                count: filteredStories.length,
+                filters: {
+                    role: role || null,
+                    search_story_text: search_story_text || null,
+                    includeIgnored: includeIgnored || false
+                },
                 note: "Stories loaded from AppDNA model file via MCP bridge"
             };
         } catch (error) {
@@ -95,6 +131,46 @@ export class UserStoryTools {
                 note: "MCP bridge is not available. Make sure the extension is running."
             };
         }
+    }
+
+    /**
+     * Get the user story schema definition
+     * Tool name: get_user_story_schema (following MCP snake_case convention)
+     * @returns Schema definition for user story objects
+     */
+    public async get_user_story_schema(): Promise<any> {
+        return {
+            success: true,
+            schema: {
+                type: "object",
+                description: "User story object structure",
+                properties: {
+                    name: {
+                        type: "string",
+                        description: "Name/identifier of the user story",
+                        required: true
+                    },
+                    storyText: {
+                        type: "string",
+                        description: "The full text of the user story (e.g., 'As a [role], I want [feature] so that [benefit]')",
+                        required: true
+                    },
+                    isIgnored: {
+                        type: "string",
+                        enum: ["true", "false"],
+                        description: "Whether this story should be ignored by code generators",
+                        required: false,
+                        default: "false"
+                    }
+                },
+                example: {
+                    name: "US001",
+                    storyText: "As a customer, I want to view my order history so that I can track past purchases",
+                    isIgnored: "false"
+                }
+            },
+            note: "This schema represents the fields exposed via MCP tools. Internal fields like storyNumber and isStoryProcessed are not included."
+        };
     }
 
     /**
@@ -260,108 +336,29 @@ export class UserStoryTools {
     }
 
     /**
+     * @deprecated Use list_user_stories({ role: "RoleName" }) instead
      * Searches user stories by role name
      * Tool name: search_user_stories_by_role (following MCP snake_case convention)
      * @param parameters Tool parameters containing role name
      * @returns Array of user stories matching the role
      */
     public async search_user_stories_by_role(parameters: any): Promise<any> {
-        const { role } = parameters;
-        
-        if (!role) {
-            throw new Error('Role parameter is required');
-        }
-        
-        // Get stories from extension via HTTP bridge
-        try {
-            const response = await this.fetchFromBridge('/api/user-stories');
-            
-            // Filter stories by role (case-insensitive match)
-            const roleLower = role.toLowerCase();
-            const matchingStories = response.filter((story: any) => {
-                const storyText = story.storyText || "";
-                const extractedRole = this.extractRoleFromUserStory(storyText);
-                return extractedRole && extractedRole.toLowerCase() === roleLower;
-            });
-            
-            return {
-                success: true,
-                role: role,
-                stories: matchingStories.map((story: any) => ({
-                    name: story.name || "",
-                    storyText: story.storyText || "",
-                    isIgnored: story.isIgnored || "false"
-                })),
-                count: matchingStories.length,
-                note: "Stories loaded from AppDNA model file via MCP bridge"
-            };
-        } catch (error) {
-            return {
-                success: false,
-                role: role,
-                stories: [],
-                count: 0,
-                error: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                note: "MCP bridge is not available. Make sure the extension is running."
-            };
-        }
+        // Redirect to list_user_stories with role filter
+        return this.list_user_stories({ role: parameters.role });
     }
 
     /**
+     * @deprecated Use list_user_stories({ search_story_text: "searchText" }) instead
      * Searches user stories by text query
      * Tool name: search_user_stories (following MCP snake_case convention)
      * @param parameters Tool parameters containing search query
      * @returns Array of user stories matching the search query
      */
     public async search_user_stories(parameters: any): Promise<any> {
-        const { query, caseSensitive } = parameters;
-        
-        if (!query) {
-            throw new Error('Query parameter is required');
-        }
-        
-        const isCaseSensitive = caseSensitive === true;
-        
-        // Get stories from extension via HTTP bridge
-        try {
-            const response = await this.fetchFromBridge('/api/user-stories');
-            
-            // Filter stories by text search
-            const matchingStories = response.filter((story: any) => {
-                const storyText = story.storyText || "";
-                const name = story.name || "";
-                
-                const searchText = isCaseSensitive 
-                    ? storyText + " " + name
-                    : (storyText + " " + name).toLowerCase();
-                const searchQuery = isCaseSensitive ? query : query.toLowerCase();
-                
-                return searchText.includes(searchQuery);
-            });
-            
-            return {
-                success: true,
-                query: query,
-                caseSensitive: isCaseSensitive,
-                stories: matchingStories.map((story: any) => ({
-                    name: story.name || "",
-                    storyText: story.storyText || "",
-                    isIgnored: story.isIgnored || "false"
-                })),
-                count: matchingStories.length,
-                note: "Stories loaded from AppDNA model file via MCP bridge"
-            };
-        } catch (error) {
-            return {
-                success: false,
-                query: query,
-                caseSensitive: isCaseSensitive,
-                stories: [],
-                count: 0,
-                error: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                note: "MCP bridge is not available. Make sure the extension is running."
-            };
-        }
+        // Redirect to list_user_stories with search_story_text filter
+        return this.list_user_stories({ 
+            search_story_text: parameters.query
+        });
     }
 
     /**

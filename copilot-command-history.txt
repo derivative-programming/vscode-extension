@@ -1,3 +1,99 @@
+2025-10-18: Renamed query parameter to search_story_text and removed caseSensitive
+Details:
+- Removed caseSensitive parameter from list_user_stories tool (always case-insensitive now)
+- Renamed query parameter to search_story_text for clarity
+- Updated src/mcp/server.ts: Updated inputSchema and outputSchema to reflect new parameter name
+- Updated src/mcp/tools/userStoryTools.ts:
+  * Changed list_user_stories to accept search_story_text instead of query
+  * Removed caseSensitive parameter and logic (always case-insensitive)
+  * Updated deprecated search_user_stories to use new parameter name
+  * Updated JSDoc comments to reflect changes
+- Search is now always case-insensitive for consistency
+- Filters response now includes search_story_text instead of query and caseSensitive
+
+Architecture Notes:
+- Simplification aligns with user feedback - case-insensitive search is the expected default
+- Parameter name search_story_text is more descriptive than generic "query"
+- Reduces API complexity by removing optional case sensitivity toggle
+
+Status: ✅ COMPLETE
+
+2025-10-18: Merged search tools into list_user_stories with optional filtering
+- Enhanced list_user_stories tool in src/mcp/tools/userStoryTools.ts
+- Added optional filter parameters: role, query, caseSensitive, includeIgnored
+- Filter behavior:
+  * role: Filters by extracted role from story text (case-insensitive)
+  * query: Searches in both storyText and name fields
+  * caseSensitive: Controls case sensitivity for query search (default: false)
+  * includeIgnored: Whether to include ignored stories (default: false - filters them out)
+- Updated src/mcp/server.ts:
+  * Removed search_user_stories_by_role tool registration
+  * Removed search_user_stories tool registration
+  * Updated list_user_stories with new inputSchema and outputSchema
+  * Added filters object to response showing applied filters
+- Deprecated old search methods (marked with @deprecated):
+  * search_user_stories_by_role() - redirects to list_user_stories({ role })
+  * search_user_stories() - redirects to list_user_stories({ query })
+- Examples:
+  * list_user_stories() - All non-ignored stories
+  * list_user_stories({ role: "Manager" }) - Stories for Manager role
+  * list_user_stories({ query: "report" }) - Stories containing "report"
+  * list_user_stories({ role: "User", includeIgnored: true }) - User stories including ignored
+- TypeScript compilation successful
+- Status: ✅ COMPLETE - Single unified tool with flexible filtering
+
+2025-10-18: Simplified create_user_story MCP tool to single parameter
+- Updated src/mcp/tools/userStoryTools.ts
+- Changed from two parameters (title, description) to single parameter (storyText)
+- Removed optional title/storyNumber parameter - stories are created with auto-generated name
+- Updated parameter validation: now requires storyText instead of description
+- Updated src/mcp/server.ts tool registration:
+  * inputSchema: only storyText (required)
+  * outputSchema: removed storyNumber from story object
+  * Handler: passes { storyText } instead of { title, description }
+- Simplified API: create_user_story({ storyText: "As a Manager, I want to..." })
+- HTTP bridge call simplified: only sends storyText in POST request
+- TypeScript compilation successful
+- Status: ✅ COMPLETE - Cleaner, simpler API for creating user stories
+
+2025-10-18: Added get_user_story_schema MCP tool
+- Created new tool in src/mcp/tools/userStoryTools.ts
+- Method: get_user_story_schema() - Returns schema definition for user story objects
+- Registered tool in src/mcp/server.ts as 'get_user_story_schema'
+- Returns schema with:
+  * Field definitions (name, storyText, isIgnored)
+  * Type information (string, enum values)
+  * Descriptions for each field
+  * Required/optional indicators
+  * Default values
+  * Example user story object
+- Note included: Explains this shows MCP-exposed fields only, not internal fields
+- Tool helps MCP clients understand user story structure before creating/editing
+- TypeScript compilation successful
+- Status: ✅ COMPLETE - Schema tool available for MCP clients
+
+2025-10-17: Fixed User Stories QA view tab selection in MCP tool
+- Updated open_user_stories_qa_view tool registration in src/mcp/server.ts
+- Problem 1: Tool was using incorrect tab names ("qaQueue", "all", "qaMetrics", "qaHistory", "qaForecast")
+- Solution 1: Updated to use actual webview tab IDs: "details", "board", "analysis", "forecast", "cost"
+- Problem 2: initialTab parameter was not being sent to webview when panel was created
+- Solution 2: Added code in src/commands/userStoriesQACommands.ts to send 'switchToTab' message after webview ready
+- Updated command flow:
+  1. MCP tool calls appdna.mcp.openUserStoriesQA(initialTab)
+  2. Command creates panel and stores initialTab in closure
+  3. When webview sends 'UserStoriesQAWebviewReady', extension loads data
+  4. After data loads, extension sends 'switchToTab' message with initialTab
+  5. Webview calls switchTab(tabName) to activate the correct tab
+- Updated description to match actual UI tabs:
+  * "Details" - QA details table with filters
+  * "Board" - Kanban board view
+  * "Status Distribution" - analytics and charts (internally "analysis")
+  * "Forecast" - QA capacity planning and forecasting
+  * "Cost" - cost analysis
+- Tab selection now fully functional when opening User Stories QA view via MCP
+- TypeScript compilation successful
+- Status: ✅ COMPLETE - User Stories QA tab selection fixed end-to-end
+
 2025-10-17: Fixed data object details tab selection in MCP tool
 - Fixed openObjectDetails() method in src/mcp/tools/viewTools.ts
 - Problem: Was passing [objectName, { initialTab }] but command expects [objectName, initialTab]

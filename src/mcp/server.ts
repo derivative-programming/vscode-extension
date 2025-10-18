@@ -55,26 +55,24 @@ export class MCPServer {
         // Register create_user_story tool
         this.server.registerTool('create_user_story', {
             title: 'Create User Story',
-            description: 'Create a new user story with format validation and add it to the AppDNA model via HTTP bridge',
+            description: 'Create a new user story with format validation and add it to the AppDNA model via HTTP bridge. The story text must follow the format: "A [Role] wants to [action] [object]" or "As a [Role], I want to [action] [object]". Valid actions: view all, view, add, create, update, edit, delete, remove.',
             inputSchema: {
-                title: z.string().optional().describe('Optional story number/identifier (will be added as storyNumber field)'),
-                description: z.string().describe('The user story text following the format: "A [Role] wants to [action] [object]" or "As a [Role], I want to [action] [object]"')
+                storyText: z.string().describe('The user story text following the format: "A [Role] wants to [action] [object]" or "As a [Role], I want to [action] [object]". Valid actions: view all, view, add, create, update, edit, delete, remove.')
             },
             outputSchema: {
                 success: z.boolean(),
                 story: z.object({
                     name: z.string(),
-                    storyText: z.string(),
-                    storyNumber: z.string().optional()
+                    storyText: z.string()
                 }).optional(),
                 error: z.string().optional(),
                 message: z.string().optional(),
                 note: z.string().optional(),
                 validatedFormat: z.boolean().optional()
             }
-        }, async ({ title, description }) => {
+        }, async ({ storyText }) => {
             try {
-                const result = await this.userStoryTools.create_user_story({ title, description });
+                const result = await this.userStoryTools.create_user_story({ storyText });
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -92,8 +90,12 @@ export class MCPServer {
         // Register list_user_stories tool
         this.server.registerTool('list_user_stories', {
             title: 'List User Stories',
-            description: 'List all user stories from the AppDNA model',
-            inputSchema: {},
+            description: 'List all user stories from the AppDNA model with optional filtering. Can filter by role, search text, and inclusion of ignored stories. Without filters, returns all non-ignored stories.',
+            inputSchema: {
+                role: z.string().optional().describe('Filter stories by role (e.g., "Manager", "User"). Extracts role from story text and matches case-insensitively.'),
+                search_story_text: z.string().optional().describe('Search text to filter stories (case-insensitive). Searches only in the story text field.'),
+                includeIgnored: z.boolean().optional().describe('Whether to include stories marked as ignored (isIgnored="true"). Default is false.')
+            },
             outputSchema: {
                 success: z.boolean(),
                 stories: z.array(z.object({
@@ -101,11 +103,50 @@ export class MCPServer {
                     storyText: z.string(),
                     isIgnored: z.string().optional()
                 })),
+                count: z.number(),
+                filters: z.object({
+                    role: z.string().nullable(),
+                    search_story_text: z.string().nullable(),
+                    includeIgnored: z.boolean()
+                }).optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ role, search_story_text, includeIgnored }) => {
+            try {
+                const result = await this.userStoryTools.list_user_stories({ role, search_story_text, includeIgnored });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_user_story_schema tool
+        this.server.registerTool('get_user_story_schema', {
+            title: 'Get User Story Schema',
+            description: 'Get the schema definition for user story objects, including field descriptions, types, and an example. This shows the structure of user stories as exposed via MCP tools.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.object({
+                    type: z.string(),
+                    description: z.string(),
+                    properties: z.any(),
+                    example: z.any()
+                }).optional(),
                 note: z.string().optional()
             }
         }, async () => {
             try {
-                const result = await this.userStoryTools.list_user_stories();
+                const result = await this.userStoryTools.get_user_story_schema();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -191,80 +232,7 @@ export class MCPServer {
             }
         });
 
-        // Register search_user_stories_by_role tool
-        this.server.registerTool('search_user_stories_by_role', {
-            title: 'Search User Stories by Role',
-            description: 'Search for user stories that mention a specific role',
-            inputSchema: {
-                role: z.string().describe('The role name to search for in user stories')
-            },
-            outputSchema: {
-                success: z.boolean(),
-                role: z.string(),
-                stories: z.array(z.object({
-                    title: z.string(),
-                    description: z.string(),
-                    isIgnored: z.boolean()
-                })),
-                count: z.number(),
-                note: z.string().optional(),
-                warning: z.string().optional()
-            }
-        }, async ({ role }) => {
-            try {
-                const result = await this.userStoryTools.search_user_stories_by_role({ role });
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-                    structuredContent: result
-                };
-            } catch (error) {
-                const errorResult = { success: false, error: error.message };
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
-                    structuredContent: errorResult,
-                    isError: true
-                };
-            }
-        });
-
-        // Register search_user_stories tool
-        this.server.registerTool('search_user_stories', {
-            title: 'Search User Stories',
-            description: 'Search user stories by text query in title or description',
-            inputSchema: {
-                query: z.string().describe('The text to search for in user stories'),
-                caseSensitive: z.boolean().optional().describe('Whether the search should be case-sensitive (default: false)')
-            },
-            outputSchema: {
-                success: z.boolean(),
-                query: z.string(),
-                caseSensitive: z.boolean(),
-                stories: z.array(z.object({
-                    title: z.string(),
-                    description: z.string(),
-                    isIgnored: z.boolean()
-                })),
-                count: z.number(),
-                note: z.string().optional(),
-                warning: z.string().optional()
-            }
-        }, async ({ query, caseSensitive }) => {
-            try {
-                const result = await this.userStoryTools.search_user_stories({ query, caseSensitive });
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-                    structuredContent: result
-                };
-            } catch (error) {
-                const errorResult = { success: false, error: error.message };
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
-                    structuredContent: errorResult,
-                    isError: true
-                };
-            }
-        });
-
+        // ===== USER STORY VIEW OPENING TOOLS =====
         // Register secret_word_of_the_day tool
         this.server.registerTool('secret_word_of_the_day', {
             title: 'Secret Word of the Day',
@@ -359,9 +327,9 @@ export class MCPServer {
 
         this.server.registerTool('open_user_stories_qa_view', {
             title: 'Open User Stories QA View',
-            description: 'Opens the QA and testing queue view for user stories. Shows five tabs: "QA Queue" (stories ready for testing), "All Stories" (complete list), "QA Metrics" (testing analytics), "QA History" (completed testing tracking), and "QA Forecast" (testing capacity planning). Supports initialTab parameter with values: "qaQueue", "all", "qaMetrics", "qaHistory", "qaForecast".',
+            description: 'Opens the QA and testing queue view for user stories. Shows five tabs: "Details" (QA details table with filters), "Board" (Kanban board view), "Status Distribution" (analytics and charts), "Forecast" (QA capacity planning and forecasting), and "Cost" (cost analysis). Supports initialTab parameter with values: "details", "board", "analysis", "forecast", "cost".',
             inputSchema: {
-                initialTab: z.string().optional().describe('Optional initial tab: "qaQueue", "all", "qaMetrics", "qaHistory", or "qaForecast"')
+                initialTab: z.string().optional().describe('Optional initial tab: "details", "board", "analysis", "forecast", or "cost"')
             },
             outputSchema: {
                 success: z.boolean(),

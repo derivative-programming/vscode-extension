@@ -2383,6 +2383,15 @@ export function registerUserStoriesQACommands(context: vscode.ExtensionContext, 
                             console.log("[Extension] UserStoriesQA webview ready");
                             // Load initial QA data
                             await loadUserStoriesQAData(panel, modelService);
+                            
+                            // If initialTab is specified, send message to switch to that tab
+                            if (initialTab) {
+                                console.log(`[Extension] Switching to initial tab: ${initialTab}`);
+                                panel.webview.postMessage({
+                                    command: 'switchToTab',
+                                    data: { tabName: initialTab }
+                                });
+                            }
                             break;
 
                         case 'refresh':
