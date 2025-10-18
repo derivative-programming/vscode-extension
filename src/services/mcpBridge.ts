@@ -88,7 +88,8 @@ export class McpBridge {
                         name: obj.name || "",
                         isLookup: obj.isLookup === "true",
                         parentObjectName: obj.parentObjectName || null,
-                        codeDescription: obj.codeDescription || ""
+                        codeDescription: obj.codeDescription || "",
+                        propCount: (obj.prop && Array.isArray(obj.prop)) ? obj.prop.length : 0
                     }));
                     
                     this.outputChannel.appendLine(`[Data Bridge] Returning ${dataObjects.length} data objects (summary)`);
@@ -300,6 +301,310 @@ export class McpBridge {
                             
                         } catch (error) {
                             this.outputChannel.appendLine(`[Data Bridge] Error creating data object: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Invalid request body'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/data-objects/update' && req.method === 'POST') {
+                    // Update an existing data object
+                    let body = '';
+                    req.on('data', (chunk: Buffer) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { name, codeDescription } = JSON.parse(body);
+                            
+                            // Validate required parameters
+                            if (!name) {
+                                throw new Error('Parameter "name" is required');
+                            }
+                            
+                            if (codeDescription === undefined) {
+                                throw new Error('Parameter "codeDescription" is required');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model || !model.namespace) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the data object
+                            let foundObject: any = null;
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    foundObject = ns.object.find((obj: any) => obj.name === name);
+                                    if (foundObject) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundObject) {
+                                throw new Error(`Data object "${name}" not found`);
+                            }
+                            
+                            // Update the codeDescription
+                            foundObject.codeDescription = codeDescription;
+                            
+                            // Mark that there are unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated data object: ${name}`);
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: true,
+                                object: {
+                                    name: foundObject.name,
+                                    parentObjectName: foundObject.parentObjectName,
+                                    isLookup: foundObject.isLookup === "true",
+                                    codeDescription: foundObject.codeDescription || ""
+                                },
+                                message: `Data object "${name}" updated successfully`
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating data object: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Invalid request body'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/data-objects/add-props' && req.method === 'POST') {
+                    // Add properties to an existing data object
+                    let body = '';
+                    req.on('data', (chunk: Buffer) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { objectName, props } = JSON.parse(body);
+                            
+                            // Validate required parameters
+                            if (!objectName) {
+                                throw new Error('Parameter "objectName" is required');
+                            }
+                            
+                            if (!props || !Array.isArray(props) || props.length === 0) {
+                                throw new Error('Parameter "props" must be a non-empty array');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model || !model.namespace) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the data object
+                            let foundObject: any = null;
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    foundObject = ns.object.find((obj: any) => obj.name === objectName);
+                                    if (foundObject) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundObject) {
+                                throw new Error(`Data object "${objectName}" not found`);
+                            }
+                            
+                            // Initialize prop array if it doesn't exist
+                            if (!foundObject.prop) {
+                                foundObject.prop = [];
+                            }
+                            
+                            // Check for duplicate property names
+                            const existingPropNames = foundObject.prop.map((p: any) => p.name.toLowerCase());
+                            const duplicates: string[] = [];
+                            
+                            props.forEach((newProp: any) => {
+                                if (existingPropNames.includes(newProp.name.toLowerCase())) {
+                                    duplicates.push(newProp.name);
+                                }
+                            });
+                            
+                            if (duplicates.length > 0) {
+                                throw new Error(`Properties already exist: ${duplicates.join(', ')}`);
+                            }
+                            
+                            // Add each property to the object
+                            let addedCount = 0;
+                            props.forEach((propDef: any) => {
+                                // Create property object with only defined fields
+                                const newProp: any = {
+                                    name: propDef.name
+                                };
+                                
+                                // Add optional fields only if provided
+                                if (propDef.codeDescription !== undefined) { newProp.codeDescription = propDef.codeDescription; }
+                                if (propDef.defaultValue !== undefined) { newProp.defaultValue = propDef.defaultValue; }
+                                if (propDef.fkObjectName !== undefined) { newProp.fkObjectName = propDef.fkObjectName; }
+                                if (propDef.fkObjectPropertyName !== undefined) { newProp.fkObjectPropertyName = propDef.fkObjectPropertyName; }
+                                if (propDef.forceDBColumnIndex !== undefined) { newProp.forceDBColumnIndex = propDef.forceDBColumnIndex; }
+                                if (propDef.isEncrypted !== undefined) { newProp.isEncrypted = propDef.isEncrypted; }
+                                if (propDef.isFK !== undefined) { newProp.isFK = propDef.isFK; }
+                                if (propDef.isFKConstraintSuppressed !== undefined) { newProp.isFKConstraintSuppressed = propDef.isFKConstraintSuppressed; }
+                                if (propDef.isFKLookup !== undefined) { newProp.isFKLookup = propDef.isFKLookup; }
+                                if (propDef.isFKNonLookupIncludedInXMLFunction !== undefined) { newProp.isFKNonLookupIncludedInXMLFunction = propDef.isFKNonLookupIncludedInXMLFunction; }
+                                if (propDef.isNotPublishedToSubscriptions !== undefined) { newProp.isNotPublishedToSubscriptions = propDef.isNotPublishedToSubscriptions; }
+                                if (propDef.isQueryByAvailable !== undefined) { newProp.isQueryByAvailable = propDef.isQueryByAvailable; }
+                                if (propDef.labelText !== undefined) { newProp.labelText = propDef.labelText; }
+                                if (propDef.sqlServerDBDataType !== undefined) { newProp.sqlServerDBDataType = propDef.sqlServerDBDataType; }
+                                if (propDef.sqlServerDBDataTypeSize !== undefined) { newProp.sqlServerDBDataTypeSize = propDef.sqlServerDBDataTypeSize; }
+                                
+                                foundObject.prop.push(newProp);
+                                addedCount++;
+                            });
+                            
+                            // Mark that there are unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added ${addedCount} properties to data object: ${objectName}`);
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: true,
+                                object: {
+                                    name: foundObject.name,
+                                    parentObjectName: foundObject.parentObjectName,
+                                    isLookup: foundObject.isLookup === "true",
+                                    codeDescription: foundObject.codeDescription || "",
+                                    propCount: foundObject.prop.length
+                                },
+                                addedCount,
+                                message: `Added ${addedCount} ${addedCount === 1 ? 'property' : 'properties'} to "${objectName}"`
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding properties: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Invalid request body'
+                            }));
+                        }
+                    });
+                }
+                else if (req.url === '/api/data-objects/update-prop' && req.method === 'POST') {
+                    // Update an existing property in a data object
+                    let body = '';
+                    req.on('data', (chunk: Buffer) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { objectName, propName, updateFields } = JSON.parse(body);
+                            
+                            // Validate required parameters
+                            if (!objectName) {
+                                throw new Error('Parameter "objectName" is required');
+                            }
+                            
+                            if (!propName) {
+                                throw new Error('Parameter "propName" is required');
+                            }
+                            
+                            if (!updateFields || typeof updateFields !== 'object' || Object.keys(updateFields).length === 0) {
+                                throw new Error('Parameter "updateFields" must be a non-empty object');
+                            }
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model || !model.namespace) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the data object
+                            let foundObject: any = null;
+                            for (const ns of model.namespace) {
+                                if (ns.object && Array.isArray(ns.object)) {
+                                    foundObject = ns.object.find((obj: any) => obj.name === objectName);
+                                    if (foundObject) {
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if (!foundObject) {
+                                throw new Error(`Data object "${objectName}" not found`);
+                            }
+                            
+                            if (!foundObject.prop || !Array.isArray(foundObject.prop)) {
+                                throw new Error(`Data object "${objectName}" has no properties`);
+                            }
+                            
+                            // Find the property (case-sensitive match)
+                            const propIndex = foundObject.prop.findIndex((p: any) => p.name === propName);
+                            
+                            if (propIndex === -1) {
+                                const availableProps = foundObject.prop.map((p: any) => p.name).join(', ');
+                                throw new Error(`Property "${propName}" not found in object "${objectName}". Available properties: ${availableProps}`);
+                            }
+                            
+                            const property = foundObject.prop[propIndex];
+                            
+                            // Update the property fields
+                            Object.keys(updateFields).forEach(key => {
+                                property[key] = updateFields[key];
+                            });
+                            
+                            // Validate FK requirements
+                            if (property.isFK === 'true' && !property.fkObjectName) {
+                                throw new Error('fkObjectName is required when isFK is "true"');
+                            }
+                            
+                            // Mark that there are unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated property "${propName}" in data object: ${objectName}`);
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: true,
+                                property: property,
+                                message: `Property "${propName}" updated successfully in "${objectName}"`
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating property: ${error instanceof Error ? error.message : 'Unknown error'}`);
                             res.writeHead(400, { 'Content-Type': 'application/json' });
                             res.end(JSON.stringify({
                                 success: false,

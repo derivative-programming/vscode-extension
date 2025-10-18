@@ -473,7 +473,7 @@ export class MCPServer {
         // Register get_data_object_summary_schema tool
         this.server.registerTool('get_data_object_summary_schema', {
             title: 'Get Data Object Summary Schema',
-            description: 'Get the schema definition for data objects as returned by list_data_object_summary. Includes properties (name, isLookup, parentObjectName, codeDescription), validation rules, format requirements, hierarchical relationships, and examples of both regular entities and lookup objects.',
+            description: 'Get the schema definition for data objects as returned by list_data_object_summary. Includes properties (name, isLookup, parentObjectName, codeDescription, propCount), validation rules, format requirements, hierarchical relationships, and examples of both regular entities and lookup objects.',
             inputSchema: {},
             outputSchema: {
                 success: z.boolean(),
@@ -568,7 +568,7 @@ export class MCPServer {
         // Register list_data_object_summary tool
         this.server.registerTool('list_data_object_summary', {
             title: 'List Data Object Summary',
-            description: 'List summary of all data objects from the AppDNA model with optional search and filters. Returns basic info (name, isLookup, parent). Search by name (case-insensitive, also searches with spaces removed). Filter by isLookup status or parent object name.',
+            description: 'List summary of all data objects from the AppDNA model with optional search and filters. Returns basic info (name, isLookup, parent, propCount). Search by name (case-insensitive, also searches with spaces removed). Filter by isLookup status or parent object name.',
             inputSchema: {
                 search_name: z.string().optional().describe('Optional search text to filter by object name (case-insensitive, searches with and without spaces)'),
                 is_lookup: z.string().optional().describe('Optional filter for lookup status: "true" or "false"'),
@@ -580,7 +580,8 @@ export class MCPServer {
                     name: z.string(),
                     isLookup: z.boolean(),
                     parentObjectName: z.string().nullable(),
-                    codeDescription: z.string()
+                    codeDescription: z.string(),
+                    propCount: z.number()
                 })),
                 count: z.number(),
                 filters: z.object({
@@ -730,6 +731,149 @@ export class MCPServer {
         }, async ({ name, parentObjectName, isLookup, codeDescription }) => {
             try {
                 const result = await this.dataObjectTools.create_data_object({ name, parentObjectName, isLookup, codeDescription });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_data_object tool
+        this.server.registerTool('update_data_object', {
+            title: 'Update Data Object',
+            description: 'Update an existing data object in the AppDNA model. Currently supports updating codeDescription. Object name must match exactly (case-sensitive).',
+            inputSchema: {
+                name: z.string().describe('Name of the data object to update (required, must match exactly case-sensitive)'),
+                codeDescription: z.string().describe('New description of the data object and its purpose (required)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                object: z.object({
+                    name: z.string(),
+                    parentObjectName: z.string(),
+                    isLookup: z.boolean(),
+                    codeDescription: z.string()
+                }).optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ name, codeDescription }) => {
+            try {
+                const result = await this.dataObjectTools.update_data_object({ name, codeDescription });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register add_data_object_props tool
+        this.server.registerTool('add_data_object_props', {
+            title: 'Add Data Object Properties',
+            description: 'Add multiple properties (columns) to an existing data object. Each property must have a unique name in PascalCase. Validates property structure including data types and boolean flags. Object name must match exactly (case-sensitive).',
+            inputSchema: {
+                objectName: z.string().describe('Name of the data object to add properties to (required, must match exactly case-sensitive)'),
+                props: z.array(z.object({
+                    name: z.string().describe('Property name in PascalCase format (required, e.g., "CustomerID", "FirstName")'),
+                    sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type'),
+                    sqlServerDBDataTypeSize: z.string().optional().describe('Data type size (e.g., "50", "100", "MAX" for nvarchar/varchar)'),
+                    labelText: z.string().optional().describe('Human-readable label for UI display'),
+                    codeDescription: z.string().optional().describe('Code description for documentation'),
+                    defaultValue: z.string().optional().describe('Default value for the property'),
+                    isFK: z.enum(['true', 'false']).optional().describe('Is this a foreign key? Must be "true" or "false"'),
+                    fkObjectName: z.string().optional().describe('Foreign key object name (required if isFK="true")'),
+                    fkObjectPropertyName: z.string().optional().describe('Foreign key property name in referenced object'),
+                    isFKLookup: z.enum(['true', 'false']).optional().describe('Is this a FK to a lookup object? Must be "true" or "false"'),
+                    isFKConstraintSuppressed: z.enum(['true', 'false']).optional().describe('Suppress FK constraint in database? Must be "true" or "false"'),
+                    isEncrypted: z.enum(['true', 'false']).optional().describe('Should value be encrypted? Must be "true" or "false"'),
+                    isQueryByAvailable: z.enum(['true', 'false']).optional().describe('Enable query filtering? Must be "true" or "false"'),
+                    forceDBColumnIndex: z.enum(['true', 'false']).optional().describe('Force database index? Must be "true" or "false"'),
+                    isNotPublishedToSubscriptions: z.enum(['', 'true', 'false']).optional().describe('Exclude from subscriptions? Can be "", "true", or "false"'),
+                    isFKNonLookupIncludedInXMLFunction: z.enum(['true', 'false']).optional().describe('XML function inclusion for non-lookup FKs? Must be "true" or "false"')
+                })).describe('Array of property definitions to add (required, must be non-empty)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                object: z.object({
+                    name: z.string(),
+                    parentObjectName: z.string(),
+                    isLookup: z.boolean(),
+                    codeDescription: z.string(),
+                    propCount: z.number()
+                }).optional(),
+                addedCount: z.number().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ objectName, props }) => {
+            try {
+                const result = await this.dataObjectTools.add_data_object_props({ objectName, props });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_data_object_prop tool
+        this.server.registerTool('update_data_object_prop', {
+            title: 'Update Data Object Property',
+            description: 'Update an existing property (column) in a data object. Allows updating any property field including data type, labels, FK settings, and flags. Object and property names must match exactly (case-sensitive).',
+            inputSchema: {
+                objectName: z.string().describe('Name of the data object containing the property (required, must match exactly case-sensitive)'),
+                propName: z.string().describe('Name of the property to update (required, must match exactly case-sensitive)'),
+                sqlServerDBDataType: z.enum(['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text']).optional().describe('SQL Server data type'),
+                sqlServerDBDataTypeSize: z.string().optional().describe('Data type size (e.g., "50", "100", "MAX" for nvarchar/varchar)'),
+                labelText: z.string().optional().describe('Human-readable label for UI display'),
+                codeDescription: z.string().optional().describe('Code description for documentation'),
+                defaultValue: z.string().optional().describe('Default value for the property'),
+                isFK: z.enum(['true', 'false']).optional().describe('Is this a foreign key? Must be "true" or "false"'),
+                fkObjectName: z.string().optional().describe('Foreign key object name (required if isFK="true")'),
+                fkObjectPropertyName: z.string().optional().describe('Foreign key property name in referenced object'),
+                isFKLookup: z.enum(['true', 'false']).optional().describe('Is this a FK to a lookup object? Must be "true" or "false"'),
+                isFKConstraintSuppressed: z.enum(['true', 'false']).optional().describe('Suppress FK constraint in database? Must be "true" or "false"'),
+                isEncrypted: z.enum(['true', 'false']).optional().describe('Should value be encrypted? Must be "true" or "false"'),
+                isQueryByAvailable: z.enum(['true', 'false']).optional().describe('Enable query filtering? Must be "true" or "false"'),
+                forceDBColumnIndex: z.enum(['true', 'false']).optional().describe('Force database index? Must be "true" or "false"'),
+                isNotPublishedToSubscriptions: z.enum(['', 'true', 'false']).optional().describe('Exclude from subscriptions? Can be "", "true", or "false"'),
+                isFKNonLookupIncludedInXMLFunction: z.enum(['true', 'false']).optional().describe('XML function inclusion for non-lookup FKs? Must be "true" or "false"')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                property: z.any().optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async (params) => {
+            try {
+                const result = await this.dataObjectTools.update_data_object_prop(params);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

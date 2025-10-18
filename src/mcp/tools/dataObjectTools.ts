@@ -184,6 +184,12 @@ export class DataObjectTools {
                         required: false,
                         description: 'Optional description of the data object for documentation purposes.',
                         examples: ['Customer entity with contact information', 'Order header data', 'Product catalog items']
+                    },
+                    propCount: {
+                        type: 'number',
+                        required: true,
+                        description: 'Number of properties (columns) in the prop array for this data object. Useful for quickly determining object complexity without loading full details.',
+                        examples: [0, 5, 12, 25]
                     }
                 },
                 validationRules: {
@@ -216,6 +222,14 @@ export class DataObjectTools {
                         'Can be any descriptive text',
                         'Used for documentation and code generation hints',
                         'Not displayed in UI, mainly for developers'
+                    ],
+                    propCount: [
+                        'Required field (automatically calculated)',
+                        'Non-negative integer (0 or greater)',
+                        'Represents the number of items in the prop array',
+                        '0 = Object exists but has no properties defined yet',
+                        'Higher values indicate more complex objects with many fields/columns',
+                        'Useful for understanding object complexity at a glance'
                     ]
                 },
                 usage: {
@@ -246,19 +260,22 @@ export class DataObjectTools {
                             name: 'Customer',
                             isLookup: false,
                             parentObjectName: 'Pac',
-                            codeDescription: 'Customer master data'
+                            codeDescription: 'Customer master data',
+                            propCount: 12
                         },
                         {
                             name: 'Order',
                             isLookup: false,
                             parentObjectName: 'Customer',
-                            codeDescription: 'Customer orders'
+                            codeDescription: 'Customer orders',
+                            propCount: 8
                         },
                         {
                             name: 'OrderLineItem',
                             isLookup: false,
                             parentObjectName: 'Order',
-                            codeDescription: 'Individual items in an order'
+                            codeDescription: 'Individual items in an order',
+                            propCount: 6
                         }
                     ],
                     lookupObjects: [
@@ -266,19 +283,22 @@ export class DataObjectTools {
                             name: 'Role',
                             isLookup: true,
                             parentObjectName: 'Pac',
-                            codeDescription: 'User roles for access control'
+                            codeDescription: 'User roles for access control',
+                            propCount: 3
                         },
                         {
                             name: 'Status',
                             isLookup: true,
                             parentObjectName: 'Pac',
-                            codeDescription: 'Status values (Active, Inactive, Pending, etc.)'
+                            codeDescription: 'Status values (Active, Inactive, Pending, etc.)',
+                            propCount: 2
                         },
                         {
                             name: 'Priority',
                             isLookup: true,
                             parentObjectName: 'Pac',
-                            codeDescription: 'Priority levels (High, Medium, Low)'
+                            codeDescription: 'Priority levels (High, Medium, Low)',
+                            propCount: 2
                         }
                     ]
                 },
@@ -287,7 +307,8 @@ export class DataObjectTools {
                     'Lookup objects (isLookup=true) contain dropdown/reference values and must have parent "Pac"',
                     'Regular objects (isLookup=false) represent entities and can have any valid parent',
                     'Parent-child relationships create a hierarchical tree structure',
-                    'Objects can have properties (not shown in summary - use detailed view)',
+                    'propCount shows how many properties exist in the prop array (0 = no properties yet)',
+                    'Use list_data_objects or get_data_object to see full property details',
                     'The "Pac" object is typically the root parent for lookup objects',
                     'Object names are used in user stories, page mappings, and code generation',
                     'PascalCase naming enforced for consistency and code generation compatibility'
@@ -815,6 +836,331 @@ export class DataObjectTools {
                 success: false,
                 error: `Failed to create data object: ${error instanceof Error ? error.message : 'Unknown error'}`,
                 note: 'Could not connect to extension or validation failed'
+            };
+        }
+    }
+
+    /**
+     * Updates an existing data object in the AppDNA model
+     * Tool name: update_data_object (following MCP snake_case convention)
+     * @param parameters Tool parameters containing name and codeDescription to update
+     * @returns Result of the data object update
+     */
+    public async update_data_object(parameters: any): Promise<any> {
+        const { name, codeDescription } = parameters;
+
+        // Validate required parameter
+        if (!name) {
+            return {
+                success: false,
+                error: 'Parameter "name" is required',
+                validationErrors: ['name is required']
+            };
+        }
+
+        // Validate that codeDescription is provided
+        if (codeDescription === undefined) {
+            return {
+                success: false,
+                error: 'Parameter "codeDescription" is required',
+                validationErrors: ['codeDescription is required']
+            };
+        }
+
+        // Check if data object exists
+        try {
+            const existingObjects = await this.fetchFromBridge('/api/data-objects');
+            
+            // Case-sensitive check for exact match
+            const objectExists = existingObjects.some((obj: any) => 
+                obj.name === name
+            );
+
+            if (!objectExists) {
+                return {
+                    success: false,
+                    error: `Data object "${name}" not found. Object name must match exactly (case-sensitive).`,
+                    validationErrors: [`Data object "${name}" does not exist`],
+                    note: `Available objects: ${existingObjects.map((o: any) => o.name).join(', ')}`
+                };
+            }
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not validate data object existence: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required for validation'
+            };
+        }
+
+        // Update the data object via HTTP bridge
+        try {
+            const result = await this.postToBridge('/api/data-objects/update', {
+                name,
+                codeDescription
+            });
+
+            return {
+                success: true,
+                object: result.object,
+                message: result.message || 'Data object updated successfully',
+                note: 'Data object updated in AppDNA model via MCP bridge (unsaved changes)'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to update data object: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update data objects'
+            };
+        }
+    }
+
+    /**
+     * Adds properties to an existing data object in the AppDNA model
+     * Tool name: add_data_object_props (following MCP snake_case convention)
+     * @param parameters Tool parameters containing objectName and props array
+     * @returns Result of the property addition
+     */
+    public async add_data_object_props(parameters: any): Promise<any> {
+        const { objectName, props } = parameters;
+
+        // Validate required parameters
+        if (!objectName) {
+            return {
+                success: false,
+                error: 'Parameter "objectName" is required',
+                validationErrors: ['objectName is required']
+            };
+        }
+
+        if (!props || !Array.isArray(props) || props.length === 0) {
+            return {
+                success: false,
+                error: 'Parameter "props" is required and must be a non-empty array',
+                validationErrors: ['props must be a non-empty array']
+            };
+        }
+
+        // Validate each property structure
+        const validationErrors: string[] = [];
+        const allowedDataTypes = ['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text'];
+        const allowedBooleanValues = ['true', 'false'];
+        const allowedNotPublishedValues = ['', 'true', 'false'];
+
+        props.forEach((prop: any, index: number) => {
+            // Validate name (required, PascalCase)
+            if (!prop.name) {
+                validationErrors.push(`Property ${index}: name is required`);
+            } else if (!this.isPascalCase(prop.name)) {
+                validationErrors.push(`Property ${index}: name "${prop.name}" must be in PascalCase format`);
+            }
+
+            // Validate sqlServerDBDataType if provided
+            if (prop.sqlServerDBDataType && !allowedDataTypes.includes(prop.sqlServerDBDataType)) {
+                validationErrors.push(`Property ${index} (${prop.name}): sqlServerDBDataType must be one of: ${allowedDataTypes.join(', ')}`);
+            }
+
+            // Validate boolean-like fields
+            const booleanFields = ['isFK', 'isFKLookup', 'isEncrypted', 'isQueryByAvailable', 'forceDBColumnIndex', 'isFKConstraintSuppressed', 'isFKNonLookupIncludedInXMLFunction'];
+            booleanFields.forEach(field => {
+                if (prop[field] !== undefined && !allowedBooleanValues.includes(prop[field])) {
+                    validationErrors.push(`Property ${index} (${prop.name}): ${field} must be "true" or "false"`);
+                }
+            });
+
+            // Validate isNotPublishedToSubscriptions (special case - allows empty string)
+            if (prop.isNotPublishedToSubscriptions !== undefined && !allowedNotPublishedValues.includes(prop.isNotPublishedToSubscriptions)) {
+                validationErrors.push(`Property ${index} (${prop.name}): isNotPublishedToSubscriptions must be "", "true", or "false"`);
+            }
+
+            // Validate FK-related fields
+            if (prop.isFK === 'true' && !prop.fkObjectName) {
+                validationErrors.push(`Property ${index} (${prop.name}): fkObjectName is required when isFK is "true"`);
+            }
+        });
+
+        if (validationErrors.length > 0) {
+            return {
+                success: false,
+                error: 'Property validation failed',
+                validationErrors
+            };
+        }
+
+        // Check if data object exists
+        try {
+            const existingObjects = await this.fetchFromBridge('/api/data-objects');
+            
+            // Case-sensitive check for exact match
+            const objectExists = existingObjects.some((obj: any) => 
+                obj.name === objectName
+            );
+
+            if (!objectExists) {
+                return {
+                    success: false,
+                    error: `Data object "${objectName}" not found. Object name must match exactly (case-sensitive).`,
+                    validationErrors: [`Data object "${objectName}" does not exist`],
+                    note: `Available objects: ${existingObjects.map((o: any) => o.name).join(', ')}`
+                };
+            }
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not validate data object existence: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required for validation'
+            };
+        }
+
+        // Add properties via HTTP bridge
+        try {
+            const result = await this.postToBridge('/api/data-objects/add-props', {
+                objectName,
+                props
+            });
+
+            return {
+                success: true,
+                object: result.object,
+                addedCount: result.addedCount,
+                message: result.message || 'Properties added successfully',
+                note: 'Properties added to data object via MCP bridge (unsaved changes)'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to add properties: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to add properties'
+            };
+        }
+    }
+
+    /**
+     * Updates an existing property in a data object
+     * Tool name: update_data_object_prop (following MCP snake_case convention)
+     * @param parameters Tool parameters containing objectName, propName, and fields to update
+     * @returns Result of the property update
+     */
+    public async update_data_object_prop(parameters: any): Promise<any> {
+        const { objectName, propName, ...updateFields } = parameters;
+
+        // Validate required parameters
+        if (!objectName) {
+            return {
+                success: false,
+                error: 'Parameter "objectName" is required',
+                validationErrors: ['objectName is required']
+            };
+        }
+
+        if (!propName) {
+            return {
+                success: false,
+                error: 'Parameter "propName" is required',
+                validationErrors: ['propName is required']
+            };
+        }
+
+        // Validate that at least one field to update is provided
+        const validUpdateFields = [
+            'codeDescription', 'defaultValue', 'fkObjectName', 'fkObjectPropertyName',
+            'forceDBColumnIndex', 'isEncrypted', 'isFK', 'isFKConstraintSuppressed',
+            'isFKLookup', 'isFKNonLookupIncludedInXMLFunction', 'isNotPublishedToSubscriptions',
+            'isQueryByAvailable', 'labelText', 'sqlServerDBDataType', 'sqlServerDBDataTypeSize'
+        ];
+
+        const fieldsToUpdate = Object.keys(updateFields).filter(key => validUpdateFields.includes(key));
+
+        if (fieldsToUpdate.length === 0) {
+            return {
+                success: false,
+                error: 'At least one field to update must be provided',
+                validationErrors: [`No valid update fields provided. Valid fields: ${validUpdateFields.join(', ')}`]
+            };
+        }
+
+        // Validate field values
+        const validationErrors: string[] = [];
+        const allowedDataTypes = ['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text'];
+        const allowedBooleanValues = ['true', 'false'];
+        const allowedNotPublishedValues = ['', 'true', 'false'];
+
+        if (updateFields.sqlServerDBDataType !== undefined && !allowedDataTypes.includes(updateFields.sqlServerDBDataType)) {
+            validationErrors.push(`sqlServerDBDataType must be one of: ${allowedDataTypes.join(', ')}`);
+        }
+
+        const booleanFields = ['isFK', 'isFKLookup', 'isEncrypted', 'isQueryByAvailable', 'forceDBColumnIndex', 'isFKConstraintSuppressed', 'isFKNonLookupIncludedInXMLFunction'];
+        booleanFields.forEach(field => {
+            if (updateFields[field] !== undefined && !allowedBooleanValues.includes(updateFields[field])) {
+                validationErrors.push(`${field} must be "true" or "false"`);
+            }
+        });
+
+        if (updateFields.isNotPublishedToSubscriptions !== undefined && !allowedNotPublishedValues.includes(updateFields.isNotPublishedToSubscriptions)) {
+            validationErrors.push('isNotPublishedToSubscriptions must be "", "true", or "false"');
+        }
+
+        if (updateFields.isFK === 'true' && updateFields.fkObjectName === undefined) {
+            // Check if fkObjectName will be set (either in update or already exists)
+            // This will be validated on the server side
+        }
+
+        if (validationErrors.length > 0) {
+            return {
+                success: false,
+                error: 'Property validation failed',
+                validationErrors
+            };
+        }
+
+        // Check if data object exists
+        try {
+            const existingObjects = await this.fetchFromBridge('/api/data-objects');
+            
+            const objectExists = existingObjects.some((obj: any) => 
+                obj.name === objectName
+            );
+
+            if (!objectExists) {
+                return {
+                    success: false,
+                    error: `Data object "${objectName}" not found. Object name must match exactly (case-sensitive).`,
+                    validationErrors: [`Data object "${objectName}" does not exist`],
+                    note: `Available objects: ${existingObjects.map((o: any) => o.name).join(', ')}`
+                };
+            }
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not validate data object existence: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required for validation'
+            };
+        }
+
+        // Update property via HTTP bridge
+        try {
+            const result = await this.postToBridge('/api/data-objects/update-prop', {
+                objectName,
+                propName,
+                updateFields: fieldsToUpdate.reduce((acc, key) => {
+                    acc[key] = updateFields[key];
+                    return acc;
+                }, {} as any)
+            });
+
+            return {
+                success: true,
+                property: result.property,
+                message: result.message || 'Property updated successfully',
+                note: 'Property updated in data object via MCP bridge (unsaved changes)'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to update property: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update properties'
             };
         }
     }
