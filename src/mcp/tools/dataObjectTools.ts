@@ -387,40 +387,22 @@ export class DataObjectTools {
                                     description: 'Property name in PascalCase format',
                                     examples: ['CustomerID', 'FirstName', 'EmailAddress', 'OrderDate', 'IsActive']
                                 },
-                                description: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Optional description of the property for documentation',
-                                    examples: ['Customer unique identifier', 'Customer first name', 'Primary email address']
-                                },
-                                displayOrder: {
-                                    type: 'number',
-                                    required: false,
-                                    description: 'Display order for the property in UI',
-                                    examples: [1, 2, 3, 10, 20]
-                                },
-                                isActive: {
-                                    type: 'string',
-                                    enum: ['true', 'false'],
-                                    description: 'String indicating if property is active',
-                                    examples: ['true', 'false']
-                                },
-                                lookupEnumName: {
-                                    type: 'string',
-                                    required: false,
-                                    description: 'Name of the lookup enum for this property (if it references a lookup)',
-                                    examples: ['Status', 'Priority', 'Role']
-                                },
                                 codeDescription: {
                                     type: 'string',
                                     required: false,
                                     description: 'Code description for the property',
                                     examples: ['Campaign Data Row Event Type Is Active']
                                 },
+                                defaultValue: {
+                                    type: 'string',
+                                    required: false,
+                                    description: 'Default value for the property',
+                                    examples: ['0', 'false', '']
+                                },
                                 fkObjectName: {
                                     type: 'string',
                                     required: false,
-                                    description: 'Foreign key object name - the data object this FK references',
+                                    description: 'Foreign key object name - the data object this FK references (case-sensitive)',
                                     examples: ['Customer', 'Order', 'Status', 'Role']
                                 },
                                 fkObjectPropertyName: {
@@ -431,57 +413,72 @@ export class DataObjectTools {
                                 },
                                 forceDBColumnIndex: {
                                     type: 'string',
+                                    required: false,
                                     enum: ['true', 'false'],
-                                    description: 'String indicating if database column index should be forced',
+                                    description: 'Forces database column index creation. Must be string "true" or "false".',
                                     examples: ['true', 'false']
                                 },
                                 isEncrypted: {
                                     type: 'string',
+                                    required: false,
                                     enum: ['true', 'false'],
-                                    description: 'String indicating if property value should be encrypted',
+                                    description: 'Indicates if property value should be encrypted. Must be string "true" or "false".',
                                     examples: ['true', 'false']
                                 },
                                 isFK: {
                                     type: 'string',
+                                    required: false,
                                     enum: ['true', 'false'],
-                                    description: 'String indicating if this is a foreign key property',
+                                    description: 'Defines if the property is a foreign key. Must be string "true" or "false". If true, provide fkObjectName.',
                                     examples: ['true', 'false']
                                 },
                                 isFKConstraintSuppressed: {
                                     type: 'string',
+                                    required: false,
                                     enum: ['true', 'false'],
-                                    description: 'String indicating if foreign key constraint should be suppressed in database',
+                                    description: 'Suppresses foreign key constraint in database. Must be string "true" or "false". Some FK properties may not always have a value set.',
                                     examples: ['true', 'false']
                                 },
                                 isFKLookup: {
                                     type: 'string',
+                                    required: false,
                                     enum: ['true', 'false'],
-                                    description: 'String indicating if this is a foreign key to a lookup object',
+                                    description: 'Defines if property is a foreign key to a lookup object. Must be string "true" or "false".',
+                                    examples: ['true', 'false']
+                                },
+                                isFKNonLookupIncludedInXMLFunction: {
+                                    type: 'string',
+                                    required: false,
+                                    enum: ['true', 'false'],
+                                    description: 'Controls XML function inclusion for non-lookup foreign keys. Must be string "true" or "false". Hidden in UI.',
                                     examples: ['true', 'false']
                                 },
                                 isNotPublishedToSubscriptions: {
                                     type: 'string',
-                                    enum: ['true', 'false'],
-                                    description: 'String indicating if property should be excluded from subscriptions',
-                                    examples: ['true', 'false']
+                                    required: false,
+                                    enum: ['', 'true', 'false'],
+                                    description: 'Excludes property from subscriptions. Can be empty string, "true", or "false". If true, the prop will not be sent to prop subscribers.',
+                                    examples: ['', 'true', 'false']
                                 },
                                 isQueryByAvailable: {
                                     type: 'string',
+                                    required: false,
                                     enum: ['true', 'false'],
-                                    description: 'String indicating if this property is available for querying',
+                                    description: 'Enables query filtering on this property. Must be string "true" or "false". If true, the DB column will be indexed and a query function will be created.',
                                     examples: ['true', 'false']
                                 },
                                 labelText: {
                                     type: 'string',
                                     required: false,
-                                    description: 'Label text for UI display',
+                                    description: 'Human-readable label text for UI display',
                                     examples: ['Is Active', 'First Name', 'Email Address', 'Order Date']
                                 },
                                 sqlServerDBDataType: {
                                     type: 'string',
                                     required: false,
-                                    description: 'SQL Server data type for this property',
-                                    examples: ['int', 'nvarchar(100)', 'datetime', 'bit', 'decimal(18,2)', 'uniqueidentifier']
+                                    enum: ['nvarchar', 'bit', 'datetime', 'int', 'uniqueidentifier', 'money', 'bigint', 'float', 'decimal', 'date', 'varchar', 'text'],
+                                    description: 'SQL Server data type for this property. Must be one of the allowed types.',
+                                    examples: ['int', 'nvarchar', 'datetime', 'bit', 'decimal', 'uniqueidentifier']
                                 },
                                 sqlServerDBDataTypeSize: {
                                     type: 'string',
@@ -500,24 +497,20 @@ export class DataObjectTools {
                                     fkObjectName: 'Customer',
                                     isNotPublishedToSubscriptions: 'true',
                                     isFKConstraintSuppressed: 'false',
-                                    labelText: 'Customer ID',
-                                    displayOrder: 1
+                                    labelText: 'Customer ID'
                                 },
                                 {
                                     name: 'FirstName',
                                     sqlServerDBDataType: 'nvarchar',
                                     sqlServerDBDataTypeSize: '100',
                                     labelText: 'First Name',
-                                    isQueryByAvailable: 'true',
-                                    displayOrder: 2
+                                    isQueryByAvailable: 'true'
                                 },
                                 {
                                     name: 'IsActive',
                                     sqlServerDBDataType: 'bit',
                                     labelText: 'Is Active',
-                                    isActive: 'true',
-                                    codeDescription: 'Indicates if record is active',
-                                    displayOrder: 10
+                                    codeDescription: 'Indicates if record is active'
                                 }
                             ]
                         ]
@@ -554,15 +547,22 @@ export class DataObjectTools {
                         'Each property must have unique name within the object',
                         'Property names must be in PascalCase format',
                         'Foreign key properties typically end with "ID" suffix',
-                        'SQL data types follow SQL Server conventions',
                         'All boolean-like fields use string "true"/"false" not boolean',
-                        'displayOrder controls UI presentation order',
+                        'sqlServerDBDataType must be one of: nvarchar, bit, datetime, int, uniqueidentifier, money, bigint, float, decimal, date, varchar, text',
+                        'sqlServerDBDataTypeSize required for nvarchar, varchar, decimal types',
+                        'isFK must be "true" or "false" - if "true" then fkObjectName is required',
+                        'isFKLookup must be "true" or "false" - indicates FK to a lookup object',
+                        'isFKConstraintSuppressed must be "true" or "false" - suppresses DB constraint',
+                        'isFKNonLookupIncludedInXMLFunction must be "true" or "false" - hidden in UI',
+                        'isNotPublishedToSubscriptions can be "", "true", or "false" - note empty string is valid',
+                        'isEncrypted must be "true" or "false" - for sensitive data',
+                        'isQueryByAvailable must be "true" or "false" - enables indexing and query functions',
+                        'forceDBColumnIndex must be "true" or "false" - forces index creation',
                         'labelText provides human-readable UI labels',
-                        'fkObjectName required when isFK="true"',
-                        'isFKLookup="true" when FK points to lookup object',
-                        'isQueryByAvailable="true" enables query filtering on property',
-                        'isEncrypted="true" for sensitive data like passwords',
-                        'forceDBColumnIndex="true" to force database index creation'
+                        'codeDescription provides code generation hints',
+                        'defaultValue sets default value for the property',
+                        'fkObjectName must match existing data object name exactly (case-sensitive)',
+                        'fkObjectPropertyName specifies the FK property in the referenced object'
                     ]
                 },
                 usage: {
@@ -593,30 +593,25 @@ export class DataObjectTools {
                                 fkObjectName: 'Customer',
                                 isNotPublishedToSubscriptions: 'true',
                                 isFKConstraintSuppressed: 'false',
-                                labelText: 'Customer ID',
-                                displayOrder: 1
+                                labelText: 'Customer ID'
                             },
                             {
                                 name: 'OrderDate',
                                 sqlServerDBDataType: 'datetime',
                                 labelText: 'Order Date',
-                                isQueryByAvailable: 'true',
-                                displayOrder: 2
+                                isQueryByAvailable: 'true'
                             },
                             {
                                 name: 'TotalAmount',
                                 sqlServerDBDataType: 'decimal',
                                 sqlServerDBDataTypeSize: '18,2',
-                                labelText: 'Total Amount',
-                                displayOrder: 3
+                                labelText: 'Total Amount'
                             },
                             {
                                 name: 'IsActive',
                                 sqlServerDBDataType: 'bit',
                                 labelText: 'Is Active',
-                                isActive: 'true',
-                                codeDescription: 'Order is active',
-                                displayOrder: 10
+                                codeDescription: 'Order is active'
                             }
                         ]
                     },
@@ -634,8 +629,7 @@ export class DataObjectTools {
                                 isFKLookup: 'true',
                                 isNotPublishedToSubscriptions: 'true',
                                 isFKConstraintSuppressed: 'false',
-                                labelText: 'Pac ID',
-                                displayOrder: 1
+                                labelText: 'Pac ID'
                             }
                         ]
                     },
@@ -651,10 +645,8 @@ export class DataObjectTools {
                                 isFK: 'true',
                                 isFKLookup: 'true',
                                 fkObjectName: 'Status',
-                                lookupEnumName: 'Status',
                                 labelText: 'Status',
-                                isQueryByAvailable: 'true',
-                                displayOrder: 5
+                                isQueryByAvailable: 'true'
                             }
                         ]
                     },
@@ -668,8 +660,7 @@ export class DataObjectTools {
                                 sqlServerDBDataType: 'nvarchar',
                                 sqlServerDBDataTypeSize: '255',
                                 isEncrypted: 'true',
-                                labelText: 'Password',
-                                displayOrder: 20
+                                labelText: 'Password'
                             }
                         ]
                     },
@@ -688,16 +679,21 @@ export class DataObjectTools {
                     'Property values use string "true"/"false" not boolean true/false',
                     'All property names must be in PascalCase format',
                     'Foreign key properties typically reference parent object (e.g., CustomerID in Order object)',
-                    'displayOrder controls the order properties appear in UI (lower numbers first)',
+                    'sqlServerDBDataType is restricted to specific enum values - see schema for full list',
+                    'All boolean flags (isFK, isFKLookup, isEncrypted, etc.) must be string "true" or "false"',
+                    'isNotPublishedToSubscriptions is special - it can be "", "true", or "false"',
                     'labelText provides human-readable labels for UI display',
-                    'fkObjectName must be set when isFK="true" to indicate the referenced object',
+                    'codeDescription provides hints for code generation',
+                    'fkObjectName must be set when isFK="true" to indicate the referenced object (case-sensitive)',
+                    'fkObjectPropertyName specifies which property in the FK object is referenced',
                     'isFKLookup="true" when the FK references a lookup object (isLookup="true")',
-                    'lookupEnumName matches the lookup object name for dropdown population',
-                    'isQueryByAvailable="true" allows filtering/searching by this property',
+                    'isQueryByAvailable="true" allows filtering/searching and creates DB index',
                     'isEncrypted="true" for sensitive fields like passwords, SSN, credit cards',
-                    'sqlServerDBDataTypeSize separates size from type for better clarity',
-                    'isNotPublishedToSubscriptions="true" typically used for FK and internal fields',
-                    'forceDBColumnIndex="true" forces database index creation for performance'
+                    'sqlServerDBDataTypeSize required for nvarchar, varchar, and decimal types',
+                    'forceDBColumnIndex="true" forces database index creation for performance',
+                    'isFKConstraintSuppressed="true" prevents foreign key constraint creation in database',
+                    'isFKNonLookupIncludedInXMLFunction controls XML function inclusion for non-lookup FKs (hidden in UI)',
+                    'defaultValue can be used to set a default value for the property'
                 ]
             },
             note: 'This schema defines the complete structure of data objects as returned by get_data_object and list_data_objects (includes prop array)'
