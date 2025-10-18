@@ -804,8 +804,7 @@ export class MCPServer {
                     isEncrypted: z.enum(['true', 'false']).optional().describe('Should value be encrypted? Must be "true" or "false"'),
                     isQueryByAvailable: z.enum(['true', 'false']).optional().describe('Enable query filtering? Must be "true" or "false"'),
                     forceDBColumnIndex: z.enum(['true', 'false']).optional().describe('Force database index? Must be "true" or "false"'),
-                    isNotPublishedToSubscriptions: z.enum(['', 'true', 'false']).optional().describe('Exclude from subscriptions? Can be "", "true", or "false"'),
-                    isFKNonLookupIncludedInXMLFunction: z.enum(['true', 'false']).optional().describe('XML function inclusion for non-lookup FKs? Must be "true" or "false"')
+                    isNotPublishedToSubscriptions: z.enum(['', 'true', 'false']).optional().describe('Exclude from subscriptions? Can be "", "true", or "false"')
                 })).describe('Array of property definitions to add (required, must be non-empty)')
             },
             outputSchema: {
@@ -860,8 +859,7 @@ export class MCPServer {
                 isEncrypted: z.enum(['true', 'false']).optional().describe('Should value be encrypted? Must be "true" or "false"'),
                 isQueryByAvailable: z.enum(['true', 'false']).optional().describe('Enable query filtering? Must be "true" or "false"'),
                 forceDBColumnIndex: z.enum(['true', 'false']).optional().describe('Force database index? Must be "true" or "false"'),
-                isNotPublishedToSubscriptions: z.enum(['', 'true', 'false']).optional().describe('Exclude from subscriptions? Can be "", "true", or "false"'),
-                isFKNonLookupIncludedInXMLFunction: z.enum(['true', 'false']).optional().describe('XML function inclusion for non-lookup FKs? Must be "true" or "false"')
+                isNotPublishedToSubscriptions: z.enum(['', 'true', 'false']).optional().describe('Exclude from subscriptions? Can be "", "true", or "false"')
             },
             outputSchema: {
                 success: z.boolean(),

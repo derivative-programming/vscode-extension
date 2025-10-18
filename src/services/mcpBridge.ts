@@ -466,7 +466,6 @@ export class McpBridge {
                                 if (propDef.isFK !== undefined) { newProp.isFK = propDef.isFK; }
                                 if (propDef.isFKConstraintSuppressed !== undefined) { newProp.isFKConstraintSuppressed = propDef.isFKConstraintSuppressed; }
                                 if (propDef.isFKLookup !== undefined) { newProp.isFKLookup = propDef.isFKLookup; }
-                                if (propDef.isFKNonLookupIncludedInXMLFunction !== undefined) { newProp.isFKNonLookupIncludedInXMLFunction = propDef.isFKNonLookupIncludedInXMLFunction; }
                                 if (propDef.isNotPublishedToSubscriptions !== undefined) { newProp.isNotPublishedToSubscriptions = propDef.isNotPublishedToSubscriptions; }
                                 if (propDef.isQueryByAvailable !== undefined) { newProp.isQueryByAvailable = propDef.isQueryByAvailable; }
                                 if (propDef.labelText !== undefined) { newProp.labelText = propDef.labelText; }

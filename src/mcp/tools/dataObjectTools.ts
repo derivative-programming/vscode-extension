@@ -467,13 +467,6 @@ export class DataObjectTools {
                                     description: 'Defines if property is a foreign key to a lookup object. Must be string "true" or "false".',
                                     examples: ['true', 'false']
                                 },
-                                isFKNonLookupIncludedInXMLFunction: {
-                                    type: 'string',
-                                    required: false,
-                                    enum: ['true', 'false'],
-                                    description: 'Controls XML function inclusion for non-lookup foreign keys. Must be string "true" or "false". Hidden in UI.',
-                                    examples: ['true', 'false']
-                                },
                                 isNotPublishedToSubscriptions: {
                                     type: 'string',
                                     required: false,
@@ -574,7 +567,6 @@ export class DataObjectTools {
                         'isFK must be "true" or "false" - if "true" then fkObjectName is required',
                         'isFKLookup must be "true" or "false" - indicates FK to a lookup object',
                         'isFKConstraintSuppressed must be "true" or "false" - suppresses DB constraint',
-                        'isFKNonLookupIncludedInXMLFunction must be "true" or "false" - hidden in UI',
                         'isNotPublishedToSubscriptions can be "", "true", or "false" - note empty string is valid',
                         'isEncrypted must be "true" or "false" - for sensitive data',
                         'isQueryByAvailable must be "true" or "false" - enables indexing and query functions',
@@ -713,7 +705,6 @@ export class DataObjectTools {
                     'sqlServerDBDataTypeSize required for nvarchar, varchar, and decimal types',
                     'forceDBColumnIndex="true" forces database index creation for performance',
                     'isFKConstraintSuppressed="true" prevents foreign key constraint creation in database',
-                    'isFKNonLookupIncludedInXMLFunction controls XML function inclusion for non-lookup FKs (hidden in UI)',
                     'defaultValue can be used to set a default value for the property'
                 ]
             },
@@ -961,7 +952,7 @@ export class DataObjectTools {
             }
 
             // Validate boolean-like fields
-            const booleanFields = ['isFK', 'isFKLookup', 'isEncrypted', 'isQueryByAvailable', 'forceDBColumnIndex', 'isFKConstraintSuppressed', 'isFKNonLookupIncludedInXMLFunction'];
+            const booleanFields = ['isFK', 'isFKLookup', 'isEncrypted', 'isQueryByAvailable', 'forceDBColumnIndex', 'isFKConstraintSuppressed'];
             booleanFields.forEach(field => {
                 if (prop[field] !== undefined && !allowedBooleanValues.includes(prop[field])) {
                     validationErrors.push(`Property ${index} (${prop.name}): ${field} must be "true" or "false"`);
@@ -1066,7 +1057,7 @@ export class DataObjectTools {
         const validUpdateFields = [
             'codeDescription', 'defaultValue', 'fkObjectName', 'fkObjectPropertyName',
             'forceDBColumnIndex', 'isEncrypted', 'isFK', 'isFKConstraintSuppressed',
-            'isFKLookup', 'isFKNonLookupIncludedInXMLFunction', 'isNotPublishedToSubscriptions',
+            'isFKLookup', 'isNotPublishedToSubscriptions',
             'isQueryByAvailable', 'labelText', 'sqlServerDBDataType', 'sqlServerDBDataTypeSize'
         ];
 
@@ -1090,7 +1081,7 @@ export class DataObjectTools {
             validationErrors.push(`sqlServerDBDataType must be one of: ${allowedDataTypes.join(', ')}`);
         }
 
-        const booleanFields = ['isFK', 'isFKLookup', 'isEncrypted', 'isQueryByAvailable', 'forceDBColumnIndex', 'isFKConstraintSuppressed', 'isFKNonLookupIncludedInXMLFunction'];
+        const booleanFields = ['isFK', 'isFKLookup', 'isEncrypted', 'isQueryByAvailable', 'forceDBColumnIndex', 'isFKConstraintSuppressed'];
         booleanFields.forEach(field => {
             if (updateFields[field] !== undefined && !allowedBooleanValues.includes(updateFields[field])) {
                 validationErrors.push(`${field} must be "true" or "false"`);
