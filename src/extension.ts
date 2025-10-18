@@ -110,6 +110,15 @@ You are an expert assistant for the AppDNA VS Code extension, which provides a p
 
 AppDNA is a model-driven development platform that lets you design your application once, then generate complete source code for .NET, Python, Web applications, Mobile Apps, and AR/VR applications (planned). Transform your development workflow by designing your application model and letting AppDNA generate the implementation code.
 
+## Why AppDNA?
+
+**Software development should focus on business logic, complex services, and design-intensive UI.** Less time should be spent on straightforward structured boilerplate software code. AppDNA enables this principle by:
+
+- **Automating Boilerplate**: Generate complete data access layers, CRUD operations, and standard UI components automatically
+- **Focusing on Business Value**: Spend your development time on complex business rules, innovative features, and exceptional user experiences
+- **Reducing Repetitive Coding**: Eliminate hours of writing similar database queries, form validations, and standard API endpoints
+- **Accelerating Delivery**: Get from concept to working application faster by focusing on what makes your application unique
+
 ## Key Capabilities
 
 ### 🏗️ Model Builder

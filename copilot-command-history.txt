@@ -1,3 +1,12 @@
+2025-10-18: Added AppDNA development principle to README and chat mode instructions
+Details:
+- Added "Why AppDNA?" section explaining the core principle: software development should focus on business logic, complex services, and design-intensive UI, while spending less time on boilerplate code
+- Included benefits: automating boilerplate, focusing on business value, reducing repetitive coding, accelerating delivery
+- Added to both README.md and chat mode instructions in extension.ts
+- Positioned prominently in introduction sections
+- Compilation successful with no errors
+- Reinforces the value proposition of model-driven development
+
 2025-10-18: Simplified AppDNA chat mode by removing keyboard shortcuts and adding command palette guidance
 Details:
 - Removed the detailed keyboard shortcuts section (Alt+A format)
