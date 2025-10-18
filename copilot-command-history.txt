@@ -1,3 +1,160 @@
+2025-10-18: Changed parentObjectName validation to exact case-sensitive match
+Details:
+- BREAKING CHANGE: Reversed validation logic for parentObjectName
+- OLD: parentObjectName must NOT be an existing object (case-insensitive)
+- NEW: parentObjectName MUST be an exact match (case-sensitive) of an existing object
+- Rationale: Parent object must exist to establish proper hierarchical relationship
+- Validation now checks: obj.name === parentObjectName (exact match)
+- Error message includes list of available objects for reference
+- Lookup objects still require exact "Pac" (case-sensitive, not "pac" or "PAC")
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Changed validation from "must not exist" to "must exist"
+     * Changed from case-insensitive to case-sensitive matching
+     * Added list of available objects in error response
+  2. src/mcp/server.ts:
+     * Updated tool description to reflect case-sensitive requirement
+     * Updated inputSchema description for parentObjectName
+  3. docs/architecture/mcp-tool-create-data-object.md:
+     * Updated validation rules section
+     * Changed example showing case-sensitive validation error
+     * Added note about exact case matching requirement
+
+Status: ✅ COMPLETE - All compilation successful, ready for testing
+
+2025-10-18: Added codeDescription parameter to create_data_object and list_data_objects
+Details:
+- Added optional codeDescription parameter to create_data_object tool
+- Returns codeDescription in list_data_objects response (defaults to empty string)
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added codeDescription to create_data_object parameters (optional)
+     * Passes codeDescription in POST request payload
+  2. src/services/mcpBridge.ts:
+     * GET /api/data-objects now returns codeDescription field
+     * POST /api/data-objects accepts codeDescription and stores it
+     * Returns codeDescription in response
+  3. src/mcp/server.ts:
+     * Added codeDescription to create_data_object inputSchema (optional string)
+     * Added codeDescription to create_data_object outputSchema
+     * Added codeDescription to list_data_objects outputSchema (in objects array)
+  4. src/mcp/mcpProvider.ts:
+     * Added codeDescription to CreateDataObjectInput interface (optional)
+- Schema validation: codeDescription is standard property in app-dna.schema.json
+- Object structure: codeDescription stored directly on object alongside name, isLookup, etc.
+
+Status: ✅ COMPLETE - All compilation successful, ready for testing
+
+2025-10-18: Added create_data_object MCP tool
+Details:
+- Implemented comprehensive data object creation tool with full validation
+- Parameters:
+  * name (required) - Must be PascalCase format (e.g., "CustomerOrder", "Product123")
+  * parentObjectName (required) - Cannot be an existing data object name, case-insensitive
+  * isLookup (optional) - "true" or "false", defaults to "false"
+- Special rule: Lookup objects (isLookup="true") MUST have parentObjectName="Pac"
+- Validation implemented:
+  * PascalCase name validation using regex /^[A-Z][A-Za-z0-9]*$/
+  * Parent object must NOT be an existing data object (prevents circular references)
+  * Lookup objects restricted to parent "Pac"
+  * Duplicate name check (case-insensitive)
+  * Required parameter validation
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added create_data_object() method with full validation logic
+     * Added isPascalCase() helper method for name validation
+     * Added postToBridge() method for HTTP POST requests
+  2. src/services/mcpBridge.ts:
+     * Added POST /api/data-objects endpoint
+     * Follows pattern from addObjectWizardView.js
+     * Creates complete object structure with:
+       - propSubscription, modelPkg, lookupItem arrays
+       - Foreign key property (ParentObjectNameID)
+       - Default lookup item for lookup objects
+       - Adds to appropriate namespace
+     * Marks unsaved changes and refreshes tree view
+  3. src/mcp/server.ts:
+     * Registered create_data_object tool
+     * Zod schema validation for input/output
+  4. src/mcp/mcpProvider.ts:
+     * Added CreateDataObjectInput interface
+     * Registered create_data_object tool for VS Code API
+- Object structure created includes:
+  * All required arrays (propSubscription, modelPkg, lookupItem, prop)
+  * Foreign key property with parent object ID
+  * Default "Unknown" lookup item for lookup objects
+  * Proper FK flags (isFK, isFKLookup for lookups)
+
+Architecture Notes:
+- Matches create_user_story naming convention
+- Follows CRUD standard: Create, Read (list), Update, Delete
+- Complete validation before HTTP bridge call
+- Bridge endpoint mirrors addObjectWizardView.js implementation
+- Objects added to namespace containing parent (or first namespace)
+- Changes marked as unsaved - user must save manually
+
+Documentation:
+- Created docs/architecture/mcp-tool-create-data-object.md (comprehensive guide)
+- Includes validation rules, examples, error cases, object structure
+
+Status: ✅ COMPLETE - All compilation successful, ready for testing
+
+2025-10-18: Fixed MCP data object tools architecture - Moved to DataObjectTools class
+Details:
+- ISSUE IDENTIFIED: Duplicate implementation of list_data_objects()
+  * DataObjectTools class existed but was never instantiated or used
+  * UserStoryTools incorrectly had list_data_objects() method (~70 lines)
+  * server.ts and mcpProvider.ts were calling userStoryTools.list_data_objects()
+  * Violated Single Responsibility Principle - data objects in wrong class
+
+- CHANGES MADE:
+  1. Updated src/mcp/tools/dataObjectTools.ts:
+     * Enhanced list_data_objects() to accept parameters (search_name, is_lookup, parent_object_name)
+     * Added full filtering logic from UserStoryTools implementation
+     * Now supports case-insensitive search with space handling
+     * Returns filters object showing applied filters
+  
+  2. Updated src/mcp/server.ts:
+     * Added import: import { DataObjectTools } from './tools/dataObjectTools'
+     * Added property: private dataObjectTools: DataObjectTools
+     * Added instantiation: this.dataObjectTools = new DataObjectTools(null)
+     * Changed tool call from this.userStoryTools.list_data_objects() to this.dataObjectTools.list_data_objects()
+  
+  3. Updated src/mcp/tools/userStoryTools.ts:
+     * REMOVED entire list_data_objects() method (lines 203-273, ~70 lines)
+     * File reduced from 601 to ~531 lines
+     * Now properly focused on user story operations only
+  
+  4. Updated src/mcp/mcpProvider.ts:
+     * Added import: import { DataObjectTools } from './tools/dataObjectTools'
+     * Added property: private dataObjectTools: DataObjectTools
+     * Added instantiation: this.dataObjectTools = new DataObjectTools(this.modelService)
+     * Changed tool call to use dataObjectTools instead of userStoryTools
+
+- VERIFICATION:
+  * ✅ All TypeScript compilation errors resolved
+  * ✅ No breaking changes - same API signature
+  * ✅ All functionality preserved (search, filters, error handling)
+  * ✅ Proper separation of concerns achieved
+
+- BENEFITS:
+  * Single Responsibility Principle - each class handles its domain
+  * No code duplication - single source of truth
+  * Better maintainability - future data object tools go in correct place
+  * Cleaner architecture - class names match responsibilities
+
+Architecture Notes:
+- This refactoring corrects a fundamental architectural flaw
+- DataObjectTools class is now properly integrated into both MCP server implementations
+- Foundation for future data object CRUD tools (get_details, add, update, properties)
+- Follows established pattern: UserStoryTools for user stories, DataObjectTools for data objects, ViewTools for views
+
+Documentation:
+- Created docs/architecture/mcp-data-object-tools-refactor.md (detailed implementation)
+- Updated docs/reviews/mcp-data-object-tools-review.md (marked issue as resolved)
+
+Status: ✅ COMPLETE - Architecture corrected, all tests passing
+
 2025-10-18: Renamed query parameter to search_story_text and removed caseSensitive
 Details:
 - Removed caseSensitive parameter from list_user_stories tool (always case-insensitive now)

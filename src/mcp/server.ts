@@ -9,6 +9,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { UserStoryTools } from './tools/userStoryTools';
 import { ViewTools } from './tools/viewTools';
+import { DataObjectTools } from './tools/dataObjectTools';
 
 /**
  * Main MCP Server class
@@ -18,12 +19,14 @@ export class MCPServer {
     private server: McpServer;
     private userStoryTools: UserStoryTools;
     private viewTools: ViewTools;
+    private dataObjectTools: DataObjectTools;
     private transport: StdioServerTransport;
 
     private constructor() {
         // Initialize UserStoryTools with null modelService (will use in-memory storage)
         this.userStoryTools = new UserStoryTools(null);
         this.viewTools = new ViewTools();
+        this.dataObjectTools = new DataObjectTools(null);
 
         // Create MCP server
         this.server = new McpServer({
@@ -204,7 +207,8 @@ export class MCPServer {
                 objects: z.array(z.object({
                     name: z.string(),
                     isLookup: z.boolean(),
-                    parentObjectName: z.string().nullable()
+                    parentObjectName: z.string().nullable(),
+                    codeDescription: z.string()
                 })),
                 count: z.number(),
                 filters: z.object({
@@ -217,7 +221,47 @@ export class MCPServer {
             }
         }, async ({ search_name, is_lookup, parent_object_name }) => {
             try {
-                const result = await this.userStoryTools.list_data_objects({ search_name, is_lookup, parent_object_name });
+                const result = await this.dataObjectTools.list_data_objects({ search_name, is_lookup, parent_object_name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register create_data_object tool
+        this.server.registerTool('create_data_object', {
+            title: 'Create Data Object',
+            description: 'Create a new data object in the AppDNA model with validation. Name must be PascalCase. ParentObjectName is required and must be an exact match (case-sensitive) of an existing data object name. Lookup objects (isLookup="true") must have parent "Pac".',
+            inputSchema: {
+                name: z.string().describe('Name of the data object (required, must be PascalCase, e.g., "CustomerOrder", "ProductStatus")'),
+                parentObjectName: z.string().describe('Parent object name (required, must be exact case-sensitive match of an existing data object name)'),
+                isLookup: z.string().optional().describe('Whether this is a lookup object: "true" or "false" (optional, defaults to "false"). Lookup objects must have parentObjectName="Pac"'),
+                codeDescription: z.string().optional().describe('Description of the data object and its purpose (optional)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                object: z.object({
+                    name: z.string(),
+                    parentObjectName: z.string(),
+                    isLookup: z.boolean(),
+                    codeDescription: z.string()
+                }).optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ name, parentObjectName, isLookup, codeDescription }) => {
+            try {
+                const result = await this.dataObjectTools.create_data_object({ name, parentObjectName, isLookup, codeDescription });
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

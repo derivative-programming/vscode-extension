@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import { ModelService } from '../services/modelService';
 import { UserStoryTools } from './tools/userStoryTools';
+import { DataObjectTools } from './tools/dataObjectTools';
 
 /**
  * Input schema for create_user_story tool
@@ -39,6 +40,16 @@ interface ListDataObjectsInput {
 }
 
 /**
+ * Input schema for create_data_object tool
+ */
+interface CreateDataObjectInput {
+    name: string;
+    parentObjectName: string;
+    isLookup?: string;
+    codeDescription?: string;
+}
+
+/**
  * Input schema for search_user_stories_by_role tool
  */
 interface SearchUserStoriesByRoleInput {
@@ -60,11 +71,13 @@ interface SearchUserStoriesInput {
 export class AppDNAMcpProvider {
     private modelService: ModelService;
     private userStoryTools: UserStoryTools;
+    private dataObjectTools: DataObjectTools;
     private disposables: vscode.Disposable[] = [];
 
     constructor() {
         this.modelService = ModelService.getInstance();
         this.userStoryTools = new UserStoryTools(this.modelService);
+        this.dataObjectTools = new DataObjectTools(this.modelService);
         this.registerTools();
     }
 
@@ -183,7 +196,7 @@ export class AppDNAMcpProvider {
             invoke: async (options, token) => {
                 try {
                     const input = options.input as ListDataObjectsInput;
-                    const result = await this.userStoryTools.list_data_objects(input);
+                    const result = await this.dataObjectTools.list_data_objects(input);
                     return new vscode.LanguageModelToolResult([
                         new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
                     ]);
@@ -199,6 +212,36 @@ export class AppDNAMcpProvider {
             }
         });
         console.log('[MCP Provider] ✓ list_data_objects registered');
+
+        // Register create_data_object tool
+        console.log('[MCP Provider] Registering create_data_object...');
+        const createDataObjectTool = vscode.lm.registerTool('create_data_object', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as CreateDataObjectInput;
+                return {
+                    invocationMessage: `Creating data object: ${input.name} (parent: ${input.parentObjectName})`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as CreateDataObjectInput;
+                    const result = await this.dataObjectTools.create_data_object(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ create_data_object registered');
 
         // Register search_user_stories_by_role tool
         console.log('[MCP Provider] Registering search_user_stories_by_role...');

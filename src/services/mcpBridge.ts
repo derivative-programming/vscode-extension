@@ -81,19 +81,154 @@ export class McpBridge {
                     res.writeHead(200);
                     res.end(JSON.stringify(objects));
                 }
-                else if (req.url === '/api/data-objects') {
-                    // Get all data objects with name, isLookup, and parentObjectName
+                else if (req.url === '/api/data-objects' && req.method === 'GET') {
+                    // Get all data objects with name, isLookup, parentObjectName, and codeDescription
                     const objects = modelService.getAllObjects();
                     const dataObjects = objects.map((obj: any) => ({
                         name: obj.name || "",
                         isLookup: obj.isLookup === "true",
-                        parentObjectName: obj.parentObjectName || null
+                        parentObjectName: obj.parentObjectName || null,
+                        codeDescription: obj.codeDescription || ""
                     }));
                     
                     this.outputChannel.appendLine(`[Data Bridge] Returning ${dataObjects.length} data objects (filtered)`);
                     
                     res.writeHead(200);
                     res.end(JSON.stringify(dataObjects));
+                }
+                else if (req.url === '/api/data-objects' && req.method === 'POST') {
+                    // Create a new data object
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { name, parentObjectName, isLookup, codeDescription } = JSON.parse(body);
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Ensure root exists
+                            if (!model.namespace) {
+                                model.namespace = [];
+                            }
+                            
+                            // If no namespaces exist, create a default namespace
+                            if (model.namespace.length === 0) {
+                                model.namespace.push({ name: "Default", object: [] });
+                            }
+                            
+                            // Ensure each namespace has an "object" array
+                            model.namespace.forEach((ns: any) => {
+                                if (!ns.object) {
+                                    ns.object = [];
+                                }
+                            });
+                            
+                            // Determine which namespace to use
+                            let targetNsIndex = 0; // Default to first namespace
+                            
+                            // For non-lookup objects, find the namespace containing the parent object
+                            const isLookupBool = isLookup === 'true';
+                            if (!isLookupBool && parentObjectName) {
+                                for (let i = 0; i < model.namespace.length; i++) {
+                                    const ns = model.namespace[i];
+                                    if (ns.object && ns.object.some((obj: any) => obj.name === parentObjectName)) {
+                                        targetNsIndex = i;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // Create new object structure (following wizard pattern)
+                            const newObject: any = {
+                                name: name,
+                                parentObjectName: parentObjectName || "",
+                                propSubscription: [],
+                                modelPkg: [],
+                                lookupItem: [],
+                                isLookup: isLookup || "false"
+                            };
+                            
+                            // Add codeDescription if provided
+                            if (codeDescription) {
+                                newObject.codeDescription = codeDescription;
+                            }
+                            
+                            // If lookup object, add default lookup item
+                            if (newObject.isLookup === "true") {
+                                newObject.lookupItem = [
+                                    {
+                                        "description": "",
+                                        "displayName": "",
+                                        "isActive": "true",
+                                        "name": "Unknown"
+                                    }
+                                ];
+                            }
+                            
+                            // Add properties based on the parent
+                            if (parentObjectName) {
+                                const parentObjectIDProp: any = {
+                                    name: parentObjectName + "ID",
+                                    sqlServerDBDataType: "int",
+                                    isFK: "true",
+                                    isNotPublishedToSubscriptions: "true",
+                                    isFKConstraintSuppressed: "false"
+                                };
+                                
+                                if (newObject.isLookup === "true") {
+                                    parentObjectIDProp.isFKLookup = "true";
+                                }
+                                
+                                newObject.prop = [parentObjectIDProp];
+                            } else {
+                                newObject.prop = [];
+                            }
+                            
+                            // Add the object to the namespace
+                            model.namespace[targetNsIndex].object.push(newObject);
+                            
+                            // Mark that there are unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Created data object: ${name}`);
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: true,
+                                object: {
+                                    name: newObject.name,
+                                    parentObjectName: newObject.parentObjectName,
+                                    isLookup: newObject.isLookup === "true",
+                                    codeDescription: newObject.codeDescription || ""
+                                },
+                                message: `Data object "${name}" created successfully`
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error creating data object: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Invalid request body'
+                            }));
+                        }
+                    });
                 }
                 else if (req.url === '/api/model') {
                     // Return the entire model
