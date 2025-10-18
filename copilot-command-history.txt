@@ -1,3 +1,249 @@
+2025-10-18: Added update_lookup_value MCP tool
+Details:
+- Implemented tool to update existing lookup values in any lookup data object
+- Generic version of update_role - works with any lookup object
+- Parameters:
+  * lookupObjectName (required) - Name of lookup data object (case-sensitive, e.g., "Role", "Status")
+  * name (required) - Name of lookup value to update (case-sensitive exact match)
+  * displayName (optional) - New display name
+  * description (optional) - New description
+  * isActive (optional) - New active status: "true" or "false"
+- At least one field to update must be provided
+- Validation implemented:
+  * Both lookupObjectName and name are required
+  * At least one update field (displayName, description, isActive) must be provided
+  * isActive must be "true" or "false" if provided
+  * Lookup object must exist (case-sensitive exact match)
+  * Object must be a lookup object (isLookup="true")
+  * Lookup value name must match exactly (case-sensitive)
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added update_lookup_value() method
+     * Validates required parameters and at least one update field
+     * Uses POST /api/lookup-values/update endpoint
+  2. src/services/mcpBridge.ts:
+     * Added POST /api/lookup-values/update endpoint (~130 lines)
+     * Finds lookup object by exact case-sensitive name
+     * Verifies isLookup="true" on target object
+     * Finds specific lookup item by exact case-sensitive name
+     * Updates only provided fields (partial update)
+     * Marks unsaved changes and refreshes tree view
+     * Returns 404 if object or lookup value not found
+     * Returns 400 if object is not a lookup object
+  3. src/mcp/server.ts:
+     * Registered update_lookup_value tool
+     * Zod schema with lookupObjectName and name required, others optional
+  4. src/mcp/mcpProvider.ts:
+     * Added UpdateLookupValueInput interface
+     * Registered update_lookup_value tool for VS Code API
+     * Updated disposables to include all 11 tools
+
+Example Usage:
+// Update display name only
+update_lookup_value({ 
+  lookupObjectName: "Role",
+  name: "Administrator",
+  displayName: "System Administrator"
+})
+
+// Update multiple fields
+update_lookup_value({ 
+  lookupObjectName: "Status",
+  name: "Active",
+  displayName: "Currently Active",
+  description: "Items that are currently in active status",
+  isActive: "true"
+})
+
+// Deactivate a lookup value
+update_lookup_value({ 
+  lookupObjectName: "Priority",
+  name: "LowPriority",
+  isActive: "false"
+})
+
+Architecture Notes:
+- Partial update pattern: only updates fields that are provided
+- Case-sensitive matching for both object name and lookup value name
+- Validates lookup object type at bridge level for security
+- Similar pattern to update_role but generic for any lookup object
+- Complete CRUD now available for lookup values
+
+DataObjectTools Now Contains (8 tools):
+1. list_data_objects - List all data objects
+2. create_data_object - Create new data object
+3. list_roles - List roles (specific lookup object)
+4. add_role - Add role (specific lookup object)
+5. update_role - Update role (specific lookup object)
+6. add_lookup_value - Add lookup value (generic)
+7. list_lookup_values - List lookup values (generic)
+8. update_lookup_value - Update lookup value (generic)
+
+Status: ✅ COMPLETE - All compilation successful, zero errors
+
+2025-10-18: Added list_lookup_values MCP tool
+Details:
+- Implemented tool to list all lookup values from a specific lookup data object
+- Complements add_lookup_value by providing read access to lookup items
+- Parameters:
+  * lookupObjectName (required) - Name of lookup data object (case-sensitive, e.g., "Role", "Status")
+  * includeInactive (optional) - Include inactive values (defaults to false, only shows active)
+- Returns array of lookup values with:
+  * name - PascalCase identifier
+  * displayName - Human-readable display name
+  * description - Description text
+  * isActive - "true" or "false"
+- Validation implemented:
+  * lookupObjectName is required
+  * Object must exist (case-sensitive exact match)
+  * Object must be a lookup object (isLookup="true")
+  * Returns sorted by name alphabetically
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added list_lookup_values() method
+     * Filters out inactive values by default
+     * Uses GET endpoint with query parameter
+  2. src/services/mcpBridge.ts:
+     * Added GET /api/lookup-values?lookupObjectName=X endpoint
+     * Validates object exists and isLookup="true"
+     * Returns sorted array of lookup items
+     * Returns 404 if object not found
+     * Returns 400 if object is not a lookup object
+  3. src/mcp/server.ts:
+     * Registered list_lookup_values tool
+     * Zod schema with lookupObjectName required, includeInactive optional
+  4. src/mcp/mcpProvider.ts:
+     * Added ListLookupValuesInput interface
+     * Registered list_lookup_values tool for VS Code API
+     * Fixed all role/lookup tool calls to use dataObjectTools (not userStoryTools)
+     * Updated disposables to include all 10 tools
+
+Example Usage:
+// List only active roles
+list_lookup_values({ lookupObjectName: "Role" })
+
+// List all roles including inactive
+list_lookup_values({ lookupObjectName: "Role", includeInactive: true })
+
+// List status values
+list_lookup_values({ lookupObjectName: "Status" })
+
+Architecture Notes:
+- GET endpoint uses query parameters for filtering
+- Default behavior hides inactive values (common use case)
+- Works with any lookup object, not just Role
+- Validates lookup object at bridge level for security
+- Complete CRUD: create (add_lookup_value), read (list_lookup_values), update (future), delete (use isActive="false")
+
+DataObjectTools Now Contains:
+1. list_data_objects - List all data objects
+2. create_data_object - Create new data object
+3. list_roles - List roles (specific lookup object)
+4. add_role - Add role (specific lookup object)
+5. update_role - Update role (specific lookup object)
+6. add_lookup_value - Add lookup value (generic)
+7. list_lookup_values - List lookup values (generic)
+
+Status: ✅ COMPLETE - All compilation successful, zero errors
+
+2025-10-18: Moved role and lookup functions from UserStoryTools to DataObjectTools
+Details:
+- Reorganized MCP tool architecture for better logical grouping
+- Moved 4 methods from UserStoryTools to DataObjectTools:
+  1. list_roles() - Lists all roles from Role data object
+  2. add_role() - Adds new role with validation
+  3. update_role() - Updates existing role properties
+  4. add_lookup_value() - Generic lookup value creation
+- Rationale: These tools manipulate data objects and lookup values, which is more aligned with data object management than user story management
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added list_roles(), add_role(), update_role(), add_lookup_value() methods
+     * Now contains all data object CRUD operations (6 methods total)
+     * isPascalCase() helper remains as private method
+  2. src/mcp/tools/userStoryTools.ts:
+     * Removed list_roles(), add_role(), update_role(), add_lookup_value() methods
+     * Removed isPascalCase() helper (no longer needed)
+     * Now focused solely on user story operations
+     * Reduced from 624 lines to ~350 lines
+  3. src/mcp/server.ts:
+     * Updated 4 tool registrations to call this.dataObjectTools instead of this.userStoryTools
+     * Changed: list_roles, add_role, update_role, add_lookup_value
+     * Tool interfaces and Zod schemas unchanged
+
+Architecture Benefits:
+- Clearer separation of concerns: UserStoryTools = user stories, DataObjectTools = data objects/lookups
+- DataObjectTools is now the single source for all data object manipulation
+- Follows single responsibility principle
+- Easier to maintain and understand
+
+Tool Distribution After Move:
+- DataObjectTools: 6 tools (list_data_objects, create_data_object, list_roles, add_role, update_role, add_lookup_value)
+- UserStoryTools: 4 tools (list_user_stories, create_user_story, search_user_stories_by_role, search_user_stories, secret_word_of_the_day)
+- ViewTools: 5 tools (unchanged)
+
+Status: ✅ COMPLETE - All compilation successful, zero errors
+
+2025-10-18: Added add_lookup_value MCP tool
+Details:
+- Implemented generic tool to add lookup values to ANY lookup data object
+- More flexible than add_role - works with any lookup object (Role, Status, Priority, etc.)
+- Parameters:
+  * lookupObjectName (required) - Name of lookup data object (case-sensitive, e.g., "Role", "Status")
+  * name (required) - Lookup value name (must be PascalCase, e.g., "ActiveStatus")
+  * displayName (optional) - Display name (auto-generated from name if not provided)
+  * description (optional) - Description (auto-generated from name if not provided)
+  * isActive (optional) - Active status: "true" or "false" (defaults to "true")
+- Validation implemented:
+  * Both lookupObjectName and name are required
+  * Name must be PascalCase
+  * Lookup object must exist (case-sensitive exact match)
+  * Object must be a lookup object (isLookup="true")
+  * Duplicate lookup value check (case-insensitive within that object)
+  * isActive must be "true" or "false" if provided
+- Files modified:
+  1. src/mcp/tools/userStoryTools.ts:
+     * Added add_lookup_value() method with validation logic
+     * Reuses isPascalCase() helper method
+     * Uses postToBridge() to call /api/lookup-values endpoint
+  2. src/services/mcpBridge.ts:
+     * Added POST /api/lookup-values endpoint
+     * Finds lookup data object by exact case-sensitive name
+     * Verifies isLookup="true" on target object
+     * Checks for duplicate lookup item names (case-insensitive)
+     * Auto-generates displayName and description using generateDisplayText()
+     * Creates and adds new lookup item to object
+     * Marks unsaved changes and refreshes tree view
+  3. src/mcp/server.ts:
+     * Registered add_lookup_value tool
+     * Zod schema with lookupObjectName and name required, others optional
+  4. src/mcp/mcpProvider.ts:
+     * Added AddLookupValueInput interface
+     * Registered add_lookup_value tool for VS Code API
+
+Example Usage:
+add_lookup_value({ 
+  lookupObjectName: "Status",
+  name: "PendingApproval"
+})
+// Auto-generates: displayName="Pending Approval", description="Pending Approval", isActive="true"
+
+add_lookup_value({ 
+  lookupObjectName: "Priority",
+  name: "HighPriority",
+  displayName: "High Priority",
+  description: "Items requiring immediate attention",
+  isActive: "true"
+})
+
+Architecture Notes:
+- Generic tool works with any lookup object, not just Role
+- Case-sensitive lookup object name matching
+- Auto-generation of displayName/description follows same pattern as add_role
+- Validates object exists AND is a lookup object before adding
+- add_role is now a specific use case; this is the general solution
+
+Status: ✅ COMPLETE - All compilation successful, ready for testing
+
 2025-10-18: Added update_role MCP tool
 Details:
 - Implemented tool to update existing roles in the Role data object

@@ -268,6 +268,68 @@ export class McpBridge {
                     res.writeHead(200);
                     res.end(JSON.stringify(roles));
                 }
+                else if (req.url?.startsWith('/api/lookup-values?')) {
+                    // Get all lookup values from a specific lookup data object
+                    // Extract lookupObjectName from query string
+                    const url = new URL(req.url, `http://${req.headers.host}`);
+                    const lookupObjectName = url.searchParams.get('lookupObjectName');
+                    
+                    if (!lookupObjectName) {
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: 'lookupObjectName query parameter is required'
+                        }));
+                        return;
+                    }
+
+                    const lookupValues: any[] = [];
+                    
+                    // Find the lookup data object by exact name (case-sensitive)
+                    const allObjects = modelService.getAllObjects();
+                    const lookupObject = allObjects.find((obj: any) => obj.name === lookupObjectName);
+                    
+                    if (!lookupObject) {
+                        res.writeHead(404, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: `Lookup object "${lookupObjectName}" not found`
+                        }));
+                        return;
+                    }
+
+                    // Verify it's a lookup object
+                    if (lookupObject.isLookup !== 'true') {
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: `Object "${lookupObjectName}" is not a lookup object (isLookup must be "true")`
+                        }));
+                        return;
+                    }
+
+                    // Extract lookup items
+                    if (lookupObject.lookupItem && Array.isArray(lookupObject.lookupItem)) {
+                        lookupObject.lookupItem.forEach((item: any) => {
+                            if (item.name) {
+                                lookupValues.push({
+                                    name: item.name,
+                                    displayName: item.displayName || '',
+                                    description: item.description || '',
+                                    isActive: item.isActive || 'true'
+                                });
+                            }
+                        });
+                    }
+                    
+                    // Sort by name
+                    lookupValues.sort((a, b) => a.name.localeCompare(b.name));
+                    
+                    this.outputChannel.appendLine(`[Data Bridge] Returning ${lookupValues.length} lookup values from ${lookupObjectName}`);
+                    
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(lookupValues));
+                }
                 else if (req.method === 'POST' && req.url === '/api/roles') {
                     // Add a new role to the Role data object
                     let body = '';
@@ -468,6 +530,248 @@ export class McpBridge {
                             
                         } catch (error) {
                             this.outputChannel.appendLine(`[Data Bridge] Error updating role: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Invalid request body'
+                            }));
+                        }
+                    });
+                }
+                else if (req.method === 'POST' && req.url === '/api/lookup-values/update') {
+                    // Update an existing lookup value in any lookup data object
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { lookupObjectName, name, displayName, description, isActive } = JSON.parse(body);
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the specified lookup data object and the specific lookup item
+                            let lookupObject: any = null;
+                            let lookupItem: any = null;
+                            
+                            if (model.namespace && Array.isArray(model.namespace)) {
+                                for (let i = 0; i < model.namespace.length; i++) {
+                                    const ns = model.namespace[i];
+                                    if (ns.object && Array.isArray(ns.object)) {
+                                        const foundObject = ns.object.find((obj: any) => 
+                                            obj.name === lookupObjectName
+                                        );
+                                        if (foundObject) {
+                                            lookupObject = foundObject;
+                                            // Find the specific lookup item by name (case-sensitive)
+                                            if (lookupObject.lookupItem && Array.isArray(lookupObject.lookupItem)) {
+                                                lookupItem = lookupObject.lookupItem.find((item: any) => 
+                                                    item.name === name
+                                                );
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // If lookup object doesn't exist, return error
+                            if (!lookupObject) {
+                                res.writeHead(404, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: `Lookup object "${lookupObjectName}" not found in model.`
+                                }));
+                                return;
+                            }
+                            
+                            // Verify it's a lookup object
+                            if (lookupObject.isLookup !== 'true') {
+                                res.writeHead(400, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: `Object "${lookupObjectName}" is not a lookup object (isLookup must be "true").`
+                                }));
+                                return;
+                            }
+                            
+                            // If lookup item doesn't exist, return error
+                            if (!lookupItem) {
+                                res.writeHead(404, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: `Lookup value "${name}" not found in ${lookupObjectName}.`
+                                }));
+                                return;
+                            }
+                            
+                            // Update the lookup item properties
+                            if (displayName !== undefined) {
+                                lookupItem.displayName = displayName;
+                            }
+                            if (description !== undefined) {
+                                lookupItem.description = description;
+                            }
+                            if (isActive !== undefined) {
+                                lookupItem.isActive = isActive;
+                            }
+                            
+                            // Mark that there are unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Updated lookup value: ${name} in ${lookupObjectName}`);
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: true,
+                                lookupValue: {
+                                    name: lookupItem.name,
+                                    displayName: lookupItem.displayName,
+                                    description: lookupItem.description,
+                                    isActive: lookupItem.isActive
+                                },
+                                message: `Lookup value "${name}" updated successfully in ${lookupObjectName}`
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error updating lookup value: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Invalid request body'
+                            }));
+                        }
+                    });
+                }
+                else if (req.method === 'POST' && req.url === '/api/lookup-values') {
+                    // Add a new lookup value to any lookup data object
+                    let body = '';
+                    
+                    req.on('data', (chunk: any) => {
+                        body += chunk.toString();
+                    });
+                    
+                    req.on('end', () => {
+                        try {
+                            const { lookupObjectName, name, displayName, description, isActive } = JSON.parse(body);
+                            
+                            // Get the current model
+                            const model = modelService.getCurrentModel();
+                            if (!model) {
+                                throw new Error("Failed to get current model");
+                            }
+                            
+                            // Find the specified lookup data object
+                            let lookupObject: any = null;
+                            let targetNsIndex = 0;
+                            
+                            if (model.namespace && Array.isArray(model.namespace)) {
+                                for (let i = 0; i < model.namespace.length; i++) {
+                                    const ns = model.namespace[i];
+                                    if (ns.object && Array.isArray(ns.object)) {
+                                        const foundObject = ns.object.find((obj: any) => 
+                                            obj.name === lookupObjectName
+                                        );
+                                        if (foundObject) {
+                                            lookupObject = foundObject;
+                                            targetNsIndex = i;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // If lookup object doesn't exist, return error
+                            if (!lookupObject) {
+                                res.writeHead(400, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: `Lookup data object "${lookupObjectName}" not found in model. Please use exact case-sensitive name.`
+                                }));
+                                return;
+                            }
+                            
+                            // Verify it's a lookup object
+                            if (lookupObject.isLookup !== 'true') {
+                                res.writeHead(400, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: `Data object "${lookupObjectName}" is not a lookup object (isLookup must be "true").`
+                                }));
+                                return;
+                            }
+                            
+                            // Initialize lookupItem array if it doesn't exist
+                            if (!lookupObject.lookupItem) {
+                                lookupObject.lookupItem = [];
+                            }
+                            
+                            // Check for duplicate lookup item name
+                            const duplicateExists = lookupObject.lookupItem.some((item: any) => 
+                                item.name && item.name.toLowerCase() === name.toLowerCase()
+                            );
+                            
+                            if (duplicateExists) {
+                                res.writeHead(400, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: `A lookup value with name "${name}" already exists in "${lookupObjectName}".`
+                                }));
+                                return;
+                            }
+                            
+                            // Create new lookup item
+                            const newLookupItem: any = {
+                                name: name,
+                                displayName: displayName || this.generateDisplayText(name),
+                                description: description || this.generateDisplayText(name),
+                                isActive: isActive || "true"
+                            };
+                            
+                            // Add the lookup item to the object
+                            lookupObject.lookupItem.push(newLookupItem);
+                            
+                            // Mark that there are unsaved changes
+                            modelService.markUnsavedChanges();
+                            
+                            // Refresh the tree view
+                            setTimeout(() => {
+                                try {
+                                    require('vscode').commands.executeCommand("appdna.refresh");
+                                } catch (e) {
+                                    // Ignore errors if vscode commands not available
+                                }
+                            }, 100);
+                            
+                            this.outputChannel.appendLine(`[Data Bridge] Added lookup value "${name}" to ${lookupObjectName}`);
+                            res.writeHead(200, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({
+                                success: true,
+                                lookupValue: {
+                                    name: newLookupItem.name,
+                                    displayName: newLookupItem.displayName,
+                                    description: newLookupItem.description,
+                                    isActive: newLookupItem.isActive
+                                },
+                                message: `Lookup value "${name}" added successfully to "${lookupObjectName}"`
+                            }));
+                            
+                        } catch (error) {
+                            this.outputChannel.appendLine(`[Data Bridge] Error adding lookup value: ${error instanceof Error ? error.message : 'Unknown error'}`);
                             res.writeHead(400, { 'Content-Type': 'application/json' });
                             res.end(JSON.stringify({
                                 success: false,

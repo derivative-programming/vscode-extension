@@ -183,7 +183,7 @@ export class MCPServer {
             }
         }, async () => {
             try {
-                const result = await this.userStoryTools.list_roles();
+                const result = await this.dataObjectTools.list_roles();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -220,7 +220,7 @@ export class MCPServer {
             }
         }, async ({ name }) => {
             try {
-                const result = await this.userStoryTools.add_role({ name });
+                const result = await this.dataObjectTools.add_role({ name });
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -260,7 +260,127 @@ export class MCPServer {
             }
         }, async ({ name, displayName, description, isActive }) => {
             try {
-                const result = await this.userStoryTools.update_role({ name, displayName, description, isActive });
+                const result = await this.dataObjectTools.update_role({ name, displayName, description, isActive });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register add_lookup_value tool
+        this.server.registerTool('add_lookup_value', {
+            title: 'Add Lookup Value',
+            description: 'Add a new lookup value to any lookup data object in the AppDNA model. Lookup object name must match exactly (case-sensitive) and must be a lookup object (isLookup="true").',
+            inputSchema: {
+                lookupObjectName: z.string().describe('Name of the lookup data object (required, case-sensitive, e.g., "Role", "Status")'),
+                name: z.string().describe('Name of the lookup value (required, must be PascalCase, e.g., "ActiveStatus", "PendingApproval")'),
+                displayName: z.string().optional().describe('Display name for the lookup value (optional, auto-generated from name if not provided)'),
+                description: z.string().optional().describe('Description of the lookup value (optional, auto-generated from name if not provided)'),
+                isActive: z.string().optional().describe('Active status: "true" or "false" (optional, defaults to "true")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                lookupValue: z.object({
+                    name: z.string(),
+                    displayName: z.string(),
+                    description: z.string(),
+                    isActive: z.string()
+                }).optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ lookupObjectName, name, displayName, description, isActive }) => {
+            try {
+                const result = await this.dataObjectTools.add_lookup_value({ lookupObjectName, name, displayName, description, isActive });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register list_lookup_values tool
+        this.server.registerTool('list_lookup_values', {
+            title: 'List Lookup Values',
+            description: 'List all lookup values from a specific lookup data object in the AppDNA model. Returns name, displayName, description, and isActive for each value.',
+            inputSchema: {
+                lookupObjectName: z.string().describe('Name of the lookup data object (required, case-sensitive, e.g., "Role", "Status")'),
+                includeInactive: z.boolean().optional().describe('Include inactive lookup values (optional, defaults to false)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                lookupObjectName: z.string(),
+                values: z.array(z.object({
+                    name: z.string(),
+                    displayName: z.string(),
+                    description: z.string(),
+                    isActive: z.string()
+                })),
+                count: z.number(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ lookupObjectName, includeInactive }) => {
+            try {
+                const result = await this.dataObjectTools.list_lookup_values({ lookupObjectName, includeInactive });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register update_lookup_value tool
+        this.server.registerTool('update_lookup_value', {
+            title: 'Update Lookup Value',
+            description: 'Update an existing lookup value in any lookup data object. Can update displayName, description, and/or isActive. Lookup object name and lookup value name must match exactly (case-sensitive).',
+            inputSchema: {
+                lookupObjectName: z.string().describe('Name of the lookup data object (required, case-sensitive, e.g., "Role", "Status")'),
+                name: z.string().describe('Name of the lookup value to update (required, case-sensitive)'),
+                displayName: z.string().optional().describe('New display name for the lookup value (optional)'),
+                description: z.string().optional().describe('New description for the lookup value (optional)'),
+                isActive: z.string().optional().describe('Active status: "true" or "false" (optional)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                lookupValue: z.object({
+                    name: z.string(),
+                    displayName: z.string(),
+                    description: z.string(),
+                    isActive: z.string()
+                }).optional(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ lookupObjectName, name, displayName, description, isActive }) => {
+            try {
+                const result = await this.dataObjectTools.update_lookup_value({ lookupObjectName, name, displayName, description, isActive });
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

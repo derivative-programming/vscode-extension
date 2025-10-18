@@ -67,6 +67,36 @@ interface UpdateRoleInput {
 }
 
 /**
+ * Input schema for add_lookup_value tool
+ */
+interface AddLookupValueInput {
+    lookupObjectName: string;
+    name: string;
+    displayName?: string;
+    description?: string;
+    isActive?: string;
+}
+
+/**
+ * Input schema for list_lookup_values tool
+ */
+interface ListLookupValuesInput {
+    lookupObjectName: string;
+    includeInactive?: boolean;
+}
+
+/**
+ * Input schema for update_lookup_value tool
+ */
+interface UpdateLookupValueInput {
+    lookupObjectName: string;
+    name: string;
+    displayName?: string;
+    description?: string;
+    isActive?: string;
+}
+
+/**
  * Input schema for search_user_stories_by_role tool
  */
 interface SearchUserStoriesByRoleInput {
@@ -173,7 +203,7 @@ export class AppDNAMcpProvider {
             },
             invoke: async (options, token) => {
                 try {
-                    const result = await this.userStoryTools.list_roles();
+                    const result = await this.dataObjectTools.list_roles();
                     return new vscode.LanguageModelToolResult([
                         new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
                     ]);
@@ -203,7 +233,7 @@ export class AppDNAMcpProvider {
             invoke: async (options, token) => {
                 try {
                     const input = options.input as AddRoleInput;
-                    const result = await this.userStoryTools.add_role(input);
+                    const result = await this.dataObjectTools.add_role(input);
                     return new vscode.LanguageModelToolResult([
                         new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
                     ]);
@@ -233,7 +263,7 @@ export class AppDNAMcpProvider {
             invoke: async (options, token) => {
                 try {
                     const input = options.input as UpdateRoleInput;
-                    const result = await this.userStoryTools.update_role(input);
+                    const result = await this.dataObjectTools.update_role(input);
                     return new vscode.LanguageModelToolResult([
                         new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
                     ]);
@@ -249,6 +279,96 @@ export class AppDNAMcpProvider {
             }
         });
         console.log('[MCP Provider] ✓ update_role registered');
+
+        // Register add_lookup_value tool
+        console.log('[MCP Provider] Registering add_lookup_value...');
+        const addLookupValueTool = vscode.lm.registerTool('add_lookup_value', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as AddLookupValueInput;
+                return {
+                    invocationMessage: `Adding lookup value "${input.name}" to ${input.lookupObjectName}`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as AddLookupValueInput;
+                    const result = await this.dataObjectTools.add_lookup_value(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ add_lookup_value registered');
+
+        // Register list_lookup_values tool
+        console.log('[MCP Provider] Registering list_lookup_values...');
+        const listLookupValuesTool = vscode.lm.registerTool('list_lookup_values', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as ListLookupValuesInput;
+                return {
+                    invocationMessage: `Listing lookup values from ${input.lookupObjectName}`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as ListLookupValuesInput;
+                    const result = await this.dataObjectTools.list_lookup_values(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ list_lookup_values registered');
+
+        // Register update_lookup_value tool
+        console.log('[MCP Provider] Registering update_lookup_value...');
+        const updateLookupValueTool = vscode.lm.registerTool('update_lookup_value', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as UpdateLookupValueInput;
+                return {
+                    invocationMessage: `Updating lookup value "${input.name}" in ${input.lookupObjectName}`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as UpdateLookupValueInput;
+                    const result = await this.dataObjectTools.update_lookup_value(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ update_lookup_value registered');
 
         // Register list_data_objects tool
         console.log('[MCP Provider] Registering list_data_objects...');
@@ -380,8 +500,20 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ search_user_stories registered');
 
-        this.disposables.push(createTool, listTool, listRolesTool, listDataObjectsTool, searchByRoleTool, searchStoriesTool);
-        console.log('[MCP Provider] All 6 tools registered and added to disposables');
+        this.disposables.push(
+            createTool, 
+            listTool, 
+            listRolesTool, 
+            addRoleTool,
+            updateRoleTool,
+            addLookupValueTool,
+            listLookupValuesTool,
+            updateLookupValueTool,
+            listDataObjectsTool, 
+            searchByRoleTool, 
+            searchStoriesTool
+        );
+        console.log('[MCP Provider] All 11 tools registered and added to disposables');
     }
 
     /**

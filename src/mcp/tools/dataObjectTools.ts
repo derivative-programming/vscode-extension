@@ -197,6 +197,398 @@ export class DataObjectTools {
     }
 
     /**
+     * Lists all roles from the Role data object
+     * Tool name: list_roles (following MCP snake_case convention)
+     * @returns Array of role objects with name, displayName, description, isActive
+     */
+    public async list_roles(): Promise<any> {
+        // Try to get roles from extension via HTTP bridge
+        try {
+            const response = await this.fetchFromBridge('/api/roles');
+            return {
+                success: true,
+                roles: response,
+                count: response.length,
+                note: "Roles loaded from Role data object via MCP bridge"
+            };
+        } catch (error) {
+            // Return empty list if bridge is not available
+            return {
+                success: false,
+                roles: [],
+                count: 0,
+                note: "Could not load roles from bridge",
+                warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
+            };
+        }
+    }
+
+    /**
+     * Adds a new role to the Role data object
+     * Tool name: add_role (following MCP snake_case convention)
+     * @param parameters Tool parameters containing name, displayName, description, isActive
+     * @returns Result of the role addition
+     */
+    public async add_role(parameters: any): Promise<any> {
+        const { name, displayName, description, isActive } = parameters;
+
+        // Validate required parameter
+        if (!name) {
+            return {
+                success: false,
+                error: 'Parameter "name" is required',
+                validationErrors: ['name is required']
+            };
+        }
+
+        // Validate name is PascalCase
+        if (!this.isPascalCase(name)) {
+            return {
+                success: false,
+                error: `Invalid name format. Name must be in PascalCase (e.g., "Administrator", "DataEntryClerk"). Received: "${name}"`,
+                validationErrors: ['name must be in PascalCase format (start with uppercase letter, no spaces)']
+            };
+        }
+
+        // Default isActive to 'true' if not provided
+        const activeValue = isActive || 'true';
+
+        // Validate isActive value
+        if (activeValue !== 'true' && activeValue !== 'false') {
+            return {
+                success: false,
+                error: `Invalid isActive value. Must be "true" or "false". Received: "${activeValue}"`,
+                validationErrors: ['isActive must be "true" or "false"']
+            };
+        }
+
+        // Check if role already exists
+        try {
+            const existingRoles = await this.fetchFromBridge('/api/roles');
+            
+            // Case-insensitive check for duplicates
+            const roleExists = existingRoles.some((role: any) => 
+                role.name.toLowerCase() === name.toLowerCase()
+            );
+
+            if (roleExists) {
+                return {
+                    success: false,
+                    error: `A role with name "${name}" already exists`,
+                    validationErrors: [`Role "${name}" already exists`]
+                };
+            }
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not validate against existing roles: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required for validation'
+            };
+        }
+
+        // Add the role via HTTP bridge
+        try {
+            const result = await this.postToBridge('/api/roles', { 
+                name,
+                displayName: displayName || undefined,
+                description: description || undefined,
+                isActive: activeValue
+            });
+
+            return {
+                success: true,
+                role: result.role,
+                message: result.message || 'Role added successfully',
+                note: 'Role added to Role data object via MCP bridge (unsaved changes)'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to add role: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to add roles'
+            };
+        }
+    }
+
+    /**
+     * Updates an existing role in the Role data object
+     * Tool name: update_role (following MCP snake_case convention)
+     * @param parameters Tool parameters containing name and fields to update
+     * @returns Result of the role update
+     */
+    public async update_role(parameters: any): Promise<any> {
+        const { name, displayName, description, isActive } = parameters;
+
+        // Validate required parameter
+        if (!name) {
+            return {
+                success: false,
+                error: 'Parameter "name" is required',
+                validationErrors: ['name is required']
+            };
+        }
+
+        // Validate that at least one field to update is provided
+        if (displayName === undefined && description === undefined && isActive === undefined) {
+            return {
+                success: false,
+                error: 'At least one field to update must be provided (displayName, description, or isActive)',
+                validationErrors: ['No fields to update provided']
+            };
+        }
+
+        // Validate isActive if provided
+        if (isActive !== undefined && isActive !== 'true' && isActive !== 'false') {
+            return {
+                success: false,
+                error: `Invalid isActive value. Must be "true" or "false". Received: "${isActive}"`,
+                validationErrors: ['isActive must be "true" or "false"']
+            };
+        }
+
+        // Check if role exists
+        try {
+            const existingRoles = await this.fetchFromBridge('/api/roles');
+            
+            // Case-sensitive check for exact match
+            const roleExists = existingRoles.some((role: any) => 
+                role.name === name
+            );
+
+            if (!roleExists) {
+                return {
+                    success: false,
+                    error: `Role "${name}" not found. Role name must match exactly (case-sensitive).`,
+                    validationErrors: [`Role "${name}" does not exist`],
+                    note: `Available roles: ${existingRoles.map((r: any) => r.name).join(', ')}`
+                };
+            }
+
+        } catch (error) {
+            return {
+                success: false,
+                error: `Could not validate role existence: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required for validation'
+            };
+        }
+
+        // Update the role via HTTP bridge
+        try {
+            const updateData: any = { name };
+            if (displayName !== undefined) { updateData.displayName = displayName; }
+            if (description !== undefined) { updateData.description = description; }
+            if (isActive !== undefined) { updateData.isActive = isActive; }
+
+            const result = await this.postToBridge('/api/roles/update', updateData);
+
+            return {
+                success: true,
+                role: result.role,
+                message: result.message || 'Role updated successfully',
+                note: 'Role updated in Role data object via MCP bridge (unsaved changes)'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to update role: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update roles'
+            };
+        }
+    }
+
+    /**
+     * Adds a new lookup value to any lookup data object
+     * Tool name: add_lookup_value (following MCP snake_case convention)
+     * @param parameters Tool parameters containing lookupObjectName, name, and optional fields
+     * @returns Result of the lookup value addition
+     */
+    public async add_lookup_value(parameters: any): Promise<any> {
+        const { lookupObjectName, name, displayName, description, isActive } = parameters;
+
+        // Validate required parameters
+        if (!lookupObjectName) {
+            return {
+                success: false,
+                error: 'Parameter "lookupObjectName" is required',
+                validationErrors: ['lookupObjectName is required']
+            };
+        }
+
+        if (!name) {
+            return {
+                success: false,
+                error: 'Parameter "name" is required',
+                validationErrors: ['name is required']
+            };
+        }
+
+        // Validate name is PascalCase
+        if (!this.isPascalCase(name)) {
+            return {
+                success: false,
+                error: `Invalid name format. Name must be in PascalCase (e.g., "ActiveStatus", "PendingApproval"). Received: "${name}"`,
+                validationErrors: ['name must be in PascalCase format (start with uppercase letter, no spaces)']
+            };
+        }
+
+        // Default isActive to 'true' if not provided
+        const activeValue = isActive || 'true';
+
+        // Validate isActive value
+        if (activeValue !== 'true' && activeValue !== 'false') {
+            return {
+                success: false,
+                error: `Invalid isActive value. Must be "true" or "false". Received: "${activeValue}"`,
+                validationErrors: ['isActive must be "true" or "false"']
+            };
+        }
+
+        // Add lookup value via HTTP bridge
+        try {
+            const updateData: any = {
+                lookupObjectName,
+                name,
+                displayName: displayName || undefined,
+                description: description || undefined,
+                isActive: activeValue
+            };
+
+            const result = await this.postToBridge('/api/lookup-values', updateData);
+
+            return {
+                success: true,
+                lookupValue: result.lookupValue,
+                message: result.message || 'Lookup value added successfully',
+                note: `Lookup value added to ${lookupObjectName} data object via MCP bridge (unsaved changes)`
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to add lookup value: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to add lookup values'
+            };
+        }
+    }
+
+    /**
+     * Lists all lookup values from a specific lookup data object
+     * Tool name: list_lookup_values (following MCP snake_case convention)
+     * @param parameters Tool parameters containing lookupObjectName and optional includeInactive filter
+     * @returns Array of lookup values with name, displayName, description, isActive
+     */
+    public async list_lookup_values(parameters: any): Promise<any> {
+        const { lookupObjectName, includeInactive } = parameters;
+
+        // Validate required parameter
+        if (!lookupObjectName) {
+            return {
+                success: false,
+                error: 'Parameter "lookupObjectName" is required',
+                validationErrors: ['lookupObjectName is required']
+            };
+        }
+
+        // Get lookup values from extension via HTTP bridge
+        try {
+            const endpoint = `/api/lookup-values?lookupObjectName=${encodeURIComponent(lookupObjectName)}`;
+            const response = await this.fetchFromBridge(endpoint);
+            
+            let filteredValues = response;
+
+            // Filter out inactive values unless includeInactive is true
+            if (!includeInactive || includeInactive === 'false' || includeInactive === false) {
+                filteredValues = filteredValues.filter((value: any) => value.isActive === 'true');
+            }
+
+            return {
+                success: true,
+                lookupObjectName: lookupObjectName,
+                values: filteredValues,
+                count: filteredValues.length,
+                note: `Lookup values loaded from ${lookupObjectName} data object via MCP bridge`
+            };
+        } catch (error) {
+            return {
+                success: false,
+                lookupObjectName: lookupObjectName,
+                values: [],
+                count: 0,
+                error: `Failed to load lookup values: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required or lookup object not found'
+            };
+        }
+    }
+
+    /**
+     * Updates an existing lookup value in any lookup data object
+     * Tool name: update_lookup_value (following MCP snake_case convention)
+     * @param parameters Tool parameters containing lookupObjectName, name, and fields to update
+     * @returns Result of the lookup value update
+     */
+    public async update_lookup_value(parameters: any): Promise<any> {
+        const { lookupObjectName, name, displayName, description, isActive } = parameters;
+
+        // Validate required parameters
+        if (!lookupObjectName) {
+            return {
+                success: false,
+                error: 'Parameter "lookupObjectName" is required',
+                validationErrors: ['lookupObjectName is required']
+            };
+        }
+
+        if (!name) {
+            return {
+                success: false,
+                error: 'Parameter "name" is required',
+                validationErrors: ['name is required']
+            };
+        }
+
+        // Validate that at least one field to update is provided
+        if (displayName === undefined && description === undefined && isActive === undefined) {
+            return {
+                success: false,
+                error: 'At least one field to update must be provided (displayName, description, or isActive)',
+                validationErrors: ['No fields to update provided']
+            };
+        }
+
+        // Validate isActive if provided
+        if (isActive !== undefined && isActive !== 'true' && isActive !== 'false') {
+            return {
+                success: false,
+                error: `Invalid isActive value. Must be "true" or "false". Received: "${isActive}"`,
+                validationErrors: ['isActive must be "true" or "false"']
+            };
+        }
+
+        // Update the lookup value via HTTP bridge
+        try {
+            const updateData: any = { lookupObjectName, name };
+            if (displayName !== undefined) { updateData.displayName = displayName; }
+            if (description !== undefined) { updateData.description = description; }
+            if (isActive !== undefined) { updateData.isActive = isActive; }
+
+            const result = await this.postToBridge('/api/lookup-values/update', updateData);
+
+            return {
+                success: true,
+                lookupValue: result.lookupValue,
+                message: result.message || 'Lookup value updated successfully',
+                note: `Lookup value updated in ${lookupObjectName} data object via MCP bridge (unsaved changes)`
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to update lookup value: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to update lookup values'
+            };
+        }
+    }
+
+    /**
      * Validates if a string is in PascalCase format
      * PascalCase: starts with uppercase letter, no spaces, can contain letters and numbers
      * @param str String to validate
