@@ -7,6 +7,7 @@ import * as http from 'http';
 import * as vscode from 'vscode';
 import { ModelService } from './modelService';
 import { validateUserStory } from './validation/userStoryValidation';
+import { getUsageDetailData, findAllDataObjectReferences } from '../commands/dataObjectUsageAnalysisCommands';
 
 /**
  * MCP Bridge Service
@@ -649,6 +650,48 @@ export class McpBridge {
                     
                     res.writeHead(200);
                     res.end(JSON.stringify(roles));
+                }
+                else if (req.url === '/api/data-object-usage' && req.method === 'GET') {
+                    // Get detailed usage data for all data objects
+                    try {
+                        const usageData = getUsageDetailData(modelService);
+                        
+                        this.outputChannel.appendLine(`[Data Bridge] Returning ${usageData.length} data object usage references`);
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify(usageData));
+                    } catch (error) {
+                        this.outputChannel.appendLine(`[Data Bridge] Error getting usage data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            error: error instanceof Error ? error.message : 'Failed to get usage data'
+                        }));
+                    }
+                }
+                else if (req.url && req.url.startsWith('/api/data-object-usage/') && req.method === 'GET') {
+                    // Get usage data for a specific data object
+                    const objectName = decodeURIComponent(req.url.substring('/api/data-object-usage/'.length));
+                    
+                    try {
+                        const references = findAllDataObjectReferences(objectName, modelService);
+                        const usageData = references.map(ref => ({
+                            dataObjectName: objectName,
+                            referenceType: ref.type,
+                            referencedBy: ref.referencedBy,
+                            itemType: ref.itemType
+                        }));
+                        
+                        this.outputChannel.appendLine(`[Data Bridge] Returning ${usageData.length} usage references for "${objectName}"`);
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify(usageData));
+                    } catch (error) {
+                        this.outputChannel.appendLine(`[Data Bridge] Error getting usage data for "${objectName}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            error: error instanceof Error ? error.message : 'Failed to get usage data'
+                        }));
+                    }
                 }
                 else if (req.url?.startsWith('/api/lookup-values?')) {
                     // Get all lookup values from a specific lookup data object
@@ -1393,6 +1436,8 @@ export class McpBridge {
                             'GET /api/data-objects',
                             'GET /api/data-objects-full',
                             'GET /api/data-objects/:name',
+                            'GET /api/data-object-usage',
+                            'GET /api/data-object-usage/:name',
                             'GET /api/roles',
                             'GET /api/model',
                             'GET /api/health'

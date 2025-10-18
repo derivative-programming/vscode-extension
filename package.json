@@ -791,6 +791,8 @@
     "compile": "webpack && npm run compile-mcp",
     "compile-mcp": "tsc src/mcp/server.ts src/mcp/tools/userStoryTools.ts src/mcp/tools/viewTools.ts --outDir dist/mcp --rootDir src/mcp --target es2020 --module commonjs --esModuleInterop --skipLibCheck",
     "watch": "webpack --watch",
+    "watch-mcp": "tsc src/mcp/server.ts src/mcp/tools/userStoryTools.ts src/mcp/tools/viewTools.ts --outDir dist/mcp --rootDir src/mcp --target es2020 --module commonjs --esModuleInterop --skipLibCheck --watch",
+    "watch-all": "npm-run-all --parallel watch watch-mcp",
     "package": "webpack --mode production --devtool hidden-source-map",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",

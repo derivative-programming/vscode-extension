@@ -886,6 +886,48 @@ export class MCPServer {
             }
         });
 
+        // Register get_data_object_usage tool
+        this.server.registerTool('get_data_object_usage', {
+            title: 'Get Data Object Usage',
+            description: 'Get detailed usage information for data objects showing where they are referenced across the application. Returns references from forms (owner, target, input controls, output variables), reports (owner, target, columns), flows (owner, input parameters, output variables), and user stories. Optionally filter to a specific data object.',
+            inputSchema: {
+                dataObjectName: z.string().optional().describe('Optional: Filter to a specific data object name (case-sensitive). If omitted, returns usage for all data objects.')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                usageData: z.array(z.object({
+                    dataObjectName: z.string(),
+                    referenceType: z.string(),
+                    referencedBy: z.string(),
+                    itemType: z.string()
+                })),
+                count: z.number(),
+                filter: z.string().optional().nullable(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ dataObjectName }) => {
+            try {
+                const result = await this.dataObjectTools.get_data_object_usage({ dataObjectName });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { 
+                    success: false, 
+                    usageData: [],
+                    count: 0,
+                    error: error.message 
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // ===== USER STORY VIEW OPENING TOOLS =====
         // Register secret_word_of_the_day tool
         this.server.registerTool('secret_word_of_the_day', {

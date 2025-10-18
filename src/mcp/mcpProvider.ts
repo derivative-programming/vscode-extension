@@ -676,6 +676,41 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ get_data_object_schema registered');
 
+        // Register get_data_object_usage tool
+        console.log('[MCP Provider] Registering get_data_object_usage...');
+        const getDataObjectUsageTool = vscode.lm.registerTool('get_data_object_usage', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as { dataObjectName?: string };
+                const message = input.dataObjectName 
+                    ? `Getting usage data for data object: ${input.dataObjectName}`
+                    : 'Getting usage data for all data objects';
+                return {
+                    invocationMessage: message,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as { dataObjectName?: string };
+                    const result = await this.dataObjectTools.get_data_object_usage(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        usageData: [],
+                        count: 0,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_data_object_usage registered');
+
         // Register search_user_stories_by_role tool
         console.log('[MCP Provider] Registering search_user_stories_by_role...');
         const searchByRoleTool = vscode.lm.registerTool('search_user_stories_by_role', {
@@ -753,10 +788,11 @@ export class AppDNAMcpProvider {
             listDataObjectsTool,
             getDataObjectTool,
             getDataObjectSchemaTool,
+            getDataObjectUsageTool,
             searchByRoleTool, 
             searchStoriesTool
         );
-        console.log('[MCP Provider] All 18 tools registered and added to disposables');
+        console.log('[MCP Provider] All 19 tools registered and added to disposables');
     }
 
     /**

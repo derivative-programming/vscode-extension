@@ -11,6 +11,13 @@
 			"group": "build"
 		},
 		{
+			"label": "npm: compile",
+			"type": "npm",
+			"script": "compile",
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
 			"type": "npm",
 			"script": "watch",
 			"problemMatcher": "$tsc-watch",
@@ -21,7 +28,8 @@
 			"group": {
 				"kind": "build",
 				"isDefault": true
-			}
+			},
+			"dependsOn": ["npm: compile"]
 		},
 		{
 			"type": "npm",

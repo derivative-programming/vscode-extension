@@ -515,8 +515,9 @@ function calculatePropertySizeForUsageAnalysis(prop: any): number {
 
 /**
  * Gets detailed data showing where each data object is used
+ * Public export for use by MCP bridge
  */
-function getUsageDetailData(modelService: ModelService): any[] {
+export function getUsageDetailData(modelService: ModelService): any[] {
     const detailData: any[] = [];
     
     try {
@@ -568,8 +569,9 @@ function getUsageDetailData(modelService: ModelService): any[] {
 
 /**
  * Finds all references to a data object with detailed information
+ * Public export for use by MCP bridge
  */
-function findAllDataObjectReferences(dataObjectName: string, modelService: ModelService): any[] {
+export function findAllDataObjectReferences(dataObjectName: string, modelService: ModelService): any[] {
     const references: any[] = [];
     
     try {

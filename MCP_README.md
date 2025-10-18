@@ -6,7 +6,7 @@
 
 ## Overview
 
-The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MCP) server that enables GitHub Copilot and other MCP clients to interact with the entire AppDNA model. This production-ready integration provides **49 tools** covering user stories, data objects, forms, pages, reports, APIs, and more.
+The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MCP) server that enables GitHub Copilot and other MCP clients to interact with the entire AppDNA model. This production-ready integration provides **50 tools** covering user stories, data objects, forms, pages, reports, APIs, and more.
 
 ## Features
 
@@ -19,11 +19,15 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
 4. **search_user_stories_by_role** - Find user stories for a specific role
 5. **search_user_stories** - Search user stories by text (with case sensitivity option)
 
-#### **Data Object Management** (1 tool)
+#### **Data Object Management** (2 tools)
 1. **list_data_objects** - List all data objects with optional search and filters
    - Search by name (case-insensitive, also searches without spaces)
    - Filter by isLookup status (true/false)
    - Filter by parent object name (case-insensitive)
+2. **get_data_object_usage** - Get detailed usage information for data objects
+   - Shows where data objects are referenced (forms, reports, flows, user stories)
+   - Reference types: owner objects, target objects, input controls, output variables, columns
+   - Optional filter by specific data object name
 
 #### **User Story Views** (6 tools)
 - **open_user_stories_view** - Main user stories list with analytics tabs
@@ -69,7 +73,7 @@ The server uses a multi-transport strategy for maximum compatibility:
 
 1. **Stdio Transport** (`src/mcp/server.ts`)
    - Standard MCP server using stdio communication
-   - 49 registered tools
+   - 50 registered tools
    - Default option for most MCP clients
 
 2. **HTTP Transport** (`src/mcp/httpServer.ts`)
@@ -146,6 +150,10 @@ Once the MCP server is running, you can ask GitHub Copilot to:
 - "Search for data objects with 'customer' in the name"
 - "Which data objects are child objects of Order?" (filter by parent)
 - "Find lookup tables with 'status' in the name" (combined filters)
+- "Show me where the Customer data object is used"
+- "Get usage details for all data objects"
+- "Which forms use the Order data object?"
+- "What references the Invoice object?"
 
 #### **View Navigation**
 - "Open the user stories development view"

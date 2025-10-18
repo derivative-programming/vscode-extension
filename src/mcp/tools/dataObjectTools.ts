@@ -1913,4 +1913,49 @@ export class DataObjectTools {
             req.end();
         });
     }
+
+    /**
+     * Gets detailed usage data for data objects
+     * Tool name: get_data_object_usage (following MCP snake_case convention)
+     * @param parameters Optional parameters with dataObjectName filter
+     * @returns Detailed usage data showing where data objects are referenced
+     */
+    public async get_data_object_usage(parameters?: any): Promise<any> {
+        const { dataObjectName } = parameters || {};
+        
+        try {
+            let endpoint = '/api/data-object-usage';
+            
+            // If a specific data object is requested, use the specific endpoint
+            if (dataObjectName && typeof dataObjectName === 'string') {
+                endpoint = `/api/data-object-usage/${encodeURIComponent(dataObjectName)}`;
+            }
+            
+            const usageData = await this.fetchFromBridge(endpoint);
+            
+            // Filter if needed (for consistency, though the endpoint already filters)
+            let filteredData = usageData;
+            if (dataObjectName && Array.isArray(usageData)) {
+                filteredData = usageData.filter((item: any) => 
+                    item.dataObjectName === dataObjectName
+                );
+            }
+            
+            return {
+                success: true,
+                usageData: filteredData,
+                count: filteredData.length,
+                filter: dataObjectName || null,
+                note: 'Usage data showing where data objects are referenced across forms, reports, flows, and user stories'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                usageData: [],
+                count: 0,
+                error: `Could not load usage data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to load usage data'
+            };
+        }
+    }
 }
