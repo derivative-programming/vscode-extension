@@ -1363,6 +1363,16 @@ window.addEventListener('message', event => {
             }
             break;
             
+        case 'switchToTab':
+            if (message.data && message.data.tabName) {
+                console.log('[UserStoriesJourney] Received switchToTab command:', message.data.tabName);
+                const tabButton = document.querySelector(`.tab[data-tab="${message.data.tabName}"]`);
+                if (tabButton) {
+                    tabButton.click();
+                }
+            }
+            break;
+            
         default:
             console.log('Unknown message:', message);
             break;

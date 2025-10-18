@@ -103,8 +103,8 @@ export class ViewTools {
      * Open User Stories Journey View
      * Shows user journey mapping and flow
      */
-    public async openUserStoriesJourney(): Promise<any> {
-        return this.executeCommand('appdna.mcp.openUserStoriesJourney');
+    public async openUserStoriesJourney(initialTab?: string): Promise<any> {
+        return this.executeCommand('appdna.mcp.openUserStoriesJourney', initialTab ? [initialTab] : []);
     }
 
     /**

@@ -1053,17 +1053,20 @@ export class MCPServer {
 
         this.server.registerTool('open_user_stories_journey_view', {
             title: 'Open User Stories Journey View',
-            description: 'Opens the user journey mapping and analysis view. Shows seven tabs: "User Stories" (story-page mappings with journey distances), "Page Usage" (usage frequency table), "Page Usage Treemap" (visual size representation), "Page Usage Distribution" (histogram of usage patterns), "Page Usage vs Complexity" (scatter plot analysis), "Journey Visualization" (treemap of journey complexity), and "Journey Distribution" (histogram of complexity categories). Note: This view does not support initialTab parameter.',
-            inputSchema: {},
+            description: 'Opens the user journey mapping and analysis view. Shows seven tabs: "User Stories" (story-page mappings with journey distances), "Page Usage" (usage frequency table), "Page Usage Treemap" (visual size representation), "Page Usage Distribution" (histogram of usage patterns), "Page Usage vs Complexity" (scatter plot analysis), "Journey Visualization" (treemap of journey complexity), and "Journey Distribution" (histogram of complexity categories). Supports initialTab parameter with values: "user-stories", "page-usage", "page-usage-treemap", "page-usage-distribution", "page-usage-vs-complexity", "journey-visualization", "journey-distribution".',
+            inputSchema: {
+                initialTab: z.string().optional().describe('Optional initial tab: "user-stories", "page-usage", "page-usage-treemap", "page-usage-distribution", "page-usage-vs-complexity", "journey-visualization", or "journey-distribution"')
+            },
             outputSchema: {
                 success: z.boolean(),
                 view: z.string().optional(),
+                initialTab: z.string().optional(),
                 message: z.string().optional(),
                 error: z.string().optional()
             }
-        }, async () => {
+        }, async ({ initialTab }) => {
             try {
-                const result = await this.viewTools.openUserStoriesJourney();
+                const result = await this.viewTools.openUserStoriesJourney(initialTab);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

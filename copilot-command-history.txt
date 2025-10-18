@@ -144,3 +144,75 @@ VERIFICATION:
 ✅ Correctly noted that initialTab is not supported
 
 ===============================================================================
+
+===============================================================================
+DATE: October 18, 2025
+COMMAND: Implement tab switching support for user stories journey view
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+Implement the initialTab parameter support for the User Stories Journey view
+to enable MCP tools to open specific tabs programmatically.
+
+IMPLEMENTATION PATTERN:
+Following the same successful pattern from User Stories List and Dev views:
+1. Add initialTab parameter to command registration
+2. Add postMessage for both new and existing panels
+3. Add message handler in webview JavaScript
+4. Update MCP tool and viewTools to support parameter
+
+CHANGES MADE:
+
+1. File: src/commands/userStoriesJourneyCommands.ts (line ~1200)
+   - Updated command registration to accept initialTab parameter
+   - Added postMessage for existing panels (reveal + switchToTab)
+   - Added postMessage for new panels after HTML is set
+   - Added console logging for debugging
+
+2. File: src/webviews/userStoriesJourneyView.js (line ~1365)
+   - Added 'switchToTab' case in message handler
+   - Uses querySelector to find tab button by data-tab attribute
+   - Simulates button click to trigger tab switching
+   - Includes console logging for debugging
+
+3. File: src/commands/mcpViewCommands.ts (line ~51)
+   - Updated to pass initialTab parameter to command
+   - Updated comments to document all 7 tab values
+   - Removed "initialTab not supported" note
+
+4. File: src/mcp/tools/viewTools.ts (line ~106)
+   - Updated openUserStoriesJourney to accept initialTab parameter
+   - Follows same pattern as openUserStoriesDev
+
+5. File: src/mcp/server.ts (line ~1054)
+   - Updated tool description to document initialTab support
+   - Added inputSchema with initialTab parameter
+   - Updated outputSchema to include initialTab
+   - Removed "does not support initialTab" note
+
+TAB VALUES SUPPORTED:
+✅ "user-stories" - Story-page mappings with journey distances
+✅ "page-usage" - Usage frequency table
+✅ "page-usage-treemap" - Visual size representation by usage
+✅ "page-usage-distribution" - Histogram of usage patterns
+✅ "page-usage-vs-complexity" - Scatter plot analysis (4 quadrants)
+✅ "journey-visualization" - Treemap of journey complexity
+✅ "journey-distribution" - Histogram of complexity categories
+
+ARCHITECTURE NOTES:
+- Uses data-tab attribute pattern for tab identification
+- Tab switching via button.click() simulation
+- Message passing pattern: extension → webview → switchTab
+- Works for both new panels and existing (revealed) panels
+- Same implementation pattern as userStoriesView and userStoryDevView
+
+VERIFICATION:
+✅ No TypeScript compilation errors
+✅ No webpack errors
+✅ Tab values match HTML data-tab attributes
+✅ Message handler follows established pattern
+✅ MCP tool updated with correct parameters
+✅ ViewTools method signature matches other views
+
+===============================================================================

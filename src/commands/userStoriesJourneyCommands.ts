@@ -1198,8 +1198,8 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
     // Register the main user stories journey command
     const userStoriesJourneyCommand = vscode.commands.registerCommand(
         'appdna.userStoriesJourney',
-        async () => {
-            console.log("User Stories Journey command triggered");
+        async (initialTab?: string) => {
+            console.log(`User Stories Journey command triggered (initialTab: ${initialTab})`);
 
             try {
                 // Check if panel already exists
@@ -1207,6 +1207,14 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                     const existingPanel = activePanels.get('userStoriesJourney');
                     if (existingPanel) {
                         existingPanel.reveal();
+                        
+                        // If initialTab is specified, send message to switch to that tab
+                        if (initialTab) {
+                            existingPanel.webview.postMessage({
+                                command: 'switchToTab',
+                                data: { tabName: initialTab }
+                            });
+                        }
                         return;
                     }
                 }
@@ -3524,6 +3532,14 @@ export function registerUserStoriesJourneyCommands(context: vscode.ExtensionCont
                 </body>
                 </html>
             `;
+
+                // If initialTab is specified, send message to switch to that tab after data is loaded
+                if (initialTab) {
+                    panel.webview.postMessage({
+                        command: 'switchToTab',
+                        data: { tabName: initialTab }
+                    });
+                }
 
                 // Handle messages from the webview
                 panel.webview.onDidReceiveMessage(
