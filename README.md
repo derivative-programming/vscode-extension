@@ -91,7 +91,7 @@ A complete agile project management solution with 8 comprehensive tabs for manag
 - **Property Control**: Toggle property existence with checkboxes - unchecked means the property is omitted from JSON
 - **Tooltips & Descriptions**: Property descriptions shown as helpful tooltips
 - **Visual Diagrams**: Hierarchy diagrams and page flow visualizations
-- **MCP Integration**: Model Context Protocol server for external tool integration
+- **MCP Integration**: Production-ready Model Context Protocol server with 62 tools for GitHub Copilot integration
 - **Keyboard Shortcuts**: Quick access to common actions with Alt+A combinations
 
 ## Getting Started
@@ -414,19 +414,84 @@ Complete listing of general flow definitions:
 
 ## Model Context Protocol (MCP) Integration
 
-The extension includes built-in MCP server capabilities for seamless integration with AI assistants and external tools:
+The extension includes comprehensive MCP server capabilities for seamless integration with GitHub Copilot and other AI assistants. **Production Ready** with **62 tools** covering the entire AppDNA model.
 
 ### MCP Server Features
-- **Local MCP Server**: Starts/stops a local MCP server for direct integration
-- **HTTP Server Bridge**: Provides HTTP access to MCP functionality for web-based tools
+- **62 Comprehensive Tools**: Complete coverage of user stories, data objects, forms, pages, reports, APIs, flows, and more
+- **Three Transport Options**: Stdio (default), HTTP server, and VS Code API integration
 - **Real-time Status**: Visual indicators show server running/stopped states in the tree view
-- **Tool Integration**: Exposes AppDNA model operations as MCP tools for AI assistants
+- **GitHub Copilot Integration**: Natural language queries to explore and modify your AppDNA model
+- **HTTP Bridge Architecture**: Dual HTTP bridges on ports 3001 (data) and 3002 (commands) for seamless communication
+
+### Available MCP Tools (62 Total)
+
+#### User Story Management (5 tools)
+- Create, list, and search user stories with format validation
+- Role-based story filtering
+- Full-text search with case sensitivity options
+
+#### Data Object Management (15 tools)
+- List, create, update, and get data objects with advanced filtering
+- Add and update data object properties with schema validation
+- Role and lookup value management (add, update, list)
+- **Data object usage analysis** - Find where objects are referenced across forms, reports, flows, and user stories
+- Property schema definitions and validation
+
+#### View Navigation (30+ tools)
+- Open any view in the extension via natural language commands
+- User story views (development, QA, journey, page mapping, role requirements)
+- Data object views (details, list, usage analysis, size analysis, database forecast)
+- Page views (list, details, hierarchy, preview, usage analysis)
+- Form and report management views
+- API and flow management views
+- Analytics and metrics dashboards
+
+#### Advanced Features
+- Test and verification tools
+- Schema introspection for all object types
+- Bulk operations support
+- Real-time validation and feedback
 
 ### Server Management
-- Start/stop servers directly from the PROJECT section in the tree view
-- Automatic port management and conflict resolution
-- Status monitoring with visual feedback
-- Configurable server settings through AppDNA configuration
+- **Tree View Control**: Start/stop servers directly from the PROJECT section
+- **Command Palette**: Access server commands via `Ctrl+Shift+P`
+  - "AppDNA: Start MCP Server" - Standard stdio transport
+  - "AppDNA: Stop MCP Server"
+  - "AppDNA: Start MCP HTTP Server" - HTTP transport alternative
+  - "AppDNA: Stop MCP HTTP Server"
+- **Status Monitoring**: Visual feedback in tree view showing running/stopped states
+- **Automatic Configuration**: Settings are automatically written to `.vscode/settings.json`
+
+### Using with GitHub Copilot
+
+Once the MCP server is running, ask GitHub Copilot natural language questions:
+
+**User Story Examples:**
+- "Create a user story: As a Project Manager, I want to view all tasks"
+- "Show me all user stories for the Admin role"
+- "Search for user stories containing 'invoice'"
+
+**Data Object Examples:**
+- "List all data objects"
+- "Show me where the Customer data object is used"
+- "Which forms use the Order data object?"
+- "Create a new data object called Invoice"
+
+**View Navigation Examples:**
+- "Open the user stories development view"
+- "Show me the data object usage analysis"
+- "Display the page preview"
+
+**Note:** After installing extension updates with new MCP tools, you may need to run **"MCP: Reset Cached Tools"** from the VS Code Command Palette to refresh the tool cache.
+
+### MCP Architecture
+- **Port 3000**: MCP Server (main protocol endpoint)
+- **Port 3001**: Data Bridge (read extension data)
+- **Port 3002**: Command Bridge (execute VS Code commands)
+- **MCP SDK Version**: 1.20.0
+- **JSON-RPC 2.0**: Standard protocol over stdio or HTTP transports
+
+For complete MCP documentation including all 62 tools, examples, and configuration details, see [MCP_README.md](./MCP_README.md).
 
 ## Requirements
 
@@ -453,9 +518,6 @@ The extension creates and manages an `app-dna.config.json` file in your workspac
 - **Automatic Configuration**: Extension creates default configuration on first use
 
 ## Known Issues
-
-### General
-- **Model Context Protocol (MCP)**: Work in progress - some features may be experimental
 
 ### User Story QA View
 - **Summary Statistics Display** (Analysis Tab): Statistics may not update correctly due to an ID mismatch bug. This is scheduled for immediate fix.

@@ -197,6 +197,8 @@ For GitHub Copilot to properly discover and use the MCP server, the following se
 }
 ```
 
+> **Note:** After installing extension updates that add new MCP tools, you may need to reset the tool cache for GitHub Copilot to discover them. Open the VS Code Command Palette (Ctrl+Shift+P or ⌘+Shift+P) and run **"MCP: Reset Cached Tools"** to refresh the available tools list.
+
 For the HTTP server option, a different configuration is used:
 
 ```json
