@@ -5,17 +5,66 @@ common types of graphs...
 - pie chart (each slice is a category, shows how many items are in each category)
 - proportional visualization - all items are boxes. size of box is proportional to value
 - scatter plot - each item is a dot on a 2d plane, shows correlation between two values
+ 
 
 
-mcp tools
-- objects
-  - ✅ get list of data objects
-  - ✅ allow search on data object
-    - ✅ try name search query text and then remove spaces. 
-    - ✅ no search is case sensitive
-    - ✅ optional filter on isLookup
-    - ✅ optional filter on parent object name (exact match but not case sensitive)
-  - get list of lookup data object values (param of object Name with exact match but not case sensitive)
+
+---------------------
+   
+
+Describe data object model restrictions
+
+Describe data object prop data types
+
+Describe lookups
+
+
+Describe base data objects expected… pac tac customer
+
+Explain key terms
+ 
+Maintain an md file to describe the data model with last updated date at top. Use map tools to make changes to data objects. 
+
+Maintain an Md file of all known user stories with last updated date at the top. Use mcp tools to make changes to user stories.
+
+Give specific Md file names
+   
+
+Test: update the md with info learned from user stories
+
+
+
+Test: create a data model for a Crm 
+
+
+
+Test : create roles for all Crm users
+
+
+
+Test: create user stories for a Crm 
+
+
+
+Possible for map to notify chat agent?
+
+When model service done processing? 
+
+Timer to perform some task? 
+
+
+
+If view is open and map tool is used then view may need to be updated
+
+Auto refresh all open views?
+
+
+
+
+
+
+
+ ---------------------
 
 
 
