@@ -82,7 +82,7 @@ export class McpBridge {
                     res.end(JSON.stringify(objects));
                 }
                 else if (req.url === '/api/data-objects' && req.method === 'GET') {
-                    // Get all data objects with name, isLookup, parentObjectName, and codeDescription
+                    // Get all data objects with name, isLookup, parentObjectName, and codeDescription (summary only)
                     const objects = modelService.getAllObjects();
                     const dataObjects = objects.map((obj: any) => ({
                         name: obj.name || "",
@@ -91,10 +91,88 @@ export class McpBridge {
                         codeDescription: obj.codeDescription || ""
                     }));
                     
-                    this.outputChannel.appendLine(`[Data Bridge] Returning ${dataObjects.length} data objects (filtered)`);
+                    this.outputChannel.appendLine(`[Data Bridge] Returning ${dataObjects.length} data objects (summary)`);
                     
                     res.writeHead(200);
                     res.end(JSON.stringify(dataObjects));
+                }
+                else if (req.url === '/api/data-objects-full' && req.method === 'GET') {
+                    // Get all data objects with full details (including prop array)
+                    const objects = modelService.getAllObjects();
+                    const fullDataObjects = objects.map((obj: any) => {
+                        // Create a filtered copy of each data object
+                        // Only include prop array if it has items, exclude propSubscription, modelPkg, and lookupItem
+                        const filteredObject: any = {
+                            name: obj.name || "",
+                            parentObjectName: obj.parentObjectName || "",
+                            isLookup: obj.isLookup || "false"
+                        };
+                        
+                        // Add optional properties if they exist
+                        if (obj.codeDescription) {
+                            filteredObject.codeDescription = obj.codeDescription;
+                        }
+                        
+                        // Add prop array only if it has items
+                        if (obj.prop && Array.isArray(obj.prop) && obj.prop.length > 0) {
+                            filteredObject.prop = obj.prop;
+                        }
+                        
+                        return filteredObject;
+                    });
+                    
+                    this.outputChannel.appendLine(`[Data Bridge] Returning ${fullDataObjects.length} data objects (full details)`);
+                    
+                    res.writeHead(200);
+                    res.end(JSON.stringify(fullDataObjects));
+                }
+                else if (req.url && req.url.startsWith('/api/data-objects/') && req.method === 'GET') {
+                    // Get a specific data object by name (complete details)
+                    const objectName = decodeURIComponent(req.url.substring('/api/data-objects/'.length));
+                    
+                    try {
+                        const objects = modelService.getAllObjects();
+                        const dataObject = objects.find((obj: any) => obj.name === objectName);
+                        
+                        if (!dataObject) {
+                            res.writeHead(404);
+                            res.end(JSON.stringify({ 
+                                error: `Data object "${objectName}" not found` 
+                            }));
+                            return;
+                        }
+                        
+                        // Create a filtered copy of the data object
+                        // Only include prop array if it has items, exclude propSubscription, modelPkg, and lookupItem
+                        const filteredObject: any = {
+                            name: dataObject.name || "",
+                            parentObjectName: dataObject.parentObjectName || "",
+                            isLookup: dataObject.isLookup || "false"
+                        };
+                        
+                        // Add optional properties if they exist
+                        if (dataObject.codeDescription) {
+                            filteredObject.codeDescription = dataObject.codeDescription;
+                        }
+                        
+                        // Add prop array only if it has items
+                        if (dataObject.prop && Array.isArray(dataObject.prop) && dataObject.prop.length > 0) {
+                            filteredObject.prop = dataObject.prop;
+                        }
+                        
+                        this.outputChannel.appendLine(`[Data Bridge] Returning complete data object: ${objectName}`);
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify(filteredObject));
+                    } catch (error) {
+                        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                        this.outputChannel.appendLine(`[Data Bridge] Error getting data object: ${errorMessage}`);
+                        
+                        res.writeHead(500);
+                        res.end(JSON.stringify({ 
+                            error: errorMessage 
+                        }));
+                    }
                 }
                 else if (req.url === '/api/data-objects' && req.method === 'POST') {
                     // Create a new data object
@@ -1009,6 +1087,8 @@ export class McpBridge {
                             'POST /api/user-stories/update',
                             'GET /api/objects',
                             'GET /api/data-objects',
+                            'GET /api/data-objects-full',
+                            'GET /api/data-objects/:name',
                             'GET /api/roles',
                             'GET /api/model',
                             'GET /api/health'

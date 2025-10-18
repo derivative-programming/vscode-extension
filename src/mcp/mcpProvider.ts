@@ -39,7 +39,16 @@ interface ListRolesInput {
 }
 
 /**
- * Input schema for list_data_objects tool
+ * Input schema for list_data_object_summary tool
+ */
+interface ListDataObjectSummaryInput {
+    search_name?: string;
+    is_lookup?: string;
+    parent_object_name?: string;
+}
+
+/**
+ * Input schema for list_data_objects tool (full details)
  */
 interface ListDataObjectsInput {
     search_name?: string;
@@ -102,6 +111,13 @@ interface UpdateLookupValueInput {
     displayName?: string;
     description?: string;
     isActive?: string;
+}
+
+/**
+ * Input schema for get_data_object tool
+ */
+interface GetDataObjectInput {
+    name: string;
 }
 
 /**
@@ -464,12 +480,80 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ get_role_schema registered');
 
-        // Register list_data_objects tool
+        // Register get_data_object_summary_schema tool
+        console.log('[MCP Provider] Registering get_data_object_summary_schema...');
+        const getDataObjectSummarySchemaTool = vscode.lm.registerTool('get_data_object_summary_schema', {
+            prepareInvocation: async (options, token) => {
+                return {
+                    invocationMessage: 'Getting data object summary schema definition',
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const result = await this.dataObjectTools.get_data_object_summary_schema();
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_data_object_summary_schema registered');
+
+        // Register list_data_object_summary tool
+        console.log('[MCP Provider] Registering list_data_object_summary...');
+        const listDataObjectSummaryTool = vscode.lm.registerTool('list_data_object_summary', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as ListDataObjectSummaryInput;
+                let message = 'Listing data object summary from the AppDNA model';
+                if (input?.search_name) {
+                    message += ` matching "${input.search_name}"`;
+                }
+                if (input?.is_lookup) {
+                    message += ` (lookup: ${input.is_lookup})`;
+                }
+                if (input?.parent_object_name) {
+                    message += ` (parent: ${input.parent_object_name})`;
+                }
+                return {
+                    invocationMessage: message,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as ListDataObjectSummaryInput;
+                    const result = await this.dataObjectTools.list_data_object_summary(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ list_data_object_summary registered');
+
+        // Register list_data_objects tool (full details)
         console.log('[MCP Provider] Registering list_data_objects...');
         const listDataObjectsTool = vscode.lm.registerTool('list_data_objects', {
             prepareInvocation: async (options, token) => {
                 const input = options.input as ListDataObjectsInput;
-                let message = 'Listing data objects from the AppDNA model';
+                let message = 'Listing full data objects (with prop arrays) from the AppDNA model';
                 if (input?.search_name) {
                     message += ` matching "${input.search_name}"`;
                 }
@@ -504,6 +588,36 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ list_data_objects registered');
 
+        // Register get_data_object tool
+        console.log('[MCP Provider] Registering get_data_object...');
+        const getDataObjectTool = vscode.lm.registerTool('get_data_object', {
+            prepareInvocation: async (options, token) => {
+                const input = options.input as GetDataObjectInput;
+                return {
+                    invocationMessage: `Getting complete details for data object "${input.name}"`,
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const input = options.input as GetDataObjectInput;
+                    const result = await this.dataObjectTools.get_data_object(input);
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_data_object registered');
+
         // Register create_data_object tool
         console.log('[MCP Provider] Registering create_data_object...');
         const createDataObjectTool = vscode.lm.registerTool('create_data_object', {
@@ -532,7 +646,35 @@ export class AppDNAMcpProvider {
                 }
             }
         });
-        console.log('[MCP Provider] ✓ create_data_object registered');
+        console.log('[MCP Provider] ✓ get_data_object registered');
+
+        // Register get_data_object_schema tool
+        console.log('[MCP Provider] Registering get_data_object_schema...');
+        const getDataObjectSchemaTool = vscode.lm.registerTool('get_data_object_schema', {
+            prepareInvocation: async (options, token) => {
+                return {
+                    invocationMessage: 'Getting schema definition for complete data object structure (with prop array)',
+                    confirmationMessages: undefined
+                };
+            },
+            invoke: async (options, token) => {
+                try {
+                    const result = await this.dataObjectTools.get_data_object_schema();
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+                    ]);
+                } catch (error) {
+                    const errorResult = {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                    return new vscode.LanguageModelToolResult([
+                        new vscode.LanguageModelTextPart(JSON.stringify(errorResult, null, 2))
+                    ]);
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ get_data_object_schema registered');
 
         // Register search_user_stories_by_role tool
         console.log('[MCP Provider] Registering search_user_stories_by_role...');
@@ -606,11 +748,15 @@ export class AppDNAMcpProvider {
             updateLookupValueTool,
             getLookupValueSchemaTool,
             getRoleSchemaTool,
-            listDataObjectsTool, 
+            getDataObjectSummarySchemaTool,
+            listDataObjectSummaryTool,
+            listDataObjectsTool,
+            getDataObjectTool,
+            getDataObjectSchemaTool,
             searchByRoleTool, 
             searchStoriesTool
         );
-        console.log('[MCP Provider] All 14 tools registered and added to disposables');
+        console.log('[MCP Provider] All 18 tools registered and added to disposables');
     }
 
     /**

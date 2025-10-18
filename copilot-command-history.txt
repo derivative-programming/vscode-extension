@@ -1,3 +1,291 @@
+2025-10-18: Enhanced get_data_object_schema with ALL property fields from UI
+Details:
+- Updated schema to include ALL 16 property fields visible in the Properties tab UI
+- Previously only had 6 basic fields, now comprehensive with all settings
+- Complete property field list:
+  * name - Property name (PascalCase, required)
+  * description - Property description
+  * displayOrder - UI display order (numeric)
+  * isActive - Active status flag
+  * lookupEnumName - Lookup enum reference
+  * codeDescription - Code description
+  * fkObjectName - Foreign key object name (required when isFK="true")
+  * fkObjectPropertyName - FK property name in referenced object
+  * forceDBColumnIndex - Force DB column index flag
+  * isEncrypted - Encryption flag for sensitive data
+  * isFK - Foreign key indicator
+  * isFKConstraintSuppressed - Suppress FK constraint flag
+  * isFKLookup - FK to lookup object indicator
+  * isNotPublishedToSubscriptions - Subscription exclusion flag
+  * isQueryByAvailable - Query/filter availability flag
+  * labelText - UI label text
+  * sqlServerDBDataType - SQL Server data type
+  * sqlServerDBDataTypeSize - SQL data type size (for varchar, decimal, etc.)
+- Enhanced validation rules with guidance for all fields
+- Updated examples showing realistic property configurations:
+  * Regular entity with parent FK and multiple properties
+  * Lookup object with PacID FK
+  * Property with FK to lookup (with lookupEnumName)
+  * Encrypted property (password example)
+  * Object without properties
+- Enhanced notes section with detailed usage guidance
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Updated prop items properties to 16 fields (removed pacID - not a prop field)
+     * Added comprehensive descriptions for each field
+     * Updated validation rules with field-specific guidance
+     * Enhanced commonPatterns with 5 realistic examples
+     * Expanded notes with detailed usage guidelines
+- Architecture notes:
+  * Schema now matches UI exactly - all Properties tab fields documented
+  * Provides complete reference for AI assistant property manipulation
+  * Documents SQL Server conventions and data type patterns
+  * Explains FK relationships, lookup patterns, encryption, indexing
+
+2025-10-18: Added get_data_object_schema MCP tool
+Details:
+- Implemented schema documentation tool for complete data object structure (with prop array)
+- Provides comprehensive documentation for data objects returned by get_data_object and list_data_objects
+- Complements get_data_object_summary_schema which documents the summary structure (without prop array)
+- Parameters: None (no input required)
+- Returns detailed schema including:
+  * All core properties: name, parentObjectName, isLookup, codeDescription
+  * Complete prop array structure with all property fields
+  * Property field descriptions: name, sqlServerDBDataType, isFK, isFKLookup, isNotPublishedToSubscriptions, isFKConstraintSuppressed
+  * Excluded properties: propSubscription, modelPkg, lookupItem (with explanations)
+  * Validation rules for all fields
+  * Common patterns with examples: regular entities with parent FKs, lookup objects, objects without props
+  * Usage information: which tools return this structure
+  * SQL Server data type examples
+- Use cases:
+  * Understand complete data object structure before working with get_data_object or list_data_objects
+  * Learn about prop array structure and property field meanings
+  * See examples of complete objects with properties
+  * Understand SQL data types and foreign key patterns
+  * Reference for property validation rules
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added get_data_object_schema() method (~230 lines)
+     * Comprehensive schema documentation with property field details
+     * Examples of objects with and without properties
+     * DataObjectTools now has 14 methods total
+  2. src/mcp/server.ts:
+     * Registered get_data_object_schema tool
+     * No input schema (no parameters)
+     * Output schema: success, schema (z.any()), note
+     * Total tools: 18 registered
+  3. src/mcp/mcpProvider.ts:
+     * Registered get_data_object_schema tool with VS Code Language Model API
+     * Added to disposables array
+     * Updated count: 18 tools registered
+- Architecture notes:
+  * Schema tools provide AI assistant guidance for understanding data structures
+  * Two complementary schema tools:
+    - get_data_object_summary_schema: Documents summary structure (no prop array)
+    - get_data_object_schema: Documents full structure (with prop array)
+  * Helps AI understand property structure before manipulating data objects
+  * Documents SQL Server data type conventions and foreign key patterns
+
+2025-10-18: Added list_data_objects MCP tool for full object details with filters
+Details:
+- Implemented tool to retrieve ALL data objects with complete details (including prop arrays)
+- Complements existing tools: list_data_object_summary (basic info, multiple) and get_data_object (full details, single)
+- Provides same search/filter capabilities as list_data_object_summary but returns full object structures
+- Parameters (all optional):
+  * search_name - Filter by object name (case-insensitive, searches with and without spaces)
+  * is_lookup - Filter by lookup status: "true" or "false"
+  * parent_object_name - Filter by parent object name (exact match, case-insensitive)
+- Returns array of complete data objects with:
+  * Core properties: name, parentObjectName, isLookup, codeDescription
+  * prop array - ONLY if it has items (not empty array)
+  * Excludes: propSubscription, modelPkg, lookupItem (consistent with get_data_object)
+- Use cases:
+  * Get all data objects with their properties for bulk analysis
+  * Filter lookup objects and see their structures
+  * Find all child objects of a parent and inspect their properties
+  * Search for objects by name and get complete details in one call
+- Files modified:
+  1. src/services/mcpBridge.ts:
+     * Added GET /api/data-objects-full endpoint
+     * Returns array of filtered data objects with prop arrays
+     * Maps all objects through same filter logic as get_data_object
+     * Added to endpoint list in 404 response
+  2. src/mcp/tools/dataObjectTools.ts:
+     * Added list_data_objects() method (~70 lines)
+     * Fetches from /api/data-objects-full endpoint
+     * Applies same filters as list_data_object_summary (search_name, is_lookup, parent_object_name)
+     * Returns filtered array of complete objects
+     * DataObjectTools now has 13 methods total
+  3. src/mcp/server.ts:
+     * Registered list_data_objects tool with Zod schemas
+     * Input schema: search_name, is_lookup, parent_object_name (all optional)
+     * Output schema: success, objects array (z.any()), count, filters, note, warning
+     * Total tools: 17 registered
+  4. src/mcp/mcpProvider.ts:
+     * Added ListDataObjectsInput interface
+     * Registered list_data_objects tool with VS Code Language Model API
+     * Added to disposables array
+     * Updated count: 17 tools registered
+- Architecture notes:
+  * Three-tier data object access pattern:
+    - list_data_object_summary: Many objects, basic info (name, isLookup, parent, description)
+    - list_data_objects: Many objects, full details (+ prop array)
+    - get_data_object: Single object, full details (+ prop array)
+  * All three tools support consistent filtering/search patterns
+  * Promotes efficient data access: use summary for browsing, full for analysis
+  * Bridge endpoint /api/data-objects-full reuses same filtering logic as single object endpoint
+
+2025-10-18: Updated get_data_object MCP tool to filter response
+Details:
+- Modified /api/data-objects/:name endpoint to return only relevant properties
+- Filters out empty or internal-only arrays (propSubscription, modelPkg, lookupItem)
+- Returns clean, focused data object structure
+- Filtered response includes:
+  * Core properties: name, parentObjectName, isLookup, codeDescription
+  * prop array - ONLY if it has items (not empty array)
+  * Excludes: propSubscription, modelPkg, lookupItem (all array types excluded)
+- Files modified:
+  1. src/services/mcpBridge.ts:
+     * Updated GET /api/data-objects/:name endpoint
+     * Creates filteredObject with only populated properties
+     * Conditionally adds prop[] if length > 0
+     * Never includes propSubscription[], modelPkg[], or lookupItem[]
+- Architecture notes:
+  * Cleaner API response - no arrays cluttering output
+  * Only includes scalar properties and prop array (if populated)
+  * Reduces token usage for MCP tool responses
+  * Follows API best practice of omitting array collections from this endpoint
+
+2025-10-18: Added get_data_object MCP tool
+Details:
+- Implemented tool to retrieve complete details of a specific data object by name
+- Returns full data object structure including all properties, props array, and lookupItem array
+- Complements list_data_object_summary which returns only basic info for multiple objects
+- Parameters:
+  * name (required) - Data object name to retrieve (case-sensitive, exact match)
+- Returns complete data object with:
+  * All name/value properties (name, isLookup, parentObjectName, codeDescription, etc.)
+  * Full prop array with all property items and their configurations
+  * lookupItem array (if isLookup="true") with all lookup values
+  * All other object metadata and nested structures
+- Use cases:
+  * Inspect complete structure of a data object before modifications
+  * Get all properties for code generation or analysis
+  * Retrieve lookup values within a lookup object
+  * Understand full object configuration and relationships
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added get_data_object() method (~45 lines)
+     * Takes name parameter, returns complete data object
+     * Returns 404 if object not found
+     * DataObjectTools now has 12 methods total
+  2. src/services/mcpBridge.ts:
+     * Added GET /api/data-objects/:name endpoint
+     * Uses URL path parameter for object name
+     * Returns complete data object from modelService.getAllObjects()
+     * Returns 404 if object not found
+     * Added to endpoint list in 404 response
+  3. src/mcp/server.ts:
+     * Registered get_data_object tool
+     * Input schema: name (required string)
+     * Output schema: dataObject as any (complete structure varies by object)
+     * Positioned after list_data_object_summary
+  4. src/mcp/mcpProvider.ts:
+     * Added GetDataObjectInput interface
+     * Registered get_data_object tool for VS Code API
+     * Added to disposables array (now 16 tools total, was 15)
+
+Example Usage:
+get_data_object({ name: "Customer" })
+// Returns: { success: true, dataObject: { name: "Customer", isLookup: "false", parentObjectName: "Pac", prop: [...], ... } }
+
+get_data_object({ name: "Role" })
+// Returns: { success: true, dataObject: { name: "Role", isLookup: "true", lookupItem: [...], prop: [...], ... } }
+
+Architecture Notes:
+- Differs from list_data_object_summary (returns array of summaries) by returning one complete object
+- Bridge endpoint uses path parameter pattern (/api/data-objects/:name) for RESTful design
+- Returns raw object structure as-is from model (no filtering or transformation)
+- Useful for detailed inspection before updates or for code generation scenarios
+- Tool + endpoint pattern consistent with other single-item retrieval operations
+
+Status: ✅ COMPLETE - All compilation successful, zero errors, 16 MCP tools total
+
+2025-10-18: Added get_data_object_summary_schema MCP tool
+Details:
+- Implemented documentation/schema tool for data objects structure
+- Complements list_data_object_summary by documenting what data objects are and their properties
+- No parameters required - returns static comprehensive schema definition
+- Purpose: Help AI assistants understand data object structure, hierarchy, and patterns
+- Returns comprehensive schema including:
+  * Property definitions (name, isLookup, parentObjectName, codeDescription)
+  * Data types, required/optional status, and constraints
+  * Validation rules for each property (PascalCase pattern, uniqueness, parent validation)
+  * Format requirements and hierarchical relationship rules
+  * Usage information (location, access, model structure, hierarchy)
+  * Tool references (query, manipulation, related tools)
+  * Common patterns with examples (regular entities vs lookup objects)
+  * 8 implementation notes about data object characteristics
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Added get_data_object_summary_schema() method (~160 lines)
+     * Inserted after list_data_object_summary method
+     * Documents both regular entities and lookup objects
+     * Includes hierarchical relationship explanations
+     * Examples: Customer→Order→OrderLineItem hierarchy, Role/Status/Priority lookups
+  2. src/mcp/server.ts:
+     * Registered get_data_object_summary_schema tool
+     * No input parameters (empty schema)
+     * Comprehensive output schema with nested objects for tools, commonPatterns, notes
+     * Positioned before get_role_schema for logical grouping
+  3. src/mcp/mcpProvider.ts:
+     * Registered get_data_object_summary_schema tool for VS Code API
+     * Added to disposables array (now 15 tools total, was 14)
+
+Schema Properties Documented:
+1. name - Required, PascalCase, unique identifier (e.g., Customer, OrderLineItem)
+2. isLookup - Required boolean, true for lookup/reference objects, false for entities
+3. parentObjectName - Required (nullable), defines hierarchy, lookups must have "Pac"
+4. codeDescription - Optional string, documentation/code generation hints
+
+Key Concepts Explained:
+- Hierarchical tree structure via parent-child relationships
+- Lookup objects (dropdown values) vs regular entities (transactional data)
+- Parent validation rules (lookup objects must have parent "Pac")
+- PascalCase naming for code generation compatibility
+- Common naming patterns for entities and lookups
+
+Example Patterns Included:
+- Regular entities: Customer (parent: Pac) → Order (parent: Customer) → OrderLineItem (parent: Order)
+- Lookup objects: Role, Status, Priority (all parent: Pac, isLookup: true)
+
+Architecture: Documentation tool pattern providing self-documenting API for AI assistants. No data access required - returns static comprehensive schema information about data object structure.
+
+Status: ✅ COMPLETE - All compilation successful, zero errors, 15 MCP tools total
+
+2025-10-18: Renamed list_data_objects to list_data_object_summary
+Details:
+- Renamed MCP tool to better reflect its purpose (returns summary info, not full details)
+- Tool returns basic object information: name, isLookup, parentObjectName, codeDescription
+- No functional changes, only naming for clarity
+- Files modified:
+  1. src/mcp/tools/dataObjectTools.ts:
+     * Renamed method: list_data_objects() → list_data_object_summary()
+     * Updated JSDoc comment to reflect "summary" nature
+  2. src/mcp/server.ts:
+     * Updated tool registration from 'list_data_objects' to 'list_data_object_summary'
+     * Updated title: "List Data Objects" → "List Data Object Summary"
+     * Updated description to emphasize summary/basic info
+  3. src/mcp/mcpProvider.ts:
+     * Renamed interface: ListDataObjectsInput → ListDataObjectSummaryInput
+     * Updated tool registration to 'list_data_object_summary'
+     * Updated variable name: listDataObjectsTool → listDataObjectSummaryTool
+     * Updated console log messages
+
+Rationale: Tool name now accurately describes what it returns - a summary of data objects rather than full detailed information. This sets the expectation correctly for users and leaves room for a future detailed tool if needed.
+
+Status: ✅ COMPLETE - All compilation successful, zero errors, 14 MCP tools total
+
 2025-10-18: Added update_user_story MCP tool
 Details:
 - Implemented tool to update the isIgnored property of existing user stories

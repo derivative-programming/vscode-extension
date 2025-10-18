@@ -12,12 +12,12 @@ export class DataObjectTools {
     }
 
     /**
-     * Lists all data objects from the AppDNA model
-     * Tool name: list_data_objects (following MCP snake_case convention)
+     * Lists summary of all data objects from the AppDNA model
+     * Tool name: list_data_object_summary (following MCP snake_case convention)
      * @param parameters Optional search and filter parameters
      * @returns Array of data objects with name, isLookup, and parentObjectName
      */
-    public async list_data_objects(parameters?: any): Promise<any> {
+    public async list_data_object_summary(parameters?: any): Promise<any> {
         const { search_name, is_lookup, parent_object_name } = parameters || {};
         
         // Try to get data objects from extension via HTTP bridge
@@ -75,6 +75,633 @@ export class DataObjectTools {
                 warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
             };
         }
+    }
+
+    /**
+     * Lists all data objects with full details from the AppDNA model
+     * Tool name: list_data_objects (following MCP snake_case convention)
+     * @param parameters Optional search and filter parameters
+     * @returns Array of complete data objects with all properties including prop array
+     */
+    public async list_data_objects(parameters?: any): Promise<any> {
+        const { search_name, is_lookup, parent_object_name } = parameters || {};
+        
+        // Try to get full data objects from extension via HTTP bridge
+        try {
+            const response = await this.fetchFromBridge('/api/data-objects-full');
+            let filteredObjects = response;
+            
+            // Apply search_name filter (case-insensitive)
+            if (search_name && typeof search_name === 'string') {
+                const searchLower = search_name.toLowerCase();
+                const searchNoSpaces = search_name.replace(/\s+/g, '').toLowerCase();
+                
+                filteredObjects = filteredObjects.filter((obj: any) => {
+                    const nameLower = (obj.name || '').toLowerCase();
+                    const nameNoSpaces = (obj.name || '').replace(/\s+/g, '').toLowerCase();
+                    
+                    // Search with spaces and without spaces
+                    return nameLower.includes(searchLower) || nameNoSpaces.includes(searchNoSpaces);
+                });
+            }
+            
+            // Apply is_lookup filter
+            if (is_lookup !== undefined && is_lookup !== null) {
+                const lookupValue = is_lookup === 'true' || is_lookup === true;
+                filteredObjects = filteredObjects.filter((obj: any) => {
+                    const objIsLookup = obj.isLookup === 'true' || obj.isLookup === true;
+                    return objIsLookup === lookupValue;
+                });
+            }
+            
+            // Apply parent_object_name filter (case-insensitive exact match)
+            if (parent_object_name && typeof parent_object_name === 'string') {
+                const parentLower = parent_object_name.toLowerCase();
+                filteredObjects = filteredObjects.filter((obj: any) => {
+                    const objParentLower = (obj.parentObjectName || '').toLowerCase();
+                    return objParentLower === parentLower;
+                });
+            }
+            
+            return {
+                success: true,
+                objects: filteredObjects,
+                count: filteredObjects.length,
+                filters: {
+                    search_name: search_name || null,
+                    is_lookup: is_lookup || null,
+                    parent_object_name: parent_object_name || null
+                },
+                note: "Full data objects (with prop arrays) loaded from AppDNA model via MCP bridge"
+            };
+        } catch (error) {
+            // Return empty list if bridge is not available
+            return {
+                success: false,
+                objects: [],
+                count: 0,
+                note: "Could not load data objects from bridge",
+                warning: `Could not connect to extension: ${error instanceof Error ? error.message : 'Unknown error'}`
+            };
+        }
+    }
+
+    /**
+     * Gets the schema definition for data object summary
+     * Tool name: get_data_object_summary_schema (following MCP snake_case convention)
+     * @returns Schema definition with properties, validation rules, and examples
+     */
+    public async get_data_object_summary_schema(): Promise<any> {
+        return {
+            success: true,
+            schema: {
+                type: 'object',
+                description: 'Data object structure in AppDNA model - represents entities and their relationships',
+                properties: {
+                    name: {
+                        type: 'string',
+                        required: true,
+                        format: 'PascalCase',
+                        pattern: '^[A-Z][A-Za-z0-9]*$',
+                        description: 'Unique identifier for the data object. Must be in PascalCase format (starts with uppercase letter, no spaces, can contain letters and numbers).',
+                        examples: ['Customer', 'Order', 'Product', 'Employee', 'CustomerOrder', 'OrderLineItem']
+                    },
+                    isLookup: {
+                        type: 'boolean',
+                        required: true,
+                        description: 'Indicates whether this is a lookup/reference data object (true) or a regular entity (false). Lookup objects contain dropdown/selection values.',
+                        examples: [true, false]
+                    },
+                    parentObjectName: {
+                        type: 'string',
+                        required: true,
+                        nullable: true,
+                        description: 'Name of the parent data object. Defines hierarchical relationships. Lookup objects must have parent "Pac". Root objects may have null parent.',
+                        examples: ['Customer', 'Order', 'Pac', null]
+                    },
+                    codeDescription: {
+                        type: 'string',
+                        required: false,
+                        description: 'Optional description of the data object for documentation purposes.',
+                        examples: ['Customer entity with contact information', 'Order header data', 'Product catalog items']
+                    }
+                },
+                validationRules: {
+                    name: [
+                        'Required field',
+                        'Must be unique across all data objects (case-insensitive check)',
+                        'Must be in PascalCase format',
+                        'Must start with uppercase letter',
+                        'Can only contain letters (A-Z, a-z) and numbers (0-9)',
+                        'No spaces, hyphens, or special characters allowed',
+                        'Common patterns: Entity names (Customer, Order), Composite names (CustomerOrder)'
+                    ],
+                    isLookup: [
+                        'Required field',
+                        'Boolean value (true or false)',
+                        'true = Lookup object (contains reference/dropdown values)',
+                        'false = Regular entity object (contains transactional/master data)',
+                        'Lookup objects typically have names ending in common patterns (Status, Type, Category, Role)'
+                    ],
+                    parentObjectName: [
+                        'Required field (can be null for root objects)',
+                        'Must match an existing data object name exactly (case-sensitive)',
+                        'Defines parent-child hierarchical relationship',
+                        'Lookup objects (isLookup=true) must have parentObjectName="Pac"',
+                        'Regular objects typically have entity as parent (e.g., OrderLineItem parent is Order)',
+                        'Used for organizing model structure and navigation'
+                    ],
+                    codeDescription: [
+                        'Optional field',
+                        'Can be any descriptive text',
+                        'Used for documentation and code generation hints',
+                        'Not displayed in UI, mainly for developers'
+                    ]
+                },
+                usage: {
+                    location: 'Stored in namespace → object array in AppDNA model',
+                    access: 'Via namespace[0].object array',
+                    modelStructure: 'namespace → object[]',
+                    purpose: 'Define entities, their types (lookup vs regular), and hierarchical relationships',
+                    hierarchy: 'Objects form a tree structure via parentObjectName relationships'
+                },
+                tools: {
+                    query: [
+                        'list_data_object_summary - List/search data objects with filters',
+                        'get_data_object_summary_schema - Get this schema definition'
+                    ],
+                    manipulation: [
+                        'create_data_object - Create new data object',
+                        'update_data_object - Update existing data object (if implemented)'
+                    ],
+                    related: [
+                        'list_lookup_values - List values within a lookup object',
+                        'add_lookup_value - Add value to a lookup object',
+                        'list_roles - List values from the special Role lookup object'
+                    ]
+                },
+                commonPatterns: {
+                    regularEntities: [
+                        {
+                            name: 'Customer',
+                            isLookup: false,
+                            parentObjectName: 'Pac',
+                            codeDescription: 'Customer master data'
+                        },
+                        {
+                            name: 'Order',
+                            isLookup: false,
+                            parentObjectName: 'Customer',
+                            codeDescription: 'Customer orders'
+                        },
+                        {
+                            name: 'OrderLineItem',
+                            isLookup: false,
+                            parentObjectName: 'Order',
+                            codeDescription: 'Individual items in an order'
+                        }
+                    ],
+                    lookupObjects: [
+                        {
+                            name: 'Role',
+                            isLookup: true,
+                            parentObjectName: 'Pac',
+                            codeDescription: 'User roles for access control'
+                        },
+                        {
+                            name: 'Status',
+                            isLookup: true,
+                            parentObjectName: 'Pac',
+                            codeDescription: 'Status values (Active, Inactive, Pending, etc.)'
+                        },
+                        {
+                            name: 'Priority',
+                            isLookup: true,
+                            parentObjectName: 'Pac',
+                            codeDescription: 'Priority levels (High, Medium, Low)'
+                        }
+                    ]
+                },
+                notes: [
+                    'Data objects form the core structure of the AppDNA model',
+                    'Lookup objects (isLookup=true) contain dropdown/reference values and must have parent "Pac"',
+                    'Regular objects (isLookup=false) represent entities and can have any valid parent',
+                    'Parent-child relationships create a hierarchical tree structure',
+                    'Objects can have properties (not shown in summary - use detailed view)',
+                    'The "Pac" object is typically the root parent for lookup objects',
+                    'Object names are used in user stories, page mappings, and code generation',
+                    'PascalCase naming enforced for consistency and code generation compatibility'
+                ]
+            },
+            note: 'This schema defines the structure of data objects in the AppDNA model as returned by list_data_object_summary'
+        };
+    }
+
+    /**
+     * Gets complete details of a specific data object including all properties and props array
+     * Tool name: get_data_object (following MCP snake_case convention)
+     * @param parameters Tool parameters containing name (the data object name to retrieve)
+     * @returns Complete data object with all properties, props array, and lookupItem array if applicable
+     */
+    public async get_data_object(parameters: any): Promise<any> {
+        const { name } = parameters;
+
+        // Validate required parameter
+        if (!name) {
+            return {
+                success: false,
+                error: 'Parameter "name" is required',
+                validationErrors: ['name is required']
+            };
+        }
+
+        // Get data object from extension via HTTP bridge
+        try {
+            const endpoint = `/api/data-objects/${encodeURIComponent(name)}`;
+            const dataObject = await this.fetchFromBridge(endpoint);
+
+            return {
+                success: true,
+                dataObject: dataObject,
+                note: `Data object "${name}" loaded from AppDNA model via MCP bridge`
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: `Failed to load data object: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: `Data object "${name}" not found or bridge connection failed`
+            };
+        }
+    }
+
+    /**
+     * Gets the schema definition for full data object structure
+     * Tool name: get_data_object_schema (following MCP snake_case convention)
+     * @returns Schema definition with properties, validation rules, and examples for full data objects
+     */
+    public async get_data_object_schema(): Promise<any> {
+        return {
+            success: true,
+            schema: {
+                type: 'object',
+                description: 'Complete data object structure in AppDNA model as returned by get_data_object and list_data_objects - includes all properties and prop array',
+                properties: {
+                    name: {
+                        type: 'string',
+                        required: true,
+                        format: 'PascalCase',
+                        pattern: '^[A-Z][A-Za-z0-9]*$',
+                        description: 'Unique identifier for the data object. Must be in PascalCase format.',
+                        examples: ['Customer', 'Order', 'Product', 'OrderLineItem']
+                    },
+                    parentObjectName: {
+                        type: 'string',
+                        required: true,
+                        description: 'Name of the parent data object. Defines hierarchical relationships.',
+                        examples: ['Customer', 'Order', 'Pac', '']
+                    },
+                    isLookup: {
+                        type: 'string',
+                        required: true,
+                        enum: ['true', 'false'],
+                        description: 'String value indicating whether this is a lookup object. "true" for lookup objects, "false" for regular entities.',
+                        examples: ['true', 'false']
+                    },
+                    codeDescription: {
+                        type: 'string',
+                        required: false,
+                        description: 'Optional description of the data object for documentation purposes.',
+                        examples: ['Customer entity with contact information', 'Order header data']
+                    },
+                    prop: {
+                        type: 'array',
+                        required: false,
+                        description: 'Array of property definitions for this data object. Only included if the object has properties. Each property represents a field/column.',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                name: {
+                                    type: 'string',
+                                    required: true,
+                                    format: 'PascalCase',
+                                    description: 'Property name in PascalCase format',
+                                    examples: ['CustomerID', 'FirstName', 'EmailAddress', 'OrderDate', 'IsActive']
+                                },
+                                description: {
+                                    type: 'string',
+                                    required: false,
+                                    description: 'Optional description of the property for documentation',
+                                    examples: ['Customer unique identifier', 'Customer first name', 'Primary email address']
+                                },
+                                displayOrder: {
+                                    type: 'number',
+                                    required: false,
+                                    description: 'Display order for the property in UI',
+                                    examples: [1, 2, 3, 10, 20]
+                                },
+                                isActive: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'String indicating if property is active',
+                                    examples: ['true', 'false']
+                                },
+                                lookupEnumName: {
+                                    type: 'string',
+                                    required: false,
+                                    description: 'Name of the lookup enum for this property (if it references a lookup)',
+                                    examples: ['Status', 'Priority', 'Role']
+                                },
+                                codeDescription: {
+                                    type: 'string',
+                                    required: false,
+                                    description: 'Code description for the property',
+                                    examples: ['Campaign Data Row Event Type Is Active']
+                                },
+                                fkObjectName: {
+                                    type: 'string',
+                                    required: false,
+                                    description: 'Foreign key object name - the data object this FK references',
+                                    examples: ['Customer', 'Order', 'Status', 'Role']
+                                },
+                                fkObjectPropertyName: {
+                                    type: 'string',
+                                    required: false,
+                                    description: 'Foreign key object property name - the property name in the referenced object',
+                                    examples: ['CustomerID', 'OrderID', 'StatusID']
+                                },
+                                forceDBColumnIndex: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'String indicating if database column index should be forced',
+                                    examples: ['true', 'false']
+                                },
+                                isEncrypted: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'String indicating if property value should be encrypted',
+                                    examples: ['true', 'false']
+                                },
+                                isFK: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'String indicating if this is a foreign key property',
+                                    examples: ['true', 'false']
+                                },
+                                isFKConstraintSuppressed: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'String indicating if foreign key constraint should be suppressed in database',
+                                    examples: ['true', 'false']
+                                },
+                                isFKLookup: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'String indicating if this is a foreign key to a lookup object',
+                                    examples: ['true', 'false']
+                                },
+                                isNotPublishedToSubscriptions: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'String indicating if property should be excluded from subscriptions',
+                                    examples: ['true', 'false']
+                                },
+                                isQueryByAvailable: {
+                                    type: 'string',
+                                    enum: ['true', 'false'],
+                                    description: 'String indicating if this property is available for querying',
+                                    examples: ['true', 'false']
+                                },
+                                labelText: {
+                                    type: 'string',
+                                    required: false,
+                                    description: 'Label text for UI display',
+                                    examples: ['Is Active', 'First Name', 'Email Address', 'Order Date']
+                                },
+                                sqlServerDBDataType: {
+                                    type: 'string',
+                                    required: false,
+                                    description: 'SQL Server data type for this property',
+                                    examples: ['int', 'nvarchar(100)', 'datetime', 'bit', 'decimal(18,2)', 'uniqueidentifier']
+                                },
+                                sqlServerDBDataTypeSize: {
+                                    type: 'string',
+                                    required: false,
+                                    description: 'SQL Server data type size (for varchar, nvarchar, etc.)',
+                                    examples: ['50', '100', '255', 'MAX']
+                                }
+                            }
+                        },
+                        examples: [
+                            [
+                                {
+                                    name: 'CustomerID',
+                                    sqlServerDBDataType: 'int',
+                                    isFK: 'true',
+                                    fkObjectName: 'Customer',
+                                    isNotPublishedToSubscriptions: 'true',
+                                    isFKConstraintSuppressed: 'false',
+                                    labelText: 'Customer ID',
+                                    displayOrder: 1
+                                },
+                                {
+                                    name: 'FirstName',
+                                    sqlServerDBDataType: 'nvarchar',
+                                    sqlServerDBDataTypeSize: '100',
+                                    labelText: 'First Name',
+                                    isQueryByAvailable: 'true',
+                                    displayOrder: 2
+                                },
+                                {
+                                    name: 'IsActive',
+                                    sqlServerDBDataType: 'bit',
+                                    labelText: 'Is Active',
+                                    isActive: 'true',
+                                    codeDescription: 'Indicates if record is active',
+                                    displayOrder: 10
+                                }
+                            ]
+                        ]
+                    }
+                },
+                excludedProperties: {
+                    propSubscription: 'Internal array - always excluded from response',
+                    modelPkg: 'Internal array - always excluded from response',
+                    lookupItem: 'Lookup values array - excluded from get_data_object and list_data_objects responses (use list_lookup_values tool instead)'
+                },
+                validationRules: {
+                    name: [
+                        'Required field',
+                        'Must be unique across all data objects',
+                        'Must be in PascalCase format',
+                        'Must start with uppercase letter',
+                        'Can only contain letters and numbers',
+                        'No spaces or special characters'
+                    ],
+                    parentObjectName: [
+                        'Required field',
+                        'Must match an existing data object name',
+                        'Lookup objects (isLookup="true") must have parentObjectName="Pac"',
+                        'Empty string allowed for root objects'
+                    ],
+                    isLookup: [
+                        'Required field',
+                        'Must be string "true" or "false" (not boolean)',
+                        '"true" = Lookup object (contains reference values)',
+                        '"false" = Regular entity object'
+                    ],
+                    prop: [
+                        'Optional array - only included if object has properties',
+                        'Each property must have unique name within the object',
+                        'Property names must be in PascalCase format',
+                        'Foreign key properties typically end with "ID" suffix',
+                        'SQL data types follow SQL Server conventions',
+                        'All boolean-like fields use string "true"/"false" not boolean',
+                        'displayOrder controls UI presentation order',
+                        'labelText provides human-readable UI labels',
+                        'fkObjectName required when isFK="true"',
+                        'isFKLookup="true" when FK points to lookup object',
+                        'isQueryByAvailable="true" enables query filtering on property',
+                        'isEncrypted="true" for sensitive data like passwords',
+                        'forceDBColumnIndex="true" to force database index creation'
+                    ]
+                },
+                usage: {
+                    returnedBy: [
+                        'get_data_object - Returns single complete object by name',
+                        'list_data_objects - Returns array of complete objects with optional filters'
+                    ],
+                    notReturnedBy: [
+                        'list_data_object_summary - Returns only basic properties (name, isLookup, parentObjectName, codeDescription) without prop array'
+                    ],
+                    relatedTools: [
+                        'get_data_object_summary_schema - Schema for summary structure (no prop array)',
+                        'create_data_object - Create new data object',
+                        'list_lookup_values - List lookup values (excluded from this structure)'
+                    ]
+                },
+                commonPatterns: {
+                    regularEntityWithParentFK: {
+                        name: 'Order',
+                        parentObjectName: 'Customer',
+                        isLookup: 'false',
+                        codeDescription: 'Customer orders',
+                        prop: [
+                            {
+                                name: 'CustomerID',
+                                sqlServerDBDataType: 'int',
+                                isFK: 'true',
+                                fkObjectName: 'Customer',
+                                isNotPublishedToSubscriptions: 'true',
+                                isFKConstraintSuppressed: 'false',
+                                labelText: 'Customer ID',
+                                displayOrder: 1
+                            },
+                            {
+                                name: 'OrderDate',
+                                sqlServerDBDataType: 'datetime',
+                                labelText: 'Order Date',
+                                isQueryByAvailable: 'true',
+                                displayOrder: 2
+                            },
+                            {
+                                name: 'TotalAmount',
+                                sqlServerDBDataType: 'decimal',
+                                sqlServerDBDataTypeSize: '18,2',
+                                labelText: 'Total Amount',
+                                displayOrder: 3
+                            },
+                            {
+                                name: 'IsActive',
+                                sqlServerDBDataType: 'bit',
+                                labelText: 'Is Active',
+                                isActive: 'true',
+                                codeDescription: 'Order is active',
+                                displayOrder: 10
+                            }
+                        ]
+                    },
+                    lookupObject: {
+                        name: 'Status',
+                        parentObjectName: 'Pac',
+                        isLookup: 'true',
+                        codeDescription: 'Status lookup values',
+                        prop: [
+                            {
+                                name: 'PacID',
+                                sqlServerDBDataType: 'int',
+                                isFK: 'true',
+                                fkObjectName: 'Pac',
+                                isFKLookup: 'true',
+                                isNotPublishedToSubscriptions: 'true',
+                                isFKConstraintSuppressed: 'false',
+                                labelText: 'Pac ID',
+                                displayOrder: 1
+                            }
+                        ]
+                    },
+                    propertyWithFKLookup: {
+                        name: 'Order',
+                        parentObjectName: 'Customer',
+                        isLookup: 'false',
+                        codeDescription: 'Order with status lookup',
+                        prop: [
+                            {
+                                name: 'StatusID',
+                                sqlServerDBDataType: 'int',
+                                isFK: 'true',
+                                isFKLookup: 'true',
+                                fkObjectName: 'Status',
+                                lookupEnumName: 'Status',
+                                labelText: 'Status',
+                                isQueryByAvailable: 'true',
+                                displayOrder: 5
+                            }
+                        ]
+                    },
+                    encryptedProperty: {
+                        name: 'User',
+                        parentObjectName: 'Pac',
+                        isLookup: 'false',
+                        prop: [
+                            {
+                                name: 'Password',
+                                sqlServerDBDataType: 'nvarchar',
+                                sqlServerDBDataTypeSize: '255',
+                                isEncrypted: 'true',
+                                labelText: 'Password',
+                                displayOrder: 20
+                            }
+                        ]
+                    },
+                    objectWithoutProps: {
+                        name: 'NewObject',
+                        parentObjectName: 'Pac',
+                        isLookup: 'false',
+                        codeDescription: 'Newly created object without properties yet'
+                    }
+                },
+                notes: [
+                    'This schema describes the FULL data object structure with prop array',
+                    'The prop array is only included if the object has properties (length > 0)',
+                    'Arrays propSubscription, modelPkg, and lookupItem are always excluded',
+                    'For lookup objects, use list_lookup_values tool to get lookup items',
+                    'Property values use string "true"/"false" not boolean true/false',
+                    'All property names must be in PascalCase format',
+                    'Foreign key properties typically reference parent object (e.g., CustomerID in Order object)',
+                    'displayOrder controls the order properties appear in UI (lower numbers first)',
+                    'labelText provides human-readable labels for UI display',
+                    'fkObjectName must be set when isFK="true" to indicate the referenced object',
+                    'isFKLookup="true" when the FK references a lookup object (isLookup="true")',
+                    'lookupEnumName matches the lookup object name for dropdown population',
+                    'isQueryByAvailable="true" allows filtering/searching by this property',
+                    'isEncrypted="true" for sensitive fields like passwords, SSN, credit cards',
+                    'sqlServerDBDataTypeSize separates size from type for better clarity',
+                    'isNotPublishedToSubscriptions="true" typically used for FK and internal fields',
+                    'forceDBColumnIndex="true" forces database index creation for performance'
+                ]
+            },
+            note: 'This schema defines the complete structure of data objects as returned by get_data_object and list_data_objects (includes prop array)'
+        };
     }
 
     /**

@@ -470,6 +470,55 @@ export class MCPServer {
             }
         });
 
+        // Register get_data_object_summary_schema tool
+        this.server.registerTool('get_data_object_summary_schema', {
+            title: 'Get Data Object Summary Schema',
+            description: 'Get the schema definition for data objects as returned by list_data_object_summary. Includes properties (name, isLookup, parentObjectName, codeDescription), validation rules, format requirements, hierarchical relationships, and examples of both regular entities and lookup objects.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.object({
+                    type: z.string(),
+                    description: z.string(),
+                    properties: z.record(z.any()),
+                    validationRules: z.record(z.array(z.string())),
+                    usage: z.object({
+                        location: z.string(),
+                        access: z.string(),
+                        modelStructure: z.string(),
+                        purpose: z.string(),
+                        hierarchy: z.string()
+                    }),
+                    tools: z.object({
+                        query: z.array(z.string()),
+                        manipulation: z.array(z.string()),
+                        related: z.array(z.string())
+                    }),
+                    commonPatterns: z.object({
+                        regularEntities: z.array(z.any()),
+                        lookupObjects: z.array(z.any())
+                    }),
+                    notes: z.array(z.string())
+                }),
+                note: z.string()
+            }
+        }, async () => {
+            try {
+                const result = await this.dataObjectTools.get_data_object_summary_schema();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register get_role_schema tool
         this.server.registerTool('get_role_schema', {
             title: 'Get Role Schema',
@@ -516,10 +565,10 @@ export class MCPServer {
             }
         });
 
-        // Register list_data_objects tool
-        this.server.registerTool('list_data_objects', {
-            title: 'List Data Objects',
-            description: 'List all data objects from the AppDNA model with optional search and filters. Search by name (case-insensitive, also searches with spaces removed). Filter by isLookup status or parent object name.',
+        // Register list_data_object_summary tool
+        this.server.registerTool('list_data_object_summary', {
+            title: 'List Data Object Summary',
+            description: 'List summary of all data objects from the AppDNA model with optional search and filters. Returns basic info (name, isLookup, parent). Search by name (case-insensitive, also searches with spaces removed). Filter by isLookup status or parent object name.',
             inputSchema: {
                 search_name: z.string().optional().describe('Optional search text to filter by object name (case-insensitive, searches with and without spaces)'),
                 is_lookup: z.string().optional().describe('Optional filter for lookup status: "true" or "false"'),
@@ -544,7 +593,103 @@ export class MCPServer {
             }
         }, async ({ search_name, is_lookup, parent_object_name }) => {
             try {
+                const result = await this.dataObjectTools.list_data_object_summary({ search_name, is_lookup, parent_object_name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register list_data_objects tool
+        this.server.registerTool('list_data_objects', {
+            title: 'List Data Objects (Full Details)',
+            description: 'List all data objects with full details from the AppDNA model including prop arrays. Returns complete object structure (name, isLookup, parent, codeDescription, and prop array with all properties). Search by name (case-insensitive). Filter by isLookup status or parent object name. Use this when you need property details for multiple objects.',
+            inputSchema: {
+                search_name: z.string().optional().describe('Optional search text to filter by object name (case-insensitive, searches with and without spaces)'),
+                is_lookup: z.string().optional().describe('Optional filter for lookup status: "true" or "false"'),
+                parent_object_name: z.string().optional().describe('Optional filter for parent object name (exact match, case-insensitive)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                objects: z.array(z.any()),
+                count: z.number(),
+                filters: z.object({
+                    search_name: z.string().nullable(),
+                    is_lookup: z.string().nullable(),
+                    parent_object_name: z.string().nullable()
+                }).optional(),
+                note: z.string().optional(),
+                warning: z.string().optional()
+            }
+        }, async ({ search_name, is_lookup, parent_object_name }) => {
+            try {
                 const result = await this.dataObjectTools.list_data_objects({ search_name, is_lookup, parent_object_name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_data_object tool
+        this.server.registerTool('get_data_object', {
+            title: 'Get Data Object',
+            description: 'Get complete details of a specific data object by name. Returns all properties including the full props array with all property items, lookupItem array if applicable, and all other object metadata. Use this for detailed inspection of a data object structure.',
+            inputSchema: {
+                name: z.string().describe('The name of the data object to retrieve (case-sensitive, exact match required)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                dataObject: z.any().optional(),
+                note: z.string().optional(),
+                error: z.string().optional(),
+                validationErrors: z.array(z.string()).optional()
+            }
+        }, async ({ name }) => {
+            try {
+                const result = await this.dataObjectTools.get_data_object({ name });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_data_object_schema tool
+        this.server.registerTool('get_data_object_schema', {
+            title: 'Get Data Object Schema (Full Details)',
+            description: 'Get the schema definition for complete data object structure as returned by get_data_object and list_data_objects. Includes all properties (name, isLookup, parentObjectName, codeDescription), prop array structure with property definitions, validation rules, SQL data types, foreign key indicators, and examples of complete objects with properties.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.any(),
+                note: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.dataObjectTools.get_data_object_schema();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
