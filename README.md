@@ -484,6 +484,33 @@ Once the MCP server is running, ask GitHub Copilot natural language questions:
 
 **Note:** After installing extension updates with new MCP tools, you may need to run **"MCP: Reset Cached Tools"** from the VS Code Command Palette to refresh the tool cache.
 
+### AppDNA Chat Mode
+
+The AppDNA extension automatically creates a specialized GitHub Copilot Chat mode called "AppDNA" in your workspace. When you install and activate the extension, it will create:
+
+```
+.github/
+  chatmodes/
+    appdna.chatmode.md  ← Contains the AppDNA chat mode configuration
+```
+
+To use the AppDNA chat mode:
+
+1. Open GitHub Copilot Chat (Ctrl+Alt+I or Cmd+Alt+I)
+2. Click the chat mode selector (looks like a sparkles icon) in the chat input
+3. Select "AppDNA" from the available modes
+
+The AppDNA chat mode is pre-configured with knowledge of:
+- AppDNA schema structure and validation rules
+- Extension architecture and coding guidelines
+- Model-driven development patterns
+- Multi-platform code generation capabilities
+- Best practices for building application models
+
+**Important:** The AppDNA chat mode prioritizes using MCP tools for all model modifications and code generation. Instead of directly editing files, it will guide Copilot to use the extension's MCP tools for safe, validated changes through the AppDNA API.
+
+Use this mode for questions about AppDNA model design, schema compliance, extension features, and development workflows.
+
 ### MCP Architecture
 - **Port 3000**: MCP Server (main protocol endpoint)
 - **Port 3001**: Data Bridge (read extension data)

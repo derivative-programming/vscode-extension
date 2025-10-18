@@ -1,3 +1,57 @@
+2025-10-18: Simplified AppDNA chat mode by removing keyboard shortcuts and adding command palette guidance
+Details:
+- Removed the detailed keyboard shortcuts section (Alt+A format)
+- Added simple guidance about finding AppDNA commands in VS Code Command Palette
+- Commands are prefixed with "AppDNA:" for easy discovery
+- Maintained all other comprehensive information from README
+- Compilation successful with no errors
+- Chat mode now focuses on command palette discovery rather than shortcuts
+
+2025-10-18: Enhanced AppDNA chat mode with comprehensive README information
+Details:
+- Updated createAppDNAChatMode() function with detailed information from README.md
+- Added comprehensive introduction explaining what AppDNA is and its capabilities
+- Included detailed feature descriptions for all major components:
+  * Model Builder with dynamic UI generation
+  * Intelligent Model Editing with tree view navigation
+  * Page Preview & UI Design features
+  * User Story Development Management (8 comprehensive tabs)
+  * Analytics & Analysis Dashboard
+  * AI-Powered Code Generation
+- Added complete 9-step AppDNA Development Workflow
+- Included all keyboard shortcuts (Alt+A format) for quick actions
+- Enhanced Best Practices section with advanced features and configuration details
+- Expanded Navigation Tools section with UI/UX and workflow views
+- Improved Getting Help section with MCP integration details and configuration guidance
+- Maintained all 62 MCP tools in YAML frontmatter
+- Compilation successful with no errors
+- Chat mode now provides comprehensive guidance for effective AppDNA usage
+- Users get complete understanding of extension capabilities and workflows
+
+2025-10-18: Updated AppDNA chat mode to explicitly list all 62 MCP tools
+Details:
+- Updated createAppDNAChatMode() function in extension.ts
+- Replaced generic "All available MCP tools" with explicit list of all 62 registered MCP tools
+- Tools now explicitly listed in YAML frontmatter for proper GitHub Copilot integration
+- Compilation successful with no errors
+- Chat mode file: .github/chatmodes/appdna.chatmode.md
+- Architecture: Ensures Copilot has complete visibility of all available MCP tools
+- Tool Categories (62 total):
+  * User Story Management: 12 tools (CRUD + views)
+  * Data Object Management: 15 tools (CRUD + properties + analysis)
+  * Role & Security: 6 tools (role management)
+  * Lookup/Reference Data: 9 tools (lookup value management)
+  * View Navigation: 20+ tools (all UI view opening tools)
+- Implementation:
+  1. Extracted all tool names from src/mcp/server.ts registerTool() calls
+  2. Updated YAML frontmatter in extension.ts createAppDNAChatMode() function
+  3. Verified compilation with npm run compile
+- Benefits:
+  * Complete MCP tool visibility for GitHub Copilot
+  * Proper tool discovery and integration
+  * User-focused chat mode with all available capabilities
+  * Maintains existing user guidance and best practices
+
 2025-10-18: Implemented and tested get_data_object_usage MCP tool
 Details:
 - Added new MCP tool to return usage information for data objects
@@ -1446,8 +1500,10 @@ New Features:
 Validation Flow:
   1. MCP layer validates story format with regex
   2. HTTP bridge validates model structure
-  3. HTTP bridge checks for duplicate story text
-  4. HTTP bridge adds to model and marks unsaved changes
+  3. HTTP bridge extracts and validates role exists
+  4. HTTP bridge extracts and validates data objects exist
+  5. HTTP bridge checks for duplicate story text
+  6. HTTP bridge adds to model and marks unsaved changes
 Response Codes:
   - 201: Story created successfully
   - 400: Invalid request or model structure
@@ -1510,4 +1566,20 @@ Architecture Notes:
   - Helper methods are private to McpBridge class
   - Graceful error handling (allows creation on validation errors to avoid blocking)
 Documentation: Updated docs/architecture/mcp-story-creation-via-bridge.md
+
+2025-10-18: Updated AppDNA chat mode to use correct chatmodes directory structure
+Details:
+- Modified extension.ts to create .github/chatmodes/appdna.chatmode.md
+- Updated README.md to show correct file structure (.github/chatmodes/appdna.chatmode.md)
+- Chat mode now uses proper VS Code chat mode directory structure
+- Extension creates/updates appdna.chatmode.md in the correct chatmodes folder
+- Architecture Notes:
+  * Extension creates workspace-specific chat mode using VS Code standard chatmodes directory
+  * YAML frontmatter includes description and tools list (MCP tools)
+  * Markdown body provides detailed instructions and guidelines
+  * Always overwrites existing file to ensure users get latest version
+  * Creates .github/chatmodes directory structure as needed
+  * Provides consistent AppDNA chat mode across all user workspaces
+  * Integrates with existing MCP tools for comprehensive support
+- Completion Status: ✅ IMPLEMENTED WITH CORRECT CHATMODES DIRECTORY
 
