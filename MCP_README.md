@@ -29,13 +29,14 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
    - Reference types: owner objects, target objects, input controls, output variables, columns
    - Optional filter by specific data object name
 
-#### **User Story Views** (6 tools)
+#### **User Story Views** (7 tools)
 - **open_user_stories_view** - Main user stories list with analytics tabs
 - **open_user_stories_dev_view** - Development queue and analytics
 - **open_user_stories_qa_view** - QA testing queue and analytics
 - **open_user_stories_journey_view** - User journey mapping
 - **open_user_stories_page_mapping_view** - Page-to-story associations
-- **open_user_stories_role_requirements_view** - Role-based access requirements
+- **open_user_stories_role_requirements_view** - Role requirements per user story
+- **open_requirements_fulfillment_view** - Role requirements fulfillment tracking
 
 #### **Data Object Tools** (5+ tools)
 - **open_object_details_view** - View/edit data object details

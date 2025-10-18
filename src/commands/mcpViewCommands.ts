@@ -73,11 +73,22 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
     );
 
     // Open user stories role requirements view
-    // Description: Opens the Role Requirements view showing required and not-allowed role requirements
-    // Tabs: 'requirements' (role requirements table), 'coverage' (coverage analysis)
-    // Parameters: None (initialTab not supported)
+    // Description: Shows which user roles are required to access and complete each user story
+    // Opens view with title: "User Stories - Role Requirements"
+    // Tabs: None
+    // Parameters: None
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openUserStoriesRoleRequirements', async () => {
+            return vscode.commands.executeCommand('appdna.showRoleRequirements');
+        })
+    );
+
+    // Open requirements fulfillment view
+    // Description: Shows role requirements fulfillment status across user stories, data objects, and journeys
+    // Tabs: None
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openRequirementsFulfillment', async () => {
             return vscode.commands.executeCommand('appdna.showRequirementsFulfillment');
         })
     );

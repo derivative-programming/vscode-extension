@@ -67,6 +67,7 @@ tools:
   - open_user_stories_journey_view
   - open_user_stories_page_mapping_view
   - open_user_stories_role_requirements_view
+  - open_requirements_fulfillment_view
   - open_object_details_view
   - open_data_objects_list_view
   - open_data_object_usage_analysis_view

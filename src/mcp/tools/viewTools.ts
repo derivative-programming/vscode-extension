@@ -117,10 +117,18 @@ export class ViewTools {
 
     /**
      * Open User Stories Role Requirements View
-     * Shows role-based access requirements for user stories
+     * Shows which user roles are required to access and complete each user story
      */
     public async openUserStoriesRoleRequirements(): Promise<any> {
         return this.executeCommand('appdna.mcp.openUserStoriesRoleRequirements');
+    }
+
+    /**
+     * Open Requirements Fulfillment View
+     * Shows role requirements fulfillment status across user stories, data objects, and journeys
+     */
+    public async openRequirementsFulfillment(): Promise<any> {
+        return this.executeCommand('appdna.mcp.openRequirementsFulfillment');
     }
 
     // ===== DATA OBJECT VIEWS =====

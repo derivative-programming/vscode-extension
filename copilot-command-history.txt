@@ -1,5 +1,93 @@
 ===============================================================================
 DATE: October 18, 2025
+COMMAND: Fix MCP Tools for User Stories Role Requirements and Requirements Fulfillment Views
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+Fix existing MCP tool and create new MCP tool for two separate views that were confused:
+1. User Stories Role Requirements View - shows RBAC requirements per user story
+2. Requirements Fulfillment View - shows fulfillment status across model
+
+ISSUES FOUND:
+1. MCP tool `open_user_stories_role_requirements_view` was incorrectly calling
+   `appdna.showRequirementsFulfillment` command
+2. No MCP tool existed for the Requirements Fulfillment view
+3. These are TWO SEPARATE VIEWS with different purposes
+4. Documentation was incomplete/incorrect in multiple files
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts
+   - Fixed existing tool description (line ~1111) to clarify it's for role requirements per story
+   - Changed command call from `showRequirementsFulfillment` to `showRoleRequirements`
+   - Added new tool `open_requirements_fulfillment_view` (line ~1138)
+   - Both tools have no tabs (inputSchema is empty)
+   - TOTAL TOOL COUNT: 63 tools (was 62)
+
+2. src/mcp/tools/viewTools.ts
+   - Updated comment for openUserStoriesRoleRequirements() method
+   - Added new openRequirementsFulfillment() method
+
+3. src/commands/mcpViewCommands.ts
+   - Fixed command `appdna.mcp.openUserStoriesRoleRequirements`:
+     Changed from: appdna.showUserStoryRoleRequirements
+     Changed to: appdna.showRoleRequirements (which opens "User Stories - Role Requirements")
+   - Added new command `appdna.mcp.openRequirementsFulfillment` calling appdna.showRequirementsFulfillment
+
+4. README.md
+   - Updated tool count from 62 to 63 in all references
+
+5. MCP_README.md
+   - Updated User Story Views section from 6 to 7 tools
+   - Clarified descriptions for both tools
+
+6. docs/VIEWS-REFERENCE.md
+   - Fixed incorrect command mapping for userStoryRoleRequirementsView.js
+   - Added missing entry for requirementsFulfillmentView.js
+   - Corrected tab information (both views have no tabs)
+
+7. docs/MCP-VIEW-COMMANDS-REFERENCE.md
+   - Updated description for open_user_stories_role_requirements_view
+   - Added new entry for open_requirements_fulfillment_view
+
+8. src/extension.ts
+   - Added open_requirements_fulfillment_view to chat mode tools list
+   - Chat mode now includes all 63 MCP tools
+
+ARCHITECTURE NOTES:
+- User Stories Role Requirements View: userStoryRoleRequirementsView.js
+  * Title: "User Story - Role Requirements" (singular)
+  * Shows which roles are required to access/complete each user story
+  * RBAC-focused per-story view
+  * Command: appdna.showUserStoryRoleRequirements → appdna.showRoleRequirements → appdna.roleRequirements
+  
+- Requirements Fulfillment View: requirementsFulfillmentView.js
+  * Title: "Requirements Fulfillment" 
+  * Shows fulfillment status across user stories, data objects, journeys
+  * Tracks fulfilled vs unfulfilled role requirements
+  * Cross-cutting view of entire model
+  * Command: appdna.showRequirementsFulfillment
+
+- Neither view has tabs (verified via grep search)
+- Command flow: MCP tool → viewTools → mcpViewCommands → actual view command
+- Three similar but distinct commands existed:
+  * appdna.showUserStoryRoleRequirements (singular - wrong one)
+  * appdna.showRoleRequirements (delegates to appdna.roleRequirements - correct one)
+  * appdna.showRequirementsFulfillment (completely separate view)
+
+VERIFICATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful  
+✅ Both MCP tools now call correct commands
+✅ All documentation updated (5 files)
+✅ Tool count updated from 62 to 63
+✅ Clear separation of concerns between the two views
+
+===============================================================================
+
+===============================================================================
+DATE: October 18, 2025
 COMMAND: Review and fix user stories list view MCP tool tabs documentation
 STATUS: ✅ COMPLETED
 ===============================================================================

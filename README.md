@@ -100,7 +100,7 @@ A complete agile project management solution with 8 comprehensive tabs for manag
 - **Property Control**: Toggle property existence with checkboxes - unchecked means the property is omitted from JSON
 - **Tooltips & Descriptions**: Property descriptions shown as helpful tooltips
 - **Visual Diagrams**: Hierarchy diagrams and page flow visualizations
-- **MCP Integration**: Production-ready Model Context Protocol server with 62 tools for GitHub Copilot integration
+- **MCP Integration**: Production-ready Model Context Protocol server with 63 tools for GitHub Copilot integration
 - **Keyboard Shortcuts**: Quick access to common actions with Alt+A combinations
 
 ## Getting Started
@@ -423,7 +423,7 @@ Complete listing of general flow definitions:
 
 ## Model Context Protocol (MCP) Integration
 
-The extension includes comprehensive MCP server capabilities for seamless integration with GitHub Copilot and other AI assistants. **Production Ready** with **62 tools** covering the entire AppDNA model.
+The extension includes comprehensive MCP server capabilities for seamless integration with GitHub Copilot and other AI assistants. **Production Ready** with **63 tools** covering the entire AppDNA model.
 
 ### MCP Server Features
 - **62 Comprehensive Tools**: Complete coverage of user stories, data objects, forms, pages, reports, APIs, flows, and more
@@ -432,7 +432,7 @@ The extension includes comprehensive MCP server capabilities for seamless integr
 - **GitHub Copilot Integration**: Natural language queries to explore and modify your AppDNA model
 - **HTTP Bridge Architecture**: Dual HTTP bridges on ports 3001 (data) and 3002 (commands) for seamless communication
 
-### Available MCP Tools (62 Total)
+### Available MCP Tools (63 Total)
 
 #### User Story Management (5 tools)
 - Create, list, and search user stories with format validation
@@ -527,7 +527,7 @@ Use this mode for questions about AppDNA model design, schema compliance, extens
 - **MCP SDK Version**: 1.20.0
 - **JSON-RPC 2.0**: Standard protocol over stdio or HTTP transports
 
-For complete MCP documentation including all 62 tools, examples, and configuration details, see [MCP_README.md](./MCP_README.md).
+For complete MCP documentation including all 63 tools, examples, and configuration details, see [MCP_README.md](./MCP_README.md).
 
 ## Requirements
 

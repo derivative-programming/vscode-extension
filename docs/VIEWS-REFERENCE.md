@@ -215,7 +215,8 @@ Views are organized with tabs for different aspects of functionality:
 | `userStoriesQAView.js` | QA testing workflow | `appdna.userStoriesQA` | • Details<br>• Board<br>• Status Distribution<br>• Forecast<br>• Cost | ✅ `'details'` `'board'` `'analysis'` `'forecast'` `'cost'` | ✅ `open_user_stories_qa_view` |
 | `userStoriesJourneyView.js` | User journey visualization | `appdna.userStoriesJourney` | • Journey<br>• List | ❌ No | ✅ `open_user_stories_journey_view` |
 | `userStoriesPageMappingView.js` | Page-to-story mapping | `appdna.userStoriesPageMapping` | • Mapping<br>• Statistics | ❌ No | ✅ `open_user_stories_page_mapping_view` |
-| `userStoryRoleRequirementsView.js` | Role requirements | `appdna.showRequirementsFulfillment` | • Requirements<br>• Coverage | ❌ No | ✅ `open_user_stories_role_requirements_view` |
+| `userStoryRoleRequirementsView.js` | Role requirements per story | `appdna.showUserStoryRoleRequirements` | None | ❌ No | ✅ `open_user_stories_role_requirements_view` |
+| `requirementsFulfillmentView.js` | Requirements fulfillment tracking | `appdna.showRequirementsFulfillment` | None | ❌ No | ✅ `open_requirements_fulfillment_view` |
 
 ### Data Object Views
 

@@ -1110,7 +1110,7 @@ export class MCPServer {
 
         this.server.registerTool('open_user_stories_role_requirements_view', {
             title: 'Open User Stories Role Requirements View',
-            description: 'Opens the role requirements view for user stories. Shows which user roles are required to access and complete each user story. Provides a comprehensive view of role-based access control (RBAC) requirements across all user stories.',
+            description: 'Opens the user stories role requirements view. Shows which user roles are required to access and complete each user story. Provides a comprehensive view of role-based access control (RBAC) requirements across all user stories.',
             inputSchema: {},
             outputSchema: {
                 success: z.boolean(),
@@ -1121,6 +1121,33 @@ export class MCPServer {
         }, async () => {
             try {
                 const result = await this.viewTools.openUserStoriesRoleRequirements();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        this.server.registerTool('open_requirements_fulfillment_view', {
+            title: 'Open Requirements Fulfillment View',
+            description: 'Opens the requirements fulfillment view. Shows role requirements fulfillment status across user stories, data objects, and user journeys. Tracks which role requirements are fulfilled vs unfulfilled, including access and action mappings.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.viewTools.openRequirementsFulfillment();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

@@ -41,7 +41,8 @@ Each MCP tool registration includes a detailed `description` field that is **aut
 | `open_user_stories_qa_view` | Opens the QA and testing queue view with five tabs: QA Queue, All Stories, QA Metrics, QA History, and QA Forecast | `initialTab` (optional): "qaQueue", "all", "qaMetrics", "qaHistory", or "qaForecast" |
 | `open_user_stories_journey_view` | Shows user journey mapping and flow across different stages and touchpoints | None |
 | `open_user_stories_page_mapping_view` | Shows which pages are associated with which user stories for impact analysis and navigation planning | None |
-| `open_user_stories_role_requirements_view` | Shows role-based access control (RBAC) requirements across all user stories | None |
+| `open_user_stories_role_requirements_view` | Shows which user roles are required to access and complete each user story | None |
+| `open_requirements_fulfillment_view` | Shows role requirements fulfillment status across user stories, data objects, and journeys | None |
 
 ### Data Object Views
 
