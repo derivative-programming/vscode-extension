@@ -50,8 +50,10 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
     );
 
     // Open user stories journey view
-    // Description: Opens the User Journey visualization showing which pages fulfill each user story
-    // Tabs: 'journey' (visual journey map), 'list' (list view of journeys)
+    // Description: Opens the User Journey visualization and analysis with multiple tabs
+    // Tabs: 'user-stories' (story-page mappings), 'page-usage' (usage table), 'page-usage-treemap' (visual treemap),
+    //       'page-usage-distribution' (usage histogram), 'page-usage-vs-complexity' (scatter plot),
+    //       'journey-visualization' (complexity treemap), 'journey-distribution' (complexity histogram)
     // Parameters: None (initialTab not supported)
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openUserStoriesJourney', async () => {

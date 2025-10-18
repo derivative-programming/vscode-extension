@@ -1053,7 +1053,7 @@ export class MCPServer {
 
         this.server.registerTool('open_user_stories_journey_view', {
             title: 'Open User Stories Journey View',
-            description: 'Opens the user journey mapping view. Shows the flow of user stories across different stages and touchpoints in the user experience. Helps visualize the end-to-end user journey through the application.',
+            description: 'Opens the user journey mapping and analysis view. Shows seven tabs: "User Stories" (story-page mappings with journey distances), "Page Usage" (usage frequency table), "Page Usage Treemap" (visual size representation), "Page Usage Distribution" (histogram of usage patterns), "Page Usage vs Complexity" (scatter plot analysis), "Journey Visualization" (treemap of journey complexity), and "Journey Distribution" (histogram of complexity categories). Note: This view does not support initialTab parameter.',
             inputSchema: {},
             outputSchema: {
                 success: z.boolean(),

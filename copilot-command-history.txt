@@ -89,3 +89,58 @@ VERIFICATION:
 ✅ Descriptions accurately reflect each tab's purpose
 
 ===============================================================================
+
+===============================================================================
+DATE: October 18, 2025
+COMMAND: Update user stories journey view MCP tool tabs documentation
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+Update the MCP tool for the User Stories Journey view to reflect the actual 7 tabs
+shown in the interface (screenshot provided by user).
+
+ISSUES FOUND:
+1. MCP tool description was too generic and didn't list tabs:
+   - Said: "Shows the flow of user stories across different stages..."
+   - No tab information provided
+   - No mention of multiple tabs or analytics features
+
+2. mcpViewCommands.ts had completely wrong tab information:
+   - Said: 'journey' (visual journey map), 'list' (list view of journeys)
+   - Reality: 7 completely different tabs for analytics and visualization
+
+3. No initialTab parameter support (correctly documented as not supported)
+
+ACTUAL TAB STRUCTURE (from code and screenshot):
+1. User Stories - Story-page mappings with journey distances
+2. Page Usage - Usage frequency table
+3. Page Usage Treemap - Visual size representation by usage
+4. Page Usage Distribution - Histogram of usage patterns
+5. Page Usage vs Complexity - Scatter plot analysis (4 quadrants)
+6. Journey Visualization - Treemap of journey complexity
+7. Journey Distribution - Histogram of complexity categories
+
+CHANGES MADE:
+Files: src/mcp/server.ts (line ~1054), src/commands/mcpViewCommands.ts (line ~51)
+- Updated tool description with complete list of all 7 tabs and their purposes
+- Fixed mcpViewCommands.ts comments to list correct tab values
+- Documented that initialTab parameter is not supported
+- Added detailed descriptions for each tab's functionality
+
+ARCHITECTURE NOTES:
+- User Stories Journey view implemented in: src/webviews/userStoriesJourneyView.js
+- HTML structure in: src/commands/userStoriesJourneyCommands.ts (line ~2878)
+- Tab switching uses data-tab attribute pattern
+- Tab content divs use id="{tabName}-tab" pattern
+- 7 tabs with values: "user-stories", "page-usage", "page-usage-treemap", 
+  "page-usage-distribution", "page-usage-vs-complexity", "journey-visualization", "journey-distribution"
+- NO initialTab parameter support (view always opens on first tab)
+
+VERIFICATION:
+✅ No TypeScript compilation errors
+✅ Tab names match actual HTML data-tab attributes
+✅ All 7 tabs documented with accurate descriptions
+✅ Correctly noted that initialTab is not supported
+
+===============================================================================
