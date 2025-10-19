@@ -153,6 +153,30 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
         })
     );
 
+    // Open add data object wizard
+    // Description: Opens the Add Data Object Wizard for creating new data objects
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAddDataObjectWizard', async () => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            return vscode.commands.executeCommand('appdna.addObject');
+        })
+    );
+
+    // Open add form wizard
+    // Description: Opens the Add Form Wizard for creating new forms
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAddFormWizard', async () => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            return vscode.commands.executeCommand('appdna.addForm');
+        })
+    );
+
     // Generic view opener - routes to specific commands based on view name
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openView', async (viewName: string, params?: any) => {
@@ -166,7 +190,9 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
                 'hierarchy': 'appdna.mcp.openHierarchyDiagram',
                 'page-flow': 'appdna.mcp.openPageFlowDiagram',
                 'welcome': 'appdna.mcp.openWelcome',
-                'settings': 'appdna.mcp.openSettings'
+                'settings': 'appdna.mcp.openSettings',
+                'add-data-object-wizard': 'appdna.mcp.openAddDataObjectWizard',
+                'add-form-wizard': 'appdna.mcp.openAddFormWizard'
             };
             
             const command = viewMap[viewName];

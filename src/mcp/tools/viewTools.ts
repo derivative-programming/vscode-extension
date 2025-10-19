@@ -422,4 +422,22 @@ export class ViewTools {
     public async openLogin(): Promise<any> {
         return this.executeCommand('appdna.loginModelServices');
     }
+
+    // ===== WIZARD VIEWS =====
+
+    /**
+     * Open Add Data Object Wizard
+     * Opens the wizard for creating new data objects with guided steps
+     */
+    public async openAddDataObjectWizard(): Promise<any> {
+        return this.executeCommand('appdna.mcp.openAddDataObjectWizard');
+    }
+
+    /**
+     * Open Add Form Wizard
+     * Opens the wizard for creating new forms with guided steps
+     */
+    public async openAddFormWizard(): Promise<any> {
+        return this.executeCommand('appdna.mcp.openAddFormWizard');
+    }
 }
