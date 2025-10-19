@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **73 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **74 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **73 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **74 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -122,6 +122,9 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
 #### **Utility Tools** (1 tool)
 - **secret_word_of_the_day** - Test/verification tool
 
+#### **Model Services Data Tools** (1 tool)
+- **list_model_features_catalog_items** - Retrieve Model Feature Catalog items with selection status and pagination
+
 ## Architecture
 
 ### **Three MCP Implementations** ✅
@@ -211,6 +214,13 @@ Once the MCP server is running, you can ask GitHub Copilot to:
 - "Get usage details for all data objects"
 - "Which forms use the Order data object?"
 - "What references the Invoice object?"
+
+#### **Model Services Features**
+- "List all model feature catalog items"
+- "Show me the first page of model features"
+- "Get model features sorted by category"
+- "Show me which catalog features are selected in this model"
+- "List model features sorted by name in descending order"
 
 #### **Wizard Tools**
 - "Open the add data object wizard"
@@ -365,6 +375,68 @@ See `MCP-COPILOT-TEST-SUCCESS.md` for detailed test results.
 2. Verify model file size is reasonable
 3. Monitor memory usage in Task Manager
 4. Consider closing unused views/editors
+
+## Tool Reference: Model Services
+
+### **list_model_features_catalog_items**
+
+Retrieves paginated Model Feature Catalog items from the Model Services API, enhanced with selection status from the current AppDNA model.
+
+**Authentication Required:** Yes - User must be logged in to Model Services
+
+**Parameters:**
+- `pageNumber` (optional, default: 1) - Page number to retrieve (1-based)
+- `itemCountPerPage` (optional, default: 10) - Number of items per page
+- `orderByColumnName` (optional, default: "name") - Column to sort by: "name", "category", "description", "isCompleted"
+- `orderByDescending` (optional, default: false) - Sort in descending order if true
+
+**Returns:**
+An object containing:
+- `success` (boolean) - Whether the request succeeded
+- `error` (string, optional) - Error message if failed
+- `isLoggedIn` (boolean) - Current authentication status
+- `data` (array) - Array of catalog items with properties:
+  - `name` (string) - Feature name
+  - `category` (string) - Feature category
+  - `description` (string) - Feature description
+  - `isCompleted` (string) - "true" if feature is marked complete, "false" otherwise
+  - `selected` (boolean) - true if feature is currently in the model, false otherwise
+- `pagination` (object) - Pagination information:
+  - `currentPage` (number)
+  - `totalPages` (number)
+  - `totalItems` (number)
+  - `itemsPerPage` (number)
+
+**Usage Examples:**
+
+```javascript
+// Get first page with default settings
+const result = await list_model_features_catalog_items({});
+
+// Get specific page with custom page size
+const result = await list_model_features_catalog_items({
+  pageNumber: 2,
+  itemCountPerPage: 20
+});
+
+// Get features sorted by category in descending order
+const result = await list_model_features_catalog_items({
+  orderByColumnName: "category",
+  orderByDescending: true
+});
+```
+
+**Natural Language Examples:**
+- "Show me the model feature catalog items"
+- "List features from the catalog with their selection status"
+- "Get page 2 of model features with 25 items per page"
+- "Show me catalog features sorted by category"
+
+**Notes:**
+- Features with `isCompleted="true"` cannot be removed from the model via the UI
+- The `selected` field indicates if a feature is present in `model.namespace[].modelFeature[]`
+- This tool uses the same data retrieval code as the Model Feature Catalog view for consistency
+- Returns an error if user is not logged in to Model Services
 
 ## Developer Notes
 

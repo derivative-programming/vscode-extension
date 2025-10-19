@@ -19,7 +19,7 @@ tools...
 
 
 model features...
-- list_model_features_catalog
+- list_model_feature_catalog_items
 - select catalog item
 
 

@@ -111,6 +111,7 @@ tools:
   - open_login_view
   - open_add_report_wizard
   - open_add_form_wizard
+  - list_model_features_catalog_items
 ---
 
 # AppDNA Chat Mode
@@ -243,7 +244,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (73 Tools)
+## Comprehensive MCP Tool Suite (74 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -359,6 +360,9 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool
 
+### Model Services Data Tools (1 Tool)
+- \`list_model_features_catalog_items\` - Retrieve Model Feature Catalog items with selection status and pagination
+
 ## Navigation Tools for AppDNA Views
 
 The extension provides specialized navigation tools to help you explore different aspects of your AppDNA model:
@@ -391,7 +395,7 @@ The extension provides specialized navigation tools to help you explore differen
 - Review the lexicon for business terminology definitions
 
 ### MCP Integration
-- **71 Production-Ready Tools**: Complete coverage of all AppDNA functionality
+- **74 Production-Ready Tools**: Complete coverage of all AppDNA functionality
 - **GitHub Copilot Integration**: Natural language queries for model exploration and modification
 - **Safe Model Changes**: All modifications go through validated MCP tools, not direct file editing
 - **Real-time Status**: Visual indicators show MCP server running/stopped states

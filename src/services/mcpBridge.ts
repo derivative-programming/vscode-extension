@@ -1589,6 +1589,117 @@ export class McpBridge {
                     }));
                 }
             }
+            else if (req.url?.startsWith('/api/model-services/model-features')) {
+                // Proxy to Model Services API - Model Feature Catalog
+                // Uses the same code as the Model Feature Catalog view
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { pageNumber = 1, itemCountPerPage = 10, orderByColumnName = 'displayName', orderByDescending = false } = body ? JSON.parse(body) : {};
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Build URL with query parameters (same as modelFeatureCatalogCommands.ts)
+                        const params = [
+                            'PageNumber=' + encodeURIComponent(pageNumber || 1),
+                            'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 10),
+                            'OrderByDescending=' + encodeURIComponent(orderByDescending ? 'true' : 'false')
+                        ];
+                        if (orderByColumnName) {
+                            params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
+                        }
+                        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/model-features?' + params.join('&');
+                        
+                        // Make the API call (same as modelFeatureCatalogCommands.ts)
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (response.status === 401) {
+                            // Log the user out
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            throw new Error(`API returned status ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // Get selected features from model (same as modelFeatureCatalogCommands.ts)
+                        const modelService = ModelService.getInstance();
+                        const selectedFeatures: Array<{name: string, isCompleted?: string}> = [];
+                        
+                        if (modelService && modelService.isFileLoaded()) {
+                            const rootModel = modelService.getCurrentModel();
+                            
+                            if (rootModel && rootModel.namespace) {
+                                for (const namespace of rootModel.namespace) {
+                                    if (namespace.modelFeature && Array.isArray(namespace.modelFeature)) {
+                                        namespace.modelFeature.forEach((feature: any) => {
+                                            if (feature.name) {
+                                                selectedFeatures.push({
+                                                    name: feature.name,
+                                                    isCompleted: feature.isCompleted
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Enhance catalog items with 'selected' and 'isCompleted' properties
+                        if (data.items && Array.isArray(data.items)) {
+                            data.items = data.items.map((item: any) => {
+                                const selectedFeature = selectedFeatures.find(f => f.name === item.name);
+                                return {
+                                    ...item,
+                                    selected: !!selectedFeature,
+                                    isCompleted: selectedFeature?.isCompleted || 'false'
+                                };
+                            });
+                        }
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify({
+                            success: true,
+                            data: data
+                        }));
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error fetching model features: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to fetch model features'
+                        }));
+                    }
+                });
+            }
             else if (req.url === '/api/health') {
                 // Health check endpoint
                 res.writeHead(200);

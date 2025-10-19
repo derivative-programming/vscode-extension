@@ -11,6 +11,7 @@ import { UserStoryTools } from './tools/userStoryTools';
 import { ViewTools } from './tools/viewTools';
 import { DataObjectTools } from './tools/dataObjectTools';
 import { ModelTools } from './tools/modelTools';
+import { ModelServiceTools } from './tools/modelServiceTools';
 
 /**
  * Main MCP Server class
@@ -22,6 +23,7 @@ export class MCPServer {
     private viewTools: ViewTools;
     private dataObjectTools: DataObjectTools;
     private modelTools: ModelTools;
+    private modelServiceTools: ModelServiceTools;
     private transport: StdioServerTransport;
 
     private constructor() {
@@ -30,6 +32,7 @@ export class MCPServer {
         this.viewTools = new ViewTools();
         this.dataObjectTools = new DataObjectTools(null);
         this.modelTools = new ModelTools();
+        this.modelServiceTools = new ModelServiceTools();
 
         // Create MCP server
         this.server = new McpServer({
@@ -1049,6 +1052,67 @@ export class MCPServer {
                 const errorResult = { 
                     success: false, 
                     error: error.message 
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // ===== MODEL SERVICES TOOLS =====
+
+        // Register list_model_features_catalog_items tool
+        this.server.registerTool('list_model_features_catalog_items', {
+            title: 'List Model Features Catalog Items',
+            description: 'List available features from the Model Services catalog with selection status. Returns paginated list of features that can be added to the application model, including name, display name, description, version, and whether each feature is currently selected in the model. Features marked with isCompleted="true" have been processed by AI and cannot be removed. Supports server-side pagination and sorting. Requires authentication to Model Services. Uses the exact same code as the Model Feature Catalog view to ensure consistent data.',
+            inputSchema: {
+                pageNumber: z.number().optional().describe('Page number (1-indexed, default: 1)'),
+                itemCountPerPage: z.number().optional().describe('Items per page (default: 10, max: 100)'),
+                orderByColumnName: z.string().optional().describe('Column to sort by: "name", "displayName", "description", or "version" (default: "displayName")'),
+                orderByDescending: z.boolean().optional().describe('Sort in descending order (default: false)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                items: z.array(z.object({
+                    name: z.string(),
+                    displayName: z.string(),
+                    description: z.string(),
+                    version: z.string(),
+                    selected: z.boolean().describe('Whether this feature is currently selected in the model'),
+                    isCompleted: z.string().describe('Whether this feature has been completed by AI processing ("true" or "false")')
+                })).optional(),
+                pageNumber: z.number().optional(),
+                itemCountPerPage: z.number().optional(),
+                recordsTotal: z.number().optional(),
+                recordsFiltered: z.number().optional(),
+                orderByColumnName: z.string().optional(),
+                orderByDescending: z.boolean().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.list_model_features_catalog_items(
+                    args.pageNumber,
+                    args.itemCountPerPage,
+                    args.orderByColumnName,
+                    args.orderByDescending
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    items: [],
+                    pageNumber: args.pageNumber || 1,
+                    itemCountPerPage: args.itemCountPerPage || 10,
+                    recordsTotal: 0,
+                    recordsFiltered: 0
                 };
                 return {
                     content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
