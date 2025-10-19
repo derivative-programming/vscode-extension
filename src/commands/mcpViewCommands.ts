@@ -125,6 +125,38 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
         })
     );
 
+    // Open report details by name (MCP-friendly - takes string instead of tree item)
+    // Description: Opens the Report details view showing report configuration, input controls, buttons, and output variables
+    // Tabs: 'settings' (report configuration), 'inputControls' (parameters and filters), 'buttons' (actions and downloads), 'outputVars' (data outputs)
+    // Parameters: reportName (required) - Name of the report
+    //            initialTab (optional) - One of: 'settings', 'inputControls', 'buttons', 'outputVars'
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openReportDetails', async (reportName: string, initialTab?: string) => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+
+            // Find the report in the model
+            const reports = modelService.getAllReports();
+            const report = reports.find(r => r.name === reportName);
+            
+            if (!report) {
+                throw new Error(`Report '${reportName}' not found. Available reports: ${reports.map(r => r.name).join(', ')}`);
+            }
+            
+            // Create a mock tree item for the report
+            const mockTreeItem = {
+                label: reportName,
+                resourceType: 'report',
+                nodeType: 'report',
+                contextValue: 'reportItem'
+            };
+            
+            // Open the report details view
+            return vscode.commands.executeCommand('appdna.showReportDetails', mockTreeItem, initialTab);
+        })
+    );
+
     // Open hierarchy diagram
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openHierarchyDiagram', async () => {
@@ -163,6 +195,7 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
                 'user-stories-journey': 'appdna.mcp.openUserStoriesJourney',
                 'user-stories-page-mapping': 'appdna.mcp.openUserStoriesPageMapping',
                 'object-details': 'appdna.mcp.openObjectDetails',
+                'report-details': 'appdna.mcp.openReportDetails',
                 'hierarchy': 'appdna.mcp.openHierarchyDiagram',
                 'page-flow': 'appdna.mcp.openPageFlowDiagram',
                 'welcome': 'appdna.mcp.openWelcome',
