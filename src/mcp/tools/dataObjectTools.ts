@@ -1958,4 +1958,58 @@ export class DataObjectTools {
             };
         }
     }
+
+    /**
+     * Lists all pages (forms and reports) from the AppDNA model with optional filtering
+     * Tool name: list_pages (following MCP snake_case convention)
+     * @param parameters Optional filter parameters
+     * @returns Array of page objects with details including owner object, role, and element counts
+     */
+    public async list_pages(parameters?: any): Promise<any> {
+        const { 
+            page_name,           // Optional, case insensitive, partial match
+            page_type,           // Optional, 'Form' or 'Report'
+            owner_object,        // Optional, case insensitive, exact match
+            target_child_object, // Optional, case insensitive, exact match
+            role_required        // Optional, case insensitive, exact match
+        } = parameters || {};
+        
+        try {
+            // Build query parameters for filtering
+            const queryParams: string[] = [];
+            if (page_name) { queryParams.push(`page_name=${encodeURIComponent(page_name)}`); }
+            if (page_type) { queryParams.push(`page_type=${encodeURIComponent(page_type)}`); }
+            if (owner_object) { queryParams.push(`owner_object=${encodeURIComponent(owner_object)}`); }
+            if (target_child_object) { queryParams.push(`target_child_object=${encodeURIComponent(target_child_object)}`); }
+            if (role_required) { queryParams.push(`role_required=${encodeURIComponent(role_required)}`); }
+            
+            const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+            const endpoint = `/api/pages${queryString}`;
+            
+            const pages = await this.fetchFromBridge(endpoint);
+            
+            return {
+                success: true,
+                pages: pages,
+                count: pages.length,
+                filters: {
+                    page_name: page_name || null,
+                    page_type: page_type || null,
+                    owner_object: owner_object || null,
+                    target_child_object: target_child_object || null,
+                    role_required: role_required || null
+                },
+                note: 'Pages loaded from AppDNA model. Each page includes name, type (Form/Report), owner object, target child object, role required, and total element count.'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                pages: [],
+                count: 0,
+                error: `Could not load pages: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                note: 'Bridge connection required to load pages. Make sure the AppDNA extension is running and a model file is loaded.'
+            };
+        }
+    }
 }
+

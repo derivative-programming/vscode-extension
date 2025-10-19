@@ -14,37 +14,24 @@ common types of graphs...
 
 
 tools...
-- test:open_page_details_view tool
-- test:save
 - expand tree
 - collapse tree
-- test:close all open views
-
-
-add mcp tool list_pages
-data from the page list view pages tab.  this and the view should use the same code to build the data set.
-filter on...
-- page name (optional, search name, case insensitive, partial match ok)
-- page type (optional, report or form)
-- owner object (optional, exact match, case insensitive)
-- target child object (optional, exact match, case insensitive) 
-- role required (optional, exact match, case insensitive)
 
 
 model features...
-- get catalog
+- list_model_features_catalog
 - select catalog item
 
 
 model ai processing...
-- get list
+- list_model_ai_processing_requests
 - add request
 - get request details
 - download report
 - merge results
 
 model validation...
-- get list
+- list_model_validation_requests
 - add request
 - get details
 - download report
@@ -52,19 +39,17 @@ model validation...
 
 
 fabrication blueprint catalog...
-- get blueprint catalog
+- list_fabrication_blueprint_catalog
 - select blueprint
 
 
 
 model fabrication requests...
-- get list
+- list_model_fabrication_requests
 - add request
 - get details
 - download results
-
-save model
-
+ 
 
 
 Describe data object model restrictions

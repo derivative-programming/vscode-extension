@@ -1,5 +1,183 @@
 ===============================================================================
 DATE: January 7, 2025
+COMMAND: Create list_pages MCP tool with filtering support
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User requested: "add mcp tool list_pages" with filtering on:
+- page name (optional, case insensitive, partial match)
+- page type (optional, report or form)
+- owner object (optional, exact match, case insensitive)
+- target child object (optional, exact match, case insensitive)
+- role required (optional, exact match, case insensitive)
+
+Requirement: Use the same code as the page list view to build the dataset.
+
+CHANGES MADE:
+Files Modified:
+1. src/services/modelService.ts (lines ~823-960, ~137 lines added)
+   - Added getPagesWithDetails() method with filtering support
+   - Extracts forms where isPage === 'true'
+   - Extracts reports where isPage === 'true' or undefined
+   - Returns enriched page data with metadata:
+     * name, titleText, type (Form/Report)
+     * reportType (Grid, Navigation, Three Column, etc.)
+     * ownerObject (parent data object name)
+     * targetChildObject
+     * roleRequired
+     * totalElements (count of buttons, inputs, columns, params)
+   - Applies filters: pageName (partial), pageType (exact), ownerObject (exact),
+     targetChildObject (exact), roleRequired (exact)
+   - Sorts results alphabetically by name
+
+2. src/mcp/tools/dataObjectTools.ts (lines ~1965-2020, ~55 lines added)
+   - Added list_pages() method
+   - Builds query parameters from filters
+   - Calls /api/pages HTTP bridge endpoint
+   - Returns page data with success/error handling
+   - Consistent error messaging for bridge connectivity
+
+3. src/services/mcpBridge.ts (lines ~695-735, ~40 lines added)
+   - Added GET /api/pages endpoint handler
+   - Parses query parameters: page_name, page_type, owner_object,
+     target_child_object, role_required
+   - Calls modelService.getPagesWithDetails() with filters
+   - Returns JSON response with page data
+   - Error handling with descriptive messages
+
+4. src/mcp/server.ts (lines ~936-1000, ~64 lines added)
+   - Registered list_pages MCP tool after get_data_object_usage
+   - Comprehensive description covering all features
+   - Input schema with optional filter parameters
+   - Output schema with page structure definition
+   - Error handling with structured responses
+
+5. src/extension.ts
+   - Line 244: Updated tool count from 72 to 73
+   - Lines 263-271: Updated Data Object Management from 10 to 11 tools
+   - Added list_pages to tool list with description
+
+6. MCP_README.md
+   - Line 9: Updated tool count from 72 to 73
+   - Line 15: Updated comprehensive tools count to 73
+   - Lines 35-37: Updated Model Operations section (1→2 tools)
+   - Lines 39-57: Updated Data Object Management section (9→11 tools)
+   - Added list_pages tool with filtering capabilities description
+
+TOOL DETAILS:
+Tool Name: list_pages
+HTTP Endpoint: GET /api/pages (port 3001)
+Category: Data Object Management
+Purpose: List and filter all pages (forms and reports) from AppDNA model
+
+INPUT PARAMETERS:
+- page_name (optional): Case-insensitive partial match on page name
+- page_type (optional): 'Form' or 'Report' exact match
+- owner_object (optional): Case-insensitive exact match on owner data object
+- target_child_object (optional): Case-insensitive exact match on target
+- role_required (optional): Case-insensitive exact match on required role
+
+OUTPUT STRUCTURE:
+{
+  success: boolean,
+  pages: [{
+    name: string,              // Page name
+    titleText: string,         // Display title
+    type: 'Form' | 'Report',   // Page type
+    reportType: string,        // Grid, Navigation, Three Column, etc.
+    ownerObject: string,       // Parent data object name
+    targetChildObject: string, // Target child relationship
+    roleRequired: string,      // Required role (or 'Public')
+    totalElements: number,     // Count of all elements
+    isPage: string             // 'true' flag
+  }],
+  count: number,
+  filters: { /* applied filters */ },
+  note: string
+}
+
+ELEMENT COUNTING LOGIC:
+Forms:
+- objectWorkflowButton (buttons)
+- objectWorkflowParam (input controls)
+- objectWorkflowOutputVar (output variables)
+
+Reports:
+- reportButton (buttons)
+- reportColumn (columns)
+- reportParam (input parameters)
+
+REPORT TYPE MAPPING:
+- 'grid' → 'Grid'
+- 'detailtwocolumn' → 'Navigation'
+- 'detailthreecolumn' → 'Three Column'
+- Other values → Capitalized original value
+
+ARCHITECTURE NOTES:
+Shared Data Building Logic:
+- ModelService.getPagesWithDetails() provides single source of truth
+- Both page list view and MCP tool use same data building logic
+- Consistent filtering and sorting across UI and API
+- Future: Update pageListCommands.ts to use modelService method
+
+HTTP Bridge Pattern:
+- Port 3001: Data queries (read operations) - list_pages uses this
+- Port 3002: Command execution (write operations)
+- Query parameters passed via URL encoding
+- Filters applied server-side for efficiency
+
+Data Extraction Pattern:
+1. Get all objects from modelService
+2. Iterate through objectWorkflow arrays (forms)
+3. Iterate through report arrays
+4. Filter by isPage flag
+5. Calculate element counts
+6. Map visualization types to friendly names
+7. Apply user-provided filters
+8. Sort alphabetically by name
+
+USE CASES:
+1. Find all forms for a specific data object
+2. List all reports requiring a certain role
+3. Discover pages that reference a target child object
+4. Filter pages by type (Form vs Report)
+5. Search for pages by partial name match
+6. Analyze page complexity via element counts
+7. Audit role-based access across pages
+
+COMPILATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful
+✅ MCP server compilation successful
+✅ All 73 tools registered successfully
+
+TOOL COUNT PROGRESSION:
+72 tools → 73 tools (added list_pages)
+
+DATA OBJECT MANAGEMENT CATEGORY:
+Previously: 10 tools
+Now: 11 tools (added list_pages)
+- list_data_object_summary
+- list_data_objects
+- get_data_object
+- get_data_object_schema
+- get_data_object_summary_schema
+- create_data_object
+- update_data_object
+- add_data_object_props
+- update_data_object_prop
+- get_data_object_usage
+- list_pages (NEW)
+
+FUTURE ENHANCEMENTS:
+- Update pageListCommands.ts to use modelService.getPagesWithDetails()
+- Add sorting parameter support
+- Add pagination for large page counts
+- Add export functionality to CSV/JSON
+
+===============================================================================
+DATE: January 7, 2025
 COMMAND: Create MCP tool to close all open views
 STATUS: ✅ COMPLETED
 ===============================================================================

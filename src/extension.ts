@@ -60,6 +60,7 @@ tools:
   - add_data_object_props
   - update_data_object_prop
   - get_data_object_usage
+  - list_pages
   - save_model
   - close_all_open_views
   - secret_word_of_the_day
@@ -242,7 +243,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (72 Tools)
+## Comprehensive MCP Tool Suite (73 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -260,7 +261,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`open_user_stories_role_requirements_view\` - View role-based access requirements
 - \`open_requirements_fulfillment_view\` - View role requirements fulfillment status
 
-### Data Object Management (10 Tools)
+### Data Object Management (11 Tools)
 **CRUD Operations:**
 - \`list_data_objects\` - View all data objects in your model
 - \`get_data_object\` - Get details for a specific data object
@@ -269,6 +270,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`add_data_object_props\` - Add properties to data objects
 - \`update_data_object_prop\` - Modify data object properties
 - \`get_data_object_usage\` - Analyze where data objects are referenced
+- \`list_pages\` - List all pages (forms and reports) with filtering
 
 **View Navigation (6 Tools):**
 - \`open_object_details_view\` - Open detailed view for any data object

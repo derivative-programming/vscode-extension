@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **72 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **73 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **72 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **73 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -33,10 +33,11 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
 3. **update_lookup_value** - Update existing lookup value properties
 4. **get_lookup_value_schema** - Get JSON schema for lookup value structure
 
-#### **Model Operations** (1 tool)
-1. **save_model** - Save the current AppDNA model to file (same as clicking save icon in tree view)
+### Model Operations (2 Tools)
+- **save_model** - Save the current AppDNA model to file (same as clicking save icon in tree view)
+- **close_all_open_views** - Close all open view panels and webviews
 
-#### **Data Object Management** (9 tools)
+#### **Data Object Management** (11 tools)
 1. **list_data_object_summary** - List data objects with summary info (name, isLookup, parent)
 2. **list_data_objects** - List all data objects with full details including properties
 3. **get_data_object** - Get a specific data object by name
@@ -49,6 +50,9 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
 10. **get_data_object_usage** - Get detailed usage information for data objects
     - Shows where data objects are referenced (forms, reports, flows, user stories)
     - Reference types: owner objects, target objects, input controls, output variables, columns
+11. **list_pages** - List all pages (forms and reports) with optional filtering
+    - Filter by page name (partial match), page type (Form/Report), owner object, target child object, or role required
+    - Returns page details including type, owner, role, total element count
 
 #### **Wizard Tools** (3 tools)
 - **open_add_data_object_wizard** - Open the Add Data Object Wizard for creating new data objects

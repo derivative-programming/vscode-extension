@@ -693,6 +693,40 @@ export class McpBridge {
                         }));
                     }
                 }
+                else if (req.url && req.url.startsWith('/api/pages')) {
+                    // Get all pages with optional filtering
+                    try {
+                        // Parse query parameters if present
+                        const url = new URL(req.url, `http://${req.headers.host}`);
+                        const filters: any = {};
+                        
+                        const pageName = url.searchParams.get('page_name');
+                        const pageType = url.searchParams.get('page_type');
+                        const ownerObject = url.searchParams.get('owner_object');
+                        const targetChildObject = url.searchParams.get('target_child_object');
+                        const roleRequired = url.searchParams.get('role_required');
+                        
+                        if (pageName) { filters.pageName = pageName; }
+                        if (pageType) { filters.pageType = pageType; }
+                        if (ownerObject) { filters.ownerObject = ownerObject; }
+                        if (targetChildObject) { filters.targetChildObject = targetChildObject; }
+                        if (roleRequired) { filters.roleRequired = roleRequired; }
+                        
+                        // Use ModelService's new getPagesWithDetails method
+                        const pages = modelService.getPagesWithDetails(Object.keys(filters).length > 0 ? filters : undefined);
+                        
+                        this.outputChannel.appendLine(`[Data Bridge] Returning ${pages.length} pages (filtered: ${Object.keys(filters).length > 0})`);
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify(pages));
+                    } catch (error) {
+                        this.outputChannel.appendLine(`[Data Bridge] Error getting pages: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            error: error instanceof Error ? error.message : 'Failed to get pages'
+                        }));
+                    }
+                }
                 else if (req.url?.startsWith('/api/lookup-values?')) {
                     // Get all lookup values from a specific lookup data object
                     // Extract lookupObjectName from query string

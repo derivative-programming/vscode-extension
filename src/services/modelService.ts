@@ -816,6 +816,144 @@ export class ModelService {
     }
 
     /**
+     * Get all pages (forms and reports with isPage=true) with detailed metadata and optional filtering
+     * This method provides enriched page data including owner objects, element counts, and filtering capabilities
+     * @param filters Optional filtering criteria
+     * @returns Array of page objects with detailed metadata
+     */
+    public getPagesWithDetails(filters?: {
+        pageName?: string;          // Optional, case insensitive, partial match
+        pageType?: 'Form' | 'Report' | '';  // Optional, exact match
+        ownerObject?: string;       // Optional, case insensitive, exact match
+        targetChildObject?: string; // Optional, case insensitive, exact match
+        roleRequired?: string;      // Optional, case insensitive, exact match
+    }): Array<{
+        name: string;
+        titleText: string;
+        type: 'Form' | 'Report';
+        reportType: string;
+        ownerObject: string;
+        targetChildObject: string;
+        roleRequired: string;
+        totalElements: number;
+        isPage: string;
+    }> {
+        const allObjects = this.getAllObjects();
+        const pageItems: any[] = [];
+
+        // Extract all forms and reports that are pages
+        allObjects.forEach(obj => {
+            // Process forms
+            if (obj.objectWorkflow && Array.isArray(obj.objectWorkflow)) {
+                obj.objectWorkflow.forEach((form: any) => {
+                    if (form.isPage === 'true') {
+                        // Calculate total elements for forms
+                        const buttons = (form.objectWorkflowButton && Array.isArray(form.objectWorkflowButton)) ? form.objectWorkflowButton.length : 0;
+                        const inputs = (form.objectWorkflowParam && Array.isArray(form.objectWorkflowParam)) ? form.objectWorkflowParam.length : 0;
+                        const outputVars = (form.objectWorkflowOutputVar && Array.isArray(form.objectWorkflowOutputVar)) ? form.objectWorkflowOutputVar.length : 0;
+                        const totalElements = buttons + inputs + outputVars;
+
+                        pageItems.push({
+                            name: form.name || 'Unnamed Form',
+                            titleText: form.titleText || form.name || 'Unnamed Form',
+                            type: 'Form',
+                            reportType: '',
+                            ownerObject: obj.name || 'Unknown',
+                            targetChildObject: form.targetChildObject || '',
+                            roleRequired: form.roleRequired || 'Public',
+                            totalElements: totalElements,
+                            isPage: form.isPage || 'true'
+                        });
+                    }
+                });
+            }
+
+            // Process reports
+            if (obj.report && Array.isArray(obj.report)) {
+                obj.report.forEach((report: any) => {
+                    if (report.isPage === 'true' || report.isPage === undefined) {
+                        let reportType = '';
+                        if (report.visualizationType) {
+                            const vizType = report.visualizationType.toLowerCase();
+                            if (vizType === 'grid') {
+                                reportType = 'Grid';
+                            } else if (vizType === 'detailtwocolumn') {
+                                reportType = 'Navigation';
+                            } else if (vizType === 'detailthreecolumn') {
+                                reportType = 'Three Column';
+                            } else {
+                                reportType = report.visualizationType;
+                            }
+                        }
+
+                        // Calculate total elements for reports
+                        const buttons = (report.reportButton && Array.isArray(report.reportButton)) ? report.reportButton.length : 0;
+                        const columns = (report.reportColumn && Array.isArray(report.reportColumn)) ? report.reportColumn.length : 0;
+                        const params = (report.reportParam && Array.isArray(report.reportParam)) ? report.reportParam.length : 0;
+                        const totalElements = buttons + columns + params;
+
+                        pageItems.push({
+                            name: report.name || 'Unnamed Report',
+                            titleText: report.titleText || report.name || 'Unnamed Report',
+                            type: 'Report',
+                            reportType: reportType,
+                            ownerObject: obj.name || 'Unknown',
+                            targetChildObject: report.targetChildObject || '',
+                            roleRequired: report.roleRequired || 'Public',
+                            totalElements: totalElements,
+                            isPage: report.isPage || 'true'
+                        });
+                    }
+                });
+            }
+        });
+
+        // Apply filters if provided
+        let filteredItems = pageItems;
+        
+        if (filters) {
+            if (filters.pageName) {
+                const searchTerm = filters.pageName.toLowerCase();
+                filteredItems = filteredItems.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (filters.pageType) {
+                filteredItems = filteredItems.filter(item => 
+                    item.type === filters.pageType
+                );
+            }
+            
+            if (filters.ownerObject) {
+                const searchOwner = filters.ownerObject.toLowerCase();
+                filteredItems = filteredItems.filter(item => 
+                    item.ownerObject.toLowerCase() === searchOwner
+                );
+            }
+            
+            if (filters.targetChildObject) {
+                const searchTarget = filters.targetChildObject.toLowerCase();
+                filteredItems = filteredItems.filter(item => 
+                    item.targetChildObject.toLowerCase() === searchTarget
+                );
+            }
+            
+            if (filters.roleRequired) {
+                const searchRole = filters.roleRequired.toLowerCase();
+                filteredItems = filteredItems.filter(item => 
+                    item.roleRequired.toLowerCase() === searchRole
+                );
+            }
+        }
+
+        // Sort by name
+        filteredItems.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+        return filteredItems;
+    }
+
+    /**
      * Check if a "DynaFlow" data object exists in the model
      * @returns True if a data object named "DynaFlow" exists, false otherwise
      */

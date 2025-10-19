@@ -931,6 +931,69 @@ export class MCPServer {
             }
         });
 
+        // Register list_pages tool
+        this.server.registerTool('list_pages', {
+            title: 'List Pages',
+            description: 'List all pages (forms and reports with isPage=true) from the AppDNA model with optional filtering. Each page includes name, type (Form/Report), owner data object, target child object, role required, report type (for reports: Grid, Navigation, Three Column), and total element count (buttons, columns, inputs, parameters). Use filters to find specific pages by name, type, owner, target, or role.',
+            inputSchema: {
+                page_name: z.string().optional().describe('Optional: Filter by page name (case-insensitive, partial match)'),
+                page_type: z.enum(['Form', 'Report', '']).optional().describe('Optional: Filter by page type - "Form" or "Report"'),
+                owner_object: z.string().optional().describe('Optional: Filter by owner data object name (case-insensitive, exact match)'),
+                target_child_object: z.string().optional().describe('Optional: Filter by target child object name (case-insensitive, exact match)'),
+                role_required: z.string().optional().describe('Optional: Filter by required role (case-insensitive, exact match)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                pages: z.array(z.object({
+                    name: z.string(),
+                    titleText: z.string(),
+                    type: z.string(),
+                    reportType: z.string(),
+                    ownerObject: z.string(),
+                    targetChildObject: z.string(),
+                    roleRequired: z.string(),
+                    totalElements: z.number(),
+                    isPage: z.string()
+                })),
+                count: z.number(),
+                filters: z.object({
+                    page_name: z.string().nullable(),
+                    page_type: z.string().nullable(),
+                    owner_object: z.string().nullable(),
+                    target_child_object: z.string().nullable(),
+                    role_required: z.string().nullable()
+                }).optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ page_name, page_type, owner_object, target_child_object, role_required }) => {
+            try {
+                const result = await this.dataObjectTools.list_pages({ 
+                    page_name, 
+                    page_type, 
+                    owner_object, 
+                    target_child_object, 
+                    role_required 
+                });
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { 
+                    success: false, 
+                    pages: [],
+                    count: 0,
+                    error: error.message 
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // ===== MODEL OPERATIONS =====
 
         // Register save_model tool
