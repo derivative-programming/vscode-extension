@@ -106,6 +106,8 @@ tools:
   - open_help_view
   - open_register_view
   - open_login_view
+  - open_add_data_object_wizard
+  - open_add_report_wizard
 ---
 
 # AppDNA Chat Mode
@@ -200,6 +202,12 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - **Use \`get_data_object\`** only when you need the raw JSON data for programmatic analysis or when the visual interface is not available
 - **Use \`list_data_objects\`** to get an overview of all data objects in your model
 
+**Viewing Forms & Pages:**
+- **Use \`open_form_details_view\`** to view and edit form configurations including settings, input controls, buttons, and output variables
+- **Use \`open_page_details_view\`** to view and edit page configurations including components, variables, and navigation
+- **Use \`open_page_preview_view\`** to see how forms and pages will appear to end users before implementation
+- **Use \`open_pages_list_view\`** to get an overview of all pages in your application
+
 **Viewing vs. Getting Data:**
 - **Views** (\`open_*_view\` tools) provide interactive, visual interfaces for exploring and editing model elements
 - **Get tools** (\`get_*\` tools) return raw JSON data for analysis or when you need structured data
@@ -274,6 +282,15 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`list_lookup_values\` - View lookup table contents
 - \`update_lookup_value\` - Modify reference data
 - \`get_lookup_value_schema\` - View lookup value structure
+
+### Form & Page Management (6+ Tools)
+**View Navigation:**
+- \`open_form_details_view\` - Open detailed editor for any form with settings, input controls, buttons, and output variables tabs
+- \`open_pages_list_view\` - View all pages in the application
+- \`open_page_details_view\` - Open detailed editor for any page
+- \`open_page_preview_view\` - Preview how pages and forms appear to users
+- \`open_page_init_flows_list_view\` - View page initialization workflows
+- \`open_page_init_flow_details_view\` - Edit specific page init flow configurations
 
 ### Schema & Analysis Tools (8+ Tools)
 - \`get_data_object_summary_schema\` - View data object summary structure

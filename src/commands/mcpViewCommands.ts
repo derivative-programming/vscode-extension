@@ -125,6 +125,68 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
         })
     );
 
+    // Open report details by name (MCP-friendly - takes string instead of tree item)
+    // Description: Opens the Report details view showing report configuration, input controls, buttons, and output variables
+    // Tabs: 'settings' (report configuration), 'inputControls' (parameters and filters), 'buttons' (actions and downloads), 'outputVars' (data outputs)
+    // Parameters: reportName (required) - Name of the report
+    //            initialTab (optional) - One of: 'settings', 'inputControls', 'buttons', 'outputVars'
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openReportDetails', async (reportName: string, initialTab?: string) => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+
+            // Find the report in the model
+            const reports = modelService.getAllReports();
+            const report = reports.find(r => r.name === reportName);
+            
+            if (!report) {
+                throw new Error(`Report '${reportName}' not found. Available reports: ${reports.map(r => r.name).join(', ')}`);
+            }
+            
+            // Create a mock tree item for the report
+            const mockTreeItem = {
+                label: reportName,
+                resourceType: 'report',
+                nodeType: 'report',
+                contextValue: 'reportItem'
+            };
+            
+            // Open the report details view
+            return vscode.commands.executeCommand('appdna.showReportDetails', mockTreeItem, initialTab);
+        })
+    );
+    // Open form details by name (MCP-friendly - takes string instead of tree item)
+    // Description: Opens the Form details view showing form configuration, parameters, buttons, and output variables
+    // Parameters: formName (required) - Name of the form (from pageObjectWorkflow)
+    //            initialTab (optional) - One of available tabs (if form details view supports tabs)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openFormDetails', async (formName: string, initialTab?: string) => {
+            // Find the form in the model
+            const allPageWorkflows = modelService.getAllPageObjectWorkflows();
+            const form = allPageWorkflows.find(workflow => {
+                const workflowName = workflow.name || workflow.titleText || 'Unnamed Form';
+                return workflowName === formName;
+            });
+            
+            if (!form) {
+                const formNames = allPageWorkflows.map(w => w.name || w.titleText || 'Unnamed Form');
+                throw new Error(`Form '${formName}' not found. Available forms: ${formNames.join(', ')}`);
+            }
+            
+            // Create a mock tree item for the form
+            const mockTreeItem = {
+                label: formName,
+                resourceType: 'pageObjectWorkflow',
+                nodeType: 'pageObjectWorkflow',
+                contextValue: 'pageObjectWorkflow'
+            };
+            
+            // Open the form details view
+            return vscode.commands.executeCommand('appdna.showFormDetails', mockTreeItem, initialTab);
+        })
+    );
+
     // Open hierarchy diagram
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openHierarchyDiagram', async () => {
@@ -153,18 +215,35 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
         })
     );
 
-    // Open page preview view with optional page selection
-    // Description: Opens the Page Preview view. If pageName provided, pre-selects that page.
-    // Parameters: pageName (optional) - Name of the page/form to preview
+    // Open add data object wizard
+    // Description: Opens the Add Data Object Wizard for creating new data objects
+    // Parameters: None
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.mcp.openPagePreview', async (pageName?: string) => {
-            if (pageName) {
-                const { showPagePreviewWithSelection } = require('../webviews/pagepreview/pagePreviewView');
-                return await showPagePreviewWithSelection(context, modelService, pageName);
-            } else {
-                const { showPagePreview } = require('../webviews/pagepreview/pagePreviewView');
-                return await showPagePreview(context, modelService);
+        vscode.commands.registerCommand('appdna.mcp.openAddDataObjectWizard', async () => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
             }
+            return vscode.commands.executeCommand('appdna.addObject');
+        })
+    );
+
+    // Open add report wizard
+    // Description: Opens the Add Report Wizard for creating a new report
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAddReportWizard', async () => {
+            return vscode.commands.executeCommand('appdna.addReport');
+        })
+    );
+    // Open add form wizard
+    // Description: Opens the Add Form Wizard for creating new forms
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAddFormWizard', async () => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            return vscode.commands.executeCommand('appdna.addForm');
         })
     );
 
@@ -178,10 +257,13 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
                 'user-stories-journey': 'appdna.mcp.openUserStoriesJourney',
                 'user-stories-page-mapping': 'appdna.mcp.openUserStoriesPageMapping',
                 'object-details': 'appdna.mcp.openObjectDetails',
+                'report-details': 'appdna.mcp.openReportDetails',
                 'hierarchy': 'appdna.mcp.openHierarchyDiagram',
                 'page-flow': 'appdna.mcp.openPageFlowDiagram',
                 'welcome': 'appdna.mcp.openWelcome',
-                'settings': 'appdna.mcp.openSettings'
+                'settings': 'appdna.mcp.openSettings',
+                'add-data-object-wizard': 'appdna.mcp.openAddDataObjectWizard',
+                'add-form-wizard': 'appdna.mcp.openAddFormWizard'
             };
             
             const command = viewMap[viewName];

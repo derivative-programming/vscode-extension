@@ -17,6 +17,50 @@ tools...
 - collapse tree
 
 
+open form details - param of name required
+
+add form wizard
+
+add report wizard
+
+open report detail view - param of name required
+
+
+model features...
+- get catalog
+- select catalog item
+
+
+model ai processing...
+- get list
+- add request
+- get request details
+- download report
+- merge results
+
+model validation...
+- get list
+- add request
+- get details
+- download report
+- view change suggestions
+
+
+fabrication blueprint catalog...
+- get blueprint catalog
+- select blueprint
+
+
+
+model fabrication requests...
+- get list
+- add request
+- get details
+- download results
+
+save model
+
+
 
 Describe data object model restrictions
 
