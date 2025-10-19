@@ -1569,6 +1569,26 @@ export class McpBridge {
                     }
                 });
             } 
+            else if (req.url === '/api/auth-status') {
+                // Auth status check endpoint
+                try {
+                    const { AuthService } = require('./authService');
+                    const authService = AuthService.getInstance();
+                    const isLoggedIn = authService.isLoggedIn();
+                    
+                    res.writeHead(200);
+                    res.end(JSON.stringify({
+                        success: true,
+                        isLoggedIn: isLoggedIn
+                    }));
+                } catch (error: any) {
+                    res.writeHead(500);
+                    res.end(JSON.stringify({
+                        success: false,
+                        error: error.message
+                    }));
+                }
+            }
             else if (req.url === '/api/health') {
                 // Health check endpoint
                 res.writeHead(200);

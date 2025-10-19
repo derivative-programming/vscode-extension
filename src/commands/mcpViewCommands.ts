@@ -235,8 +235,8 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
             return vscode.commands.executeCommand('appdna.addReport');
         })
     );
-    // Open add form wizard
-    // Description: Opens the Add Form Wizard for creating new forms
+    // Open Add Form Wizard
+    // Description: Opens the wizard for creating a new form
     // Parameters: None
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openAddFormWizard', async () => {
@@ -244,6 +244,22 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
                 throw new Error('No App DNA file is currently loaded');
             }
             return vscode.commands.executeCommand('appdna.addForm');
+        })
+    );
+
+    // Open Page Preview with specific page selection
+    // Description: Opens the page preview view and selects a specific page
+    // Parameters: pageName (required) - Name of the form or report to preview
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openPagePreview', async (pageName: string) => {
+            if (!modelService.isFileLoaded()) {
+                throw new Error('No App DNA file is currently loaded');
+            }
+            if (!pageName) {
+                throw new Error('Page name is required');
+            }
+            const { showPagePreviewWithSelection } = require('../webviews/pagepreview/pagePreviewView');
+            return showPagePreviewWithSelection(context, modelService, pageName);
         })
     );
 

@@ -1,4 +1,63 @@
 ===============================================================================
+DATE: October 19, 2025
+COMMAND: Add authentication checks to Model Services MCP view tools
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User requested: "if any of the first 5 [Model Services view tools] are requested 
+but the user is not logged in then return an error and tell them to log in first"
+
+The 5 Model Services view tools are:
+1. open_model_ai_processing_view
+2. open_model_validation_requests_view
+3. open_model_feature_catalog_view
+4. open_fabrication_requests_view
+5. open_fabrication_blueprint_catalog_view
+
+CHANGES MADE:
+Files Modified:
+1. src/services/mcpBridge.ts
+   - Added new endpoint /api/auth-status (GET) at line ~1572
+   - Returns { success: true, isLoggedIn: boolean }
+   - Uses AuthService.getInstance().isLoggedIn() to check authentication status
+   - Placed before /api/health endpoint in command bridge
+
+2. src/mcp/tools/viewTools.ts
+   - Added checkAuthStatus() private method (lines ~15-63)
+   - Calls HTTP bridge /api/auth-status endpoint on port 3002
+   - Returns boolean indicating if user is logged in
+   - 2 second timeout for auth check
+   
+   - Modified 5 Model Services view methods (lines ~488-560):
+     * openModelAIProcessing()
+     * openModelValidationRequests()
+     * openModelFeatureCatalog()
+     * openFabricationRequests()
+     * openFabricationBlueprintCatalog()
+   
+   - Each method now checks authentication first via checkAuthStatus()
+   - If not logged in, returns error object with helpful message:
+     "Authentication required. Please log in to Model Services first using the 
+     open_login_view tool or click Login under Model Services in the tree view."
+   
+   - Updated file header to reflect modification date (October 19, 2025)
+   - Added comment: "Added authentication checks for Model Services views"
+
+ARCHITECTURE NOTES:
+- Authentication check uses HTTP bridge pattern (port 3002) for MCP→Extension communication
+- Auth status is retrieved from AuthService singleton in extension context
+- Error messages guide users to login via MCP tool or tree view
+- Login/Register views (open_login_view, open_register_view) do NOT require auth
+- Non-Model-Services views are unaffected and do not require authentication
+- Pattern can be reused for other features requiring authentication
+
+TESTING:
+✅ TypeScript compilation succeeded (npm run compile)
+✅ webpack build completed successfully
+✅ All 73 MCP tools remain registered
+
+===============================================================================
 DATE: January 7, 2025
 COMMAND: Create list_pages MCP tool with filtering support
 STATUS: ✅ COMPLETED

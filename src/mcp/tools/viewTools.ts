@@ -1,7 +1,9 @@
 // viewTools.ts
 // Tools for opening views via MCP
 // Created on: October 15, 2025
+// Modified on: October 19, 2025
 // This file implements view opening tools for the MCP server with comprehensive descriptions
+// Added authentication checks for Model Services views
 
 /**
  * Implements view opening tools for the MCP server
@@ -10,6 +12,51 @@
 export class ViewTools {
     constructor() {
         // No dependencies needed - just executes commands
+    }
+
+    /**
+     * Check if user is logged in to Model Services via HTTP bridge
+     */
+    private async checkAuthStatus(): Promise<boolean> {
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/auth-status',
+                method: 'GET',
+                timeout: 2000 // 2 second timeout
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        resolve(response.success && response.isLoggedIn);
+                    } catch (error) {
+                        resolve(false);
+                    }
+                });
+            });
+
+            req.on('error', () => {
+                resolve(false);
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve(false);
+            });
+
+            req.end();
+        });
     }
 
     /**
@@ -438,40 +485,80 @@ export class ViewTools {
     /**
      * Open Model AI Processing View
      * Shows AI analysis and recommendations for the model
+     * Requires authentication to Model Services
      */
     public async openModelAIProcessing(): Promise<any> {
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.'
+            };
+        }
         return this.executeCommand('appdna.modelAIProcessing');
     }
 
     /**
      * Open Model Validation Requests View
      * Shows validation request status and history
+     * Requires authentication to Model Services
      */
     public async openModelValidationRequests(): Promise<any> {
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.'
+            };
+        }
         return this.executeCommand('appdna.modelValidation');
     }
 
     /**
      * Open Model Feature Catalog View
      * Shows available features and enhancements
+     * Requires authentication to Model Services
      */
     public async openModelFeatureCatalog(): Promise<any> {
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.'
+            };
+        }
         return this.executeCommand('appdna.modelFeatureCatalog');
     }
 
     /**
      * Open Fabrication Requests View
      * Shows fabrication request status and code generation history
+     * Requires authentication to Model Services
      */
     public async openFabricationRequests(): Promise<any> {
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.'
+            };
+        }
         return this.executeCommand('appdna.modelFabrication');
     }
 
     /**
      * Open Fabrication Blueprint Catalog View
      * Shows available templates and blueprints
+     * Requires authentication to Model Services
      */
     public async openFabricationBlueprintCatalog(): Promise<any> {
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.'
+            };
+        }
         return this.executeCommand('appdna.fabricationBlueprintCatalog');
     }
 
