@@ -209,14 +209,6 @@ export class ViewTools {
         return this.executeCommand('appdna.mcp.openPagePreview', pageName ? [pageName] : []);
     }
 
-    /**
-     * Open Add Data Object Wizard
-     * Opens wizard to create new data objects
-     */
-    public async openAddDataObjectWizard(): Promise<any> {
-        return this.executeCommand('appdna.addObject');
-    }
-
     // ===== WORKFLOW AND FLOW VIEWS =====
 
     /**
@@ -413,24 +405,6 @@ export class ViewTools {
         return this.executeCommand('appdna.showPageFlowDiagram', initialTab ? [initialTab] : []);
     }
 
-    // ===== WIZARD VIEWS =====
-
-    /**
-     * Open Add Data Object Wizard
-     * Shows the wizard for adding a new data object to the model
-     */
-    public async openAddDataObjectWizard(): Promise<any> {
-        return this.executeCommand('appdna.mcp.openAddDataObjectWizard');
-    }
-
-    /**
-     * Open Add Report Wizard
-     * Shows the wizard for adding a new report to the model
-     */
-    public async openAddReportWizard(): Promise<any> {
-        return this.executeCommand('appdna.mcp.openAddReportWizard');
-    }
-
     // ===== SETTINGS AND INFO VIEWS =====
 
     /**
@@ -489,6 +463,14 @@ export class ViewTools {
      */
     public async openAddDataObjectWizard(): Promise<any> {
         return this.executeCommand('appdna.mcp.openAddDataObjectWizard');
+    }
+
+    /**
+     * Open Add Report Wizard
+     * Opens the wizard for creating new reports with guided steps
+     */
+    public async openAddReportWizard(): Promise<any> {
+        return this.executeCommand('appdna.mcp.openAddReportWizard');
     }
 
     /**

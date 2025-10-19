@@ -1160,3 +1160,25 @@ Architecture Notes:
 - Form details view shows: Settings, Input Controls, Buttons, Output Variables tabs
 - Verified implementation with custom test script - all tests passed
 - Updated MCP-VIEW-COMMANDS-REFERENCE.md documentation
+
+--- October 19, 2025 ---
+[COMPLETED] Review MCP commands - Comprehensive review of all 71 MCP tools across server.ts and tool implementations
+[COMPLETED] Fix duplicate openAddDataObjectWizard implementations - Removed 2 duplicate methods from viewTools.ts
+[COMPLETED] Add missing openAddReportWizard method - Added to viewTools.ts to match server.ts registration
+[COMPLETED] Sync README tool count (71 vs 65) - Updated MCP_README.md with accurate breakdown of all 71 tools, reorganized categories
+
+Architecture Notes:
+- MCP server has 71 registered tools (not 65 as previously documented)
+- Tools organized into: User Story (5), Role (4), Lookup (4), Data Object (10), Wizards (3), Views (44), Utility (1)
+- Fixed duplicate registrations and missing method implementations
+- Documentation now accurately reflects implementation
+
+[COMPLETED] Update AppDNA ChatMode tool list - Updated extension.ts createAppDNAChatMode() function with accurate 71 tool count, added missing open_add_form_wizard, reorganized all tool categories with correct counts
+
+[COMPLETED] Fix MCP duplicate tool registration - Removed duplicate open_add_data_object_wizard registration from server.ts, updated all documentation from 71 to 70 tools
+
+Error Fixed:
+- Tool 'open_add_data_object_wizard' was registered twice (lines 1256 and 2275)
+- Removed duplicate at line 2275 in WIZARD VIEWS section
+- MCP server now starts successfully with 70 unique tools
+

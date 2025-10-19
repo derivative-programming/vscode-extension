@@ -17,13 +17,6 @@ tools...
 - collapse tree
 
 
-open form details - param of name required
-
-add form wizard
-
-add report wizard
-
-open report detail view - param of name required
 
 
 model features...

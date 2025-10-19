@@ -2272,33 +2272,6 @@ export class MCPServer {
 
         // ===== WIZARD VIEWS =====
 
-        this.server.registerTool('open_add_data_object_wizard', {
-            title: 'Open Add Data Object Wizard',
-            description: 'Opens the Add Data Object Wizard which provides a step-by-step guided interface for creating new data objects. The wizard walks through selecting parent object, setting properties like isLookup, and defining the object name and description.',
-            inputSchema: {},
-            outputSchema: {
-                success: z.boolean(),
-                view: z.string().optional(),
-                message: z.string().optional(),
-                error: z.string().optional()
-            }
-        }, async () => {
-            try {
-                const result = await this.viewTools.openAddDataObjectWizard();
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-                    structuredContent: result
-                };
-            } catch (error) {
-                const errorResult = { success: false, error: error.message };
-                return {
-                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
-                    structuredContent: errorResult,
-                    isError: true
-                };
-            }
-        });
-
         this.server.registerTool('open_add_report_wizard', {
             title: 'Open Add Report Wizard',
             description: 'Opens the Add Report Wizard for creating a new report. The wizard guides you through creating a report with options for selecting the report type, configuring columns, parameters, and filters. Provides validation for report names and configuration.',

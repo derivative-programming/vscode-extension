@@ -106,8 +106,8 @@ tools:
   - open_help_view
   - open_register_view
   - open_login_view
-  - open_add_data_object_wizard
   - open_add_report_wizard
+  - open_add_form_wizard
 ---
 
 # AppDNA Chat Mode
@@ -240,24 +240,25 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (62 Tools)
+## Comprehensive MCP Tool Suite (70 Tools)
 
-### User Story Management (12+ Tools)
+### User Story Management (5 Tools)
 **CRUD Operations:**
 - \`create_user_story\` - Create new user stories with validation
 - \`list_user_stories\` - View all user stories in your model
 - \`update_user_story\` - Modify existing user stories
 - \`get_user_story_schema\` - View user story structure and requirements
 
-**View Navigation (8+ Tools):**
+**View Navigation (7 Tools):**
 - \`open_user_stories_view\` - Open the main user stories list view
 - \`open_user_stories_dev_view\` - Open development queue and metrics
 - \`open_user_stories_qa_view\` - Open QA/testing views and analytics
 - \`open_user_stories_journey_view\` - View user journey mapping
 - \`open_user_stories_page_mapping_view\` - See page-to-story relationships
 - \`open_user_stories_role_requirements_view\` - View role-based access requirements
+- \`open_requirements_fulfillment_view\` - View role requirements fulfillment status
 
-### Data Object Management (15+ Tools)
+### Data Object Management (10 Tools)
 **CRUD Operations:**
 - \`list_data_objects\` - View all data objects in your model
 - \`get_data_object\` - Get details for a specific data object
@@ -267,23 +268,32 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`update_data_object_prop\` - Modify data object properties
 - \`get_data_object_usage\` - Analyze where data objects are referenced
 
-**View Navigation:**
+**View Navigation (6 Tools):**
 - \`open_object_details_view\` - Open detailed view for any data object
+- \`open_data_objects_list_view\` - Browse all data objects
+- \`open_data_object_usage_analysis_view\` - Impact analysis for objects
+- \`open_data_object_size_analysis_view\` - Storage and capacity planning
+- \`open_database_size_forecast_view\` - Database growth projections
 - \`list_data_object_summary\` - Get overview of all data objects
 
-### Role & Security Management (6+ Tools)
+### Role Management (4 Tools)
 - \`add_role\` - Create new user roles
 - \`update_role\` - Modify existing roles
 - \`list_roles\` - View all roles in the system
 - \`get_role_schema\` - View role structure and requirements
 
-### Lookup/Reference Data (9+ Tools)
+### Lookup Value Management (4 Tools)
 - \`add_lookup_value\` - Add reference data values
 - \`list_lookup_values\` - View lookup table contents
 - \`update_lookup_value\` - Modify reference data
 - \`get_lookup_value_schema\` - View lookup value structure
 
-### Form & Page Management (6+ Tools)
+### Wizard Tools (3 Tools)
+- \`open_add_data_object_wizard\` - Wizard for creating new data objects
+- \`open_add_report_wizard\` - Wizard for creating new reports
+- \`open_add_form_wizard\` - Wizard for creating new forms
+
+### Form & Page Views (6 Tools)
 **View Navigation:**
 - \`open_form_details_view\` - Open detailed editor for any form with settings, input controls, buttons, and output variables tabs
 - \`open_pages_list_view\` - View all pages in the application
@@ -292,10 +302,51 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`open_page_init_flows_list_view\` - View page initialization workflows
 - \`open_page_init_flow_details_view\` - Edit specific page init flow configurations
 
-### Schema & Analysis Tools (8+ Tools)
-- \`get_data_object_summary_schema\` - View data object summary structure
+### Workflow Views (7 Tools)
+- \`open_general_workflows_list_view\` - List general workflows
+- \`open_add_general_flow_wizard\` - Wizard for creating general flows
+- \`open_general_workflow_details_view\` - View general workflow details
+- \`open_workflows_list_view\` - List all DynaFlow workflows
+- \`open_workflow_details_view\` - View specific workflow details
+- \`open_workflow_tasks_list_view\` - List workflow tasks
+- \`open_workflow_task_details_view\` - View workflow task details
+
+### Report & API Views (3 Tools)
+- \`open_report_details_view\` - View/edit report details with settings, input controls, buttons, and output variables
+- \`open_apis_list_view\` - Browse all API integrations
+- \`open_api_details_view\` - View specific API details
+
+### Analysis & Metrics Views (3 Tools)
+- \`open_metrics_analysis_view\` - Project metrics and KPIs
+- \`open_hierarchy_diagram_view\` - Object hierarchy visualization
+- \`open_page_flow_diagram_view\` - Page navigation flow diagram
+
+### System & Configuration Views (9 Tools)
+- \`open_lexicon_view\` - Application terminology and definitions
+- \`open_change_requests_view\` - Change request tracking
+- \`open_model_ai_processing_view\` - AI analysis and recommendations
+- \`open_model_validation_requests_view\` - Validation request status
+- \`open_model_feature_catalog_view\` - Available features and enhancements
+- \`open_fabrication_requests_view\` - Fabrication/code generation requests
+- \`open_fabrication_blueprint_catalog_view\` - Available templates and blueprints
+- \`open_project_settings_view\` - Project configuration
+- \`open_settings_view\` - Extension settings
+
+### Welcome & Help Views (4 Tools)
+- \`open_welcome_view\` - Welcome screen and getting started
+- \`open_help_view\` - Help documentation and support
+- \`open_register_view\` - Model services registration
+- \`open_login_view\` - Model services login
+
+### Schema Tools (5 Tools)
+- \`get_user_story_schema\` - View user story structure
 - \`get_data_object_schema\` - View detailed data object schema
-- Additional schema and analysis tools for comprehensive model understanding
+- \`get_data_object_summary_schema\` - View data object summary structure
+- \`get_role_schema\` - View role structure
+- \`get_lookup_value_schema\` - View lookup value structure
+
+### Utility Tools (1 Tool)
+- \`secret_word_of_the_day\` - Test/verification tool
 
 ## Navigation Tools for AppDNA Views
 
@@ -329,7 +380,7 @@ The extension provides specialized navigation tools to help you explore differen
 - Review the lexicon for business terminology definitions
 
 ### MCP Integration
-- **62 Production-Ready Tools**: Complete coverage of all AppDNA functionality
+- **70 Production-Ready Tools**: Complete coverage of all AppDNA functionality
 - **GitHub Copilot Integration**: Natural language queries for model exploration and modification
 - **Safe Model Changes**: All modifications go through validated MCP tools, not direct file editing
 - **Real-time Status**: Visual indicators show MCP server running/stopped states

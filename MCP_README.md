@@ -1,38 +1,54 @@
 # AppDNA MCP Server Documentation
 
-**Status:** ✅ **Production Ready** - Tested with GitHub Copilot (October 15, 2025)  
+**Status:** ✅ **Production Ready** - Tested with GitHub Copilot (October 19, 2025)  
 **Version:** 1.0.21  
 **MCP SDK:** 1.20.0
 
 ## Overview
 
-The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MCP) server that enables GitHub Copilot and other MCP clients to interact with the entire AppDNA model. This production-ready integration provides **65 tools** covering user stories, data objects, forms, pages, reports, APIs, and more.
+The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MCP) server that enables GitHub Copilot and other MCP clients to interact with the entire AppDNA model. This production-ready integration provides **70 tools** covering user stories, data objects, forms, pages, reports, APIs, and more.
 
 ## Features
 
-### **65 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **70 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
 2. **list_user_stories** - List all user stories from the model
-3. **list_roles** - Get all available roles from the Role data object
-4. **search_user_stories_by_role** - Find user stories for a specific role
+3. **update_user_story** - Update existing user story properties
+4. **get_user_story_schema** - Get JSON schema for user story structure
 5. **search_user_stories** - Search user stories by text (with case sensitivity option)
 
-#### **Data Object Management** (2 tools)
-1. **list_data_objects** - List all data objects with optional search and filters
-   - Search by name (case-insensitive, also searches without spaces)
-   - Filter by isLookup status (true/false)
-   - Filter by parent object name (case-insensitive)
-2. **get_data_object_usage** - Get detailed usage information for data objects
-   - Shows where data objects are referenced (forms, reports, flows, user stories)
-   - Reference types: owner objects, target objects, input controls, output variables, columns
-   - Optional filter by specific data object name
+#### **Role Management** (4 tools)
+1. **list_roles** - Get all available roles from the Role data object
+2. **add_role** - Add a new role (with PascalCase validation)
+3. **update_role** - Update existing role properties
+4. **get_role_schema** - Get JSON schema for role structure
 
-#### **Wizard Tools** (2 tools)
+#### **Lookup Value Management** (4 tools)
+1. **add_lookup_value** - Add values to lookup data objects
+2. **list_lookup_values** - List all lookup values from a lookup object
+3. **update_lookup_value** - Update existing lookup value properties
+4. **get_lookup_value_schema** - Get JSON schema for lookup value structure
+
+#### **Data Object Management** (9 tools)
+1. **list_data_object_summary** - List data objects with summary info (name, isLookup, parent)
+2. **list_data_objects** - List all data objects with full details including properties
+3. **get_data_object** - Get a specific data object by name
+4. **get_data_object_schema** - Get JSON schema for data object structure
+5. **get_data_object_summary_schema** - Get JSON schema for data object summary
+6. **create_data_object** - Create new data objects programmatically
+7. **update_data_object** - Update existing data object properties
+8. **add_data_object_props** - Add properties to existing data objects
+9. **update_data_object_prop** - Update specific property in a data object
+10. **get_data_object_usage** - Get detailed usage information for data objects
+    - Shows where data objects are referenced (forms, reports, flows, user stories)
+    - Reference types: owner objects, target objects, input controls, output variables, columns
+
+#### **Wizard Tools** (3 tools)
 - **open_add_data_object_wizard** - Open the Add Data Object Wizard for creating new data objects
 - **open_add_report_wizard** - Open the Add Report Wizard for creating new reports
-- **open_add_form_wizard** - Opens the Add Form Wizard with guided steps
+- **open_add_form_wizard** - Open the Add Form Wizard with guided steps
 
 #### **User Story Views** (7 tools)
 - **open_user_stories_view** - Main user stories list with analytics tabs
@@ -43,33 +59,58 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
 - **open_user_stories_role_requirements_view** - Role requirements per user story
 - **open_requirements_fulfillment_view** - Role requirements fulfillment tracking
 
-#### **Data Object Tools** (6 tools)
+#### **Data Object Views** (6 tools)
 - **open_object_details_view** - View/edit data object details
 - **open_data_objects_list_view** - Browse all data objects
-- **open_add_data_object_wizard** - Guided wizard to create new data objects
 - **open_data_object_usage_analysis_view** - Impact analysis for objects
 - **open_data_object_size_analysis_view** - Storage and capacity planning
 - **open_database_size_forecast_view** - Database growth projections
 
-#### **Form, Page & UI Tools** (10+ tools)
-- Form list and detail views
-- Page list, detail, hierarchy, and preview views
-- Page usage analysis
+#### **Form & Page Views** (7 tools)
+- **open_form_details_view** - View/edit form details
+- **open_pages_list_view** - Browse all pages
+- **open_page_details_view** - View specific page details
+- **open_page_preview_view** - Preview page UI
+- **open_page_init_flows_list_view** - List page initialization flows
+- **open_page_init_flow_details_view** - View page init flow details
+
+#### **Workflow Views** (7 tools)
+- **open_general_workflows_list_view** - List general workflows
+- **open_add_general_flow_wizard** - Wizard for creating general flows
+- **open_general_workflow_details_view** - View general workflow details
+- **open_workflows_list_view** - List all DynaFlow workflows
+- **open_workflow_details_view** - View specific workflow details
+- **open_workflow_tasks_list_view** - List workflow tasks
+- **open_workflow_task_details_view** - View workflow task details
+
+#### **Report & API Views** (3 tools)
 - **open_report_details_view** - View/edit report details with settings, input controls, buttons, and output variables
+- **open_apis_list_view** - Browse all API integrations
+- **open_api_details_view** - View specific API details
 
-#### **API & Integration Tools** (5+ tools)
-- API list and detail views
-- Endpoint management
-- Integration configuration
+#### **Analysis & Metrics Views** (3 tools)
+- **open_metrics_analysis_view** - Project metrics and KPIs
+- **open_hierarchy_diagram_view** - Object hierarchy visualization
+- **open_page_flow_diagram_view** - Page navigation flow diagram
 
-#### **Role & Security Tools** (3+ tools)
-- Role list and detail views
-- Permission management
+#### **System & Configuration Views** (9 tools)
+- **open_lexicon_view** - Application terminology and definitions
+- **open_change_requests_view** - Change request tracking
+- **open_model_ai_processing_view** - AI analysis and recommendations
+- **open_model_validation_requests_view** - Validation request status
+- **open_model_feature_catalog_view** - Available features and enhancements
+- **open_fabrication_requests_view** - Fabrication/code generation requests
+- **open_fabrication_blueprint_catalog_view** - Available templates and blueprints
+- **open_project_settings_view** - Project configuration
+- **open_settings_view** - Extension settings
 
-#### **Additional Tools**
-- Lookup list management
-- Flow and workflow views
-- Project analytics and metrics
+#### **Welcome & Help Views** (4 tools)
+- **open_welcome_view** - Welcome screen and getting started
+- **open_help_view** - Help documentation and support
+- **open_register_view** - Model services registration
+- **open_login_view** - Model services login
+
+#### **Utility Tools** (1 tool)
 - **secret_word_of_the_day** - Test/verification tool
 
 ## Architecture
@@ -284,8 +325,8 @@ this.server.registerTool('create_user_story', {
 
 ## Testing & Validation
 
-✅ **Production Tested:** October 15, 2025 (Updated January 19, 2025)
-- All 65 tools successfully discovered by GitHub Copilot (including wizard tools)
+✅ **Production Tested:** October 19, 2025
+- All 70 tools successfully discovered by GitHub Copilot (including wizard tools)
 - Schema format (Zod) verified as compatible
 - HTTP bridge operational
 - Fallback mechanisms working

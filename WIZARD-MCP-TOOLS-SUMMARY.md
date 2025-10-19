@@ -40,7 +40,7 @@ Each tool includes:
 
 #### 4. MCP_README.md
 Updated documentation to reflect:
-- New tool count: 65 tools (was 50, then 52)
+- New tool count: 71 tools (was 65)
 - Added "Wizard Tools" section listing both wizards
 - Added example prompts for using the wizards
 - Updated testing section with new timestamp
@@ -105,11 +105,14 @@ Created comprehensive unit tests in `src/test/mcp-wizard-tools.test.ts`:
 5. **Testability**: Proper unit tests ensure reliability
 
 ## Tool Count
-Total MCP tools in the extension: **65 tools**
+Total MCP tools in the extension: **70 tools**
 - User Story Management: 5 tools
-- Data Object Management: 13 tools
-- Wizard Tools: 2 tools (NEW)
-- View Opening Tools: 45+ tools
+- Role Management: 4 tools
+- Lookup Management: 4 tools
+- Data Object Management: 10 tools
+- Wizard Tools: 3 tools (Add Data Object, Add Report, Add Form)
+- View Opening Tools: 43 tools
+- Utility: 1 tool
 
 ## Notes
 - The wizards themselves (addObjectWizardView.js, addFormWizardView.js) were already implemented
