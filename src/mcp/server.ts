@@ -2124,7 +2124,7 @@ export class MCPServer {
 
         this.server.registerTool('open_add_data_object_wizard', {
             title: 'Open Add Data Object Wizard',
-            description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships. Provides validation for object names (PascalCase, alpha-only, no spaces) and prevents duplicates.',
+            description: 'Opens the Add Data Object Wizard which provides a step-by-step guided interface for creating new data objects. The wizard walks through selecting parent object, setting properties like isLookup, and defining the object name and description.',
             inputSchema: {},
             outputSchema: {
                 success: z.boolean(),
@@ -2162,6 +2162,34 @@ export class MCPServer {
         }, async () => {
             try {
                 const result = await this.viewTools.openAddReportWizard();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+
+        this.server.registerTool('open_add_form_wizard', {
+            title: 'Open Add Form Wizard',
+            description: 'Opens the Add Form Wizard which provides a step-by-step guided interface for creating new forms. The wizard walks through: 1) Selecting owner data object, 2) Choosing required role, 3) Specifying if creating new instance, 4) Selecting target object or action, 5) Setting form name and title. Automatically creates both the form and its associated page init flow.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.viewTools.openAddFormWizard();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

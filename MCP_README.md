@@ -6,11 +6,11 @@
 
 ## Overview
 
-The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MCP) server that enables GitHub Copilot and other MCP clients to interact with the entire AppDNA model. This production-ready integration provides **52 tools** covering user stories, data objects, forms, pages, reports, APIs, and more.
+The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MCP) server that enables GitHub Copilot and other MCP clients to interact with the entire AppDNA model. This production-ready integration provides **65 tools** covering user stories, data objects, forms, pages, reports, APIs, and more.
 
 ## Features
 
-### **52 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **65 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -32,6 +32,7 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
 #### **Wizard Tools** (2 tools)
 - **open_add_data_object_wizard** - Open the Add Data Object Wizard for creating new data objects
 - **open_add_report_wizard** - Open the Add Report Wizard for creating new reports
+- **open_add_form_wizard** - Opens the Add Form Wizard with guided steps
 
 #### **User Story Views** (7 tools)
 - **open_user_stories_view** - Main user stories list with analytics tabs
@@ -53,7 +54,7 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
 - Form list and detail views
 - Page list, detail, hierarchy, and preview views
 - Page usage analysis
-- Report views and management
+- **open_report_details_view** - View/edit report details with settings, input controls, buttons, and output variables
 
 #### **API & Integration Tools** (5+ tools)
 - API list and detail views
@@ -78,7 +79,7 @@ The server uses a multi-transport strategy for maximum compatibility:
 
 1. **Stdio Transport** (`src/mcp/server.ts`)
    - Standard MCP server using stdio communication
-   - 50 registered tools
+   - 65 registered tools
    - Default option for most MCP clients
 
 2. **HTTP Transport** (`src/mcp/httpServer.ts`)
@@ -165,6 +166,9 @@ Once the MCP server is running, you can ask GitHub Copilot to:
 - "Show me the wizard to create a new data object"
 - "Open the add report wizard"
 - "Show me the wizard to create a new report"
+- "Show me the add form wizard"
+- "I want to create a new data object using the wizard"
+- "Help me create a new form with the wizard"
 
 #### **View Navigation**
 - "Open the user stories development view"
@@ -172,6 +176,8 @@ Once the MCP server is running, you can ask GitHub Copilot to:
 - "Open the form details for CustomerForm"
 - "Display the page hierarchy view"
 - "Show me the database size forecast"
+- "Open the report details for SalesReport"
+- "Show me the CustomerReport with the buttons tab"
 
 #### **Data Analysis**
 - "Show me data object usage analysis"
@@ -277,8 +283,8 @@ this.server.registerTool('create_user_story', {
 
 ## Testing & Validation
 
-✅ **Production Tested:** October 15, 2025
-- All 50 tools successfully discovered by GitHub Copilot (updated with list_data_objects)
+✅ **Production Tested:** October 15, 2025 (Updated January 19, 2025)
+- All 65 tools successfully discovered by GitHub Copilot (including wizard tools)
 - Schema format (Zod) verified as compatible
 - HTTP bridge operational
 - Fallback mechanisms working

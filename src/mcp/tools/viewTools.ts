@@ -178,10 +178,9 @@ export class ViewTools {
     /**
      * Open Form Details View
      * Shows details for a specific form
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openFormDetails(formName: string, initialTab?: string): Promise<any> {
-        throw new Error('Form Details view is not yet implemented. Create form details handler to add this functionality.');
+        return this.executeCommand('appdna.mcp.openFormDetails', initialTab ? [formName, initialTab] : [formName]);
     }
 
     /**
@@ -286,10 +285,9 @@ export class ViewTools {
     /**
      * Open Report Details View
      * Shows details for a specific report
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openReportDetails(reportName: string, initialTab?: string): Promise<any> {
-        throw new Error('Report Details view is not yet implemented. Create report details handler to add this functionality.');
+        return this.executeCommand('appdna.mcp.openReportDetails', initialTab ? [reportName, initialTab] : [reportName]);
     }
 
     // ===== API VIEWS =====
@@ -439,5 +437,23 @@ export class ViewTools {
      */
     public async openLogin(): Promise<any> {
         return this.executeCommand('appdna.loginModelServices');
+    }
+
+    // ===== WIZARD VIEWS =====
+
+    /**
+     * Open Add Data Object Wizard
+     * Opens the wizard for creating new data objects with guided steps
+     */
+    public async openAddDataObjectWizard(): Promise<any> {
+        return this.executeCommand('appdna.mcp.openAddDataObjectWizard');
+    }
+
+    /**
+     * Open Add Form Wizard
+     * Opens the wizard for creating new forms with guided steps
+     */
+    public async openAddFormWizard(): Promise<any> {
+        return this.executeCommand('appdna.mcp.openAddFormWizard');
     }
 }
