@@ -1323,6 +1323,85 @@ export class MCPServer {
             }
         });
 
+        // Register select_model_feature tool
+        this.server.registerTool('select_model_feature', {
+            title: 'Select Model Feature',
+            description: 'Add a model feature from the catalog to your AppDNA model. The feature will be added to the first namespace in your model. Matching is done on both name AND version. If the feature already exists (same name and version), no action is taken. The model is updated in memory and marked as having unsaved changes. Use list_model_features_catalog_items to find available features first.',
+            inputSchema: {
+                featureName: z.string().describe('Exact name of the feature from the catalog (case-sensitive, must match catalog item name exactly)'),
+                version: z.string().describe('Exact version of the feature from the catalog (must match catalog item version exactly)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional(),
+                featureName: z.string().optional(),
+                version: z.string().optional(),
+                alreadyExists: z.boolean().optional().describe('True if feature was already in the model'),
+                error: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.select_model_feature(
+                    args.featureName,
+                    args.version
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register unselect_model_feature tool
+        this.server.registerTool('unselect_model_feature', {
+            title: 'Unselect Model Feature',
+            description: 'Remove a model feature from your AppDNA model. Matching is done on both name AND version. This is only allowed if the feature has NOT been marked as completed (isCompleted="true"). Features that have been processed by AI cannot be removed. The model is updated in memory and marked as having unsaved changes. If the feature is marked as completed, an error will be returned.',
+            inputSchema: {
+                featureName: z.string().describe('Exact name of the feature to remove (case-sensitive, must match existing feature name)'),
+                version: z.string().describe('Exact version of the feature to remove (must match existing feature version)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional(),
+                featureName: z.string().optional(),
+                version: z.string().optional(),
+                wasCompleted: z.boolean().optional().describe('True if removal failed because feature is marked as completed'),
+                notFound: z.boolean().optional().describe('True if the feature was not found in the model'),
+                error: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.unselect_model_feature(
+                    args.featureName,
+                    args.version
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // ===== USER STORY VIEW OPENING TOOLS =====
         // Register secret_word_of_the_day tool
         this.server.registerTool('secret_word_of_the_day', {

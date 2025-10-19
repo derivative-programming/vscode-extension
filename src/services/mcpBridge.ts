@@ -1534,8 +1534,188 @@ export class McpBridge {
 
                 req.on('end', async () => {
                     try {
-                        const { command, args } = JSON.parse(body);
+                        const requestData = JSON.parse(body);
+                        const { command, args, featureName, version } = requestData;
                         
+                        // Handle special MCP commands
+                        if (command === 'select_model_feature') {
+                            this.outputChannel.appendLine(`[Command Bridge] Selecting model feature: ${featureName} v${version}`);
+                            
+                            const modelService = ModelService.getInstance();
+                            if (!modelService || !modelService.isFileLoaded()) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'No model file is loaded. Please load a model file first.',
+                                    featureName: featureName,
+                                    version: version
+                                }));
+                                return;
+                            }
+                            
+                            const rootModel = modelService.getCurrentModel();
+                            if (!rootModel) {
+                                res.writeHead(500);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'Failed to get current model.',
+                                    featureName: featureName,
+                                    version: version
+                                }));
+                                return;
+                            }
+                            
+                            // Add the feature to the model
+                            const { ModelFeatureModel } = require('../data/models/modelFeatureModel');
+                            
+                            // Find or create a namespace
+                            if (!rootModel.namespace || !Array.isArray(rootModel.namespace) || rootModel.namespace.length === 0) {
+                                rootModel.namespace = [{
+                                    name: "Default",
+                                    modelFeature: []
+                                }];
+                            }
+                            
+                            const namespace = rootModel.namespace[0];
+                            if (!namespace.modelFeature) {
+                                namespace.modelFeature = [];
+                            }
+                            
+                            // Check if feature already exists (match on name AND version)
+                            const existingFeatureIndex = namespace.modelFeature.findIndex(f => 
+                                f.name === featureName && f.version === version
+                            );
+                            
+                            if (existingFeatureIndex === -1) {
+                                // Add the feature
+                                const newFeature = new ModelFeatureModel({
+                                    name: featureName,
+                                    description: "",
+                                    version: version
+                                });
+                                
+                                namespace.modelFeature.push(newFeature);
+                                modelService.markUnsavedChanges();
+                                
+                                this.outputChannel.appendLine(`[Command Bridge] Added feature ${featureName} v${version} to namespace ${namespace.name}`);
+                                
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    message: `Feature '${featureName}' version '${version}' added to model successfully`,
+                                    featureName: featureName,
+                                    version: version,
+                                    alreadyExists: false
+                                }));
+                            } else {
+                                // Feature already exists
+                                this.outputChannel.appendLine(`[Command Bridge] Feature ${featureName} v${version} already exists`);
+                                
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    message: `Feature '${featureName}' version '${version}' is already in the model`,
+                                    featureName: featureName,
+                                    version: version,
+                                    alreadyExists: true
+                                }));
+                            }
+                            return;
+                        }
+                        else if (command === 'unselect_model_feature') {
+                            this.outputChannel.appendLine(`[Command Bridge] Unselecting model feature: ${featureName} v${version}`);
+                            
+                            const modelService = ModelService.getInstance();
+                            if (!modelService || !modelService.isFileLoaded()) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'No model file is loaded. Please load a model file first.',
+                                    featureName: featureName,
+                                    version: version
+                                }));
+                                return;
+                            }
+                            
+                            const rootModel = modelService.getCurrentModel();
+                            if (!rootModel) {
+                                res.writeHead(500);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'Failed to get current model.',
+                                    featureName: featureName,
+                                    version: version
+                                }));
+                                return;
+                            }
+                            
+                            // Remove the feature from the model if not completed (match on name AND version)
+                            let found = false;
+                            let wasCompleted = false;
+                            
+                            if (rootModel.namespace && Array.isArray(rootModel.namespace)) {
+                                for (const namespace of rootModel.namespace) {
+                                    if (namespace.modelFeature && Array.isArray(namespace.modelFeature)) {
+                                        const featureIndex = namespace.modelFeature.findIndex(f => 
+                                            f.name === featureName && f.version === version
+                                        );
+                                        
+                                        if (featureIndex !== -1) {
+                                            found = true;
+                                            
+                                            // Check if feature is completed
+                                            if (namespace.modelFeature[featureIndex].isCompleted === "true") {
+                                                wasCompleted = true;
+                                                this.outputChannel.appendLine(`[Command Bridge] Cannot remove completed feature ${featureName} v${version}`);
+                                                
+                                                res.writeHead(400);
+                                                res.end(JSON.stringify({
+                                                    success: false,
+                                                    error: `Cannot remove feature '${featureName}' version '${version}' because it is marked as completed. Completed features have been processed by AI and cannot be removed.`,
+                                                    featureName: featureName,
+                                                    version: version,
+                                                    wasCompleted: true
+                                                }));
+                                                return;
+                                            } else {
+                                                // Remove the feature
+                                                namespace.modelFeature.splice(featureIndex, 1);
+                                                modelService.markUnsavedChanges();
+                                                
+                                                this.outputChannel.appendLine(`[Command Bridge] Removed feature ${featureName} v${version} from namespace ${namespace.name}`);
+                                                
+                                                res.writeHead(200);
+                                                res.end(JSON.stringify({
+                                                    success: true,
+                                                    message: `Feature '${featureName}' version '${version}' removed from model successfully`,
+                                                    featureName: featureName,
+                                                    version: version,
+                                                    wasCompleted: false,
+                                                    notFound: false
+                                                }));
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (!found) {
+                                this.outputChannel.appendLine(`[Command Bridge] Feature ${featureName} v${version} not found in model`);
+                                
+                                res.writeHead(404);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: `Feature '${featureName}' version '${version}' not found in the model`,
+                                    featureName: featureName,
+                                    version: version,
+                                    notFound: true
+                                }));
+                                return;
+                            }
+                        }
+                        
+                        // Handle regular VS Code commands
                         this.outputChannel.appendLine(`[Command Bridge] Executing command: ${command}`);
                         if (args && args.length > 0) {
                             this.outputChannel.appendLine(`[Command Bridge] Arguments: ${JSON.stringify(args)}`);

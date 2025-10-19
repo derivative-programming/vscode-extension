@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **75 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **77 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **75 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **77 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -37,15 +37,19 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
 - **save_model** - Save the current AppDNA model to file (same as clicking save icon in tree view)
 - **close_all_open_views** - Close all open view panels and webviews
 
-#### **Model Services API Tools** (5 tools)
+#### **Model Services API Tools** (7 tools)
 1. **list_model_features_catalog_items** - List available features from Model Services catalog with selection status
-2. **list_model_ai_processing_requests** - List AI processing requests with status and details
-3. **list_model_validation_requests** - List validation requests with status and results
-4. **list_fabrication_blueprint_catalog_items** - List available fabrication blueprints (template sets) with selection status
-5. **list_model_fabrication_requests** - List fabrication requests with status and download information
-   - All tools support pagination (pageNumber, itemCountPerPage)
-   - All tools support server-side sorting (orderByColumnName, orderByDescending)
+2. **select_model_feature** - Add a model feature from the catalog to your AppDNA model (requires name AND version)
+3. **unselect_model_feature** - Remove a model feature from your AppDNA model (requires name AND version, only if not completed)
+4. **list_model_ai_processing_requests** - List AI processing requests with status and details
+5. **list_model_validation_requests** - List validation requests with status and results
+6. **list_fabrication_blueprint_catalog_items** - List available fabrication blueprints (template sets) with selection status
+7. **list_model_fabrication_requests** - List fabrication requests with status and download information
+   - List tools support pagination (pageNumber, itemCountPerPage)
+   - List tools support server-side sorting (orderByColumnName, orderByDescending)
    - All tools require authentication to Model Services
+   - Select/unselect tools match on both name AND version for precise feature identification
+   - Select/unselect tools modify the model in memory and mark it as having unsaved changes
 
 #### **Data Object Management** (11 tools)
 1. **list_data_object_summary** - List data objects with summary info (name, isLookup, parent)
@@ -355,7 +359,7 @@ this.server.registerTool('create_user_story', {
 ## Testing & Validation
 
 ✅ **Production Tested:** October 19, 2025
-- All 75 tools successfully discovered by GitHub Copilot (including wizard tools, smart page router, save operation, and Model Services API tools)
+- All 77 tools successfully discovered by GitHub Copilot (including wizard tools, smart page router, save operation, and Model Services API tools with select/unselect features)
 - Schema format (Zod) verified as compatible
 - HTTP bridge operational
 - Fallback mechanisms working

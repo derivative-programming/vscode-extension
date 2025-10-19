@@ -507,4 +507,149 @@ export class ModelServiceTools {
             };
         }
     }
+
+    /**
+     * Select (add) a model feature from the catalog
+     * Tool name: select_model_feature
+     * 
+     * @param featureName - Name of the feature to select (must match catalog item name exactly)
+     * @param version - Version of the feature (must match catalog item version exactly)
+     */
+    public async select_model_feature(
+        featureName: string,
+        version: string
+    ): Promise<any> {
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                command: 'select_model_feature',
+                featureName,
+                version
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/execute-command',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 5000
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        resolve(response);
+                    } catch (error) {
+                        resolve({
+                            success: false,
+                            error: 'Invalid response from extension'
+                        });
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                resolve({
+                    success: false,
+                    error: `Failed to connect to extension: ${error.message}. Is the extension running?`
+                });
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve({
+                    success: false,
+                    error: 'Request timed out'
+                });
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
+
+    /**
+     * Unselect (remove) a model feature from the catalog
+     * Only allowed if the feature is not marked as completed
+     * Tool name: unselect_model_feature
+     * 
+     * @param featureName - Name of the feature to unselect (must match catalog item name exactly)
+     * @param version - Version of the feature (must match catalog item version exactly)
+     */
+    public async unselect_model_feature(
+        featureName: string,
+        version: string
+    ): Promise<any> {
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                command: 'unselect_model_feature',
+                featureName,
+                version
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/execute-command',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 5000
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        resolve(response);
+                    } catch (error) {
+                        resolve({
+                            success: false,
+                            error: 'Invalid response from extension'
+                        });
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                resolve({
+                    success: false,
+                    error: `Failed to connect to extension: ${error.message}. Is the extension running?`
+                });
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve({
+                    success: false,
+                    error: 'Request timed out'
+                });
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
 }

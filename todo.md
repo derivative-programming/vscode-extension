@@ -20,7 +20,8 @@ tools...
 
 model features...
 - done:list_model_feature_catalog_items
-- select catalog item
+- done:select_model_feature
+- done:unselect_model_feature
 
 
 model ai processing...
