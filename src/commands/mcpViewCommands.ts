@@ -156,6 +156,36 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
             return vscode.commands.executeCommand('appdna.showReportDetails', mockTreeItem, initialTab);
         })
     );
+    // Open form details by name (MCP-friendly - takes string instead of tree item)
+    // Description: Opens the Form details view showing form configuration, parameters, buttons, and output variables
+    // Parameters: formName (required) - Name of the form (from pageObjectWorkflow)
+    //            initialTab (optional) - One of available tabs (if form details view supports tabs)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openFormDetails', async (formName: string, initialTab?: string) => {
+            // Find the form in the model
+            const allPageWorkflows = modelService.getAllPageObjectWorkflows();
+            const form = allPageWorkflows.find(workflow => {
+                const workflowName = workflow.name || workflow.titleText || 'Unnamed Form';
+                return workflowName === formName;
+            });
+            
+            if (!form) {
+                const formNames = allPageWorkflows.map(w => w.name || w.titleText || 'Unnamed Form');
+                throw new Error(`Form '${formName}' not found. Available forms: ${formNames.join(', ')}`);
+            }
+            
+            // Create a mock tree item for the form
+            const mockTreeItem = {
+                label: formName,
+                resourceType: 'pageObjectWorkflow',
+                nodeType: 'pageObjectWorkflow',
+                contextValue: 'pageObjectWorkflow'
+            };
+            
+            // Open the form details view
+            return vscode.commands.executeCommand('appdna.showFormDetails', mockTreeItem, initialTab);
+        })
+    );
 
     // Open hierarchy diagram
     context.subscriptions.push(

@@ -360,11 +360,9 @@ VERIFICATION:
 
 ===============================================================================
 
-===============================================================================
 DATE: October 19, 2025
 COMMAND: Add MCP tool to open report details view
 STATUS: ✅ COMPLETED
-===============================================================================
 
 TASK:
 Similar to the MCP tool that opens the data object details view, implement an MCP tool that opens a report details view. The tool was already registered in server.ts but the implementation threw an error.
@@ -406,3 +404,18 @@ VERIFICATION:
 
 NO TESTS:
 No unit tests exist for MCP view commands. Manual testing would be required but is outside the scope of this task.
+---
+Date: October 19, 2025
+Command: similar to the mcp tool that opens the data object details view, we need a mcp tool that opens a form details view
+Status: Completed
+Architecture Notes:
+- Added openFormDetails method to ViewTools class (src/mcp/tools/viewTools.ts)
+- Added appdna.mcp.openFormDetails VS Code command in mcpViewCommands.ts
+- MCP tool open_form_details_view was already registered in server.ts
+- Implementation follows same pattern as open_object_details_view
+- Uses HTTP bridge on port 3002 to execute VS Code commands
+- Finds forms using modelService.getAllPageObjectWorkflows()
+- Creates mock tree item to pass to existing appdna.showFormDetails command
+- Form details view shows: Settings, Input Controls, Buttons, Output Variables tabs
+- Verified implementation with custom test script - all tests passed
+- Updated MCP-VIEW-COMMANDS-REFERENCE.md documentation
