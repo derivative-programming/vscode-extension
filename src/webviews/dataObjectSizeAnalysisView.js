@@ -787,6 +787,12 @@
         const message = event.data;
         
         switch (message.command) {
+            case 'switchToTab':
+                if (message.tabName && typeof switchTab === 'function') {
+                    switchTab(message.tabName);
+                }
+                break;
+                
             case 'summaryDataResponse':
                 console.log('Received size summary data:', message.data.length, 'items');
                 originalSummaryData = message.data || [];

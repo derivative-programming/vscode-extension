@@ -54,8 +54,8 @@ export function closeDatabaseSizeForecastPanel(): void {
 export function registerDatabaseSizeForecastCommands(context: vscode.ExtensionContext, modelService: ModelService) {
     
     // Register the show database size forecast command
-    const databaseSizeForecastCommand = vscode.commands.registerCommand('appdna.databaseSizeForecast', () => {
-        console.log('Database Size Forecast command executed');
+    const databaseSizeForecastCommand = vscode.commands.registerCommand('appdna.databaseSizeForecast', (initialTab?: string) => {
+        console.log('Database Size Forecast command executed', initialTab);
         
         // Check if we already have a database size forecast panel open
         if (activePanels.has('databaseSizeForecast')) {
@@ -63,6 +63,13 @@ export function registerDatabaseSizeForecastCommands(context: vscode.ExtensionCo
             const existingPanel = activePanels.get('databaseSizeForecast');
             if (existingPanel) {
                 existingPanel.reveal();
+                // If initialTab is provided, switch to that tab
+                if (initialTab) {
+                    existingPanel.webview.postMessage({
+                        command: 'switchToTab',
+                        tabName: initialTab
+                    });
+                }
                 return;
             }
         }
@@ -91,6 +98,16 @@ export function registerDatabaseSizeForecastCommands(context: vscode.ExtensionCo
 
         // Set the HTML content
         panel.webview.html = getDatabaseSizeForecastWebviewContent(panel.webview, context.extensionPath);
+
+        // If initialTab is provided, switch to it after HTML loads
+        if (initialTab) {
+            setTimeout(() => {
+                panel.webview.postMessage({
+                    command: 'switchToTab',
+                    tabName: initialTab
+                });
+            }, 100);
+        }
 
         // Handle dispose
         panel.onDidDispose(() => {

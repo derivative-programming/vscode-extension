@@ -55,8 +55,8 @@ export function closeDataObjectUsageAnalysisPanel(): void {
 export function registerDataObjectUsageAnalysisCommands(context: vscode.ExtensionContext, modelService: ModelService) {
     
     // Register the show data object usage analysis command
-    const dataObjectUsageAnalysisCommand = vscode.commands.registerCommand('appdna.dataObjectUsageAnalysis', () => {
-        console.log('Data Object Usage Analysis command executed');
+    const dataObjectUsageAnalysisCommand = vscode.commands.registerCommand('appdna.dataObjectUsageAnalysis', (initialTab?: string) => {
+        console.log('Data Object Usage Analysis command executed', initialTab);
         
         // Check if we already have a data object usage analysis panel open
         if (activePanels.has('dataObjectUsageAnalysis')) {
@@ -64,6 +64,13 @@ export function registerDataObjectUsageAnalysisCommands(context: vscode.Extensio
             const existingPanel = activePanels.get('dataObjectUsageAnalysis');
             if (existingPanel) {
                 existingPanel.reveal();
+                // If initialTab is provided, switch to that tab
+                if (initialTab) {
+                    existingPanel.webview.postMessage({
+                        command: 'switchToTab',
+                        tabName: initialTab
+                    });
+                }
                 return;
             }
         }
@@ -92,6 +99,16 @@ export function registerDataObjectUsageAnalysisCommands(context: vscode.Extensio
 
         // Set the HTML content
         panel.webview.html = getDataObjectUsageAnalysisWebviewContent(panel.webview, context.extensionPath);
+
+        // If initialTab is provided, switch to it after HTML loads
+        if (initialTab) {
+            setTimeout(() => {
+                panel.webview.postMessage({
+                    command: 'switchToTab',
+                    tabName: initialTab
+                });
+            }, 100);
+        }
 
         // Handle dispose
         panel.onDidDispose(() => {

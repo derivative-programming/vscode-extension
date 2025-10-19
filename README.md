@@ -100,7 +100,10 @@ A complete agile project management solution with 8 comprehensive tabs for manag
 - **Property Control**: Toggle property existence with checkboxes - unchecked means the property is omitted from JSON
 - **Tooltips & Descriptions**: Property descriptions shown as helpful tooltips
 - **Visual Diagrams**: Hierarchy diagrams and page flow visualizations
-- **MCP Integration**: Production-ready Model Context Protocol server with 63 tools for GitHub Copilot integration
+- **Professional Design**: VS Code-native UI with comprehensive keyboard navigation and accessibility features
+- **Live Updates**: Real-time synchronization between AI conversations and extension state
+- **MCP Integration**: Production-ready Model Context Protocol server with 68 tools for GitHub Copilot integration
+- **HTTP Bridge**: Support for both stdio and HTTP-based MCP communication for maximum compatibility
 - **Keyboard Shortcuts**: Quick access to common actions with Alt+A combinations
 
 ## Getting Started

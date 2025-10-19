@@ -1,4 +1,694 @@
 ===============================================================================
+DATE: October 19, 2025
+COMMAND: Create MCP tool for Fabrication Requests view
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User asked if there was a tool to open the Model Fabrication Requests view.
+Discovered that the view command exists (appdna.modelFabrication) but was not
+exposed through the MCP server. Created a new MCP tool to enable AI assistants
+to open and access this code generation tracking view.
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1994)
+   - Added new tool: open_fabrication_requests_view
+   - Positioned after open_model_feature_catalog_view tool
+   - Comprehensive description covering fabrication request tracking
+   - Standard outputSchema with success, view, message, error fields
+
+2. src/mcp/tools/viewTools.ts (line ~379)
+   - Added openFabricationRequests() method
+   - Executes 'appdna.modelFabrication' command
+   - Positioned between openModelFeatureCatalog and openFabricationBlueprintCatalog
+
+3. README.md
+   - Updated tool count from 67 to 68 tools (2 locations)
+
+4. src/extension.ts
+   - Added tool to chat mode configuration
+
+TOOL DETAILS:
+Tool Name: open_fabrication_requests_view
+Command: appdna.modelFabrication
+View: Model Fabrication Requests
+Purpose: Shows code generation request status and history
+
+FEATURES TRACKED:
+- Fabrication requests submitted to model services API
+- Request status tracking (pending, processing, completed, failed)
+- Timestamps for submission and completion
+- Download links for generated code packages
+- Code generation history and logs
+- Blueprint selections used for each request
+
+VIEW CAPABILITIES:
+- Paginated table view of all fabrication requests
+- Sortable columns for organization
+- Status filtering and search
+- Download generated code packages (ZIP files)
+- Submit new fabrication requests
+- Integration with model services API
+- Real-time updates when fabrications complete
+
+API INTEGRATION:
+- Fetches from: https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests
+- Uses authService for API key authentication
+- POST endpoint for submitting new requests
+- Includes model file data in requests
+- Downloads generated code as ZIP packages
+
+ARCHITECTURE NOTES:
+- Command file: modelFabricationCommands.ts
+- Webview: Uses dynamic HTML generation
+- Panel tracking with activePanels Map
+- Single panel instance (prevents duplicates)
+- No tabs (single view interface)
+- Essential for tracking code generation and downloading fabricated source code
+- Supports multiple programming languages and platforms
+
+FABRICATION PROCESS:
+1. User selects blueprints from catalog
+2. Submits fabrication request with model data
+3. API processes request and generates code
+4. Generated code packaged as ZIP
+5. User downloads code package from this view
+6. Code can be extracted to project repositories
+
+TOOL COUNT UPDATE:
+- Previous: 67 MCP tools
+- New: 68 MCP tools
+- Continuing comprehensive coverage of all major features
+
+COMPILATION: ✅ Successful (webpack + TypeScript MCP)
+
+===============================================================================
+DATE: October 19, 2025
+COMMAND: Create MCP tool for Model Feature Catalog view
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User asked if there was a tool to open the Model Feature Catalog view.
+Discovered that the view command exists (appdna.modelFeatureCatalog) but was not
+exposed through the MCP server. Created a new MCP tool to enable AI assistants
+to open and access this feature discovery and management view.
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1965)
+   - Added new tool: open_model_feature_catalog_view
+   - Positioned after open_model_validation_requests_view tool
+   - Comprehensive description covering feature catalog functionality
+   - Standard outputSchema with success, view, message, error fields
+
+2. src/mcp/tools/viewTools.ts (line ~372)
+   - Added openModelFeatureCatalog() method
+   - Executes 'appdna.modelFeatureCatalog' command
+   - Positioned between openModelValidationRequests and openFabricationBlueprintCatalog
+
+3. README.md
+   - Updated tool count from 66 to 67 tools (2 locations)
+
+4. src/extension.ts
+   - Added tool to chat mode configuration
+
+TOOL DETAILS:
+Tool Name: open_model_feature_catalog_view
+Command: appdna.modelFeatureCatalog
+View: Model Feature Catalog
+Purpose: Shows available features and enhancements
+
+FEATURES TRACKED:
+- Catalog of features that can be added to application models
+- Feature descriptions and documentation
+- Feature dependencies and prerequisites
+- Implementation status tracking
+- Feature compatibility information
+- Model capability discovery
+
+VIEW CAPABILITIES:
+- Browse available features and enhancements
+- View detailed feature descriptions
+- Check feature dependencies
+- Track implementation status
+- Manage feature sets for models
+- Integration with model services API
+
+ARCHITECTURE NOTES:
+- Command file: modelFeatureCatalogCommands.ts
+- Webview: Uses dynamic HTML generation
+- API Integration: Uses authService for API key authentication
+- Panel tracking with activePanels Map
+- Single panel instance (prevents duplicates)
+- No tabs (single view interface)
+- Essential for discovering and managing model capabilities
+
+TOOL COUNT UPDATE:
+- Previous: 66 MCP tools
+- New: 67 MCP tools
+- Continuing comprehensive coverage of all major features
+
+COMPILATION: ✅ Successful (webpack + TypeScript MCP)
+
+===============================================================================
+DATE: October 19, 2025
+COMMAND: Create MCP tool for Model Validation Requests view
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User asked if there was a tool to open the Model Validation Requests view.
+Discovered that the view command exists (appdna.modelValidation) but was not
+exposed through the MCP server. Created a new MCP tool to enable AI assistants
+to open and access this validation tracking view.
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1938)
+   - Added new tool: open_model_validation_requests_view
+   - Positioned after open_model_ai_processing_view tool
+   - Comprehensive description covering validation request tracking
+   - Standard outputSchema with success, view, message, error fields
+
+2. src/mcp/tools/viewTools.ts (line ~365)
+   - Added openModelValidationRequests() method
+   - Executes 'appdna.modelValidation' command
+   - Positioned between openModelAIProcessing and openFabricationBlueprintCatalog
+
+3. README.md
+   - Updated tool count from 65 to 66 tools (2 locations)
+
+TOOL DETAILS:
+Tool Name: open_model_validation_requests_view
+Command: appdna.modelValidation
+View: Model Validation Requests
+Purpose: Shows validation status and history
+
+FEATURES TRACKED:
+- Validation requests submitted to model services API
+- Request status (pending, approved, rejected)
+- Timestamps for request submission and completion
+- Detailed validation results and feedback
+- Quality assurance tracking
+- Compliance validation processes
+
+VIEW CAPABILITIES:
+- Paginated table view of all validation requests
+- Sortable columns for organization
+- Status filtering and search
+- Integration with model services API
+- Real-time updates when new validations complete
+
+ARCHITECTURE NOTES:
+- Command file: modelValidationCommands.ts
+- Webview: modelValidationView.js
+- API Integration: Uses authService for API key authentication
+- Fetches from: https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests
+- No tabs (single view interface)
+- Essential for tracking model quality assurance and validation compliance
+
+TOOL COUNT UPDATE:
+- Previous: 65 MCP tools
+- New: 66 MCP tools
+- Total views with MCP access: Comprehensive coverage of all major features
+
+COMPILATION: ✅ Successful (webpack + TypeScript MCP)
+
+===============================================================================
+DATE: October 19, 2025
+COMMAND: Add tab switching support to Database Size Forecast MCP tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User showed screenshot of Database Size Forecast view with 3 tabs and requested 
+that the MCP tool support switching between them. Updated the existing MCP 
+tool to accept an optional initialTab parameter.
+
+TABS DISCOVERED:
+1. Config (tab value: "config") - Configure growth parameters and assumptions
+2. Forecast (tab value: "forecast") - View projections with interactive charts
+3. Data (tab value: "data") - Detailed monthly/yearly breakdown table
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1313)
+   - Updated open_database_size_forecast_view tool
+   - Added initialTab parameter with z.enum validation for all 3 tabs
+   - Enhanced description to mention all tabs and their features
+   - Added initialTab to outputSchema
+
+2. src/mcp/tools/viewTools.ts
+   - Updated openDatabaseSizeForecast(initialTab?: string) signature
+   - Passes initialTab parameter to command as array
+
+3. src/commands/databaseSizeForecastCommands.ts (line ~57)
+   - Updated appdna.databaseSizeForecast command to accept initialTab parameter
+   - Added postMessage to switch tab for existing panels
+   - Added setTimeout postMessage for new panels (100ms delay)
+   - Logs initialTab parameter for debugging
+
+4. src/webviews/databaseSizeForecastView.js (line ~103)
+   - Added 'switchToTab' case in handleExtensionMessage function
+   - Calls switchTab(message.tabName) when message received
+
+TAB VALUES:
+- "config" - Configuration (default, set growth parameters and assumptions)
+- "forecast" - Forecast view (interactive charts showing projected growth)
+- "data" - Data table (detailed monthly/yearly breakdown)
+
+FORECAST FEATURES:
+- Projects future database growth based on data object sizes
+- Estimates growth rates and calculates projections
+- Shows monthly and yearly forecasts
+- Interactive charts for visualization
+- Detailed tabular data for analysis
+- Infrastructure capacity planning
+
+ARCHITECTURE NOTES:
+- Database Size Forecast view: databaseSizeForecastView.js
+- Command file: databaseSizeForecastCommands.ts
+- Tab HTML generation at lines 1049-1051 in commands file
+- Uses chart library for forecast visualizations
+- Helps plan infrastructure capacity and storage requirements
+- Based on current data object sizes and configurable growth rates
+
+COMPILATION: ✅ Successful (webpack + TypeScript MCP)
+
+===============================================================================
+DATE: October 19, 2025
+COMMAND: Add tab switching support to Data Object Usage Analysis MCP tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User showed screenshot of Data Object Usage view with 5 tabs and requested 
+that the MCP tool support switching between them. Updated the existing MCP 
+tool to accept an optional initialTab parameter.
+
+TABS DISCOVERED:
+1. Summary (tab value: "summary") - Overview table with usage counts
+2. Detail (tab value: "detail") - Detailed references showing where each object is used
+3. Proportional Usage (tab value: "treemap") - Interactive treemap visualization
+4. Usage Distribution (tab value: "histogram") - Histogram showing usage patterns
+5. Complexity vs. Usage (tab value: "bubble") - Bubble chart correlating complexity with usage
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1226)
+   - Updated open_data_object_usage_analysis_view tool
+   - Added initialTab parameter with z.enum validation for all 5 tabs
+   - Enhanced description to mention all tabs and their features
+   - Added initialTab to outputSchema
+
+2. src/mcp/tools/viewTools.ts
+   - Updated openDataObjectUsageAnalysis(initialTab?: string) signature
+   - Passes initialTab parameter to command as array
+
+3. src/commands/dataObjectUsageAnalysisCommands.ts (line ~58)
+   - Updated appdna.dataObjectUsageAnalysis command to accept initialTab parameter
+   - Added postMessage to switch tab for existing panels
+   - Added setTimeout postMessage for new panels (100ms delay)
+   - Logs initialTab parameter for debugging
+
+4. src/webviews/dataObjectUsageAnalysisView.js (line ~594)
+   - Added 'switchToTab' message handler in window.addEventListener
+   - Calls switchTab(message.tabName) when message received
+
+TAB VALUES:
+- "summary" - Summary overview (default, shows usage counts)
+- "detail" - Detail breakdown (shows where objects are used: forms, pages, workflows, APIs)
+- "treemap" - Proportional Usage (interactive D3.js treemap visualization)
+- "histogram" - Usage Distribution (histogram showing usage patterns)
+- "bubble" - Complexity vs. Usage (bubble chart showing correlation)
+
+USAGE TRACKING:
+Shows where data objects are used in:
+- Forms (which forms display the data object)
+- Pages (which pages reference the data object)
+- Workflows (which workflows manipulate the data object)
+- APIs (which APIs expose the data object)
+
+ARCHITECTURE NOTES:
+- Data Object Usage view: dataObjectUsageAnalysisView.js
+- Uses D3.js for visualizations (treemap, histogram, bubble chart)
+- Command file: dataObjectUsageAnalysisCommands.ts
+- Tab HTML generation at lines 1677-1681 in commands file
+- Essential for impact analysis when considering changes to data objects
+- Helps answer "what will break if I modify this data object?"
+
+COMPILATION: ✅ Successful (webpack + TypeScript MCP)
+
+===============================================================================
+DATE: October 19, 2025
+COMMAND: Add tab switching support to Data Object Size Analysis MCP tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User showed screenshot of Data Object Size Analysis view with 5 tabs and 
+requested that the MCP tool support switching between them. Updated the
+existing MCP tool to accept an optional initialTab parameter.
+
+TABS DISCOVERED:
+1. Summary (tab value: "summary") - Overview table with totals and percentages
+2. Detail (tab value: "details") - Property-level breakdown for each data object
+3. Size Visualization (tab value: "treemap") - Interactive treemap showing relative sizes
+4. Size Distribution (tab value: "histogram") - Histogram showing size distribution by category
+5. Size vs Properties (tab value: "dotplot") - Scatter plot showing size vs property count
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1280)
+   - Updated open_data_object_size_analysis_view tool
+   - Added initialTab parameter with z.enum validation for all 5 tabs
+   - Enhanced description to mention all tabs and their features
+   - Added initialTab to outputSchema
+
+2. src/mcp/tools/viewTools.ts
+   - Updated openDataObjectSizeAnalysis(initialTab?: string) signature
+   - Passes initialTab parameter to command as array
+
+3. src/commands/dataObjectSizeAnalysisCommands.ts (line ~57)
+   - Updated appdna.dataObjectSizeAnalysis command to accept initialTab parameter
+   - Added postMessage to switch tab for existing panels
+   - Added setTimeout postMessage for new panels (100ms delay)
+   - Logs initialTab parameter for debugging
+
+4. src/webviews/dataObjectSizeAnalysisView.js (line ~786)
+   - Added 'switchToTab' message handler in window.addEventListener
+   - Calls switchTab(message.tabName) when message received
+
+TAB VALUES:
+- "summary" - Summary overview (default, shows totals and percentages)
+- "details" - Detail breakdown (property-level information)
+- "treemap" - Size Visualization (interactive treemap using D3.js)
+- "histogram" - Size Distribution (histogram with size categories)
+- "dotplot" - Size vs Properties (scatter plot showing correlation)
+
+SIZE CATEGORIES:
+- Tiny Size: < 1KB total
+- Small Size: 1KB - 100KB total
+- Medium Size: 100KB - 1MB total
+- Large Size: > 1MB total
+
+ARCHITECTURE NOTES:
+- Data Object Size Analysis view: dataObjectSizeAnalysisView.js
+- Uses D3.js for visualizations (treemap, histogram, dotplot)
+- Command file: dataObjectSizeAnalysisCommands.ts
+- Tab HTML generation at lines 1414-1418 in commands file
+- 5 tabs is highest count in extension so far
+- Helps with capacity planning and database optimization
+
+COMPILATION: ✅ Successful (webpack + TypeScript MCP)
+
+===============================================================================
+DATE: October 19, 2025
+COMMAND: Add tab switching support to Metrics Analysis MCP tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User showed screenshot of Metrics Analysis view with 2 tabs (Current and History)
+and requested that the MCP tool support switching between them. Updated the
+existing MCP tool to accept an optional initialTab parameter.
+
+TABS DISCOVERED:
+1. Current (tab value: "current") - Current metric values with filters and actions
+2. History (tab value: "history") - Historical trends with charts and date range filtering
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1820)
+   - Updated open_metrics_analysis_view tool
+   - Added initialTab parameter with z.enum validation
+   - Updated description to mention both tabs and their features
+   - Added initialTab to outputSchema
+
+2. src/mcp/tools/viewTools.ts
+   - Updated openMetricsAnalysis(initialTab?: string) signature
+   - Passes initialTab parameter to command
+
+3. src/commands/metricsAnalysisCommands.ts (line ~57)
+   - Updated appdna.metricsAnalysis command to accept initialTab parameter
+   - Added postMessage to switch tab for existing panels
+   - Added setTimeout postMessage for new panels (100ms delay)
+   - Logs initialTab parameter for debugging
+
+4. src/webviews/metricsAnalysisView.js
+   - Added 'switchToTab' message handler in window.addEventListener
+   - Calls switchTab(message.tabName) when message received
+
+TAB VALUES:
+- "current" - Current metrics (default, shows current values with filters and export)
+- "history" - History metrics (shows historical trends with interactive charts)
+
+METRICS SHOWN:
+- Object counts (data objects, forms, reports, workflows)
+- Form and report complexity metrics
+- Workflow statistics
+- Model size and structure metrics
+- Historical trends and growth patterns
+
+ARCHITECTURE NOTES:
+- Metrics view: metricsAnalysisView.js
+- Command: appdna.metricsAnalysis
+- Tab switching pattern: postMessage → switchTab() function
+- Panel getter: getMetricsAnalysisPanel() returns panel reference
+- History tab features Chart.js interactive charts
+
+VERIFICATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful
+✅ Both tab values validated with Zod enum
+
+===============================================================================
+DATE: October 19, 2025
+COMMAND: Create MCP tool to open Add General Flow Wizard
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User asked if there's a tool to open the Add General Flow Wizard. Discovered
+the wizard exists (appdna.addGeneralFlow command) but had no MCP tool. Created
+new MCP tool to open this wizard.
+
+DISCOVERY:
+- Add General Flow Wizard: src/webviews/addGeneralFlowWizardView.js
+- Command: appdna.addGeneralFlow (registered in package.json)
+- Function: showAddGeneralFlowWizard(modelService, context)
+- No MCP tool existed for this wizard
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1546)
+   - Added open_add_general_flow_wizard tool registration
+   - Description covers guided steps, owner/role/target selection
+   - Mentions support for new instance vs existing data workflows
+   - No input parameters required (wizard is interactive)
+
+2. src/mcp/tools/viewTools.ts
+   - Added openAddGeneralFlowWizard() method
+   - Calls appdna.addGeneralFlow command directly
+
+3. src/extension.ts
+   - Added open_add_general_flow_wizard to chat mode tools list
+   - Positioned in General Workflows section
+
+4. Documentation Updates:
+   - README.md: Updated tool count 64→65 in two places
+
+WIZARD FEATURES:
+- Multi-step guided interface for creating general workflows (DynaFlows)
+- Owner object selection
+- Role requirement configuration
+- Choice between new instance creation or existing data workflows
+- Target object selection for new instance workflows
+- Flow name and title configuration
+- Automatic validation
+
+TOOL COUNT:
+- Previous: 64 tools
+- New: 65 tools
+- Category: View Management / Workflow Tools
+
+VERIFICATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful
+✅ Chat mode configuration updated
+✅ Documentation updated
+
+===============================================================================
+DATE: October 19, 2025
+COMMAND: Add tab switching support to Page Flow Diagram MCP tool
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User showed screenshot of Page Flow Diagram with 4 tabs and requested that the
+MCP tool support switching between them. Updated the existing MCP tool to accept
+an optional initialTab parameter.
+
+TABS DISCOVERED:
+1. Force Directed Graph (tab value: "diagram") - Interactive graph visualization
+2. Mermaid (tab value: "mermaid") - Text-based diagram format
+3. User Journey (tab value: "userjourney") - Path analysis between pages
+4. Statistics (tab value: "statistics") - Flow metrics and analytics
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1957)
+   - Updated open_page_flow_diagram_view tool
+   - Added initialTab parameter with z.enum validation
+   - Updated description to mention all 4 tabs
+   - Added initialTab to outputSchema
+
+2. src/mcp/tools/viewTools.ts
+   - Updated openPageFlowDiagram(initialTab?: string) signature
+   - Passes initialTab parameter to command
+
+3. src/commands/registerCommands.ts (line ~915)
+   - Updated appdna.showPageFlowDiagram command to accept initialTab parameter
+   - Added postMessage to switch tab after panel is created
+   - Uses getPageFlowPanel() to get existing panel reference
+
+4. src/webviews/pageflow/components/htmlGenerator.js
+   - Added 'switchToTab' message handler in window.addEventListener
+   - Calls switchTab(message.tabName) when message received
+
+TAB VALUES:
+- "diagram" - Force Directed Graph (default, interactive visualization)
+- "mermaid" - Mermaid diagram (text-based representation)
+- "userjourney" - User Journey analysis (path finding between pages)
+- "statistics" - Statistics (flow metrics and counts)
+
+ARCHITECTURE NOTES:
+- Page Flow view: pageflow/pageFlowDiagramView.js
+- HTML Generator: pageflow/components/htmlGenerator.js  
+- Command: appdna.showPageFlowDiagram
+- Tab switching pattern: postMessage → switchTab() function
+- Panel getter: getPageFlowPanel() returns current panel reference
+
+VERIFICATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful
+✅ All 4 tab values validated with Zod enum
+
+===============================================================================
+DATE: October 19, 2025
+COMMAND: Create MCP tool to open Add Data Object Wizard
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User asked if there's a tool to open the view to add a data object. Discovered
+the Add Data Object Wizard exists (appdna.addObject command) but had no MCP
+tool. Created new MCP tool to open this wizard.
+
+DISCOVERY:
+- Add Data Object Wizard: src/webviews/addObjectWizardView.js
+- Command: appdna.addObject (registered in package.json)
+- Function: showAddObjectWizard(modelService, context)
+- No MCP tool existed for this wizard
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/server.ts (line ~1253)
+   - Added open_add_data_object_wizard tool registration
+   - Description covers guided steps, bulk import, lookup/child object support
+   - No input parameters required (wizard is interactive)
+
+2. src/mcp/tools/viewTools.ts
+   - Added openAddDataObjectWizard() method
+   - Calls appdna.addObject command directly (no MCP wrapper needed)
+
+3. src/extension.ts
+   - Added open_add_data_object_wizard to chat mode tools list
+   - Positioned in Data Object Tools section
+
+4. Documentation Updates:
+   - README.md: Updated tool count 63→64 in two places
+   - README.md: Updated Data Object Management from 15 to include wizard note
+   - README.md: Updated View Management from 22→23 tools
+   - MCP_README.md: Updated Data Object Tools from "5+ tools" to "6 tools"
+   - MCP_README.md: Added wizard as third item in Data Object Tools list
+
+WIZARD FEATURES:
+- Guided 3-step interface for creating individual data objects
+- Bulk import mode for creating multiple objects from text
+- Supports lookup objects and parent-child relationships
+- Format: "ObjectName is a child of ParentObjectName" or "ObjectName is a lookup"
+- Automatic validation and dependency ordering
+- Opens Object Details view after creation
+
+TOOL COUNT:
+- Previous: 63 tools
+- New: 64 tools
+- Category: View Management / Data Object Tools
+
+VERIFICATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful
+✅ Chat mode configuration updated
+✅ All documentation updated
+
+===============================================================================
+DATE: December 30, 2024
+COMMAND: Implement Page Preview MCP tool functionality
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+The open_page_preview_view MCP tool existed in server.ts but was completely
+non-functional. The viewTools.ts openPagePreview() method was throwing an error
+instead of opening the view. Implemented the missing functionality.
+
+DISCOVERY:
+- MCP tool definition existed in src/mcp/server.ts (line ~1403)
+- viewTools.ts had placeholder throwing error: "Page Preview view is not yet implemented"
+- No MCP command registration existed in mcpViewCommands.ts
+- Existing function showPagePreviewWithSelection() already supported this use case
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/tools/viewTools.ts
+   - Changed openPagePreview(pageName: string) method
+   - Removed: throw new Error('Page Preview view is not yet implemented...')
+   - Added: return this.executeCommand('appdna.mcp.openPagePreview', [pageName])
+
+2. src/commands/mcpViewCommands.ts (NEW COMMAND)
+   - Added appdna.mcp.openPagePreview command registration
+   - Calls showPagePreviewWithSelection(context, modelService, pageName)
+   - Added descriptive comments explaining parameters
+
+COMMAND FLOW:
+MCP Tool: open_page_preview_view(pageName)
+  ↓
+viewTools.openPagePreview(pageName)
+  ↓
+Command: appdna.mcp.openPagePreview
+  ↓
+showPagePreviewWithSelection(context, modelService, pageName)
+  ↓
+Creates webview panel → postMessage('selectPageAndShowPreview', pageName)
+  ↓
+Webview selects page and displays preview
+
+ARCHITECTURE NOTES:
+- Page Preview view uses selection mechanism (not tab switching)
+- showPagePreviewWithSelection() opens view and selects specific page
+- Page names must match form names in app-dna.json model
+- MCP tool accepts pageName as required parameter
+
+VERIFICATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful  
+✅ MCP command properly registered
+✅ Complete command chain implemented
+
+===============================================================================
 DATE: October 18, 2025
 COMMAND: Add tab switching support to Page List view MCP tool
 STATUS: ✅ COMPLETED

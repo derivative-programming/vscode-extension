@@ -38,9 +38,10 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
 - **open_user_stories_role_requirements_view** - Role requirements per user story
 - **open_requirements_fulfillment_view** - Role requirements fulfillment tracking
 
-#### **Data Object Tools** (5+ tools)
+#### **Data Object Tools** (6 tools)
 - **open_object_details_view** - View/edit data object details
 - **open_data_objects_list_view** - Browse all data objects
+- **open_add_data_object_wizard** - Guided wizard to create new data objects
 - **open_data_object_usage_analysis_view** - Impact analysis for objects
 - **open_data_object_size_analysis_view** - Storage and capacity planning
 - **open_database_size_forecast_view** - Database growth projections

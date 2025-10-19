@@ -153,24 +153,24 @@ export class ViewTools {
      * Open Data Object Usage Analysis View
      * Shows which pages, forms, and flows use each data object
      */
-    public async openDataObjectUsageAnalysis(): Promise<any> {
-        return this.executeCommand('appdna.dataObjectUsageAnalysis');
+    public async openDataObjectUsageAnalysis(initialTab?: string): Promise<any> {
+        return this.executeCommand('appdna.dataObjectUsageAnalysis', initialTab ? [initialTab] : []);
     }
 
     /**
      * Open Data Object Size Analysis View
      * Shows estimated record counts and storage requirements
      */
-    public async openDataObjectSizeAnalysis(): Promise<any> {
-        return this.executeCommand('appdna.dataObjectSizeAnalysis');
+    public async openDataObjectSizeAnalysis(initialTab?: string): Promise<any> {
+        return this.executeCommand('appdna.dataObjectSizeAnalysis', initialTab ? [initialTab] : []);
     }
 
     /**
      * Open Database Size Forecast View
      * Shows projected database growth over time
      */
-    public async openDatabaseSizeForecast(): Promise<any> {
-        return this.executeCommand('appdna.databaseSizeForecast');
+    public async openDatabaseSizeForecast(initialTab?: string): Promise<any> {
+        return this.executeCommand('appdna.databaseSizeForecast', initialTab ? [initialTab] : []);
     }
 
     // ===== FORM AND PAGE VIEWS =====
@@ -204,10 +204,18 @@ export class ViewTools {
     /**
      * Open Page Preview View
      * Shows live preview for a specific page
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
+     * @param pageName Optional name of page to preview (if omitted, opens without selection)
      */
-    public async openPagePreview(pageName: string): Promise<any> {
-        throw new Error('Page Preview view is not yet implemented. Create page preview handler to add this functionality.');
+    public async openPagePreview(pageName?: string): Promise<any> {
+        return this.executeCommand('appdna.mcp.openPagePreview', pageName ? [pageName] : []);
+    }
+
+    /**
+     * Open Add Data Object Wizard
+     * Opens wizard to create new data objects
+     */
+    public async openAddDataObjectWizard(): Promise<any> {
+        return this.executeCommand('appdna.addObject');
     }
 
     // ===== WORKFLOW AND FLOW VIEWS =====
@@ -235,6 +243,14 @@ export class ViewTools {
      */
     public async openGeneralWorkflowsList(): Promise<any> {
         return this.executeCommand('appdna.generalList');
+    }
+
+    /**
+     * Open Add General Flow Wizard
+     * Opens wizard to create new general workflows
+     */
+    public async openAddGeneralFlowWizard(): Promise<any> {
+        return this.executeCommand('appdna.addGeneralFlow');
     }
 
     /**
@@ -317,9 +333,10 @@ export class ViewTools {
     /**
      * Open Metrics Analysis View
      * Shows application metrics and KPIs with historical trends
+     * @param initialTab Optional tab to display: 'current' or 'history'
      */
-    public async openMetricsAnalysis(): Promise<any> {
-        return this.executeCommand('appdna.metricsAnalysis');
+    public async openMetricsAnalysis(initialTab?: string): Promise<any> {
+        return this.executeCommand('appdna.metricsAnalysis', initialTab ? [initialTab] : []);
     }
 
     /**
@@ -348,6 +365,30 @@ export class ViewTools {
     }
 
     /**
+     * Open Model Validation Requests View
+     * Shows validation request status and history
+     */
+    public async openModelValidationRequests(): Promise<any> {
+        return this.executeCommand('appdna.modelValidation');
+    }
+
+    /**
+     * Open Model Feature Catalog View
+     * Shows available features and enhancements
+     */
+    public async openModelFeatureCatalog(): Promise<any> {
+        return this.executeCommand('appdna.modelFeatureCatalog');
+    }
+
+    /**
+     * Open Fabrication Requests View
+     * Shows fabrication request status and code generation history
+     */
+    public async openFabricationRequests(): Promise<any> {
+        return this.executeCommand('appdna.modelFabrication');
+    }
+
+    /**
      * Open Fabrication Blueprint Catalog View
      * Shows available templates and blueprints
      */
@@ -368,9 +409,10 @@ export class ViewTools {
     /**
      * Open Page Flow Diagram View
      * Shows navigation flow between pages
+     * @param initialTab Optional tab to display: 'diagram', 'mermaid', 'userjourney', or 'statistics'
      */
-    public async openPageFlowDiagram(): Promise<any> {
-        return this.executeCommand('appdna.showPageFlowDiagram');
+    public async openPageFlowDiagram(initialTab?: string): Promise<any> {
+        return this.executeCommand('appdna.showPageFlowDiagram', initialTab ? [initialTab] : []);
     }
 
     // ===== SETTINGS AND INFO VIEWS =====

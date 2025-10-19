@@ -596,6 +596,12 @@ window.addEventListener('message', event => {
     console.log('Received message:', message);
     
     switch (message.command) {
+        case 'switchToTab':
+            if (message.tabName && typeof switchTab === 'function') {
+                switchTab(message.tabName);
+            }
+            break;
+            
         case 'summaryData':
             console.log('Rendering summary data:', message.data);
             renderSummaryTable(message.data);

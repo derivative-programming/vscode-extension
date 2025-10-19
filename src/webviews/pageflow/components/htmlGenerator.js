@@ -1093,6 +1093,12 @@ function getEmbeddedJavaScript(flowMap, appName = '') {
         window.addEventListener('message', event => {
             const message = event.data;
             switch (message.command) {
+                case 'switchToTab':
+                    // Handle tab switching request from extension
+                    if (message.tabName) {
+                        switchTab(message.tabName);
+                    }
+                    break;
                 case 'updateFlowData':
                     // Handle refresh data updates if needed
                     break;

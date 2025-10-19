@@ -70,6 +70,7 @@ tools:
   - open_requirements_fulfillment_view
   - open_object_details_view
   - open_data_objects_list_view
+  - open_add_data_object_wizard
   - open_data_object_usage_analysis_view
   - open_data_object_size_analysis_view
   - open_database_size_forecast_view
@@ -80,6 +81,7 @@ tools:
   - open_page_init_flows_list_view
   - open_page_init_flow_details_view
   - open_general_workflows_list_view
+  - open_add_general_flow_wizard
   - open_general_workflow_details_view
   - open_workflows_list_view
   - open_workflow_details_view
@@ -92,6 +94,9 @@ tools:
   - open_lexicon_view
   - open_change_requests_view
   - open_model_ai_processing_view
+  - open_model_validation_requests_view
+  - open_model_feature_catalog_view
+  - open_fabrication_requests_view
   - open_fabrication_blueprint_catalog_view
   - open_hierarchy_diagram_view
   - open_page_flow_diagram_view

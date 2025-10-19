@@ -912,8 +912,8 @@ export function registerCommands(
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('appdna.showPageFlowDiagram', async () => {
-            console.log('[DEBUG] Page flow diagram command triggered');
+        vscode.commands.registerCommand('appdna.showPageFlowDiagram', async (initialTab?: string) => {
+            console.log('[DEBUG] Page flow diagram command triggered with initialTab:', initialTab);
             console.log('[DEBUG] modelService.isFileLoaded():', modelService.isFileLoaded());
             
             if (!modelService.isFileLoaded()) {
@@ -940,6 +940,17 @@ export function registerCommands(
             
             // Show the page flow diagram view
             await showPageFlowDiagram(context, modelService);
+            
+            // If initialTab is provided, switch to that tab
+            if (initialTab) {
+                const panel = getPageFlowPanel();
+                if (panel) {
+                    panel.webview.postMessage({
+                        command: 'switchToTab',
+                        tabName: initialTab
+                    });
+                }
+            }
         })
     );
 

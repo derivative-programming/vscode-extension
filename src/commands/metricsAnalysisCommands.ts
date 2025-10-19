@@ -54,8 +54,8 @@ export function closeMetricsAnalysisPanel(): void {
 export function registerMetricsAnalysisCommands(context: vscode.ExtensionContext, modelService: ModelService) {
     
     // Register the show metrics analysis command
-    const metricsAnalysisCommand = vscode.commands.registerCommand('appdna.metricsAnalysis', () => {
-        console.log('Metrics analysis command executed');
+    const metricsAnalysisCommand = vscode.commands.registerCommand('appdna.metricsAnalysis', (initialTab?: string) => {
+        console.log('Metrics analysis command executed with initialTab:', initialTab);
         
         // Check if we already have a metrics analysis panel open
         if (activePanels.has('metricsAnalysis')) {
@@ -63,6 +63,13 @@ export function registerMetricsAnalysisCommands(context: vscode.ExtensionContext
             const existingPanel = activePanels.get('metricsAnalysis');
             if (existingPanel) {
                 existingPanel.reveal();
+                // If initialTab is provided, switch to that tab
+                if (initialTab) {
+                    existingPanel.webview.postMessage({
+                        command: 'switchToTab',
+                        tabName: initialTab
+                    });
+                }
                 return;
             }
         }
@@ -91,6 +98,16 @@ export function registerMetricsAnalysisCommands(context: vscode.ExtensionContext
 
         // Set the HTML content
         panel.webview.html = getMetricsAnalysisWebviewContent(panel.webview, context.extensionPath);
+
+        // If initialTab is provided, switch to that tab after a delay
+        if (initialTab) {
+            setTimeout(() => {
+                panel.webview.postMessage({
+                    command: 'switchToTab',
+                    tabName: initialTab
+                });
+            }, 100);
+        }
 
         // Handle dispose
         panel.onDidDispose(() => {

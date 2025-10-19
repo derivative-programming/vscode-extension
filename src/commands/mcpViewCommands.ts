@@ -153,6 +153,21 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
         })
     );
 
+    // Open page preview view with optional page selection
+    // Description: Opens the Page Preview view. If pageName provided, pre-selects that page.
+    // Parameters: pageName (optional) - Name of the page/form to preview
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openPagePreview', async (pageName?: string) => {
+            if (pageName) {
+                const { showPagePreviewWithSelection } = require('../webviews/pagepreview/pagePreviewView');
+                return await showPagePreviewWithSelection(context, modelService, pageName);
+            } else {
+                const { showPagePreview } = require('../webviews/pagepreview/pagePreviewView');
+                return await showPagePreview(context, modelService);
+            }
+        })
+    );
+
     // Generic view opener - routes to specific commands based on view name
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openView', async (viewName: string, params?: any) => {

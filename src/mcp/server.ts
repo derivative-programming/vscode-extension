@@ -1225,7 +1225,37 @@ export class MCPServer {
 
         this.server.registerTool('open_data_object_usage_analysis_view', {
             title: 'Open Data Object Usage Analysis View',
-            description: 'Opens the usage analysis view for data objects. Shows where each data object is used throughout the application: which forms display it, which pages reference it, which workflows manipulate it, and which APIs expose it. Essential for impact analysis when considering changes to data objects.',
+            description: 'Opens the usage analysis view for data objects showing where each data object is used throughout the application. Includes 5 tabs: Summary (overview table), Detail (detailed references), Proportional Usage (treemap), Usage Distribution (histogram), and Complexity vs. Usage (bubble chart). Essential for impact analysis when considering changes to data objects.',
+            inputSchema: {
+                initialTab: z.enum(['summary', 'detail', 'treemap', 'histogram', 'bubble']).optional().describe('Optional tab to display: "summary" (overview - default), "detail" (detailed references), "treemap" (proportional usage), "histogram" (usage distribution), or "bubble" (complexity vs usage)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                initialTab: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async ({ initialTab }) => {
+            try {
+                const result = await this.viewTools.openDataObjectUsageAnalysis(initialTab);
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        this.server.registerTool('open_add_data_object_wizard', {
+            title: 'Open Add Data Object Wizard',
+            description: 'Opens the Add Data Object Wizard to create new data objects in the AppDNA model. Provides guided steps for creating individual objects or bulk import. Supports creating lookup objects and child objects with parent relationships.',
             inputSchema: {},
             outputSchema: {
                 success: z.boolean(),
@@ -1235,7 +1265,7 @@ export class MCPServer {
             }
         }, async () => {
             try {
-                const result = await this.viewTools.openDataObjectUsageAnalysis();
+                const result = await this.viewTools.openAddDataObjectWizard();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -1252,17 +1282,20 @@ export class MCPServer {
 
         this.server.registerTool('open_data_object_size_analysis_view', {
             title: 'Open Data Object Size Analysis View',
-            description: 'Opens the size analysis view for data objects. Shows estimated record counts, average row sizes, and total storage requirements for each data object. Helps with capacity planning and database optimization.',
-            inputSchema: {},
+            description: 'Opens the size analysis view for data objects showing storage requirements and capacity planning. Includes 5 tabs: Summary (overview table), Detail (property-level breakdown), Size Visualization (treemap), Size Distribution (histogram), and Size vs Properties (scatter plot). Helps with database optimization and growth projections.',
+            inputSchema: {
+                initialTab: z.enum(['summary', 'details', 'treemap', 'histogram', 'dotplot']).optional().describe('Optional tab to display: "summary" (overview - default), "details" (property breakdown), "treemap" (size visualization), "histogram" (size distribution), or "dotplot" (size vs properties)')
+            },
             outputSchema: {
                 success: z.boolean(),
                 view: z.string().optional(),
+                initialTab: z.string().optional(),
                 message: z.string().optional(),
                 error: z.string().optional()
             }
-        }, async () => {
+        }, async ({ initialTab }) => {
             try {
-                const result = await this.viewTools.openDataObjectSizeAnalysis();
+                const result = await this.viewTools.openDataObjectSizeAnalysis(initialTab);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -1279,17 +1312,20 @@ export class MCPServer {
 
         this.server.registerTool('open_database_size_forecast_view', {
             title: 'Open Database Size Forecast View',
-            description: 'Opens the database size forecast view. Projects future database growth based on current data object sizes and estimated growth rates. Shows monthly/yearly projections and helps plan infrastructure capacity.',
-            inputSchema: {},
+            description: 'Opens the database size forecast view with growth projections and capacity planning. Includes 3 tabs: Config (set growth parameters and assumptions), Forecast (view projections with interactive charts), and Data (detailed monthly/yearly breakdown table). Projects future database growth based on data object sizes and estimated growth rates.',
+            inputSchema: {
+                initialTab: z.enum(['config', 'forecast', 'data']).optional().describe('Optional tab to display: "config" (configure growth parameters - default), "forecast" (view projections and charts), or "data" (detailed breakdown table)')
+            },
             outputSchema: {
                 success: z.boolean(),
                 view: z.string().optional(),
+                initialTab: z.string().optional(),
                 message: z.string().optional(),
                 error: z.string().optional()
             }
-        }, async () => {
+        }, async ({ initialTab }) => {
             try {
-                const result = await this.viewTools.openDatabaseSizeForecast();
+                const result = await this.viewTools.openDatabaseSizeForecast(initialTab);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -1402,9 +1438,9 @@ export class MCPServer {
 
         this.server.registerTool('open_page_preview_view', {
             title: 'Open Page Preview View',
-            description: 'Opens a live preview of a specific page showing how it will appear when rendered. Includes two tabs: "Preview" (rendered view) and "Source" (generated HTML/code). Requires pageName parameter.',
+            description: 'Opens the Page Preview view showing live preview of pages. Includes two tabs: "Preview" (rendered view) and "Source" (generated HTML/code). Optional pageName parameter will pre-select a specific page.',
             inputSchema: {
-                pageName: z.string().describe('Name of the page to preview')
+                pageName: z.string().optional().describe('Optional name of the page to preview. If omitted, opens the view without selecting a specific page.')
             },
             outputSchema: {
                 success: z.boolean(),
@@ -1504,6 +1540,33 @@ export class MCPServer {
         }, async () => {
             try {
                 const result = await this.viewTools.openGeneralWorkflowsList();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        this.server.registerTool('open_add_general_flow_wizard', {
+            title: 'Open Add General Flow Wizard',
+            description: 'Opens the Add General Flow Wizard to create new general workflows (DynaFlows) in the AppDNA model. Provides guided steps for creating workflows with owner objects, role requirements, and target object selection. Supports creating new instance workflows or workflows that work with existing data.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.viewTools.openAddGeneralFlowWizard();
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -1765,17 +1828,20 @@ export class MCPServer {
 
         this.server.registerTool('open_metrics_analysis_view', {
             title: 'Open Metrics Analysis View',
-            description: 'Opens the metrics analysis view showing application KPIs and performance metrics. Displays current values, historical trends, and projections. Includes metrics like user adoption, data growth, performance benchmarks, and business outcomes. Features interactive charts and exportable reports.',
-            inputSchema: {},
+            description: 'Opens the metrics analysis view showing application KPIs and performance metrics. Includes 2 tabs: Current (current metric values with filters and actions) and History (historical trends with charts and date range filtering). Displays metrics like object counts, form counts, workflow complexity, and other model statistics.',
+            inputSchema: {
+                initialTab: z.enum(['current', 'history']).optional().describe('Optional tab to display: "current" (current metrics - default) or "history" (historical metrics with charts)')
+            },
             outputSchema: {
                 success: z.boolean(),
                 view: z.string().optional(),
+                initialTab: z.string().optional(),
                 message: z.string().optional(),
                 error: z.string().optional()
             }
-        }, async () => {
+        }, async ({ initialTab }) => {
             try {
-                const result = await this.viewTools.openMetricsAnalysis();
+                const result = await this.viewTools.openMetricsAnalysis(initialTab);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result
@@ -1871,6 +1937,87 @@ export class MCPServer {
             }
         });
 
+        this.server.registerTool('open_model_validation_requests_view', {
+            title: 'Open Model Validation Requests View',
+            description: 'Opens the model validation requests view showing validation status and history. Displays validation requests submitted to the model services API, their status (pending, approved, rejected), timestamps, and detailed validation results. Essential for tracking model quality assurance and compliance validation processes.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.viewTools.openModelValidationRequests();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        this.server.registerTool('open_model_feature_catalog_view', {
+            title: 'Open Model Feature Catalog View',
+            description: 'Opens the model feature catalog view showing available features and enhancements. Displays a catalog of features that can be added to the application model, including descriptions, dependencies, and implementation status. Essential for discovering and managing model capabilities and feature sets.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.viewTools.openModelFeatureCatalog();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        this.server.registerTool('open_fabrication_requests_view', {
+            title: 'Open Fabrication Requests View',
+            description: 'Opens the fabrication requests view showing code generation request status and history. Displays fabrication requests submitted to the model services API for generating source code, their status (pending, processing, completed, failed), timestamps, and download links for generated code packages. Essential for tracking code generation activities and downloading fabricated source code.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.viewTools.openFabricationRequests();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         this.server.registerTool('open_fabrication_blueprint_catalog_view', {
             title: 'Open Fabrication Blueprint Catalog View',
             description: 'Opens the blueprint catalog view showing available templates and pre-built components. Blueprints are reusable model patterns that can be applied to quickly add common functionality (e.g., user management, audit logging, file uploads). Shows blueprint descriptions, parameters, and preview capabilities.',
@@ -1929,17 +2076,20 @@ export class MCPServer {
 
         this.server.registerTool('open_page_flow_diagram_view', {
             title: 'Open Page Flow Diagram View',
-            description: 'Opens the page flow diagram showing navigation paths between pages in the application. Visualizes how users move through the UI with arrows indicating navigation links and transitions. Useful for understanding user experience and site architecture.',
-            inputSchema: {},
+            description: 'Opens the page flow diagram showing navigation paths between pages in the application. Visualizes how users move through the UI with arrows indicating navigation links and transitions. Includes 4 visualization tabs: Force Directed Graph (interactive), Mermaid (text-based), User Journey (path analysis), and Statistics (metrics). Useful for understanding user experience and site architecture.',
+            inputSchema: {
+                initialTab: z.enum(['diagram', 'mermaid', 'userjourney', 'statistics']).optional().describe('Optional tab to display: "diagram" (Force Directed Graph - default), "mermaid" (Mermaid diagram), "userjourney" (User Journey analysis), or "statistics" (flow statistics)')
+            },
             outputSchema: {
                 success: z.boolean(),
                 view: z.string().optional(),
+                initialTab: z.string().optional(),
                 message: z.string().optional(),
                 error: z.string().optional()
             }
-        }, async () => {
+        }, async ({ initialTab }) => {
             try {
-                const result = await this.viewTools.openPageFlowDiagram();
+                const result = await this.viewTools.openPageFlowDiagram(initialTab);
                 return {
                     content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
                     structuredContent: result

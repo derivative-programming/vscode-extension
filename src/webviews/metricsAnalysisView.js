@@ -475,6 +475,12 @@ window.addEventListener('message', event => {
     console.log('Received message:', message);
     
     switch (message.command) {
+        case 'switchToTab':
+            // Handle tab switching request from extension
+            if (message.tabName) {
+                switchTab(message.tabName);
+            }
+            break;
         case 'currentMetricsData':
             allCurrentItems = message.data || [];
             currentMetricsData = allCurrentItems.slice(); // Copy for filtering

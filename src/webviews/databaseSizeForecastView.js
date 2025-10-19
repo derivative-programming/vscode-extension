@@ -103,6 +103,12 @@ function handleExtensionMessage(event) {
     console.log('Received message:', message);
     
     switch (message.command) {
+        case 'switchToTab':
+            if (message.tabName && typeof switchTab === 'function') {
+                switchTab(message.tabName);
+            }
+            break;
+            
         case 'configLoaded':
             console.log('Config data loaded:', message.data);
             currentDataObjects = message.data.dataObjects || [];

@@ -54,8 +54,8 @@ export function closeDataObjectSizeAnalysisPanel(): void {
 export function registerDataObjectSizeAnalysisCommands(context: vscode.ExtensionContext, modelService: ModelService) {
     
     // Register the show data object size analysis command
-    const dataObjectSizeAnalysisCommand = vscode.commands.registerCommand('appdna.dataObjectSizeAnalysis', () => {
-        console.log('Data Object Size Analysis command executed');
+    const dataObjectSizeAnalysisCommand = vscode.commands.registerCommand('appdna.dataObjectSizeAnalysis', (initialTab?: string) => {
+        console.log('Data Object Size Analysis command executed', initialTab);
         
         // Check if we already have a data object size analysis panel open
         if (activePanels.has('dataObjectSizeAnalysis')) {
@@ -63,6 +63,13 @@ export function registerDataObjectSizeAnalysisCommands(context: vscode.Extension
             const existingPanel = activePanels.get('dataObjectSizeAnalysis');
             if (existingPanel) {
                 existingPanel.reveal();
+                // If initialTab is provided, switch to that tab
+                if (initialTab) {
+                    existingPanel.webview.postMessage({
+                        command: 'switchToTab',
+                        tabName: initialTab
+                    });
+                }
                 return;
             }
         }
@@ -91,6 +98,16 @@ export function registerDataObjectSizeAnalysisCommands(context: vscode.Extension
 
         // Set the HTML content
         panel.webview.html = getDataObjectSizeAnalysisWebviewContent(panel.webview, context.extensionPath);
+
+        // If initialTab is provided, switch to it after HTML loads
+        if (initialTab) {
+            setTimeout(() => {
+                panel.webview.postMessage({
+                    command: 'switchToTab',
+                    tabName: initialTab
+                });
+            }, 100);
+        }
 
         // Handle dispose
         panel.onDidDispose(() => {
