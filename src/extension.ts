@@ -112,6 +112,10 @@ tools:
   - open_add_report_wizard
   - open_add_form_wizard
   - list_model_features_catalog_items
+  - list_model_ai_processing_requests
+  - list_model_validation_requests
+  - list_fabrication_blueprint_catalog_items
+  - list_model_fabrication_requests
 ---
 
 # AppDNA Chat Mode
@@ -244,7 +248,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (74 Tools)
+## Comprehensive MCP Tool Suite (78 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -360,8 +364,12 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool
 
-### Model Services Data Tools (1 Tool)
+### Model Services API Tools (5 Tools)
 - \`list_model_features_catalog_items\` - Retrieve Model Feature Catalog items with selection status and pagination
+- \`list_model_ai_processing_requests\` - List AI processing requests with status, timestamps, and details
+- \`list_model_validation_requests\` - List validation requests with status, results, and change suggestions
+- \`list_fabrication_blueprint_catalog_items\` - List fabrication blueprints (template sets) with selection status showing which are currently selected in your model
+- \`list_model_fabrication_requests\` - List fabrication requests with status, download URLs, and generated file information
 
 ## Navigation Tools for AppDNA Views
 
@@ -395,10 +403,11 @@ The extension provides specialized navigation tools to help you explore differen
 - Review the lexicon for business terminology definitions
 
 ### MCP Integration
-- **74 Production-Ready Tools**: Complete coverage of all AppDNA functionality
+- **78 Production-Ready Tools**: Complete coverage of all AppDNA functionality including Model Services API access
 - **GitHub Copilot Integration**: Natural language queries for model exploration and modification
 - **Safe Model Changes**: All modifications go through validated MCP tools, not direct file editing
 - **Real-time Status**: Visual indicators show MCP server running/stopped states
+- **Model Services Integration**: Access AI processing, validation, blueprint catalogs, and fabrication requests via MCP tools
 
 ### Configuration & Settings
 - **AppDNA Settings**: Configure extension behavior and advanced features

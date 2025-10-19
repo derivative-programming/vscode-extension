@@ -186,4 +186,325 @@ export class ModelServiceTools {
             };
         }
     }
+
+    /**
+     * Generic fetch method for Model Services API endpoints
+     * @param endpoint - API endpoint (e.g., 'prep-requests', 'validation-requests')
+     * @param pageNumber - Page number
+     * @param itemCountPerPage - Items per page
+     * @param orderByColumnName - Column to sort by
+     * @param orderByDescending - Sort descending
+     */
+    private async fetchFromModelServices(
+        endpoint: string,
+        pageNumber: number,
+        itemCountPerPage: number,
+        orderByColumnName: string,
+        orderByDescending: boolean
+    ): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                endpoint,
+                pageNumber, 
+                itemCountPerPage, 
+                orderByColumnName, 
+                orderByDescending 
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/model-services/' + endpoint,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 30000 // 30 second timeout for API calls
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        if (response.success) {
+                            resolve(response.data);
+                        } else {
+                            reject(new Error(response.error || 'API call failed'));
+                        }
+                    } catch (error) {
+                        reject(new Error('Invalid response from extension'));
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                reject(new Error(`HTTP bridge connection failed: ${error.message}. Is the extension running and HTTP bridge started?`));
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                reject(new Error('API call timed out. The Model Services API may be slow or unavailable.'));
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
+
+    /**
+     * List AI processing requests
+     * Returns paginated list of AI processing requests from Model Services
+     * Tool name: list_model_ai_processing_requests
+     * 
+     * @param pageNumber - Page number (1-indexed, default: 1)
+     * @param itemCountPerPage - Items per page (default: 10)
+     * @param orderByColumnName - Column to sort by (default: "modelPrepRequestRequestedUTCDateTime")
+     * @param orderByDescending - Sort descending (default: true)
+     */
+    public async list_model_ai_processing_requests(
+        pageNumber: number = 1,
+        itemCountPerPage: number = 10,
+        orderByColumnName: string = "modelPrepRequestRequestedUTCDateTime",
+        orderByDescending: boolean = true
+    ): Promise<any> {
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.',
+                items: [],
+                pageNumber: 1,
+                itemCountPerPage: 10,
+                recordsTotal: 0,
+                recordsFiltered: 0
+            };
+        }
+
+        try {
+            const data = await this.fetchFromModelServices(
+                'prep-requests',
+                pageNumber,
+                itemCountPerPage,
+                orderByColumnName,
+                orderByDescending
+            );
+
+            return {
+                success: true,
+                items: data.items || [],
+                pageNumber: data.pageNumber || pageNumber,
+                itemCountPerPage: data.itemCountPerPage || itemCountPerPage,
+                recordsTotal: data.recordsTotal || 0,
+                recordsFiltered: data.recordsFiltered || 0,
+                orderByColumnName: data.orderByColumnName || orderByColumnName,
+                orderByDescending: data.orderByDescending || orderByDescending
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred while fetching AI processing requests',
+                items: [],
+                pageNumber,
+                itemCountPerPage,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                note: 'Check that you are logged in to Model Services and have an active internet connection'
+            };
+        }
+    }
+
+    /**
+     * List validation requests
+     * Returns paginated list of validation requests from Model Services
+     * Tool name: list_model_validation_requests
+     * 
+     * @param pageNumber - Page number (1-indexed, default: 1)
+     * @param itemCountPerPage - Items per page (default: 10)
+     * @param orderByColumnName - Column to sort by (default: "modelValidationRequestRequestedUTCDateTime")
+     * @param orderByDescending - Sort descending (default: true)
+     */
+    public async list_model_validation_requests(
+        pageNumber: number = 1,
+        itemCountPerPage: number = 10,
+        orderByColumnName: string = "modelValidationRequestRequestedUTCDateTime",
+        orderByDescending: boolean = true
+    ): Promise<any> {
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.',
+                items: [],
+                pageNumber: 1,
+                itemCountPerPage: 10,
+                recordsTotal: 0,
+                recordsFiltered: 0
+            };
+        }
+
+        try {
+            const data = await this.fetchFromModelServices(
+                'validation-requests',
+                pageNumber,
+                itemCountPerPage,
+                orderByColumnName,
+                orderByDescending
+            );
+
+            return {
+                success: true,
+                items: data.items || [],
+                pageNumber: data.pageNumber || pageNumber,
+                itemCountPerPage: data.itemCountPerPage || itemCountPerPage,
+                recordsTotal: data.recordsTotal || 0,
+                recordsFiltered: data.recordsFiltered || 0,
+                orderByColumnName: data.orderByColumnName || orderByColumnName,
+                orderByDescending: data.orderByDescending || orderByDescending
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred while fetching validation requests',
+                items: [],
+                pageNumber,
+                itemCountPerPage,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                note: 'Check that you are logged in to Model Services and have an active internet connection'
+            };
+        }
+    }
+
+    /**
+     * List fabrication blueprint catalog items
+     * Returns paginated list of available fabrication blueprints from Model Services
+     * Tool name: list_fabrication_blueprint_catalog_items
+     * 
+     * @param pageNumber - Page number (1-indexed, default: 1)
+     * @param itemCountPerPage - Items per page (default: 10)
+     * @param orderByColumnName - Column to sort by (default: "displayName")
+     * @param orderByDescending - Sort descending (default: false)
+     */
+    public async list_fabrication_blueprint_catalog_items(
+        pageNumber: number = 1,
+        itemCountPerPage: number = 10,
+        orderByColumnName: string = "displayName",
+        orderByDescending: boolean = false
+    ): Promise<any> {
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.',
+                items: [],
+                pageNumber: 1,
+                itemCountPerPage: 10,
+                recordsTotal: 0,
+                recordsFiltered: 0
+            };
+        }
+
+        try {
+            const data = await this.fetchFromModelServices(
+                'template-sets',
+                pageNumber,
+                itemCountPerPage,
+                orderByColumnName,
+                orderByDescending
+            );
+
+            return {
+                success: true,
+                items: data.items || [],
+                pageNumber: data.pageNumber || pageNumber,
+                itemCountPerPage: data.itemCountPerPage || itemCountPerPage,
+                recordsTotal: data.recordsTotal || 0,
+                recordsFiltered: data.recordsFiltered || 0,
+                orderByColumnName: data.orderByColumnName || orderByColumnName,
+                orderByDescending: data.orderByDescending || orderByDescending
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred while fetching fabrication blueprints',
+                items: [],
+                pageNumber,
+                itemCountPerPage,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                note: 'Check that you are logged in to Model Services and have an active internet connection'
+            };
+        }
+    }
+
+    /**
+     * List fabrication requests
+     * Returns paginated list of fabrication requests from Model Services
+     * Tool name: list_model_fabrication_requests
+     * 
+     * @param pageNumber - Page number (1-indexed, default: 1)
+     * @param itemCountPerPage - Items per page (default: 10)
+     * @param orderByColumnName - Column to sort by (default: "modelFabricationRequestRequestedUTCDateTime")
+     * @param orderByDescending - Sort descending (default: true)
+     */
+    public async list_model_fabrication_requests(
+        pageNumber: number = 1,
+        itemCountPerPage: number = 10,
+        orderByColumnName: string = "modelFabricationRequestRequestedUTCDateTime",
+        orderByDescending: boolean = true
+    ): Promise<any> {
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.',
+                items: [],
+                pageNumber: 1,
+                itemCountPerPage: 10,
+                recordsTotal: 0,
+                recordsFiltered: 0
+            };
+        }
+
+        try {
+            const data = await this.fetchFromModelServices(
+                'fabrication-requests',
+                pageNumber,
+                itemCountPerPage,
+                orderByColumnName,
+                orderByDescending
+            );
+
+            return {
+                success: true,
+                items: data.items || [],
+                pageNumber: data.pageNumber || pageNumber,
+                itemCountPerPage: data.itemCountPerPage || itemCountPerPage,
+                recordsTotal: data.recordsTotal || 0,
+                recordsFiltered: data.recordsFiltered || 0,
+                orderByColumnName: data.orderByColumnName || orderByColumnName,
+                orderByDescending: data.orderByDescending || orderByDescending
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred while fetching fabrication requests',
+                items: [],
+                pageNumber,
+                itemCountPerPage,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                note: 'Check that you are logged in to Model Services and have an active internet connection'
+            };
+        }
+    }
 }

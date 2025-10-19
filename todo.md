@@ -19,19 +19,19 @@ tools...
 
 
 model features...
-- list_model_feature_catalog_items
+- done:list_model_feature_catalog_items
 - select catalog item
 
 
 model ai processing...
-- list_model_ai_processing_requests
+- done:list_model_ai_processing_requests
 - add request
 - get request details
 - download report
 - merge results
 
 model validation...
-- list_model_validation_requests
+- done:list_model_validation_requests
 - add request
 - get details
 - download report
@@ -39,13 +39,13 @@ model validation...
 
 
 fabrication blueprint catalog...
-- list_fabrication_blueprint_catalog
+- done:list_fabrication_blueprint_catalog_items
 - select blueprint
 
 
 
 model fabrication requests...
-- list_model_fabrication_requests
+- done:list_model_fabrication_requests
 - add request
 - get details
 - download results

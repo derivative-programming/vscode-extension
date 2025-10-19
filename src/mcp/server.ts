@@ -1075,14 +1075,7 @@ export class MCPServer {
             },
             outputSchema: {
                 success: z.boolean(),
-                items: z.array(z.object({
-                    name: z.string(),
-                    displayName: z.string(),
-                    description: z.string(),
-                    version: z.string(),
-                    selected: z.boolean().describe('Whether this feature is currently selected in the model'),
-                    isCompleted: z.string().describe('Whether this feature has been completed by AI processing ("true" or "false")')
-                })).optional(),
+                items: z.array(z.any()).optional().describe('Array of model feature objects with name, displayName, description, version, selected status, and isCompleted flag'),
                 pageNumber: z.number().optional(),
                 itemCountPerPage: z.number().optional(),
                 recordsTotal: z.number().optional(),
@@ -1095,6 +1088,214 @@ export class MCPServer {
         }, async (args: any) => {
             try {
                 const result = await this.modelServiceTools.list_model_features_catalog_items(
+                    args.pageNumber,
+                    args.itemCountPerPage,
+                    args.orderByColumnName,
+                    args.orderByDescending
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    items: [],
+                    pageNumber: args.pageNumber || 1,
+                    itemCountPerPage: args.itemCountPerPage || 10,
+                    recordsTotal: 0,
+                    recordsFiltered: 0
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register list_model_ai_processing_requests tool
+        this.server.registerTool('list_model_ai_processing_requests', {
+            title: 'List Model AI Processing Requests',
+            description: 'List AI processing requests from Model Services with status and details. Returns paginated list of requests that have been submitted for AI-powered model preparation and enhancement. Each request includes project information, status, requested/completed timestamps, and processing details. Supports server-side pagination and sorting. Requires authentication to Model Services.',
+            inputSchema: {
+                pageNumber: z.number().optional().describe('Page number (1-indexed, default: 1)'),
+                itemCountPerPage: z.number().optional().describe('Items per page (default: 10, max: 100)'),
+                orderByColumnName: z.string().optional().describe('Column to sort by (default: "modelPrepRequestRequestedUTCDateTime")'),
+                orderByDescending: z.boolean().optional().describe('Sort in descending order (default: true)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                items: z.array(z.any()).optional().describe('Array of AI processing request objects'),
+                pageNumber: z.number().optional(),
+                itemCountPerPage: z.number().optional(),
+                recordsTotal: z.number().optional(),
+                recordsFiltered: z.number().optional(),
+                orderByColumnName: z.string().optional(),
+                orderByDescending: z.boolean().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.list_model_ai_processing_requests(
+                    args.pageNumber,
+                    args.itemCountPerPage,
+                    args.orderByColumnName,
+                    args.orderByDescending
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    items: [],
+                    pageNumber: args.pageNumber || 1,
+                    itemCountPerPage: args.itemCountPerPage || 10,
+                    recordsTotal: 0,
+                    recordsFiltered: 0
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register list_model_validation_requests tool
+        this.server.registerTool('list_model_validation_requests', {
+            title: 'List Model Validation Requests',
+            description: 'List validation requests from Model Services with status and results. Returns paginated list of requests that have been submitted for AI-powered model validation and change suggestions. Each request includes project information, status, requested/completed timestamps, and validation results. Supports server-side pagination and sorting. Requires authentication to Model Services.',
+            inputSchema: {
+                pageNumber: z.number().optional().describe('Page number (1-indexed, default: 1)'),
+                itemCountPerPage: z.number().optional().describe('Items per page (default: 10, max: 100)'),
+                orderByColumnName: z.string().optional().describe('Column to sort by (default: "modelValidationRequestRequestedUTCDateTime")'),
+                orderByDescending: z.boolean().optional().describe('Sort in descending order (default: true)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                items: z.array(z.any()).optional().describe('Array of validation request objects'),
+                pageNumber: z.number().optional(),
+                itemCountPerPage: z.number().optional(),
+                recordsTotal: z.number().optional(),
+                recordsFiltered: z.number().optional(),
+                orderByColumnName: z.string().optional(),
+                orderByDescending: z.boolean().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.list_model_validation_requests(
+                    args.pageNumber,
+                    args.itemCountPerPage,
+                    args.orderByColumnName,
+                    args.orderByDescending
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    items: [],
+                    pageNumber: args.pageNumber || 1,
+                    itemCountPerPage: args.itemCountPerPage || 10,
+                    recordsTotal: 0,
+                    recordsFiltered: 0
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register list_fabrication_blueprint_catalog_items tool
+        this.server.registerTool('list_fabrication_blueprint_catalog_items', {
+            title: 'List Fabrication Blueprint Catalog Items',
+            description: 'List available fabrication blueprints (template sets) from the Model Services catalog with selection status. Returns paginated list of blueprints that define the types of files and code that can be generated from the application model. Each blueprint includes name, display name, description, version, and whether it is currently selected in the model. Supports server-side pagination and sorting. Requires authentication to Model Services.',
+            inputSchema: {
+                pageNumber: z.number().optional().describe('Page number (1-indexed, default: 1)'),
+                itemCountPerPage: z.number().optional().describe('Items per page (default: 10, max: 100)'),
+                orderByColumnName: z.string().optional().describe('Column to sort by: "name", "displayName", "description", or "version" (default: "displayName")'),
+                orderByDescending: z.boolean().optional().describe('Sort in descending order (default: false)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                items: z.array(z.any()).optional().describe('Array of fabrication blueprint objects with name, displayName, description, version, and selected status'),
+                pageNumber: z.number().optional(),
+                itemCountPerPage: z.number().optional(),
+                recordsTotal: z.number().optional(),
+                recordsFiltered: z.number().optional(),
+                orderByColumnName: z.string().optional(),
+                orderByDescending: z.boolean().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.list_fabrication_blueprint_catalog_items(
+                    args.pageNumber,
+                    args.itemCountPerPage,
+                    args.orderByColumnName,
+                    args.orderByDescending
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    items: [],
+                    pageNumber: args.pageNumber || 1,
+                    itemCountPerPage: args.itemCountPerPage || 10,
+                    recordsTotal: 0,
+                    recordsFiltered: 0
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register list_model_fabrication_requests tool
+        this.server.registerTool('list_model_fabrication_requests', {
+            title: 'List Model Fabrication Requests',
+            description: 'List fabrication requests from Model Services with status and download information. Returns paginated list of requests that have been submitted to generate code files from the application model using selected blueprints. Each request includes project information, blueprint selection, status, requested/completed timestamps, and download URLs for generated files. Supports server-side pagination and sorting. Requires authentication to Model Services.',
+            inputSchema: {
+                pageNumber: z.number().optional().describe('Page number (1-indexed, default: 1)'),
+                itemCountPerPage: z.number().optional().describe('Items per page (default: 10, max: 100)'),
+                orderByColumnName: z.string().optional().describe('Column to sort by (default: "modelFabricationRequestRequestedUTCDateTime")'),
+                orderByDescending: z.boolean().optional().describe('Sort in descending order (default: true)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                items: z.array(z.any()).optional().describe('Array of fabrication request objects'),
+                pageNumber: z.number().optional(),
+                itemCountPerPage: z.number().optional(),
+                recordsTotal: z.number().optional(),
+                recordsFiltered: z.number().optional(),
+                orderByColumnName: z.string().optional(),
+                orderByDescending: z.boolean().optional(),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.list_model_fabrication_requests(
                     args.pageNumber,
                     args.itemCountPerPage,
                     args.orderByColumnName,

@@ -1700,6 +1700,331 @@ export class McpBridge {
                     }
                 });
             }
+            else if (req.url?.startsWith('/api/model-services/prep-requests')) {
+                // Proxy to Model Services API - AI Processing Requests
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { pageNumber = 1, itemCountPerPage = 10, orderByColumnName = 'modelPrepRequestRequestedUTCDateTime', orderByDescending = true } = body ? JSON.parse(body) : {};
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Build URL with query parameters
+                        const params = [
+                            'PageNumber=' + encodeURIComponent(pageNumber || 1),
+                            'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 10),
+                            'OrderByDescending=' + encodeURIComponent(orderByDescending ? 'true' : 'false')
+                        ];
+                        if (orderByColumnName) {
+                            params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
+                        }
+                        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests?' + params.join('&');
+                        
+                        // Make the API call
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (response.status === 401) {
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            throw new Error(`API returned status ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify({
+                            success: true,
+                            data: data
+                        }));
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error fetching AI processing requests: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to fetch AI processing requests'
+                        }));
+                    }
+                });
+            }
+            else if (req.url?.startsWith('/api/model-services/validation-requests')) {
+                // Proxy to Model Services API - Validation Requests
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { pageNumber = 1, itemCountPerPage = 10, orderByColumnName = 'modelValidationRequestRequestedUTCDateTime', orderByDescending = true } = body ? JSON.parse(body) : {};
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Build URL with query parameters
+                        const params = [
+                            'PageNumber=' + encodeURIComponent(pageNumber || 1),
+                            'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 10),
+                            'OrderByDescending=' + encodeURIComponent(orderByDescending ? 'true' : 'false')
+                        ];
+                        if (orderByColumnName) {
+                            params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
+                        }
+                        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests?' + params.join('&');
+                        
+                        // Make the API call
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (response.status === 401) {
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            throw new Error(`API returned status ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify({
+                            success: true,
+                            data: data
+                        }));
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error fetching validation requests: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to fetch validation requests'
+                        }));
+                    }
+                });
+            }
+            else if (req.url?.startsWith('/api/model-services/template-sets')) {
+                // Proxy to Model Services API - Fabrication Blueprint Catalog (Template Sets)
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { pageNumber = 1, itemCountPerPage = 10, orderByColumnName = 'displayName', orderByDescending = false } = body ? JSON.parse(body) : {};
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Build URL with query parameters
+                        const params = [
+                            'PageNumber=' + encodeURIComponent(pageNumber || 1),
+                            'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 10),
+                            'OrderByDescending=' + encodeURIComponent(orderByDescending ? 'true' : 'false')
+                        ];
+                        if (orderByColumnName) {
+                            params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
+                        }
+                        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/template-sets?' + params.join('&');
+                        
+                        // Make the API call
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (response.status === 401) {
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            throw new Error(`API returned status ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // Get selected templates from model (similar to fabricationBlueprintCatalogCommands.ts)
+                        const modelService = ModelService.getInstance();
+                        const selectedTemplates: Array<{name: string}> = [];
+                        
+                        if (modelService && modelService.isFileLoaded()) {
+                            const rootModel = modelService.getCurrentModel();
+                            
+                            if (rootModel && rootModel.templateSet && Array.isArray(rootModel.templateSet)) {
+                                rootModel.templateSet.forEach((template: any) => {
+                                    if (template.name) {
+                                        selectedTemplates.push({
+                                            name: template.name
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                        
+                        // Enhance catalog items with 'selected' property
+                        if (data.items && Array.isArray(data.items)) {
+                            data.items = data.items.map((item: any) => {
+                                const isSelected = selectedTemplates.some(t => t.name === item.name);
+                                return {
+                                    ...item,
+                                    selected: isSelected
+                                };
+                            });
+                        }
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify({
+                            success: true,
+                            data: data
+                        }));
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error fetching fabrication blueprints: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to fetch fabrication blueprints'
+                        }));
+                    }
+                });
+            }
+            else if (req.url?.startsWith('/api/model-services/fabrication-requests')) {
+                // Proxy to Model Services API - Fabrication Requests
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { pageNumber = 1, itemCountPerPage = 10, orderByColumnName = 'modelFabricationRequestRequestedUTCDateTime', orderByDescending = true } = body ? JSON.parse(body) : {};
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Build URL with query parameters
+                        const params = [
+                            'PageNumber=' + encodeURIComponent(pageNumber || 1),
+                            'ItemCountPerPage=' + encodeURIComponent(itemCountPerPage || 10),
+                            'OrderByDescending=' + encodeURIComponent(orderByDescending ? 'true' : 'false')
+                        ];
+                        if (orderByColumnName) {
+                            params.push('OrderByColumnName=' + encodeURIComponent(orderByColumnName));
+                        }
+                        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests?' + params.join('&');
+                        
+                        // Make the API call
+                        const response = await fetch(url, {
+                            headers: { 'Api-Key': apiKey }
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (response.status === 401) {
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            throw new Error(`API returned status ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify({
+                            success: true,
+                            data: data
+                        }));
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error fetching fabrication requests: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to fetch fabrication requests'
+                        }));
+                    }
+                });
+            }
             else if (req.url === '/api/health') {
                 // Health check endpoint
                 res.writeHead(200);
