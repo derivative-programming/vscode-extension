@@ -373,6 +373,24 @@ export class ViewTools {
         return this.executeCommand('appdna.showPageFlowDiagram');
     }
 
+    // ===== WIZARD VIEWS =====
+
+    /**
+     * Open Add Data Object Wizard
+     * Shows the wizard for adding a new data object to the model
+     */
+    public async openAddDataObjectWizard(): Promise<any> {
+        return this.executeCommand('appdna.mcp.openAddDataObjectWizard');
+    }
+
+    /**
+     * Open Add Report Wizard
+     * Shows the wizard for adding a new report to the model
+     */
+    public async openAddReportWizard(): Promise<any> {
+        return this.executeCommand('appdna.mcp.openAddReportWizard');
+    }
+
     // ===== SETTINGS AND INFO VIEWS =====
 
     /**

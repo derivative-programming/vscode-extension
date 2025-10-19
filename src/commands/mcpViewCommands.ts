@@ -153,6 +153,24 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
         })
     );
 
+    // Open add data object wizard
+    // Description: Opens the Add Data Object Wizard for creating a new data object
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAddDataObjectWizard', async () => {
+            return vscode.commands.executeCommand('appdna.addObject');
+        })
+    );
+
+    // Open add report wizard
+    // Description: Opens the Add Report Wizard for creating a new report
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAddReportWizard', async () => {
+            return vscode.commands.executeCommand('appdna.addReport');
+        })
+    );
+
     // Generic view opener - routes to specific commands based on view name
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.mcp.openView', async (viewName: string, params?: any) => {

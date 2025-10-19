@@ -2119,6 +2119,62 @@ export class MCPServer {
                 };
             }
         });
+
+        // ===== WIZARD VIEWS =====
+
+        this.server.registerTool('open_add_data_object_wizard', {
+            title: 'Open Add Data Object Wizard',
+            description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships. Provides validation for object names (PascalCase, alpha-only, no spaces) and prevents duplicates.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.viewTools.openAddDataObjectWizard();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        this.server.registerTool('open_add_report_wizard', {
+            title: 'Open Add Report Wizard',
+            description: 'Opens the Add Report Wizard for creating a new report. The wizard guides you through creating a report with options for selecting the report type, configuring columns, parameters, and filters. Provides validation for report names and configuration.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.viewTools.openAddReportWizard();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
     }
 
     /**

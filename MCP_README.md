@@ -6,11 +6,11 @@
 
 ## Overview
 
-The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MCP) server that enables GitHub Copilot and other MCP clients to interact with the entire AppDNA model. This production-ready integration provides **50 tools** covering user stories, data objects, forms, pages, reports, APIs, and more.
+The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MCP) server that enables GitHub Copilot and other MCP clients to interact with the entire AppDNA model. This production-ready integration provides **52 tools** covering user stories, data objects, forms, pages, reports, APIs, and more.
 
 ## Features
 
-### **50 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **52 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -28,6 +28,10 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
    - Shows where data objects are referenced (forms, reports, flows, user stories)
    - Reference types: owner objects, target objects, input controls, output variables, columns
    - Optional filter by specific data object name
+
+#### **Wizard Tools** (2 tools)
+- **open_add_data_object_wizard** - Open the Add Data Object Wizard for creating new data objects
+- **open_add_report_wizard** - Open the Add Report Wizard for creating new reports
 
 #### **User Story Views** (7 tools)
 - **open_user_stories_view** - Main user stories list with analytics tabs
@@ -155,6 +159,12 @@ Once the MCP server is running, you can ask GitHub Copilot to:
 - "Get usage details for all data objects"
 - "Which forms use the Order data object?"
 - "What references the Invoice object?"
+
+#### **Wizard Tools**
+- "Open the add data object wizard"
+- "Show me the wizard to create a new data object"
+- "Open the add report wizard"
+- "Show me the wizard to create a new report"
 
 #### **View Navigation**
 - "Open the user stories development view"
