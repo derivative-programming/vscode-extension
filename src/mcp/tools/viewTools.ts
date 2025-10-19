@@ -285,10 +285,9 @@ export class ViewTools {
     /**
      * Open Report Details View
      * Shows details for a specific report
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openReportDetails(reportName: string, initialTab?: string): Promise<any> {
-        throw new Error('Report Details view is not yet implemented. Create report details handler to add this functionality.');
+        return this.executeCommand('appdna.mcp.openReportDetails', initialTab ? [reportName, initialTab] : [reportName]);
     }
 
     // ===== API VIEWS =====

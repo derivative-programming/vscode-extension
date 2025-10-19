@@ -360,6 +360,50 @@ VERIFICATION:
 
 ===============================================================================
 
+DATE: October 19, 2025
+COMMAND: Add MCP tool to open report details view
+STATUS: ✅ COMPLETED
+
+TASK:
+Similar to the MCP tool that opens the data object details view, implement an MCP tool that opens a report details view. The tool was already registered in server.ts but the implementation threw an error.
+
+CHANGES MADE:
+Files Modified:
+1. src/commands/mcpViewCommands.ts
+   - Added appdna.mcp.openReportDetails command (lines 130-157)
+   - Command takes reportName (string) and optional initialTab parameter
+   - Validates model is loaded and report exists
+   - Creates mock tree item with contextValue 'reportItem'
+   - Calls appdna.showReportDetails command
+   - Added 'report-details' to generic view opener map (line 165)
+
+2. src/mcp/tools/viewTools.ts
+   - Updated openReportDetails() method (lines 287-289)
+   - Changed from throwing error to calling appdna.mcp.openReportDetails command
+   - Passes reportName and optional initialTab parameters
+
+ARCHITECTURE NOTES:
+- Report Details view: src/webviews/reports/reportDetailsView.js
+- Existing command: appdna.showReportDetails
+- Command takes tree item with contextValue 'reportItem'
+- ModelService.getAllReports() returns array of reports
+- Report has 4 tabs: settings, inputControls, buttons, outputVars
+- Pattern follows data object details implementation exactly
+
+TAB VALUES:
+- "settings" - Report configuration
+- "inputControls" - Parameters and filters
+- "buttons" - Actions and downloads
+- "outputVars" - Data outputs
+
+VERIFICATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful
+✅ MCP server compilation successful
+✅ ESLint passed (0 errors in changed files)
+
+NO TESTS:
+No unit tests exist for MCP view commands. Manual testing would be required but is outside the scope of this task.
 ---
 Date: October 19, 2025
 Command: similar to the mcp tool that opens the data object details view, we need a mcp tool that opens a form details view
