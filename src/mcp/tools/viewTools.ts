@@ -178,10 +178,9 @@ export class ViewTools {
     /**
      * Open Form Details View
      * Shows details for a specific form
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
      */
     public async openFormDetails(formName: string, initialTab?: string): Promise<any> {
-        throw new Error('Form Details view is not yet implemented. Create form details handler to add this functionality.');
+        return this.executeCommand('appdna.mcp.openFormDetails', initialTab ? [formName, initialTab] : [formName]);
     }
 
     /**
