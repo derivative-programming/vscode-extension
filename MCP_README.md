@@ -53,7 +53,7 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
 - Form list and detail views
 - Page list, detail, hierarchy, and preview views
 - Page usage analysis
-- Report views and management
+- **open_report_details_view** - View/edit report details with settings, input controls, buttons, and output variables
 
 #### **API & Integration Tools** (5+ tools)
 - API list and detail views
@@ -172,6 +172,8 @@ Once the MCP server is running, you can ask GitHub Copilot to:
 - "Open the form details for CustomerForm"
 - "Display the page hierarchy view"
 - "Show me the database size forecast"
+- "Open the report details for SalesReport"
+- "Show me the CustomerReport with the buttons tab"
 
 #### **Data Analysis**
 - "Show me data object usage analysis"
