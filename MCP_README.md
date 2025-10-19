@@ -30,7 +30,8 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
    - Optional filter by specific data object name
 
 #### **Wizard Tools** (2 tools)
-- **open_add_data_object_wizard** - Opens the Add Data Object Wizard with guided steps
+- **open_add_data_object_wizard** - Open the Add Data Object Wizard for creating new data objects
+- **open_add_report_wizard** - Open the Add Report Wizard for creating new reports
 - **open_add_form_wizard** - Opens the Add Form Wizard with guided steps
 
 #### **User Story Views** (7 tools)
@@ -162,6 +163,9 @@ Once the MCP server is running, you can ask GitHub Copilot to:
 
 #### **Wizard Tools**
 - "Open the add data object wizard"
+- "Show me the wizard to create a new data object"
+- "Open the add report wizard"
+- "Show me the wizard to create a new report"
 - "Show me the add form wizard"
 - "I want to create a new data object using the wizard"
 - "Help me create a new form with the wizard"

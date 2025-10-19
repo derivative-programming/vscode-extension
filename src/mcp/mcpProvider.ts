@@ -771,6 +771,36 @@ export class AppDNAMcpProvider {
         });
         console.log('[MCP Provider] ✓ search_user_stories registered');
 
+        // Register open_add_data_object_wizard tool
+        const openAddDataObjectWizardTool = vscode.lm.registerTool('open_add_data_object_wizard', {
+            description: 'Opens the Add Data Object Wizard for creating a new data object. The wizard guides you through creating a data object with options for lookup objects, child objects, and parent-child relationships.',
+            inputSchema: {},
+            invoke: async (options, token) => {
+                try {
+                    await vscode.commands.executeCommand('appdna.mcp.openAddDataObjectWizard');
+                    return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: 'Add Data Object Wizard opened successfully' }, null, 2) }] };
+                } catch (error) {
+                    return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: error.message }, null, 2) }] };
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ open_add_data_object_wizard registered');
+
+        // Register open_add_report_wizard tool
+        const openAddReportWizardTool = vscode.lm.registerTool('open_add_report_wizard', {
+            description: 'Opens the Add Report Wizard for creating a new report. The wizard guides you through creating a report with options for selecting the report type, configuring columns, parameters, and filters.',
+            inputSchema: {},
+            invoke: async (options, token) => {
+                try {
+                    await vscode.commands.executeCommand('appdna.mcp.openAddReportWizard');
+                    return { content: [{ type: 'text', text: JSON.stringify({ success: true, message: 'Add Report Wizard opened successfully' }, null, 2) }] };
+                } catch (error) {
+                    return { content: [{ type: 'text', text: JSON.stringify({ success: false, error: error.message }, null, 2) }] };
+                }
+            }
+        });
+        console.log('[MCP Provider] ✓ open_add_report_wizard registered');
+
         this.disposables.push(
             createTool, 
             listTool,
@@ -790,9 +820,11 @@ export class AppDNAMcpProvider {
             getDataObjectSchemaTool,
             getDataObjectUsageTool,
             searchByRoleTool, 
-            searchStoriesTool
+            searchStoriesTool,
+            openAddDataObjectWizardTool,
+            openAddReportWizardTool
         );
-        console.log('[MCP Provider] All 19 tools registered and added to disposables');
+        console.log('[MCP Provider] All 21 tools registered and added to disposables');
     }
 
     /**

@@ -360,6 +360,57 @@ VERIFICATION:
 
 ===============================================================================
 
+Date: 2025-10-19
+Command: Add MCP tools to open Add Data Object and Add Report wizards
+Status: ✅ COMPLETED
+
+PROBLEM STATEMENT:
+Similar to the MCP tool that shows the add data object wizard, we need a MCP 
+tool to show the add report wizard.
+
+SOLUTION:
+Added two new MCP tools (discovered that add data object wizard tool was also 
+missing):
+1. open_add_data_object_wizard - Opens Add Data Object Wizard
+2. open_add_report_wizard - Opens Add Report Wizard
+
+ARCHITECTURE NOTES:
+- MCP tools registered in src/mcp/server.ts (stdio transport)
+- Tools also registered in src/mcp/mcpProvider.ts (VS Code API)
+- ViewTools class extended with wizard methods
+- MCP view commands added in mcpViewCommands.ts
+- Commands delegate to existing appdna.addObject and appdna.addReport
+- HTTP bridge (port 3002) used for extension communication
+
+CHANGES:
+- Total MCP tools: 50 → 52
+- VS Code API tools: 19 → 21
+- Files modified: 5 (viewTools.ts, mcpViewCommands.ts, server.ts, 
+  mcpProvider.ts, MCP_README.md)
+- New files: 2 (wizard-mcp-tools.test.ts, 
+  WIZARD_MCP_TOOLS_IMPLEMENTATION.md)
+- Lines added: 327
+
+TESTING:
+✅ Build successful
+✅ No TypeScript errors
+✅ Unit tests pass
+✅ CodeQL security scan: 0 issues
+
+USAGE:
+GitHub Copilot users can now use natural language:
+- "Open the add data object wizard"
+- "Open the add report wizard"
+- "Show me the wizard to create a new data object"
+- "Show me the wizard to create a new report"
+
+KEY LEARNINGS:
+1. MCP tools need registration in both server.ts and mcpProvider.ts
+2. ViewTools methods use HTTP bridge for command execution
+3. MCP commands in mcpViewCommands.ts are hidden from command palette
+4. Tool count updates required in both server and provider
+5. Documentation updates critical for discoverability
+
 DATE: October 19, 2025
 COMMAND: Add MCP tool to open report details view
 STATUS: ✅ COMPLETED

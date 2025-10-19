@@ -2149,6 +2149,34 @@ export class MCPServer {
             }
         });
 
+        this.server.registerTool('open_add_report_wizard', {
+            title: 'Open Add Report Wizard',
+            description: 'Opens the Add Report Wizard for creating a new report. The wizard guides you through creating a report with options for selecting the report type, configuring columns, parameters, and filters. Provides validation for report names and configuration.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                view: z.string().optional(),
+                message: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.viewTools.openAddReportWizard();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { success: false, error: error.message };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+
         this.server.registerTool('open_add_form_wizard', {
             title: 'Open Add Form Wizard',
             description: 'Opens the Add Form Wizard which provides a step-by-step guided interface for creating new forms. The wizard walks through: 1) Selecting owner data object, 2) Choosing required role, 3) Specifying if creating new instance, 4) Selecting target object or action, 5) Setting form name and title. Automatically creates both the form and its associated page init flow.',

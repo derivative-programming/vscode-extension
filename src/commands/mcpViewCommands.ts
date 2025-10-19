@@ -227,6 +227,14 @@ export function registerMcpViewCommands(context: vscode.ExtensionContext): void 
         })
     );
 
+    // Open add report wizard
+    // Description: Opens the Add Report Wizard for creating a new report
+    // Parameters: None
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.mcp.openAddReportWizard', async () => {
+            return vscode.commands.executeCommand('appdna.addReport');
+        })
+    );
     // Open add form wizard
     // Description: Opens the Add Form Wizard for creating new forms
     // Parameters: None
