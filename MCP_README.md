@@ -6,11 +6,13 @@
 
 ## Overview
 
-The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MCP) server that enables GitHub Copilot and other MCP clients to interact with the entire AppDNA model. This production-ready integration provides **70 tools** covering user stories, data objects, forms, pages, reports, APIs, and more.
+# AppDNA VS Code Extension - MCP Server
+
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **72 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **70 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **72 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -30,6 +32,9 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
 2. **list_lookup_values** - List all lookup values from a lookup object
 3. **update_lookup_value** - Update existing lookup value properties
 4. **get_lookup_value_schema** - Get JSON schema for lookup value structure
+
+#### **Model Operations** (1 tool)
+1. **save_model** - Save the current AppDNA model to file (same as clicking save icon in tree view)
 
 #### **Data Object Management** (9 tools)
 1. **list_data_object_summary** - List data objects with summary info (name, isLookup, parent)
@@ -69,7 +74,7 @@ The AppDNA VS Code extension includes a comprehensive Model Context Protocol (MC
 #### **Form & Page Views** (7 tools)
 - **open_form_details_view** - View/edit form details
 - **open_pages_list_view** - Browse all pages
-- **open_page_details_view** - View specific page details
+- **open_page_details** - Smart router that determines if a page is a form or report and opens the appropriate view
 - **open_page_preview_view** - Preview page UI
 - **open_page_init_flows_list_view** - List page initialization flows
 - **open_page_init_flow_details_view** - View page init flow details
@@ -326,7 +331,7 @@ this.server.registerTool('create_user_story', {
 ## Testing & Validation
 
 ✅ **Production Tested:** October 19, 2025
-- All 70 tools successfully discovered by GitHub Copilot (including wizard tools)
+- All 71 tools successfully discovered by GitHub Copilot (including wizard tools, smart page router, and save operation)
 - Schema format (Zod) verified as compatible
 - HTTP bridge operational
 - Fallback mechanisms working

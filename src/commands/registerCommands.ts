@@ -651,6 +651,192 @@ export function registerCommands(
         })
     );
 
+    // Register close all open views command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('appdna.closeAllOpenViews', async () => {
+            console.log("[DEBUG] Close all open views command triggered");
+
+            let closedCount = 0;
+
+            // Close all open object details panels
+            if (objectDetailsView && typeof objectDetailsView.closeAllPanels === "function") {
+                objectDetailsView.closeAllPanels();
+                closedCount++;
+            }
+            
+            // Close all open report details panels
+            if (reportDetailsView && typeof reportDetailsView.closeAllPanels === "function") {
+                reportDetailsView.closeAllPanels();
+                closedCount++;
+            }
+            
+            // Close all open form details panels
+            if (formDetailsView && typeof formDetailsView.closeAllPanels === "function") {
+                formDetailsView.closeAllPanels();
+                closedCount++;
+            }
+
+            // Close all open page-init details panels
+            if (pageInitDetailsView && typeof pageInitDetailsView.closeAllPanels === "function") {
+                pageInitDetailsView.closeAllPanels();
+                closedCount++;
+            }
+
+            // Close all open general flow details panels
+            if (generalFlowDetailsView && typeof generalFlowDetailsView.closeAllPanels === "function") {
+                generalFlowDetailsView.closeAllPanels();
+                closedCount++;
+            }
+
+            // Close all open workflow (DynaFlow) details panels
+            if (dynaFlowDetailsView && typeof dynaFlowDetailsView.closeAllPanels === "function") {
+                dynaFlowDetailsView.closeAllPanels();
+                closedCount++;
+            }
+
+            // Close all open workflow task details panels
+            if (workflowTaskDetailsView && typeof workflowTaskDetailsView.closeAllPanels === "function") {
+                workflowTaskDetailsView.closeAllPanels();
+                closedCount++;
+            }
+            
+            // Close all open API details panels
+            if (apiDetailsView && typeof apiDetailsView.closeAllPanels === "function") {
+                apiDetailsView.closeAllPanels();
+                closedCount++;
+            }
+            
+            // Close project settings panel if open
+            if (typeof closeProjectSettingsPanel === "function") {
+                closeProjectSettingsPanel();
+                closedCount++;
+            }
+            
+            // Close lexicon view panel if open
+            if (typeof closeLexiconPanel === "function") {
+                closeLexiconPanel();
+                closedCount++;
+            }
+            
+            // Close user stories panel if open
+            if (typeof closeUserStoriesPanel === "function") {
+                closeUserStoriesPanel();
+                closedCount++;
+            }
+            
+            // Close user story role requirements panel if open
+            if (typeof closeUserStoryRoleRequirementsPanel === "function") {
+                closeUserStoryRoleRequirementsPanel();
+                closedCount++;
+            }
+            
+            // Close requirements fulfillment panel if open
+            if (typeof closeRequirementsFulfillmentPanel === "function") {
+                closeRequirementsFulfillmentPanel();
+                closedCount++;
+            }
+            
+            // Close user stories QA panel if open
+            if (typeof closeUserStoriesQAPanel === "function") {
+                closeUserStoriesQAPanel();
+                closedCount++;
+            }
+            
+            // Close user stories page mapping panel if open
+            if (typeof closeUserStoriesPageMappingPanel === "function") {
+                closeUserStoriesPageMappingPanel();
+                closedCount++;
+            }
+            
+            // Close user stories journey panel if open
+            if (typeof closeUserStoriesJourneyPanel === "function") {
+                closeUserStoriesJourneyPanel();
+                closedCount++;
+            }
+            
+            // Close model feature catalog panel if open
+            if (typeof closeModelFeatureCatalogPanel === "function") {
+                closeModelFeatureCatalogPanel();
+                closedCount++;
+            }
+            
+            // Close page list panel if open
+            if (typeof closePageListPanel === "function") {
+                closePageListPanel();
+                closedCount++;
+            }
+            
+            // Close page init list panel if open
+            if (typeof closePageInitListPanel === "function") {
+                closePageInitListPanel();
+                closedCount++;
+            }
+            
+            // Close workflow list panel if open
+            if (typeof closeWorkflowListPanel === "function") {
+                closeWorkflowListPanel();
+                closedCount++;
+            }
+            
+            // Close general list panel if open
+            if (typeof closeGeneralListPanel === "function") {
+                closeGeneralListPanel();
+                closedCount++;
+            }
+            
+            // Close data objects list panel if open
+            if (typeof closeDataObjectListPanel === "function") {
+                closeDataObjectListPanel();
+                closedCount++;
+            }
+            
+            // Close data object usage analysis panel if open
+            if (typeof closeDataObjectUsageAnalysisPanel === "function") {
+                closeDataObjectUsageAnalysisPanel();
+                closedCount++;
+            }
+            
+            // Close data object size analysis panel if open
+            if (typeof closeDataObjectSizeAnalysisPanel === "function") {
+                closeDataObjectSizeAnalysisPanel();
+                closedCount++;
+            }
+            
+            // Close database size forecast panel if open
+            if (typeof closeDatabaseSizeForecastPanel === "function") {
+                closeDatabaseSizeForecastPanel();
+                closedCount++;
+            }
+            
+            // Close fabrication blueprint catalog panel if open
+            if (typeof closeFabricationBlueprintCatalogPanel === "function") {
+                closeFabricationBlueprintCatalogPanel();
+                closedCount++;
+            }
+            
+            // Close hierarchy view panel if open
+            if (typeof closeHierarchyView === "function") {
+                closeHierarchyView();
+                closedCount++;
+            }
+            
+            // Close page flow diagram panel if open
+            if (typeof closePageFlowView === "function") {
+                closePageFlowView();
+                closedCount++;
+            }
+            
+            // Close page preview panel if open
+            if (typeof closePagePreviewView === "function") {
+                closePagePreviewView();
+                closedCount++;
+            }
+
+            console.log(`[DEBUG] Closed all open views. Attempted to close ${closedCount} view types.`);
+            vscode.window.showInformationMessage("All open views have been closed.");
+        })
+    );
+
     // Register save file command for the sidebar save button
     context.subscriptions.push(
         vscode.commands.registerCommand('appdna.saveFile', async () => {

@@ -193,11 +193,93 @@ export class ViewTools {
 
     /**
      * Open Page Details View
-     * Shows details for a specific page
-     * ⚠️ NOT IMPLEMENTED YET - Command does not exist
+     * Smart router that automatically determines if a page is a form or report and opens the appropriate view.
+     * Queries the HTTP bridge to detect page type, then routes to openFormDetails() or openReportDetails().
+     * Includes graceful fallback when bridge is unavailable.
      */
     public async openPageDetails(pageName: string, initialTab?: string): Promise<any> {
-        throw new Error('Page Details view is not yet implemented. Create page details handler to add this functionality.');
+        try {
+            // Try to fetch forms and reports lists from the bridge to determine type
+            const http = require('http');
+            
+            // Helper function to fetch data from bridge
+            const fetchFromBridge = (endpoint: string): Promise<any> => {
+                return new Promise((resolve, reject) => {
+                    const options = {
+                        hostname: 'localhost',
+                        port: 3001,
+                        path: endpoint,
+                        method: 'GET',
+                        timeout: 3000
+                    };
+
+                    const req = http.request(options, (res: any) => {
+                        let data = '';
+                        res.on('data', (chunk: any) => { data += chunk; });
+                        res.on('end', () => {
+                            try {
+                                resolve(JSON.parse(data));
+                            } catch (error) {
+                                reject(new Error('Invalid JSON response'));
+                            }
+                        });
+                    });
+
+                    req.on('error', reject);
+                    req.on('timeout', () => {
+                        req.destroy();
+                        reject(new Error('Request timeout'));
+                    });
+                    req.end();
+                });
+            };
+
+            // Try to determine if it's a form or report
+            let isForm = false;
+            let isReport = false;
+
+            try {
+                // Check if it's in forms list
+                const forms = await fetchFromBridge('/api/forms');
+                if (Array.isArray(forms) && forms.some((f: any) => f.name === pageName)) {
+                    isForm = true;
+                }
+            } catch (error) {
+                // Ignore errors, will check reports too
+            }
+
+            if (!isForm) {
+                try {
+                    // Check if it's in reports list
+                    const reports = await fetchFromBridge('/api/reports');
+                    if (Array.isArray(reports) && reports.some((r: any) => r.name === pageName)) {
+                        isReport = true;
+                    }
+                } catch (error) {
+                    // Ignore errors
+                }
+            }
+
+            // Route to appropriate view
+            if (isForm) {
+                return await this.openFormDetails(pageName, initialTab);
+            } else if (isReport) {
+                return await this.openReportDetails(pageName, initialTab);
+            } else {
+                // If we can't determine, try report first (more common), then form
+                try {
+                    return await this.openReportDetails(pageName, initialTab);
+                } catch (reportError) {
+                    try {
+                        return await this.openFormDetails(pageName, initialTab);
+                    } catch (formError) {
+                        throw new Error(`Could not find page "${pageName}" in forms or reports. Please verify the page name exists in your model.`);
+                    }
+                }
+            }
+        } catch (error) {
+            throw new Error(`Failed to open page details for "${pageName}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     }
 
     /**
@@ -298,6 +380,13 @@ export class ViewTools {
         return this.executeCommand('appdna.mcp.openReportDetails', initialTab ? [reportName, initialTab] : [reportName]);
     }
 
+    /**
+     * Open Page Details (Smart Router)
+     * Intelligently determines if a page is a form or report and opens the appropriate view
+     * @param pageName Name of the page (form or report)
+     * @param initialTab Optional tab to display
+     * @returns Result from opening the appropriate view
+     */
     // ===== API VIEWS =====
 
     /**

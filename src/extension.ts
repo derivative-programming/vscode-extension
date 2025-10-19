@@ -60,6 +60,8 @@ tools:
   - add_data_object_props
   - update_data_object_prop
   - get_data_object_usage
+  - save_model
+  - close_all_open_views
   - secret_word_of_the_day
   - open_user_stories_view
   - open_user_stories_dev_view
@@ -240,7 +242,7 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
   - Auto-expand tree nodes
   - Custom model file name
 
-## Comprehensive MCP Tool Suite (70 Tools)
+## Comprehensive MCP Tool Suite (72 Tools)
 
 ### User Story Management (5 Tools)
 **CRUD Operations:**
@@ -288,19 +290,26 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`update_lookup_value\` - Modify reference data
 - \`get_lookup_value_schema\` - View lookup value structure
 
+### Model Operations (2 Tools)
+- \`save_model\` - Save the current AppDNA model to file (same as clicking the save icon in tree view)
+- \`close_all_open_views\` - Close all open view panels and webviews
+
 ### Wizard Tools (3 Tools)
 - \`open_add_data_object_wizard\` - Wizard for creating new data objects
 - \`open_add_report_wizard\` - Wizard for creating new reports
 - \`open_add_form_wizard\` - Wizard for creating new forms
 
-### Form & Page Views (6 Tools)
+### Form & Page Views (7 Tools)
 **View Navigation:**
 - \`open_form_details_view\` - Open detailed editor for any form with settings, input controls, buttons, and output variables tabs
 - \`open_pages_list_view\` - View all pages in the application
-- \`open_page_details_view\` - Open detailed editor for any page
+- \`open_page_details_view\` - Smart router that automatically determines if a page is a form or report and opens the appropriate view
 - \`open_page_preview_view\` - Preview how pages and forms appear to users
 - \`open_page_init_flows_list_view\` - View page initialization workflows
 - \`open_page_init_flow_details_view\` - Edit specific page init flow configurations
+
+### Report Views (1 Tool)
+- \`open_report_details_view\` - Open detailed editor for reports with settings, input controls, buttons, and output variables tabs
 
 ### Workflow Views (7 Tools)
 - \`open_general_workflows_list_view\` - List general workflows
@@ -380,7 +389,7 @@ The extension provides specialized navigation tools to help you explore differen
 - Review the lexicon for business terminology definitions
 
 ### MCP Integration
-- **70 Production-Ready Tools**: Complete coverage of all AppDNA functionality
+- **71 Production-Ready Tools**: Complete coverage of all AppDNA functionality
 - **GitHub Copilot Integration**: Natural language queries for model exploration and modification
 - **Safe Model Changes**: All modifications go through validated MCP tools, not direct file editing
 - **Real-time Status**: Visual indicators show MCP server running/stopped states

@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { UserStoryTools } from './tools/userStoryTools';
 import { ViewTools } from './tools/viewTools';
 import { DataObjectTools } from './tools/dataObjectTools';
+import { ModelTools } from './tools/modelTools';
 
 /**
  * Main MCP Server class
@@ -20,6 +21,7 @@ export class MCPServer {
     private userStoryTools: UserStoryTools;
     private viewTools: ViewTools;
     private dataObjectTools: DataObjectTools;
+    private modelTools: ModelTools;
     private transport: StdioServerTransport;
 
     private constructor() {
@@ -27,6 +29,7 @@ export class MCPServer {
         this.userStoryTools = new UserStoryTools(null);
         this.viewTools = new ViewTools();
         this.dataObjectTools = new DataObjectTools(null);
+        this.modelTools = new ModelTools();
 
         // Create MCP server
         this.server = new McpServer({
@@ -928,6 +931,70 @@ export class MCPServer {
             }
         });
 
+        // ===== MODEL OPERATIONS =====
+
+        // Register save_model tool
+        this.server.registerTool('save_model', {
+            title: 'Save Model',
+            description: 'Save the current AppDNA model to file. This is the same operation as clicking the save icon button in the tree view. Persists all changes made to data objects, user stories, forms, reports, and other model elements. Returns success confirmation or error if the save fails.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.modelTools.save_model();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { 
+                    success: false, 
+                    error: error.message 
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register close_all_open_views tool
+        this.server.registerTool('close_all_open_views', {
+            title: 'Close All Open Views',
+            description: 'Close all open view panels and webviews in the AppDNA extension. This includes all detail views (data objects, forms, reports, workflows, APIs, page inits, general flows, workflow tasks), list views (pages, workflows, general flows, data objects), analytics views, and other open panels. Useful for cleaning up the workspace or before performing operations that require closing views.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.modelTools.close_all_open_views();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { 
+                    success: false, 
+                    error: error.message 
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // ===== USER STORY VIEW OPENING TOOLS =====
         // Register secret_word_of_the_day tool
         this.server.registerTool('secret_word_of_the_day', {
@@ -1406,10 +1473,10 @@ export class MCPServer {
 
         this.server.registerTool('open_page_details_view', {
             title: 'Open Page Details View',
-            description: 'Opens the details editor for a specific page. Shows four tabs: "Settings" (basic configuration), "Components" (UI elements on the page), "Variables" (page-level state), and "Buttons" (action buttons). Requires pageName parameter to specify which page to display.',
+            description: 'Opens the details editor for a specific page (form or report). Smart router that automatically determines if the page is a form or report and opens the appropriate details view. Queries the HTTP bridge to detect type. Shows tabs for Settings, Input Controls, Buttons, and Output Variables (forms) or Settings, Input Controls, Buttons, and Output Vars (reports).',
             inputSchema: {
-                pageName: z.string().describe('Name of the page to view'),
-                initialTab: z.string().optional().describe('Optional initial tab: "settings", "components", "variables", or "buttons"')
+                pageName: z.string().describe('Name of the page (form or report) to view'),
+                initialTab: z.string().optional().describe('Optional initial tab: "settings", "inputControls", "buttons", "outputVariables", or "outputVars"')
             },
             outputSchema: {
                 success: z.boolean(),

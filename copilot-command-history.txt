@@ -1,4 +1,118 @@
 ===============================================================================
+DATE: January 7, 2025
+COMMAND: Create MCP tool to close all open views
+STATUS: ✅ COMPLETED
+===============================================================================
+
+TASK:
+User asked: "is the extension aware of what views are open?" then requested
+"lets create a mcp tool to close all" with specific name "close_all_open_views".
+Investigated panel tracking system, discovered comprehensive tracking with
+activePanels and openPanels Maps across 28+ view types. Created MCP tool to
+close all open webview panels as workspace cleanup functionality.
+
+CHANGES MADE:
+Files Modified:
+1. src/mcp/tools/modelTools.ts (lines ~95-115)
+   - Added close_all_open_views() method
+   - Calls 'appdna.closeAllOpenViews' command via HTTP bridge
+   - Returns success/error with descriptive message
+   - 10-second timeout for command execution
+
+2. src/commands/registerCommands.ts (lines ~640-830, ~190 lines added)
+   - Created new VS Code command: appdna.closeAllOpenViews
+   - Systematically closes 28+ panel types
+   - Panel types: objectDetailsView, reportDetailsView, formDetailsView,
+     pageInitDetailsView, generalFlowDetailsView, dynaFlowDetailsView,
+     workflowTaskDetailsView, apiDetailsView, projectSettings, lexicon,
+     userStories, roleRequirements, requirementsFulfillment, userStoriesQA,
+     userStoriesPageMapping, userStoriesJourney, modelFeatureCatalog,
+     pageList, pageInitList, workflowList, generalList, dataObjectList,
+     dataObjectUsageAnalysis, dataObjectSizeAnalysis, databaseSizeForecast,
+     fabricationBlueprintCatalog, hierarchy, pageFlow, pagePreview
+   - Shows confirmation message: "All open views have been closed."
+
+3. src/mcp/server.ts (lines ~965-990)
+   - Registered close_all_open_views MCP tool in MODEL OPERATIONS section
+   - Position: After save_model tool
+   - Comprehensive description covering all panel types
+   - Standard outputSchema with success, message, note, error fields
+
+4. src/extension.ts
+   - Line ~65: Added close_all_open_views to ChatMode tools YAML
+   - Line 244: Updated tool count from 71 to 72
+   - Lines 290-292: Updated Model Operations section from 1 to 2 tools
+
+5. MCP_README.md
+   - Line 9: Updated tool count from 71 to 72
+   - Line 15: Updated comprehensive tools count to 72
+   - Lines 31-38: Added close_all_open_views to Model Operations section
+
+TOOL DETAILS:
+Tool Name: close_all_open_views
+Command: appdna.closeAllOpenViews
+Category: Model Operations
+Purpose: Close all open webview panels and views for workspace cleanup
+
+ARCHITECTURE NOTES:
+Panel Tracking System:
+- activePanels Map: Tracks open panels by unique ID
+- openPanels Map: Stores panel + item + modelService instances
+- 28+ distinct panel types with dedicated close functions
+- Each panel type has closeAllPanels() or close-specific methods
+
+Close Functions Used:
+- objectDetailsView.closeAllPanels()
+- reportDetailsView.closeAllPanels()
+- formDetailsView.closeAllPanels()
+- pageInitDetailsView.closeAllPanels()
+- generalFlowDetailsView.closeAllPanels()
+- dynaFlowDetailsView.closeAllPanels()
+- workflowTaskDetailsView.closeAllPanels()
+- apiDetailsView.closeAllPanels()
+- closeProjectSettingsPanel()
+- closeLexiconPanel()
+- closeUserStoriesPanel()
+- closeUserStoryRoleRequirementsPanel()
+- closeRequirementsFulfillmentPanel()
+- closeUserStoriesQAPanel()
+- closeUserStoriesPageMappingPanel()
+- closeUserStoriesJourneyPanel()
+- closeModelFeatureCatalogPanel()
+- closePageListPanel()
+- closePageInitListPanel()
+- closeWorkflowListPanel()
+- closeGeneralListPanel()
+- closeDataObjectListPanel()
+- closeDataObjectUsageAnalysisPanel()
+- closeDataObjectSizeAnalysisPanel()
+- closeDatabaseSizeForecastPanel()
+- closeFabricationBlueprintCatalogPanel()
+- closeHierarchyView()
+- closePageFlowView()
+- closePagePreviewView()
+
+USE CASES:
+1. Workspace cleanup before major operations
+2. Reducing visual clutter when working with many views
+3. Resetting workspace state for fresh start
+4. Before performing operations requiring closed views
+5. Memory management when many panels are open
+
+COMPILATION:
+✅ TypeScript compilation successful
+✅ Webpack bundling successful
+✅ MCP server compilation successful
+✅ All 72 tools registered successfully
+
+TOOL COUNT PROGRESSION:
+71 tools → 72 tools (added close_all_open_views)
+
+MODEL OPERATIONS CATEGORY:
+Previously: 1 tool (save_model)
+Now: 2 tools (save_model, close_all_open_views)
+
+===============================================================================
 DATE: October 19, 2025
 COMMAND: Create MCP tool for Fabrication Requests view
 STATUS: ✅ COMPLETED
@@ -1181,4 +1295,85 @@ Error Fixed:
 - Tool 'open_add_data_object_wizard' was registered twice (lines 1256 and 2275)
 - Removed duplicate at line 2275 in WIZARD VIEWS section
 - MCP server now starts successfully with 70 unique tools
+
+
+[COMPLETED] Add smart page details MCP tool - Created open_page_details tool that intelligently determines if a page is a form or report and opens the appropriate view
+
+Implementation:
+- Added openPageDetailsView() method to viewTools.ts
+- Queries HTTP bridge (port 3001) for forms and reports lists
+- Automatically routes to openFormDetails() or openReportDetails()
+- Graceful fallback when bridge unavailable
+- Registered as 'open_page_details' MCP tool
+- Updated all documentation from 70 to 71 tools
+
+Benefit:
+- Users don't need to know if a page is a form or report
+- Single tool for all page details access
+- Better user experience with natural language queries
+
+
+[COMPLETED] Consolidate smart page router into openPageDetails() method
+
+Changes:
+- Moved smart router implementation from openPageDetailsView() into openPageDetails()
+- Removed duplicate openPageDetailsView() method from viewTools.ts
+- Updated openPageDetails() from 'not implemented' to fully functional smart router
+- Both MCP tools (open_page_details and open_page_details_view) now use same method
+- Updated server.ts to call openPageDetails() instead of openPageDetailsView()
+- Updated tool description to clarify it's a smart router for forms/reports
+
+Benefit:
+- Eliminated code duplication
+- Single implementation point for smart routing logic
+- Original openPageDetails() method now functional instead of throwing error
+- Cleaner architecture with no redundant methods
+
+
+[COMPLETED] Remove open_page_details tool, keep open_page_details_view
+
+Changes:
+- Removed 'open_page_details' tool registration from server.ts
+- Kept 'open_page_details_view' tool (the one we want)
+- Updated extension.ts ChatMode to remove open_page_details from tools list
+- Updated tool description to clarify open_page_details_view is the smart router
+- Updated tool count from 71 back to 70 tools across all documentation
+- Updated MCP_README.md tool count (71  70)
+
+Reason:
+- Eliminate confusion between two similar tool names
+- Single smart router tool with clear name (open_page_details_view)
+- Cleaner API with one canonical way to open page details
+
+Final State:
+- openPageDetails() method in viewTools.ts contains smart router logic
+- open_page_details_view MCP tool uses openPageDetails() method
+- Tool count: 70 tools total
+
+
+[COMPLETED] Add save_model MCP tool - Execute save command from tree view
+
+Changes:
+- Created new file: src/mcp/tools/modelTools.ts
+- Added ModelTools class with save_model() method
+- Registered save_model tool in server.ts (new Model Operations section)
+- Updated compile-mcp and watch-mcp scripts to include modelTools.ts
+- Updated tool count from 70 to 71 across all documentation
+- Added 'Model Operations (1 Tool)' section to ChatMode and MCP_README.md
+
+Implementation:
+- save_model() calls 'appdna.saveFile' command via HTTP bridge (port 3002)
+- Same operation as clicking the save icon button in the tree view
+- 10 second timeout for save operations
+- Returns success confirmation or error message
+
+Usage:
+- GitHub Copilot can now save model changes with: 'save the model'
+- Tool persists all changes to app-dna.json file
+- Confirms successful save or reports errors
+
+Final State:
+- Tool count: 71 tools total
+- New category: Model Operations (1 tool)
+- All compilation successful
 

@@ -11,12 +11,24 @@ common types of graphs...
 
 ---------------------
 
+
+
 tools...
-- save
+- test:open_page_details_view tool
+- test:save
 - expand tree
 - collapse tree
+- test:close all open views
 
 
+add mcp tool list_pages
+data from the page list view pages tab.  this and the view should use the same code to build the data set.
+filter on...
+- page name (optional, search name, case insensitive, partial match ok)
+- page type (optional, report or form)
+- owner object (optional, exact match, case insensitive)
+- target child object (optional, exact match, case insensitive) 
+- role required (optional, exact match, case insensitive)
 
 
 model features...

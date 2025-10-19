@@ -105,13 +105,13 @@ Created comprehensive unit tests in `src/test/mcp-wizard-tools.test.ts`:
 5. **Testability**: Proper unit tests ensure reliability
 
 ## Tool Count
-Total MCP tools in the extension: **70 tools**
+Total MCP tools in the extension: **71 tools**
 - User Story Management: 5 tools
 - Role Management: 4 tools
 - Lookup Management: 4 tools
 - Data Object Management: 10 tools
 - Wizard Tools: 3 tools (Add Data Object, Add Report, Add Form)
-- View Opening Tools: 43 tools
+- View Opening Tools: 44 tools (including smart page router)
 - Utility: 1 tool
 
 ## Notes
