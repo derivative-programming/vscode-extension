@@ -101,6 +101,8 @@ tools:
   - open_help_view
   - open_register_view
   - open_login_view
+  - open_add_data_object_wizard
+  - open_add_report_wizard
 ---
 
 # AppDNA Chat Mode
