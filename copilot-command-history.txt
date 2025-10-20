@@ -1,5 +1,88 @@
 ===============================================================================
 DATE: October 20, 2025
+COMMAND: Add expand/collapse tree view MCP tools
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested MCP tools to expand and collapse the AppDNA tree view programmatically.
+
+IMPLEMENTATION:
+Added two new MCP tools in the ModelTools class:
+1. expand_tree_view - Expands all top-level sections in the tree view
+2. collapse_tree_view - Collapses all items in the tree view
+
+These tools execute existing VS Code commands:
+- appdna.expandAllTopLevel (implemented in src/commands/expandCollapseCommands.ts)
+- appdna.collapseAllTopLevel (implemented in src/commands/expandCollapseCommands.ts)
+
+FILES MODIFIED:
+1. src/mcp/tools/modelTools.ts
+   - Added expand_tree_view() method
+   - Added collapse_tree_view() method
+   - Both use executeCommand() helper to call VS Code commands via HTTP bridge
+
+2. src/mcp/server.ts
+   - Registered expand_tree_view tool with Zod schema
+   - Registered collapse_tree_view tool with Zod schema
+   - Added detailed descriptions of what sections are expanded/collapsed
+
+3. MCP_README.md
+   - Updated tool count from 79 to 81
+   - Updated Model Operations section from 2 to 4 tools
+   - Added descriptions for expand_tree_view and collapse_tree_view
+
+4. src/extension.ts (ChatMode instructions)
+   - Updated YAML tools list to include new tools
+   - Updated Model Operations section from 2 to 4 tools
+   - Updated tool count from 82 to 84 in MCP Integration section
+   - Added detailed descriptions with section names
+
+5. copilot-command-history.txt
+   - Added this entry documenting the implementation
+
+TREE VIEW SECTIONS:
+The tree view contains these top-level sections:
+- PROJECT: Configuration settings, lexicon management, MCP server status
+- DATA OBJECTS: Business entities with hierarchical organization
+- USER STORIES: Requirements and stories
+- PAGES: Forms and reports for UI design
+- FLOWS: Workflows and page init flows
+- APIS: API site integrations
+- ANALYSIS: Analytics dashboard and metrics
+- MODEL SERVICES: AI processing, validation, features, fabrication
+
+USAGE:
+expand_tree_view:
+- Expands all top-level sections to show their immediate children
+- Uses reveal() API with expand level 2
+- Useful for getting overview of model structure
+- Example: "Expand the tree view so I can see all sections"
+
+collapse_tree_view:
+- Collapses all sections to top-level only
+- Uses VS Code's native collapseAll API
+- Useful for cleaning up tree view or resetting view
+- Example: "Collapse the tree view"
+
+TESTING:
+- TypeScript compilation successful (npm run compile)
+- MCP compilation successful
+
+ARCHITECTURE NOTES:
+- Tools use HTTP bridge on port 3002 for command execution
+- Commands are already implemented in extension (expandCollapseCommands.ts)
+- expand_tree_view uses treeView.reveal() with expand option
+- collapse_tree_view uses workbench.actions.treeView.appdna.collapseAll
+- Both operations are asynchronous with 10 second timeout
+
+TOOL COUNT UPDATE:
+- Previous: 79 MCP tools (2 Model Operations tools)
+- New: 81 MCP tools (4 Model Operations tools)
+- ChatMode includes view tools, so total is 84 tools
+
+===============================================================================
+DATE: October 20, 2025
 COMMAND: Update blueprint tools to match on name AND version
 STATUS: ✅ COMPLETED
 ===============================================================================
@@ -2188,3 +2271,5 @@ Final State:
 - New category: Model Operations (1 tool)
 - All compilation successful
 
+Command: Collapse all top level tree items in the AppDNA tree view
+Command: Collapse all top level tree items in the AppDNA tree view

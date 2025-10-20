@@ -1061,6 +1061,68 @@ export class MCPServer {
             }
         });
 
+        // Register expand_tree_view tool
+        this.server.registerTool('expand_tree_view', {
+            title: 'Expand Tree View',
+            description: 'Expand all top-level items in the AppDNA tree view. This expands all main sections: PROJECT (configuration, lexicon, MCP server status), DATA OBJECTS (business entities), USER STORIES (requirements), PAGES (forms and reports), FLOWS (workflows and page init flows), APIS (API integrations), ANALYSIS (metrics and analytics), and MODEL SERVICES (AI processing, validation, features, fabrication). Useful for getting an overview of the model structure or navigating to specific items.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.modelTools.expand_tree_view();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { 
+                    success: false, 
+                    error: error.message 
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register collapse_tree_view tool
+        this.server.registerTool('collapse_tree_view', {
+            title: 'Collapse Tree View',
+            description: 'Collapse all items in the AppDNA tree view to their top-level state. This collapses all sections (PROJECT, DATA OBJECTS, USER STORIES, PAGES, FLOWS, APIS, ANALYSIS, MODEL SERVICES) and their child items. Useful for cleaning up the tree view or getting back to a high-level overview of the model structure.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional(),
+                note: z.string().optional(),
+                error: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.modelTools.collapse_tree_view();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = { 
+                    success: false, 
+                    error: error.message 
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // ===== MODEL SERVICES TOOLS =====
 
         // Register list_model_features_catalog_items tool
@@ -1158,6 +1220,44 @@ export class MCPServer {
                     itemCountPerPage: args.itemCountPerPage || 10,
                     recordsTotal: 0,
                     recordsFiltered: 0
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register get_model_ai_processing_request_details tool
+        this.server.registerTool('get_model_ai_processing_request_details', {
+            title: 'Get Model AI Processing Request Details',
+            description: 'Get detailed information for a specific AI processing request by request code. Returns complete details including status, timestamps, report URL, result model URL, and error information if applicable. Use this to check on the progress or outcome of a specific AI processing request. Requires authentication to Model Services.',
+            inputSchema: {
+                requestCode: z.string().describe('The request code to fetch details for (e.g., "ABC123")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                item: z.any().optional().describe('AI processing request details object'),
+                requestCode: z.string().optional().describe('The request code that was queried'),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.get_model_ai_processing_request_details(
+                    args.requestCode
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    item: null,
+                    requestCode: args.requestCode
                 };
                 return {
                     content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],

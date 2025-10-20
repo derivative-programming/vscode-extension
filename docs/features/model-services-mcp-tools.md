@@ -1,12 +1,21 @@
 # Model Services MCP Tools Implementation
 
 **Created:** October 19, 2025  
+**Last Updated:** October 20, 2025  
 **Status:** ✅ Completed and Tested  
 **MCP Server Version:** 1.0.21
 
 ## Overview
 
-This document describes the implementation of four new MCP tools for accessing Model Services cloud APIs through the AppDNA extension's MCP server. These tools provide programmatic access to AI processing, validation, blueprint catalog, and fabrication request data.
+This document describes the implementation of Model Services MCP tools for accessing Model Services cloud APIs through the AppDNA extension's MCP server. These tools provide programmatic access to AI processing, validation, blueprint catalog, and fabrication request data.
+
+## Tools Summary
+
+1. **list_model_ai_processing_requests** - List AI processing requests with pagination and sorting
+2. **get_model_ai_processing_request_details** - Get details for a specific AI processing request by code
+3. **list_model_validation_requests** - List validation requests with pagination and sorting
+4. **list_fabrication_blueprint_catalog_items** - List available fabrication blueprints
+5. **list_model_fabrication_requests** - List fabrication requests with pagination and sorting
 
 ## New Tools Added
 
@@ -44,7 +53,44 @@ This document describes the implementation of four new MCP tools for accessing M
 - Review completed AI enhancements
 - Track request history
 
-### 2. list_model_validation_requests
+### 2. get_model_ai_processing_request_details
+
+**Purpose:** Get detailed information for a specific AI processing request by request code.
+
+**API Endpoint:** `https://modelservicesapi.derivative-programming.com/api/v1_0/prep-requests?modelPrepRequestCode={code}`
+
+**Parameters:**
+- `requestCode` (string, required): The request code to fetch details for
+
+**Returns:**
+```typescript
+{
+  success: boolean,
+  item: {
+    modelPrepRequestCode: string,
+    modelPrepRequestDescription: string,
+    modelPrepRequestRequestedUTCDateTime: string,
+    modelPrepRequestIsStarted: boolean,
+    modelPrepRequestIsCompleted: boolean,
+    modelPrepRequestIsSuccessful: boolean,
+    modelPrepRequestIsCanceled: boolean,
+    modelPrepRequestReportUrl?: string,
+    modelPrepRequestResultModelUrl?: string,
+    modelPrepRequestErrorMessage?: string
+  },
+  requestCode: string,
+  error?: string,
+  note?: string
+}
+```
+
+**Use Cases:**
+- Check the current status of a specific AI processing request
+- Retrieve report URL when processing is complete
+- Get result model URL for merging AI-generated additions
+- View error details if processing failed
+
+### 3. list_model_validation_requests
 
 **Purpose:** List validation requests from Model Services with status and results.
 

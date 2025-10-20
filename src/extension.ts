@@ -63,6 +63,8 @@ tools:
   - list_pages
   - save_model
   - close_all_open_views
+  - expand_tree_view
+  - collapse_tree_view
   - secret_word_of_the_day
   - open_user_stories_view
   - open_user_stories_dev_view
@@ -115,6 +117,7 @@ tools:
   - select_model_feature
   - unselect_model_feature
   - list_model_ai_processing_requests
+  - get_model_ai_processing_request_details
   - list_model_validation_requests
   - list_fabrication_blueprint_catalog_items
   - select_fabrication_blueprint
@@ -301,9 +304,11 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 - \`update_lookup_value\` - Modify reference data
 - \`get_lookup_value_schema\` - View lookup value structure
 
-### Model Operations (2 Tools)
+### Model Operations (4 Tools)
 - \`save_model\` - Save the current AppDNA model to file (same as clicking the save icon in tree view)
 - \`close_all_open_views\` - Close all open view panels and webviews
+- \`expand_tree_view\` - Expand all top-level items in the AppDNA tree view (PROJECT, DATA OBJECTS, USER STORIES, PAGES, FLOWS, APIS, ANALYSIS, MODEL SERVICES)
+- \`collapse_tree_view\` - Collapse all items in the AppDNA tree view to their top-level state
 
 ### Wizard Tools (3 Tools)
 - \`open_add_data_object_wizard\` - Wizard for creating new data objects
@@ -368,11 +373,12 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool
 
-### Model Services API Tools (9 Tools)
+### Model Services API Tools (10 Tools)
 - \`list_model_features_catalog_items\` - Retrieve Model Feature Catalog items with selection status and pagination
 - \`select_model_feature\` - Add a model feature from the catalog to your AppDNA model (requires exact name AND version match, updates in memory, marks unsaved changes)
 - \`unselect_model_feature\` - Remove a model feature from your AppDNA model (requires exact name AND version match, only allowed if not marked as completed by AI processing)
 - \`list_model_ai_processing_requests\` - List AI processing requests with status, timestamps, and details
+- \`get_model_ai_processing_request_details\` - Get detailed information for a specific AI processing request by request code
 - \`list_model_validation_requests\` - List validation requests with status, results, and change suggestions
 - \`list_fabrication_blueprint_catalog_items\` - List fabrication blueprints (template sets) with selection status showing which are currently selected in your model
 - \`select_fabrication_blueprint\` - Add a fabrication blueprint from the catalog to your AppDNA model (requires exact name AND version match, re-enables if previously disabled, updates in memory, marks unsaved changes)
@@ -411,7 +417,7 @@ The extension provides specialized navigation tools to help you explore differen
 - Review the lexicon for business terminology definitions
 
 ### MCP Integration
-- **82 Production-Ready Tools**: Complete coverage of all AppDNA functionality including Model Services API access
+- **84 Production-Ready Tools**: Complete coverage of all AppDNA functionality including Model Services API access
 - **GitHub Copilot Integration**: Natural language queries for model exploration and modification
 - **Safe Model Changes**: All modifications go through validated MCP tools, not direct file editing
 - **Real-time Status**: Visual indicators show MCP server running/stopped states

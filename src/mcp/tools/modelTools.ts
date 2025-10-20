@@ -114,4 +114,48 @@ export class ModelTools {
             };
         }
     }
+
+    /**
+     * Expand all top-level tree view items
+     * Expands PROJECT, DATA OBJECTS, USER STORIES, PAGES, FLOWS, APIS, ANALYSIS, and MODEL SERVICES sections
+     * Tool name: expand_tree_view
+     */
+    public async expand_tree_view(): Promise<any> {
+        try {
+            const result = await this.executeCommand('appdna.expandAllTopLevel');
+            return {
+                success: true,
+                message: 'Tree view expanded successfully',
+                note: 'All top-level sections (PROJECT, DATA OBJECTS, USER STORIES, etc.) are now expanded'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred while expanding tree view',
+                note: 'Check that the AppDNA model file is loaded and the extension is running'
+            };
+        }
+    }
+
+    /**
+     * Collapse all tree view items
+     * Collapses all sections in the AppDNA tree view to their top-level state
+     * Tool name: collapse_tree_view
+     */
+    public async collapse_tree_view(): Promise<any> {
+        try {
+            const result = await this.executeCommand('appdna.collapseAllTopLevel');
+            return {
+                success: true,
+                message: 'Tree view collapsed successfully',
+                note: 'All sections in the AppDNA tree view have been collapsed'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred while collapsing tree view',
+                note: 'Check that the extension is running'
+            };
+        }
+    }
 }

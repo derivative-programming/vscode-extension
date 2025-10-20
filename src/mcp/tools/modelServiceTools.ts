@@ -323,6 +323,110 @@ export class ModelServiceTools {
     }
 
     /**
+     * Get AI processing request details
+     * Returns details for a specific AI processing request by request code
+     * Tool name: get_model_ai_processing_request_details
+     * 
+     * @param requestCode - The request code to fetch details for
+     */
+    public async get_model_ai_processing_request_details(requestCode: string): Promise<any> {
+        if (!requestCode || requestCode.trim() === '') {
+            return {
+                success: false,
+                error: 'Request code is required',
+                item: null
+            };
+        }
+
+        const isLoggedIn = await this.checkAuthStatus();
+        if (!isLoggedIn) {
+            return {
+                success: false,
+                error: 'Authentication required. Please log in to Model Services first using the open_login_view tool or click Login under Model Services in the tree view.',
+                item: null
+            };
+        }
+
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                requestCode: requestCode
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/model-services/prep-request-details',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 30000 // 30 second timeout for API calls
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        if (response.success) {
+                            resolve({
+                                success: true,
+                                item: response.item,
+                                requestCode: requestCode
+                            });
+                        } else {
+                            resolve({
+                                success: false,
+                                error: response.error || 'Failed to fetch request details',
+                                item: null,
+                                requestCode: requestCode
+                            });
+                        }
+                    } catch (error) {
+                        resolve({
+                            success: false,
+                            error: 'Invalid response from extension',
+                            item: null,
+                            requestCode: requestCode
+                        });
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                resolve({
+                    success: false,
+                    error: `HTTP bridge connection failed: ${error.message}. Is the extension running and HTTP bridge started?`,
+                    item: null,
+                    requestCode: requestCode,
+                    note: 'Check that you are logged in to Model Services and have an active internet connection'
+                });
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve({
+                    success: false,
+                    error: 'API call timed out. The Model Services API may be slow or unavailable.',
+                    item: null,
+                    requestCode: requestCode
+                });
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
+
+    /**
      * List validation requests
      * Returns paginated list of validation requests from Model Services
      * Tool name: list_model_validation_requests

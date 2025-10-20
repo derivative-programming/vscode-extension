@@ -14,20 +14,11 @@ common types of graphs...
 
 
 tools...
-- expand tree
-- collapse tree
-
-
-model features...
-- done:list_model_feature_catalog_items
-- done:select_model_feature
-- done:unselect_model_feature
-
 
 model ai processing...
 - done:list_model_ai_processing_requests
 - add request
-- get request details
+- test:get_model_ai_processing_request_details
 - download report
 - merge results
 
@@ -37,13 +28,6 @@ model validation...
 - get details
 - download report
 - view change suggestions
-
-
-fabrication blueprint catalog...
-- done:list_fabrication_blueprint_catalog_items
-- done:select_fabrication_blueprint
-- done:unselect_fabrication_blueprint
-
 
 
 model fabrication requests...
