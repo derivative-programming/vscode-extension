@@ -1267,6 +1267,37 @@ export class MCPServer {
             }
         });
 
+        // Register get_model_ai_processing_request_schema tool
+        this.server.registerTool('get_model_ai_processing_request_schema', {
+            title: 'Get Model AI Processing Request Schema',
+            description: 'Get the JSON schema definition for AI processing request objects returned by Model Services API. This schema describes the structure, properties, data types, and status calculation rules for AI processing requests. Use this to understand the format of objects returned by list_model_ai_processing_requests and get_model_ai_processing_request_details.',
+            inputSchema: {},
+            outputSchema: {
+                success: z.boolean(),
+                schema: z.any().describe('JSON schema definition for AI processing request objects'),
+                note: z.string().optional()
+            }
+        }, async () => {
+            try {
+                const result = await this.modelServiceTools.get_model_ai_processing_request_schema();
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message,
+                    schema: null
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register list_model_validation_requests tool
         this.server.registerTool('list_model_validation_requests', {
             title: 'List Model Validation Requests',

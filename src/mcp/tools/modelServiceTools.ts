@@ -427,6 +427,109 @@ export class ModelServiceTools {
     }
 
     /**
+     * Get the Model AI Processing Request schema definition
+     * Tool name: get_model_ai_processing_request_schema
+     * @returns Schema definition for AI processing request objects returned by Model Services API
+     */
+    public async get_model_ai_processing_request_schema(): Promise<any> {
+        return {
+            success: true,
+            schema: {
+                type: "object",
+                description: "AI Processing Request object structure returned by Model Services API",
+                properties: {
+                    modelPrepRequestCode: {
+                        type: "string",
+                        description: "Unique identifier code for the AI processing request",
+                        required: true,
+                        example: "ABC123"
+                    },
+                    modelPrepRequestDescription: {
+                        type: "string",
+                        description: "User-provided description of the AI processing request",
+                        required: true,
+                        example: "Project: MyApp, Version: 1.0.0"
+                    },
+                    modelPrepRequestRequestedUTCDateTime: {
+                        type: "string",
+                        format: "date-time",
+                        description: "UTC timestamp when the request was submitted",
+                        required: true,
+                        example: "2025-10-20T12:00:00Z"
+                    },
+                    modelPrepRequestIsStarted: {
+                        type: "boolean",
+                        description: "Whether the AI processing has started",
+                        required: true,
+                        default: false
+                    },
+                    modelPrepRequestIsCompleted: {
+                        type: "boolean",
+                        description: "Whether the AI processing has completed",
+                        required: true,
+                        default: false
+                    },
+                    modelPrepRequestIsSuccessful: {
+                        type: "boolean",
+                        description: "Whether the AI processing completed successfully (only meaningful if isCompleted is true)",
+                        required: true,
+                        default: false
+                    },
+                    modelPrepRequestIsCanceled: {
+                        type: "boolean",
+                        description: "Whether the request was cancelled by the user",
+                        required: true,
+                        default: false
+                    },
+                    modelPrepRequestReportUrl: {
+                        type: "string",
+                        format: "uri",
+                        description: "URL to download the AI processing report (available when completed)",
+                        required: false,
+                        example: "https://modelservicesapi.derivative-programming.com/reports/ABC123.txt"
+                    },
+                    modelPrepRequestResultModelUrl: {
+                        type: "string",
+                        format: "uri",
+                        description: "URL to download the result model with AI-generated additions (available when successful)",
+                        required: false,
+                        example: "https://modelservicesapi.derivative-programming.com/results/ABC123.json"
+                    },
+                    modelPrepRequestErrorMessage: {
+                        type: "string",
+                        description: "Error message describing why processing failed (only present if isCompleted is true and isSuccessful is false)",
+                        required: false,
+                        example: "Invalid model format"
+                    }
+                },
+                statusCalculation: {
+                    description: "The status can be calculated from the boolean flags",
+                    rules: [
+                        "Queued: isStarted=false AND isCanceled=false",
+                        "Processing: isStarted=true AND isCompleted=false",
+                        "Success: isCompleted=true AND isSuccessful=true",
+                        "Processing Error: isCompleted=true AND isSuccessful=false",
+                        "Cancelled: isCanceled=true"
+                    ]
+                },
+                example: {
+                    modelPrepRequestCode: "ABC123",
+                    modelPrepRequestDescription: "Project: MyApp, Version: 1.0.0",
+                    modelPrepRequestRequestedUTCDateTime: "2025-10-20T12:00:00Z",
+                    modelPrepRequestIsStarted: true,
+                    modelPrepRequestIsCompleted: true,
+                    modelPrepRequestIsSuccessful: true,
+                    modelPrepRequestIsCanceled: false,
+                    modelPrepRequestReportUrl: "https://modelservicesapi.derivative-programming.com/reports/ABC123.txt",
+                    modelPrepRequestResultModelUrl: "https://modelservicesapi.derivative-programming.com/results/ABC123.json",
+                    modelPrepRequestErrorMessage: null
+                }
+            },
+            note: "This schema represents the AI processing request objects returned by the Model Services API. Use list_model_ai_processing_requests to get all requests or get_model_ai_processing_request_details to get a specific request."
+        };
+    }
+
+    /**
      * List validation requests
      * Returns paginated list of validation requests from Model Services
      * Tool name: list_model_validation_requests

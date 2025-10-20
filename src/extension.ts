@@ -118,6 +118,7 @@ tools:
   - unselect_model_feature
   - list_model_ai_processing_requests
   - get_model_ai_processing_request_details
+  - get_model_ai_processing_request_schema
   - list_model_validation_requests
   - list_fabrication_blueprint_catalog_items
   - select_fabrication_blueprint
@@ -373,12 +374,13 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool
 
-### Model Services API Tools (10 Tools)
+### Model Services API Tools (11 Tools)
 - \`list_model_features_catalog_items\` - Retrieve Model Feature Catalog items with selection status and pagination
 - \`select_model_feature\` - Add a model feature from the catalog to your AppDNA model (requires exact name AND version match, updates in memory, marks unsaved changes)
 - \`unselect_model_feature\` - Remove a model feature from your AppDNA model (requires exact name AND version match, only allowed if not marked as completed by AI processing)
 - \`list_model_ai_processing_requests\` - List AI processing requests with status, timestamps, and details
 - \`get_model_ai_processing_request_details\` - Get detailed information for a specific AI processing request by request code
+- \`get_model_ai_processing_request_schema\` - Get JSON schema definition for AI processing request objects
 - \`list_model_validation_requests\` - List validation requests with status, results, and change suggestions
 - \`list_fabrication_blueprint_catalog_items\` - List fabrication blueprints (template sets) with selection status showing which are currently selected in your model
 - \`select_fabrication_blueprint\` - Add a fabrication blueprint from the catalog to your AppDNA model (requires exact name AND version match, re-enables if previously disabled, updates in memory, marks unsaved changes)

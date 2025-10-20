@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **82 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **83 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **82 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **83 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -39,17 +39,18 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
 - **expand_tree_view** - Expand all top-level items in the AppDNA tree view (PROJECT, DATA OBJECTS, USER STORIES, etc.)
 - **collapse_tree_view** - Collapse all items in the AppDNA tree view to their top-level state
 
-#### **Model Services API Tools** (10 tools)
+#### **Model Services API Tools** (11 tools)
 1. **list_model_features_catalog_items** - List available features from Model Services catalog with selection status
 2. **select_model_feature** - Add a model feature from the catalog to your AppDNA model (requires name AND version)
 3. **unselect_model_feature** - Remove a model feature from your AppDNA model (requires name AND version, only if not completed)
 4. **list_model_ai_processing_requests** - List AI processing requests with status and details
 5. **get_model_ai_processing_request_details** - Get detailed information for a specific AI processing request by request code
-6. **list_model_validation_requests** - List validation requests with status and results
-7. **list_fabrication_blueprint_catalog_items** - List available fabrication blueprints (template sets) with selection status
-8. **select_fabrication_blueprint** - Add a fabrication blueprint from the catalog to your AppDNA model (requires name AND version)
-9. **unselect_fabrication_blueprint** - Remove a fabrication blueprint from your AppDNA model (requires name AND version)
-10. **list_model_fabrication_requests** - List fabrication requests with status and download information
+6. **get_model_ai_processing_request_schema** - Get JSON schema definition for AI processing request objects
+7. **list_model_validation_requests** - List validation requests with status and results
+8. **list_fabrication_blueprint_catalog_items** - List available fabrication blueprints (template sets) with selection status
+9. **select_fabrication_blueprint** - Add a fabrication blueprint from the catalog to your AppDNA model (requires name AND version)
+10. **unselect_fabrication_blueprint** - Remove a fabrication blueprint from your AppDNA model (requires name AND version)
+11. **list_model_fabrication_requests** - List fabrication requests with status and download information
    - List tools support pagination (pageNumber, itemCountPerPage)
    - List tools support server-side sorting (orderByColumnName, orderByDescending)
    - All tools require authentication to Model Services
