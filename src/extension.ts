@@ -117,6 +117,8 @@ tools:
   - list_model_ai_processing_requests
   - list_model_validation_requests
   - list_fabrication_blueprint_catalog_items
+  - select_fabrication_blueprint
+  - unselect_fabrication_blueprint
   - list_model_fabrication_requests
 ---
 
@@ -366,13 +368,15 @@ The AppDNA extension provides comprehensive commands accessible through VS Code'
 ### Utility Tools (1 Tool)
 - \`secret_word_of_the_day\` - Test/verification tool
 
-### Model Services API Tools (7 Tools)
+### Model Services API Tools (9 Tools)
 - \`list_model_features_catalog_items\` - Retrieve Model Feature Catalog items with selection status and pagination
 - \`select_model_feature\` - Add a model feature from the catalog to your AppDNA model (requires exact name AND version match, updates in memory, marks unsaved changes)
 - \`unselect_model_feature\` - Remove a model feature from your AppDNA model (requires exact name AND version match, only allowed if not marked as completed by AI processing)
 - \`list_model_ai_processing_requests\` - List AI processing requests with status, timestamps, and details
 - \`list_model_validation_requests\` - List validation requests with status, results, and change suggestions
 - \`list_fabrication_blueprint_catalog_items\` - List fabrication blueprints (template sets) with selection status showing which are currently selected in your model
+- \`select_fabrication_blueprint\` - Add a fabrication blueprint from the catalog to your AppDNA model (requires exact name AND version match, re-enables if previously disabled, updates in memory, marks unsaved changes)
+- \`unselect_fabrication_blueprint\` - Remove a fabrication blueprint from your AppDNA model (requires exact name AND version match, updates in memory, marks unsaved changes)
 - \`list_model_fabrication_requests\` - List fabrication requests with status, download URLs, and generated file information
 
 ## Navigation Tools for AppDNA Views
@@ -407,7 +411,7 @@ The extension provides specialized navigation tools to help you explore differen
 - Review the lexicon for business terminology definitions
 
 ### MCP Integration
-- **80 Production-Ready Tools**: Complete coverage of all AppDNA functionality including Model Services API access
+- **82 Production-Ready Tools**: Complete coverage of all AppDNA functionality including Model Services API access
 - **GitHub Copilot Integration**: Natural language queries for model exploration and modification
 - **Safe Model Changes**: All modifications go through validated MCP tools, not direct file editing
 - **Real-time Status**: Visual indicators show MCP server running/stopped states

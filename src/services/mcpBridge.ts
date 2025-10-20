@@ -1714,6 +1714,170 @@ export class McpBridge {
                                 return;
                             }
                         }
+                        else if (command === 'select_fabrication_blueprint') {
+                            const { blueprintName, version } = requestData;
+                            this.outputChannel.appendLine(`[Command Bridge] Selecting fabrication blueprint: ${blueprintName} v${version}`);
+                            
+                            const modelService = ModelService.getInstance();
+                            if (!modelService || !modelService.isFileLoaded()) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'No model file is loaded. Please load a model file first.',
+                                    blueprintName: blueprintName,
+                                    version: version
+                                }));
+                                return;
+                            }
+                            
+                            const rootModel = modelService.getCurrentModel();
+                            if (!rootModel) {
+                                res.writeHead(500);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'Failed to get current model.',
+                                    blueprintName: blueprintName,
+                                    version: version
+                                }));
+                                return;
+                            }
+                            
+                            // Add the blueprint to the model
+                            const { TemplateSetModel } = require('../data/models/templateSetModel');
+                            
+                            // Ensure the root has a templateSet array
+                            if (!rootModel.templateSet || !Array.isArray(rootModel.templateSet)) {
+                                rootModel.templateSet = [];
+                            }
+                            
+                            // Check if blueprint already exists (match on name AND version)
+                            const existingBlueprintIndex = rootModel.templateSet.findIndex(t => 
+                                t.name === blueprintName && t.version === version
+                            );
+                            
+                            if (existingBlueprintIndex === -1) {
+                                // Add the blueprint
+                                const newBlueprint = new TemplateSetModel({
+                                    name: blueprintName,
+                                    title: "",
+                                    version: version,
+                                    isDisabled: "false"
+                                });
+                                
+                                rootModel.templateSet.push(newBlueprint);
+                                modelService.markUnsavedChanges();
+                                
+                                this.outputChannel.appendLine(`[Command Bridge] Added blueprint ${blueprintName} v${version} to model`);
+                                
+                                res.writeHead(200);
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    message: `Blueprint '${blueprintName}' version '${version}' added to model successfully`,
+                                    blueprintName: blueprintName,
+                                    version: version,
+                                    alreadyExists: false
+                                }));
+                            } else {
+                                // Blueprint already exists, re-enable if disabled
+                                if (rootModel.templateSet[existingBlueprintIndex].isDisabled === "true") {
+                                    rootModel.templateSet[existingBlueprintIndex].isDisabled = "false";
+                                    modelService.markUnsavedChanges();
+                                    this.outputChannel.appendLine(`[Command Bridge] Re-enabled blueprint ${blueprintName} v${version}`);
+                                    
+                                    res.writeHead(200);
+                                    res.end(JSON.stringify({
+                                        success: true,
+                                        message: `Blueprint '${blueprintName}' version '${version}' was re-enabled in the model`,
+                                        blueprintName: blueprintName,
+                                        version: version,
+                                        alreadyExists: true
+                                    }));
+                                } else {
+                                    this.outputChannel.appendLine(`[Command Bridge] Blueprint ${blueprintName} v${version} already exists and is enabled`);
+                                    
+                                    res.writeHead(200);
+                                    res.end(JSON.stringify({
+                                        success: true,
+                                        message: `Blueprint '${blueprintName}' version '${version}' is already in the model`,
+                                        blueprintName: blueprintName,
+                                        version: version,
+                                        alreadyExists: true
+                                    }));
+                                }
+                            }
+                            return;
+                        }
+                        else if (command === 'unselect_fabrication_blueprint') {
+                            const { blueprintName, version } = requestData;
+                            this.outputChannel.appendLine(`[Command Bridge] Unselecting fabrication blueprint: ${blueprintName} v${version}`);
+                            
+                            const modelService = ModelService.getInstance();
+                            if (!modelService || !modelService.isFileLoaded()) {
+                                res.writeHead(400);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'No model file is loaded. Please load a model file first.',
+                                    blueprintName: blueprintName,
+                                    version: version
+                                }));
+                                return;
+                            }
+                            
+                            const rootModel = modelService.getCurrentModel();
+                            if (!rootModel) {
+                                res.writeHead(500);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: 'Failed to get current model.',
+                                    blueprintName: blueprintName,
+                                    version: version
+                                }));
+                                return;
+                            }
+                            
+                            // Remove the blueprint from the model (match on name AND version)
+                            let found = false;
+                            
+                            if (rootModel.templateSet && Array.isArray(rootModel.templateSet)) {
+                                const blueprintIndex = rootModel.templateSet.findIndex(t => 
+                                    t.name === blueprintName && t.version === version
+                                );
+                                
+                                if (blueprintIndex !== -1) {
+                                    found = true;
+                                    
+                                    // Remove the blueprint
+                                    rootModel.templateSet.splice(blueprintIndex, 1);
+                                    modelService.markUnsavedChanges();
+                                    
+                                    this.outputChannel.appendLine(`[Command Bridge] Removed blueprint ${blueprintName} v${version} from model`);
+                                    
+                                    res.writeHead(200);
+                                    res.end(JSON.stringify({
+                                        success: true,
+                                        message: `Blueprint '${blueprintName}' version '${version}' removed from model successfully`,
+                                        blueprintName: blueprintName,
+                                        version: version,
+                                        notFound: false
+                                    }));
+                                    return;
+                                }
+                            }
+                            
+                            if (!found) {
+                                this.outputChannel.appendLine(`[Command Bridge] Blueprint ${blueprintName} v${version} not found in model`);
+                                
+                                res.writeHead(404);
+                                res.end(JSON.stringify({
+                                    success: false,
+                                    error: `Blueprint '${blueprintName}' version '${version}' not found in the model`,
+                                    blueprintName: blueprintName,
+                                    version: version,
+                                    notFound: true
+                                }));
+                                return;
+                            }
+                        }
                         
                         // Handle regular VS Code commands
                         this.outputChannel.appendLine(`[Command Bridge] Executing command: ${command}`);

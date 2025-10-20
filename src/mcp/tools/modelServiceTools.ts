@@ -652,4 +652,148 @@ export class ModelServiceTools {
             req.end();
         });
     }
+
+    /**
+     * Select (add) a fabrication blueprint from the catalog
+     * Tool name: select_fabrication_blueprint
+     * 
+     * @param blueprintName - Name of the blueprint to select (must match catalog item name exactly)
+     * @param version - Version of the blueprint (must match catalog item version exactly)
+     */
+    public async select_fabrication_blueprint(
+        blueprintName: string,
+        version: string
+    ): Promise<any> {
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                command: 'select_fabrication_blueprint',
+                blueprintName,
+                version
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/execute-command',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 5000
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        resolve(response);
+                    } catch (error) {
+                        resolve({
+                            success: false,
+                            error: 'Invalid response from extension'
+                        });
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                resolve({
+                    success: false,
+                    error: `Failed to connect to extension: ${error.message}. Is the extension running?`
+                });
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve({
+                    success: false,
+                    error: 'Request timed out'
+                });
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
+
+    /**
+     * Unselect (remove) a fabrication blueprint from the catalog
+     * Tool name: unselect_fabrication_blueprint
+     * 
+     * @param blueprintName - Name of the blueprint to unselect (must match catalog item name exactly)
+     * @param version - Version of the blueprint (must match catalog item version exactly)
+     */
+    public async unselect_fabrication_blueprint(
+        blueprintName: string,
+        version: string
+    ): Promise<any> {
+        return new Promise((resolve) => {
+            const http = require('http');
+            
+            const postData = JSON.stringify({ 
+                command: 'unselect_fabrication_blueprint',
+                blueprintName,
+                version
+            });
+            
+            const options = {
+                hostname: 'localhost',
+                port: 3002,
+                path: '/api/execute-command',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                },
+                timeout: 5000
+            };
+
+            const req = http.request(options, (res: any) => {
+                let data = '';
+                
+                res.on('data', (chunk: any) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(data);
+                        resolve(response);
+                    } catch (error) {
+                        resolve({
+                            success: false,
+                            error: 'Invalid response from extension'
+                        });
+                    }
+                });
+            });
+
+            req.on('error', (error: any) => {
+                resolve({
+                    success: false,
+                    error: `Failed to connect to extension: ${error.message}. Is the extension running?`
+                });
+            });
+
+            req.on('timeout', () => {
+                req.destroy();
+                resolve({
+                    success: false,
+                    error: 'Request timed out'
+                });
+            });
+
+            req.write(postData);
+            req.end();
+        });
+    }
 }

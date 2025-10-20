@@ -1402,6 +1402,84 @@ export class MCPServer {
             }
         });
 
+        // Register select_fabrication_blueprint tool
+        this.server.registerTool('select_fabrication_blueprint', {
+            title: 'Select Fabrication Blueprint',
+            description: 'Add a fabrication blueprint (template set) from the catalog to your AppDNA model. Matching is done on both name AND version. The blueprint will be added to the root templateSet array. If the blueprint already exists (same name and version), it will be re-enabled if disabled. The model is updated in memory and marked as having unsaved changes. Use list_fabrication_blueprint_catalog_items to find available blueprints first.',
+            inputSchema: {
+                blueprintName: z.string().describe('Exact name of the blueprint from the catalog (case-sensitive, must match catalog item name exactly)'),
+                version: z.string().describe('Exact version of the blueprint from the catalog (must match catalog item version exactly)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional(),
+                blueprintName: z.string().optional(),
+                version: z.string().optional(),
+                alreadyExists: z.boolean().optional().describe('True if blueprint was already in the model'),
+                error: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.select_fabrication_blueprint(
+                    args.blueprintName,
+                    args.version
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register unselect_fabrication_blueprint tool
+        this.server.registerTool('unselect_fabrication_blueprint', {
+            title: 'Unselect Fabrication Blueprint',
+            description: 'Remove a fabrication blueprint (template set) from your AppDNA model. Matching is done on both name AND version. The blueprint will be removed from the root templateSet array. The model is updated in memory and marked as having unsaved changes.',
+            inputSchema: {
+                blueprintName: z.string().describe('Exact name of the blueprint to remove (case-sensitive, must match existing blueprint name)'),
+                version: z.string().describe('Exact version of the blueprint to remove (must match existing blueprint version)')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional(),
+                blueprintName: z.string().optional(),
+                version: z.string().optional(),
+                notFound: z.boolean().optional().describe('True if the blueprint was not found in the model'),
+                error: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.unselect_fabrication_blueprint(
+                    args.blueprintName,
+                    args.version
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // ===== USER STORY VIEW OPENING TOOLS =====
         // Register secret_word_of_the_day tool
         this.server.registerTool('secret_word_of_the_day', {

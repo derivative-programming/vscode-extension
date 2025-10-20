@@ -41,7 +41,8 @@ model validation...
 
 fabrication blueprint catalog...
 - done:list_fabrication_blueprint_catalog_items
-- select blueprint
+- done:select_fabrication_blueprint
+- done:unselect_fabrication_blueprint
 
 
 

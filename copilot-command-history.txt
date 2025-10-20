@@ -1,4 +1,176 @@
 ===============================================================================
+DATE: October 20, 2025
+COMMAND: Update blueprint tools to match on name AND version
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested that fabrication blueprint select/unselect tools match on both name AND version
+(same as model features), remove title parameter from select, and add version parameter to unselect.
+
+CHANGES MADE:
+1. src/mcp/tools/modelServiceTools.ts
+   - select_fabrication_blueprint: Removed title parameter, made version required
+   - unselect_fabrication_blueprint: Added version parameter as required
+   - Updated JSDoc comments to reflect name AND version matching
+
+2. src/mcp/server.ts
+   - select_fabrication_blueprint: Removed title from inputSchema, made version required
+   - unselect_fabrication_blueprint: Added version to inputSchema as required
+   - Updated tool descriptions to mention "Matching is done on both name AND version"
+   - Updated outputSchema to include version field in responses
+
+3. src/services/mcpBridge.ts
+   - select_fabrication_blueprint: Changed findIndex to match on both name AND version
+   - unselect_fabrication_blueprint: Changed findIndex to match on both name AND version
+   - Updated log messages to include version (e.g., "blueprintName v1.0.0")
+   - Updated response messages to mention both name and version
+   - Removed title parameter from request destructuring, sets title to ""
+
+4. MCP_README.md
+   - Updated tool descriptions to indicate name AND version requirements
+   - Changed note from "Blueprint select/unselect tools match on name only" to 
+     "All select/unselect tools match on both name AND version"
+
+5. src/extension.ts (ChatMode instructions)
+   - Updated select_fabrication_blueprint and unselect_fabrication_blueprint descriptions
+   - Changed from "matches on name only" to "requires exact name AND version match"
+
+RATIONALE:
+- Blueprints, like features, can have multiple versions in the catalog
+- Matching on both name and version ensures precise blueprint identification
+- Prevents accidentally selecting/unselecting the wrong version
+- Creates consistency between feature and blueprint selection tools
+- Title should come from catalog data, not user input
+
+BLUEPRINT MATCHING LOGIC (UPDATED):
+```typescript
+// Select: Match on name AND version
+const existingIndex = rootModel.templateSet.findIndex(t => 
+    t.name === blueprintName && t.version === version
+);
+
+// Unselect: Match on name AND version
+const blueprintIndex = rootModel.templateSet.findIndex(t => 
+    t.name === blueprintName && t.version === version
+);
+```
+
+TESTING:
+- TypeScript compilation successful (npm run compile)
+- MCP compilation successful
+
+ARCHITECTURE NOTES:
+- Both features and blueprints now use name + version matching
+- This prevents version conflicts and ensures precise identification
+- TemplateSetModel has name, title, version, isDisabled properties
+- The findIndex now uses: t => t.name === blueprintName && t.version === version
+
+===============================================================================
+DATE: October 20, 2025
+COMMAND: Add select/unselect fabrication blueprint MCP tools
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested MCP tools to select and unselect fabrication blueprint catalog items,
+similar to how the Fabrication Blueprint Catalog view allows users to toggle blueprints
+via checkboxes.
+
+IMPLEMENTATION:
+Added two new MCP tools following the pattern used in fabricationBlueprintCatalogCommands.ts:
+1. select_fabrication_blueprint - Add a blueprint to the model's templateSet array
+2. unselect_fabrication_blueprint - Remove a blueprint from the model's templateSet array
+
+KEY DIFFERENCES FROM MODEL FEATURES:
+- Blueprints use TemplateSetModel (not ModelFeatureModel)
+- Blueprints are stored in rootModel.templateSet (not namespace.modelFeature)
+- Blueprints match on name ONLY (not name + version)
+- Blueprints have isDisabled property (select re-enables if disabled)
+- No completion check (blueprints can always be removed, unlike completed features)
+
+FILES MODIFIED:
+1. src/mcp/tools/modelServiceTools.ts
+   - Added select_fabrication_blueprint(blueprintName, title?, version?) method
+   - Added unselect_fabrication_blueprint(blueprintName) method
+   - Both use HTTP bridge on port 3002
+
+2. src/mcp/server.ts
+   - Registered select_fabrication_blueprint tool with Zod schema
+   - Registered unselect_fabrication_blueprint tool with Zod schema
+   - inputSchema: blueprintName (required), title/version (optional for select)
+   - outputSchema: success, message, blueprintName, alreadyExists/notFound, error
+
+3. src/services/mcpBridge.ts
+   - Added select_fabrication_blueprint handler in /api/execute-command
+   - Added unselect_fabrication_blueprint handler in /api/execute-command
+   - Uses TemplateSetModel to create new blueprint instances
+   - Handles isDisabled flag (re-enables disabled blueprints on select)
+   - Removes blueprints by splicing from templateSet array
+
+4. MCP_README.md
+   - Updated tool count from 77 to 79
+   - Updated Model Services API Tools section from 7 to 9 tools
+   - Added descriptions for select_fabrication_blueprint and unselect_fabrication_blueprint
+   - Added note about blueprint matching on name only (vs features matching on name+version)
+
+5. src/extension.ts
+   - Updated ChatMode YAML tools list to include new tools
+   - Updated Model Services API Tools section from 7 to 9 tools
+   - Updated tool count from 80 to 82 in MCP Integration section
+   - Added detailed descriptions with matching rules
+
+6. todo.md
+   - Marked select_fabrication_blueprint as done
+   - Marked unselect_fabrication_blueprint as done
+
+7. copilot-command-history.txt
+   - Added this entry documenting the implementation
+
+BLUEPRINT SELECTION LOGIC:
+```typescript
+// Select: Add or re-enable blueprint
+if (!rootModel.templateSet) {
+    rootModel.templateSet = [];
+}
+const existingIndex = rootModel.templateSet.findIndex(t => t.name === blueprintName);
+if (existingIndex === -1) {
+    // Add new blueprint
+    rootModel.templateSet.push(new TemplateSetModel({
+        name: blueprintName,
+        title: title || "",
+        version: version || "",
+        isDisabled: "false"
+    }));
+} else if (rootModel.templateSet[existingIndex].isDisabled === "true") {
+    // Re-enable disabled blueprint
+    rootModel.templateSet[existingIndex].isDisabled = "false";
+}
+
+// Unselect: Remove blueprint
+const blueprintIndex = rootModel.templateSet.findIndex(t => t.name === blueprintName);
+if (blueprintIndex !== -1) {
+    rootModel.templateSet.splice(blueprintIndex, 1);
+}
+```
+
+TESTING:
+- TypeScript compilation successful (npm run compile)
+- MCP compilation successful
+
+ARCHITECTURE NOTES:
+- Blueprints are simpler than features (no completion status to check)
+- TemplateSetModel properties: name, title, version, isDisabled
+- Unlike features, blueprints don't prevent removal based on state
+- Blueprints are stored at root level (not in namespaces)
+- Matching on name only is sufficient for blueprint identification
+
+TOOL COUNT UPDATE:
+- Previous: 77 MCP tools (7 Model Services tools)
+- New: 79 MCP tools (9 Model Services tools)
+- ChatMode includes view tools, so total is 82 tools
+
+===============================================================================
 DATE: October 19, 2025
 COMMAND: Update select/unselect feature tools to match on name AND version
 STATUS: ✅ COMPLETED
