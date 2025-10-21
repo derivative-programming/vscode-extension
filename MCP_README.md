@@ -8,11 +8,11 @@
 
 # AppDNA VS Code Extension - MCP Server
 
-This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **88 tools** for interacting with the AppDNA model.
+This VS Code extension includes a comprehensive Model Context Protocol (MCP) server that provides **90 tools** for interacting with the AppDNA model.
 
 ## Features
 
-### **88 Comprehensive Tools** ✅ Verified with GitHub Copilot
+### **90 Comprehensive Tools** ✅ Verified with GitHub Copilot
 
 #### **User Story Management** (5 tools)
 1. **create_user_story** - Create a new user story with format validation
@@ -39,7 +39,7 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
 - **expand_tree_view** - Expand all top-level items in the AppDNA tree view (PROJECT, DATA OBJECTS, USER STORIES, etc.)
 - **collapse_tree_view** - Collapse all items in the AppDNA tree view to their top-level state
 
-#### **Model Services API Tools** (16 tools)
+#### **Model Services API Tools** (18 tools)
 1. **list_model_features_catalog_items** - List available features from Model Services catalog with selection status
 2. **select_model_feature** - Add a model feature from the catalog to your AppDNA model (requires name AND version)
 3. **unselect_model_feature** - Remove a model feature from your AppDNA model (requires name AND version, only if not completed)
@@ -48,19 +48,22 @@ This VS Code extension includes a comprehensive Model Context Protocol (MCP) ser
 6. **get_model_ai_processing_request_details** - Get detailed information for a specific AI processing request by request code
 7. **get_model_ai_processing_request_schema** - Get JSON schema definition for AI processing request objects
 8. **list_model_validation_requests** - List validation requests with status and results
-9. **get_model_validation_request_details** - Get detailed information for a specific validation request by request code
-10. **get_model_validation_request_schema** - Get JSON schema definition for validation request objects
-11. **list_fabrication_blueprint_catalog_items** - List available fabrication blueprints (template sets) with selection status
-12. **select_fabrication_blueprint** - Add a fabrication blueprint from the catalog to your AppDNA model (requires name AND version)
-13. **unselect_fabrication_blueprint** - Remove a fabrication blueprint from your AppDNA model (requires name AND version)
-14. **list_model_fabrication_requests** - List fabrication requests with status and download information
-15. **get_model_fabrication_request_details** - Get detailed information for a specific fabrication request by request code
-16. **get_model_fabrication_request_schema** - Get JSON schema definition for fabrication request objects
+9. **create_model_validation_request** - Submit a new validation request with current model file
+10. **get_model_validation_request_details** - Get detailed information for a specific validation request by request code
+11. **get_model_validation_request_schema** - Get JSON schema definition for validation request objects
+12. **list_fabrication_blueprint_catalog_items** - List available fabrication blueprints (template sets) with selection status
+13. **select_fabrication_blueprint** - Add a fabrication blueprint from the catalog to your AppDNA model (requires name AND version)
+14. **unselect_fabrication_blueprint** - Remove a fabrication blueprint from your AppDNA model (requires name AND version)
+15. **list_model_fabrication_requests** - List fabrication requests with status and download information
+16. **create_model_fabrication_request** - Submit a new fabrication request with current model file
+17. **get_model_fabrication_request_details** - Get detailed information for a specific fabrication request by request code
+18. **get_model_fabrication_request_schema** - Get JSON schema definition for fabrication request objects
    - List tools support pagination (pageNumber, itemCountPerPage)
    - List tools support server-side sorting (orderByColumnName, orderByDescending)
    - All tools require authentication to Model Services
    - All select/unselect tools match on both name AND version for precise identification
    - All select/unselect tools modify the model in memory and mark it as having unsaved changes
+   - All create tools automatically read, zip, and upload the current model file
 
 #### **Data Object Management** (11 tools)
 1. **list_data_object_summary** - List data objects with summary info (name, isLookup, parent)

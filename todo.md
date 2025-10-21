@@ -17,7 +17,7 @@ tools...
 
 model ai processing...
 - done:list_model_ai_processing_requests
-- add request
+- done:add request
 - done:get_model_ai_processing_request_details
 - done:get schema
 - download report

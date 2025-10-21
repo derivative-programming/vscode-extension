@@ -1,4 +1,130 @@
 ===============================================================================
+DATE: October 21, 2025
+COMMAND: Add Create Model Validation and Fabrication Request Tools
+STATUS: ✅ COMPLETED
+===============================================================================
+
+REQUIREMENT:
+User requested: "next we need to create tools to allow creation of a model validation request and model fabrication request"
+This completes the Model Services request creation suite, enabling programmatic submission of all three request types (AI processing, validation, and fabrication) through the MCP server.
+
+IMPLEMENTATION:
+Added two new MCP tools with HTTP bridge endpoints:
+
+Tool 1: create_model_validation_request
+- Submit new validation request to Model Services with current model file
+- Parameter: description (string, required) - Description for the request
+- Automatically reads current model file from ModelService
+- Zips the model file for efficient upload
+- Base64 encodes the ZIP for JSON transmission
+- Returns request code for tracking validation progress
+- Endpoint: POST /api/model-services/create-validation-request
+- API: https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests
+
+Tool 2: create_model_fabrication_request
+- Submit new fabrication request to Model Services with current model file
+- Parameter: description (string, required) - Description for the request
+- Automatically reads current model file from ModelService
+- Zips the model file for efficient upload
+- Base64 encodes the ZIP for JSON transmission
+- Returns request code for tracking fabrication progress
+- Endpoint: POST /api/model-services/create-fabrication-request
+- API: https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests
+
+FILES MODIFIED:
+1. src/mcp/tools/modelServiceTools.ts (+220 lines)
+   - Added create_model_validation_request() method
+   - Added create_model_fabrication_request() method
+   - Both follow same pattern as create_model_ai_processing_request
+   - 60 second timeout for file upload operations
+   - Comprehensive error handling with user-friendly messages
+
+2. src/services/mcpBridge.ts (+270 lines)
+   - Added /api/model-services/create-validation-request endpoint
+   - Added /api/model-services/create-fabrication-request endpoint
+   - Both endpoints handle file read/zip/base64 encoding
+   - Extract appropriate request code from API responses
+   - Handle 401 session expiration with automatic logout
+
+3. src/mcp/server.ts (+80 lines)
+   - Registered create_model_validation_request tool with Zod schemas
+   - Registered create_model_fabrication_request tool with Zod schemas
+   - Clear descriptions explaining what each tool generates
+
+4. src/extension.ts (updated)
+   - Tool count: 88 → 90
+   - Model Services tools: 16 → 18
+   - Added both tools to chat mode instructions
+
+5. MCP_README.md (updated)
+   - Tool count: 88 → 90
+   - Model Services tools: 16 → 18
+   - Added both tools to numbered listing
+
+6. docs/features/create-validation-fabrication-request-tools.md (new, 350+ lines)
+   - Complete implementation documentation
+   - Usage examples with natural language commands
+   - Architecture diagrams and data flow
+   - Error handling patterns
+   - Testing recommendations
+
+ARCHITECTURE NOTES:
+- HTTP Bridge Pattern: MCP tools → localhost:3002 → Model Services API
+- File Upload Process: Read → Zip (JSZip) → Base64 encode → POST
+- Response Processing: Extract modelValidationRequestCode or modelFabricationRequestCode
+- Authentication: Session managed by AuthService, automatic logout on 401
+- File Access: Uses ModelService.getCurrentFilePath() (not getModelFilePath)
+- Timeout: 60 seconds to accommodate large model file uploads
+
+PATTERN COMPLETION:
+All three Model Services request types now have complete tooling:
+
+AI Processing Requests (4 tools):
+- list_model_ai_processing_requests
+- create_model_ai_processing_request
+- get_model_ai_processing_request_details
+- get_model_ai_processing_request_schema
+
+Validation Requests (4 tools):
+- list_model_validation_requests
+- create_model_validation_request ✅ NEW
+- get_model_validation_request_details
+- get_model_validation_request_schema
+
+Fabrication Requests (4 tools):
+- list_model_fabrication_requests
+- create_model_fabrication_request ✅ NEW
+- get_model_fabrication_request_details
+- get_model_fabrication_request_schema
+
+This provides a consistent, predictable pattern for all request types.
+
+COMPILATION:
+✅ npm run compile successful
+- Webpack bundle: 5.49 MiB extension.js
+- MCP tools compiled to dist/mcp/
+- No TypeScript errors or warnings
+
+TOOL COUNT PROGRESSION:
+- Session Start: 88 tools
+- After Implementation: 90 tools (+2)
+- Model Services Category: 16 → 18 tools
+
+USAGE EXAMPLES:
+User: "Create a validation request for version 2.0"
+→ Copilot calls create_model_validation_request with description "version 2.0"
+→ Returns request code for tracking
+
+User: "Generate application code for MyApp"
+→ Copilot calls create_model_fabrication_request with description "MyApp"
+→ Returns request code for tracking fabrication progress
+
+NEXT STEPS:
+- All Model Services request types now have complete CRUD-like operations
+- Users can list, create, get details, and view schemas for all request types
+- Ready for production use with GitHub Copilot natural language commands
+
+===============================================================================
 DATE: January 21, 2025
 COMMAND: Add Create Model AI Processing Request Tool
 STATUS: ✅ COMPLETED

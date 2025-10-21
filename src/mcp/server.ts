@@ -1304,6 +1304,80 @@ export class MCPServer {
             }
         });
 
+        // Register create_model_validation_request tool
+        this.server.registerTool('create_model_validation_request', {
+            title: 'Create Model Validation Request',
+            description: 'Submit a new validation request to Model Services with the current AppDNA model file. The validation service will analyze your model for errors, inconsistencies, and potential improvements, and provide a detailed report. The model file is automatically read, zipped, and uploaded. Returns the request code for tracking. Requires authentication to Model Services and an open model file.',
+            inputSchema: {
+                description: z.string().describe('Description for the validation request (e.g., "Project: MyApp, Version: 1.0.0")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional().describe('Success message'),
+                requestCode: z.string().optional().describe('The generated request code for tracking'),
+                description: z.string().optional().describe('The description that was submitted'),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.create_model_validation_request(
+                    args.description
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
+        // Register create_model_fabrication_request tool
+        this.server.registerTool('create_model_fabrication_request', {
+            title: 'Create Model Fabrication Request',
+            description: 'Submit a new fabrication request to Model Services with the current AppDNA model file. The fabrication service will generate complete application code from your model including database schemas, APIs, UI components, and deployment configurations. The model file is automatically read, zipped, and uploaded. Returns the request code for tracking. Requires authentication to Model Services and an open model file.',
+            inputSchema: {
+                description: z.string().describe('Description for the fabrication request (e.g., "Project: MyApp, Version: 1.0.0")')
+            },
+            outputSchema: {
+                success: z.boolean(),
+                message: z.string().optional().describe('Success message'),
+                requestCode: z.string().optional().describe('The generated request code for tracking'),
+                description: z.string().optional().describe('The description that was submitted'),
+                error: z.string().optional(),
+                note: z.string().optional()
+            }
+        }, async (args: any) => {
+            try {
+                const result = await this.modelServiceTools.create_model_fabrication_request(
+                    args.description
+                );
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                    structuredContent: result
+                };
+            } catch (error) {
+                const errorResult = {
+                    success: false,
+                    error: error.message
+                };
+                return {
+                    content: [{ type: 'text', text: JSON.stringify(errorResult, null, 2) }],
+                    structuredContent: errorResult,
+                    isError: true
+                };
+            }
+        });
+
         // Register get_model_validation_request_details tool
         this.server.registerTool('get_model_validation_request_details', {
             title: 'Get Model Validation Request Details',

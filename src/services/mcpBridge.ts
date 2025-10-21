@@ -2330,6 +2330,262 @@ export class McpBridge {
                     }
                 });
             }
+            else if (req.url?.startsWith('/api/model-services/create-validation-request')) {
+                // Proxy to Model Services API - Create Validation Request
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { description } = body ? JSON.parse(body) : {};
+                        
+                        if (!description) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Description is required'
+                            }));
+                            return;
+                        }
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Get model file path from ModelService
+                        const { ModelService } = require('./modelService');
+                        const modelService = ModelService.getInstance();
+                        const modelFilePath = modelService.getCurrentFilePath();
+                        
+                        if (!modelFilePath) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'No model file is loaded. Please open a model file first.'
+                            }));
+                            return;
+                        }
+                        
+                        // Read and zip the model file
+                        const fs = require('fs');
+                        const JSZip = require('jszip');
+                        
+                        let modelFileData: string;
+                        try {
+                            const fileContent = fs.readFileSync(modelFilePath, 'utf8');
+                            const zip = new JSZip();
+                            zip.file('model.json', fileContent);
+                            const archive = await zip.generateAsync({ type: 'nodebuffer' });
+                            modelFileData = archive.toString('base64');
+                        } catch (error: any) {
+                            this.outputChannel.appendLine(`[Command Bridge] Failed to read or zip model file: ${error.message}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Failed to read or zip model file: ' + error.message
+                            }));
+                            return;
+                        }
+                        
+                        // Build the payload
+                        const payload = {
+                            description: description,
+                            modelFileData: modelFileData
+                        };
+                        
+                        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/validation-requests';
+                        
+                        // Make the API call
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 
+                                'Api-Key': apiKey,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (response.status === 401) {
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(`API returned status ${response.status}: ${errorText}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // Extract request code from response
+                        let requestCode = null;
+                        if (data && data.modelValidationRequestCode) {
+                            requestCode = data.modelValidationRequestCode;
+                        }
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify({
+                            success: true,
+                            requestCode: requestCode,
+                            message: 'Validation request created successfully'
+                        }));
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error creating validation request: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to create validation request'
+                        }));
+                    }
+                });
+            }
+            else if (req.url?.startsWith('/api/model-services/create-fabrication-request')) {
+                // Proxy to Model Services API - Create Fabrication Request
+                let body = '';
+                
+                req.on('data', (chunk: any) => {
+                    body += chunk.toString();
+                });
+                
+                req.on('end', async () => {
+                    try {
+                        const { description } = body ? JSON.parse(body) : {};
+                        
+                        if (!description) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Description is required'
+                            }));
+                            return;
+                        }
+                        
+                        const { AuthService } = require('./authService');
+                        const authService = AuthService.getInstance();
+                        const apiKey = await authService.getApiKey();
+
+                        if (!apiKey) {
+                            res.writeHead(401);
+                            res.end(JSON.stringify({ 
+                                success: false,
+                                error: 'Authentication required. Please log in to Model Services.'
+                            }));
+                            return;
+                        }
+                        
+                        // Get model file path from ModelService
+                        const { ModelService } = require('./modelService');
+                        const modelService = ModelService.getInstance();
+                        const modelFilePath = modelService.getCurrentFilePath();
+                        
+                        if (!modelFilePath) {
+                            res.writeHead(400);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'No model file is loaded. Please open a model file first.'
+                            }));
+                            return;
+                        }
+                        
+                        // Read and zip the model file
+                        const fs = require('fs');
+                        const JSZip = require('jszip');
+                        
+                        let modelFileData: string;
+                        try {
+                            const fileContent = fs.readFileSync(modelFilePath, 'utf8');
+                            const zip = new JSZip();
+                            zip.file('model.json', fileContent);
+                            const archive = await zip.generateAsync({ type: 'nodebuffer' });
+                            modelFileData = archive.toString('base64');
+                        } catch (error: any) {
+                            this.outputChannel.appendLine(`[Command Bridge] Failed to read or zip model file: ${error.message}`);
+                            res.writeHead(500);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Failed to read or zip model file: ' + error.message
+                            }));
+                            return;
+                        }
+                        
+                        // Build the payload
+                        const payload = {
+                            description: description,
+                            modelFileData: modelFileData
+                        };
+                        
+                        const url = 'https://modelservicesapi.derivative-programming.com/api/v1_0/fabrication-requests';
+                        
+                        // Make the API call
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 
+                                'Api-Key': apiKey,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        // Check for unauthorized errors
+                        if (response.status === 401) {
+                            await authService.logout();
+                            res.writeHead(401);
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: 'Your session has expired. Please log in again.'
+                            }));
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(`API returned status ${response.status}: ${errorText}`);
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // Extract request code from response
+                        let requestCode = null;
+                        if (data && data.modelFabricationRequestCode) {
+                            requestCode = data.modelFabricationRequestCode;
+                        }
+                        
+                        res.writeHead(200);
+                        res.end(JSON.stringify({
+                            success: true,
+                            requestCode: requestCode,
+                            message: 'Fabrication request created successfully'
+                        }));
+                        
+                    } catch (error: any) {
+                        this.outputChannel.appendLine(`[Command Bridge] Error creating fabrication request: ${error.message}`);
+                        res.writeHead(500);
+                        res.end(JSON.stringify({
+                            success: false,
+                            error: error.message || 'Failed to create fabrication request'
+                        }));
+                    }
+                });
+            }
             else if (req.url?.startsWith('/api/model-services/validation-request-details')) {
                 // Proxy to Model Services API - Get Single Validation Request Details
                 let body = '';
